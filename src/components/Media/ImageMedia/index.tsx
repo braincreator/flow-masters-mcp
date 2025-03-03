@@ -2,7 +2,7 @@
 
 import type { StaticImageData } from 'next/image'
 
-import { cn } from 'src/utilities/cn'
+import { cn } from '@/utilities/ui'
 import NextImage from 'next/image'
 import React from 'react'
 
@@ -35,22 +35,27 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   let src: StaticImageData | string = srcFromProps || ''
 
   if (!src && resource && typeof resource === 'object') {
-    const {
-      alt: altFromResource,
-      filename: fullFilename,
-      height: fullHeight,
-      url,
-      width: fullWidth,
-    } = resource
+    const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
 
     width = fullWidth!
     height = fullHeight!
     alt = altFromResource || ''
 
-    src = `${getClientSideURL()}${url}`
+    const cacheTag = resource.updatedAt;
+
+    const s3Endpoint = process.env.S3_ENDPOINT;
+    // const isS3Enabled = s3Endpoint !== undefined;
+    // if (isS3Enabled) {
+      src = `${resource?.url}?${cacheTag}`; // Use resource?.url directly as it's the full S3 URL
+      console.log('S3 URL:', src);
+    // } else {
+    //   src = `${getClientSideURL()}${resource?.url}?${cacheTag}`; // Fallback to local URL
+    //   console.log('Local URL:', src);
+    // }
+    
   }
 
-  const loading = loadingFromProps || 'lazy'
+  const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
 
   // NOTE: this is used by the browser to determine which image to download at different screen sizes
   const sizes = sizeFromProps

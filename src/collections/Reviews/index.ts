@@ -1,7 +1,11 @@
-import { CollectionConfig } from 'payload/types';
+import { CollectionConfig } from 'payload';
 
 export const Reviews: CollectionConfig<'reviews'> = {
     slug: 'reviews',
+    labels: {
+        singular: 'Review',
+        plural: 'Reviews',
+    },
     admin: {
         useAsTitle: 'clientName',
     },

@@ -18,6 +18,10 @@ const nextConfig = {
           protocol: url.protocol.replace(':', ''),
         }
       }),
+      {
+        hostname: 'flow-masters-bucket.s3.cloud.ru',
+        protocol: 'https',
+      }
     ],
   },
   reactStrictMode: true,

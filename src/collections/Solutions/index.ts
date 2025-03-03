@@ -1,7 +1,11 @@
-import { CollectionConfig } from 'payload/types';
+import { CollectionConfig } from 'payload';
 
 export const Solutions: CollectionConfig<'solutions'>= {
     slug: 'solutions',
+   labels: {
+        singular: 'Solution',
+        plural: 'Solutions',
+    },
     admin: {
         useAsTitle: 'name',
     },
@@ -71,7 +75,7 @@ export const Solutions: CollectionConfig<'solutions'>= {
                     hooks: {
                         beforeChange: [
                             ({ data }) => {
-                                if (data.pricing && data.pricing.basePrice) {
+                                if (data && data.pricing && data.pricing.basePrice) {
                                     const basePrice = data.pricing.basePrice;
                                     const discountPercentage = data.pricing.discountPercentage || 0;
                                     return {

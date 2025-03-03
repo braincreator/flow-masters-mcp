@@ -1,0 +1,52 @@
+{
+  "collections": {
+    "pages": [
+      {
+        "slug": "landing",
+        "title": "Главная страница",
+        "content": [
+          {
+            "blockType": "banner",
+            "bannerText": "Добро пожаловать на сайт об AI автоматизации!",
+            "bannerLink": {
+              "type": "page",
+              "page": null
+            }
+          },
+          {
+            "blockType": "hero",
+            "title": "AI Автоматизация для вашего бизнеса",
+            "description": "Упростите рабочие процессы и увеличьте эффективность с помощью искусственного интеллекта.",
+            "image": null
+          },
+          {
+            "blockType": "grid",
+            "rows": [
+              {
+                "columns": [
+                  {
+                    "size": "one-third",
+                    "content": "Улучшенная производительность"
+                  },
+                  {
+                    "size": "one-third",
+                    "content": "Снижение затрат"
+                  },
+                  {
+                    "size": "one-third",
+                    "content": "Инновационные решения"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "blockType": "testimonial",
+            "quote": "AI автоматизация изменила наш бизнес к лучшему!",
+            "author": "Довольный клиент"
+          }
+        ]
+      }
+    ]
+  }
+}

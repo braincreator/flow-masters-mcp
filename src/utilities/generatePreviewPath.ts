@@ -8,30 +8,18 @@ const collectionPrefixMap: Partial<Record<CollectionSlug, string>> = {
 type Props = {
   collection: keyof typeof collectionPrefixMap
   slug: string
-  req?: PayloadRequest // TODO: make this required once 3.5.1 is out, it's a new argument in that version
+  req: PayloadRequest
 }
 
-export const generatePreviewPath = ({ collection, slug, req }: Props) => {
-  const path = `${collectionPrefixMap[collection]}/${slug}`
-
-  const params = {
+export const generatePreviewPath = ({ collection, slug }: Props) => {
+  const encodedParams = new URLSearchParams({
     slug,
     collection,
-    path,
-  }
-
-  const encodedParams = new URLSearchParams()
-
-  Object.entries(params).forEach(([key, value]) => {
-    encodedParams.append(key, value)
+    path: `${collectionPrefixMap[collection]}/${slug}`,
+    previewSecret: process.env.PREVIEW_SECRET || '',
   })
 
-  let url = `/next/preview?${encodedParams.toString()}`
-
-  // TODO: remove this check once 3.5.1 is out, see note above
-  if (req) {
-    url = `${req.protocol}//${req.host}${url}`
-  }
+  const url = `/next/preview?${encodedParams.toString()}`
 
   return url
 }
