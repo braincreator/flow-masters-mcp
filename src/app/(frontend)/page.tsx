@@ -1,5 +1,12 @@
-import PageTemplate, { generateMetadata } from './[slug]/page'
+import { redirect } from 'next/navigation'
+import { generateMetadata as baseGenerateMetadata } from './[lang]/[slug]/page'
 
-export default PageTemplate
+// Redirect to default language (English)
+export default async function Page() {
+  redirect('/en/home')
+}
 
-export { generateMetadata }
+// Generate metadata for the root page
+export async function generateMetadata() {
+  return baseGenerateMetadata({ params: Promise.resolve({ lang: 'en', slug: 'home' }) })
+}
