@@ -1,32 +1,43 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useCallback } from 'react'
 
-const locales = ['en', 'ru']
+const locales = [
+  { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Русский' },
+]
 
-export function LanguageSwitcher({ currentLang }: { currentLang: string }) {
+export function LanguageSwitcher() {
   const pathname = usePathname()
-  const currentPath = pathname.replace(`/${currentLang}`, '')
+  const router = useRouter()
+
+  const switchLanguage = useCallback(
+    (locale: string) => {
+      const currentPathParts = pathname.split('/')
+      // Replace the language code (second part of the path) with the new locale
+      currentPathParts[1] = locale
+      const newPath = currentPathParts.join('/')
+      router.push(newPath)
+    },
+    [pathname, router],
+  )
+
+  const currentLocale = pathname.split('/')[1]
 
   return (
-    <div className="flex gap-2">
-      {locales.map((locale) => {
-        const isActive = locale === currentLang
-        return (
-          <Link
-            key={locale}
-            href={`/${locale}${currentPath}`}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              isActive
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            {locale.toUpperCase()}
-          </Link>
-        )
-      })}
+    <div className="flex items-center gap-4">
+      {locales.map(({ code, label }) => (
+        <button
+          key={code}
+          onClick={() => switchLanguage(code)}
+          className={`px-2 py-1 rounded ${
+            currentLocale === code ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }

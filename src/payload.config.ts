@@ -63,6 +63,20 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
+  localization: {
+    locales: [
+      {
+        label: 'English',
+        code: 'en',
+      },
+      {
+        label: 'Russian',
+        code: 'ru',
+      },
+    ],
+    defaultLocale: 'en',
+    fallback: true,
+  },
   collections: [Pages, Posts, Media, Categories, Users, Solutions],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
