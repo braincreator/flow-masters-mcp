@@ -6286,6 +6286,11 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-country-flag@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/react-country-flag/-/react-country-flag-3.1.0.tgz"
+  integrity sha512-JWQFw1efdv9sTC+TGQvTKXQg1NKbDU2mBiAiRWcKM9F1sK+/zjhP2yGmm8YDddWyZdXVkR8Md47rPMJmo4YO5g==
+
 react-datepicker@7.6.0:
   version "7.6.0"
   resolved "https://registry.npmjs.org/react-datepicker/-/react-datepicker-7.6.0.tgz"
@@ -6331,6 +6336,11 @@ react-hook-form@7.45.4:
   version "7.45.4"
   resolved "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.45.4.tgz"
   integrity sha512-HGDV1JOOBPZj10LB3+OZgfDBTn+IeEsNOKiq/cxbQAIbKaiJUe/KV8DBUzsx0Gx/7IG/orWqRRm736JwOfUSWQ==
+
+react-icons@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.npmjs.org/react-icons/-/react-icons-5.5.0.tgz"
+  integrity sha512-MEFcXdkP3dLo8uumGI5xN3lDFNsRtrjbOEKDLD7yv76v4wpnEq2Lt2qeHaQOr34I/wPN3s3+N08WkQ+CW37Xiw==
 
 react-image-crop@10.1.8:
   version "10.1.8"

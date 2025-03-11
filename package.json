@@ -48,8 +48,10 @@
     "payload-admin-bar": "^1.0.6",
     "prism-react-renderer": "^2.3.1",
     "react": "^19.0.0",
+    "react-country-flag": "^3.1.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "7.45.4",
+    "react-icons": "^5.5.0",
     "sharp": "0.32.6",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7"
