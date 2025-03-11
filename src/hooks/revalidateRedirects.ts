@@ -1,11 +1,18 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
-import { revalidateTag } from 'next/cache'
+export const revalidateRedirects: CollectionAfterChangeHook = async ({
+  doc,
+  req: { payload, context },
+}) => {
+  if (!context.disableRevalidate) {
+    payload.logger.info(`Revalidating redirects`)
 
-export const revalidateRedirects: CollectionAfterChangeHook = ({ doc, req: { payload } }) => {
-  payload.logger.info(`Revalidating redirects`)
-
-  revalidateTag('redirects')
+    try {
+      await fetch('/api/revalidate?tag=redirects', { method: 'POST' })
+    } catch (error) {
+      payload.logger.error(`Error revalidating redirects: ${error}`)
+    }
+  }
 
   return doc
 }

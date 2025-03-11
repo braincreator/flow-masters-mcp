@@ -30,6 +30,11 @@ function getLocale(request: NextRequest): string {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const locale = pathname.split('/')[1] || 'ru'
+
+  // Clone the request headers
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-locale', locale)
 
   // Skip middleware for admin routes, API routes, and internal paths
   if (
@@ -38,15 +43,21 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.includes('.') // Skip static files
   ) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   }
 
   // Skip middleware for root path as it's handled by the root page
   if (pathname === '/') {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   }
-
-  const locale = getLocale(request)
 
   // Handle paths without locale
   if (!locales.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
@@ -55,7 +66,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Add locale to headers for use in layout
-  const response = NextResponse.next()
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
   response.headers.set('x-pathname', pathname)
   return response
 }

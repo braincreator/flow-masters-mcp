@@ -1,7 +1,10 @@
+'use client'
+
 import { Button, type ButtonProps } from '@/components/ui/button'
 import { cn } from '@/utilities/ui'
 import Link from 'next/link'
 import React from 'react'
+import { usePathname } from 'next/navigation'
 
 import type { Page, Post } from '@/payload-types'
 
@@ -33,12 +36,19 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
     url,
   } = props
 
-  const href =
-    type === 'reference' && typeof reference?.value === 'object' && reference.value.slug
-      ? `${reference?.relationTo !== 'pages' ? `/${reference?.relationTo}` : ''}/${
-          reference.value.slug
-        }`
-      : url
+  const pathname = usePathname()
+  const currentLocale = pathname.split('/')[1] || 'ru'
+
+  const href = React.useMemo(() => {
+    if (type === 'reference' && typeof reference?.value === 'object' && reference.value.slug) {
+      const basePath = reference?.relationTo !== 'pages' ? `/${reference?.relationTo}` : ''
+      return `/${currentLocale}${basePath}/${reference.value.slug}`
+    }
+    if (url?.startsWith('/')) {
+      return `/${currentLocale}${url}`
+    }
+    return url
+  }, [type, reference, url, currentLocale])
 
   if (!href) return null
 
