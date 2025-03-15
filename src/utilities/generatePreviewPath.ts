@@ -1,25 +1,27 @@
-import { PayloadRequest, CollectionSlug } from 'payload'
+import type { PayloadRequest } from 'payload'
+import { getServerSideURL } from './getURL'
 
-const collectionPrefixMap: Partial<Record<CollectionSlug, string>> = {
-  posts: '/posts',
-  pages: '',
+type Args = {
+  collection: 'pages' | 'posts'
+  draft?: boolean
+  req?: PayloadRequest
+  slug?: string
+  locale?: string
 }
 
-type Props = {
-  collection: keyof typeof collectionPrefixMap
-  slug: string
-  req: PayloadRequest
-}
+export const generatePreviewPath = ({ collection, slug, locale }: Args): string => {
+  const url = getServerSideURL()
+  const previewURL = new URL('/next/preview', url)
 
-export const generatePreviewPath = ({ collection, slug }: Props) => {
-  const encodedParams = new URLSearchParams({
-    slug,
-    collection,
-    path: `${collectionPrefixMap[collection]}/${slug}`,
-    previewSecret: process.env.PREVIEW_SECRET || '',
-  })
+  // Add required search params
+  previewURL.searchParams.append('collection', collection)
+  previewURL.searchParams.append('slug', slug || '')
+  previewURL.searchParams.append('previewSecret', process.env.PREVIEW_SECRET || '')
+  
+  // Add locale if provided
+  if (locale) {
+    previewURL.searchParams.append('locale', locale)
+  }
 
-  const url = `/next/preview?${encodedParams.toString()}`
-
-  return url
+  return previewURL.toString()
 }

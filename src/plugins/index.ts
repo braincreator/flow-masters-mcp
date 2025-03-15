@@ -16,7 +16,6 @@ import { getServerSideURL } from '@/utilities/getURL'
 
 import { s3Storage } from '@payloadcms/storage-s3'
 
-
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
   return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
 }
@@ -95,35 +94,35 @@ export const plugins: Plugin[] = [
   }),
   payloadCloudPlugin(),
   s3Storage({
-      collections: {
-        'media': {
-          disableLocalStorage: true,
-          disablePayloadAccessControl: true,
-          generateFileURL: ({ collection, filename, prefix, size }) => {
-            console.log('filename:', filename);
-            console.log('prefix:', prefix);
-            console.log('size:', size);
-            const s3URL = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${filename}`;
-            console.log('S3 URL:', s3URL);
-            if (!filename) {
-              console.error('Filename is undefined for doc:', filename);
-            }
-            return s3URL;
-          },
+    collections: {
+      media: {
+        disableLocalStorage: true,
+        disablePayloadAccessControl: true,
+        generateFileURL: ({ collection, filename, prefix, size }) => {
+          console.log('filename:', filename)
+          console.log('prefix:', prefix)
+          console.log('size:', size)
+          const s3URL = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${filename}`
+          console.log('S3 URL:', s3URL)
+          // if (!filename) {
+          //   console.error('Filename is undefined for doc:', filename);
+          // }
+          return s3URL
         },
-        // 'media-with-prefix': {
-        //   prefix,
-        // },
       },
-      bucket: process.env.S3_BUCKET!,
-      config: {
-        credentials: {
-          accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-        },
-        region: process.env.S3_REGION,
-        endpoint: process.env.S3_ENDPOINT,
-        // ... Other S3 configuration
+      // 'media-with-prefix': {
+      //   prefix,
+      // },
+    },
+    bucket: process.env.S3_BUCKET!,
+    config: {
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
       },
-    }),
+      region: process.env.S3_REGION,
+      endpoint: process.env.S3_ENDPOINT,
+      // ... Other S3 configuration
+    },
+  }),
 ]

@@ -17,6 +17,7 @@ import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import collections from './collections/collectionList'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -56,6 +57,18 @@ export default buildConfig({
           height: 900,
         },
       ],
+      // Add visual editor configuration
+      visualEditor: {
+        enabled: true,
+        toolbarOptions: {
+          enabled: true,
+          placement: 'top',
+        },
+        blockControls: {
+          enabled: true,
+          position: 'left',
+        },
+      },
     },
   },
   // This config helps us configure global or default features that the other editors can inherit
@@ -77,7 +90,7 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Pages, Posts, Media, Categories, Users, Solutions],
+  collections: collections,
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [

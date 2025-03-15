@@ -10,7 +10,7 @@ import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { hero } from '@/heros/config'
 import { slugField } from '@/fields/slug'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage'
 
 import {
@@ -21,7 +21,7 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 
-export const Pages: CollectionConfig<'pages'> = {
+export const Pages: CollectionConfig = {
   slug: 'pages',
   access: {
     create: authenticated,
@@ -40,21 +40,35 @@ export const Pages: CollectionConfig<'pages'> = {
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) => {
-        const path = generatePreviewPath({
+        const locale = req.locale || 'ru'
+        return generatePreviewPath({
           slug: typeof data?.slug === 'string' ? data.slug : '',
           collection: 'pages',
           req,
+          locale,
         })
-
-        return path
+      },
+      visualEditor: {
+        enabled: true,
+        toolbarOptions: {
+          enabled: true,
+          placement: 'top',
+        },
+        blockControls: {
+          enabled: true,
+          position: 'left',
+        },
       },
     },
-    preview: (data, { req }) =>
-      generatePreviewPath({
+    preview: (data, { req }) => {
+      const locale = req.locale || 'ru'
+      return generatePreviewPath({
         slug: typeof data?.slug === 'string' ? data.slug : '',
         collection: 'pages',
         req,
-      }),
+        locale,
+      })
+    },
     useAsTitle: 'title',
   },
   fields: [

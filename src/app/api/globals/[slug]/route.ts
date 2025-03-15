@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
-export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    const { slug } = params
+    const { slug } = await params
     const { searchParams } = new URL(request.url)
     const depth = Number(searchParams.get('depth') || '1')
     const locale = searchParams.get('locale') || undefined

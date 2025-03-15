@@ -16,28 +16,23 @@ export async function GET(
   } & Request,
 ): Promise<Response> {
   const payload = await getPayload({ config: configPromise })
-
   const { searchParams } = new URL(req.url)
 
   const path = searchParams.get('path')
   const collection = searchParams.get('collection') as CollectionSlug
   const slug = searchParams.get('slug')
   const previewSecret = searchParams.get('previewSecret')
+  const locale = searchParams.get('locale')
 
   if (previewSecret !== process.env.PREVIEW_SECRET) {
     return new Response('You are not allowed to preview this page', { status: 403 })
   }
 
-  if (!path || !collection || !slug) {
+  if (!collection || !slug) {
     return new Response('Insufficient search params', { status: 404 })
   }
 
-  if (!path.startsWith('/')) {
-    return new Response('This endpoint can only be used for relative previews', { status: 500 })
-  }
-
   let user
-
   try {
     user = await payload.auth({
       req: req as unknown as PayloadRequest,
@@ -55,9 +50,14 @@ export async function GET(
     return new Response('You are not allowed to preview this page', { status: 403 })
   }
 
-  // You can add additional checks here to see if the user is allowed to preview this page
-
   draft.enable()
 
-  redirect(path)
+  // Construct the preview path based on collection and locale
+  const previewPath = collection === 'posts' 
+    ? `/posts/${slug}`
+    : locale 
+      ? `/${locale}/${slug}`
+      : `/ru/${slug}` // Fallback to Russian only if locale is not provided
+
+  redirect(previewPath)
 }
