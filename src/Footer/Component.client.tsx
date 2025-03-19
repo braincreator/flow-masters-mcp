@@ -1,21 +1,33 @@
 'use client'
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import type { Footer } from '@/payload-types'
-import { Logo } from '@/components/Logo/Logo'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { translations } from './translations'
 import { FooterNav } from './Nav'
+import { fetchGlobal } from '@/utilities/getGlobalsClient'
+import { Logo } from '@/components/Logo/Logo'
 
 interface FooterClientProps {
   data: Footer
   locale: string
 }
 
-export function FooterClient({ data, locale }: FooterClientProps) {
+export function FooterClient({ data: initialData, locale }: FooterClientProps) {
+  const [data, setData] = useState(initialData)
   const t = translations[locale as keyof typeof translations] || translations.en
   const currentYear = new Date().getFullYear()
+
+  useEffect(() => {
+    const loadData = async () => {
+      const newFooterData = await fetchGlobal('footer', 1, locale)
+      if (newFooterData) {
+        setData(newFooterData)
+      }
+    }
+    loadData()
+  }, [locale])
 
   return (
     <footer className="mt-auto border-t border-border bg-card">
@@ -30,8 +42,7 @@ export function FooterClient({ data, locale }: FooterClientProps) {
               <Link href={`/${locale}`} className="inline-block">
                 <Logo 
                   className="h-8 w-auto" 
-                  logo={data.logo} 
-                  size="thumbnail" // Using smaller size for footer
+                  size="thumbnail"
                 />
               </Link>
             </motion.div>

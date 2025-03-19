@@ -5,6 +5,13 @@ import sharp from 'sharp' // sharp-import
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
+import { authenticatedOrPublished } from './access/authenticatedOrPublished'
+import { authenticated } from './access/authenticated'
+import { anyone } from './access/anyone'
+
+// Get the directory name properly in ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
@@ -19,9 +26,6 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import collections from './collections/collectionList'
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
-
 export default buildConfig({
   admin: {
     components: {
@@ -33,7 +37,7 @@ export default buildConfig({
       beforeDashboard: ['@/components/BeforeDashboard'],
     },
     importMap: {
-      baseDir: path.resolve(dirname),
+      baseDir: path.resolve(__dirname),
     },
     user: Users.slug,
     livePreview: {
@@ -100,7 +104,7 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET,
   sharp,
   typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
+    outputFile: path.resolve(__dirname, 'payload-types.ts'),
   },
   jobs: {
     access: {

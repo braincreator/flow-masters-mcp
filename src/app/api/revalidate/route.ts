@@ -3,38 +3,53 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const tag = request.nextUrl.searchParams.get('tag')
-    const path = request.nextUrl.searchParams.get('path')
+    // Explicitly handle the request body
+    const text = await request.text()
+    console.log('Received raw body:', text)
 
-    if (!tag && !path) {
+    let body
+    try {
+      body = JSON.parse(text)
+    } catch (e) {
+      console.error('Failed to parse JSON:', e)
       return NextResponse.json(
-        { message: 'Missing tag or path parameter' },
+        { error: 'Invalid JSON format' },
         { status: 400 }
       )
     }
 
-    if (tag) {
-      await revalidateTag(tag)
+    console.log('Parsed body:', body)
+
+    const { tag, path } = body
+
+    if (!tag && !path) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
     }
 
-    if (path) {
-      await revalidatePath(path)
-    }
+    if (tag) await revalidateTag(tag)
+    if (path) await revalidatePath(path)
 
-    return NextResponse.json(
-      { 
-        revalidated: true,
-        now: Date.now(),
-        tag: tag || undefined,
-        path: path || undefined
-      },
-      { status: 200 }
-    )
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Revalidation error:', error)
     return NextResponse.json(
-      { message: 'Error revalidating', error },
+      { error: String(error) },
       { status: 500 }
     )
   }
+}
+
+// Add OPTIONS method to handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Methods': 'POST',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Origin': '*',
+    },
+  })
 }

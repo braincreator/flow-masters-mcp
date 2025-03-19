@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { match as matchLocale } from '@formatjs/intl-localematcher'
 
 const locales = ['en', 'ru']
 const defaultLocale = 'ru'
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const locale = pathname.split('/')[1] || 'ru'
+  const locale = pathname.split('/')[1] || defaultLocale
 
   // Clone the request headers
   const requestHeaders = new Headers(request.headers)
@@ -28,13 +27,10 @@ export function middleware(request: NextRequest) {
     })
   }
 
-  // Skip middleware for root path as it's handled by the root page
+  // Handle root path
   if (pathname === '/') {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+    const redirectUrl = new URL(`/${defaultLocale}/home`, request.url)
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Redirect /locale/ to /locale/home
@@ -54,7 +50,7 @@ export function middleware(request: NextRequest) {
       })
     }
     
-    const redirectUrl = new URL(`/${locale}${pathname}`, request.url)
+    const redirectUrl = new URL(`/${defaultLocale}${pathname}`, request.url)
     return NextResponse.redirect(redirectUrl)
   }
 

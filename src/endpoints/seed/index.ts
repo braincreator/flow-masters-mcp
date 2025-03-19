@@ -314,9 +314,22 @@ export const seed = async ({
 
   await Promise.all([
     payload.updateGlobal({
+      slug: 'site-settings',
+      data: {
+        logos: {
+          header: defaultLogo.id,
+          footer: defaultLogo.id,
+        },
+        defaultMeta: {
+          title: 'Flow Masters',
+          description: 'Your Business Process Automation Partner',
+          image: defaultLogo.id,
+        },
+      },
+    }),
+    payload.updateGlobal({
       slug: 'header',
       data: {
-        logo: defaultLogo.id, // You'll need to create this media item first
         navItems: [
           {
             link: {
@@ -341,7 +354,6 @@ export const seed = async ({
     payload.updateGlobal({
       slug: 'footer',
       data: {
-        logo: defaultLogo.id, // You'll need to create this media item first
         navItems: [
           {
             link: {
@@ -356,14 +368,6 @@ export const seed = async ({
               label: 'Source Code',
               newTab: true,
               url: 'https://github.com/payloadcms/payload/tree/main/templates/website',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Payload',
-              newTab: true,
-              url: 'https://payloadcms.com/',
             },
           },
         ],

@@ -9,13 +9,6 @@ export const Footer: GlobalConfig = {
   },
   fields: [
     {
-      name: 'logo',
-      type: 'upload',
-      relationTo: 'media',
-      required: true,
-      label: 'Footer Logo',
-    },
-    {
       name: 'navItems',
       type: 'array',
       localized: true,

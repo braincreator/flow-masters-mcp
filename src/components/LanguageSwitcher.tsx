@@ -15,32 +15,45 @@ const locales = [
 ]
 
 export function LanguageSwitcher() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [currentLang, setCurrentLang] = useState('')
   const router = useRouter()
   const pathname = usePathname()
   const { lang: contextLang } = useI18n()
+  const [isOpen, setIsOpen] = useState(false)
+  
+  // Get the current locale from the URL path
+  const pathLocale = pathname?.split('/')[1]
+  
+  // Initialize currentLang with URL path locale if valid, otherwise use context
+  const [currentLang, setCurrentLang] = useState(
+    locales.some(loc => loc.code === pathLocale) ? pathLocale : contextLang
+  )
 
+  // Update current language when pathname changes
   useEffect(() => {
-    setCurrentLang(contextLang)
-  }, [contextLang])
+    const newPathLocale = pathname?.split('/')[1]
+    if (newPathLocale && locales.some(loc => loc.code === newPathLocale)) {
+      setCurrentLang(newPathLocale)
+    }
+  }, [pathname])
 
   const currentLanguage = locales.find(locale => locale.code === currentLang)
 
-  const switchLanguage = (code: string) => {
+  const switchLanguage = async (code: string) => {
     if (!pathname) return
 
-    setCurrentLang(code)
-
-    // Handle special cases first
+    // Handle root path
     if (pathname === '/') {
       router.push(`/${code}/home`)
       setIsOpen(false)
       return
     }
 
-    // For posts collection, don't modify the path
+    // For posts collection, modify only the locale parameter
     if (pathname.startsWith('/posts/')) {
+      const currentUrl = new URL(window.location.href)
+      currentUrl.searchParams.set('locale', code)
+      router.push(currentUrl.pathname + currentUrl.search)
+      setIsOpen(false)
       return
     }
 
@@ -64,8 +77,9 @@ export function LanguageSwitcher() {
     // Reconstruct the path with leading slash
     const newPathname = '/' + newSegments.join('/')
     
-    // Navigate to the new path
-    router.push(newPathname, { scroll: false })
+    // Navigate to the new path and force a refresh
+    router.push(newPathname)
+    router.refresh()
     setIsOpen(false)
   }
 
@@ -114,6 +128,7 @@ export function LanguageSwitcher() {
                     'flex items-center gap-2 px-3 py-2 text-left w-full transition-colors',
                     code === currentLang && 'bg-accent text-accent-foreground'
                   )}
+                  role="menuitem"
                 >
                   <ReactCountryFlag
                     countryCode={countryCode}
