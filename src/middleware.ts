@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/next/preview') || // Add this line
+    pathname.startsWith('/next/preview') ||
     pathname.includes('.') // Skip static files
   ) {
     return NextResponse.next({
@@ -35,6 +35,12 @@ export function middleware(request: NextRequest) {
         headers: requestHeaders,
       },
     })
+  }
+
+  // Redirect /locale/ to /locale/home
+  if (locales.includes(locale) && (pathname === `/${locale}` || pathname === `/${locale}/`)) {
+    const redirectUrl = new URL(`/${locale}/home`, request.url)
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Handle paths without locale
