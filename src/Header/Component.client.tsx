@@ -4,33 +4,23 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { fetchGlobal } from '@/utilities/getGlobalsClient'
-
+import { motion } from 'framer-motion'
 import type { Header } from '@/payload-types'
-
 import { Logo } from '@/components/Logo/Logo'
 import { HeaderNav } from './Nav'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
+import { cn } from '@/utilities/ui'
 
 interface HeaderClientProps {
   data: Header
 }
 
-export const HeaderClient: React.FC<HeaderClientProps> = ({ data: initialData }) => {
-  const [theme, setTheme] = useState<string | null>(null)
-  const { headerTheme, setHeaderTheme } = useHeaderTheme()
+export function HeaderClient({ data: initialData }: HeaderClientProps) {
+  const [data, setData] = useState(initialData)
+  const { theme } = useHeaderTheme()
   const pathname = usePathname()
-  const [data, setData] = useState<Header>(initialData)
-  const currentLocale = pathname.split('/')[1] || 'ru'
-
-  useEffect(() => {
-    setHeaderTheme(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
-
-  useEffect(() => {
-    if (headerTheme && headerTheme !== theme) setTheme(headerTheme)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [headerTheme])
+  const currentLocale = pathname?.split('/')[1] || 'en'
 
   useEffect(() => {
     const loadData = async () => {
@@ -43,16 +33,37 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data: initialData })
   }, [currentLocale])
 
   return (
-    <header className="container relative z-20" {...(theme ? { 'data-theme': theme } : {})}>
-      <div className="py-8 flex justify-between items-center">
-        <Link href={`/${currentLocale}`}>
-          <Logo loading="eager" priority="high" className="invert dark:invert-0" />
-        </Link>
-        <div className="flex items-center gap-8">
-          <HeaderNav data={data} />
-          <LanguageSwitcher />
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border z-50"
+      {...(theme ? { 'data-theme': theme } : {})}
+    >
+      <div className="container py-4">
+        <div className="flex justify-between items-center">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Link href={`/${currentLocale}`}>
+              <Logo loading="eager" priority="high" className="invert dark:invert-0" />
+            </Link>
+          </motion.div>
+          <motion.div 
+            className="flex items-center gap-8"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <HeaderNav data={data} />
+            <div className="flex items-center gap-2">
+              <ThemeSelector />
+              <LanguageSwitcher />
+            </div>
+          </motion.div>
         </div>
       </div>
-    </header>
+    </motion.header>
   )
 }
