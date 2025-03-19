@@ -22,36 +22,44 @@ export const Media: CollectionConfig = {
     read: anyone,
     update: authenticated,
   },
-  fields: [
-    {
-      name: 'alt',
-      type: 'text',
-      //required: true,
+  admin: {
+    useAsTitle: 'filename',
+    defaultColumns: ['filename', 'alt', 'updatedAt'],
+    preview: (doc) => {
+      // Ensure we're using the thumbnail URL for preview
+      if (doc?.sizes?.thumbnail?.url) {
+        return doc.sizes.thumbnail.url
+      }
+      return doc.url
     },
-    {
-      name: 'caption',
-      type: 'richText',
-      editor: lexicalEditor({
-        features: ({ rootFeatures }) => {
-          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
-        },
-      }),
-    },
-  ],
+  },
   upload: {
-    // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
-    staticDir: path.resolve(dirname, '../../public/media'),
-    adminThumbnail: 'thumbnail',
+    disableLocalStorage: true,
+    adminThumbnail: ({ doc }) => {
+      // Log the document to debug
+      console.log('adminThumbnail doc:', {
+        sizes: doc?.sizes,
+        url: doc?.url,
+      })
+
+      // Ensure we're using the correct thumbnail URL
+      if (doc?.sizes?.thumbnail?.url) {
+        return doc.sizes.thumbnail.url
+      }
+      return doc.url
+    },
     focalPoint: true,
     imageSizes: [
       {
         name: 'thumbnail',
         width: 300,
+        // withoutEnlargement: true,
       },
       {
         name: 'square',
         width: 500,
         height: 500,
+        crop: 'center',
       },
       {
         name: 'small',
@@ -77,4 +85,19 @@ export const Media: CollectionConfig = {
       },
     ],
   },
+  fields: [
+    {
+      name: 'alt',
+      type: 'text',
+    },
+    {
+      name: 'caption',
+      type: 'richText',
+      editor: lexicalEditor({
+        features: ({ rootFeatures }) => {
+          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
+        },
+      }),
+    },
+  ],
 }

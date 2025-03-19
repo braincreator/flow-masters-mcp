@@ -117,4 +117,12 @@ export default buildConfig({
     },
     tasks: [],
   },
+  upload: {
+    limits: {
+      fileSize: 5000000, // 5MB, adjust as needed
+    },
+  },
+  paths: {
+    uploads: path.resolve(__dirname, '../media'),
+  },
 })

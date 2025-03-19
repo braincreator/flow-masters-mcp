@@ -99,20 +99,21 @@ export const plugins: Plugin[] = [
         disableLocalStorage: true,
         disablePayloadAccessControl: true,
         generateFileURL: ({ collection, filename, prefix, size }) => {
-          console.log('filename:', filename)
-          console.log('prefix:', prefix)
-          console.log('size:', size)
-          const s3URL = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${filename}`
-          console.log('S3 URL:', s3URL)
-          // if (!filename) {
-          //   console.error('Filename is undefined for doc:', filename);
-          // }
+          const sizeName = size?.name || ''
+          const sizePrefix = sizeName ? `${sizeName}/` : ''
+
+          // Construct the correct S3 URL with the full bucket path
+          const s3URL = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
+
+          console.log('Generating S3 URL:', {
+            sizeName,
+            filename,
+            resultURL: s3URL,
+          })
+
           return s3URL
         },
       },
-      // 'media-with-prefix': {
-      //   prefix,
-      // },
     },
     bucket: process.env.S3_BUCKET!,
     config: {
@@ -120,9 +121,9 @@ export const plugins: Plugin[] = [
         accessKeyId: process.env.S3_ACCESS_KEY_ID!,
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
       },
+      endpoint: `https://${process.env.S3_ENDPOINT}`,  // Make sure to include https://
+      forcePathStyle: false,  // Set this to false for virtual-hosted style URLs
       region: process.env.S3_REGION,
-      endpoint: process.env.S3_ENDPOINT,
-      // ... Other S3 configuration
     },
   }),
 ]

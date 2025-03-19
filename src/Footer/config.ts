@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-
 import { link } from '@/fields/link'
 import { revalidateFooter } from './hooks/revalidateFooter'
 
@@ -9,6 +8,13 @@ export const Footer: GlobalConfig = {
     read: () => true,
   },
   fields: [
+    {
+      name: 'logo',
+      type: 'upload',
+      relationTo: 'media',
+      required: true,
+      label: 'Footer Logo',
+    },
     {
       name: 'navItems',
       type: 'array',

@@ -11,21 +11,18 @@ export const VideoMedia: React.FC<MediaProps> = (props) => {
   const { onClick, resource, videoClassName } = props
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  // const [showFallback] = useState<boolean>()
 
   useEffect(() => {
     const { current: video } = videoRef
     if (video) {
       video.addEventListener('suspend', () => {
-        // setShowFallback(true);
-        // console.warn('Video was suspended, rendering fallback image.')
+        // Handle suspension if needed
       })
     }
   }, [])
 
   if (resource && typeof resource === 'object') {
-    const { filename } = resource
-
+    // Use the resource URL directly as it should be the full S3 URL
     return (
       <video
         autoPlay
@@ -37,7 +34,7 @@ export const VideoMedia: React.FC<MediaProps> = (props) => {
         playsInline
         ref={videoRef}
       >
-        <source src={`${getClientSideURL()}/media/${filename}`} />
+        <source src={resource.url} />
       </video>
     )
   }

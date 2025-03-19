@@ -316,6 +316,7 @@ export const seed = async ({
     payload.updateGlobal({
       slug: 'header',
       data: {
+        logo: defaultLogo.id, // You'll need to create this media item first
         navItems: [
           {
             link: {
@@ -340,6 +341,7 @@ export const seed = async ({
     payload.updateGlobal({
       slug: 'footer',
       data: {
+        logo: defaultLogo.id, // You'll need to create this media item first
         navItems: [
           {
             link: {

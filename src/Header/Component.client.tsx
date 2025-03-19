@@ -47,7 +47,13 @@ export function HeaderClient({ data: initialData }: HeaderClientProps) {
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
             <Link href={`/${currentLocale}`}>
-              <Logo loading="eager" priority="high" className="invert dark:invert-0" />
+              <Logo 
+                loading="eager" 
+                priority="high" 
+                className="invert dark:invert-0" 
+                logo={data.logo} 
+                size="small" // Using larger size for header
+              />
             </Link>
           </motion.div>
           <motion.div 
