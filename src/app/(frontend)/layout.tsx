@@ -8,6 +8,7 @@ import { cn } from '@/utilities/ui'
 import { getSiteConfig } from '@/utilities/get-site-config'
 import { generateThemeVariables } from '@/utilities/theme'
 import { getServerSideURL } from '@/utilities/getURL'
+import { RootProvider } from '@/providers'
 import './globals.css'
 
 export default async function RootLayout({
@@ -18,6 +19,7 @@ export default async function RootLayout({
   const cookieStore = await cookies()
   const theme = cookieStore.get('theme')?.value || 'light'
   const locale = await getCurrentLocale()
+  const siteConfig = await getSiteConfig()
   
   return (
     <html 
@@ -35,7 +37,9 @@ export default async function RootLayout({
         GeistMono.variable,
         'min-h-screen bg-background font-sans antialiased'
       )}>
-        {children}
+        <RootProvider lang={locale} siteConfig={siteConfig}>
+          {children}
+        </RootProvider>
       </body>
     </html>
   )
