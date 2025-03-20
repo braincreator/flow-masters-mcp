@@ -3,105 +3,49 @@
 @tailwind utilities;
 
 @layer base {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-size: unset;
-    font-weight: unset;
-  }
-
   :root {
-    /* Base colors */
     --background: 0 0% 100%;
-    --foreground: 20 40% 20%;
-
-    /* Card colors */
-    --card: 40 33% 98%;
-    --card-foreground: 35 92% 33%;
-
-    /* Popover colors */
-    --popover: 40 33% 98%;
-    --popover-foreground: 20 40% 20%;
-
-    /* Primary colors - warm gold */
-    --primary: 35 92% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary colors - softer gold */
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 35 40% 25%;
-
-    /* Muted colors */
-    --muted: 40 20% 92%;
-    --muted-foreground: 35 20% 40%;
-
-    /* Accent colors - vibrant gold */
-    --accent: 38 92% 50%;
-    --accent-foreground: 35 40% 15%;
-
-    /* Destructive colors */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* UI element colors */
-    --border: 35 30% 90%;
-    --input: 35 30% 90%;
-    --ring: 35 92% 50%;
-
-    /* Radius */
-    --radius: 0.75rem;  /* Increased from 0.2rem to 0.75rem for softer corners */
-
-    /* Status colors */
-    --success: 142 72% 29%;
-    --warning: 38 92% 50%;
-    --error: 0 84% 60%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
   }
 
-  [data-theme='dark'] {
-    /* Base colors */
-    --background: 20 40% 10%;
-    --foreground: 35 40% 90%;
-
-    /* Card colors */
-    --card: 20 40% 15%;
-    --card-foreground: 35 92% 65%;
-
-    /* Popover colors */
-    --popover: 20 40% 15%;
-    --popover-foreground: 35 40% 90%;
-
-    /* Primary colors - warm gold */
-    --primary: 35 92% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary colors */
-    --secondary: 35 30% 20%;
-    --secondary-foreground: 35 40% 90%;
-
-    /* Muted colors */
-    --muted: 35 30% 20%;
-    --muted-foreground: 35 20% 70%;
-
-    /* Accent colors */
-    --accent: 38 92% 55%;
-    --accent-foreground: 35 40% 90%;
-
-    /* Destructive colors */
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* UI element colors */
-    --border: 35 30% 25%;
-    --input: 35 30% 25%;
-    --ring: 35 92% 55%;
-
-    /* Status colors */
-    --success: 142 72% 40%;
-    --warning: 38 92% 55%;
-    --error: 0 84% 60%;
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -111,7 +55,8 @@
   }
   
   body {
-    @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+    @apply bg-gradient-to-br from-background to-background/95;
+    background-attachment: fixed;
   }
 
   html {
@@ -161,4 +106,62 @@ body {
 .page-transition-exit-active {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-md bg-white/10 dark:bg-gray-900/10 
+           border border-white/20 dark:border-gray-700/20 
+           rounded-xl transition-all duration-300
+           hover:shadow-lg hover:shadow-ai-glow/20
+           hover:border-ai-accent/30;
+  }
+
+  .ai-button {
+    @apply px-4 py-2 rounded-full
+           bg-gradient-to-r from-blue-500 to-blue-600
+           hover:from-blue-600 hover:to-blue-700
+           text-white shadow-md
+           transition-all duration-300
+           hover:shadow-ai-glow
+           active:scale-95;
+  }
+
+  .ai-input {
+    @apply glass-card px-4 py-2
+           focus:outline-none focus:ring-2 focus:ring-ai-accent/50
+           placeholder:text-gray-400 dark:placeholder:text-gray-600;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-blue-700;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+  }
 }

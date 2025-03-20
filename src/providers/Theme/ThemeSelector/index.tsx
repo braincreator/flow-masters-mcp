@@ -48,11 +48,11 @@ export const ThemeSelector = () => {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full"
+        className="flex items-center gap-2 rounded-full hover:bg-ai-glow hover:border-ai-accent/50 border border-transparent transition-all duration-300"
       >
         <Icon className="h-4 w-4" />
         <span>{translations[lang][currentTheme?.label || 'auto']}</span>
-        <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isOpen && "rotate-180")} />
       </Button>
 
       <AnimatePresence>
@@ -62,7 +62,7 @@ export const ThemeSelector = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 z-50 mt-2 w-40 rounded-xl bg-white dark:bg-gray-800 shadow-lg border overflow-hidden"
+            className="absolute right-0 z-50 mt-2 w-40 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg border border-white/20 overflow-hidden"
           >
             {themes.map((theme) => (
               <button

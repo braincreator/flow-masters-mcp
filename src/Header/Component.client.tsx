@@ -37,22 +37,24 @@ export function HeaderClient({ data: initialData }: HeaderClientProps) {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border z-50"
+      className="fixed top-0 left-0 right-0 bg-background/60 backdrop-blur-md border-b border-white/10 z-50"
       {...(theme ? { 'data-theme': theme } : {})}
     >
-      <div className="container py-4">
+      <div className="absolute inset-0 bg-ai-radial opacity-50" />
+      <div className="container py-4 relative">
         <div className="flex justify-between items-center">
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className="relative"
           >
             <Link href={`/${currentLocale}`}>
               <Logo 
                 loading="eager" 
                 priority="high" 
-                className="invert dark:invert-0" 
+                className="invert dark:invert-0 animate-glow" 
                 logo={data.logo} 
-                size="small" // Using larger size for header
+                size="small"
               />
             </Link>
           </motion.div>
