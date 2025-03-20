@@ -52,7 +52,7 @@ export function LanguageSwitcher() {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 rounded-full"
       >
         <ReactCountryFlag
           countryCode={currentLanguage?.countryCode || 'US'}
@@ -63,7 +63,7 @@ export function LanguageSwitcher() {
           }}
         />
         <span>{currentLanguage?.label}</span>
-        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
       </Button>
 
       <AnimatePresence>
@@ -72,14 +72,16 @@ export function LanguageSwitcher() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute right-0 z-50 mt-2 w-40 rounded-lg bg-white dark:bg-gray-800 shadow-lg border"
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 z-50 mt-2 w-40 rounded-xl bg-white dark:bg-gray-800 shadow-lg border overflow-hidden"
           >
             {locales.map((locale) => (
               <button
                 key={locale.code}
                 onClick={() => switchLanguage(locale.code)}
                 className={cn(
-                  "flex w-full items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  "flex w-full items-center gap-2 px-4 py-2.5 transition-colors duration-200",
+                  "hover:bg-gray-100 dark:hover:bg-gray-700",
                   locale.code === currentLang && "bg-gray-100 dark:bg-gray-700"
                 )}
               >

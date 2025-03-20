@@ -52,7 +52,7 @@
     --ring: 35 92% 50%;
 
     /* Radius */
-    --radius: 0.2rem;
+    --radius: 0.75rem;  /* Increased from 0.2rem to 0.75rem for softer corners */
 
     /* Status colors */
     --success: 142 72% 29%;
