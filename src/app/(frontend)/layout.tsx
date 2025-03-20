@@ -1,46 +1,36 @@
 import type { Metadata } from 'next'
-
 import { cn } from '@/utilities/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import React from 'react'
-
-import { AdminBar } from '@/components/AdminBar'
-import { Footer } from '@/Footer/Component'
-import { Header } from '@/Header/Component'
-import { Providers } from '@/providers'
-import { ThemeHandler } from '@/providers/Theme/ThemeHandler'
+import { RootProvider } from '@/providers/RootProvider'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
-import { draftMode } from 'next/headers'
-
-import './globals.css'
+import { getSiteConfig } from '@/utilities/get-site-config'
+import { generateThemeVariables } from '@/utilities/theme'
+import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 import { getServerSideURL } from '@/utilities/getURL'
+import './globals.css'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isEnabled } = await draftMode()
+  const lang = await getCurrentLocale()
+  const siteConfig = await getSiteConfig()
+  const themeVariables = generateThemeVariables(siteConfig?.branding)
 
   return (
     <html 
-      className={cn(GeistSans.variable, GeistMono.variable)} 
-      lang="en" 
+      lang={lang} 
+      className={cn(GeistSans.variable, GeistMono.variable)}
       suppressHydrationWarning
-      style={{ 
-        visibility: 'visible',
-        opacity: 0,
-      }}
+      style={themeVariables}
     >
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body>
-        <ThemeHandler />
-        <Providers>
-          <AdminBar
-            adminBarProps={{
-              preview: isEnabled,
-            }}
-          />
-          <Header />
+        <RootProvider lang={lang} siteConfig={siteConfig}>
           {children}
-          <Footer />
-        </Providers>
+        </RootProvider>
       </body>
     </html>
   )

@@ -1,21 +1,18 @@
 'use client'
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-
 import type { Theme, ThemeContextType } from './types'
-
 import canUseDOM from '@/utilities/canUseDOM'
 import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared'
 import { themeIsValid } from './types'
+import Script from 'next/script'
 
-const initialContext: ThemeContextType = {
+const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => null,
   theme: undefined,
-}
+})
 
-const ThemeContext = createContext(initialContext)
-
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme | undefined>(
     canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
   )
@@ -41,7 +38,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       themeToSet = preference
     } else {
       const implicitPreference = getImplicitPreference()
-
       if (implicitPreference) {
         themeToSet = implicitPreference
       }
@@ -51,7 +47,36 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     setThemeState(themeToSet)
   }, [])
 
-  return <ThemeContext.Provider value={{ setTheme, theme }}>{children}</ThemeContext.Provider>
+  return (
+    <>
+      <Script
+        id="theme-script"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function () {
+              try {
+                const theme = localStorage.getItem('${themeLocalStorageKey}') || '${defaultTheme}';
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.style.opacity = '1';
+              } catch (e) {
+                document.documentElement.setAttribute('data-theme', '${defaultTheme}');
+              }
+            })();
+          `,
+        }}
+      />
+      <ThemeContext.Provider value={{ setTheme, theme }}>
+        {children}
+      </ThemeContext.Provider>
+    </>
+  )
 }
 
-export const useTheme = (): ThemeContextType => useContext(ThemeContext)
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext)
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider')
+  }
+  return context
+}

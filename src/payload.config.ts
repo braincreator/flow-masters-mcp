@@ -25,6 +25,7 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import collections from './collections/collectionList'
+import { SiteConfig } from './SiteConfig/config'
 
 export default buildConfig({
   admin: {
@@ -62,17 +63,17 @@ export default buildConfig({
         },
       ],
       // Add visual editor configuration
-      visualEditor: {
-        enabled: true,
-        toolbarOptions: {
-          enabled: true,
-          placement: 'top',
-        },
-        blockControls: {
-          enabled: true,
-          position: 'left',
-        },
-      },
+      // visualEditor: {
+      //   enabled: true,
+      //   toolbarOptions: {
+      //     enabled: true,
+      //     placement: 'top',
+      //   },
+      //   blockControls: {
+      //     enabled: true,
+      //     position: 'left',
+      //   },
+      // },
     },
   },
   // This config helps us configure global or default features that the other editors can inherit
@@ -96,7 +97,7 @@ export default buildConfig({
   },
   collections: collections,
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
+  globals: [Header, Footer, SiteConfig],
   plugins: [
     ...plugins,
     // storage-adapter-placeholder

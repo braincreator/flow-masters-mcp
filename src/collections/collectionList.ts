@@ -7,6 +7,15 @@ import { Reviews } from './Reviews/index'
 import { Solutions } from './Solutions/index'
 import { Users } from './Users/index'
 
-const collections = [Categories, Media, Testimonials, Pages, Posts, Reviews, Solutions, Users]
+const collections = [
+  Categories, 
+  Media, 
+  Testimonials, 
+  Pages, 
+  Posts, 
+  Reviews, 
+  Solutions, 
+  Users
+]
 
 export default collections

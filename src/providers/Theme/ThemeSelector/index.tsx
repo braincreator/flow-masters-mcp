@@ -1,73 +1,58 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
+import { useTheme } from '@/providers/Theme'
+import { useDropdown } from '@/providers/DropdownContext'
+import { Monitor, Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sun, Moon, Monitor, ChevronDown } from 'lucide-react'
 import { cn } from '@/utilities/ui'
-import { useTheme } from '..'
-import { themeLocalStorageKey } from './types'
-import type { Theme } from './types'
+import { ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import type { Theme } from '../types'
 import { translations } from './translations'
-import { usePathname } from 'next/navigation'
+import { useI18n } from '@/providers/I18n'
 
-const themeIcons = {
-  auto: Monitor,
-  light: Sun,
-  dark: Moon,
-} as const
+const themes = [
+  { value: 'auto', label: 'auto', icon: Monitor },
+  { value: 'light', label: 'light', icon: Sun },
+  { value: 'dark', label: 'dark', icon: Moon },
+] as const
 
-export const ThemeSelector: React.FC = () => {
+export const ThemeSelector = () => {
   const { setTheme } = useTheme()
-  const [value, setValue] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const pathname = usePathname()
-  const currentLocale = pathname?.split('/')[1] || 'en'
-  
-  const t = translations[currentLocale as keyof typeof translations] || translations.en
-
-  const themes = [
-    { value: 'auto', label: t.auto, icon: themeIcons.auto },
-    { value: 'light', label: t.light, icon: themeIcons.light },
-    { value: 'dark', label: t.dark, icon: themeIcons.dark },
-  ] as const
+  const [value, setValue] = useState('auto')
+  const { openDropdown, setOpenDropdown } = useDropdown()
+  const { lang } = useI18n()
+  const isOpen = openDropdown === 'theme'
 
   const currentTheme = themes.find(theme => theme.value === value)
+  const Icon = currentTheme?.icon || Monitor
+
+  const handleToggle = () => {
+    setOpenDropdown(isOpen ? null : 'theme')
+  }
 
   const onThemeChange = (themeToSet: Theme | 'auto') => {
     if (themeToSet === 'auto') {
       setTheme(null)
-      setValue('auto')
     } else {
       setTheme(themeToSet)
-      setValue(themeToSet)
     }
-    setIsOpen(false)
+    setValue(themeToSet)
+    setOpenDropdown(null)
   }
-
-  useEffect(() => {
-    const preference = window.localStorage.getItem(themeLocalStorageKey)
-    setValue(preference ?? 'auto')
-  }, [])
-
-  const Icon = currentTheme?.icon || Monitor
 
   return (
     <div className="relative">
       <Button
         variant="ghost"
         size="sm"
+        onClick={handleToggle}
         className="flex items-center gap-2"
-        onClick={() => setIsOpen(!isOpen)}
       >
         <Icon className="h-4 w-4" />
-        <span className="text-sm">{currentTheme?.label}</span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </motion.div>
+        <span>{translations[lang][currentTheme?.label || 'auto']}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
       </Button>
 
       <AnimatePresence>
@@ -76,25 +61,21 @@ export const ThemeSelector: React.FC = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 z-10 mt-2 w-40 rounded-lg overflow-hidden bg-card border border-border shadow-lg"
+            className="absolute right-0 z-50 mt-2 w-40 rounded-lg bg-white dark:bg-gray-800 shadow-lg border"
           >
-            <div className="py-1" role="menu" aria-orientation="vertical">
-              {themes.map(({ value, label, icon: ThemeIcon }) => (
-                <motion.button
-                  key={value}
-                  whileHover={{ backgroundColor: 'rgba(var(--card-foreground), 0.1)' }}
-                  onClick={() => onThemeChange(value as Theme | 'auto')}
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-2 text-left w-full transition-colors',
-                    value === currentTheme?.value && 'bg-accent text-accent-foreground'
-                  )}
-                >
-                  <ThemeIcon className="h-4 w-4" />
-                  <span className="text-sm">{label}</span>
-                </motion.button>
-              ))}
-            </div>
+            {themes.map((theme) => (
+              <button
+                key={theme.value}
+                onClick={() => onThemeChange(theme.value as Theme | 'auto')}
+                className={cn(
+                  "flex w-full items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700",
+                  theme.value === value && "bg-gray-100 dark:bg-gray-700"
+                )}
+              >
+                <theme.icon className="h-4 w-4" />
+                <span>{translations[lang][theme.label]}</span>
+              </button>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>

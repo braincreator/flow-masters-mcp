@@ -1,0 +1,17 @@
+.container {
+  padding: 20px;
+}
+
+.instructions {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.instructions li {
+  margin-bottom: 16px;
+}
+
+.banner {
+  margin-bottom: 20px;
+}

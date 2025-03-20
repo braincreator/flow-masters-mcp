@@ -18,7 +18,9 @@
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation next lint --fix",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "reinstall": "cross-env NODE_OPTIONS=--no-deprecation rm -rf node_modules && rm pnpm-lock.yaml && pnpm --ignore-workspace install",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "generate-encryption-key": "node scripts/generate-encryption-key.mjs",
+    "fill-config": "tsx scripts/fill-site-config.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.0",
@@ -72,14 +74,17 @@
     "@types/react-dom": "19.0.3",
     "autoprefixer": "^10.4.21",
     "copyfiles": "^2.4.1",
+    "dotenv": "^16.4.7",
     "eslint": "^9.22.0",
     "eslint-config-next": "15.1.5",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "5.7.3"
   },
-  "packageManager": "pnpm@10.6.4",
+  "packageManager": "pnpm@10.6.5",
   "engines": {
     "node": "^18.20.2 || >=20.9.0"
   },

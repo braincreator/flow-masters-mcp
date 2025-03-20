@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import type { Footer } from '@/payload-types'
+import type { Footer, SiteConfig } from '@/payload-types'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { translations } from './translations'
@@ -9,25 +9,15 @@ import { FooterNav } from './Nav'
 import { fetchGlobal } from '@/utilities/getGlobalsClient'
 import { Logo } from '@/components/Logo/Logo'
 
-interface FooterClientProps {
-  data: Footer
-  locale: string
+type FooterProps = {
+  data: PayloadGlobalResponse<Footer>
+  locale: Locale
+  siteConfig: PayloadGlobalResponse<SiteConfig>
 }
 
-export function FooterClient({ data: initialData, locale }: FooterClientProps) {
-  const [data, setData] = useState(initialData)
+export const FooterClient: React.FC<FooterProps> = ({ data, locale, siteConfig }) => {
   const t = translations[locale as keyof typeof translations] || translations.en
   const currentYear = new Date().getFullYear()
-
-  useEffect(() => {
-    const loadData = async () => {
-      const newFooterData = await fetchGlobal('footer', 1, locale)
-      if (newFooterData) {
-        setData(newFooterData)
-      }
-    }
-    loadData()
-  }, [locale])
 
   return (
     <footer className="mt-auto border-t border-border bg-card">

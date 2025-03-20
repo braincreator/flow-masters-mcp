@@ -314,16 +314,62 @@ export const seed = async ({
 
   await Promise.all([
     payload.updateGlobal({
-      slug: 'site-settings',
+      slug: 'site-config',
       data: {
-        logos: {
-          header: defaultLogo.id,
-          footer: defaultLogo.id,
+        title: 'Flow Masters',
+        description: 'Your Business Process Automation Partner',
+        company: {
+          legalName: 'Flow Masters LLC',
+          foundedYear: 2023,
         },
-        defaultMeta: {
-          title: 'Flow Masters',
-          description: 'Your Business Process Automation Partner',
-          image: defaultLogo.id,
+        contact: {
+          email: 'contact@example.com',
+          phone: '+1 234 567 8900',
+          address: '123 Business Street, Tech City, 12345',
+          workingHours: 'Mon-Fri: 9:00 AM - 6:00 PM',
+        },
+        localization: {
+          defaultTimeZone: 'UTC',
+          dateFormat: 'DD/MM/YYYY',
+          timeFormat: '24',
+        },
+        branding: {
+          colors: {
+            primary: '#2563eb',
+            secondary: '#1e293b',
+            accent: '#3b82f6',
+          },
+          fonts: {
+            primary: 'Inter',
+            secondary: 'Georgia',
+          },
+        },
+        socialLinks: {
+          twitter: 'https://twitter.com/flowmasters',
+          linkedin: 'https://linkedin.com/company/flowmasters',
+          facebook: 'https://facebook.com/flowmasters',
+        },
+        seo: {
+          defaultMetaTitle: 'Flow Masters - Business Process Automation',
+          defaultMetaDescription: 'Transform your business with AI-powered automation solutions.',
+        },
+        analytics: {
+          googleAnalyticsId: '',
+          googleTagManagerId: '',
+          metaPixelId: '',
+        },
+        features: {
+          blog: {
+            enabled: true,
+            postsPerPage: 10,
+            enableComments: true,
+            moderateComments: true,
+          },
+          images: {
+            optimization: 'balanced',
+            lazyLoading: true,
+            placeholders: 'blur',
+          },
         },
       },
     }),
@@ -376,6 +422,27 @@ export const seed = async ({
   ])
 
   payload.logger.info('Seeded database successfully!')
+
+
+  await payload.create({
+    collection: 'settings',
+    data: {
+      name: 'Site Configuration',
+      key: 'site',
+      value: {
+        title: 'Flow Masters',
+        description: 'Your Business Process Automation Partner',
+        contact: {
+          email: 'contact@example.com',
+          phone: '+1 234 567 8900'
+        },
+        social: {
+          twitter: 'https://twitter.com/flowmasters',
+          linkedin: 'https://linkedin.com/company/flowmasters'
+        }
+      }
+    }
+  })
 }
 
 async function fetchFileByURL(url: string): Promise<File> {

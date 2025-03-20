@@ -108,10 +108,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'site-config': SiteConfig;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'site-config': SiteConfigSelect<false> | SiteConfigSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -1735,6 +1737,148 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-config".
+ */
+export interface SiteConfig {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  company?: {
+    legalName?: string | null;
+    foundedYear?: number | null;
+    taxId?: string | null;
+    registrationNumber?: string | null;
+    vatNumber?: string | null;
+  };
+  contact: {
+    email: string;
+    phone?: string | null;
+    address?: string | null;
+    workingHours?: string | null;
+    googleMapsUrl?: string | null;
+  };
+  localization?: {
+    defaultTimeZone?: string | null;
+    dateFormat?: ('DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD') | null;
+    timeFormat?: ('24' | '12') | null;
+  };
+  branding?: {
+    logo?: (string | null) | Media;
+    favicon?: (string | null) | Media;
+    colors?: {
+      primary?: string | null;
+      secondary?: string | null;
+      accent?: string | null;
+    };
+    fonts?: {
+      primary?: string | null;
+      secondary?: string | null;
+    };
+  };
+  socialLinks?: {
+    twitter?: string | null;
+    linkedin?: string | null;
+    facebook?: string | null;
+    instagram?: string | null;
+    youtube?: string | null;
+    telegram?: string | null;
+  };
+  seo?: {
+    defaultMetaTitle?: string | null;
+    defaultMetaDescription?: string | null;
+    defaultOgImage?: (string | null) | Media;
+    robotsTxt?: string | null;
+    jsonLd?: string | null;
+    /**
+     * Google Search Console verification code
+     */
+    defaultGoogleVerification?: string | null;
+    /**
+     * Yandex Webmaster verification code
+     */
+    defaultYandexVerification?: string | null;
+  };
+  analytics?: {
+    /**
+     * Google Analytics Measurement ID (G-XXXXXXXXXX)
+     */
+    googleAnalyticsId?: string | null;
+    /**
+     * Google Tag Manager ID (GTM-XXXXXX)
+     */
+    googleTagManagerId?: string | null;
+    /**
+     * Meta (Facebook) Pixel ID
+     */
+    metaPixelId?: string | null;
+  };
+  features?: {
+    blog?: {
+      enabled?: boolean | null;
+      postsPerPage?: number | null;
+      enableComments?: boolean | null;
+      moderateComments?: boolean | null;
+    };
+    newsletter?: {
+      enabled?: boolean | null;
+      provider?: ('mailchimp' | 'sendgrid' | 'custom') | null;
+      apiKey?: string | null;
+      listId?: string | null;
+    };
+    search?: {
+      enabled?: boolean | null;
+      provider?: ('algolia' | 'meilisearch') | null;
+      apiKey?: string | null;
+    };
+  };
+  security?: {
+    reCaptcha?: {
+      enabled?: boolean | null;
+      siteKey?: string | null;
+      secretKey?: string | null;
+    };
+    cors?:
+      | {
+          origin: string;
+          id?: string | null;
+        }[]
+      | null;
+    rateLimiting?: {
+      enabled?: boolean | null;
+      maxRequests?: number | null;
+      /**
+       * Time window in minutes
+       */
+      timeWindow?: number | null;
+    };
+  };
+  smtp?: {
+    host?: string | null;
+    port?: number | null;
+    user?: string | null;
+    password?: string | null;
+    fromEmail?: string | null;
+    fromName?: string | null;
+  };
+  performance?: {
+    cache?: {
+      enabled?: boolean | null;
+      /**
+       * Time to live in seconds
+       */
+      ttl?: number | null;
+    };
+    images?: {
+      optimization?: ('quality' | 'balanced' | 'performance') | null;
+      lazyLoading?: boolean | null;
+      placeholders?: ('blur' | 'color' | 'none') | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -1774,6 +1918,167 @@ export interface FooterSelect<T extends boolean = true> {
               label?: T;
             };
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-config_select".
+ */
+export interface SiteConfigSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  company?:
+    | T
+    | {
+        legalName?: T;
+        foundedYear?: T;
+        taxId?: T;
+        registrationNumber?: T;
+        vatNumber?: T;
+      };
+  contact?:
+    | T
+    | {
+        email?: T;
+        phone?: T;
+        address?: T;
+        workingHours?: T;
+        googleMapsUrl?: T;
+      };
+  localization?:
+    | T
+    | {
+        defaultTimeZone?: T;
+        dateFormat?: T;
+        timeFormat?: T;
+      };
+  branding?:
+    | T
+    | {
+        logo?: T;
+        favicon?: T;
+        colors?:
+          | T
+          | {
+              primary?: T;
+              secondary?: T;
+              accent?: T;
+            };
+        fonts?:
+          | T
+          | {
+              primary?: T;
+              secondary?: T;
+            };
+      };
+  socialLinks?:
+    | T
+    | {
+        twitter?: T;
+        linkedin?: T;
+        facebook?: T;
+        instagram?: T;
+        youtube?: T;
+        telegram?: T;
+      };
+  seo?:
+    | T
+    | {
+        defaultMetaTitle?: T;
+        defaultMetaDescription?: T;
+        defaultOgImage?: T;
+        robotsTxt?: T;
+        jsonLd?: T;
+        defaultGoogleVerification?: T;
+        defaultYandexVerification?: T;
+      };
+  analytics?:
+    | T
+    | {
+        googleAnalyticsId?: T;
+        googleTagManagerId?: T;
+        metaPixelId?: T;
+      };
+  features?:
+    | T
+    | {
+        blog?:
+          | T
+          | {
+              enabled?: T;
+              postsPerPage?: T;
+              enableComments?: T;
+              moderateComments?: T;
+            };
+        newsletter?:
+          | T
+          | {
+              enabled?: T;
+              provider?: T;
+              apiKey?: T;
+              listId?: T;
+            };
+        search?:
+          | T
+          | {
+              enabled?: T;
+              provider?: T;
+              apiKey?: T;
+            };
+      };
+  security?:
+    | T
+    | {
+        reCaptcha?:
+          | T
+          | {
+              enabled?: T;
+              siteKey?: T;
+              secretKey?: T;
+            };
+        cors?:
+          | T
+          | {
+              origin?: T;
+              id?: T;
+            };
+        rateLimiting?:
+          | T
+          | {
+              enabled?: T;
+              maxRequests?: T;
+              timeWindow?: T;
+            };
+      };
+  smtp?:
+    | T
+    | {
+        host?: T;
+        port?: T;
+        user?: T;
+        password?: T;
+        fromEmail?: T;
+        fromName?: T;
+      };
+  performance?:
+    | T
+    | {
+        cache?:
+          | T
+          | {
+              enabled?: T;
+              ttl?: T;
+            };
+        images?:
+          | T
+          | {
+              optimization?: T;
+              lazyLoading?: T;
+              placeholders?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;

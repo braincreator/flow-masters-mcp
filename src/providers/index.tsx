@@ -1,14 +1,4 @@
-import React from 'react'
-
-import { HeaderThemeProvider } from './HeaderTheme'
-import { ThemeProvider } from './Theme'
-
-export const Providers: React.FC<{
-  children: React.ReactNode
-}> = ({ children }) => {
-  return (
-    <ThemeProvider>
-      <HeaderThemeProvider>{children}</HeaderThemeProvider>
-    </ThemeProvider>
-  )
-}
+export { RootProvider } from './RootProvider'
+export { useTheme } from './Theme'
+export { useI18n } from './I18n'
+export { useDropdown } from './DropdownContext'

@@ -90,6 +90,10 @@ const config = {
         warning: 'hsl(var(--warning))',
         error: 'hsl(var(--error))',
       },
+      fontFamily: {
+        primary: 'var(--font-primary)',
+        secondary: 'var(--font-secondary)',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
