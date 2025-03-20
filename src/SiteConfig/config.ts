@@ -113,69 +113,83 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'company',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'legalName',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'foundedYear',
                   type: 'number',
+                  required: false,
                 },
                 {
                   name: 'taxId',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'registrationNumber',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'vatNumber',
                   type: 'text',
+                  required: false,
                 }
               ]
             },
             {
               name: 'contact',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'email',
                   type: 'email',
-                  required: true,
+                  required: false,
                 },
                 {
                   name: 'phone',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'address',
                   type: 'textarea',
+                  required: false,
                 },
                 {
                   name: 'workingHours',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'googleMapsUrl',
                   type: 'text',
+                  required: false,
                 }
               ]
             },
             {
               name: 'localization',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'defaultTimeZone',
                   type: 'text',
                   defaultValue: 'UTC',
+                  required: false,
                 },
                 {
                   name: 'dateFormat',
                   type: 'select',
                   defaultValue: 'DD/MM/YYYY',
+                  required: false,
                   options: [
                     { label: 'DD/MM/YYYY', value: 'DD/MM/YYYY' },
                     { label: 'MM/DD/YYYY', value: 'MM/DD/YYYY' },
@@ -186,6 +200,7 @@ export const SiteConfig: GlobalConfig = {
                   name: 'timeFormat',
                   type: 'select',
                   defaultValue: '24',
+                  required: false,
                   options: [
                     { label: '24-hour', value: '24' },
                     { label: '12-hour', value: '12' },
@@ -201,97 +216,56 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'branding',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'logo',
                   type: 'upload',
                   relationTo: 'media',
-                  required: false,  // Changed from true to false
+                  required: false,
                 },
                 {
                   name: 'favicon',
                   type: 'upload',
                   relationTo: 'media',
+                  required: false,
                 },
                 {
                   name: 'colors',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'primary',
                       type: 'text',
-                      defaultValue: '#2563eb',
-                    },
-                    {
-                      name: 'primaryForeground',
-                      type: 'text',
-                      defaultValue: '#ffffff',
-                    },
-                    {
-                      name: 'primaryHover',
-                      type: 'text',
-                      defaultValue: '#1d4ed8',
-                    },
-                    {
-                      name: 'primaryActive',
-                      type: 'text',
-                      defaultValue: '#1e40af',
+                      required: false,
                     },
                     {
                       name: 'secondary',
                       type: 'text',
-                      defaultValue: '#1e293b',
-                    },
-                    {
-                      name: 'secondaryForeground',
-                      type: 'text',
-                      defaultValue: '#ffffff',
-                    },
-                    {
-                      name: 'secondaryHover',
-                      type: 'text',
-                      defaultValue: '#334155',
-                    },
-                    {
-                      name: 'secondaryActive',
-                      type: 'text',
-                      defaultValue: '#475569',
+                      required: false,
                     },
                     {
                       name: 'accent',
                       type: 'text',
-                      defaultValue: '#3b82f6',
-                    },
-                    {
-                      name: 'accentForeground',
-                      type: 'text',
-                      defaultValue: '#ffffff',
-                    },
-                    {
-                      name: 'accentHover',
-                      type: 'text',
-                      defaultValue: '#2563eb',
-                    },
-                    {
-                      name: 'accentActive',
-                      type: 'text',
-                      defaultValue: '#1d4ed8',
+                      required: false,
                     }
                   ]
                 },
                 {
                   name: 'fonts',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'primary',
                       type: 'text',
-                      defaultValue: 'Inter',
+                      required: false,
                     },
                     {
                       name: 'secondary',
                       type: 'text',
-                      defaultValue: 'Georgia',
+                      required: false,
                     }
                   ]
                 }
@@ -340,23 +314,28 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'seo',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'defaultMetaTitle',
                   type: 'text',
+                  required: false,
                 },
                 {
                   name: 'defaultMetaDescription',
                   type: 'textarea',
+                  required: false,
                 },
                 {
                   name: 'defaultOgImage',
                   type: 'upload',
                   relationTo: 'media',
+                  required: false,
                 },
                 {
                   name: 'robotsTxt',
                   type: 'code',
+                  required: false,
                   admin: {
                     language: 'text',
                   }
@@ -364,22 +343,9 @@ export const SiteConfig: GlobalConfig = {
                 {
                   name: 'jsonLd',
                   type: 'code',
+                  required: false,
                   admin: {
                     language: 'json',
-                  }
-                },
-                {
-                  name: 'defaultGoogleVerification',
-                  type: 'text',
-                  admin: {
-                    description: 'Google Search Console verification code'
-                  }
-                },
-                {
-                  name: 'defaultYandexVerification',
-                  type: 'text',
-                  admin: {
-                    description: 'Yandex Webmaster verification code'
                   }
                 }
               ]
@@ -387,27 +353,22 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'analytics',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'googleAnalyticsId',
                   type: 'text',
-                  admin: {
-                    description: 'Google Analytics Measurement ID (G-XXXXXXXXXX)',
-                  }
+                  required: false,
                 },
                 {
                   name: 'googleTagManagerId',
                   type: 'text',
-                  admin: {
-                    description: 'Google Tag Manager ID (GTM-XXXXXX)',
-                  }
+                  required: false,
                 },
                 {
                   name: 'metaPixelId',
                   type: 'text',
-                  admin: {
-                    description: 'Meta (Facebook) Pixel ID',
-                  }
+                  required: false,
                 }
               ]
             }
@@ -419,19 +380,23 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'features',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'blog',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'enabled',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     },
                     {
                       name: 'postsPerPage',
                       type: 'number',
+                      required: false,
                       defaultValue: 10,
                       min: 1,
                       max: 50,
@@ -439,11 +404,13 @@ export const SiteConfig: GlobalConfig = {
                     {
                       name: 'enableComments',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     },
                     {
                       name: 'moderateComments',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     }
                   ]
@@ -451,15 +418,18 @@ export const SiteConfig: GlobalConfig = {
                 {
                   name: 'newsletter',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'enabled',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     },
                     {
                       name: 'provider',
                       type: 'select',
+                      required: false,
                       options: [
                         { label: 'Mailchimp', value: 'mailchimp' },
                         { label: 'SendGrid', value: 'sendgrid' },
@@ -469,39 +439,39 @@ export const SiteConfig: GlobalConfig = {
                     {
                       name: 'apiKey',
                       type: 'text',
-                      admin: {
-                        condition: (data, siblingData) => siblingData?.provider !== 'custom',
-                      }
+                      required: false,
                     },
                     {
                       name: 'listId',
                       type: 'text',
-                      admin: {
-                        condition: (data, siblingData) => siblingData?.provider !== 'custom',
-                      }
+                      required: false,
                     }
                   ]
                 },
                 {
                   name: 'search',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'enabled',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     },
                     {
                       name: 'provider',
                       type: 'select',
+                      required: false,
                       options: [
                         { label: 'Algolia', value: 'algolia' },
-                        { label: 'MeiliSearch', value: 'meilisearch' },
+                        { label: 'Meilisearch', value: 'meilisearch' },
                       ]
                     },
                     {
                       name: 'apiKey',
                       type: 'text',
+                      required: false,
                     }
                   ]
                 }
@@ -515,68 +485,65 @@ export const SiteConfig: GlobalConfig = {
             {
               name: 'security',
               type: 'group',
+              required: false,
               fields: [
                 {
                   name: 'reCaptcha',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'enabled',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: false,
                     },
                     {
                       name: 'siteKey',
                       type: 'text',
-                      admin: {
-                        condition: (data, siblingData) => siblingData?.enabled,
-                      }
+                      required: false,
                     },
                     {
                       name: 'secretKey',
                       type: 'text',
-                      admin: {
-                        condition: (data, siblingData) => siblingData?.enabled,
-                      }
+                      required: false,
                     }
                   ]
                 },
                 {
                   name: 'cors',
                   type: 'array',
+                  required: false,
                   fields: [
                     {
                       name: 'origin',
                       type: 'text',
-                      required: true,
+                      required: false,
                     }
                   ]
                 },
                 {
                   name: 'rateLimiting',
                   type: 'group',
+                  required: false,
                   fields: [
                     {
                       name: 'enabled',
                       type: 'checkbox',
+                      required: false,
                       defaultValue: true,
                     },
                     {
                       name: 'maxRequests',
                       type: 'number',
+                      required: false,
                       defaultValue: 100,
-                      admin: {
-                        condition: (data, siblingData) => siblingData?.enabled,
-                      }
                     },
                     {
                       name: 'timeWindow',
                       type: 'number',
+                      required: false,
                       defaultValue: 15,
-                      admin: {
-                        description: 'Time window in minutes',
-                        condition: (data, siblingData) => siblingData?.enabled,
-                      }
                     }
                   ]
                 }

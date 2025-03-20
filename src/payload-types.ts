@@ -1770,8 +1770,8 @@ export interface SiteConfig {
     registrationNumber?: string | null;
     vatNumber?: string | null;
   };
-  contact: {
-    email: string;
+  contact?: {
+    email?: string | null;
     phone?: string | null;
     address?: string | null;
     workingHours?: string | null;
@@ -1787,17 +1787,8 @@ export interface SiteConfig {
     favicon?: (string | null) | Media;
     colors?: {
       primary?: string | null;
-      primaryForeground?: string | null;
-      primaryHover?: string | null;
-      primaryActive?: string | null;
       secondary?: string | null;
-      secondaryForeground?: string | null;
-      secondaryHover?: string | null;
-      secondaryActive?: string | null;
       accent?: string | null;
-      accentForeground?: string | null;
-      accentHover?: string | null;
-      accentActive?: string | null;
     };
     fonts?: {
       primary?: string | null;
@@ -1818,27 +1809,10 @@ export interface SiteConfig {
     defaultOgImage?: (string | null) | Media;
     robotsTxt?: string | null;
     jsonLd?: string | null;
-    /**
-     * Google Search Console verification code
-     */
-    defaultGoogleVerification?: string | null;
-    /**
-     * Yandex Webmaster verification code
-     */
-    defaultYandexVerification?: string | null;
   };
   analytics?: {
-    /**
-     * Google Analytics Measurement ID (G-XXXXXXXXXX)
-     */
     googleAnalyticsId?: string | null;
-    /**
-     * Google Tag Manager ID (GTM-XXXXXX)
-     */
     googleTagManagerId?: string | null;
-    /**
-     * Meta (Facebook) Pixel ID
-     */
     metaPixelId?: string | null;
   };
   features?: {
@@ -1868,16 +1842,13 @@ export interface SiteConfig {
     };
     cors?:
       | {
-          origin: string;
+          origin?: string | null;
           id?: string | null;
         }[]
       | null;
     rateLimiting?: {
       enabled?: boolean | null;
       maxRequests?: number | null;
-      /**
-       * Time window in minutes
-       */
       timeWindow?: number | null;
     };
   };
@@ -2007,17 +1978,8 @@ export interface SiteConfigSelect<T extends boolean = true> {
           | T
           | {
               primary?: T;
-              primaryForeground?: T;
-              primaryHover?: T;
-              primaryActive?: T;
               secondary?: T;
-              secondaryForeground?: T;
-              secondaryHover?: T;
-              secondaryActive?: T;
               accent?: T;
-              accentForeground?: T;
-              accentHover?: T;
-              accentActive?: T;
             };
         fonts?:
           | T
@@ -2044,8 +2006,6 @@ export interface SiteConfigSelect<T extends boolean = true> {
         defaultOgImage?: T;
         robotsTxt?: T;
         jsonLd?: T;
-        defaultGoogleVerification?: T;
-        defaultYandexVerification?: T;
       };
   analytics?:
     | T

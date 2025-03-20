@@ -19,7 +19,7 @@ export const ThemeSelector = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="opacity-0 rounded-full"
+        className="opacity-0 rounded-full p-1"
         aria-hidden="true"
       >
         <Moon className="h-4 w-4 rounded-full" />
@@ -38,7 +38,7 @@ export const ThemeSelector = () => {
       size="icon"
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="rounded-full hover:bg-muted/30"
+      className="rounded-full hover:bg-muted/30 p-1"
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5 rounded-full transition-transform duration-300 hover:rotate-90" />

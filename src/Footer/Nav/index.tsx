@@ -23,6 +23,13 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
             <li key={i}>
               <CMSLink
                 {...link}
+                reference={link.reference?.value ? {
+                  relationTo: link.reference.relationTo,
+                  value: typeof link.reference.value === 'string' 
+                    ? link.reference.value 
+                    : link.reference.value.slug
+                } : undefined}
+                newTab={link.newTab || false}
                 appearance="secondary"
               />
             </li>
