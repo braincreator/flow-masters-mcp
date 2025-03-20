@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
-import { cn } from '@/utilities/ui'
-import { GeistMono } from 'geist/font/mono'
-import { GeistSans } from 'geist/font/sans'
 import React from 'react'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import { cn } from '@/utilities/ui'
+import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 import { RootProvider } from '@/providers/RootProvider'
-import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { getSiteConfig } from '@/utilities/get-site-config'
 import { generateThemeVariables } from '@/utilities/theme'
-import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 
@@ -19,17 +18,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html 
       lang={lang} 
-      className={cn(GeistSans.variable, GeistMono.variable)}
+      className={cn(
+        GeistSans.variable, 
+        GeistMono.variable,
+        'min-h-screen bg-background antialiased'
+      )}
       suppressHydrationWarning
+      data-theme="light"
       style={themeVariables}
     >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased">
         <RootProvider lang={lang} siteConfig={siteConfig}>
-          {children}
+          <main className="relative flex min-h-screen flex-col">
+            {children}
+          </main>
         </RootProvider>
       </body>
     </html>
@@ -38,9 +44,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
-  openGraph: mergeOpenGraph(),
-  twitter: {
-    card: 'summary_large_image',
-    creator: '@payloadcms',
+  title: {
+    template: '%s | Your Site Name',
+    default: 'Your Site Name',
   },
+  description: 'Your site description',
 }

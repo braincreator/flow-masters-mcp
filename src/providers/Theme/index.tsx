@@ -9,33 +9,36 @@ import Script from 'next/script'
 
 const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => null,
-  theme: undefined,
+  theme: defaultTheme,
 })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme | undefined>(
-    canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
-  )
+  const [theme, setThemeState] = useState<Theme>(defaultTheme)
+  const [mounted, setMounted] = useState(false)
 
   const setTheme = useCallback((themeToSet: Theme | null) => {
     if (themeToSet === null) {
-      window.localStorage.removeItem(themeLocalStorageKey)
       const implicitPreference = getImplicitPreference()
-      document.documentElement.setAttribute('data-theme', implicitPreference || '')
-      if (implicitPreference) setThemeState(implicitPreference)
+      const newTheme = implicitPreference || defaultTheme
+      setThemeState(newTheme)
+      document.documentElement.setAttribute('data-theme', newTheme)
+      window.localStorage.removeItem(themeLocalStorageKey)
     } else {
       setThemeState(themeToSet)
-      window.localStorage.setItem(themeLocalStorageKey, themeToSet)
       document.documentElement.setAttribute('data-theme', themeToSet)
+      window.localStorage.setItem(themeLocalStorageKey, themeToSet)
     }
   }, [])
 
+  // Initialize theme on mount
   useEffect(() => {
-    let themeToSet: Theme = defaultTheme
-    const preference = window.localStorage.getItem(themeLocalStorageKey)
+    if (!canUseDOM) return
 
-    if (themeIsValid(preference)) {
-      themeToSet = preference
+    const storedTheme = window.localStorage.getItem(themeLocalStorageKey)
+    let themeToSet: Theme = defaultTheme
+
+    if (themeIsValid(storedTheme)) {
+      themeToSet = storedTheme
     } else {
       const implicitPreference = getImplicitPreference()
       if (implicitPreference) {
@@ -43,8 +46,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    document.documentElement.setAttribute('data-theme', themeToSet)
     setThemeState(themeToSet)
+    document.documentElement.setAttribute('data-theme', themeToSet)
+    setMounted(true)
   }, [])
 
   return (
@@ -54,11 +58,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         strategy="beforeInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-            (function () {
+            (function() {
               try {
-                const theme = localStorage.getItem('${themeLocalStorageKey}') || '${defaultTheme}';
-                document.documentElement.setAttribute('data-theme', theme);
-                document.documentElement.style.opacity = '1';
+                const storedTheme = localStorage.getItem('${themeLocalStorageKey}');
+                if (storedTheme && ['dark', 'light'].includes(storedTheme)) {
+                  document.documentElement.setAttribute('data-theme', storedTheme);
+                  return;
+                }
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', systemTheme);
               } catch (e) {
                 document.documentElement.setAttribute('data-theme', '${defaultTheme}');
               }
@@ -66,17 +74,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           `,
         }}
       />
-      <ThemeContext.Provider value={{ setTheme, theme }}>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
         {children}
       </ThemeContext.Provider>
     </>
   )
 }
 
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
-}
+export const useTheme = () => useContext(ThemeContext)

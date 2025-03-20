@@ -26,28 +26,28 @@ const serverFunction: ServerFunctionClient = async function (args) {
 }
 
 const Layout = async ({ children }: Args) => {
-  // Get theme from cookies on the server side
   const cookieStore = cookies()
   const theme = cookieStore.get('theme')?.value || 'light'
-  
-  // Get current locale
   const locale = await getCurrentLocale()
 
   return (
     <html 
       lang={locale}
-      dir={locale === 'ar' ? 'RTL' : 'LTR'} // Add RTL support if needed
+      dir={locale === 'ar' ? 'RTL' : 'LTR'}
       data-theme={theme}
+      className="min-h-screen bg-background antialiased"
       suppressHydrationWarning
     >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body>
+      <body className="min-h-screen bg-background font-sans antialiased">
         <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
           <RootProvider lang={locale} siteConfig={null}>
-            {children}
+            <main className="relative flex min-h-screen flex-col">
+              {children}
+            </main>
           </RootProvider>
         </RootLayout>
       </body>

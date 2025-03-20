@@ -59,7 +59,7 @@ export function HeaderClient({ data: initialData }: HeaderClientProps) {
             </Link>
           </motion.div>
           <motion.div 
-            className="flex items-center gap-8"
+            className="flex items-center gap-4"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
