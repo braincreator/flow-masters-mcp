@@ -34,20 +34,18 @@ export function generateThemeVariables(branding?: BrandingConfig) {
     '--accent-hover': lightAccent.hover,
     '--accent-active': lightAccent.active,
 
-    // Dark theme colors will be applied via [data-theme="dark"]
-    '[data-theme="dark"]': {
-      '--primary': darkPrimary.base,
-      '--primary-hover': darkPrimary.hover,
-      '--primary-active': darkPrimary.active,
-      
-      '--secondary': darkSecondary.base,
-      '--secondary-hover': darkSecondary.hover,
-      '--secondary-active': darkSecondary.active,
-      
-      '--accent': darkAccent.base,
-      '--accent-hover': darkAccent.hover,
-      '--accent-active': darkAccent.active,
-    },
+    // Dark theme colors
+    '--dark-primary': darkPrimary.base,
+    '--dark-primary-hover': darkPrimary.hover,
+    '--dark-primary-active': darkPrimary.active,
+    
+    '--dark-secondary': darkSecondary.base,
+    '--dark-secondary-hover': darkSecondary.hover,
+    '--dark-secondary-active': darkSecondary.active,
+    
+    '--dark-accent': darkAccent.base,
+    '--dark-accent-hover': darkAccent.hover,
+    '--dark-accent-active': darkAccent.active,
 
     '--font-primary': branding.fonts?.primary || 'Inter',
     '--font-secondary': branding.fonts?.secondary || 'Georgia',

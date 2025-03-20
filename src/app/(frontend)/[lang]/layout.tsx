@@ -16,7 +16,7 @@ interface LayoutProps {
 }
 
 export default async function LangLayout({ children, params }: LayoutProps) {
-  const { lang } = params
+  const { lang } = await params
   const { isEnabled: isDraftMode } = await draftMode()
   const siteConfig = await getSiteConfig()
   

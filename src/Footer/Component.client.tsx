@@ -1,12 +1,11 @@
 'use client'
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import type { Footer, SiteConfig } from '@/payload-types'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { translations } from './translations'
 import { FooterNav } from './Nav'
-import { fetchGlobal } from '@/utilities/getGlobalsClient'
 import { Logo } from '@/components/Logo/Logo'
 
 type FooterProps = {
@@ -41,7 +40,7 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale, siteConfig }
             </p>
           </div>
 
-          {/* Navigation Section */}
+          {/* Main Navigation Section */}
           <nav className="md:col-span-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FooterNav data={data} variant="main" />

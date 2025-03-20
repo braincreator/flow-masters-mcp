@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
-const locales = ['en', 'ru']
-const defaultLocale = 'ru'
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const locale = pathname.split('/')[1] || defaultLocale
+  const locale = pathname.split('/')[1] || DEFAULT_LOCALE
 
   // Clone the request headers
   const requestHeaders = new Headers(request.headers)
@@ -27,20 +25,8 @@ export function middleware(request: NextRequest) {
     })
   }
 
-  // Handle root path
-  if (pathname === '/') {
-    const redirectUrl = new URL(`/${defaultLocale}/home`, request.url)
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  // Redirect /locale/ to /locale/home
-  if (locales.includes(locale) && (pathname === `/${locale}` || pathname === `/${locale}/`)) {
-    const redirectUrl = new URL(`/${locale}/home`, request.url)
-    return NextResponse.redirect(redirectUrl)
-  }
-
   // Handle paths without locale
-  if (!locales.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
+  if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
     // Skip locale redirect for posts collection
     if (pathname.startsWith('/posts/')) {
       return NextResponse.next({
@@ -50,7 +36,7 @@ export function middleware(request: NextRequest) {
       })
     }
     
-    const redirectUrl = new URL(`/${defaultLocale}${pathname}`, request.url)
+    const redirectUrl = new URL(`/${DEFAULT_LOCALE}${pathname}`, request.url)
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -66,7 +52,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next, api, etc)
+    // Skip all internal paths (_next, static, api, etc)
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

@@ -6,7 +6,7 @@ import type { ServerFunctionClient } from 'payload'
 import { handleServerFunctions, RootLayout } from '@payloadcms/next/layouts'
 import React from 'react'
 import { RootProvider } from '@/providers/RootProvider'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 
 import { importMap } from './admin/importMap.js'
@@ -26,7 +26,7 @@ const serverFunction: ServerFunctionClient = async function (args) {
 }
 
 const Layout = async ({ children }: Args) => {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const theme = cookieStore.get('theme')?.value || 'light'
   const locale = await getCurrentLocale()
 

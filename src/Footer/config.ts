@@ -9,7 +9,8 @@ export const Footer: GlobalConfig = {
   },
   fields: [
     {
-      name: 'navItems',
+      name: 'mainNavItems',
+      label: 'Main Navigation Items',
       type: 'array',
       localized: true,
       fields: [
@@ -18,7 +19,26 @@ export const Footer: GlobalConfig = {
           localized: true,
         }),
       ],
-      maxRows: 6,
+      maxRows: 12,
+      admin: {
+        initCollapsed: true,
+        components: {
+          RowLabel: '@/Footer/RowLabel#RowLabel',
+        },
+      },
+    },
+    {
+      name: 'bottomNavItems',
+      label: 'Bottom Navigation Items',
+      type: 'array',
+      localized: true,
+      fields: [
+        link({
+          appearances: false,
+          localized: true,
+        }),
+      ],
+      maxRows: 4,
       admin: {
         initCollapsed: true,
         components: {

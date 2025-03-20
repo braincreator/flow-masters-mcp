@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 
 interface FooterNavProps {
   data: FooterType
-  variant?: 'main' | 'bottom'
+  variant: 'main' | 'bottom'
 }
 
-export const FooterNav: React.FC<FooterNavProps> = ({ data, variant = 'main' }) => {
-  const navItems = data?.navItems || []
+export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
+  const navItems = variant === 'main' 
+    ? data?.mainNavItems || []
+    : data?.bottomNavItems || []
 
   if (variant === 'main') {
     return (
@@ -21,7 +23,7 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant = 'main' }) 
             <li key={i}>
               <CMSLink
                 {...link}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                appearance="secondary"
               />
             </li>
           ))}
@@ -33,9 +35,12 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant = 'main' }) 
   return (
     <div className="flex items-center gap-4">
       {navItems?.map(({ link }, i) => (
-        <Button key={i} variant="ghost" size="sm" asChild>
-          <CMSLink {...link} />
-        </Button>
+        <CMSLink
+          key={i}
+          {...link}
+          appearance="ghost"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        />
       ))}
     </div>
   )

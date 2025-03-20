@@ -1,76 +1,113 @@
 'use client'
 
-import { Button, type ButtonProps } from '@/components/ui/button'
-import { cn } from '@/utilities/ui'
-import Link from 'next/link'
 import React from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { cn } from '@/utilities/ui'
 
-import type { Page, Post } from '@/payload-types'
-
-type CMSLinkType = {
-  appearance?: 'inline' | ButtonProps['variant']
+export interface CMSLinkType {
+  appearance?: 'default' | 'primary' | 'secondary' | 'ghost' | 'inline'
   children?: React.ReactNode
   className?: string
-  label?: string | null
-  newTab?: boolean | null
+  label?: string
+  newTab?: boolean
   reference?: {
-    relationTo: 'pages' | 'posts'
-    value: Page | Post | string | number
-  } | null
-  size?: ButtonProps['size'] | null
-  type?: 'custom' | 'reference' | null
-  url?: string | null
+    value: string | { slug: string }
+    relationTo: string
+  }
+  type?: 'reference' | 'custom'
+  url?: string
+  icon?: React.ReactNode
+  loading?: boolean
+  disabled?: boolean
+  activeClassName?: string
+  exactMatch?: boolean
+  prefetch?: boolean
+  onClick?: () => void
 }
 
-export const CMSLink: React.FC<CMSLinkType> = (props) => {
-  const {
-    type,
-    appearance = 'inline',
-    children,
-    className,
-    label,
-    newTab,
-    reference,
-    size: sizeFromProps,
-    url,
-  } = props
+const linkStyles = {
+  default: 'text-primary hover:text-primary/80 transition-colors',
+  primary: 'text-primary font-medium hover:text-primary/80 transition-colors',
+  secondary: 'text-muted-foreground hover:text-foreground transition-colors',
+  ghost: 'text-foreground/60 hover:text-foreground transition-colors',
+  inline: 'inline-flex items-center gap-2 text-primary hover:text-primary/80 underline-offset-4 hover:underline'
+}
 
+export const CMSLink: React.FC<CMSLinkType> = ({
+  appearance = 'default',
+  children,
+  className,
+  label,
+  newTab,
+  reference,
+  type,
+  url,
+  icon,
+  loading,
+  disabled,
+  activeClassName,
+  exactMatch = false,
+  prefetch = true,
+  onClick,
+}) => {
   const pathname = usePathname()
-  const currentLocale = pathname.split('/')[1] || 'ru'
-
+  
   const href = React.useMemo(() => {
-    if (type === 'reference' && typeof reference?.value === 'object' && reference.value.slug) {
-      const basePath = reference?.relationTo !== 'pages' ? `/${reference?.relationTo}` : ''
-      return `/${currentLocale}${basePath}/${reference.value.slug}`
+    if (type === 'reference' && reference?.value) {
+      if (typeof reference.value === 'object') {
+        return `/${reference.relationTo}/${reference.value.slug}`
+      }
+      return `/${reference.relationTo}/${reference.value}`
     }
-    if (url?.startsWith('/')) {
-      return `/${currentLocale}${url}`
-    }
-    return url
-  }, [type, reference, url, currentLocale])
+    return url || ''
+  }, [type, reference, url])
 
-  if (!href) return null
+  const isActive = exactMatch 
+    ? pathname === href
+    : pathname.startsWith(href)
 
-  const size = appearance === 'link' ? 'clear' : sizeFromProps
-  const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
+  const linkClassName = cn(
+    linkStyles[appearance],
+    disabled && 'opacity-50 pointer-events-none',
+    isActive && activeClassName,
+    className
+  )
 
-  /* Ensure we don't break any styles set by richText */
-  if (appearance === 'inline') {
+  const content = (
+    <>
+      {icon && <span className="mr-2">{icon}</span>}
+      {children || label}
+      {loading && (
+        <span className="ml-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+        </span>
+      )}
+    </>
+  )
+
+  if (newTab) {
     return (
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
-        {label && label}
-        {children && children}
-      </Link>
+      <a
+        href={href}
+        className={linkClassName}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+      >
+        {content}
+      </a>
     )
   }
 
   return (
-    <Button asChild className={className} size={size} variant={appearance}>
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
-        {label && label}
-        {children && children}
-      </Link>
-    </Button>
+    <Link
+      href={href}
+      className={linkClassName}
+      prefetch={prefetch}
+      onClick={onClick}
+    >
+      {content}
+    </Link>
   )
 }
