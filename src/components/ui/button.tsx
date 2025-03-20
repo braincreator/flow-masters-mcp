@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/utilities/ui"
 
 const buttonVariants = cva(
-  "button-base inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all duration-300",
+  "button-base inline-flex items-center justify-center whitespace-nowrap font-medium transition-all duration-300",
   {
     variants: {
       variant: {
@@ -92,10 +92,10 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        default: "h-11 px-5 py-2.5 rounded-lg",
-        sm: "h-9 px-4 py-2 rounded-md text-sm",
-        lg: "h-12 px-8 py-3 rounded-lg text-base",
-        icon: "h-10 w-10 rounded-lg",
+        default: "h-12 px-6 py-3 text-base md:text-lg rounded-lg",
+        sm: "h-10 px-4 py-2 text-sm md:text-base rounded-md",
+        lg: "h-14 px-8 py-4 text-lg md:text-xl rounded-lg",
+        icon: "h-12 w-12 rounded-lg text-base md:text-lg",
       },
     },
     defaultVariants: {

@@ -120,11 +120,62 @@
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
+    font-size: 16px; /* Base font size */
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased text-base;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Adjust heading sizes */
+  h1 {
+    @apply text-4xl font-bold md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl font-bold md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+
+  h5 {
+    @apply text-lg font-bold md:text-xl;
+  }
+
+  h6 {
+    @apply text-base font-bold md:text-lg;
+  }
+
+  /* Adjust paragraph and other text elements */
+  p, ul, ol, li {
+    @apply text-base md:text-lg;
+  }
+
+  /* Adjust form elements */
+  input, select, textarea {
+    @apply text-base md:text-lg;
+  }
+
+  /* Adjust button text */
+  button, .button {
+    @apply text-base md:text-lg;
+  }
+
+  /* Adjust navigation and menu items */
+  nav {
+    @apply text-base md:text-lg;
+  }
+
+  /* Adjust small text elements */
+  small, .text-small {
+    @apply text-sm md:text-base;
   }
 
   ::selection {
@@ -213,8 +264,20 @@
            transform hover:-translate-y-1;
   }
 
+  .card-title {
+    @apply text-xl font-bold md:text-2xl;
+  }
+
+  .card-subtitle {
+    @apply text-lg md:text-xl text-muted-foreground;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+
   .button-base {
-    @apply relative overflow-hidden
+    @apply text-base md:text-lg relative overflow-hidden
            font-medium
            disabled:opacity-50 disabled:pointer-events-none
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
@@ -224,11 +287,19 @@
   }
 
   .input-base {
-    @apply w-full rounded-lg border border-input bg-background px-4 py-2.5
-           text-sm placeholder:text-muted-foreground/70
+    @apply text-base md:text-lg w-full rounded-lg border border-input bg-background px-4 py-2.5
+           placeholder:text-muted-foreground/70
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
            disabled:cursor-not-allowed disabled:opacity-50
            transition-all duration-200;
+  }
+
+  /* Update badge size */
+  .badge {
+    @apply text-sm md:text-base inline-flex items-center
+           rounded-full px-3 py-1
+           font-medium
+           transition-colors duration-200;
   }
 
   /* Modern glass card effect */
@@ -372,6 +443,61 @@
     @apply scrollbar-thin scrollbar-track-muted
            scrollbar-thumb-primary/50
            hover:scrollbar-thumb-primary/70;
+  }
+
+  /* Add these new components */
+  .nav-item-glow {
+    @apply relative;
+  }
+
+  .nav-item-glow::after {
+    @apply content-[''] absolute -inset-3 rounded-xl;
+    @apply bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0;
+    @apply opacity-0 transition-opacity duration-300;
+    @apply group-hover:opacity-100;
+    @apply -z-10 blur-md;
+  }
+
+  .text-gradient-hover {
+    @apply transition-all duration-300;
+    @apply hover:bg-gradient-to-r hover:from-primary hover:via-accent hover:to-primary;
+    @apply hover:bg-clip-text hover:text-transparent;
+  }
+
+  .link-underline-animated {
+    @apply relative;
+    @apply after:absolute after:bottom-0 after:left-0;
+    @apply after:h-[2px] after:w-full;
+    @apply after:origin-left after:scale-x-0;
+    @apply after:bg-gradient-to-r after:from-primary after:via-accent after:to-primary;
+    @apply after:transition-transform after:duration-300;
+    @apply hover:after:scale-x-100;
+  }
+
+  .nav-link-hover {
+    @apply relative overflow-hidden
+           before:absolute before:inset-0 before:w-full before:h-full
+           before:bg-gradient-to-r before:from-primary/0 before:via-primary/10 before:to-primary/0
+           before:translate-y-[100%] before:hover:translate-y-0
+           before:transition-transform before:duration-300
+           hover:text-foreground transition-colors duration-300;
+  }
+
+  .nav-link-glow {
+    @apply relative
+           after:absolute after:top-[120%] after:left-[50%]
+           after:w-[20px] after:h-[4px]
+           after:rounded-full
+           after:shadow-[0_0_8px_3px] after:shadow-primary/50
+           after:transition-all after:duration-500
+           after:opacity-0
+           hover:after:opacity-100;
+  }
+
+  .nav-link-magnetic {
+    @apply relative transition-transform duration-200
+           hover:scale-110
+           active:scale-95;
   }
 }
 

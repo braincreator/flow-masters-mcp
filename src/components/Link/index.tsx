@@ -7,6 +7,7 @@ import { cn } from '@/utilities/ui'
 
 export interface CMSLinkType {
   appearance?: 'default' | 'primary' | 'secondary' | 'ghost' | 'inline'
+  size?: 'sm' | 'default' | 'lg'
   children?: React.ReactNode
   className?: string
   label?: string
@@ -27,15 +28,24 @@ export interface CMSLinkType {
 }
 
 const linkStyles = {
-  default: 'text-primary hover:text-primary/80 transition-colors',
-  primary: 'text-primary font-medium hover:text-primary/80 transition-colors',
-  secondary: 'text-muted-foreground hover:text-foreground transition-colors',
-  ghost: 'text-foreground/60 hover:text-foreground transition-colors',
-  inline: 'inline-flex items-center gap-2 text-primary hover:text-primary/80 underline-offset-4 hover:underline'
+  base: "inline-flex items-center transition-colors duration-200",
+  sizes: {
+    sm: "text-sm md:text-base",
+    default: "text-base md:text-lg",
+    lg: "text-lg md:text-xl"
+  },
+  appearance: {
+    default: "text-foreground hover:text-primary",
+    primary: "text-primary hover:text-primary/80",
+    secondary: "text-secondary hover:text-secondary/80",
+    ghost: "text-muted-foreground hover:text-foreground",
+    inline: "text-primary underline-offset-4 hover:underline"
+  }
 }
 
 export const CMSLink: React.FC<CMSLinkType> = ({
   appearance = 'default',
+  size = 'default',
   children,
   className,
   label,
@@ -68,7 +78,9 @@ export const CMSLink: React.FC<CMSLinkType> = ({
     : pathname.startsWith(href)
 
   const linkClassName = cn(
-    linkStyles[appearance],
+    linkStyles.base,
+    linkStyles.sizes[size],
+    linkStyles.appearance[appearance],
     disabled && 'opacity-50 pointer-events-none',
     isActive && activeClassName,
     className

@@ -41,6 +41,28 @@ export const defaultLexical: Config['editor'] = lexicalEditor({
                 return value ? true : 'URL is required'
               }) as TextFieldSingleValidation,
             },
+            {
+              name: 'appearance',
+              type: 'select',
+              defaultValue: 'default',
+              options: [
+                { label: 'Default', value: 'default' },
+                { label: 'Primary', value: 'primary' },
+                { label: 'Secondary', value: 'secondary' },
+                { label: 'Ghost', value: 'ghost' },
+                { label: 'Inline', value: 'inline' },
+              ],
+            },
+            {
+              name: 'size',
+              type: 'select',
+              defaultValue: 'default',
+              options: [
+                { label: 'Small', value: 'sm' },
+                { label: 'Default', value: 'default' },
+                { label: 'Large', value: 'lg' },
+              ],
+            },
           ]
         },
       }),
