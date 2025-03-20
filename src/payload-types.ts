@@ -1787,8 +1787,17 @@ export interface SiteConfig {
     favicon?: (string | null) | Media;
     colors?: {
       primary?: string | null;
+      primaryForeground?: string | null;
+      primaryHover?: string | null;
+      primaryActive?: string | null;
       secondary?: string | null;
+      secondaryForeground?: string | null;
+      secondaryHover?: string | null;
+      secondaryActive?: string | null;
       accent?: string | null;
+      accentForeground?: string | null;
+      accentHover?: string | null;
+      accentActive?: string | null;
     };
     fonts?: {
       primary?: string | null;
@@ -1998,8 +2007,17 @@ export interface SiteConfigSelect<T extends boolean = true> {
           | T
           | {
               primary?: T;
+              primaryForeground?: T;
+              primaryHover?: T;
+              primaryActive?: T;
               secondary?: T;
+              secondaryForeground?: T;
+              secondaryHover?: T;
+              secondaryActive?: T;
               accent?: T;
+              accentForeground?: T;
+              accentHover?: T;
+              accentActive?: T;
             };
         fonts?:
           | T

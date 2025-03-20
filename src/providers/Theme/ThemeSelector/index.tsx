@@ -19,10 +19,10 @@ export const ThemeSelector = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="opacity-0"
+        className="opacity-0 rounded-full"
         aria-hidden="true"
       >
-        <Moon className="h-4 w-4" />
+        <Moon className="h-4 w-4 rounded-full" />
       </Button>
     )
   }
@@ -38,11 +38,12 @@ export const ThemeSelector = () => {
       size="icon"
       onClick={toggleTheme}
       aria-label="Toggle theme"
+      className="rounded-full hover:bg-muted/30"
     >
       {theme === 'dark' ? (
-        <Sun className="h-4 w-4" />
+        <Sun className="h-5 w-5 rounded-full transition-transform duration-300 hover:rotate-90" />
       ) : (
-        <Moon className="h-4 w-4" />
+        <Moon className="h-5 w-5 rounded-full transition-transform duration-300 hover:-rotate-12" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>

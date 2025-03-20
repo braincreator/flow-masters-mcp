@@ -9,51 +9,93 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: [
-          "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground",
-          "hover:from-primary/90 hover:via-primary/90 hover:to-primary/80",
-          "shadow-md shadow-primary/10",
-          "hover:shadow-lg hover:shadow-primary/20",
-          "dark:shadow-none dark:hover:shadow-primary/20"
+          // Modern gradient with subtle depth
+          "bg-gradient-to-br from-primary to-primary/90",
+          "text-primary-foreground",
+          "shadow-lg shadow-primary/20",
+          // Hover state
+          "hover:from-primary/95 hover:to-primary/85",
+          "hover:shadow-xl hover:shadow-primary/30",
+          "hover:scale-[1.02]",
+          // Dark mode adjustments
+          "dark:shadow-primary/30",
+          "dark:hover:shadow-primary/40"
         ],
         destructive: [
-          "bg-gradient-to-br from-destructive via-destructive to-destructive/90 text-destructive-foreground",
-          "hover:from-destructive/90 hover:via-destructive/90 hover:to-destructive/80",
-          "shadow-md shadow-destructive/10",
-          "hover:shadow-lg hover:shadow-destructive/20"
+          // Error/danger style
+          "bg-gradient-to-br from-destructive to-destructive/90",
+          "text-destructive-foreground",
+          "shadow-lg shadow-destructive/20",
+          // Hover state
+          "hover:from-destructive/95 hover:to-destructive/85",
+          "hover:shadow-xl hover:shadow-destructive/30",
+          "hover:scale-[1.02]",
+          // Dark mode
+          "dark:shadow-destructive/30",
+          "dark:hover:shadow-destructive/40"
         ],
         outline: [
-          "border-2 border-input bg-background",
-          "hover:bg-accent/5 hover:text-accent-foreground hover:border-accent",
+          // Clean outline style
+          "border-2",
+          "bg-background/50",
+          "backdrop-blur-sm",
+          "border-input",
+          "text-foreground",
+          "shadow-sm",
+          // Hover state
+          "hover:bg-accent/10",
+          "hover:border-accent",
+          "hover:text-accent-foreground",
+          "hover:shadow-md",
+          // Dark mode
+          "dark:bg-background/5",
           "dark:border-border/40",
-          "dark:hover:bg-accent/10",
           "dark:hover:border-accent/60",
-          "shadow-sm hover:shadow-md"
+          "dark:hover:bg-accent/20"
         ],
         secondary: [
-          "bg-gradient-to-br from-secondary via-secondary to-secondary/90 text-secondary-foreground",
-          "hover:from-secondary/90 hover:via-secondary/90 hover:to-secondary/80",
-          "dark:from-secondary/20 dark:via-secondary/20 dark:to-secondary/10",
-          "dark:hover:from-secondary/30 dark:hover:via-secondary/30 dark:hover:to-secondary/20",
-          "shadow-sm shadow-secondary/10",
-          "hover:shadow-md hover:shadow-secondary/20"
+          // Subtle secondary style
+          "bg-gradient-to-br from-secondary to-secondary/90",
+          "text-secondary-foreground",
+          "shadow-md shadow-secondary/10",
+          // Hover state
+          "hover:from-secondary/95 hover:to-secondary/85",
+          "hover:shadow-lg hover:shadow-secondary/20",
+          "hover:scale-[1.02]",
+          // Dark mode
+          "dark:from-secondary/20 dark:to-secondary/10",
+          "dark:hover:from-secondary/30 dark:hover:to-secondary/20"
         ],
         ghost: [
-          "hover:bg-accent/5 hover:text-accent-foreground",
-          "dark:text-foreground dark:hover:bg-accent/10",
+          // Minimal ghost style
+          "bg-transparent",
+          "text-foreground/80",
           "border border-transparent",
+          // Hover state
+          "hover:bg-accent/10",
+          "hover:text-accent-foreground",
           "hover:border-accent/20",
-          "dark:hover:border-accent/20"
+          // Dark mode
+          "dark:text-foreground/70",
+          "dark:hover:bg-accent/20",
+          "dark:hover:text-foreground"
         ],
         link: [
-          "text-primary underline-offset-4 hover:underline",
-          "dark:text-primary"
+          // Enhanced link style
+          "text-primary",
+          "underline-offset-4",
+          "hover:underline",
+          "hover:text-primary/80",
+          // Dark mode
+          "dark:text-primary/90",
+          "dark:hover:text-primary/70"
         ],
       },
       size: {
-        default: "h-11 px-5 py-2.5",
-        sm: "h-9 rounded-md px-4",
-        lg: "h-12 rounded-md px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-11 px-5 py-2.5 rounded-lg",
+        sm: "h-9 px-4 py-2 rounded-md text-sm",
+        lg: "h-12 px-8 py-3 rounded-lg text-base",
+        icon: "h-10 w-10 rounded-lg",
       },
     },
     defaultVariants: {

@@ -52,7 +52,7 @@ export function LanguageSwitcher() {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full"
+        className="flex items-center gap-2 rounded-full hover:bg-muted/30"
       >
         <ReactCountryFlag
           countryCode={currentLanguage?.countryCode || 'US'}

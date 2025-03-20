@@ -220,17 +220,62 @@ export const SiteConfig: GlobalConfig = {
                     {
                       name: 'primary',
                       type: 'text',
-                      defaultValue: '#000000',
+                      defaultValue: '#2563eb',
                     },
                     {
-                      name: 'secondary',
+                      name: 'primaryForeground',
                       type: 'text',
                       defaultValue: '#ffffff',
                     },
                     {
+                      name: 'primaryHover',
+                      type: 'text',
+                      defaultValue: '#1d4ed8',
+                    },
+                    {
+                      name: 'primaryActive',
+                      type: 'text',
+                      defaultValue: '#1e40af',
+                    },
+                    {
+                      name: 'secondary',
+                      type: 'text',
+                      defaultValue: '#1e293b',
+                    },
+                    {
+                      name: 'secondaryForeground',
+                      type: 'text',
+                      defaultValue: '#ffffff',
+                    },
+                    {
+                      name: 'secondaryHover',
+                      type: 'text',
+                      defaultValue: '#334155',
+                    },
+                    {
+                      name: 'secondaryActive',
+                      type: 'text',
+                      defaultValue: '#475569',
+                    },
+                    {
                       name: 'accent',
                       type: 'text',
-                      defaultValue: '#000000',
+                      defaultValue: '#3b82f6',
+                    },
+                    {
+                      name: 'accentForeground',
+                      type: 'text',
+                      defaultValue: '#ffffff',
+                    },
+                    {
+                      name: 'accentHover',
+                      type: 'text',
+                      defaultValue: '#2563eb',
+                    },
+                    {
+                      name: 'accentActive',
+                      type: 'text',
+                      defaultValue: '#1d4ed8',
                     }
                   ]
                 },

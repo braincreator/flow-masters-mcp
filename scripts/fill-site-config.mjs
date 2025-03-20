@@ -50,8 +50,17 @@ async function fillSiteConfig() {
         branding: {
           colors: {
             primary: '#2563eb',
+            primaryForeground: '#ffffff',
+            primaryHover: '#1d4ed8',
+            primaryActive: '#1e40af',
             secondary: '#1e293b',
+            secondaryForeground: '#ffffff',
+            secondaryHover: '#334155',
+            secondaryActive: '#475569',
             accent: '#3b82f6',
+            accentForeground: '#ffffff',
+            accentHover: '#2563eb',
+            accentActive: '#1d4ed8',
           },
           fonts: {
             primary: 'Inter',
