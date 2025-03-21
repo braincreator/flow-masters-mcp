@@ -28,7 +28,10 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <Link href={`/${locale}`} className="inline-block">
+              <Link 
+                href={`/${locale}`} 
+                className="inline-block hover:text-warning transition-colors duration-300"
+              >
                 <Logo 
                   className="h-8 w-auto" 
                   size="thumbnail"

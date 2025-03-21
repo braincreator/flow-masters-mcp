@@ -21,6 +21,19 @@ const buttonVariants = cva(
           'dark:shadow-primary/30',
           'dark:hover:shadow-primary/40',
         ],
+        warning: [
+          // Warning style
+          'bg-gradient-to-br from-warning to-warning/90',
+          'text-warning-foreground',
+          'shadow-lg shadow-warning/20',
+          // Hover state
+          'hover:from-warning/95 hover:to-warning/85',
+          'hover:shadow-xl hover:shadow-warning/30',
+          'hover:scale-[1.02]',
+          // Dark mode
+          'dark:shadow-warning/30',
+          'dark:hover:shadow-warning/40',
+        ],
         destructive: [
           // Error/danger style
           'bg-gradient-to-br from-destructive to-destructive/90',

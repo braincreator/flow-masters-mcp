@@ -429,12 +429,12 @@
   /* Navigation menu */
   .nav-link {
     @apply relative px-4 py-2
-           text-foreground/70 hover:text-foreground
-           transition-colors duration-200
+           text-foreground/70 hover:text-warning
+           transition-colors duration-300
            after:absolute after:bottom-0 after:left-0
            after:h-0.5 after:w-full
            after:origin-left after:scale-x-0
-           after:bg-primary after:transition-transform
+           after:bg-warning after:transition-transform
            hover:after:scale-x-100;
   }
 
@@ -452,7 +452,7 @@
 
   .nav-item-glow::after {
     @apply content-[''] absolute -inset-3 rounded-xl;
-    @apply bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0;
+    @apply bg-gradient-to-r from-warning/0 via-warning/20 to-warning/0;
     @apply opacity-0 transition-opacity duration-300;
     @apply group-hover:opacity-100;
     @apply -z-10 blur-md;
@@ -460,7 +460,7 @@
 
   .text-gradient-hover {
     @apply transition-all duration-300;
-    @apply hover:bg-gradient-to-r hover:from-primary hover:via-accent hover:to-primary;
+    @apply hover:bg-gradient-to-r hover:from-warning hover:via-warning hover:to-warning;
     @apply hover:bg-clip-text hover:text-transparent;
   }
 
@@ -469,7 +469,7 @@
     @apply after:absolute after:bottom-0 after:left-0;
     @apply after:h-[2px] after:w-full;
     @apply after:origin-left after:scale-x-0;
-    @apply after:bg-gradient-to-r after:from-primary after:via-accent after:to-primary;
+    @apply after:bg-gradient-to-r after:from-warning after:via-warning after:to-warning;
     @apply after:transition-transform after:duration-300;
     @apply hover:after:scale-x-100;
   }
@@ -477,10 +477,10 @@
   .nav-link-hover {
     @apply relative overflow-hidden
            before:absolute before:inset-0 before:w-full before:h-full
-           before:bg-gradient-to-r before:from-primary/0 before:via-primary/10 before:to-primary/0
+           before:bg-gradient-to-r before:from-warning/0 before:via-warning/10 before:to-warning/0
            before:translate-y-[100%] before:hover:translate-y-0
            before:transition-transform before:duration-300
-           hover:text-foreground transition-colors duration-300;
+           hover:text-warning transition-colors duration-300;
   }
 
   .nav-link-glow {
@@ -488,7 +488,7 @@
            after:absolute after:top-[120%] after:left-[50%]
            after:w-[20px] after:h-[4px]
            after:rounded-full
-           after:shadow-[0_0_8px_3px] after:shadow-primary/50
+           after:shadow-[0_0_8px_3px] after:shadow-warning/50
            after:transition-all after:duration-500
            after:opacity-0
            hover:after:opacity-100;

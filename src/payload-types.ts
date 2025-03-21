@@ -802,6 +802,10 @@ export interface Product {
     };
     [k: string]: unknown;
   };
+  /**
+   * Brief description for product cards (max 160 characters)
+   */
+  shortDescription: string;
   features?:
     | {
         feature?: string | null;
@@ -816,15 +820,32 @@ export interface Product {
    * URL to preview/demo the product
    */
   demoUrl?: string | null;
-  thumbnail?: (string | null) | Media;
+  /**
+   * Main product image (required)
+   */
+  thumbnail: string | Media;
   gallery?:
     | {
-        image?: (string | null) | Media;
+        image: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Select related products to display
+   */
+  relatedProducts?: (string | Product)[] | null;
+  tags?:
+    | {
+        tag?: string | null;
         id?: string | null;
       }[]
     | null;
   publishedAt?: string | null;
   status: 'draft' | 'published';
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -1451,6 +1472,7 @@ export interface ProductsSelect<T extends boolean = true> {
   category?: T;
   price?: T;
   description?: T;
+  shortDescription?: T;
   features?:
     | T
     | {
@@ -1466,8 +1488,21 @@ export interface ProductsSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  relatedProducts?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
   publishedAt?: T;
   status?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
   slug?: T;
   slugLock?: T;
   updatedAt?: T;

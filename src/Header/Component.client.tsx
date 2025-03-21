@@ -45,12 +45,13 @@ export function HeaderClient({ data: initialData }: HeaderClientProps) {
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className="hover:text-warning transition-colors duration-300"
           >
             <Link href={`/${currentLocale}`}>
               <Logo 
                 loading="eager" 
                 priority="high" 
-                className="invert dark:invert-0" 
+                className="invert dark:invert-0 transition-all duration-300 hover:opacity-80" 
                 logo={data.logo} 
                 size="small"
               />

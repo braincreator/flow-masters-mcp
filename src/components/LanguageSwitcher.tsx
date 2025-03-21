@@ -52,7 +52,9 @@ export function LanguageSwitcher() {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full hover:bg-muted/30"
+        className="flex items-center gap-2 rounded-full 
+                   hover:bg-warning/10 hover:text-warning
+                   transition-all duration-300 ease-out"
       >
         <ReactCountryFlag
           countryCode={currentLanguage?.countryCode || 'US'}
@@ -61,9 +63,15 @@ export function LanguageSwitcher() {
             width: '1.2em',
             height: '1.2em',
           }}
+          className="transition-transform duration-300 group-hover:scale-110"
         />
         <span>{currentLanguage?.label}</span>
-        <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
+        <ChevronDown 
+          className={cn(
+            "h-4 w-4 transition-all duration-300",
+            isOpen ? "rotate-180 text-warning" : "rotate-0"
+          )} 
+        />
       </Button>
 
       <AnimatePresence>
@@ -73,16 +81,20 @@ export function LanguageSwitcher() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 z-50 mt-2 w-40 rounded-xl bg-white dark:bg-gray-800 shadow-lg border overflow-hidden"
+            className="absolute right-0 z-50 mt-2 w-40 rounded-xl 
+                       bg-card shadow-lg shadow-black/5 
+                       border border-border overflow-hidden
+                       dark:shadow-white/5"
           >
             {locales.map((locale) => (
               <button
                 key={locale.code}
                 onClick={() => switchLanguage(locale.code)}
                 className={cn(
-                  "flex w-full items-center gap-2 px-4 py-2.5 transition-colors duration-200",
-                  "hover:bg-gray-100 dark:hover:bg-gray-700",
-                  locale.code === currentLang && "bg-gray-100 dark:bg-gray-700"
+                  "flex w-full items-center gap-2 px-4 py-2.5",
+                  "transition-all duration-300",
+                  "hover:bg-warning/10 hover:text-warning",
+                  locale.code === currentLang && "bg-warning/10 text-warning"
                 )}
               >
                 <ReactCountryFlag
@@ -92,6 +104,7 @@ export function LanguageSwitcher() {
                     width: '1.2em',
                     height: '1.2em',
                   }}
+                  className="transition-transform duration-300 group-hover:scale-110"
                 />
                 <span>{locale.label}</span>
               </button>

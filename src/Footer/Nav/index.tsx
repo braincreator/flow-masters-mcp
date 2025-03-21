@@ -30,7 +30,12 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
                     : link.reference.value.slug
                 } : undefined}
                 newTab={link.newTab || false}
-                appearance="secondary"
+                className="relative text-muted-foreground hover:text-warning transition-all duration-300
+                  after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-px 
+                  after:bg-gradient-to-r after:from-warning/0 after:via-warning after:to-warning/0
+                  after:opacity-0 after:transform after:scale-x-0
+                  hover:after:opacity-100 hover:after:scale-x-100
+                  after:transition-all after:duration-300"
               />
             </li>
           ))}
@@ -45,8 +50,12 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
         <CMSLink
           key={i}
           {...link}
-          appearance="ghost"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-sm text-muted-foreground hover:text-warning transition-all duration-300
+            relative after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-px 
+            after:bg-gradient-to-r after:from-warning/0 after:via-warning after:to-warning/0
+            after:opacity-0 after:transform after:scale-x-0
+            hover:after:opacity-100 hover:after:scale-x-100
+            after:transition-all after:duration-300"
         />
       ))}
     </div>

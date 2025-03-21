@@ -54,17 +54,32 @@ exports.Products = {
                 { label: 'Tutorials', value: 'tutorials' },
                 { label: 'Courses', value: 'courses' },
             ],
+            admin: {
+                position: 'sidebar',
+            },
         },
         {
             name: 'price',
             type: 'number',
             required: true,
             min: 0,
+            admin: {
+                position: 'sidebar',
+            },
         },
         {
             name: 'description',
             type: 'richText',
             required: true,
+        },
+        {
+            name: 'shortDescription',
+            type: 'textarea',
+            required: true,
+            maxLength: 160,
+            admin: {
+                description: 'Brief description for product cards (max 160 characters)',
+            },
         },
         {
             name: 'features',
@@ -81,6 +96,7 @@ exports.Products = {
             type: 'text',
             admin: {
                 description: 'URL to download the digital product (only visible to customers after purchase)',
+                position: 'sidebar',
             },
         },
         {
@@ -88,13 +104,17 @@ exports.Products = {
             type: 'text',
             admin: {
                 description: 'URL to preview/demo the product',
+                position: 'sidebar',
             },
         },
         {
             name: 'thumbnail',
             type: 'upload',
             relationTo: 'media',
-            required: false,
+            required: true,
+            admin: {
+                description: 'Main product image (required)',
+            },
         },
         {
             name: 'gallery',
@@ -104,9 +124,31 @@ exports.Products = {
                     name: 'image',
                     type: 'upload',
                     relationTo: 'media',
-                    required: false,
+                    required: true,
                 },
             ],
+        },
+        {
+            name: 'relatedProducts',
+            type: 'relationship',
+            relationTo: 'products',
+            hasMany: true,
+            admin: {
+                description: 'Select related products to display',
+            },
+        },
+        {
+            name: 'tags',
+            type: 'array',
+            fields: [
+                {
+                    name: 'tag',
+                    type: 'text',
+                },
+            ],
+            admin: {
+                position: 'sidebar',
+            },
         },
         {
             name: 'publishedAt',
@@ -123,6 +165,25 @@ exports.Products = {
             options: [
                 { label: 'Draft', value: 'draft' },
                 { label: 'Published', value: 'published' },
+            ],
+            admin: {
+                position: 'sidebar',
+            },
+        },
+        {
+            name: 'meta',
+            type: 'group',
+            fields: [
+                {
+                    name: 'title',
+                    type: 'text',
+                    label: 'Meta Title',
+                },
+                {
+                    name: 'description',
+                    type: 'textarea',
+                    label: 'Meta Description',
+                },
             ],
             admin: {
                 position: 'sidebar',

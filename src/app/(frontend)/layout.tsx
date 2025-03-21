@@ -35,7 +35,9 @@ export default async function RootLayout({
         'min-h-screen bg-background font-sans antialiased'
       )}>
         <RootProvider lang={locale}>
-          {children}
+          <main className="pt-[var(--header-height)]">
+            {children}
+          </main>
         </RootProvider>
       </body>
     </html>

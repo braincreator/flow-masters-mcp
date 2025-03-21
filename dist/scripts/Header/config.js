@@ -83,7 +83,7 @@ exports.Header = {
                 }
                 req.payload.logger.info('Header beforeChange - final data:', JSON.stringify(data, null, 2));
                 return data;
-            }
+            },
         ],
         afterChange: [
             function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
@@ -96,7 +96,7 @@ exports.Header = {
                         case 1: return [2 /*return*/, _c.sent()];
                     }
                 });
-            }); }
+            }); },
         ],
     },
 };

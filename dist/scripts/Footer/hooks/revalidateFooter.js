@@ -38,25 +38,65 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.revalidateFooter = void 0;
 var revalidateFooter = function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
-    var error_1;
+    var serverUrl, revalidateUrl, response, errorText, result, e_1, error_1;
     var doc = _b.doc, _c = _b.req, payload = _c.payload, context = _c.context;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                if (!!context.disableRevalidate) return [3 /*break*/, 4];
-                payload.logger.info("Revalidating footer");
+                if (!!context.disableRevalidate) return [3 /*break*/, 11];
                 _d.label = 1;
             case 1:
-                _d.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, fetch('/api/revalidate?tag=global_footer', { method: 'POST' })];
+                _d.trys.push([1, 10, , 11]);
+                serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000';
+                revalidateUrl = "".concat(serverUrl.replace(/\/$/, ''), "/api/revalidate");
+                payload.logger.info('Revalidating footer with doc:', JSON.stringify(doc, null, 2));
+                return [4 /*yield*/, fetch(revalidateUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            collection: 'globals',
+                            slug: 'footer',
+                            data: doc,
+                            path: '/',
+                            tag: 'global_footer'
+                        }),
+                    })];
             case 2:
-                _d.sent();
-                return [3 /*break*/, 4];
+                response = _d.sent();
+                if (!!response.ok) return [3 /*break*/, 4];
+                return [4 /*yield*/, response.text()];
             case 3:
+                errorText = _d.sent();
+                throw new Error("Revalidation failed with status ".concat(response.status, ": ").concat(errorText));
+            case 4: return [4 /*yield*/, response.json()];
+            case 5:
+                result = _d.sent();
+                payload.logger.info('Footer revalidation successful:', result);
+                _d.label = 6;
+            case 6:
+                _d.trys.push([6, 8, , 9]);
+                return [4 /*yield*/, fetch("".concat(serverUrl), {
+                        method: 'GET',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    })];
+            case 7:
+                _d.sent();
+                return [3 /*break*/, 9];
+            case 8:
+                e_1 = _d.sent();
+                payload.logger.warn('Error clearing cache:', e_1);
+                return [3 /*break*/, 9];
+            case 9: return [3 /*break*/, 11];
+            case 10:
                 error_1 = _d.sent();
-                payload.logger.error("Error revalidating footer: ".concat(error_1));
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/, doc];
+                payload.logger.error('Footer revalidation error:', error_1);
+                throw error_1;
+            case 11: return [2 /*return*/, doc];
         }
     });
 }); };

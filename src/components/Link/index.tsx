@@ -29,18 +29,18 @@ export interface CMSLinkType {
 }
 
 const linkStyles = {
-  base: "inline-flex items-center transition-colors duration-200",
+  base: "inline-flex items-center transition-colors duration-300",
   sizes: {
     sm: "text-sm md:text-base",
     default: "text-base md:text-lg",
     lg: "text-lg md:text-xl"
   },
   appearance: {
-    default: "text-foreground hover:text-primary",
-    primary: "text-primary hover:text-primary/80",
-    secondary: "text-secondary hover:text-secondary/80",
-    ghost: "text-muted-foreground hover:text-foreground",
-    inline: "text-primary underline-offset-4 hover:underline"
+    default: "text-foreground/70 hover:text-warning",
+    primary: "text-primary hover:text-warning",
+    secondary: "text-secondary hover:text-warning",
+    ghost: "text-muted-foreground hover:text-warning",
+    inline: "text-primary underline-offset-4 hover:underline hover:text-warning"
   }
 }
 

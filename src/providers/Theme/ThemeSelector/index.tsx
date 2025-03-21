@@ -5,6 +5,7 @@ import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
 import type { Theme } from '../types'
+import { motion } from 'framer-motion'
 
 export const ThemeSelector = () => {
   const { theme, setTheme } = useTheme()
@@ -38,13 +39,25 @@ export const ThemeSelector = () => {
       size="icon"
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="rounded-full hover:bg-muted/30 p-1"
+      className="rounded-full p-1 
+                 hover:bg-warning/10 hover:text-warning
+                 transition-all duration-300 ease-out"
     >
-      {theme === 'dark' ? (
-        <Sun className="h-5 w-5 rounded-full transition-transform duration-300 hover:rotate-90" />
-      ) : (
-        <Moon className="h-5 w-5 rounded-full transition-transform duration-300 hover:-rotate-12" />
-      )}
+      <motion.div
+        initial={false}
+        animate={{ rotate: theme === 'dark' ? 0 : 180 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+      >
+        {theme === 'dark' ? (
+          <Sun className="h-5 w-5 rounded-full 
+                         transition-all duration-300
+                         hover:scale-110" />
+        ) : (
+          <Moon className="h-5 w-5 rounded-full 
+                         transition-all duration-300
+                         hover:scale-110" />
+        )}
+      </motion.div>
       <span className="sr-only">Toggle theme</span>
     </Button>
   )
