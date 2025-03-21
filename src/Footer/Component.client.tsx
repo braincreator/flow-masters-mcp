@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import React from 'react'
-import type { Footer, SiteConfig } from '@/payload-types'
+import type { Footer } from '@/payload-types'
 import { Separator } from '@/components/ui/separator'
 import { motion } from 'framer-motion'
 import { translations } from './translations'
@@ -9,12 +9,11 @@ import { FooterNav } from './Nav'
 import { Logo } from '@/components/Logo/Logo'
 
 type FooterProps = {
-  data: PayloadGlobalResponse<Footer>
+  data: PayloadGlobalResponse<Footer>,
   locale: Locale
-  siteConfig: PayloadGlobalResponse<SiteConfig>
 }
 
-export const FooterClient: React.FC<FooterProps> = ({ data, locale, siteConfig }) => {
+export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
   const t = translations[locale as keyof typeof translations] || translations.en
   const currentYear = new Date().getFullYear()
 

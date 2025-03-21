@@ -36,12 +36,7 @@ export const Media: CollectionConfig = {
   upload: {
     disableLocalStorage: true,
     adminThumbnail: ({ doc }) => {
-      // Log the document to debug
-      console.log('adminThumbnail doc:', {
-        sizes: doc?.sizes,
-        url: doc?.url,
-      })
-
+      
       // Ensure we're using the correct thumbnail URL
       if (doc?.sizes?.thumbnail?.url) {
         return doc.sizes.thumbnail.url

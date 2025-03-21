@@ -105,15 +105,7 @@ export const plugins: Plugin[] = [
           const sizePrefix = sizeName ? `${sizeName}/` : ''
 
           // Construct the correct S3 URL with the full bucket path
-          const s3URL = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
-
-          console.log('Generating S3 URL:', {
-            sizeName,
-            filename,
-            resultURL: s3URL,
-          })
-
-          return s3URL
+          return `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
         },
       },
     },

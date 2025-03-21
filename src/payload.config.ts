@@ -25,7 +25,8 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import collections from './collections/collectionList'
-import { SiteConfig } from './SiteConfig/config'
+import { Products } from './collections/Products'
+import { Orders } from './collections/Orders'
 
 export default buildConfig({
   admin: {
@@ -95,9 +96,18 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: collections,
+  collections: [
+    Categories,
+    Media,
+    Pages,
+    Posts,
+    Users,
+    Solutions,
+    Products,
+    Orders,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer, SiteConfig],
+  globals: [Header, Footer],
   plugins: [
     ...plugins,
     // storage-adapter-placeholder
@@ -126,8 +136,5 @@ export default buildConfig({
     limits: {
       fileSize: 5000000, // 5MB, adjust as needed
     },
-  },
-  paths: {
-    uploads: path.resolve(__dirname, '../media'),
   },
 })

@@ -1,6 +1,5 @@
 import type { Config } from '../payload-types'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
+import { getPayloadClient } from './payload'
 import { unstable_cache } from 'next/cache'
 
 interface GlobalParams {
@@ -10,7 +9,7 @@ interface GlobalParams {
 }
 
 export async function getGlobal({ slug, depth = 0, locale }: GlobalParams) {
-  const payload = await getPayload({ config: configPromise })
+  const payload = await getPayloadClient()
 
   const global = await payload.findGlobal({
     slug,

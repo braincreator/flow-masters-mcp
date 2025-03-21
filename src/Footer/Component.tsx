@@ -11,22 +11,16 @@ import { FooterClient } from './Component.client'
 export async function Footer() {
   try {
     const locale = await getCurrentLocale()
-    const [footerData, siteConfig] = await Promise.all([
+    const [footerData] = await Promise.all([
       getCachedGlobal({
         slug: 'footer',
         depth: 1,
         locale,
         tags: ['footer']
       })(),
-      getCachedGlobal({
-        slug: 'site-config',
-        depth: 1,
-        locale,
-        tags: ['site-config']
-      })()
     ])
 
-    if (!footerData || !siteConfig) {
+    if (!footerData) {
       return notFound()
     }
 
@@ -34,7 +28,6 @@ export async function Footer() {
       <FooterClient
         data={footerData as PayloadGlobalResponse<Footer>}
         locale={locale}
-        siteConfig={siteConfig as PayloadGlobalResponse<SiteConfig>}
       />
     )
   } catch (error) {

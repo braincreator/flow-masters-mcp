@@ -25,6 +25,11 @@ export function middleware(request: NextRequest) {
     })
   }
 
+  // Redirect root path to default locale
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}`, request.url))
+  }
+
   // Handle paths without locale
   if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
     // Skip locale redirect for posts collection
@@ -35,7 +40,7 @@ export function middleware(request: NextRequest) {
         },
       })
     }
-    
+
     const redirectUrl = new URL(`/${DEFAULT_LOCALE}${pathname}`, request.url)
     return NextResponse.redirect(redirectUrl)
   }

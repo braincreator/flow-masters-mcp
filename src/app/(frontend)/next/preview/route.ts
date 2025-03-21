@@ -55,9 +55,11 @@ export async function GET(
   // Construct the preview path based on collection and locale
   const previewPath = collection === 'posts' 
     ? `/posts/${slug}`
-    : locale 
-      ? `/${locale}/${slug}`
-      : `/ru/${slug}` // Fallback to Russian only if locale is not provided
+    : slug === 'home'
+      ? '/'
+      : locale 
+        ? `/${locale}/${slug}`
+        : `/ru/${slug}` // Fallback to Russian only if locale is not provided
 
   redirect(previewPath)
 }

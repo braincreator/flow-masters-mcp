@@ -30,6 +30,10 @@ export async function generateStaticParams() {
   const params = []
 
   for (const locale of locales) {
+    // Add home page params
+    params.push({ lang: locale, slug: '' })
+    
+    // Add other pages
     const localeParams = pages.docs
       ?.filter((doc) => {
         return doc.slug !== 'home'
@@ -52,18 +56,18 @@ type Args = {
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { isEnabled: draft } = await draftMode()
-  const { lang, slug = 'home' } = await paramsPromise
-  const url = `/${lang}/${slug}`
+  const { lang, slug = '' } = await paramsPromise
+  const url = slug ? `/${lang}/${slug}` : `/${lang}`
 
   let page: RequiredDataFromCollectionSlug<'pages'> | null
 
   page = await queryPageBySlug({
-    slug,
+    slug: slug || 'home', // Use 'home' slug when no slug is provided
     lang,
   })
 
   // Remove this code once your website is seeded
-  if (!page && slug === 'home') {
+  if (!page && !slug) {
     page = homeStatic
   }
 
@@ -76,7 +80,6 @@ export default async function Page({ params: paramsPromise }: Args) {
   return (
     <article className="pt-16 pb-24">
       <PageClient />
-      {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
       {draft && <LivePreviewListener />}

@@ -11,7 +11,7 @@ export const home: (args: HomeArgs) => RequiredDataFromCollectionSlug<'pages'> =
   metaImage,
 }) => {
   return {
-    slug: 'home',
+    slug: 'home',  // Keep this as 'home' for database identification
     _status: 'published',
     hero: {
       type: 'highImpact',

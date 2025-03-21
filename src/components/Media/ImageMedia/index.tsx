@@ -47,7 +47,6 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     // const isS3Enabled = s3Endpoint !== undefined;
     // if (isS3Enabled) {
       src = `${resource?.url}?${cacheTag}`; // Use resource?.url directly as it's the full S3 URL
-      console.log('S3 URL:', src);
     // } else {
     //   src = `${getClientSideURL()}${resource?.url}?${cacheTag}`; // Fallback to local URL
     //   console.log('Local URL:', src);

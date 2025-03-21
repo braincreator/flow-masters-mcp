@@ -68,12 +68,12 @@ export interface Config {
   collections: {
     categories: Category;
     media: Media;
-    testimonials: Testimonial;
     pages: Page;
     posts: Post;
-    reviews: Review;
-    solutions: Solution;
     users: User;
+    solutions: Solution;
+    products: Product;
+    orders: Order;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -87,12 +87,12 @@ export interface Config {
   collectionsSelect: {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
-    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
-    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -108,12 +108,10 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
-    'site-config': SiteConfig;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
-    'site-config': SiteConfigSelect<false> | SiteConfigSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -263,19 +261,6 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "testimonials".
- */
-export interface Testimonial {
-  id: string;
-  author: string;
-  authorTitle?: string | null;
-  quote: string;
-  avatar?: (string | null) | Media;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
@@ -393,7 +378,8 @@ export interface Post {
  */
 export interface User {
   id: string;
-  name?: string | null;
+  name: string;
+  role: 'admin' | 'customer';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -748,21 +734,6 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews".
- */
-export interface Review {
-  id: string;
-  clientName: string;
-  companyName?: string | null;
-  rating: number;
-  reviewText: string;
-  clientPhoto?: (string | null) | Media;
-  project?: (string | null) | Solution;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "solutions".
  */
 export interface Solution {
@@ -806,6 +777,78 @@ export interface Solution {
   };
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  title: string;
+  category: 'n8n' | 'make' | 'tutorials' | 'courses';
+  price: number;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  features?:
+    | {
+        feature?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * URL to download the digital product (only visible to customers after purchase)
+   */
+  downloadUrl?: string | null;
+  /**
+   * URL to preview/demo the product
+   */
+  demoUrl?: string | null;
+  thumbnail: string | Media;
+  gallery?:
+    | {
+        image: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  publishedAt?: string | null;
+  status: 'draft' | 'published';
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customer: string | User;
+  items: {
+    product: string | Product;
+    price: number;
+    id?: string | null;
+  }[];
+  total: number;
+  status: 'pending' | 'paid' | 'failed';
+  paymentId?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -988,10 +1031,6 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
-        relationTo: 'testimonials';
-        value: string | Testimonial;
-      } | null)
-    | ({
         relationTo: 'pages';
         value: string | Page;
       } | null)
@@ -1000,16 +1039,20 @@ export interface PayloadLockedDocument {
         value: string | Post;
       } | null)
     | ({
-        relationTo: 'reviews';
-        value: string | Review;
+        relationTo: 'users';
+        value: string | User;
       } | null)
     | ({
         relationTo: 'solutions';
         value: string | Solution;
       } | null)
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1188,18 +1231,6 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "testimonials_select".
- */
-export interface TestimonialsSelect<T extends boolean = true> {
-  author?: T;
-  authorTitle?: T;
-  quote?: T;
-  avatar?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
@@ -1366,17 +1397,20 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews_select".
+ * via the `definition` "users_select".
  */
-export interface ReviewsSelect<T extends boolean = true> {
-  clientName?: T;
-  companyName?: T;
-  rating?: T;
-  reviewText?: T;
-  clientPhoto?: T;
-  project?: T;
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1410,19 +1444,55 @@ export interface SolutionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "products_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  category?: T;
+  price?: T;
+  description?: T;
+  features?:
+    | T
+    | {
+        feature?: T;
+        id?: T;
+      };
+  downloadUrl?: T;
+  demoUrl?: T;
+  thumbnail?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  publishedAt?: T;
+  status?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  customer?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        price?: T;
+        id?: T;
+      };
+  total?: T;
+  status?: T;
+  paymentId?: T;
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1757,128 +1827,6 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-config".
- */
-export interface SiteConfig {
-  id: string;
-  title?: string | null;
-  description?: string | null;
-  company?: {
-    legalName?: string | null;
-    foundedYear?: number | null;
-    taxId?: string | null;
-    registrationNumber?: string | null;
-    vatNumber?: string | null;
-  };
-  contact?: {
-    email?: string | null;
-    phone?: string | null;
-    address?: string | null;
-    workingHours?: string | null;
-    googleMapsUrl?: string | null;
-  };
-  localization?: {
-    defaultTimeZone?: string | null;
-    dateFormat?: ('DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD') | null;
-    timeFormat?: ('24' | '12') | null;
-  };
-  branding?: {
-    logo?: (string | null) | Media;
-    favicon?: (string | null) | Media;
-    colors?: {
-      primary?: string | null;
-      secondary?: string | null;
-      accent?: string | null;
-    };
-    fonts?: {
-      primary?: string | null;
-      secondary?: string | null;
-    };
-  };
-  socialLinks?: {
-    twitter?: string | null;
-    linkedin?: string | null;
-    facebook?: string | null;
-    instagram?: string | null;
-    youtube?: string | null;
-    telegram?: string | null;
-  };
-  seo?: {
-    defaultMetaTitle?: string | null;
-    defaultMetaDescription?: string | null;
-    defaultOgImage?: (string | null) | Media;
-    robotsTxt?: string | null;
-    jsonLd?: string | null;
-  };
-  analytics?: {
-    googleAnalyticsId?: string | null;
-    googleTagManagerId?: string | null;
-    metaPixelId?: string | null;
-  };
-  features?: {
-    blog?: {
-      enabled?: boolean | null;
-      postsPerPage?: number | null;
-      enableComments?: boolean | null;
-      moderateComments?: boolean | null;
-    };
-    newsletter?: {
-      enabled?: boolean | null;
-      provider?: ('mailchimp' | 'sendgrid' | 'custom') | null;
-      apiKey?: string | null;
-      listId?: string | null;
-    };
-    search?: {
-      enabled?: boolean | null;
-      provider?: ('algolia' | 'meilisearch') | null;
-      apiKey?: string | null;
-    };
-  };
-  security?: {
-    reCaptcha?: {
-      enabled?: boolean | null;
-      siteKey?: string | null;
-      secretKey?: string | null;
-    };
-    cors?:
-      | {
-          origin?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    rateLimiting?: {
-      enabled?: boolean | null;
-      maxRequests?: number | null;
-      timeWindow?: number | null;
-    };
-  };
-  smtp?: {
-    host?: string | null;
-    port?: number | null;
-    user?: string | null;
-    password?: string | null;
-    fromEmail?: string | null;
-    fromName?: string | null;
-  };
-  performance?: {
-    cache?: {
-      enabled?: boolean | null;
-      /**
-       * Time to live in seconds
-       */
-      ttl?: number | null;
-    };
-    images?: {
-      optimization?: ('quality' | 'balanced' | 'performance') | null;
-      lazyLoading?: boolean | null;
-      placeholders?: ('blur' | 'color' | 'none') | null;
-    };
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -1932,165 +1880,6 @@ export interface FooterSelect<T extends boolean = true> {
               label?: T;
             };
         id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-config_select".
- */
-export interface SiteConfigSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  company?:
-    | T
-    | {
-        legalName?: T;
-        foundedYear?: T;
-        taxId?: T;
-        registrationNumber?: T;
-        vatNumber?: T;
-      };
-  contact?:
-    | T
-    | {
-        email?: T;
-        phone?: T;
-        address?: T;
-        workingHours?: T;
-        googleMapsUrl?: T;
-      };
-  localization?:
-    | T
-    | {
-        defaultTimeZone?: T;
-        dateFormat?: T;
-        timeFormat?: T;
-      };
-  branding?:
-    | T
-    | {
-        logo?: T;
-        favicon?: T;
-        colors?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-              accent?: T;
-            };
-        fonts?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-            };
-      };
-  socialLinks?:
-    | T
-    | {
-        twitter?: T;
-        linkedin?: T;
-        facebook?: T;
-        instagram?: T;
-        youtube?: T;
-        telegram?: T;
-      };
-  seo?:
-    | T
-    | {
-        defaultMetaTitle?: T;
-        defaultMetaDescription?: T;
-        defaultOgImage?: T;
-        robotsTxt?: T;
-        jsonLd?: T;
-      };
-  analytics?:
-    | T
-    | {
-        googleAnalyticsId?: T;
-        googleTagManagerId?: T;
-        metaPixelId?: T;
-      };
-  features?:
-    | T
-    | {
-        blog?:
-          | T
-          | {
-              enabled?: T;
-              postsPerPage?: T;
-              enableComments?: T;
-              moderateComments?: T;
-            };
-        newsletter?:
-          | T
-          | {
-              enabled?: T;
-              provider?: T;
-              apiKey?: T;
-              listId?: T;
-            };
-        search?:
-          | T
-          | {
-              enabled?: T;
-              provider?: T;
-              apiKey?: T;
-            };
-      };
-  security?:
-    | T
-    | {
-        reCaptcha?:
-          | T
-          | {
-              enabled?: T;
-              siteKey?: T;
-              secretKey?: T;
-            };
-        cors?:
-          | T
-          | {
-              origin?: T;
-              id?: T;
-            };
-        rateLimiting?:
-          | T
-          | {
-              enabled?: T;
-              maxRequests?: T;
-              timeWindow?: T;
-            };
-      };
-  smtp?:
-    | T
-    | {
-        host?: T;
-        port?: T;
-        user?: T;
-        password?: T;
-        fromEmail?: T;
-        fromName?: T;
-      };
-  performance?:
-    | T
-    | {
-        cache?:
-          | T
-          | {
-              enabled?: T;
-              ttl?: T;
-            };
-        images?:
-          | T
-          | {
-              optimization?: T;
-              lazyLoading?: T;
-              placeholders?: T;
-            };
       };
   updatedAt?: T;
   createdAt?: T;
