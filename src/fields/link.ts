@@ -1,6 +1,6 @@
 import type { Field, GroupField } from 'payload'
 
-import deepMerge from '@/utilities/deepMerge'
+import deepMerge from 'src/utilities/deepMerge'
 
 export type LinkAppearances = 'default' | 'outline'
 
@@ -109,7 +109,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
             width: '50%',
           },
           label: 'Label',
-          required: true,
+          required: true
         },
       ],
     })

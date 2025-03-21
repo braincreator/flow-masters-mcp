@@ -3,7 +3,6 @@ import React from 'react'
 import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 import type { Footer } from '@/payload-types'
 import { notFound } from 'next/navigation'
-import type { SiteConfig } from '@/payload-types'
 import type { PayloadGlobalResponse } from 'payload/types'
 
 import { FooterClient } from './Component.client'

@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/utilities/ui'
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 
 export interface CMSLinkType {
   appearance?: 'default' | 'primary' | 'secondary' | 'ghost' | 'inline'
@@ -64,14 +65,45 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   const pathname = usePathname()
   
   const href = React.useMemo(() => {
+    // Extract current locale from pathname
+    const pathSegments = pathname.split('/').filter(Boolean)
+    const currentLocale = SUPPORTED_LOCALES.includes(pathSegments[0] as any) 
+      ? pathSegments[0] 
+      : DEFAULT_LOCALE
+
     if (type === 'reference' && reference?.value) {
+      let path
       if (typeof reference.value === 'object') {
-        return `/${reference.relationTo}/${reference.value.slug}`
+        path = reference.relationTo === 'pages'
+          ? `/${reference.value.slug}`
+          : `/${reference.relationTo}/${reference.value.slug}`
+      } else {
+        path = reference.relationTo === 'pages'
+          ? `/${reference.value}`
+          : `/${reference.relationTo}/${reference.value}`
       }
-      return `/${reference.relationTo}/${reference.value}`
+
+      // Special handling for posts collection - no locale prefix
+      if (reference.relationTo === 'posts') {
+        return path
+      }
+
+      // Add locale prefix for pages and other collections
+      return `/${currentLocale}${path}`
     }
-    return url || ''
-  }, [type, reference, url])
+
+    // For custom URLs
+    if (url) {
+      // If it's an external URL or starts with a special character, return as is
+      if (url.startsWith('http') || url.startsWith('#') || url.startsWith('mailto:')) {
+        return url
+      }
+      // For internal URLs, ensure locale prefix
+      return url.startsWith('/') ? `/${currentLocale}${url}` : `/${currentLocale}/${url}`
+    }
+
+    return ''
+  }, [type, reference, url, pathname])
 
   const isActive = exactMatch 
     ? pathname === href

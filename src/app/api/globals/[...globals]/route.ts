@@ -2,51 +2,68 @@ import { NextResponse } from 'next/server'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
-// Force dynamic to prevent caching
 export const dynamic = 'force-dynamic'
 
-async function handler(
-  req: Request,
-  context: { params: Promise<{ globals: string[] }> }
-) {
+async function handler(req: Request, context: { params: Promise<{ globals: string[] }> }) {
   try {
     const { globals } = await context.params
     const slug = globals[0]
     const url = new URL(req.url)
     const depth = parseInt(url.searchParams.get('depth') || '1')
     const locale = url.searchParams.get('locale') || 'en'
-    const fallbackLocale = url.searchParams.get('fallback-locale')
 
     const payload = await getPayload({ config: await configPromise })
 
     switch (req.method) {
-      case 'GET':
-        const doc = await payload.findGlobal({
-          slug,
+      case 'GET': {
+        if (!slug) return NextResponse.json({ message: 'Missing global slug' }, { status: 400 })
+        const getDoc = await payload.findGlobal({
+          slug: slug as string,
           depth,
-          locale,
-          fallbackLocale: fallbackLocale || undefined,
+          locale: locale as 'en' | 'ru' | undefined,
         })
-        return NextResponse.json(doc)
+        return NextResponse.json(getDoc)
+      }
 
-      case 'POST':
+      case 'POST': {
+        if (!slug) return NextResponse.json({ message: 'Missing global slug' }, { status: 400 })
+
         let body
+        const contentType = req.headers.get('content-type') || ''
+
         try {
-          body = await req.json()
+          if (contentType.includes('multipart/form-data')) {
+            const formData = await req.formData()
+            body = Object.fromEntries(formData)
+          } else {
+            // For JSON content type
+            const text = await req.text()
+            console.log('Received raw body:', text)
+            body = text ? JSON.parse(text) : {}
+          }
         } catch (e) {
+          console.error('Error parsing request body:', e)
           return NextResponse.json(
-            { message: 'Invalid JSON body' },
-            { status: 400 }
+            {
+              message: 'Invalid request body',
+              error: e instanceof Error ? e.message : 'Unknown error',
+              contentType,
+              receivedContentType: req.headers.get('content-type'),
+            },
+            { status: 400 },
           )
         }
 
-        const updatedDoc = await payload.updateGlobal({
-          slug,
+        console.log('Parsed body:', body)
+
+        const updateDoc = await payload.updateGlobal({
+          slug: slug as string,
           data: body,
           depth,
-          locale,
+          locale: locale as 'en' | 'ru' | undefined,
         })
-        return NextResponse.json(updatedDoc)
+        return NextResponse.json(updateDoc)
+      }
 
       case 'OPTIONS':
         return new NextResponse(null, {
@@ -61,11 +78,15 @@ async function handler(
       default:
         return new NextResponse(null, { status: 405 })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Globals handler error:', error)
     return NextResponse.json(
-      { message: 'Error processing request', error: error.message },
-      { status: 500 }
+      {
+        message: 'Error processing request',
+        error: error.message,
+        stack: error.stack,
+      },
+      { status: 500 },
     )
   }
 }

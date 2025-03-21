@@ -22,3 +22,26 @@ export async function fetchGlobal(slug: string, depth = 1, locale: string = 'en'
     return null
   }
 }
+
+export async function updateGlobal(slug: string, data: any, depth = 0, locale = 'en') {
+  try {
+    const response = await fetch(`/api/globals/${slug}?depth=${depth}&locale=${locale}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data), // Ensure data is properly stringified
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || `Failed to update global: ${slug}`)
+    }
+
+    const result = await response.json()
+    return result
+  } catch (error) {
+    console.error(`Error updating global ${slug}:`, error)
+    throw error
+  }
+}

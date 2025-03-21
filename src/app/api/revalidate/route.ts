@@ -2,43 +2,50 @@ import { revalidateTag, revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
+  console.log('Revalidate API route hit')
   try {
-    // Explicitly handle the request body
-    const text = await request.text()
-    console.log('Received raw body:', text)
+    const body = await request.json()
+    console.log('Revalidate API request body:', JSON.stringify(body, null, 2))
+    const { tag, path, collection, slug, data } = body
 
-    let body
-    try {
-      body = JSON.parse(text)
-    } catch (e) {
-      console.error('Failed to parse JSON:', e)
-      return NextResponse.json(
-        { error: 'Invalid JSON format' },
-        { status: 400 }
-      )
+    // Always revalidate the header-related paths and tags
+    await revalidateTag('global_header')
+    await revalidateTag('header')
+    await revalidatePath('/', 'layout') // Revalidate root layout
+    await revalidatePath('/', 'page')   // Revalidate homepage
+
+    // If this is a header update, revalidate all pages since header is global
+    if (collection === 'globals' && slug === 'header') {
+      console.log('Revalidating header on all pages')
+      await revalidatePath('/', 'layout')
+      await revalidatePath('/', 'page')
     }
 
-    console.log('Parsed body:', body)
-
-    const { tag, path } = body
-
-    if (!tag && !path) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    // Revalidate specific paths if provided
+    if (path) {
+      console.log('Revalidating path:', path)
+      await revalidatePath(path, 'layout')
+      await revalidatePath(path, 'page')
     }
 
-    if (tag) await revalidateTag(tag)
-    if (path) await revalidatePath(path)
+    // Revalidate specific collection paths if provided
+    if (collection && slug) {
+      const collectionPath = `/${collection}/${slug}`
+      console.log('Revalidating collection path:', collectionPath)
+      await revalidatePath(collectionPath, 'layout')
+      await revalidatePath(collectionPath, 'page')
+    }
 
-    return NextResponse.json({ success: true })
+    // Revalidate specific tags if provided
+    if (tag) {
+      console.log('Revalidating tag:', tag)
+      await revalidateTag(tag)
+    }
+
+    return NextResponse.json({ revalidated: true, now: Date.now() })
   } catch (error) {
-    console.error('Revalidation error:', error)
-    return NextResponse.json(
-      { error: String(error) },
-      { status: 500 }
-    )
+    console.error('Error in revalidate route:', error)
+    return NextResponse.json({ error: 'Error revalidating' }, { status: 500 })
   }
 }
 

@@ -27,6 +27,9 @@ import { getServerSideURL } from './utilities/getURL'
 import collections from './collections/collectionList'
 import { Products } from './collections/Products'
 import { Orders } from './collections/Orders'
+import addProductsHandler from './endpoints/add-products'
+
+console.log('Initializing Payload with DATABASE_URI:', process.env.DATABASE_URI)
 
 export default buildConfig({
   admin: {
@@ -81,7 +84,14 @@ export default buildConfig({
   editor: defaultLexical,
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
+    connectOptions: {
+      directConnection: true,
+      serverSelectionTimeoutMS: 5000,
+    },
   }),
+  onInit: async (payload) => {
+    console.log('DATABASE_URI:', process.env.DATABASE_URI)
+  },
   localization: {
     locales: [
       {
@@ -93,19 +103,10 @@ export default buildConfig({
         code: 'ru',
       },
     ],
-    defaultLocale: 'en',
+    defaultLocale: 'ru',
     fallback: true,
   },
-  collections: [
-    Categories,
-    Media,
-    Pages,
-    Posts,
-    Users,
-    Solutions,
-    Products,
-    Orders,
-  ],
+  collections: [Categories, Media, Pages, Posts, Users, Solutions, Products, Orders],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
@@ -137,4 +138,12 @@ export default buildConfig({
       fileSize: 5000000, // 5MB, adjust as needed
     },
   },
+  endpoints: [
+    {
+      path: '/api/add-products',
+      method: 'post',
+      handler: addProductsHandler,
+    },
+    // ... other endpoints
+  ],
 })

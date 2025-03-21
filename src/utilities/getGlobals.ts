@@ -1,35 +1,32 @@
-import type { Config } from '../payload-types'
+import { cache } from 'react'
+import { CACHE_REVALIDATE_SECONDS } from '@/constants'
 import { getPayloadClient } from './payload'
-import { unstable_cache } from 'next/cache'
 
-interface GlobalParams {
-  slug: keyof Config['globals']
+export const getCachedGlobal = ({
+  slug,
+  depth = 1,
+  locale,
+}: {
+  slug: string
   depth?: number
   locale?: string
-}
+}) =>
+  cache(
+    async () => {
+      const payload = await getPayloadClient()
+      
+      const global = await payload.findGlobal({
+        slug,
+        depth,
+        locale,
+        draft: false,
+      })
 
-export async function getGlobal({ slug, depth = 0, locale }: GlobalParams) {
-  const payload = await getPayloadClient()
+      if (!global) {
+        throw new Error(`Global not found: ${slug}`)
+      }
 
-  const global = await payload.findGlobal({
-    slug,
-    depth,
-    locale,
-  })
-
-  return global
-}
-
-export const getCachedGlobal = ({ 
-  slug, 
-  depth = 0, 
-  locale, 
-  tags = [] 
-}: GlobalParams & { tags?: string[] }) =>
-  unstable_cache(
-    async () => getGlobal({ slug, depth, locale }),
-    [slug, ...(locale ? [locale] : [])],
-    {
-      tags: [`global_${slug}`, ...tags],
-    }
+      return global
+    },
+    [`global-${slug}-${locale}`],
   )

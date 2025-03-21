@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { translations } from './translations'
 import { FooterNav } from './Nav'
 import { Logo } from '@/components/Logo/Logo'
+import { Locale } from '@/constants'
 
 type FooterProps = {
   data: PayloadGlobalResponse<Footer>,

@@ -20,8 +20,8 @@
     "noEmit": true,
     "incremental": true,
     "jsx": "preserve",
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "Node16",
+    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "sourceMap": true,
     "isolatedModules": true,
@@ -34,13 +34,15 @@
       "@payload-config": [
         "./src/payload.config.ts"
       ],
-      "react": [
-        "./node_modules/@types/react"
-      ],
       "@/*": [
         "./src/*"
-      ],
-    }
+      ]
+    },
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ]
   },
   "include": [
     "**/*.ts",

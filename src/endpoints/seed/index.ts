@@ -9,6 +9,7 @@ import { imageHero1 } from './image-hero-1'
 import { post1 } from './post-1'
 import { post2 } from './post-2'
 import { post3 } from './post-3'
+import { testProducts } from './test-products'
 
 const collections: CollectionSlug[] = [
   'categories',
@@ -442,6 +443,71 @@ export const seed = async ({
         }
       }
     }
+  })
+
+  payload.logger.info('— Seeding test products...')
+
+  await Promise.all(
+    testProducts.map(async (product) => {
+      await payload.create({
+        collection: 'products',
+        data: {
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          slug: product.slug,
+          status: 'published',
+          thumbnail: image1Doc.id, // Using existing image for demo
+          meta: {
+            title: product.title,
+            description: product.description,
+          },
+        },
+      })
+    })
+  )
+
+  payload.logger.info('— Updating header navigation...')
+
+  await payload.updateGlobal({
+    slug: 'header',
+    data: {
+      navItems: [
+        {
+          link: {
+            type: 'custom',
+            label: {
+              en: 'Store',
+              ru: 'Магазин'
+            },
+            url: '/store',
+          },
+        },
+        {
+          link: {
+            type: 'custom',
+            label: {
+              en: 'Posts',
+              ru: 'Статьи'
+            },
+            url: '/posts',
+          },
+        },
+        {
+          link: {
+            type: 'reference',
+            label: {
+              en: 'Contact',
+              ru: 'Контакты'
+            },
+            reference: {
+              relationTo: 'pages',
+              value: contactPage.id,
+            },
+          },
+        },
+      ],
+    },
   })
 }
 

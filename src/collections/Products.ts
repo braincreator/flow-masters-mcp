@@ -81,7 +81,7 @@ export const Products: CollectionConfig = {
       name: 'thumbnail',
       type: 'upload',
       relationTo: 'media',
-      required: true,
+      required: false,
     },
     {
       name: 'gallery',
@@ -91,7 +91,7 @@ export const Products: CollectionConfig = {
           name: 'image',
           type: 'upload',
           relationTo: 'media',
-          required: true,
+          required: false,
         },
       ],
     },

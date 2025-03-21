@@ -816,10 +816,10 @@ export interface Product {
    * URL to preview/demo the product
    */
   demoUrl?: string | null;
-  thumbnail: string | Media;
+  thumbnail?: (string | null) | Media;
   gallery?:
     | {
-        image: string | Media;
+        image?: (string | null) | Media;
         id?: string | null;
       }[]
     | null;
