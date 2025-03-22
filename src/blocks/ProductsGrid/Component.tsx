@@ -12,6 +12,12 @@ interface ProductsGridProps {
   productsPerPage?: number
   showPagination?: boolean
   layout?: 'grid' | 'list'
+  labels?: {
+    prev: string
+    next: string
+    page: string
+    of: string
+  }
 }
 
 export const ProductsGrid: React.FC<ProductsGridProps> = ({
@@ -19,6 +25,12 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
   productsPerPage = 12,
   showPagination = true,
   layout = 'grid',
+  labels = {
+    prev: 'Previous',
+    next: 'Next',
+    page: 'Page',
+    of: 'of'
+  }
 }) => {
   const { addToCart } = useCart()
   const searchParams = useSearchParams()
