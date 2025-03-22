@@ -2,25 +2,44 @@
 
 import React from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { Slider } from '@/components/ui/slider'
 
 interface ProductsFilterProps {
   enableCategories?: boolean
   enableSort?: boolean
   enableSearch?: boolean
+  enablePriceRange?: boolean // New prop
+  minPrice?: number // New prop
+  maxPrice?: number // New prop
 }
 
 export const ProductsFilter: React.FC<ProductsFilterProps> = ({
   enableCategories = true,
   enableSort = true,
   enableSearch = true,
+  enablePriceRange = true,
+  minPrice = 0,
+  maxPrice = 1000,
 }) => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [search, setSearch] = React.useState('')
+  const [priceRange, setPriceRange] = React.useState([
+    parseInt(searchParams.get('minPrice') || minPrice.toString()),
+    parseInt(searchParams.get('maxPrice') || maxPrice.toString()),
+  ])
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set(key, value)
+    router.push(`?${params.toString()}`)
+  }
+
+  const handlePriceRangeChange = (values: number[]) => {
+    setPriceRange(values)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('minPrice', values[0].toString())
+    params.set('maxPrice', values[1].toString())
     router.push(`?${params.toString()}`)
   }
 
@@ -70,6 +89,27 @@ export const ProductsFilter: React.FC<ProductsFilterProps> = ({
           )}
         </div>
       </div>
+
+      {enablePriceRange && (
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Price Range
+          </label>
+          <div className="px-2">
+            <Slider
+              min={minPrice}
+              max={maxPrice}
+              value={priceRange}
+              onValueChange={handlePriceRangeChange}
+              className="mt-2"
+            />
+            <div className="flex justify-between mt-2 text-sm text-gray-600">
+              <span>${priceRange[0]}</span>
+              <span>${priceRange[1]}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

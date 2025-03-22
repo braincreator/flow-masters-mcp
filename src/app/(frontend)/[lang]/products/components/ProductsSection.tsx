@@ -11,6 +11,8 @@ interface ProductsSectionProps {
   currentPage: number
   productsPerPage: number
   layout?: 'grid' | 'list'
+  minPrice?: number
+  maxPrice?: number
 }
 
 export function ProductsSection({
@@ -21,7 +23,9 @@ export function ProductsSection({
   totalPages,
   currentPage,
   productsPerPage,
-  layout = 'grid'
+  layout = 'grid',
+  minPrice = 0,
+  maxPrice = 1000
 }: ProductsSectionProps) {
   return (
     <>
@@ -29,37 +33,32 @@ export function ProductsSection({
         categories={categories}
         sortOptions={sortOptions}
         defaultLayout="grid"
+        minPrice={minPrice}
+        maxPrice={maxPrice}
         labels={{
           categories: t.filters.categories,
           sort: t.filters.sort,
           search: t.filters.search,
           searchPlaceholder: t.filters.searchPlaceholder,
           allCategories: t.categories.all,
-          layout: t.filters.layout
+          layout: t.filters.layout,
+          priceRange: t.filters.priceRange
         }}
       />
 
       <div className="mt-8">
-        {products.length > 0 ? (
-          <ProductsGrid
-            products={products}
-            totalPages={totalPages}
-            currentPage={currentPage}
-            productsPerPage={productsPerPage}
-            showPagination={true}
-            layout={layout}
-            labels={{
-              prev: t.pagination.prev,
-              next: t.pagination.next,
-              page: t.pagination.page,
-              of: t.pagination.of
-            }}
-          />
-        ) : (
-          <p className="text-center text-muted-foreground py-8">
-            {t.noResults}
-          </p>
-        )}
+        <ProductsGrid
+          products={products}
+          productsPerPage={productsPerPage}
+          showPagination={true}
+          layout={layout}
+          labels={{
+            prev: t.pagination.prev,
+            next: t.pagination.next,
+            page: t.pagination.page,
+            of: t.pagination.of
+          }}
+        />
       </div>
     </>
   )

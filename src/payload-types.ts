@@ -860,16 +860,26 @@ export interface Order {
   id: string;
   orderNumber: string;
   customer: string | User;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   items: {
     product: string | Product;
+    quantity: number;
     price: number;
     id?: string | null;
   }[];
   total: number;
-  status: 'pending' | 'paid' | 'failed';
-  paymentId?: string | null;
-  createdAt: string;
+  /**
+   * Enter shipping tracking number once order is shipped
+   */
+  trackingNumber?: string | null;
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
   updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1516,18 +1526,27 @@ export interface ProductsSelect<T extends boolean = true> {
 export interface OrdersSelect<T extends boolean = true> {
   orderNumber?: T;
   customer?: T;
+  status?: T;
   items?:
     | T
     | {
         product?: T;
+        quantity?: T;
         price?: T;
         id?: T;
       };
   total?: T;
-  status?: T;
-  paymentId?: T;
-  createdAt?: T;
+  trackingNumber?: T;
+  shippingAddress?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+      };
   updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

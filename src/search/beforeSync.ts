@@ -1,44 +1,43 @@
-import { BeforeSync, DocToSync } from '@payloadcms/plugin-search/types'
+import { BeforeSync } from '@payloadcms/plugin-search/types'
 
-export const beforeSyncWithSearch: BeforeSync = async ({ originalDoc, searchDoc }) => {
-  const {
-    doc: { relationTo: collection },
-  } = searchDoc
-
-  const { slug, id, categories, title, meta } = originalDoc
-
-  const modifiedDoc: DocToSync = {
-    ...searchDoc,
-    slug,
-    meta: {
-      ...meta,
-      title: meta?.title || title,
-      image: meta?.image?.id || meta?.image,
-      description: meta?.description,
-    },
-    categories: [],
-  }
-
-  if (categories && Array.isArray(categories) && categories.length > 0) {
-    // get full categories and keep a flattened copy of their most important properties
-    try {
-      const mappedCategories = categories.map((category) => {
-        const { id, title } = category
-
-        return {
-          relationTo: 'categories',
-          id,
-          title,
-        }
-      })
-
-      modifiedDoc.categories = mappedCategories
-    } catch (_err) {
-      console.error(
-        `Failed. Category not found when syncing collection '${collection}' with id: '${id}' to search.`,
-      )
+export const beforeSyncWithSearch: BeforeSync = async ({ 
+  collection, 
+  doc, 
+  operation 
+}) => {
+  const batchSize = 100
+  const searchFields = ['title', 'content', 'description']
+  
+  for (const field of searchFields) {
+    if (doc[field] && typeof doc[field] === 'string' && doc[field].length > 1000) {
+      const chunks = doc[field].match(/.{1,1000}/g) || []
+      doc[`${field}_indexed`] = chunks.map(chunk => 
+        chunk.toLowerCase().trim()
+      ).join(' ')
     }
   }
 
-  return modifiedDoc
+  if (operation === 'delete') {
+    await cleanupSearchData(collection, doc.id)
+  }
+
+  return doc
+}
+
+// Add cleanup function
+export const cleanupStaleSearchIndices = async () => {
+  const staleThreshold = Date.now() - (30 * 24 * 60 * 60 * 1000) // 30 days
+  // Implementation depends on your search storage mechanism
+  // Add appropriate cleanup logic here
+}
+
+// Schedule cleanup
+if (typeof setInterval !== 'undefined') {
+  setInterval(async () => {
+    try {
+      await cleanupStaleSearchIndices()
+    } catch (error) {
+      console.error('Search index cleanup failed:', error)
+    }
+  }, 24 * 60 * 60 * 1000) // Daily cleanup
 }

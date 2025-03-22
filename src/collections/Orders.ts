@@ -1,40 +1,38 @@
 import { CollectionConfig } from 'payload/types'
-import { isAdmin } from '../access/isAdmin'
+import { IntegrationEvents } from '../types/events'
+import { IntegrationService } from '../services/IntegrationService'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'orderNumber',
-    defaultColumns: ['orderNumber', 'customer', 'total', 'status', 'createdAt'],
-  },
-  access: {
-    read: ({ req: { user } }) => {
-      if (isAdmin({ req: { user } })) return true
-      if (user) return {
-        customer: {
-          equals: user.id,
-        },
-      }
-      return false
-    },
-    create: () => true,
-    update: isAdmin,
-    delete: isAdmin,
+    defaultColumns: ['orderNumber', 'customer', 'status', 'total', 'createdAt'],
   },
   fields: [
     {
       name: 'orderNumber',
       type: 'text',
       required: true,
-      admin: {
-        readOnly: true,
-      },
+      unique: true,
     },
     {
       name: 'customer',
       type: 'relationship',
       relationTo: 'users',
       required: true,
+    },
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Processing', value: 'processing' },
+        { label: 'Shipped', value: 'shipped' },
+        { label: 'Delivered', value: 'delivered' },
+        { label: 'Cancelled', value: 'cancelled' },
+      ],
     },
     {
       name: 'items',
@@ -46,6 +44,12 @@ export const Orders: CollectionConfig = {
           type: 'relationship',
           relationTo: 'products',
           required: true,
+        },
+        {
+          name: 'quantity',
+          type: 'number',
+          required: true,
+          min: 1,
         },
         {
           name: 'price',
@@ -60,29 +64,74 @@ export const Orders: CollectionConfig = {
       required: true,
     },
     {
-      name: 'status',
-      type: 'select',
-      required: true,
-      defaultValue: 'pending',
-      options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Paid', value: 'paid' },
-        { label: 'Failed', value: 'failed' },
-      ],
-    },
-    {
-      name: 'paymentId',
+      name: 'trackingNumber',
       type: 'text',
       admin: {
-        readOnly: true,
+        description: 'Enter shipping tracking number once order is shipped',
       },
     },
     {
-      name: 'createdAt',
-      type: 'date',
-      admin: {
-        readOnly: true,
-      },
+      name: 'shippingAddress',
+      type: 'group',
+      fields: [
+        {
+          name: 'street',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'city',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'state',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'postalCode',
+          type: 'text',
+          required: true,
+        },
+      ],
     },
   ],
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        // Generate order number if not provided
+        if (!data.orderNumber) {
+          data.orderNumber = `ORD-${Date.now()}`
+        }
+        return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, operation, req: { payload } }) => {
+        const integrationService = new IntegrationService(payload)
+
+        if (operation === 'create') {
+          await integrationService.processEvent(IntegrationEvents.ORDER_CREATED, doc)
+        } else {
+          await integrationService.processEvent(IntegrationEvents.ORDER_UPDATED, doc)
+        }
+      }
+    ],
+  },
+}
+
+export async function POST(req: Request) {
+  const data = await req.json()
+  const integrationService = new IntegrationService(payload)
+
+  await integrationService.processEvent(IntegrationEvents.PAYMENT_RECEIVED, {
+    orderId: data.orderId,
+    amount: data.amount,
+    currency: data.currency,
+    paymentMethod: data.paymentMethod,
+    ...data
+  })
+
+  return new Response('OK', { status: 200 })
 }

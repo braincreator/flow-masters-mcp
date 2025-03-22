@@ -79,7 +79,16 @@ export class PaymentService {
       )
       .digest('hex')
 
-    return hash === sha1_hash
+    if (hash === sha1_hash) {
+      const integrationService = new IntegrationService(this.payload)
+      await integrationService.processEvent('payment.received', {
+        provider: 'yoomoney',
+        ...notification
+      })
+      return true
+    }
+
+    return false
   }
 
   verifyRobokassaPayment(invId: string, outSum: string, signatureValue: string): boolean {

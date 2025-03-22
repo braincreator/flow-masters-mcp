@@ -17,6 +17,22 @@ export const Users: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'role'],
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation === 'create') {
+          const integrationService = new IntegrationService(req.payload)
+          await integrationService.processEvent('user.registered', {
+            id: doc.id,
+            email: doc.email,
+            name: doc.name,
+            role: doc.role,
+            createdAt: doc.createdAt
+          })
+        }
+      }
+    ]
+  },
   fields: [
     {
       name: 'name',

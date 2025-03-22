@@ -22,5 +22,29 @@ export const ProductsFilter: Block = {
       defaultValue: true,
       label: 'Enable Search',
     },
+    {
+      name: 'enablePriceRange',
+      type: 'checkbox',
+      defaultValue: true,
+      label: 'Enable Price Range Filter',
+    },
+    {
+      name: 'minPrice',
+      type: 'number',
+      defaultValue: 0,
+      label: 'Minimum Price',
+      admin: {
+        condition: (data) => data.enablePriceRange,
+      },
+    },
+    {
+      name: 'maxPrice',
+      type: 'number',
+      defaultValue: 1000,
+      label: 'Maximum Price',
+      admin: {
+        condition: (data) => data.enablePriceRange,
+      },
+    },
   ],
 }

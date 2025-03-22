@@ -1,9 +1,11 @@
 // storage-adapter-import-placeholder
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { buildConfig } from 'payload'
+import { databaseConnection } from './utilities/payload/database/connection'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
-import { buildConfig, PayloadRequest } from 'payload'
+import { PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 import { authenticatedOrPublished } from './access/authenticatedOrPublished'
 import { authenticated } from './access/authenticated'
@@ -31,16 +33,49 @@ import addProductsHandler from './endpoints/add-products'
 
 console.log('Initializing Payload with DATABASE_URI:', process.env.DATABASE_URI)
 
+// Add more robust connection options
+const mongooseConfig = {
+  url: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
+  connectOptions: {
+    directConnection: true,
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 10000,
+    retryWrites: true,
+    retryReads: true,
+    w: 'majority',
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    // Remove deprecated options
+    // useNewUrlParser: true,
+    // useUnifiedTopology: true,
+  },
+}
+
 export default buildConfig({
   admin: {
     components: {
-      // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
-      // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
-      beforeLogin: ['@/components/BeforeLogin'],
-      // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
-      // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: ['@/components/BeforeDashboard'],
+      views: [
+        {
+          path: 'monitoring',
+          Component: '@/components/admin/MetricsDashboard',
+        },
+      ],
     },
+    nav: [
+      {
+        type: 'group',
+        label: 'System',
+        items: [
+          {
+            type: 'view',
+            label: 'Monitoring',
+            path: 'monitoring',
+            icon: 'chart',
+          },
+        ],
+      },
+    ],
     importMap: {
       baseDir: path.resolve(__dirname),
     },
@@ -79,18 +114,31 @@ export default buildConfig({
       //   },
       // },
     },
+    // nav: [
+    //   {
+    //     type: 'group',
+    //     label: 'System',
+    //     items: [
+    //       {
+    //         label: 'Monitoring',
+    //         path: '/admin/monitoring',
+    //       },
+    //     ],
+    //   },
+    // ],
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',
-    connectOptions: {
-      directConnection: true,
-      serverSelectionTimeoutMS: 5000,
-    },
-  }),
+  db: mongooseAdapter(mongooseConfig),
   onInit: async (payload) => {
-    console.log('DATABASE_URI:', process.env.DATABASE_URI)
+    console.log('Initializing Payload with DATABASE_URI:', process.env.DATABASE_URI)
+    try {
+      await databaseConnection.connect()
+      console.log('Database connection status:', databaseConnection.getConnectionStatus())
+    } catch (err) {
+      console.error('Failed to initialize database connection:', err)
+      process.exit(1)
+    }
   },
   localization: {
     locales: [
@@ -135,8 +183,20 @@ export default buildConfig({
   },
   upload: {
     limits: {
-      fileSize: 5000000, // 5MB, adjust as needed
+      fileSize: 10000000, // 10MB
+      files: 10,
     },
+    useTempFiles: true,
+    tempFileDir: '/tmp',
+    removeNonExistentFiles: true,
+    imageResizing: {
+      maxConcurrency: 4,
+      maxMemoryPerTask: 512,
+    },
+  },
+  express: {
+    json: { limit: '5mb' },
+    urlencoded: { limit: '5mb', extended: true },
   },
   endpoints: [
     {

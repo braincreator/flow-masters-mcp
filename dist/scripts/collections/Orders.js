@@ -52,10 +52,21 @@ exports.Orders = {
                     required: true,
                 },
                 {
+                    name: 'quantity',
+                    type: 'number',
+                    required: true,
+                    min: 1,
+                },
+                {
                     name: 'price',
                     type: 'number',
                     required: true,
                 },
+                {
+                    name: 'subtotal',
+                    type: 'number',
+                    required: true,
+                }
             ],
         },
         {

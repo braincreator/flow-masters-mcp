@@ -15,6 +15,8 @@ type Props = {
     sort?: string
     page?: string
     layout?: 'grid' | 'list'
+    minPrice?: string
+    maxPrice?: string
   }
 }
 
@@ -106,12 +108,23 @@ export default async function StorePage({ params, searchParams }: Props) {
   
   const payload = await getPayload({ config: configPromise })
   const searchParamsAwaited = await searchParams
+  
+  // Parse price range parameters
+  const minPrice = searchParamsAwaited?.minPrice ? parseInt(searchParamsAwaited.minPrice) : undefined
+  const maxPrice = searchParamsAwaited?.maxPrice ? parseInt(searchParamsAwaited.maxPrice) : undefined
+
   const products = await payload.find({
     collection: 'products',
     where: {
       status: {
         equals: 'published',
       },
+      ...(minPrice !== undefined || maxPrice !== undefined ? {
+        price: {
+          ...(minPrice !== undefined && { greater_than_equal: minPrice }),
+          ...(maxPrice !== undefined && { less_than_equal: maxPrice }),
+        }
+      } : {})
     },
     locale: currentLocale,
     depth: 1,

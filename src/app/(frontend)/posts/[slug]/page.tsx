@@ -14,6 +14,7 @@ import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { getCachedDocument, getDocument } from '@/utilities/getDocument'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -102,3 +103,13 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
 
   return result.docs?.[0] || null
 })
+
+// For regular pages where caching is desired
+export async function getPost(slug: string) {
+  return getCachedDocument('posts', slug, 2)
+}
+
+// For admin or preview where we need fresh data
+export async function getPostDirect(slug: string) {
+  return getDocument('posts', slug, 2)
+}

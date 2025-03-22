@@ -1,12 +1,18 @@
 import type { Metadata } from 'next/types'
 
-import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import PageClient from './page.client'
+import { VirtualList } from '@/components/VirtualList'
+
+const LazyCollectionArchive = lazy(() => 
+  import('@/components/CollectionArchive').then(mod => ({ 
+    default: mod.CollectionArchive 
+  }))
+)
 
 export const dynamic = 'force-static'
 export const revalidate = 600
@@ -45,7 +51,15 @@ export default async function Page() {
         />
       </div>
 
-      <CollectionArchive posts={posts.docs} />
+      <Suspense fallback={<div>Loading posts...</div>}>
+        <VirtualList
+          items={posts.docs}
+          itemHeight={300}
+          renderItem={(post) => (
+            <LazyCollectionArchive posts={[post]} />
+          )}
+        />
+      </Suspense>
 
       <div className="container">
         {posts.totalPages > 1 && posts.page && (

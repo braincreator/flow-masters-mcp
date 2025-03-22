@@ -19,7 +19,17 @@ export const Products: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    afterChange: [revalidatePage],
+    afterChange: [
+      revalidatePage,
+      async ({ doc, operation, req }) => {
+        const integrationService = new IntegrationService(req.payload)
+        if (operation === 'create') {
+          await integrationService.processEvent('product.created', doc)
+        } else {
+          await integrationService.processEvent('product.updated', doc)
+        }
+      }
+    ],
     beforeChange: [populatePublishedAt],
   },
   versions: {

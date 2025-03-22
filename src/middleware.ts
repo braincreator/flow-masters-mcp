@@ -1,63 +1,68 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
+import { metricsCollector } from '@/utilities/payload/metrics'
+
+// Move constants outside
+const SKIP_PATHS = ['/admin', '/api', '/_next', '/next/preview']
+const STATIC_FILE_REGEX = /\.[^/]+$/
 
 export function middleware(request: NextRequest) {
+  const startTime = Date.now()
   const pathname = request.nextUrl.pathname
   const locale = pathname.split('/')[1] || DEFAULT_LOCALE
 
-  // Clone the request headers
+  // Clone the request headers once
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-locale', locale)
 
-  // Skip middleware for admin routes, API routes, internal paths, and preview routes
-  if (
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/next/preview') ||
-    pathname.includes('.') // Skip static files
-  ) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
-  }
+  try {
+    metricsCollector.recordRequest()
 
-  // Redirect root path to default locale
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}`, request.url))
-  }
-
-  // Handle paths without locale
-  if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
-    // Skip locale redirect for posts collection
-    if (pathname.startsWith('/posts/')) {
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      })
+    // Early return for static and system paths
+    if (SKIP_PATHS.some(path => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {
+      return nextResponse(requestHeaders, startTime)
     }
 
-    const redirectUrl = new URL(`/${DEFAULT_LOCALE}${pathname}`, request.url)
-    return NextResponse.redirect(redirectUrl)
-  }
+    // Root path redirect
+    if (pathname === '/') {
+      return redirectResponse(`/${DEFAULT_LOCALE}`, request.url, startTime)
+    }
 
-  // Add locale to headers for use in layout
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
-  response.headers.set('x-pathname', pathname)
+    // Handle paths without locale
+    if (!SUPPORTED_LOCALES.some(l => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
+      // Skip locale redirect for posts collection
+      if (pathname.startsWith('/posts/')) {
+        return nextResponse(requestHeaders, startTime)
+      }
+
+      return redirectResponse(`/${DEFAULT_LOCALE}${pathname}`, request.url, startTime)
+    }
+
+    // Default response with locale headers
+    return nextResponse(requestHeaders, startTime, pathname)
+  } catch (error) {
+    metricsCollector.recordError(error instanceof Error ? error : new Error(String(error)))
+    throw error
+  }
+}
+
+// Helper functions
+function nextResponse(headers: Headers, startTime: number, pathname?: string) {
+  const response = NextResponse.next({ request: { headers } })
+  if (pathname) response.headers.set('x-pathname', pathname)
+  metricsCollector.recordOperationDuration(Date.now() - startTime)
+  return response
+}
+
+function redirectResponse(path: string, baseUrl: string, startTime: number) {
+  const response = NextResponse.redirect(new URL(path, baseUrl))
+  metricsCollector.recordOperationDuration(Date.now() - startTime)
   return response
 }
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next, static, api, etc)
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

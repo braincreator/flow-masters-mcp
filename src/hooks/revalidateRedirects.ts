@@ -1,14 +1,18 @@
-import type { CollectionAfterChangeHook } from 'payload'
+import type { CollectionAfterChangeHook } from 'payload/types'
+import { revalidateContent } from '@/utilities/revalidation'
 
 export const revalidateRedirects: CollectionAfterChangeHook = async ({
   doc,
   req: { payload, context },
 }) => {
-  if (!context.disableRevalidate) {
-    payload.logger.info(`Revalidating redirects`)
-
+  if (!context?.disableRevalidate) {
     try {
-      await fetch('/api/revalidate?tag=redirects', { method: 'POST' })
+      await revalidateContent({
+        tag: 'redirects',
+        payload,
+        context,
+        type: ['page', 'route']
+      })
     } catch (error) {
       payload.logger.error(`Error revalidating redirects: ${error}`)
     }

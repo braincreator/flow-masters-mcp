@@ -6,6 +6,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { Pagination } from '@/components/Pagination'
+import { Grid, GridItem } from '@/components/ui/grid'
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface ProductsGridProps {
   products: any[]
@@ -80,58 +83,62 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
   )
 
   return (
-    <div className="container mx-auto px-4">
-      <div className={layout === 'grid' 
-        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        : "flex flex-col gap-6"
-      }>
+    <div className="space-y-6">
+      <Grid cols={layout === 'list' ? 1 : 3} gap="lg">
         {currentProducts.map(product => (
-          <div key={product.id} 
-            className={layout === 'grid'
-              ? "border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-              : "flex border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-            }
-          >
-            <Link href={`/products/${product.slug}`}>
-              <div className={layout === 'grid' 
-                ? "relative h-48"
-                : "relative h-48 w-48"
-              }>
-                <Image
-                  src={product.thumbnail.url}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </Link>
-            <div className="p-4 flex-1">
+          <GridItem key={product.id}>
+            <Card className="h-full flex flex-col">
               <Link href={`/products/${product.slug}`}>
-                <h3 className="text-xl font-semibold mb-2 hover:text-blue-600">
-                  {product.title}
-                </h3>
+                <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+                  <Image
+                    src={product.thumbnail.url}
+                    alt={product.title}
+                    fill
+                    className="object-cover transition-transform hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
               </Link>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {product.description}
-              </p>
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold">${product.price}</span>
-                <button
+              
+              <CardHeader className="flex-none">
+                <Link 
+                  href={`/products/${product.slug}`}
+                  className="hover:underline"
+                >
+                  <h3 className="text-xl font-semibold line-clamp-2">
+                    {product.title}
+                  </h3>
+                </Link>
+              </CardHeader>
+
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground line-clamp-2">
+                  {product.description}
+                </p>
+              </CardContent>
+
+              <CardFooter className="flex justify-between items-center pt-4">
+                <span className="text-2xl font-bold">
+                  ${product.price}
+                </span>
+                <Button
                   onClick={() => addToCart(product)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  variant="default"
                 >
                   Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
+                </Button>
+              </CardFooter>
+            </Card>
+          </GridItem>
         ))}
-      </div>
+      </Grid>
 
       {showPagination && totalPages > 1 && (
-        <div className="mt-8">
-          <Pagination page={currentPage} totalPages={totalPages} />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          labels={labels}
+        />
       )}
     </div>
   )

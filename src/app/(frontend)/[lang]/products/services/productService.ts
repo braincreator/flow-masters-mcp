@@ -8,6 +8,8 @@ interface ProductQueryParams {
   sort?: string
   page?: string
   locale: Locale
+  minPrice?: number
+  maxPrice?: number
 }
 
 export async function getProducts({
@@ -15,7 +17,9 @@ export async function getProducts({
   search,
   sort: sortParam,
   page: pageParam,
-  locale
+  locale,
+  minPrice,
+  maxPrice,
 }: ProductQueryParams) {
   const payload = await getPayload({ config: configPromise })
   
@@ -44,6 +48,14 @@ export async function getProducts({
         },
       },
     ]
+  }
+
+  // Add price range filtering
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    where.price = {
+      ...(minPrice !== undefined && { greater_than_equal: minPrice }),
+      ...(maxPrice !== undefined && { less_than_equal: maxPrice }),
+    }
   }
 
   let sort = '-createdAt'

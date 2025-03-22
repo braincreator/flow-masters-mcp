@@ -1,0 +1,33 @@
+.dashboard {
+  padding: var(--base) 0;
+
+  .error-message {
+    margin-bottom: var(--base);
+    padding: var(--base);
+    background-color: var(--theme-error-500);
+    color: var(--theme-elevation-0);
+    border-radius: var(--style-radius-s);
+  }
+
+  .chart-container {
+    height: 400px;
+    margin-top: var(--base);
+    padding: var(--base);
+    background: var(--theme-elevation-50);
+    border-radius: var(--style-radius-m);
+  }
+
+  .metric-card {
+    padding: var(--base);
+    background: var(--theme-elevation-50);
+    border-radius: var(--style-radius-s);
+    
+    &.warning {
+      background: var(--theme-warning-500);
+    }
+    
+    &.critical {
+      background: var(--theme-error-500);
+    }
+  }
+}

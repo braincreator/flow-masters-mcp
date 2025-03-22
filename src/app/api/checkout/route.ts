@@ -4,32 +4,40 @@ import { paymentService } from '@/utilities/payments'
 
 export async function POST(req: Request) {
   try {
-    const { productIds, email, paymentMethod } = await req.json()
+    const { items, email, paymentMethod } = await req.json()
     const payload = await getPayloadClient()
 
-    // Get products
+    // Get products with quantities
     const products = await payload.find({
       collection: 'products',
       where: {
         id: {
-          in: productIds,
+          in: items.map(item => item.id),
         },
       },
     })
 
-    // Calculate total
-    const total = products.docs.reduce((sum, product) => sum + product.price, 0)
+    // Calculate total with quantities
+    const total = items.reduce((sum, item) => {
+      const product = products.docs.find(p => p.id === item.id)
+      return sum + (product?.price || 0) * item.quantity
+    }, 0)
 
-    // Create order
+    // Create order with quantities
     const order = await payload.create({
       collection: 'orders',
       data: {
         orderNumber: `ORD-${Date.now()}`,
         customer: email,
-        items: products.docs.map(product => ({
-          product: product.id,
-          price: product.price,
-        })),
+        items: items.map(item => {
+          const product = products.docs.find(p => p.id === item.id)
+          return {
+            product: item.id,
+            quantity: item.quantity,
+            price: product?.price || 0,
+            subtotal: (product?.price || 0) * item.quantity
+          }
+        }),
         total,
         status: 'pending',
         createdAt: new Date().toISOString(),
