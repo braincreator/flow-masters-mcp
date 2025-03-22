@@ -1,0 +1,45 @@
+/* Always show scrollbar to prevent layout shift */
+:root {
+  overflow-y: scroll;
+}
+
+/* Basic scrollbar styling */
+:root {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* Firefox */
+}
+
+/* Chrome, Edge, and Safari */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+}
+
+/* Prevent content shift when modal/dialog is open */
+body.modal-open {
+  overflow: hidden;
+  padding-right: 8px; /* Same as scrollbar width */
+}
+
+/* For dropdowns and modals */
+[data-radix-popper-content-wrapper] {
+  position: fixed !important;
+}
+
+/* Hide scrollbar when needed */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
