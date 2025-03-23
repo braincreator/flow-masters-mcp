@@ -53,7 +53,7 @@ export function LanguageSwitcher() {
         size="sm"
         onClick={handleToggle}
         className="flex items-center gap-2 rounded-full 
-                   hover:bg-warning/10 hover:text-warning
+                   hover:bg-accent/10 hover:text-accent
                    transition-all duration-300 ease-out"
       >
         <ReactCountryFlag
@@ -69,7 +69,7 @@ export function LanguageSwitcher() {
         <ChevronDown 
           className={cn(
             "h-4 w-4 transition-all duration-300",
-            isOpen ? "rotate-180 text-warning" : "rotate-0"
+            isOpen ? "rotate-180 text-accent" : "rotate-0"
           )} 
         />
       </Button>
@@ -93,8 +93,8 @@ export function LanguageSwitcher() {
                 className={cn(
                   "flex w-full items-center gap-2 px-4 py-2.5",
                   "transition-all duration-300",
-                  "hover:bg-warning/10 hover:text-warning",
-                  locale.code === currentLang && "bg-warning/10 text-warning"
+                  "hover:bg-accent/10 hover:text-accent",
+                  locale.code === currentLang && "bg-accent/10 text-accent"
                 )}
               >
                 <ReactCountryFlag

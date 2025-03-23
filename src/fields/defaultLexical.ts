@@ -49,6 +49,7 @@ export const defaultLexical: Config['editor'] = lexicalEditor({
                 { label: 'Default', value: 'default' },
                 { label: 'Primary', value: 'primary' },
                 { label: 'Secondary', value: 'secondary' },
+                { label: 'Outline', value: 'outline' },
                 { label: 'Ghost', value: 'ghost' },
                 { label: 'Inline', value: 'inline' },
               ],

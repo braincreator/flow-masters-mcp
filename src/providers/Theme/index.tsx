@@ -1,83 +1,69 @@
 'use client'
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import type { Theme, ThemeContextType } from './types'
-import canUseDOM from '@/utilities/canUseDOM'
-import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared'
-import { themeIsValid } from './types'
-import Script from 'next/script'
+import type { Theme } from './types'
+import { themeLocalStorageKey } from './shared'
+import { themeConfig } from '@/config/theme'
+
+interface ThemeContextType {
+  theme: Theme
+  setTheme: (theme: Theme) => void
+}
 
 const ThemeContext = createContext<ThemeContextType>({
+  theme: themeConfig.defaultTheme,
   setTheme: () => null,
-  theme: defaultTheme,
 })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme)
+  const [theme, setThemeState] = useState<Theme>(themeConfig.defaultTheme)
   const [mounted, setMounted] = useState(false)
 
-  const setTheme = useCallback((themeToSet: Theme | null) => {
-    if (themeToSet === null) {
-      const implicitPreference = getImplicitPreference()
-      const newTheme = implicitPreference || defaultTheme
-      setThemeState(newTheme)
-      document.documentElement.setAttribute('data-theme', newTheme)
-      window.localStorage.removeItem(themeLocalStorageKey)
-    } else {
-      setThemeState(themeToSet)
-      document.documentElement.setAttribute('data-theme', themeToSet)
-      window.localStorage.setItem(themeLocalStorageKey, themeToSet)
-    }
-  }, [])
-
-  // Initialize theme on mount
+  // Initialize theme
   useEffect(() => {
-    if (!canUseDOM) return
-
-    const storedTheme = window.localStorage.getItem(themeLocalStorageKey)
-    let themeToSet: Theme = defaultTheme
-
-    if (themeIsValid(storedTheme)) {
-      themeToSet = storedTheme
-    } else {
-      const implicitPreference = getImplicitPreference()
-      if (implicitPreference) {
-        themeToSet = implicitPreference
-      }
-    }
-
-    setThemeState(themeToSet)
-    document.documentElement.setAttribute('data-theme', themeToSet)
     setMounted(true)
+    const stored = localStorage.getItem(themeLocalStorageKey) as Theme | null
+    if (stored && themeConfig.themes.includes(stored)) {
+      setThemeState(stored)
+      applyTheme(stored)
+    } else {
+      applyTheme(themeConfig.defaultTheme)
+    }
   }, [])
+
+  const applyTheme = useCallback((newTheme: Theme) => {
+    const root = document.documentElement
+    if (newTheme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      root.setAttribute('data-theme', systemTheme)
+    } else {
+      root.setAttribute('data-theme', newTheme)
+    }
+  }, [])
+
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme)
+    localStorage.setItem(themeLocalStorageKey, newTheme)
+    applyTheme(newTheme)
+  }, [applyTheme])
+
+  // Handle system theme changes
+  useEffect(() => {
+    if (!mounted) return
+
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const handler = () => applyTheme('system')
+
+      mediaQuery.addEventListener('change', handler)
+      return () => mediaQuery.removeEventListener('change', handler)
+    }
+  }, [theme, mounted, applyTheme])
 
   return (
-    <>
-      <Script
-        id="theme-script"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              try {
-                const storedTheme = localStorage.getItem('${themeLocalStorageKey}');
-                if (storedTheme && ['dark', 'light'].includes(storedTheme)) {
-                  document.documentElement.setAttribute('data-theme', storedTheme);
-                  return;
-                }
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', systemTheme);
-              } catch (e) {
-                document.documentElement.setAttribute('data-theme', '${defaultTheme}');
-              }
-            })();
-          `,
-        }}
-      />
-      <ThemeContext.Provider value={{ theme, setTheme }}>
-        {children}
-      </ThemeContext.Provider>
-    </>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
   )
 }
 

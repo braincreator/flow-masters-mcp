@@ -1,51 +1,33 @@
-import React, { Fragment } from 'react'
+import React from 'react'
+import dynamic from 'next/dynamic'
 
-import type { Page } from '@/payload-types'
-
-import { ArchiveBlock } from '@/blocks/ArchiveBlock/Component'
-import { CallToActionBlock } from '@/blocks/CallToAction/Component'
-import { ContentBlock } from '@/blocks/Content/Component'
-import { FormBlock } from '@/blocks/Form/Component'
-import { MediaBlock } from '@/blocks/MediaBlock/Component'
+const ContentBlock = dynamic(() => import('./Content/Component').then(mod => mod.ContentBlock))
+const CTABlock = dynamic(() => import('./CTA/Component').then(mod => mod.CTABlock))
+const HeroBlock = dynamic(() => import('./Hero/Component').then(mod => mod.HeroBlock))
 
 const blockComponents = {
-  archive: ArchiveBlock,
   content: ContentBlock,
-  cta: CallToActionBlock,
-  formBlock: FormBlock,
-  mediaBlock: MediaBlock,
+  cta: CTABlock,
+  hero: HeroBlock,
 }
 
-export const RenderBlocks: React.FC<{
-  blocks: Page['layout'][0][]
-}> = (props) => {
-  const { blocks } = props
+type Props = {
+  blocks: {
+    blockType: keyof typeof blockComponents
+    [key: string]: any
+  }[]
+}
 
-  const hasBlocks = blocks && Array.isArray(blocks) && blocks.length > 0
+export const RenderBlocks: React.FC<Props> = ({ blocks }) => {
+  if (!blocks) return null
 
-  if (hasBlocks) {
-    return (
-      <Fragment>
-        {blocks.map((block, index) => {
-          const { blockType } = block
-
-          if (blockType && blockType in blockComponents) {
-            const Block = blockComponents[blockType]
-
-            if (Block) {
-              return (
-                <div className="my-16" key={index}>
-                  {/* @ts-expect-error there may be some mismatch between the expected types here */}
-                  <Block {...block} disableInnerContainer />
-                </div>
-              )
-            }
-          }
-          return null
-        })}
-      </Fragment>
-    )
-  }
-
-  return null
+  return (
+    <>
+      {blocks.map((block, i) => {
+        const Block = blockComponents[block.blockType]
+        if (!Block) return null
+        return <Block key={i} {...block} />
+      })}
+    </>
+  )
 }

@@ -3,8 +3,8 @@ import { cn } from '@/utilities/ui'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { draftMode } from 'next/headers'
-import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import config from '../../../payload.config'
 import { homeStatic } from '@/endpoints/seed/home-static'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
@@ -20,7 +20,7 @@ type Props = {
 export default async function LangHome({ params: paramsPromise }: Props) {
   const { lang } = await paramsPromise
   const { isEnabled: draft } = await draftMode()
-  const payload = await getPayload({ config: configPromise })
+  const payload = await getPayload({ config })
 
   let page = await payload.find({
     collection: 'pages',
@@ -62,7 +62,7 @@ export default async function LangHome({ params: paramsPromise }: Props) {
 
 export async function generateMetadata({ params: paramsPromise }: Props): Promise<Metadata> {
   const { lang } = await paramsPromise
-  const payload = await getPayload({ config: configPromise })
+  const payload = await getPayload({ config })
   const { isEnabled: draft } = await draftMode()
 
   const page = await payload.find({

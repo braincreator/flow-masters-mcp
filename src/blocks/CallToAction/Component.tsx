@@ -1,22 +1,64 @@
 import React from 'react'
-
-import type { CallToActionBlock as CTABlockProps } from '@/payload-types'
-
 import RichText from '@/components/RichText'
-import { CMSLink } from '@/components/Link'
+import { Action } from '@/components/Action'
+import { cn } from '@/utilities/ui'
 
-export const CallToActionBlock: React.FC<CTABlockProps> = ({ links, richText }) => {
+type Props = {
+  richText: any
+  actions: any[]
+  style?: 'default' | 'centered' | 'split'
+  background?: 'none' | 'light' | 'dark' | 'primary'
+  className?: string
+}
+
+export const CallToActionBlock: React.FC<Props> = ({
+  richText,
+  actions,
+  style = 'default',
+  background = 'none',
+  className,
+}) => {
   return (
-    <div className="container">
-      <div className="bg-card rounded border-border border p-4 flex flex-col gap-8 md:flex-row md:justify-between md:items-center">
-        <div className="max-w-[48rem] flex items-center">
-          {richText && <RichText className="mb-0" data={richText} enableGutter={false} />}
+    <div
+      className={cn(
+        'py-12',
+        {
+          'bg-background': background === 'none',
+          'bg-muted': background === 'light',
+          'bg-secondary/90 text-secondary-foreground': background === 'dark',
+          'bg-primary text-primary-foreground': background === 'primary',
+        },
+        className
+      )}
+    >
+      <div
+        className={cn('container', {
+          'text-center': style === 'centered',
+          'grid grid-cols-2 gap-8 items-center': style === 'split',
+        })}
+      >
+        <div className={cn({ 'max-w-2xl mx-auto': style === 'centered' })}>
+          <RichText content={richText} />
         </div>
-        <div className="flex flex-col gap-8">
-          {(links || []).map(({ link }, i) => {
-            return <CMSLink key={i} size="lg" {...link} />
-          })}
-        </div>
+        
+        {actions && actions.length > 0 && (
+          <div
+            className={cn('mt-8 flex gap-4', {
+              'justify-center': style === 'centered',
+              'flex-col sm:flex-row': style === 'default',
+            })}
+          >
+            {actions.map((action, i) => (
+              <Action
+                key={i}
+                {...action}
+                className={cn({
+                  'w-full sm:w-auto': style === 'default',
+                })}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,15 +1,16 @@
 'use client'
-import { useHeaderTheme } from '@/providers/HeaderTheme'
+import { useThemeSwitch } from '@/hooks/useThemeSwitch'
 import React, { useEffect } from 'react'
 
 const PageClient: React.FC = () => {
-  /* Force the header to be dark mode while we have an image behind it */
-  const { setHeaderTheme } = useHeaderTheme()
+  const { switchTheme } = useThemeSwitch()
 
   useEffect(() => {
-    setHeaderTheme('light')
-  }, [setHeaderTheme])
-  return <React.Fragment />
+    // The hook will handle system theme preference automatically
+    switchTheme('light')
+  }, [switchTheme])
+
+  return null
 }
 
 export default PageClient

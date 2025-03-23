@@ -13,8 +13,8 @@ export interface AnimatedButtonProps extends ButtonProps {
 const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   ({ 
     className, 
-    variant, 
-    size, 
+    variant = 'default', 
+    size = 'default', 
     animateOnHover = true, 
     animateOnTap = true, 
     asChild = false, 
@@ -25,7 +25,7 @@ const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
     return (
       <Comp
         ref={ref}
-        className={cn('inline-flex items-center justify-center rounded-full', className)}
+        className={cn('inline-flex items-center justify-center', className)}
         whileHover={animateOnHover ? { scale: 1.02 } : undefined}
         whileTap={animateOnTap ? { scale: 0.98 } : undefined}
         transition={{ type: "spring", stiffness: 400, damping: 10 }}

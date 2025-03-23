@@ -4,118 +4,67 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/utilities/ui'
 
 const buttonVariants = cva(
-  'button-base inline-flex items-center justify-center whitespace-nowrap font-medium transition-all duration-300',
+  [
+    'inline-flex items-center justify-center whitespace-nowrap rounded-md',
+    'text-sm font-medium ring-offset-background transition-colors duration-300',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    'disabled:pointer-events-none disabled:opacity-50',
+  ].join(' '),
   {
     variants: {
       variant: {
         default: [
-          // Modern gradient with subtle depth
-          'bg-gradient-to-br from-primary to-primary/90',
-          'text-primary-foreground',
-          'shadow-lg shadow-primary/20',
-          // Hover state
-          'hover:from-primary/95 hover:to-primary/85',
-          'hover:shadow-xl hover:shadow-primary/30',
-          'hover:scale-[1.02]',
-          // Dark mode adjustments
-          'dark:shadow-primary/30',
-          'dark:hover:shadow-primary/40',
-        ],
-        warning: [
-          // Warning style
-          'bg-gradient-to-br from-warning to-warning/90',
-          'text-warning-foreground',
-          'shadow-lg shadow-warning/20',
-          // Hover state
-          'hover:from-warning/95 hover:to-warning/85',
-          'hover:shadow-xl hover:shadow-warning/30',
-          'hover:scale-[1.02]',
-          // Dark mode
-          'dark:shadow-warning/30',
-          'dark:hover:shadow-warning/40',
-        ],
+          'bg-primary text-primary-foreground',
+          'shadow-sm hover:bg-primary/90',
+          'active:scale-[0.98]',
+          'dark:bg-primary dark:text-primary-foreground',
+          'dark:hover:bg-primary/80',
+        ].join(' '),
         destructive: [
-          // Error/danger style
-          'bg-gradient-to-br from-destructive to-destructive/90',
-          'text-destructive-foreground',
-          'shadow-lg shadow-destructive/20',
-          // Hover state
-          'hover:from-destructive/95 hover:to-destructive/85',
-          'hover:shadow-xl hover:shadow-destructive/30',
-          'hover:scale-[1.02]',
-          // Dark mode
-          'dark:shadow-destructive/30',
-          'dark:hover:shadow-destructive/40',
-        ],
+          'bg-destructive text-destructive-foreground',
+          'shadow-sm hover:bg-destructive/90',
+          'active:scale-[0.98]',
+          'dark:hover:bg-destructive/80',
+        ].join(' '),
         outline: [
-          // Clean outline style
-          'border-2',
-          'bg-background/50',
-          'backdrop-blur-sm',
-          'border-input',
-          'text-foreground',
-          'shadow-sm',
-          // Hover state
-          'hover:bg-accent/10',
-          'hover:border-accent',
-          'hover:text-accent-foreground',
-          'hover:shadow-md',
-          // Dark mode
-          'dark:bg-background/5',
-          'dark:border-border/40',
-          'dark:hover:border-accent/60',
-          'dark:hover:bg-accent/20',
-        ],
+          'border-2 border-input bg-background',
+          'hover:bg-accent/10 hover:text-accent hover:border-accent',
+          'dark:border-input dark:bg-background',
+          'dark:hover:bg-accent/20 dark:hover:text-accent-foreground',
+        ].join(' '),
         secondary: [
-          // Subtle secondary style
-          'bg-gradient-to-br from-secondary to-secondary/90',
-          'text-secondary-foreground',
-          'shadow-md shadow-secondary/10',
-          // Hover state
-          'hover:from-secondary/95 hover:to-secondary/85',
-          'hover:shadow-lg hover:shadow-secondary/20',
-          'hover:scale-[1.02]',
-          // Dark mode
-          'dark:from-secondary/20 dark:to-secondary/10',
-          'dark:hover:from-secondary/30 dark:hover:to-secondary/20',
-        ],
+          'bg-secondary text-secondary-foreground',
+          'shadow-sm hover:bg-secondary/80',
+          'active:scale-[0.98]',
+          'dark:bg-secondary dark:text-secondary-foreground',
+          'dark:hover:bg-secondary/70',
+        ].join(' '),
         ghost: [
-          // Minimal ghost style
-          'bg-transparent',
-          'text-foreground/80',
-          'border border-transparent',
-          // Hover state
-          'hover:bg-accent/10',
-          'hover:text-accent-foreground',
-          'hover:border-accent/20',
-          // Dark mode
-          'dark:text-foreground/70',
-          'dark:hover:bg-accent/20',
-          'dark:hover:text-foreground',
-        ],
+          'hover:bg-accent/10 hover:text-accent',
+          'dark:hover:bg-accent/20 dark:hover:text-accent-foreground',
+        ].join(' '),
         link: [
-          // Enhanced link style
-          'text-primary',
-          'underline-offset-4',
+          'text-primary underline-offset-4',
           'hover:underline',
-          'hover:text-primary/80',
-          // Dark mode
-          'dark:text-primary/90',
-          'dark:hover:text-primary/70',
-        ],
+        ].join(' '),
+        accent: [
+          'bg-accent text-accent-foreground',
+          'shadow-sm hover:bg-accent/90',
+          'active:scale-[0.98]',
+        ].join(' '),
       },
       size: {
-        default: 'h-12 px-6 py-3 text-base md:text-lg rounded-lg',
-        sm: 'h-10 px-4 py-2 text-sm md:text-base rounded-md',
-        lg: 'h-14 px-8 py-4 text-lg md:text-xl rounded-lg',
-        icon: 'h-10 w-10 rounded-lg text-base md:text-lg',
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
       },
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
     },
-  },
+  }
 )
 
 export interface ButtonProps
@@ -128,9 +77,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
     )
-  },
+  }
 )
 Button.displayName = 'Button'
 

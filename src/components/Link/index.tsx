@@ -1,18 +1,13 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Link, LinkProps } from '@/components/ui/link'
 import { cn } from '@/utilities/ui'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 
-export interface CMSLinkType {
-  appearance?: 'default' | 'primary' | 'secondary' | 'ghost' | 'inline'
-  size?: 'sm' | 'default' | 'lg'
-  children?: React.ReactNode
-  className?: string
+export interface CMSLinkType extends Omit<LinkProps, 'href'> {
   label?: string
-  newTab?: boolean
   reference?: {
     value: string | { slug: string }
     relationTo: string
@@ -28,29 +23,12 @@ export interface CMSLinkType {
   onClick?: () => void
 }
 
-const linkStyles = {
-  base: "inline-flex items-center transition-colors duration-300",
-  sizes: {
-    sm: "text-sm md:text-base",
-    default: "text-base md:text-lg",
-    lg: "text-lg md:text-xl"
-  },
-  appearance: {
-    default: "text-foreground/70 hover:text-warning",
-    primary: "text-primary hover:text-warning",
-    secondary: "text-secondary hover:text-warning",
-    ghost: "text-muted-foreground hover:text-warning",
-    inline: "text-primary underline-offset-4 hover:underline hover:text-warning"
-  }
-}
-
 export const CMSLink: React.FC<CMSLinkType> = ({
-  appearance = 'default',
+  variant = 'default',
   size = 'default',
   children,
   className,
   label,
-  newTab,
   reference,
   type,
   url,
@@ -61,6 +39,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   exactMatch = false,
   prefetch = true,
   onClick,
+  ...props
 }) => {
   const pathname = usePathname()
   
@@ -109,15 +88,6 @@ export const CMSLink: React.FC<CMSLinkType> = ({
     ? pathname === href
     : pathname.startsWith(href)
 
-  const linkClassName = cn(
-    linkStyles.base,
-    linkStyles.sizes[size],
-    linkStyles.appearance[appearance],
-    disabled && 'opacity-50 pointer-events-none',
-    isActive && activeClassName,
-    className
-  )
-
   const content = (
     <>
       {icon && <span className="mr-2">{icon}</span>}
@@ -130,26 +100,19 @@ export const CMSLink: React.FC<CMSLinkType> = ({
     </>
   )
 
-  if (newTab) {
-    return (
-      <a
-        href={href}
-        className={linkClassName}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={onClick}
-      >
-        {content}
-      </a>
-    )
-  }
-
   return (
     <Link
       href={href}
-      className={linkClassName}
-      prefetch={prefetch}
+      variant={variant}
+      size={size}
+      className={cn(
+        disabled && 'opacity-50 pointer-events-none',
+        isActive && activeClassName,
+        className
+      )}
+      external={url?.startsWith('http')}
       onClick={onClick}
+      {...props}
     >
       {content}
     </Link>

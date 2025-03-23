@@ -411,30 +411,29 @@ export interface CallToActionBlock {
     };
     [k: string]: unknown;
   } | null;
-  links?:
+  actions?:
     | {
-        link: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Choose how the link should be rendered.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
+        actionType: 'link' | 'button';
+        label: string;
+        type?: ('reference' | 'custom') | null;
+        reference?:
+          | ({
+              relationTo: 'pages';
+              value: string | Page;
+            } | null)
+          | ({
+              relationTo: 'posts';
+              value: string | Post;
+            } | null);
+        url?: string | null;
+        appearance?: ('default' | 'primary' | 'secondary' | 'outline' | 'ghost') | null;
+        newTab?: boolean | null;
+        icon?: ('none' | 'arrow-right' | 'external-link' | 'download') | null;
         id?: string | null;
       }[]
     | null;
+  style?: ('default' | 'centered' | 'split') | null;
+  background?: ('none' | 'light' | 'dark' | 'primary') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'cta';
@@ -462,26 +461,28 @@ export interface ContentBlock {
           };
           [k: string]: unknown;
         } | null;
-        enableLink?: boolean | null;
-        link?: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Choose how the link should be rendered.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
+        enableActions?: boolean | null;
+        actions?:
+          | {
+              actionType: 'link' | 'button';
+              label: string;
+              type?: ('reference' | 'custom') | null;
+              reference?:
+                | ({
+                    relationTo: 'pages';
+                    value: string | Page;
+                  } | null)
+                | ({
+                    relationTo: 'posts';
+                    value: string | Post;
+                  } | null);
+              url?: string | null;
+              appearance?: ('default' | 'primary' | 'secondary' | 'outline' | 'ghost') | null;
+              newTab?: boolean | null;
+              icon?: ('none' | 'arrow-right' | 'external-link' | 'download') | null;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
@@ -1317,21 +1318,21 @@ export interface PagesSelect<T extends boolean = true> {
  */
 export interface CallToActionBlockSelect<T extends boolean = true> {
   richText?: T;
-  links?:
+  actions?:
     | T
     | {
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-              label?: T;
-              appearance?: T;
-            };
+        actionType?: T;
+        label?: T;
+        type?: T;
+        reference?: T;
+        url?: T;
+        appearance?: T;
+        newTab?: T;
+        icon?: T;
         id?: T;
       };
+  style?: T;
+  background?: T;
   id?: T;
   blockName?: T;
 }
@@ -1345,16 +1346,19 @@ export interface ContentBlockSelect<T extends boolean = true> {
     | {
         size?: T;
         richText?: T;
-        enableLink?: T;
-        link?:
+        enableActions?: T;
+        actions?:
           | T
           | {
+              actionType?: T;
+              label?: T;
               type?: T;
-              newTab?: T;
               reference?: T;
               url?: T;
-              label?: T;
               appearance?: T;
+              newTab?: T;
+              icon?: T;
+              id?: T;
             };
         id?: T;
       };

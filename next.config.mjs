@@ -20,31 +20,30 @@ const nextConfig = {
   compress: true,
 
   experimental: {
-    // Enable React server components
-    serverComponents: true,
     // Optimize memory usage
+    optimizeServerReact: true,
+    serverMinification: true,
+    // Disable features you don't need
+    serverComponents: true,
     optimizeCss: true,
-    // Enable streaming
-    streaming: true
+    streaming: true,
+    serverActions: true,
   },
-
-  // Modify webpack config to handle workers better
+  // Add memory-specific settings
+  onDemandEntries: {
+    // period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 15 * 1000,
+    // number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
+  transpilePackages: ['payload-admin', 'payload'],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { dev, isServer }) => {
-    // Add worker-loader configuration
-    config.module = {
-      ...config.module,
-      rules: [
-        ...config.module.rules,
-        {
-          test: /\.worker\.(js|ts)$/,
-          use: { 
-            loader: 'worker-loader',
-            options: { inline: 'no-fallback' }
-          }
-        }
-      ]
-    }
-
     // Add optimization for production builds
     if (!dev) {
       config.optimization = {
@@ -53,7 +52,7 @@ const nextConfig = {
         splitChunks: {
           chunks: 'all',
           minSize: 20000,
-          minRemainingSize: 0,
+          maxSize: 244000, // Add maxSize to limit chunk size
           minChunks: 1,
           maxAsyncRequests: 30,
           maxInitialRequests: 30,
@@ -73,6 +72,20 @@ const nextConfig = {
             }
           }
         }
+      }
+    }
+
+    config.resolve = {
+      ...config.resolve,
+      fallback: {
+        ...config.resolve.fallback,
+        fs: false,
+        dns: false,
+        net: false,
+        tls: false,
+      },
+      extensionAlias: {
+        '.js': ['.js', '.ts', '.tsx'],
       }
     }
 

@@ -7,7 +7,7 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
-import { linkGroup } from '../../fields/linkGroup'
+import { actionGroup } from '../../fields/actionGroup'
 
 export const CallToAction: Block = {
   slug: 'cta',
@@ -28,12 +28,33 @@ export const CallToAction: Block = {
       }),
       label: false,
     },
-    linkGroup({
-      appearances: ['default', 'outline'],
+    actionGroup({
+      appearances: ['default', 'primary', 'secondary', 'outline', 'ghost'],
       overrides: {
         maxRows: 2,
       },
     }),
+    {
+      name: 'style',
+      type: 'select',
+      defaultValue: 'default',
+      options: [
+        { label: 'Default', value: 'default' },
+        { label: 'Centered', value: 'centered' },
+        { label: 'Split', value: 'split' },
+      ],
+    },
+    {
+      name: 'background',
+      type: 'select',
+      defaultValue: 'none',
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+        { label: 'Primary', value: 'primary' },
+      ],
+    },
   ],
   labels: {
     plural: 'Calls to Action',

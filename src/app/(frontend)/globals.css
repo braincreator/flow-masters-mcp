@@ -4,28 +4,28 @@
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    /* Base colors - Light theme */
+    --background: 220 33% 98%;
+    --foreground: 222 47% 11%;
     
     /* Surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 222 47% 11%;
     
     /* Brand colors */
-    --primary: 221 83% 53%;
+    --primary: 224 82% 56%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 217 91% 60%;
+    --accent: 260 84% 60%;
     --accent-foreground: 210 40% 98%;
+    --secondary: 201 96% 32%;
+    --secondary-foreground: 210 40% 98%;
     
     /* UI colors */
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --destructive: 0 84.2% 60.2%;
+    --muted: 217 33% 97%;
+    --muted-foreground: 215 25% 27%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --success: 142 76% 36%;
     --success-foreground: 210 40% 98%;
@@ -35,62 +35,40 @@
     --info-foreground: 210 40% 98%;
 
     /* Border & Input */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 224 82% 56%;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
-    /* Animation */
-    --transition-fast: 150ms;
-    --transition-normal: 250ms;
-    --transition-slow: 350ms;
-
-    /* Layout */
-    --header-height: 4rem;
-    --footer-height: 12rem;
-    --sidebar-width: 16rem;
-    --content-width: 64rem;
-
-    /* Z-index */
-    --z-negative: -1;
-    --z-elevate: 1;
-    --z-dropdown: 50;
-    --z-sticky: 100;
-    --z-drawer: 200;
-    --z-modal: 300;
-    --z-popover: 400;
-    --z-toast: 500;
-    --z-tooltip: 600;
+    /* Enhanced Shadows */
+    --shadow-sm: 0 2px 8px -2px rgba(0, 86, 255, 0.08);
+    --shadow: 0 4px 12px -4px rgba(0, 86, 255, 0.12);
+    --shadow-md: 0 8px 16px -6px rgba(0, 86, 255, 0.16);
+    --shadow-lg: 0 16px 24px -8px rgba(0, 86, 255, 0.20);
   }
 
-  [data-theme='dark'] {
-    /* Base colors */
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+  [data-theme="dark"] {
+    /* Base colors - Dark theme */
+    --background: 222 47% 6%;
+    --foreground: 213 31% 95%;
     
     /* Surface colors */
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
+    --card: 223 47% 4%;
+    --card-foreground: 213 31% 95%;
+    --popover: 223 47% 4%;
+    --popover-foreground: 213 31% 95%;
     
     /* Brand colors */
-    --primary: 217 91% 60%;
-    --primary-foreground: 224 71% 4%;
-    --secondary: 215 25% 27%;
+    --primary: 224 82% 60%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 260 84% 75%; /* Increased lightness from 65% to 75% */
+    --accent-foreground: 210 40% 98%;
+    --secondary: 199 89% 52%;
     --secondary-foreground: 210 40% 98%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 224 71% 4%;
     
     /* UI colors */
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
-    --destructive: 0 63% 31%;
+    --muted: 223 47% 9%;
+    --muted-foreground: 215 20.2% 75.1%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --success: 142 76% 36%;
     --success-foreground: 210 40% 98%;
@@ -100,15 +78,15 @@
     --info-foreground: 210 40% 98%;
 
     /* Border & Input */
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 224 76% 48%;
+    --border: 222 47% 12%;
+    --input: 222 47% 12%;
+    --ring: 224 82% 60%;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    /* Enhanced Shadows */
+    --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+    --shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 16px -6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 24px -8px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -117,122 +95,18 @@
     @apply border-border;
   }
   
-  html {
-    -webkit-tap-highlight-color: transparent;
-    scroll-behavior: smooth;
-    font-size: 16px; /* Base font size */
-  }
-
   body {
-    @apply bg-background text-foreground antialiased text-base;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground transition-colors duration-300;
   }
 
-  /* Adjust heading sizes */
-  h1 {
-    @apply text-4xl font-bold md:text-5xl;
+  /* Add smooth transitions for theme changes */
+  :root {
+    @apply transition-colors duration-300;
   }
 
-  h2 {
-    @apply text-3xl font-bold md:text-4xl;
-  }
-
-  h3 {
-    @apply text-2xl font-bold md:text-3xl;
-  }
-
-  h4 {
-    @apply text-xl font-bold md:text-2xl;
-  }
-
-  h5 {
-    @apply text-lg font-bold md:text-xl;
-  }
-
-  h6 {
-    @apply text-base font-bold md:text-lg;
-  }
-
-  /* Adjust paragraph and other text elements */
-  p, ul, ol, li {
-    @apply text-base md:text-lg;
-  }
-
-  /* Adjust form elements */
-  input, select, textarea {
-    @apply text-base md:text-lg;
-  }
-
-  /* Adjust button text */
-  button, .button {
-    @apply text-base md:text-lg;
-  }
-
-  /* Adjust navigation and menu items */
-  nav {
-    @apply text-base md:text-lg;
-  }
-
-  /* Adjust small text elements */
-  small, .text-small {
-    @apply text-sm md:text-base;
-  }
-
-  ::selection {
-    @apply bg-primary/30 text-foreground;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    @apply w-2 h-2;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-muted;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/50 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground;
-  }
-
-  /* Focus styles */
-  :focus-visible {
+  /* Improve contrast for focus states */
+  *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
-  }
-
-  /* Animations */
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-    100% { transform: translateY(0px); }
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  /* Background patterns */
-  .bg-ai-radial {
-    background: radial-gradient(
-      circle at center,
-      var(--primary) 0%,
-      transparent 70%
-    );
-  }
-
-  .bg-grid {
-    background-size: 40px 40px;
-    background-image: linear-gradient(to right, color-mix(in srgb, var(--muted) 15%, transparent) 1px, transparent 1px),
-                    linear-gradient(to bottom, color-mix(in srgb, var(--muted) 15%, transparent) 1px, transparent 1px);
-  }
-
-  /* Glass effect */
-  .glass {
-    @apply bg-background/80 backdrop-blur-sm border border-border/50;
   }
 }
 
@@ -249,19 +123,39 @@
 }
 
 @layer components {
+  /* Enhanced glass effect */
   .glass-effect {
-    @apply backdrop-blur-xl bg-background/80 border border-border/30 shadow-lg;
+    @apply backdrop-blur-xl bg-background/80 border border-border/30 
+           shadow-lg relative overflow-hidden
+           dark:bg-background/60 dark:border-border/20;
+  }
+
+  .glass-effect::before {
+    @apply absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 
+           opacity-50 dark:opacity-30;
   }
 
   .interactive-element {
-    @apply transition-all duration-300 ease-out;
+    @apply transition-all duration-300 ease-out hover:scale-105;
   }
 
-  .card {
-    @apply rounded-xl border bg-card text-card-foreground shadow-sm interactive-element
-           hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20
-           dark:shadow-none dark:hover:shadow-primary/10
-           transform hover:-translate-y-1;
+  /* AI-themed card */
+  .ai-card {
+    @apply rounded-xl border bg-gradient-to-br from-background via-background to-muted
+           shadow-lg relative overflow-hidden transition-all duration-300
+           hover:shadow-xl hover:shadow-primary/20
+           dark:from-background/90 dark:via-background/80 dark:to-muted/20
+           dark:border-primary/20 dark:hover:shadow-primary/40;
+  }
+
+  .ai-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+           opacity-0 transition-opacity duration-300;
+  }
+
+  .ai-card:hover::before {
+    @apply opacity-100;
   }
 
   .card-title {
@@ -291,51 +185,39 @@
            placeholder:text-muted-foreground/70
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
            disabled:cursor-not-allowed disabled:opacity-50
-           transition-all duration-200;
+           transition-all duration-200
+           dark:bg-background/80;
   }
 
   /* Update badge size */
   .badge {
-    @apply text-sm md:text-base inline-flex items-center
-           rounded-full px-3 py-1
-           font-medium
-           transition-colors duration-200;
+    @apply inline-flex items-center rounded-full px-3 py-1
+           text-sm font-medium transition-colors duration-200
+           bg-primary/10 text-primary-foreground
+           dark:bg-primary/20;
   }
 
-  /* Modern glass card effect */
-  .glass-card {
-    @apply backdrop-blur-xl 
-           bg-white/10 dark:bg-gray-900/10 
-           border border-white/20 dark:border-gray-700/20 
-           rounded-xl 
-           shadow-xl shadow-black/5
-           transition-all duration-300
-           hover:shadow-2xl hover:shadow-primary/10
-           hover:border-primary/30;
-  }
-
-  /* Enhanced AI button - can be used as a special variant */
+  /* Enhanced AI button */
   .ai-button {
     @apply px-6 py-3 rounded-xl
-           bg-gradient-to-br from-primary via-primary/95 to-accent
-           text-primary-foreground font-medium
+           bg-gradient-to-br from-primary via-secondary to-accent
+           text-white font-medium
            shadow-lg shadow-primary/20
            transition-all duration-300
            hover:shadow-xl hover:shadow-primary/30
            hover:scale-[1.02]
-           hover:from-primary/95 hover:via-primary/90 hover:to-accent/95
            active:scale-[0.98]
            disabled:opacity-50 disabled:pointer-events-none
-           dark:shadow-primary/30
-           dark:hover:shadow-primary/40;
+           dark:shadow-primary/40
+           dark:hover:shadow-primary/50;
   }
 
-  /* Enhanced AI input */
+  /* Futuristic input */
   .ai-input {
-    @apply glass-card px-6 py-3
+    @apply glass-effect px-6 py-3
            focus:outline-none focus:ring-2 focus:ring-primary/50
-           placeholder:text-gray-400/70 dark:placeholder:text-gray-500/70
-           text-base
+           placeholder:text-muted-foreground/70
+           text-base relative
            transition-all duration-200;
   }
 
@@ -415,7 +297,7 @@
 
   /* Toast notification */
   .toast {
-    @apply glass-card
+    @apply glass-effect
            fixed bottom-4 right-4
            p-4 max-w-md
            transform transition-all duration-300
@@ -469,7 +351,7 @@
     @apply after:absolute after:bottom-0 after:left-0;
     @apply after:h-[2px] after:w-full;
     @apply after:origin-left after:scale-x-0;
-    @apply after:bg-gradient-to-r after:from-warning after:via-warning after:to-warning;
+    @apply after:bg-gradient-to-r after:from-accent after:via-accent after:to-accent;
     @apply after:transition-transform after:duration-300;
     @apply hover:after:scale-x-100;
   }
@@ -477,10 +359,10 @@
   .nav-link-hover {
     @apply relative overflow-hidden
            before:absolute before:inset-0 before:w-full before:h-full
-           before:bg-gradient-to-r before:from-warning/0 before:via-warning/10 before:to-warning/0
+           before:bg-gradient-to-r before:from-accent/0 before:via-accent/10 before:to-accent/0
            before:translate-y-[100%] before:hover:translate-y-0
            before:transition-transform before:duration-300
-           hover:text-warning transition-colors duration-300;
+           hover:text-accent transition-colors duration-300;
   }
 
   .nav-link-glow {
@@ -488,7 +370,7 @@
            after:absolute after:top-[120%] after:left-[50%]
            after:w-[20px] after:h-[4px]
            after:rounded-full
-           after:shadow-[0_0_8px_3px] after:shadow-warning/50
+           after:shadow-[0_0_8px_3px] after:shadow-accent/50
            after:transition-all after:duration-500
            after:opacity-0
            hover:after:opacity-100;
@@ -498,6 +380,21 @@
     @apply relative transition-transform duration-200
            hover:scale-110
            active:scale-95;
+  }
+
+  /* Animated glow effect */
+  .glow-effect {
+    @apply relative;
+  }
+
+  .glow-effect::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20
+           blur-xl opacity-0 transition-opacity duration-500;
+  }
+
+  .glow-effect:hover::after {
+    @apply opacity-100;
   }
 }
 
@@ -624,4 +521,21 @@
 body.modal-open {
   overflow: hidden;
   padding-right: 8px; /* Same as scrollbar width */
+}
+
+/* Add new utilities for theme-aware styling */
+@layer utilities {
+  .theme-transition {
+    @apply transition-colors duration-300;
+  }
+
+  .hover-accent {
+    @apply hover:text-accent dark:hover:text-accent-foreground;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r 
+           from-primary via-accent to-secondary
+           dark:from-primary dark:via-accent dark:to-secondary;
+  }
 }

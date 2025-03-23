@@ -25,7 +25,10 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "generate-encryption-key": "node scripts/generate-encryption-key.mjs",
     "fill-config": "tsx scripts/fill-site-config.ts",
-    "add-products": "cross-env NODE_OPTIONS=--no-deprecation tsx src/scripts/add-products.ts"
+    "add-products": "cross-env NODE_OPTIONS=--no-deprecation tsx src/scripts/add-products.ts",
+    "check-deps": "depcheck",
+    "clean-deps": "pnpm store prune && pnpm prune",
+    "clean-modules": "rm -rf node_modules && rm -rf .next && pnpm install"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.0",
@@ -97,7 +100,8 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "depcheck": "^1.4.7"
   },
   "packageManager": "pnpm@10.6.5",
   "engines": {

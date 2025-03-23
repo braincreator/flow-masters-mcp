@@ -16,9 +16,9 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
           key={i} 
           {...link} 
           size="default"
-          className="relative text-foreground/70 hover:text-warning transition-all duration-300
+          className="relative text-foreground/70 hover:text-accent transition-all duration-300
             after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-px 
-            after:bg-gradient-to-r after:from-warning/0 after:via-warning after:to-warning/0
+            after:bg-gradient-to-r after:from-accent/0 after:via-accent after:to-accent/0
             after:opacity-0 after:transform after:scale-x-0
             hover:after:opacity-100 hover:after:scale-x-100
             after:transition-all after:duration-300

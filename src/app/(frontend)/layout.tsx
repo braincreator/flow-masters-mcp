@@ -20,14 +20,13 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const cookieStore = await cookies()
-  const theme = cookieStore.get('theme')?.value || 'light'
   const locale = await getCurrentLocale()
   
+  // Remove theme from cookies since we're using localStorage
   return (
     <html 
       lang={locale}
       dir={locale === 'ar' ? 'RTL' : 'LTR'}
-      data-theme={theme}
       suppressHydrationWarning
     >
       <head>

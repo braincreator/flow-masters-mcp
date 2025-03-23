@@ -38,16 +38,17 @@ export const getCachedDocument = (collection: Collection, slug: string, depth = 
   
   return unstable_cache(
     async () => {
-      // Check LRU cache first
       const cached = documentCache.get(cacheKey)
-      if (cached) {
-        return cached
-      }
+      if (cached) return cached
 
       const doc = await getDocument(collection, slug, depth)
       
-      // Update LRU cache
       if (doc) {
+        // Limit cache size
+        if (documentCache.size > 1000) {
+          const oldestKey = documentCache.keys().next().value
+          documentCache.delete(oldestKey)
+        }
         documentCache.set(cacheKey, doc)
       }
       
@@ -56,15 +57,16 @@ export const getCachedDocument = (collection: Collection, slug: string, depth = 
     [collection, slug, depth],
     {
       tags: [cacheKey, collection],
-      revalidate: 3600 // 1 hour
+      revalidate: 3600,
+      maxAge: 3600 // 1 hour
     }
   )
 }
 
-// Memory pressure handling
+// More aggressive memory management
 if (typeof process !== 'undefined') {
   process.on('memory', (info) => {
-    if (info.heapUsed / info.heapTotal > 0.9) {
+    if (info.heapUsed / info.heapTotal > 0.8) { // Lower threshold
       console.warn('High memory usage detected, clearing document cache')
       documentCache.reset()
     }

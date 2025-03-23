@@ -59,7 +59,8 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
     <motion.header
       {...headerAnimation}
       className={cn(
-        "fixed top-0 left-0 right-0 h-16 bg-background/60 backdrop-blur-md border-b border-white/10 z-50 transform transition-transform duration-300",
+        "fixed top-0 left-0 right-0 h-16 z-50 transform transition-transform duration-300",
+        "bg-background/80 backdrop-blur-md border-b border-border/40",
         !isVisible && "translate-y-[-100%]"
       )}
       {...(theme ? { 'data-theme': theme } : {})}
@@ -69,7 +70,7 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className="hover:text-warning transition-colors duration-300"
+            className="hover:text-accent transition-colors duration-300"
           >
             <Link href={`/${currentLocale}`}>
               <Logo 
@@ -83,7 +84,7 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
           </motion.div>
           <div className="flex items-center gap-4">
             <HeaderNav data={data} />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-4 border-l border-border/40 pl-4">
               <ThemeSelector />
               <LanguageSwitcher />
             </div>
