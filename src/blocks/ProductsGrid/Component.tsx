@@ -84,7 +84,11 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
 
   return (
     <div className="space-y-6">
-      <Grid cols={layout === 'list' ? 1 : 3} gap="lg">
+      <div className={`grid gap-6 ${
+        layout === 'grid' 
+          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+          : 'grid-cols-1'
+      }`}>
         {currentProducts.map(product => (
           <GridItem key={product.id}>
             <Card className="h-full flex flex-col">
@@ -131,7 +135,7 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
             </Card>
           </GridItem>
         ))}
-      </Grid>
+      </div>
 
       {showPagination && totalPages > 1 && (
         <Pagination

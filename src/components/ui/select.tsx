@@ -15,24 +15,38 @@ const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md px-3 py-2",
-      "bg-muted/40 dark:bg-muted/20",
-      "border border-border dark:border-border/50", // Made borders more visible
-      "text-sm ring-offset-background placeholder:text-muted-foreground",
-      "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", // Enhanced focus ring
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      "hover:border-primary/50 dark:hover:border-primary/50", // Added hover effect on border
-      "transition-all duration-200",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <ChevronDown className="h-4 w-4 opacity-50" />
-  </SelectPrimitive.Trigger>
+  <div className="relative w-full">
+    <SelectPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex h-10 w-full items-center justify-between",
+        "rounded-md border border-border dark:border-border/50",
+        "bg-muted/40 dark:bg-muted/20",
+        "px-3 py-2",
+        "text-sm ring-offset-background",
+        "cursor-pointer select-none",
+        "placeholder:text-muted-foreground",
+        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        "hover:border-primary/50 dark:hover:border-primary/50",
+        "transition-all duration-200",
+        className
+      )}
+      {...props}
+    >
+      <span className="flex items-center gap-2 truncate">
+        {children}
+      </span>
+      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+    </SelectPrimitive.Trigger>
+    <div 
+      className="absolute inset-0 cursor-pointer" 
+      onClick={(e) => {
+        const trigger = e.currentTarget.previousElementSibling as HTMLButtonElement
+        trigger?.click()
+      }}
+    />
+  </div>
 ))
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
@@ -45,13 +59,17 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-50 min-w-[8rem] overflow-hidden rounded-md",
-        "bg-card/95 dark:bg-card/95",
-        "border-2 border-border dark:border-border/50", // Increased border width and visibility
+        "border border-border",
+        "bg-popover",
         "text-popover-foreground",
-        "shadow-lg shadow-primary/10 dark:shadow-primary/20", // Enhanced shadow
-        "backdrop-blur-sm",
-        "animate-in fade-in-80",
-        position === "popper" && "translate-y-1",
+        "shadow-md",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        position === "popper" && "data-[side=bottom]:slide-in-from-top-2",
+        position === "popper" && "data-[side=left]:slide-in-from-right-2",
+        position === "popper" && "data-[side=right]:slide-in-from-left-2",
+        position === "popper" && "data-[side=top]:slide-in-from-bottom-2",
         className
       )}
       position={position}
@@ -77,10 +95,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn(
-      "py-1.5 pl-8 pr-2 text-sm font-semibold",
-      className
-    )}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
     {...props}
   />
 ))
@@ -93,11 +108,10 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm",
-      "outline-none focus:bg-accent/50 focus:text-accent-foreground",
+      "relative flex w-full cursor-pointer select-none items-center",
+      "rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none",
+      "focus:bg-accent focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      "hover:bg-accent/30 dark:hover:bg-accent/20",
-      "transition-colors duration-200",
       className
     )}
     {...props}
@@ -107,7 +121,6 @@ const SelectItem = React.forwardRef<
         <Check className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
-
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ))
@@ -131,7 +144,7 @@ export {
   SelectValue,
   SelectTrigger,
   SelectContent,
-  SelectItem,
   SelectLabel,
+  SelectItem,
   SelectSeparator,
 }

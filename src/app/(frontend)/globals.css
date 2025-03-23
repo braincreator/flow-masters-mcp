@@ -44,6 +44,9 @@
     --shadow: 0 4px 12px -4px rgba(0, 86, 255, 0.12);
     --shadow-md: 0 8px 16px -6px rgba(0, 86, 255, 0.16);
     --shadow-lg: 0 16px 24px -8px rgba(0, 86, 255, 0.20);
+
+    /* Radius */
+    --radius: 0.5rem; /* 8px */
   }
 
   [data-theme="dark"] {

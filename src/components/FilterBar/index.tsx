@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback } from 'react'
+import React from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Select,
@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { GridIcon, ListIcon, SearchIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/utilities/ui'
+import { useDropdown } from '@/providers/DropdownContext'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
@@ -36,115 +39,144 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { setOpenDropdown } = useDropdown()
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set(name, value)
-      return params.toString()
-    },
-    [searchParams]
+  const [layout, setLayout] = React.useState<'grid' | 'list'>(
+    (searchParams.get('layout') as 'grid' | 'list') || defaultLayout
   )
 
   const currentCategory = searchParams.get('category') || 'all'
   const currentSort = searchParams.get('sort') || 'newest'
-  const currentLayout = searchParams.get('layout') || defaultLayout
   const currentSearch = searchParams.get('search') || ''
 
-  const handleCategoryChange = (value: string) => {
-    router.push(`?${createQueryString('category', value)}`)
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
+    if (key !== 'layout') {
+      params.delete('page')
+    }
+    return `?${params.toString()}`
   }
 
-  const handleSortChange = (value: string) => {
-    router.push(`?${createQueryString('sort', value)}`)
+  const handleLayoutChange = (newLayout: 'grid' | 'list') => {
+    setLayout(newLayout)
+    setOpenDropdown(null) // Закрываем все открытые дропдауны при смене лейаута
+    const newUrl = updateSearchParams('layout', newLayout)
+    router.push(newUrl)
+  }
+
+  const handleSelectClick = (dropdownId: string) => {
+    setOpenDropdown((current) => (current === dropdownId ? null : dropdownId))
   }
 
   return (
-    <div className="relative glass-effect p-4 mb-8">
+    <div className="relative glass-effect p-4 mb-8 [&_*]:!ring-0 [&_*]:!focus:ring-0 [&_*]:!focus:ring-offset-0 [&_*]:!outline-none">
       <div className="flex flex-col md:flex-row items-center gap-4">
-        {/* Search Input */}
         <div className="relative flex-1 w-full">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <SearchIcon className="h-5 w-5 text-muted-foreground" />
-          </div>
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
           <input
             type="search"
             placeholder={labels.searchPlaceholder}
-            value={currentSearch}
-            onChange={(e) => router.push(`?${createQueryString('search', e.target.value)}`)}
-            className="w-full h-10 pl-12 pr-4 rounded-md
-                     bg-muted/40 dark:bg-muted/20
-                     border border-border dark:border-border/50
-                     text-foreground placeholder:text-muted-foreground
-                     focus:ring-2 focus:ring-ring focus:ring-offset-2
-                     hover:border-primary/50 dark:hover:border-primary/50
-                     transition-all duration-200"
+            defaultValue={currentSearch}
+            onChange={(e) => {
+              router.push(updateSearchParams('search', e.target.value))
+            }}
+            className="w-full h-10 pl-12 pr-4 rounded-md bg-muted/40 dark:bg-muted/20 border border-border dark:border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none hover:border-accent dark:hover:border-accent transition-all duration-200"
           />
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
-          {/* Categories Select */}
-          <Select 
-            defaultValue={currentCategory} 
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={labels.categories} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{labels.allCategories}</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
-                  {category.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Sort Select */}
-          <Select 
-            defaultValue={currentSort}
-            onValueChange={handleSortChange}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={labels.sort} />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Layout Toggle */}
-          <div className="flex h-10 gap-0.5 p-1 
-                         bg-muted/40 dark:bg-muted/20 
-                         rounded-md border border-border dark:border-border/50
-                         hover:border-primary/50 dark:hover:border-primary/50
-                         transition-all duration-200">
-            <button
-              onClick={() => router.push(`?${createQueryString('layout', 'grid')}`)}
-              className={`px-3 rounded transition-all duration-200 ${
-                currentLayout === 'grid'
-                ? 'bg-primary/90 text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/30'
-              }`}
-              aria-label={labels.layout.grid}
+        <div className="flex items-center gap-4 shrink-0 relative z-10">
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
+            <Select
+              defaultValue={currentCategory}
+              onValueChange={(value) => {
+                router.push(updateSearchParams('category', value))
+                setOpenDropdown(null)
+              }}
             >
-              <GridIcon className="w-4 h-4" />
+              <SelectTrigger className="!w-[180px] !border !border-border dark:!border-border/50 !transition-all !duration-200 group-hover:!border-accent group-hover:dark:!border-accent">
+                <SelectValue placeholder={labels.categories} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{labels.allCategories}</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
+            <Select
+              defaultValue={currentSort}
+              onValueChange={(value) => {
+                router.push(updateSearchParams('sort', value))
+                setOpenDropdown(null)
+              }}
+            >
+              <SelectTrigger className="!w-[180px] !border !border-border dark:!border-border/50 !transition-all !duration-200 group-hover:!border-accent group-hover:dark:!border-accent">
+                <SelectValue placeholder={labels.sort} />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div 
+            className="flex gap-2 h-10 p-1 bg-muted/40 dark:bg-muted/20 rounded-[8px] relative border border-border/50"
+            style={{ isolation: 'isolate' }}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('Grid button clicked')
+                handleLayoutChange('grid')
+              }}
+              className={cn(
+                "relative z-20",
+                "h-8 w-8 p-0 rounded-[6px]",
+                "flex items-center justify-center",
+                "transition-colors duration-200",
+                "border border-transparent",
+                layout === 'grid' && "bg-accent text-accent-foreground border-accent/50",
+                layout !== 'grid' && "hover:bg-accent hover:text-accent-foreground hover:border-accent/50"
+              )}
+            >
+              <GridIcon className="h-4 w-4" />
+              <span className="sr-only">{labels.layout.grid}</span>
             </button>
+
             <button
-              onClick={() => router.push(`?${createQueryString('layout', 'list')}`)}
-              className={`px-3 rounded transition-all duration-200 ${
-                currentLayout === 'list'
-                ? 'bg-primary/90 text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/30'
-              }`}
-              aria-label={labels.layout.list}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('List button clicked')
+                handleLayoutChange('list')
+              }}
+              className={cn(
+                "relative z-20",
+                "h-8 w-8 p-0 rounded-[6px]",
+                "flex items-center justify-center",
+                "transition-colors duration-200",
+                "border border-transparent",
+                layout === 'list' && "bg-accent text-accent-foreground border-accent/50",
+                layout !== 'list' && "hover:bg-accent hover:text-accent-foreground hover:border-accent/50"
+              )}
             >
-              <ListIcon className="w-4 h-4" />
+              <ListIcon className="h-4 w-4" />
+              <span className="sr-only">{labels.layout.list}</span>
             </button>
           </div>
         </div>
