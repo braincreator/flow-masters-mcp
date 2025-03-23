@@ -1,10 +1,10 @@
-import { addProductsAndUpdateHeader } from '../seed/add-products'
-import type { Payload } from 'payload'
+import { PayloadRequest } from 'payload'
+import { getProductService } from '@/services'
 
 /**
  * Handler for adding products and updating the header
  */
-const addProductsHandler = async (req: any, res: any) => {
+const addProductsHandler = async (req: PayloadRequest, res: any) => {
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ 
@@ -13,29 +13,21 @@ const addProductsHandler = async (req: any, res: any) => {
       })
     }
 
-    // Ensure we have a valid request body
+    const productService = await getProductService()
     const requestBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
 
-    await addProductsAndUpdateHeader({
-      payload: req.payload as Payload,
-      req: {
-        ...req,
-        body: requestBody
-      },
-    })
+    const product = await productService.create(requestBody)
 
     return res.json({
       success: true,
-      message: 'Products added and header updated successfully',
+      message: 'Product added successfully',
+      data: product
     })
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-    console.error('Error in add-products handler:', error)
-    
+  } catch (error) {
+    console.error('Error in addProductsHandler:', error)
     return res.status(500).json({
       success: false,
-      message: 'Failed to add products and update header',
-      error: errorMessage,
+      message: error.message || 'Internal server error'
     })
   }
 }

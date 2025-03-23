@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import configPromise from '@payload-config'
+import configPromise from '@/payload.config'
 import { getPayload } from 'payload'
 
 export const dynamic = 'force-dynamic'

@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { isAdmin } from '@/access/isAdmin'
+import { IntegrationService } from '@/services/integration.service'
 
 export const Users: CollectionConfig = {
   slug: 'users',

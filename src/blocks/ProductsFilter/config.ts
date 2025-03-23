@@ -1,4 +1,4 @@
-import { Block } from 'payload/types'
+import { Block } from 'payload'
 
 export const ProductsFilter: Block = {
   slug: 'productsFilter',
@@ -29,19 +29,46 @@ export const ProductsFilter: Block = {
       label: 'Enable Price Range Filter',
     },
     {
-      name: 'minPrice',
-      type: 'number',
-      defaultValue: 0,
-      label: 'Minimum Price',
-      admin: {
-        condition: (data) => data.enablePriceRange,
-      },
-    },
-    {
-      name: 'maxPrice',
-      type: 'number',
-      defaultValue: 1000,
-      label: 'Maximum Price',
+      name: 'priceRanges',
+      type: 'group',
+      fields: [
+        {
+          name: 'en',
+          type: 'group',
+          fields: [
+            {
+              name: 'min',
+              type: 'number',
+              defaultValue: 0,
+              label: 'Minimum Price (USD)',
+            },
+            {
+              name: 'max',
+              type: 'number',
+              defaultValue: 1000,
+              label: 'Maximum Price (USD)',
+            },
+          ],
+        },
+        {
+          name: 'ru',
+          type: 'group',
+          fields: [
+            {
+              name: 'min',
+              type: 'number',
+              defaultValue: 0,
+              label: 'Minimum Price (RUB)',
+            },
+            {
+              name: 'max',
+              type: 'number',
+              defaultValue: 100000,
+              label: 'Maximum Price (RUB)',
+            },
+          ],
+        },
+      ],
       admin: {
         condition: (data) => data.enablePriceRange,
       },

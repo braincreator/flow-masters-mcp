@@ -7,7 +7,8 @@ import Link from 'next/link'
 import { SearchIcon } from 'lucide-react'
 
 export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
-  const navItems = data?.navItems || []
+  // Ensure navItems is an array with proper type checking
+  const navItems = Array.isArray(data?.navItems) ? data.navItems : []
 
   return (
     <nav className="flex items-center gap-6">

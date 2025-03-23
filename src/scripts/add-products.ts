@@ -1,9 +1,9 @@
-import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import type { Payload } from 'payload'
+
 import { getPayload } from 'payload'
-import { addProductsAndUpdateHeader } from '../endpoints/seed/add-products'
-import configPromise from '../payload.config'
+import config from '@/payload-config'
+import { addProductsAndUpdateHeader } from '@/utilities/products'
+import { logger } from '@/utilities/logger'
 
 // Get the directory name properly in ESM
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

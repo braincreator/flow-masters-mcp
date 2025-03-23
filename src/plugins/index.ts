@@ -1,36 +1,38 @@
+import type { Plugin } from 'payload'
+import type { Page, Post } from '@/payload-types'
+
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { searchPlugin } from '@payloadcms/plugin-search'
-import { Plugin } from 'payload'
-import { revalidateRedirects } from '@/hooks/revalidateRedirects'
-import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
-import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { searchFields } from '@/search/fieldOverrides'
-import { beforeSyncWithSearch } from '@/search/beforeSync'
-
-import { Page, Post, Media } from '@/payload-types'
-import { getServerSideURL } from '@/utilities/getURL'
-
 import { s3Storage } from '@payloadcms/storage-s3'
 
-const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
+import { 
+  FixedToolbarFeature, 
+  HeadingFeature, 
+  lexicalEditor 
+} from '@payloadcms/richtext-lexical'
+
+import { revalidateRedirects } from '@/hooks/revalidateRedirects'
+import { getServerSideURL } from '@/utilities/getURL'
+
+// Define SEO utility functions inline
+const generateTitle = ({ doc }: { doc: Partial<Page> | Partial<Post> | null }) => {
   return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
 }
 
-const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
+const generateURL = ({ doc }: { doc: Partial<Page> | Partial<Post> | null }) => {
   const url = getServerSideURL()
-
   return doc?.slug ? `${url}/${doc.slug}` : url
 }
 
 export const plugins: Plugin[] = [
   redirectsPlugin({
-    collections: ['pages', 'posts'], // Make sure this is an array
+    collections: ['pages', 'posts'],
     admin: {
-      group: 'Admin' // Optional: group in admin UI
+      group: 'Admin'
     },
     overrides: {
       fields: ({ defaultFields }) => {
@@ -87,11 +89,21 @@ export const plugins: Plugin[] = [
   }),
   searchPlugin({
     collections: ['posts'],
-    beforeSync: beforeSyncWithSearch,
     searchOverrides: {
-      fields: ({ defaultFields }) => {
-        return [...defaultFields, ...searchFields]
-      },
+      fields: [
+        {
+          name: 'title',
+          weight: 2,
+        },
+        {
+          name: 'description',
+          weight: 1,
+        },
+        {
+          name: 'slug',
+          weight: 1,
+        },
+      ],
     },
   }),
   payloadCloudPlugin(),

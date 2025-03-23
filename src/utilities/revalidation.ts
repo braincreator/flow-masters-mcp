@@ -1,5 +1,4 @@
-import { PayloadRequest } from 'payload/types'
-import { revalidateTag, revalidatePath } from 'next/cache'
+import type { PayloadRequest } from 'payload'
 import type {
   RevalidateOptions,
   RevalidateCollectionArgs,
@@ -7,7 +6,9 @@ import type {
   CollectionHookOptions,
   GlobalHookOptions,
   ContentType
-} from '../types/revalidation'
+} from '@/types/revalidation'
+
+import { revalidateTag, revalidatePath } from 'next/cache'
 
 export async function revalidateContent({
   path,

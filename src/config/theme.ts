@@ -12,7 +12,7 @@ export const themeConfig: ThemeConfig = {
 
 export const defaultBrandingColors = {
   primary: '#4361ee', // Vibrant blue
-  secondary: '#7c3aed', // Electric purple
+  secondary: '#0284c7', // Adjusted for better contrast
   accent: '#b794f6', // Lighter purple for dark mode compatibility
 }
 

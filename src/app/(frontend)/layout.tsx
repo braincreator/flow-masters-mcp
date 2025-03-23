@@ -22,17 +22,16 @@ export default async function RootLayout({
   const cookieStore = await cookies()
   const locale = await getCurrentLocale()
   
-  // Remove theme from cookies since we're using localStorage
   return (
     <html 
       lang={locale}
       dir={locale === 'ar' ? 'RTL' : 'LTR'}
       suppressHydrationWarning
+      style={{ '--header-height': '4rem' } as React.CSSProperties}
     >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* Preload critical fonts */}
         <link 
           rel="preload" 
           href="/fonts/geist-sans.woff2" 

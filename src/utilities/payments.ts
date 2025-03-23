@@ -14,6 +14,18 @@ interface RobokassaConfig {
   returnUrl: string
 }
 
+interface YooMoneyNotification {
+  sha1_hash: string;
+  notification_type: string;
+  operation_id: string;
+  amount: string;
+  currency: string;
+  datetime: string;
+  sender: string;
+  codepro: string;
+  label: string;
+}
+
 export class PaymentService {
   private yoomoneyConfig: YooMoneyConfig = {
     shopId: process.env.YOOMONEY_SHOP_ID!,
@@ -69,8 +81,17 @@ export class PaymentService {
     return `${baseUrl}?${params.toString()}`
   }
 
-  verifyYooMoneyPayment(notification: any): boolean {
-    const { sha1_hash, notification_type, operation_id, amount, currency, datetime, sender, codepro, label } = notification
+  async verifyYooMoneyPayment(notification: unknown): Promise<boolean> {
+    if (!this.isValidNotification(notification)) {
+      throw new Error('Invalid notification format')
+    }
+
+    const typedNotification = notification as YooMoneyNotification
+    const { sha1_hash, notification_type, operation_id, amount, currency, datetime, sender, codepro, label } = typedNotification
+
+    if (!this.yoomoneyConfig.secretKey) {
+      throw new Error('YooMoney secret key is not configured')
+    }
 
     const hash = crypto
       .createHash('sha1')
@@ -81,11 +102,16 @@ export class PaymentService {
 
     if (hash === sha1_hash) {
       const integrationService = new IntegrationService(this.payload)
-      await integrationService.processEvent('payment.received', {
-        provider: 'yoomoney',
-        ...notification
-      })
-      return true
+      try {
+        await integrationService.processEvent('payment.received', {
+          provider: 'yoomoney',
+          ...typedNotification
+        })
+        return true
+      } catch (error) {
+        console.error('Failed to process payment event:', error)
+        throw new Error('Payment verification succeeded but event processing failed')
+      }
     }
 
     return false
@@ -99,6 +125,18 @@ export class PaymentService {
       .toUpperCase()
 
     return expectedSignature === signatureValue.toUpperCase()
+  }
+
+  private isValidNotification(notification: unknown): notification is YooMoneyNotification {
+    if (!notification || typeof notification !== 'object') return false
+    
+    const required = ['sha1_hash', 'notification_type', 'operation_id', 'amount', 
+                     'currency', 'datetime', 'sender', 'codepro', 'label']
+    
+    return required.every(field => 
+      field in notification && 
+      typeof (notification as Record<string, unknown>)[field] === 'string'
+    )
   }
 }
 

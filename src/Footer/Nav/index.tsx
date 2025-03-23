@@ -3,33 +3,41 @@
 import React from 'react'
 import type { Footer as FooterType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
-import { Button } from '@/components/ui/button'
 
 interface FooterNavProps {
-  data: FooterType
+  data?: FooterType
   variant: 'main' | 'bottom'
 }
 
 export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
-  const navItems = variant === 'main' 
-    ? data?.mainNavItems || []
-    : data?.bottomNavItems || []
+  // Safely get nav items with proper type checking
+  const getNavItems = () => {
+    if (!data) return []
+    
+    if (variant === 'main') {
+      return Array.isArray(data.mainNavItems) ? data.mainNavItems : []
+    }
+    
+    return Array.isArray(data.bottomNavItems) ? data.bottomNavItems : []
+  }
+
+  const navItems = getNavItems()
 
   if (variant === 'main') {
     return (
       <div className="space-y-2">
         <ul className="space-y-2">
-          {navItems?.map(({ link }, i) => (
+          {navItems.map(({ link }, i) => (
             <li key={i}>
               <CMSLink
                 {...link}
-                reference={link.reference?.value ? {
+                reference={link?.reference?.value ? {
                   relationTo: link.reference.relationTo,
                   value: typeof link.reference.value === 'string' 
                     ? link.reference.value 
                     : link.reference.value.slug
                 } : undefined}
-                newTab={link.newTab || false}
+                newTab={link?.newTab || false}
                 className="relative text-muted-foreground hover:text-accent transition-all duration-300
                   after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-px 
                   after:bg-gradient-to-r after:from-accent/0 after:via-accent after:to-accent/0
@@ -46,7 +54,7 @@ export const FooterNav: React.FC<FooterNavProps> = ({ data, variant }) => {
 
   return (
     <div className="flex items-center gap-4">
-      {navItems?.map(({ link }, i) => (
+      {navItems.map(({ link }, i) => (
         <CMSLink
           key={i}
           {...link}

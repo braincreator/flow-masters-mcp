@@ -28,7 +28,12 @@
     "add-products": "cross-env NODE_OPTIONS=--no-deprecation tsx src/scripts/add-products.ts",
     "check-deps": "depcheck",
     "clean-deps": "pnpm store prune && pnpm prune",
-    "clean-modules": "rm -rf node_modules && rm -rf .next && pnpm install"
+    "clean-modules": "rm -rf node_modules && rm -rf .next && pnpm install",
+    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+    "migrate:up": "cross-env NODE_OPTIONS=--no-deprecation payload migrate up",
+    "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate down",
+    "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
+    "migrate:reset": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:reset"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.6.0",

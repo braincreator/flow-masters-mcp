@@ -4,7 +4,6 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    
     "baseUrl": ".",
     "esModuleInterop": true,
     "target": "ES2022",
@@ -31,11 +30,11 @@
       }
     ],
     "paths": {
-      "@payload-config": [
-        "./src/payload.config.ts"
-      ],
       "@/*": [
-        "./src/*"
+        "src/*"
+      ],
+      "@/payload.config": [
+        "src/payload.config.ts"
       ]
     },
     "types": [
@@ -45,12 +44,9 @@
     ]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "redirects.js",
-    "next.config.mjs",
-    "next-sitemap.config.cjs"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

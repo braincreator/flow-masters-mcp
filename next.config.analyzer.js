@@ -1,3 +1,5 @@
+import type { NextConfig } from 'next'
+
 import { withPayload } from '@payloadcms/next/withPayload'
 import withBundleAnalyzer from '@next/bundle-analyzer'
 

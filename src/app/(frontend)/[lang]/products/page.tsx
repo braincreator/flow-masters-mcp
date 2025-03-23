@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import configPromise from '@/payload.config'
 import { ProductsGrid } from '@/blocks/ProductsGrid/Component'
 import { FilterBar } from '@/components/FilterBar'
 import { DEFAULT_LOCALE, Locale } from '@/constants'

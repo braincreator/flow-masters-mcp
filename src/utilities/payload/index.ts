@@ -1,7 +1,8 @@
-import { getPayload } from 'payload'
-import type { Payload } from 'payload'
-import configPromise from '@payload-config'
+import { Payload, getPayload } from 'payload'
+import { ServiceRegistry } from '../../services/service.registry'
+import config from '../../payload.config'
 import { connectionMonitor } from './monitoring'
+import { logger } from '../logger'
 
 let cached: Payload | null = null
 
@@ -11,10 +12,8 @@ export const getPayloadClient = async (): Promise<Payload> => {
   }
 
   try {
-    const config = await configPromise
     const payload = await getPayload({
       config,
-      // This ensures we don't try to initialize twice
       initOptions: {
         local: true,
         secret: process.env.PAYLOAD_SECRET || '',
@@ -23,9 +22,14 @@ export const getPayloadClient = async (): Promise<Payload> => {
     })
     
     cached = payload
+    
+    // Initialize service registry
+    ServiceRegistry.getInstance(payload)
+    
     return payload
   } catch (error) {
     console.error('Error initializing Payload client:', error)
+    connectionMonitor.recordError(error instanceof Error ? error : new Error(String(error)))
     throw error
   }
 }

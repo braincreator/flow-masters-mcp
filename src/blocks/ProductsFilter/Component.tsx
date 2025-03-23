@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useLocale } from '@/hooks/useLocale'
 import { Slider } from '@/components/ui/slider'
 
 interface ProductsFilterProps {
@@ -9,8 +10,7 @@ interface ProductsFilterProps {
   enableSort?: boolean
   enableSearch?: boolean
   enablePriceRange?: boolean // New prop
-  minPrice?: number // New prop
-  maxPrice?: number // New prop
+  priceRanges?: Record<string, { min: number, max: number }>
 }
 
 export const ProductsFilter: React.FC<ProductsFilterProps> = ({
@@ -18,15 +18,23 @@ export const ProductsFilter: React.FC<ProductsFilterProps> = ({
   enableSort = true,
   enableSearch = true,
   enablePriceRange = true,
-  minPrice = 0,
-  maxPrice = 1000,
+  priceRanges,
 }) => {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { locale } = useLocale()
   const [search, setSearch] = React.useState('')
+  
+  const defaultPriceRanges = {
+    en: { min: 0, max: 1000 },
+    ru: { min: 0, max: 100000 }
+  }
+  
+  const localePriceRange = priceRanges?.[locale] || defaultPriceRanges[locale]
+
   const [priceRange, setPriceRange] = React.useState([
-    parseInt(searchParams.get('minPrice') || minPrice.toString()),
-    parseInt(searchParams.get('maxPrice') || maxPrice.toString()),
+    parseInt(searchParams.get('minPrice') || localePriceRange.min.toString()),
+    parseInt(searchParams.get('maxPrice') || localePriceRange.max.toString()),
   ])
 
   const updateFilters = (key: string, value: string) => {
@@ -97,8 +105,8 @@ export const ProductsFilter: React.FC<ProductsFilterProps> = ({
           </label>
           <div className="px-2">
             <Slider
-              min={minPrice}
-              max={maxPrice}
+              min={localePriceRange.min}
+              max={localePriceRange.max}
               value={priceRange}
               onValueChange={handlePriceRangeChange}
               className="mt-2"

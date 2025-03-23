@@ -3,8 +3,8 @@ import { cn } from '@/utilities/ui'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { draftMode } from 'next/headers'
+import config from '@/payload.config'
 import { getPayload } from 'payload'
-import config from '../../../payload.config'
 import { homeStatic } from '@/endpoints/seed/home-static'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
@@ -36,7 +36,6 @@ export default async function LangHome({ params: paramsPromise }: Props) {
     },
   }).then(result => result.docs[0])
 
-  // Remove this code once your website is seeded
   if (!page) {
     page = homeStatic
   }
@@ -48,7 +47,7 @@ export default async function LangHome({ params: paramsPromise }: Props) {
   const { hero, layout } = page
 
   return (
-    <article className="pt-16 pb-24">
+    <article className="min-h-[calc(100vh-var(--header-height))] pb-24">
       <PageClient />
       <PayloadRedirects disableNotFound url={`/${lang}`} />
 

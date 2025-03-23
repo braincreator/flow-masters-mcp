@@ -1,5 +1,5 @@
-import { Payload } from 'payload'
-import { revalidateContent } from './revalidation'
+import type { Payload } from 'payload'
+import { revalidateContent } from '@/utilities/revalidation'
 
 export async function bulkRevalidate(
   payload: Payload, 

@@ -51,8 +51,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const currentLayout = searchParams.get('layout') || defaultLayout
   const currentSearch = searchParams.get('search') || ''
 
+  const handleCategoryChange = (value: string) => {
+    router.push(`?${createQueryString('category', value)}`)
+  }
+
+  const handleSortChange = (value: string) => {
+    router.push(`?${createQueryString('sort', value)}`)
+  }
+
   return (
-    <div className="glass-card p-4 mb-8 animate-smooth">
+    <div className="relative glass-effect p-4 mb-8">
       <div className="flex flex-col md:flex-row items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1 w-full">
@@ -65,16 +73,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             value={currentSearch}
             onChange={(e) => router.push(`?${createQueryString('search', e.target.value)}`)}
             className="w-full h-10 pl-12 pr-4 rounded-md
-                     bg-background/50 border border-border/50
-                     focus:ring-2 focus:ring-ring focus:ring-offset-0
-                     placeholder:text-muted-foreground"
+                     bg-muted/40 dark:bg-muted/20
+                     border border-border dark:border-border/50
+                     text-foreground placeholder:text-muted-foreground
+                     focus:ring-2 focus:ring-ring focus:ring-offset-2
+                     hover:border-primary/50 dark:hover:border-primary/50
+                     transition-all duration-200"
           />
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
           {/* Categories Select */}
-          <Select value={currentCategory} onValueChange={(value) => router.push(`?${createQueryString('category', value)}`)}>
-            <SelectTrigger className="w-[180px] h-10 bg-background/50">
+          <Select 
+            defaultValue={currentCategory} 
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder={labels.categories} />
             </SelectTrigger>
             <SelectContent>
@@ -88,8 +102,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </Select>
 
           {/* Sort Select */}
-          <Select value={currentSort} onValueChange={(value) => router.push(`?${createQueryString('sort', value)}`)}>
-            <SelectTrigger className="w-[180px] h-10 bg-background/50">
+          <Select 
+            defaultValue={currentSort}
+            onValueChange={handleSortChange}
+          >
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder={labels.sort} />
             </SelectTrigger>
             <SelectContent>
@@ -102,13 +119,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </Select>
 
           {/* Layout Toggle */}
-          <div className="flex h-10 gap-0.5 p-1 bg-background/50 rounded-md border border-border/50">
+          <div className="flex h-10 gap-0.5 p-1 
+                         bg-muted/40 dark:bg-muted/20 
+                         rounded-md border border-border dark:border-border/50
+                         hover:border-primary/50 dark:hover:border-primary/50
+                         transition-all duration-200">
             <button
               onClick={() => router.push(`?${createQueryString('layout', 'grid')}`)}
-              className={`px-3 rounded transition-colors duration-200 ${
+              className={`px-3 rounded transition-all duration-200 ${
                 currentLayout === 'grid'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                ? 'bg-primary/90 text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/30'
               }`}
               aria-label={labels.layout.grid}
             >
@@ -116,10 +137,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </button>
             <button
               onClick={() => router.push(`?${createQueryString('layout', 'list')}`)}
-              className={`px-3 rounded transition-colors duration-200 ${
+              className={`px-3 rounded transition-all duration-200 ${
                 currentLayout === 'list'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                ? 'bg-primary/90 text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/30'
               }`}
               aria-label={labels.layout.list}
             >

@@ -14,15 +14,15 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    /* Brand colors */
+    /* Brand colors - Adjusted for better contrast */
     --primary: 224 82% 56%;
     --primary-foreground: 210 40% 98%;
-    --accent: 260 84% 60%;
-    --accent-foreground: 210 40% 98%;
     --secondary: 201 96% 32%;
     --secondary-foreground: 210 40% 98%;
+    --accent: 260 84% 60%;
+    --accent-foreground: 210 40% 98%;
     
-    /* UI colors */
+    /* UI colors - Enhanced for better visibility */
     --muted: 217 33% 97%;
     --muted-foreground: 215 25% 27%;
     --destructive: 0 84% 60%;
@@ -34,7 +34,7 @@
     --info: 221 83% 53%;
     --info-foreground: 210 40% 98%;
 
-    /* Border & Input */
+    /* Border & Input - Subtle adjustments */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 224 82% 56%;
@@ -47,40 +47,40 @@
   }
 
   [data-theme="dark"] {
-    /* Base colors - Dark theme */
+    /* Base colors - Dark theme - Adjusted for better readability */
     --background: 222 47% 6%;
     --foreground: 213 31% 95%;
     
-    /* Surface colors */
+    /* Surface colors - Enhanced contrast */
     --card: 223 47% 4%;
     --card-foreground: 213 31% 95%;
     --popover: 223 47% 4%;
     --popover-foreground: 213 31% 95%;
     
-    /* Brand colors */
-    --primary: 224 82% 60%;
+    /* Brand colors - Brightened for dark mode */
+    --primary: 224 82% 65%;
     --primary-foreground: 210 40% 98%;
-    --accent: 260 84% 75%; /* Increased lightness from 65% to 75% */
-    --accent-foreground: 210 40% 98%;
     --secondary: 199 89% 52%;
     --secondary-foreground: 210 40% 98%;
+    --accent: 260 84% 75%;
+    --accent-foreground: 210 40% 98%;
     
-    /* UI colors */
+    /* UI colors - Adjusted for dark mode visibility */
     --muted: 223 47% 9%;
-    --muted-foreground: 215 20.2% 75.1%;
-    --destructive: 0 84% 60%;
+    --muted-foreground: 215 20.2% 85%;
+    --destructive: 0 84% 65%;
     --destructive-foreground: 210 40% 98%;
-    --success: 142 76% 36%;
+    --success: 142 76% 45%;
     --success-foreground: 210 40% 98%;
-    --warning: 38 92% 50%;
+    --warning: 38 92% 60%;
     --warning-foreground: 210 40% 98%;
-    --info: 221 83% 53%;
+    --info: 221 83% 65%;
     --info-foreground: 210 40% 98%;
 
-    /* Border & Input */
-    --border: 222 47% 12%;
-    --input: 222 47% 12%;
-    --ring: 224 82% 60%;
+    /* Border & Input - Increased contrast */
+    --border: 222 47% 15%;
+    --input: 222 47% 15%;
+    --ring: 224 82% 65%;
 
     /* Enhanced Shadows */
     --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
@@ -123,16 +123,25 @@
 }
 
 @layer components {
-  /* Enhanced glass effect */
+  /* Enhanced glass effect for filters */
   .glass-effect {
-    @apply backdrop-blur-xl bg-background/80 border border-border/30 
-           shadow-lg relative overflow-hidden
-           dark:bg-background/60 dark:border-border/20;
+    @apply rounded-lg
+           bg-background/40 dark:bg-background/30
+           backdrop-blur-md
+           border border-border/20 dark:border-border/10
+           shadow-sm
+           relative overflow-hidden;
   }
 
   .glass-effect::before {
-    @apply absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 
-           opacity-50 dark:opacity-30;
+    content: '';
+    @apply absolute inset-0 
+           bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+           opacity-0 transition-opacity duration-300;
+  }
+
+  .glass-effect:hover::before {
+    @apply opacity-100;
   }
 
   .interactive-element {

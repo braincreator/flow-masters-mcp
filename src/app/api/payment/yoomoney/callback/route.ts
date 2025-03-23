@@ -1,6 +1,9 @@
+import type { NextRequest } from 'next/server'
+
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { paymentService } from '@/utilities/payments'
+import { PaymentService } from '@/services/payment.service'
+import { OrderService } from '@/services/order.service'
 
 export async function POST(req: Request) {
   try {

@@ -1,37 +1,52 @@
-// storage-adapter-import-placeholder
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import type { Payload } from 'payload'
+import type { PayloadRequest } from 'payload'
+
 import { buildConfig } from 'payload'
-import { databaseConnection } from './utilities/payload/database/connection'
-
-import sharp from 'sharp' // sharp-import
+import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import path from 'path'
-import { PayloadRequest } from 'payload'
-import { fileURLToPath } from 'url'
-import { authenticatedOrPublished } from './access/authenticatedOrPublished'
-import { authenticated } from './access/authenticated'
-import { anyone } from './access/anyone'
+import sharp from 'sharp'
 
-// Get the directory name properly in ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getServerSideURL } from './utilities/getURL'
+import collections from './collections/collectionList'
+import { defaultLexical } from '@/fields/defaultLexical'
 
+// Import handlers
+import addProductsHandler from './endpoints/add-products'
+import validateDiscountHandler from './endpoints/validate-discount'
+import downloadProductHandler from './endpoints/download-product'
+
+// Import plugins
+import { plugins } from './plugins'
+
+// Import globals
+import { Header } from './Header/config'
+import { Footer } from './Footer/config'
+
+// Import collections
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { Solutions } from './collections/Solutions'
-import { Footer } from './Footer/config'
-import { Header } from './Header/config'
-import { plugins } from './plugins'
-import { defaultLexical } from '@/fields/defaultLexical'
-import { getServerSideURL } from './utilities/getURL'
-import collections from './collections/collectionList'
 import { Products } from './collections/Products'
 import { Orders } from './collections/Orders'
-import addProductsHandler from './endpoints/add-products'
 
-console.log('Initializing Payload with DATABASE_URI:', process.env.DATABASE_URI)
+// Import constants
+import { ENV } from '@/constants/env'
+import { DATABASE_CONFIG } from '@/constants/index'
+
+// Create a collections array
+const collections = [
+  Categories,
+  Media,
+  Pages,
+  Posts,
+  Users,
+  Solutions,
+  Products,
+  Orders
+]
 
 // Add more robust connection options
 const mongooseConfig = {
@@ -52,8 +67,12 @@ const mongooseConfig = {
   },
 }
 
+
 export default buildConfig({
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
+  secret: ENV.PAYLOAD_SECRET,
   admin: {
+    user: Users.slug,
     components: {
       views: [
         {
@@ -79,7 +98,7 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(__dirname),
     },
-    user: Users.slug,
+    
     livePreview: {
       breakpoints: [
         {
@@ -130,16 +149,6 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter(mongooseConfig),
-  onInit: async (payload) => {
-    console.log('Initializing Payload with DATABASE_URI:', process.env.DATABASE_URI)
-    try {
-      await databaseConnection.connect()
-      console.log('Database connection status:', databaseConnection.getConnectionStatus())
-    } catch (err) {
-      console.error('Failed to initialize database connection:', err)
-      process.exit(1)
-    }
-  },
   localization: {
     locales: [
       {
@@ -157,29 +166,10 @@ export default buildConfig({
   collections: [Categories, Media, Pages, Posts, Users, Solutions, Products, Orders],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
-  plugins: [
-    ...plugins,
-    // storage-adapter-placeholder
-  ],
-  secret: process.env.PAYLOAD_SECRET,
+  plugins,
   sharp,
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
-  },
-  jobs: {
-    access: {
-      run: ({ req }: { req: PayloadRequest }): boolean => {
-        // Allow logged in users to execute this endpoint (default)
-        if (req.user) return true
-
-        // If there is no logged in user, then check
-        // for the Vercel Cron secret to be present as an
-        // Authorization header:
-        const authHeader = req.headers.get('authorization')
-        return authHeader === `Bearer ${process.env.CRON_SECRET}`
-      },
-    },
-    tasks: [],
   },
   upload: {
     limits: {
@@ -188,11 +178,6 @@ export default buildConfig({
     },
     useTempFiles: true,
     tempFileDir: '/tmp',
-    removeNonExistentFiles: true,
-    imageResizing: {
-      maxConcurrency: 4,
-      maxMemoryPerTask: 512,
-    },
   },
   express: {
     json: { limit: '5mb' },
@@ -204,6 +189,15 @@ export default buildConfig({
       method: 'post',
       handler: addProductsHandler,
     },
-    // ... other endpoints
+    {
+      path: '/api/validate-discount',
+      method: 'post',
+      handler: validateDiscountHandler,
+    },
+    {
+      path: '/api/orders/:orderId/products/:productId/download',
+      method: 'get',
+      handler: downloadProductHandler,
+    },
   ],
 })

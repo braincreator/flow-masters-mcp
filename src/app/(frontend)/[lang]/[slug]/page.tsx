@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { PayloadRedirects } from '@/components/PayloadRedirects'
-import configPromise from '@payload-config'
+import configPromise from '@/payload.config'
 import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
@@ -59,14 +59,11 @@ export default async function Page({ params: paramsPromise }: Args) {
   const { lang, slug = '' } = await paramsPromise
   const url = slug ? `/${lang}/${slug}` : `/${lang}`
 
-  let page: RequiredDataFromCollectionSlug<'pages'> | null
-
-  page = await queryPageBySlug({
-    slug: slug || 'home', // Use 'home' slug when no slug is provided
+  let page = await queryPageBySlug({
+    slug: slug || 'home',
     lang,
   })
 
-  // Remove this code once your website is seeded
   if (!page && !slug) {
     page = homeStatic
   }
@@ -78,9 +75,9 @@ export default async function Page({ params: paramsPromise }: Args) {
   const { hero, layout } = page
 
   return (
-    <article className="pt-16 pb-24">
+    <article className="min-h-[calc(100vh-var(--header-height))] pb-24">
       <PageClient />
-      <PayloadRedirects disableNotFound url={url} />
+      <PayloadRedirects disableNotFound url={`/${lang}/${slug}`} />
 
       {draft && <LivePreviewListener />}
 

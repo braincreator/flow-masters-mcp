@@ -1,6 +1,6 @@
-import { getPayloadClient } from './payload'
-import { unstable_cache } from 'next/cache'
 import { LRUCache } from 'lru-cache'
+import { unstable_cache } from 'next/cache'
+import { getPayloadClient } from '@/utilities/payload'
 
 // Add LRU cache for frequently accessed redirects
 const redirectCache = new LRUCache({

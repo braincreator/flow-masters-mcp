@@ -1,4 +1,4 @@
-import { CollectionConfig } from 'payload/types'
+import { CollectionConfig } from 'payload'
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/IntegrationService'
 
@@ -60,8 +60,64 @@ export const Orders: CollectionConfig = {
     },
     {
       name: 'total',
-      type: 'number',
-      required: true,
+      type: 'group',
+      fields: [
+        {
+          name: 'en',
+          type: 'group',
+          fields: [
+            {
+              name: 'amount',
+              type: 'number',
+              required: true,
+            },
+            {
+              name: 'currency',
+              type: 'text',
+              required: true,
+              defaultValue: 'USD',
+            }
+          ]
+        },
+        {
+          name: 'ru',
+          type: 'group',
+          fields: [
+            {
+              name: 'amount',
+              type: 'number',
+              required: true,
+            },
+            {
+              name: 'currency',
+              type: 'text',
+              required: true,
+              defaultValue: 'RUB',
+            }
+          ]
+        }
+      ],
+      hooks: {
+        beforeChange: [
+          ({ data, value }) => {
+            if (!value) return value
+            // Ensure both locale prices are set
+            if (value.en?.amount && !value.ru?.amount) {
+              value.ru = {
+                amount: convertPrice(value.en.amount, 'en', 'ru'),
+                currency: 'RUB'
+              }
+            }
+            if (value.ru?.amount && !value.en?.amount) {
+              value.en = {
+                amount: convertPrice(value.ru.amount, 'ru', 'en'),
+                currency: 'USD'
+              }
+            }
+            return value
+          }
+        ]
+      }
     },
     {
       name: 'trackingNumber',

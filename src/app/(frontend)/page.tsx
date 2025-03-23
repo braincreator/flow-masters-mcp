@@ -1,5 +1,5 @@
 import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import configPromise from '@/payload.config'
 import { draftMode } from 'next/headers'
 import { homeStatic } from '@/endpoints/seed/home-static'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
@@ -31,7 +31,7 @@ export default async function Page() {
   const { hero, layout } = page
 
   return (
-    <article className="pt-16 pb-24">
+    <article className="min-h-[calc(100vh-var(--header-height))] pb-24">
       <PageClient />
       <PayloadRedirects disableNotFound url="/" />
 

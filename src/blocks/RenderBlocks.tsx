@@ -9,17 +9,17 @@ const blockComponents = {
   content: ContentBlock,
   cta: CTABlock,
   hero: HeroBlock,
-}
+} as const
 
 type Props = {
-  blocks: {
+  blocks?: {
     blockType: keyof typeof blockComponents
     [key: string]: any
   }[]
 }
 
-export const RenderBlocks: React.FC<Props> = ({ blocks }) => {
-  if (!blocks) return null
+export const RenderBlocks: React.FC<Props> = ({ blocks = [] }) => {
+  if (!Array.isArray(blocks)) return null
 
   return (
     <>
