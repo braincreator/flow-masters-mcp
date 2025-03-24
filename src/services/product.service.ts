@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { Product, Media } from '../payload-types'
 import { 
@@ -12,17 +12,19 @@ import { CACHE_REVALIDATE_SECONDS } from '../constants'
 import { LRUCache } from 'lru-cache'
 import { StorageService } from './storage.service'
 import { IntegrationService } from './integration.service'
-import { revalidatePage } from '../utilities/revalidatePage'
+import { revalidateContent } from '../utilities/revalidation'
 
 export class ProductService extends BaseService {
-  private storageService: StorageService
+  private static instance: ProductService | null = null
   private integrationService: IntegrationService
+  private storageService: StorageService
   private cache: LRUCache<string, Product>
+  private revalidationQueue: Set<string> = new Set()
 
-  constructor(payload: Payload) {
+  private constructor(payload: Payload) {
     super(payload)
-    this.storageService = new StorageService(payload)
     this.integrationService = IntegrationService.getInstance(payload)
+    this.storageService = StorageService.getInstance(payload)
     this.cache = new LRUCache<string, Product>({
       max: 500,
       ttl: CACHE_REVALIDATE_SECONDS * 1000,
@@ -30,15 +32,27 @@ export class ProductService extends BaseService {
     })
   }
 
-  private async triggerEvent(type: ProductEventType, product: Product): Promise<void> {
-    await this.integrationService.processEvent(type, {
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      status: product.status,
-      updatedAt: product.updatedAt,
-      createdAt: product.createdAt
-    })
+  public static getInstance(payload: Payload): ProductService {
+    if (!ProductService.instance) {
+      ProductService.instance = new ProductService(payload)
+    }
+    return ProductService.instance
+  }
+
+  private async triggerEvent(event: string, data: any) {
+    try {
+      // Get relevant integrations and trigger them
+      const integration = await this.integrationService.getIntegrationByType('webhook')
+      if (integration) {
+        await this.integrationService.testIntegration(integration.id, {
+          event,
+          data
+        })
+      }
+    } catch (error) {
+      console.error('Failed to trigger event:', error)
+      // Don't throw here to prevent product creation from failing
+    }
   }
 
   async create(input: ProductCreateInput, file?: Express.Multer.File): Promise<Product> {
@@ -62,7 +76,12 @@ export class ProductService extends BaseService {
 
       const product = result as Product
       await this.triggerEvent('product.created', product)
-      await revalidatePage('/products')
+      await revalidateContent({
+        path: '/products',
+        collection: 'products',
+        slug: product.slug,
+        payload: this.payload
+      })
 
       return product
     } catch (error) {
@@ -104,8 +123,12 @@ export class ProductService extends BaseService {
       const product = result as Product
       productCache.del(id)
       await this.triggerEvent('product.updated', product)
-      await revalidatePage('/products')
-      await revalidatePage(`/products/${product.slug}`)
+      await revalidateContent({
+        path: '/products',
+        collection: 'products',
+        slug: product.slug,
+        payload: this.payload
+      })
 
       return product
     } catch (error) {
@@ -132,8 +155,12 @@ export class ProductService extends BaseService {
 
       productCache.del(id)
       await this.triggerEvent('product.deleted', product)
-      await revalidatePage('/products')
-      await revalidatePage(`/products/${product.slug}`)
+      await revalidateContent({
+        path: '/products',
+        collection: 'products',
+        slug: product.slug,
+        payload: this.payload
+      })
     } catch (error) {
       console.error('Failed to delete product:', error)
       throw error
@@ -310,7 +337,12 @@ export class ProductService extends BaseService {
       })
 
       productCache.del(id)
-      await revalidatePage(`/products/${result.slug}`)
+      await revalidateContent({
+        path: '/products',
+        collection: 'products',
+        slug: result.slug,
+        payload: this.payload
+      })
 
       return result as Product
     } catch (error) {

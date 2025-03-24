@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { Integration } from '../payload-types'
 import { IntegrationEvent, IntegrationEventData } from '../types/events'
@@ -10,14 +10,22 @@ interface EventData {
 }
 
 export class IntegrationService extends BaseService {
+  private static instance: IntegrationService | null = null
   private eventCache: LRUCache<string, boolean>
 
-  constructor(payload: Payload) {
+  private constructor(payload: Payload) {
     super(payload)
     this.eventCache = new LRUCache({
       max: 1000,
       ttl: 1000 * 60 * 5, // 5 minutes
     })
+  }
+
+  public static getInstance(payload: Payload): IntegrationService {
+    if (!IntegrationService.instance) {
+      IntegrationService.instance = new IntegrationService(payload)
+    }
+    return IntegrationService.instance
   }
 
   private async logEvent(type: string, data: EventData): Promise<void> {
@@ -32,72 +40,6 @@ export class IntegrationService extends BaseService {
       })
     } catch (error) {
       console.error('Failed to log event:', error)
-    }
-  }
-
-  private async notifyWebhooks(type: ProductEventType, data: EventData): Promise<void> {
-    try {
-      const settings = await this.payload.findGlobal({
-        slug: 'settings',
-      })
-
-      const webhooks = settings?.webhooks || []
-      
-      await Promise.all(webhooks.map(async (webhook) => {
-        if (!webhook.enabled || !webhook.url) return
-
-        const eventKey = `${type}-${data.id}-${webhook.url}`
-        if (this.eventCache.get(eventKey)) return
-
-        try {
-          const response = await fetch(webhook.url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Webhook-Type': type,
-              'X-Webhook-Signature': webhook.secret || '',
-            },
-            body: JSON.stringify({
-              type,
-              data,
-              timestamp: new Date().toISOString(),
-            }),
-          })
-
-          if (!response.ok) {
-            throw new Error(`Webhook failed with status ${response.status}`)
-          }
-
-          this.eventCache.set(eventKey, true)
-        } catch (error) {
-          console.error(`Webhook delivery failed for ${webhook.url}:`, error)
-        }
-      }))
-    } catch (error) {
-      console.error('Failed to notify webhooks:', error)
-    }
-  }
-
-  async processEvent(type: IntegrationEvent, data: IntegrationEventData): Promise<void> {
-    try {
-      const integrations = await this.payload.find({
-        collection: 'integrations',
-        where: {
-          status: 'active',
-          events: {
-            contains: type
-          }
-        }
-      })
-
-      await Promise.all(
-        integrations.docs.map(integration => 
-          this.sendEventToIntegration(integration as Integration, type, data)
-        )
-      )
-    } catch (error) {
-      console.error(`Failed to process integration event ${type}:`, error)
-      throw error
     }
   }
 
@@ -139,6 +81,49 @@ export class IntegrationService extends BaseService {
           lastError: error.message
         }
       })
+      throw error
+    }
+  }
+
+  async getIntegrationByType(type: string) {
+    try {
+      const result = await this.payload.find({
+        collection: 'integrations',
+        where: {
+          type: {
+            equals: type
+          },
+          status: {
+            equals: 'active'
+          }
+        },
+        limit: 1
+      })
+
+      return result.docs[0]
+    } catch (error) {
+      console.error('Failed to get integration:', error)
+      throw error
+    }
+  }
+
+  async processEvent(type: IntegrationEvent, data: IntegrationEventData): Promise<void> {
+    try {
+      const integrations = await this.payload.find({
+        collection: 'integrations',
+        where: {
+          status: { equals: 'active' },
+          'triggers.event': { equals: type },
+        },
+      })
+
+      for (const integration of integrations.docs) {
+        await this.sendEventToIntegration(integration, type, data)
+      }
+
+      await this.logEvent(type, data)
+    } catch (error) {
+      console.error('Failed to process event:', error)
       throw error
     }
   }
