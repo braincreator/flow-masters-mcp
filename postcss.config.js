@@ -19,7 +19,7 @@ const config = {
       defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
       safelist: {
         standard: ['html', 'body'],
-        deep: [/^dark:/],
+        deep: [/^dark:/, /^data-theme/],
       },
     } : false,
   },

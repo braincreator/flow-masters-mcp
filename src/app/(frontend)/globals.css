@@ -551,3 +551,96 @@ body.modal-open {
            dark:from-primary dark:via-accent dark:to-secondary;
   }
 }
+
+/* Product Card Styles */
+.product-card {
+  @apply rounded-xl border bg-gradient-to-br from-background via-background to-muted
+         shadow-lg relative overflow-hidden transition-all duration-300
+         hover:shadow-xl hover:shadow-primary/20
+         dark:from-background/90 dark:via-background/80 dark:to-muted/20
+         dark:border-primary/20 dark:hover:shadow-primary/40;
+}
+
+.product-card::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+         opacity-0 transition-opacity duration-300;
+}
+
+.product-card:hover::before {
+  @apply opacity-100;
+}
+
+.product-card-image {
+  @apply relative overflow-hidden aspect-square;
+}
+
+.product-card-image img {
+  @apply object-cover transition-transform duration-300;
+}
+
+.product-card:hover .product-card-image img {
+  @apply scale-105;
+}
+
+.product-card-badge {
+  @apply absolute top-2 right-2 z-10 
+         bg-background/90 backdrop-blur-sm 
+         px-3 py-1.5 rounded-full
+         border border-border/50
+         transition-all duration-300;
+}
+
+.product-card:hover .product-card-badge {
+  @apply transform scale-105;
+}
+
+.product-card-content {
+  @apply p-4 space-y-4;
+}
+
+.product-card-title {
+  @apply text-xl font-semibold 
+         text-foreground
+         transition-colors duration-200
+         hover:text-primary;
+}
+
+.product-card-description {
+  @apply text-sm text-muted-foreground
+         line-clamp-2;
+}
+
+.product-card-price {
+  @apply text-lg font-bold text-foreground;
+}
+
+.product-card-price-discount {
+  @apply text-sm text-muted-foreground line-through;
+}
+
+.product-card-tags {
+  @apply flex flex-wrap gap-2 mt-2;
+}
+
+.product-card-tag {
+  @apply inline-flex items-center gap-1.5 
+         px-2 py-1 text-xs rounded-full
+         bg-primary/10 text-primary
+         transition-colors duration-200
+         hover:bg-primary/20;
+}
+
+/* Animation keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

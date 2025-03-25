@@ -350,4 +350,61 @@ export class ProductService extends BaseService {
       throw error
     }
   }
+
+  async getProductWithCache(id: string): Promise<Product | null> {
+    try {
+      const cached = this.cache.get(id)
+      if (cached) {
+        return cached
+      }
+
+      const product = await this.fetchProduct(id)
+      if (product) {
+        this.cache.set(id, product)
+      }
+      return product
+    } catch (error) {
+      console.error(`Failed to get product ${id}:`, error)
+      throw error
+    }
+  }
+
+  async getPublishedProducts(options: ProductQueryOptions = {}): Promise<ProductListResponse> {
+    const { page = 1, limit = 10, where = {}, locale = DEFAULT_LOCALE } = options
+
+    return this.find({
+      ...options,
+      where: {
+        ...where,
+        status: {
+          equals: 'published'
+        }
+      }
+    })
+  }
+
+  async getRelatedProducts(product: Product, limit: number = 4): Promise<Product[]> {
+    try {
+      const result = await this.payload.find({
+        collection: 'products',
+        where: {
+          category: {
+            equals: product.category
+          },
+          id: {
+            not_equals: product.id
+          },
+          status: {
+            equals: 'published'
+          }
+        },
+        limit
+      })
+
+      return result.docs as Product[]
+    } catch (error) {
+      console.error('Failed to get related products:', error)
+      return []
+    }
+  }
 }

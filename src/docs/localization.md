@@ -1,114 +1,57 @@
-# Localization System Documentation
+# Localization Guide
 
-## Overview
-The localization system provides efficient content translation management with caching, fallbacks, and performance monitoring.
+## Server vs Client Components
 
-## Key Features
-
-### 1. Content Localization
+### Server Components
 ```typescript
-const content = await getLocalizedContent(collection, docId, locale)
-```
-- Fetches localized content for specified collection and document
-- Supports fallback to default locale if translation missing
-- Automatically caches results for improved performance
+// app/[lang]/page.tsx
+import { headers } from 'next/headers'
 
-### 2. Batch Operations
-```typescript
-const items = [
-  { collection: 'posts', docId: '123', locale: 'en' },
-  { collection: 'posts', docId: '124', locale: 'ru' }
-]
-const results = await getLocalizedContentBatch(items)
-```
-- Efficiently fetch multiple translations in parallel
-- Automatic error handling per item
-- Returns array of successful results
-
-### 3. Cache Management
-The system uses LRU (Least Recently Used) cache with:
-- Maximum 1000 entries
-- 1-hour TTL (Time To Live)
-- 5MB total cache size limit
-- Automatic cleanup of old entries
-- Persistence to prevent cold starts
-
-### 4. Performance Monitoring
-```typescript
-const metrics = getLocalizationMetrics()
-// Returns:
-{
-  hits: number,        // Cache hit count
-  misses: number,      // Cache miss count
-  errors: number,      // Error count
-  cacheSize: number,   // Current cache size
-  itemCount: number    // Number of cached items
-}
-
-const performance = getPerformanceMetrics()
-// Returns:
-{
-  avgFetchTime: number,  // Average fetch time in ms
-  maxFetchTime: number,  // Maximum fetch time in ms
+export default async function Page() {
+  // Server-side operations
+  const headersList = headers()
+  const locale = headersList.get('x-locale') || 'en'
+  
+  return (
+    <main>
+      {/* Server Components here */}
+    </main>
+  )
 }
 ```
 
-### 5. Cache Preloading
+### Client Components
 ```typescript
-await preloadCommonContent()
-```
-- Automatically preloads common content (header, footer, navigation)
-- Runs on system startup
-- Configurable collection list
+'use client'
 
-### 6. Cache Persistence
-- Automatically saves cache to disk every 30 minutes
-- Saves on system shutdown
-- Loads cached content on startup
-- Prevents cold starts
+// components/LocaleSwitcher.tsx
+import { useRouter } from 'next/navigation'
 
-### 7. Cache Invalidation
-```typescript
-invalidateLocaleCache(collection, docId)
-```
-- Manually invalidate cache entries
-- Supports pattern-based invalidation
-- Automatic cleanup of stale entries
-
-## Configuration
-
-### Environment Variables
-```env
-DEFAULT_LOCALE=en
-SUPPORTED_LOCALES=en,ru
-CACHE_DIRECTORY=.cache
+export default function LocaleSwitcher() {
+  const router = useRouter()
+  
+  return (
+    <select onChange={(e) => router.push(`/${e.target.value}`)}>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+    </select>
+  )
+}
 ```
 
-### Constants
-```typescript
-SUPPORTED_LOCALES: ['en', 'ru']
-DEFAULT_LOCALE: 'en'
-CACHE_FILE: '.cache/locale-cache.json'
+## Dependencies
+
+Required packages from package.json:
+```json
+{
+  "dependencies": {
+    "@formatjs/intl-localematcher": "^0.6.0",
+    "@payloadcms/plugin-form-builder": "^3.28.1",
+    "@payloadcms/plugin-seo": "^3.28.1",
+    "@payloadcms/richtext-lexical": "^3.28.1"
+  }
+}
 ```
-
-## Best Practices
-
-1. **Error Handling**
-   - Always provide fallback content for missing translations
-   - Log and monitor translation errors
-   - Use try-catch blocks when working with localization functions
-
-2. **Performance**
-   - Use batch operations for multiple items
-   - Monitor cache hit rates
-   - Preload frequently accessed content
-   - Keep translations under 5MB total size
-
-3. **Cache Management**
-   - Regularly monitor cache metrics
-   - Set up alerts for high error rates
-   - Implement cache warming for critical content
-   - Use cache invalidation when content updates
 
 ## Integration with PayloadCMS
 
@@ -166,3 +109,69 @@ Common issues and solutions:
    - Verify cache file location
    - Monitor memory usage
    - Review cache configuration
+
+## Data Flow
+
+```mermaid
+graph TD
+    A[Client Request] --> B[Next.js Router]
+    B --> C{Locale Check}
+    C -->|Found| D[Load Translations]
+    C -->|Not Found| E[Use Default]
+    D --> F[Render Page]
+    E --> F
+    F --> G[PayloadCMS]
+    G --> H[Cache Layer]
+```
+
+## Environment Setup
+
+```bash
+# Required environment variables
+NEXT_PUBLIC_DEFAULT_LOCALE=en
+NEXT_PUBLIC_SUPPORTED_LOCALES=en,es,fr
+PAYLOAD_PUBLIC_SERVER_URL=http://localhost:3000
+```
+
+## Revalidation Strategy
+
+For content updates:
+```typescript
+// Revalidate specific paths
+await revalidatePath(`/${locale}/${slug}`)
+
+// Revalidate tags
+await revalidateTag(`content-${locale}`)
+```
+
+## Error Handling
+
+```typescript
+try {
+  const content = await fetchLocalizedContent(locale, slug)
+  if (!content) {
+    throw new Error(`Content not found for ${locale}/${slug}`)
+  }
+  return content
+} catch (error) {
+  console.error(`Localization error: ${error.message}`)
+  return fallbackContent
+}
+```
+
+## Best Practices
+
+1. **Content Structure**
+   - Use flat translation keys
+   - Maintain consistent naming
+   - Document fallback logic
+
+2. **Performance**
+   - Implement proper caching
+   - Use incremental static regeneration
+   - Optimize bundle size
+
+3. **Development**
+   - Follow type-safe patterns
+   - Maintain test coverage
+   - Document edge cases
