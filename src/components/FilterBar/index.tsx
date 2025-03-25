@@ -46,10 +46,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     (searchParams.get('layout') as 'grid' | 'list') || defaultLayout
   )
 
-  const currentCategory = searchParams.get('category') || 'all'
-  const currentSort = searchParams.get('sort') || 'newest'
-  const currentSearch = searchParams.get('search') || ''
-
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value) {
@@ -93,19 +89,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <input
             type="search"
             placeholder={labels.searchPlaceholder}
-            defaultValue={currentSearch}
-            onChange={(e) => {
-              handleSearch(e.target.value)
-            }}
-            
+            defaultValue={searchParams.get('search') || ''}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full h-10 pl-12 pr-4 rounded-md bg-muted/40 dark:bg-muted/20 border border-border dark:border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none hover:border-accent dark:hover:border-accent transition-all duration-200"
           />
         </div>
 
         <div className="flex items-center gap-4 shrink-0 relative z-10">
-          <div className="relative [&>*]:rounded-md [&>*]:border-0 group" key="category-select">
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
             <Select
-              defaultValue={currentCategory}
+              defaultValue={searchParams.get('category') || 'all'}
               onValueChange={(value) => {
                 router.push(updateSearchParams('category', value))
                 setOpenDropdown(null)
@@ -115,7 +108,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 <SelectValue placeholder={labels.categories} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{labels.allCategories}</SelectItem>
+                <SelectItem key="all" value="all">{labels.allCategories}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     {category.label}
@@ -125,9 +118,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </Select>
           </div>
 
-          <div className="relative [&>*]:rounded-md [&>*]:border-0 group" key="sort-select">
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
             <Select
-              defaultValue={currentSort}
+              defaultValue={searchParams.get('sort') || 'newest'}
               onValueChange={(value) => {
                 router.push(updateSearchParams('sort', value))
                 setOpenDropdown(null)
@@ -154,7 +147,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                console.log('Grid button clicked')
                 handleLayoutChange('grid')
               }}
               className={cn(
@@ -175,7 +167,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                console.log('List button clicked')
                 handleLayoutChange('list')
               }}
               className={cn(
