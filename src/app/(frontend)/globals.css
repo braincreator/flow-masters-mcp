@@ -413,6 +413,100 @@
   .glow-effect:hover::after {
     @apply opacity-100;
   }
+
+  .product-card {
+    @apply relative overflow-hidden
+           bg-card dark:bg-card/80
+           rounded-xl
+           border border-border/10
+           shadow-sm hover:shadow-lg
+           transition-all duration-300 ease-out;
+  }
+
+  .product-card::before {
+    content: '';
+    @apply absolute inset-0
+           bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+           opacity-0 transition-opacity duration-300;
+  }
+
+  .product-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .product-card::after {
+    content: '';
+    @apply absolute inset-0
+           border border-primary/10
+           rounded-xl
+           opacity-0 scale-[1.02]
+           transition-all duration-300;
+  }
+
+  .product-card:hover::after {
+    @apply opacity-100 scale-100;
+  }
+
+  /* Enhanced glass effect */
+  .glass-effect {
+    @apply bg-background/40 dark:bg-background/30
+           backdrop-blur-[2px]
+           border border-border/10
+           transition-all duration-300;
+  }
+
+  /* Interactive elements */
+  .interactive-element {
+    @apply relative overflow-hidden
+           transition-all duration-300
+           hover:scale-[1.02]
+           active:scale-[0.98]
+           hover:bg-primary/5 dark:hover:bg-primary/10;
+  }
+
+  /* Shimmer animation */
+  .shimmer {
+    @apply absolute inset-0
+           bg-gradient-to-r from-transparent via-white/20 to-transparent
+           -translate-x-full animate-[shimmer_2s_infinite];
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Enhanced button styles */
+  .product-card .interactive-element {
+    @apply relative overflow-hidden
+           transition-all duration-300
+           hover:scale-[1.02]
+           active:scale-[0.98]
+           hover:bg-primary/5 dark:hover:bg-primary/10;
+  }
+
+  /* Button shimmer effect */
+  .product-card .interactive-element::after {
+    content: '';
+    @apply absolute inset-0 
+           bg-gradient-to-r from-transparent via-white/20 to-transparent 
+           opacity-0 transition-opacity duration-300
+           -translate-x-full;
+  }
+
+  .product-card .interactive-element:hover::after {
+    @apply opacity-100;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Product type indicator */
+  .product-type-indicator {
+    @apply flex items-center justify-center gap-2 
+           text-sm text-muted-foreground
+           glass-effect px-3 py-1.5 rounded-full
+           mt-2;
+  }
 }
 
 @layer utilities {
