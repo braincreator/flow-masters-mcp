@@ -1,17 +1,27 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
+import RichText from '@/components/RichText'
+import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
-import { Pagination } from '@/components/Pagination'
-import { Grid, GridItem } from '@/components/ui/grid'
+import { Grid } from '@/components/ui/grid'
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
+interface Product {
+  id: string
+  slug: string
+  title: string
+  description?: any // Changed to any to accept RichText content
+  price: number
+  thumbnail?: {
+    url: string
+  }
+}
+
 interface ProductsGridProps {
-  products: any[]
+  products: Product[]
   productsPerPage?: number
   showPagination?: boolean
   layout?: 'grid' | 'list'
@@ -25,75 +35,24 @@ interface ProductsGridProps {
 
 export const ProductsGrid: React.FC<ProductsGridProps> = ({
   products,
-  productsPerPage = 12,
-  showPagination = true,
   layout = 'grid',
-  labels = {
-    prev: 'Previous',
-    next: 'Next',
-    page: 'Page',
-    of: 'of'
-  }
+  labels,
+  showPagination = true,
+  productsPerPage = 12
 }) => {
   const { addToCart } = useCart()
-  const searchParams = useSearchParams()
-  
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = [...products]
-    
-    // Apply search filter
-    const search = searchParams.get('search')
-    if (search) {
-      result = result.filter(product => 
-        product.title.toLowerCase().includes(search.toLowerCase()) ||
-        product.description.toLowerCase().includes(search.toLowerCase())
-      )
-    }
-
-    // Apply category filter
-    const category = searchParams.get('category')
-    if (category && category !== 'all') {
-      result = result.filter(product => product.category === category)
-    }
-
-    // Apply sorting
-    const sort = searchParams.get('sort')
-    switch (sort) {
-      case 'price-low':
-        result.sort((a, b) => a.price - b.price)
-        break
-      case 'price-high':
-        result.sort((a, b) => b.price - a.price)
-        break
-      case 'newest':
-        result.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        break
-    }
-
-    return result
-  }, [products, searchParams])
-
-  const currentPage = Number(searchParams.get('page')) || 1
-  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage)
-  const currentProducts = filteredAndSortedProducts.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  )
 
   return (
     <div className="space-y-6">
-      <div className={`grid gap-6 ${
-        layout === 'grid' 
-          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-          : 'grid-cols-1'
-      }`}>
-        {currentProducts.map(product => (
-          <GridItem key={product.id}>
-            <Card className="h-full flex flex-col">
-              <Link href={`/products/${product.slug}`}>
-                <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+      <Grid 
+        className="gap-6" 
+        cols={layout === 'grid' ? 3 : 1}
+      >
+        {products.map(product => (
+          <Card key={product.id} className="h-full flex flex-col">
+            <Link href={`/products/${product.slug}`}>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+                {product.thumbnail?.url ? (
                   <Image
                     src={product.thumbnail.url}
                     alt={product.title}
@@ -101,48 +60,50 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({
                     className="object-cover transition-transform hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
-                </div>
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <span className="text-muted-foreground">No image</span>
+                  </div>
+                )}
+              </div>
+            </Link>
+            
+            <CardHeader className="flex-none">
+              <Link 
+                href={`/products/${product.slug}`}
+                className="hover:underline"
+              >
+                <h3 className="text-xl font-semibold line-clamp-2">
+                  {product.title}
+                </h3>
               </Link>
-              
-              <CardHeader className="flex-none">
-                <Link 
-                  href={`/products/${product.slug}`}
-                  className="hover:underline"
-                >
-                  <h3 className="text-xl font-semibold line-clamp-2">
-                    {product.title}
-                  </h3>
-                </Link>
-              </CardHeader>
+            </CardHeader>
 
-              <CardContent className="flex-grow">
-                <p className="text-muted-foreground line-clamp-2">
-                  {product.description}
-                </p>
-              </CardContent>
+            <CardContent className="flex-grow">
+              <div className="text-muted-foreground line-clamp-2">
+                <RichText content={product.description} />
+              </div>
+            </CardContent>
 
-              <CardFooter className="flex justify-between items-center pt-4">
-                <span className="text-2xl font-bold">
-                  ${product.price}
-                </span>
-                <Button
-                  onClick={() => addToCart(product)}
-                  variant="default"
-                >
-                  Add to Cart
-                </Button>
-              </CardFooter>
-            </Card>
-          </GridItem>
+            <CardFooter className="flex justify-between items-center pt-4">
+              <span className="text-2xl font-bold">
+                ${product.price}
+              </span>
+              <Button
+                onClick={() => addToCart(product)}
+                variant="default"
+              >
+                Add to Cart
+              </Button>
+            </CardFooter>
+          </Card>
         ))}
-      </div>
+      </Grid>
 
-      {showPagination && totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          labels={labels}
-        />
+      {showPagination && labels && (
+        <div className="mt-8">
+          {/* Pagination component implementation */}
+        </div>
       )}
     </div>
   )

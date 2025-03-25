@@ -1,4 +1,4 @@
-import { payload } from 'payload'
+import { Payload } from 'payload'
 
 interface CurrencyFormat {
   minimumFractionDigits: number
@@ -15,6 +15,7 @@ let baseCurrencyCache: string | null = null
 
 async function getSettings() {
   if (!localeSettingsCache) {
+    const payload = await getPayloadClient()
     const settings = await payload.findGlobal({
       slug: 'settings',
     })

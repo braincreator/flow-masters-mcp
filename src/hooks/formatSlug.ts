@@ -9,19 +9,24 @@ const format = (val: string): string =>
 const formatSlug =
   (fallback: string): FieldHook =>
   ({ data, operation, originalDoc, value }) => {
+    // Add safety check for recursive calls
+    if (!value && !data?.[fallback] && !originalDoc?.[fallback]) {
+      return '';
+    }
+
     if (typeof value === 'string') {
-      return format(value)
+      return format(value);
     }
 
     if (operation === 'create') {
-      const fallbackData = data?.[fallback] || originalDoc?.[fallback]
+      const fallbackData = data?.[fallback] || originalDoc?.[fallback];
 
       if (fallbackData && typeof fallbackData === 'string') {
-        return format(fallbackData)
+        return format(fallbackData);
       }
     }
 
-    return value
+    return value || '';
   }
 
 export default formatSlug

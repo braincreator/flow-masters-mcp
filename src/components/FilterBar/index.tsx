@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import debounce from 'lodash.debounce'
 import {
   Select,
   SelectContent,
@@ -73,6 +74,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     setOpenDropdown((current) => (current === dropdownId ? null : dropdownId))
   }
 
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      router.push(updateSearchParams('search', value));
+    }, 500),
+    [router, updateSearchParams]
+  );
+
+  const handleSearch = (value: string) => {
+    debouncedSearch(value);
+  };
+
   return (
     <div className="relative glass-effect p-4 mb-8 [&_*]:!ring-0 [&_*]:!focus:ring-0 [&_*]:!focus:ring-offset-0 [&_*]:!outline-none">
       <div className="flex flex-col md:flex-row items-center gap-4">
@@ -83,14 +95,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             placeholder={labels.searchPlaceholder}
             defaultValue={currentSearch}
             onChange={(e) => {
-              router.push(updateSearchParams('search', e.target.value))
+              handleSearch(e.target.value)
             }}
+            
             className="w-full h-10 pl-12 pr-4 rounded-md bg-muted/40 dark:bg-muted/20 border border-border dark:border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none hover:border-accent dark:hover:border-accent transition-all duration-200"
           />
         </div>
 
         <div className="flex items-center gap-4 shrink-0 relative z-10">
-          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group" key="category-select">
             <Select
               defaultValue={currentCategory}
               onValueChange={(value) => {
@@ -112,7 +125,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </Select>
           </div>
 
-          <div className="relative [&>*]:rounded-md [&>*]:border-0 group">
+          <div className="relative [&>*]:rounded-md [&>*]:border-0 group" key="sort-select">
             <Select
               defaultValue={currentSort}
               onValueChange={(value) => {

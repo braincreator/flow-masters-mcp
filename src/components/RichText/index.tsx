@@ -39,7 +39,11 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
   ...defaultConverters,
   ...LinkJSXConverter({ internalDocToHref }),
   blocks: {
-    banner: ({ node }) => <BannerBlock className="col-start-2 mb-4" {...node.fields} />,
+    banner: ({ node }) => <BannerBlock
+      className="col-start-2 mb-4"
+      {...node.fields}
+      content={node.fields.content?.filter((c: { type: string }) => c.type !== 'banner')} // Prevent nested banners
+    />,
     mediaBlock: ({ node }) => (
       <MediaBlock
         className="col-start-1 col-span-3"
@@ -48,6 +52,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         captionClassName="mx-auto max-w-[48rem]"
         enableGutter={false}
         disableInnerContainer={true}
+        media={node.fields.media?.filter((m: { type?: string }) => m?.type !== 'mediaBlock')} // Prevent media blocks in media blocks
       />
     ),
     code: ({ node }) => <CodeBlock className="col-start-2" {...node.fields} />,

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getPayload } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload'
 import { ProductDetail } from '@/components/ProductDetail'
 import { generateMeta } from '@/utilities/generateMeta'
 
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default async function ProductPage({ params: { slug, lang } }: Props) {
-  const payload = await getPayload()
+  const payload = await getPayloadClient()
   
   const product = await payload.find({
     collection: 'products',
@@ -36,7 +36,7 @@ export default async function ProductPage({ params: { slug, lang } }: Props) {
 }
 
 export async function generateMetadata({ params: { slug, lang } }: Props): Promise<Metadata> {
-  const payload = await getPayload()
+  const payload = await getPayloadClient()
   
   const product = await payload.find({
     collection: 'products',
