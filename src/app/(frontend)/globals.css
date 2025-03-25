@@ -148,7 +148,12 @@
   }
 
   .interactive-element {
-    @apply transition-all duration-300 ease-out hover:scale-105;
+    @apply transition-all duration-300 ease-out
+           hover:scale-[1.02]
+           active:scale-[0.98]
+           hover:shadow-md
+           hover:border-primary/30 dark:hover:border-primary/40
+           hover:bg-background/60 dark:hover:bg-background/40;
   }
 
   /* AI-themed card */

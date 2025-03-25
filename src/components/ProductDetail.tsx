@@ -1,14 +1,25 @@
 'use client'
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Download, FileText, Clock, Shield, Star, ShoppingCart, Package, Zap, RefreshCw, ImageIcon } from "lucide-react"
-import RichText from "@/components/RichText"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import {
+  Download,
+  FileText,
+  Clock,
+  Shield,
+  Star,
+  ShoppingCart,
+  Package,
+  Zap,
+  RefreshCw,
+  ImageIcon,
+} from 'lucide-react'
+import RichText from '@/components/RichText'
 import { useTranslations } from '@/hooks/useTranslations'
-import LoadingIndicator from "@/components/ui/LoadingIndicator"
-import { useState } from "react"
-import Image from "next/image"
+import LoadingIndicator from '@/components/ui/LoadingIndicator'
+import { useState } from 'react'
+import Image from 'next/image'
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -17,11 +28,13 @@ function cn(...classes: string[]) {
 interface ProductDetailProps {
   product: {
     title: string | { [key: string]: string }
-    category: {
-      title: string
-      id: string
-      [key: string]: any
-    } | string
+    category:
+      | {
+          title: string
+          id: string
+          [key: string]: any
+        }
+      | string
     status: string
     productType: 'digital' | 'subscription' | string
     pricing: {
@@ -109,7 +122,10 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       {/* Image Gallery */}
-      <div className="relative rounded-2xl overflow-hidden bg-muted/30 ring-1 ring-inset ring-black/10 dark:ring-white/10">
+      <div className="glass-effect relative overflow-hidden
+                      before:absolute before:inset-0 
+                      before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5
+                      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300">
         <div className="relative aspect-square">
           {!currentImage ? (
             renderPlaceholder()
@@ -125,8 +141,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                 alt={getProductTitle()}
                 fill
                 className={cn(
-                  "object-cover transition-opacity duration-300",
-                  isLoading ? "opacity-0" : "opacity-100"
+                  'object-cover transition-opacity duration-300',
+                  isLoading ? 'opacity-0' : 'opacity-100',
                 )}
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority={selectedImageIndex === 0}
@@ -143,10 +159,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                 key={index}
                 onClick={() => setSelectedImageIndex(index)}
                 className={cn(
-                  "relative aspect-square overflow-hidden rounded-lg transition-all duration-300",
-                  "hover:ring-2 hover:ring-primary hover:ring-offset-2",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                  selectedImageIndex === index && "ring-2 ring-primary ring-offset-2"
+                  'relative aspect-square overflow-hidden rounded-lg',
+                  'glass-effect interactive-element',
+                  selectedImageIndex === index && 'ring-2 ring-primary ring-offset-2'
                 )}
               >
                 <div className="absolute inset-0 bg-muted/30" />
@@ -156,8 +171,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                   fill
                   sizes="(max-width: 768px) 25vw, 10vw"
                   className={cn(
-                    "object-cover transition-transform duration-300",
-                    "group-hover:scale-110"
+                    'object-cover transition-transform duration-300',
+                    'group-hover:scale-110',
                   )}
                 />
               </button>
@@ -167,23 +182,16 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
       </div>
 
       {/* Product Info */}
-      <div className="space-y-8 lg:sticky lg:top-20">
-        <div className="space-y-4">
+      <div className="space-y-6 lg:sticky lg:top-20">
+        <div className="glass-effect p-6 space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">
-              {getCategoryTitle()}
-            </Badge>
-            {product.status === 'published' && (
-              <Badge variant="success">
-                {t.products.inStock}
-              </Badge>
-            )}
+            <Badge variant="secondary" className="interactive-element">{getCategoryTitle()}</Badge>
           </div>
-          
+
           <h1 className="text-4xl font-bold tracking-tight">{getProductTitle()}</h1>
-          
+
           {renderProductTypeInfo() && (
-            <div className="flex items-center gap-3 text-sm text-muted-foreground bg-muted/50 rounded-full px-4 py-2">
+            <div className="glass-effect px-4 py-2 inline-flex items-center gap-3">
               {renderProductTypeInfo()}
             </div>
           )}
@@ -191,7 +199,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
         <div className="space-y-2">
           <div className="relative inline-flex items-center group">
-            <div className="absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg group-hover:bg-primary/10 transition-colors duration-300" />
+            <div className="absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg 
+                          group-hover:bg-primary/10 transition-colors duration-300" />
             <span className="text-3xl font-bold relative">
               ${product.pricing?.finalPrice || product.pricing?.basePrice}
             </span>
@@ -201,74 +210,101 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               </span>
             )}
             {product.pricing?.discountPercentage && (
-              <Badge variant="destructive" className="ml-3 animate-pulse relative">
+              <Badge variant="destructive" className="ml-3 animate-pulse relative interactive-element">
                 -{product.pricing.discountPercentage}%
               </Badge>
             )}
           </div>
-          {product.pricing?.interval && (
-            <p className="text-sm text-muted-foreground">
-              {t.productDetails.billingInterval}: {product.pricing.interval}
-            </p>
-          )}
         </div>
 
-        <Separator />
+        <Separator className="opacity-50 dark:opacity-30 shadow-sm" />
 
         {product.description && (
-          <div className="prose dark:prose-invert max-w-none bg-muted/30 rounded-xl p-6">
+          <div className="glass-effect p-6 prose dark:prose-invert max-w-none">
             <RichText data={product.description} />
           </div>
         )}
 
         {product.features && product.features.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">
-              {t.productDetails?.features || 'Features'}
-            </h3>
+            <h3 className="text-xl font-semibold px-1">{t.productDetails?.features || 'Features'}</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              {product.features.map((feature, index) => (
-                <div key={index} 
-                     className="flex items-center gap-3 rounded-xl p-4 bg-muted/30 backdrop-blur-sm transition-all duration-200 hover:bg-muted/50">
-                  <Star className="flex-shrink-0 h-8 w-8 rounded-lg bg-primary/10 p-1.5 text-primary" />
-                  <span>{feature.feature}</span>
-                </div>
-              ))}
+              {product.features.map((feature, index) => {
+                // Get the icon based on feature type
+                let Icon = Star // Default icon
+                switch (feature.feature) {
+                  case 'instant-delivery':
+                  case 'download':
+                    Icon = Download
+                    break
+                  case 'recurring-billing':
+                    Icon = RefreshCw
+                    break
+                  case 'access-control':
+                  case 'feature-gating':
+                    Icon = Shield
+                    break
+                  case 'updates':
+                    Icon = Zap
+                    break
+                  case 'booking':
+                  case 'scheduling':
+                    Icon = Clock
+                    break
+                  case 'instant-activation':
+                    Icon = Zap
+                    break
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className="glass-effect p-4 interactive-element
+                             flex items-center gap-3"
+                  >
+                    <div className="rounded-lg bg-primary/10 dark:bg-primary/20 p-1.5">
+                      <Icon className="h-6 w-6 text-primary dark:text-primary-foreground" />
+                    </div>
+                    <span className="font-medium">{feature.feature}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
 
         <div className="space-y-4 mt-8">
-          <Button 
-            size="lg" 
-            className="w-full relative overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
+          <Button
+            size="lg"
+            className="w-full glass-effect interactive-element
+                     relative overflow-hidden group"
           >
             <ShoppingCart className="w-5 h-5 mr-2" />
             Add to Cart
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-full group-hover:translate-x-full" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent 
+                         via-white/20 to-transparent opacity-0 
+                         group-hover:opacity-100 transition-opacity duration-300 
+                         -translate-x-full group-hover:translate-x-full" />
           </Button>
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex items-start gap-3 rounded-xl p-4 bg-muted/50 backdrop-blur-sm transition-all duration-300 hover:bg-muted/70">
-            <Package className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary/10 p-2 text-primary" />
-            <div>
-              <h4 className="font-medium">Free Shipping</h4>
-              <p className="text-sm text-muted-foreground">On all orders over $50</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Trust indicators */}
+            <div className="glass-effect p-4 interactive-element
+                         flex items-start gap-3">
+              <Package className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
+              <div>
+                <h4 className="font-medium">Free Shipping</h4>
+                <p className="text-sm text-muted-foreground">On orders over $50</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-3 rounded-xl p-4 bg-muted/50 backdrop-blur-sm transition-all duration-300 hover:bg-muted/70">
-            <Zap className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary/10 p-2 text-primary" />
-            <div>
-              <h4 className="font-medium">Instant Access</h4>
-              <p className="text-sm text-muted-foreground">Download immediately</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 rounded-xl p-4 bg-muted/50 backdrop-blur-sm transition-all duration-300 hover:bg-muted/70">
-            <RefreshCw className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary/10 p-2 text-primary" />
-            <div>
-              <h4 className="font-medium">Free Updates</h4>
-              <p className="text-sm text-muted-foreground">Lifetime access</p>
+            
+            <div className="glass-effect p-4 interactive-element
+                         flex items-start gap-3">
+              <Shield className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
+              <div>
+                <h4 className="font-medium">Secure Payment</h4>
+                <p className="text-sm text-muted-foreground">100% protected</p>
+              </div>
             </div>
           </div>
         </div>
