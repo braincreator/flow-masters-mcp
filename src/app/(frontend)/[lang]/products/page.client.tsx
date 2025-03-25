@@ -30,13 +30,18 @@ export default function ProductsClient({
 }: ProductsClientProps) {
   // Ensure products and categories are arrays
   const productsList = Array.isArray(products) ? products : []
-  const categoriesList = Array.isArray(categories) ? categories : []
+  const categoriesList = Array.isArray(categories) 
+    ? categories.map(category => ({
+        label: category.title?.[currentLocale] || category.title || '', // handle localized titles
+        value: category.id // always use ID for consistent filtering
+      }))
+    : []
 
   return (
     <div>
       <FilterBar
         categories={categoriesList}
-        currentCategory={searchParams.category}
+        currentCategory={searchParams.category || 'all'}
         currentSearch={searchParams.search}
         currentSort={searchParams.sort}
         layout={searchParams.layout || 'grid'}

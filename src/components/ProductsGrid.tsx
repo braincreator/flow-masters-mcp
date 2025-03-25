@@ -31,47 +31,93 @@ export function ProductsGrid({
         {products.map((product) => (
           <div
             key={product.id}
-            className={`bg-card rounded-lg shadow-sm overflow-hidden border border-border
-              ${layout === 'list' ? 'flex gap-6' : ''}
+            className={`group bg-card rounded-xl border border-border overflow-hidden
+              transition-all duration-300 hover:shadow-lg
+              ${layout === 'list' ? 'flex gap-6' : 'flex flex-col'}
             `}
           >
-            {product.featuredImage && (
-              <Link 
-                href={`/${locale}/products/${product.slug}`}
-                className={layout === 'list' ? 'w-48 h-48 shrink-0' : 'w-full aspect-[4/3]'}
-              >
+            {/* Image Container */}
+            <Link 
+              href={`/${locale}/products/${product.slug}`}
+              className={`
+                relative overflow-hidden
+                ${layout === 'list' ? 'w-48 h-48 shrink-0' : 'w-full aspect-[4/3]'}
+              `}
+            >
+              {product.featuredImage ? (
                 <img
                   src={product.featuredImage.url}
                   alt={product.featuredImage.alt || product.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 
+                           group-hover:scale-105"
                 />
-              </Link>
-            )}
-            
-            <div className="p-4">
-              <Link 
-                href={`/${locale}/products/${product.slug}`}
-                className="hover:underline"
-              >
-                <h2 className="text-xl font-semibold mb-2">{product.title}</h2>
-              </Link>
-              
-              {product.description && (
-                <div className="prose prose-sm dark:prose-invert line-clamp-3 mb-4">
-                  <RichText data={product.description} />
+              ) : (
+                <div className="w-full h-full bg-muted/50 flex items-center justify-center">
+                  <span className="text-muted-foreground">No image</span>
                 </div>
               )}
               
-              <div className="flex items-center justify-between">
-                <div className="text-lg font-bold text-primary">
-                  ${product.price}
+              {/* Price Badge */}
+              {product.pricing?.[locale]?.amount && (
+                <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
+                              px-3 py-1 rounded-full border border-border">
+                  <span className="font-semibold">
+                    {formatPrice(product.pricing[locale].amount, locale)}
+                  </span>
                 </div>
-                <Link
-                  href={`/${locale}/products/${product.slug}`}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
+              )}
+            </Link>
+            
+            {/* Content Container */}
+            <div className="flex flex-col flex-grow p-4 space-y-4">
+              {/* Title */}
+              <Link 
+                href={`/${locale}/products/${product.slug}`}
+                className="group-hover:text-primary transition-colors"
+              >
+                <h2 className="text-xl font-semibold line-clamp-2">
+                  {typeof product.title === 'object' ? product.title[locale] : product.title}
+                </h2>
+              </Link>
+              
+              {/* Description */}
+              {product.description && (
+                <p className="line-clamp-3 text-muted-foreground">
+                  {typeof product.description === 'object' 
+                    ? product.description[locale] 
+                    : product.description}
+                </p>
+              )}
+              
+              {/* Footer */}
+              <div className="flex items-center justify-between pt-4 mt-auto border-t border-border">
+                {/* Categories */}
+                {product.categories && product.categories.length > 0 && (
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    {product.categories.map((category, index) => (
+                      <React.Fragment key={category.id}>
+                        <span>
+                          {typeof category.title === 'object' 
+                            ? category.title[locale] 
+                            : category.title}
+                        </span>
+                        {index < product.categories.length - 1 && <span>•</span>}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Action Button */}
+                <button
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium
+                           transition-colors focus-visible:outline-none focus-visible:ring-2
+                           focus-visible:ring-ring disabled:pointer-events-none
+                           bg-primary text-primary-foreground hover:bg-primary/90
+                           h-9 px-4 py-2"
+                  onClick={() => {/* Add to cart logic */}}
                 >
-                  {locale === 'ru' ? 'Подробнее' : 'View Details'}
-                </Link>
+                  {locale === 'ru' ? 'В корзину' : 'Add to Cart'}
+                </button>
               </div>
             </div>
           </div>
