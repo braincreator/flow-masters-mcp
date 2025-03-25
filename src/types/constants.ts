@@ -181,41 +181,32 @@ export type OrderConfig = {
 }
 
 // Product types
-export type ProductType = 
-  | 'digital'
-  | 'physical'
-  | 'subscription'
-  | 'service'
+export type ProductType = 'digital' | 'subscription' | 'service' | 'access'
 
-export type ProductStatus = 
-  | 'draft'
-  | 'active'
-  | 'inactive'
-  | 'archived'
+export type ProductFeatureKey = 
+  | 'instant-delivery' 
+  | 'download' 
+  | 'no-shipping'
+  | 'recurring-billing'
+  | 'access-control'
+  | 'updates'
+  | 'booking'
+  | 'scheduling'
+  | 'custom-delivery'
+  | 'instant-activation'
+  | 'feature-gating'
 
-export type ProductConfig = {
-  types: Record<ProductType, {
+export interface ProductTypeConfig {
+  label: string
+  icon: string
+  features: Array<{
+    key: ProductFeatureKey
     label: string
-    icon: string
-    features: string[]
   }>
-  statuses: Record<ProductStatus, {
-    label: string
-    color: string
-  }>
-  defaultType: ProductType
-  defaultStatus: ProductStatus
-  pricing: {
-    allowDecimal: boolean
-    minPrice: number
-    maxPrice: number
-    defaultTaxRate: number
-  }
-  inventory: {
-    track: boolean
-    lowStockThreshold: number
-    allowBackorder: boolean
-  }
+}
+
+export interface ProductConfig {
+  types: Record<ProductType, ProductTypeConfig>
 }
 
 // Notification types

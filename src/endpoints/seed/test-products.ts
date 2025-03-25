@@ -1,27 +1,29 @@
 export const testProducts = [
   {
     title: {
-      en: 'N8N Workflow: Customer Support Automation',
-      ru: 'N8N воркфлоу: Автоматизация поддержки клиентов'
+      en: 'Digital Course Bundle',
+      ru: 'Пакет цифровых курсов',
     },
     description: {
-      en: 'Automate your customer support workflow with this pre-built N8N solution. Includes ticket routing, auto-responses, and analytics.',
-      ru: 'Автоматизируйте рабочий процесс службы поддержки с помощью готового решения N8N. Включает маршрутизацию тикетов, автоответы и аналитику.'
+      en: 'Complete digital course bundle with lifetime access',
+      ru: 'Полный пакет цифровых курсов с пожизненным доступом',
     },
-    price: 49.99,
-    slug: 'n8n-customer-support-automation'
+    productType: 'digital',
+    price: 99.99,
+    slug: 'digital-course-bundle',
   },
   {
     title: {
-      en: 'Make.com Template: Lead Generation Suite',
-      ru: 'Make.com шаблон: Комплект для генерации лидов'
+      en: 'Pro Subscription',
+      ru: 'Про подписка',
     },
     description: {
-      en: 'Complete lead generation automation suite for Make.com. Includes LinkedIn scraping, email verification, and CRM integration.',
-      ru: 'Полный комплект автоматизации генерации лидов для Make.com. Включает скрапинг LinkedIn, проверку email и интеграцию с CRM.'
+      en: 'Monthly subscription with premium features',
+      ru: 'Ежемесячная подписка с премиум функциями',
     },
-    price: 79.99,
-    slug: 'make-lead-generation-suite'
+    productType: 'subscription',
+    price: 19.99,
+    slug: 'pro-subscription',
   },
   {
     title: {

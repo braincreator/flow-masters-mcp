@@ -1,41 +1,18 @@
 'use client'
 
 import React from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useLocale } from '@/hooks/useLocale'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useI18n } from '@/providers/I18n'
 import { Slider } from '@/components/ui/slider'
+import { ProductType } from '@/types'
+import { translations } from '@/app/(frontend)/[lang]/products/translations'
 
-interface ProductsFilterProps {
-  enableCategories?: boolean
-  enableSort?: boolean
-  enableSearch?: boolean
-  enablePriceRange?: boolean // New prop
-  priceRanges?: Record<string, { min: number, max: number }>
-}
-
-export const ProductsFilter: React.FC<ProductsFilterProps> = ({
-  enableCategories = true,
-  enableSort = true,
-  enableSearch = true,
-  enablePriceRange = true,
-  priceRanges,
-}) => {
-  const searchParams = useSearchParams()
+export const ProductsFilter: React.FC = () => {
   const router = useRouter()
-  const { locale } = useLocale()
-  const [search, setSearch] = React.useState('')
-  
-  const defaultPriceRanges = {
-    en: { min: 0, max: 1000 },
-    ru: { min: 0, max: 100000 }
-  }
-  
-  const localePriceRange = priceRanges?.[locale] || defaultPriceRanges[locale]
-
-  const [priceRange, setPriceRange] = React.useState([
-    parseInt(searchParams.get('minPrice') || localePriceRange.min.toString()),
-    parseInt(searchParams.get('maxPrice') || localePriceRange.max.toString()),
-  ])
+  const searchParams = useSearchParams()
+  const { lang } = useI18n()
+  const t = translations[lang as keyof typeof translations]
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -51,73 +28,40 @@ export const ProductsFilter: React.FC<ProductsFilterProps> = ({
     router.push(`?${params.toString()}`)
   }
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-        {enableSearch && (
-          <div className="w-full md:w-auto">
-            <input
-              type="search"
-              placeholder="Search products..."
-              className="w-full md:w-64 px-4 py-2 border rounded-lg"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                updateFilters('search', e.target.value)
-              }}
-            />
-          </div>
-        )}
-        
-        <div className="flex flex-col md:flex-row gap-4">
-          {enableCategories && (
-            <select
-              className="px-4 py-2 border rounded-lg"
-              onChange={(e) => updateFilters('category', e.target.value)}
-              defaultValue={searchParams.get('category') || 'all'}
-            >
-              <option value="all">All Categories</option>
-              <option value="n8n">N8N Workflows</option>
-              <option value="make">Make.com Workflows</option>
-              <option value="tutorials">Tutorials</option>
-              <option value="courses">Courses</option>
-            </select>
-          )}
+  const productTypes: ProductType[] = ['digital', 'subscription', 'service', 'access']
 
-          {enableSort && (
-            <select
-              className="px-4 py-2 border rounded-lg"
-              onChange={(e) => updateFilters('sort', e.target.value)}
-              defaultValue={searchParams.get('sort') || 'newest'}
-            >
-              <option value="newest">Newest First</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
-          )}
-        </div>
+  return (
+    <div className="products-filter">
+      <div className="filter-section">
+        <h3>{t.filters.productType.label}</h3>
+        <select 
+          onChange={(e) => updateFilters('type', e.target.value)}
+          value={searchParams.get('type') || 'all'}
+        >
+          <option value="all">{t.filters.productType.all}</option>
+          {productTypes.map(type => (
+            <option key={type} value={type}>
+              {t.filters.productType[type]}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {enablePriceRange && (
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Price Range
-          </label>
-          <div className="px-2">
-            <Slider
-              min={localePriceRange.min}
-              max={localePriceRange.max}
-              value={priceRange}
-              onValueChange={handlePriceRangeChange}
-              className="mt-2"
-            />
-            <div className="flex justify-between mt-2 text-sm text-gray-600">
-              <span>${priceRange[0]}</span>
-              <span>${priceRange[1]}</span>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="filter-section">
+        <h3>{t.filters.priceRange.label}</h3>
+        <PriceRangeSlider
+          value={priceRange}
+          onChange={handlePriceRangeChange}
+          min={0}
+          max={1000}
+          labels={{
+            min: t.filters.priceRange.min,
+            max: t.filters.priceRange.max
+          }}
+        />
+      </div>
+
+      {/* Other filter sections */}
     </div>
   )
 }

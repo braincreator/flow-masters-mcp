@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
-import { Product } from '@/payload-types'
+import { ProductType } from '@/types'
 
 type ProductGridProps = {
   products: Product[]
@@ -14,6 +12,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   const { addToCart } = useCart()
   const [category, setCategory] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [typeFilter, setTypeFilter] = useState<ProductType | 'all'>('all')
 
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products]
@@ -21,6 +20,11 @@ export function ProductGrid({ products }: ProductGridProps) {
     // Filter by category
     if (category !== 'all') {
       result = result.filter(product => product.category === category)
+    }
+
+    // Filter by product type
+    if (typeFilter !== 'all') {
+      result = result.filter(product => product.productType === typeFilter)
     }
 
     // Sort products
@@ -39,73 +43,30 @@ export function ProductGrid({ products }: ProductGridProps) {
     }
 
     return result
-  }, [products, category, sortBy])
+  }, [products, category, sortBy, typeFilter])
 
   return (
-    <div>
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex gap-4">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border rounded-md px-3 py-2"
-          >
-            <option value="all">All Categories</option>
-            <option value="n8n">N8N Workflows</option>
-            <option value="make">Make.com Workflows</option>
-            <option value="tutorials">Tutorials</option>
-            <option value="courses">Courses</option>
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="border rounded-md px-3 py-2"
-          >
-            <option value="newest">Newest First</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
-        </div>
-
-        <p className="text-sm text-gray-600">
-          Showing {filteredAndSortedProducts.length} products
-        </p>
+    <div className="product-grid">
+      <div className="filters">
+        <select 
+          value={typeFilter} 
+          onChange={(e) => setTypeFilter(e.target.value as ProductType | 'all')}
+        >
+          <option value="all">All Types</option>
+          <option value="digital">Digital</option>
+          <option value="subscription">Subscription</option>
+          <option value="service">Service</option>
+          <option value="access">Access</option>
+        </select>
+        {/* Other filters */}
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid">
         {filteredAndSortedProducts.map(product => (
-          <div key={product.id} className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-            <Link href={`/products/${product.slug}`}>
-              <div className="relative h-48">
-                <Image
-                  src={product.thumbnail.url}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </Link>
-            <div className="p-4">
-              <Link href={`/products/${product.slug}`}>
-                <h3 className="text-xl font-semibold mb-2 hover:text-blue-600">
-                  {product.title}
-                </h3>
-              </Link>
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {product.description}
-              </p>
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold">${product.price}</span>
-                <button
-                  onClick={() => addToCart(product)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
+          <ProductCard 
+            key={product.id} 
+            product={product} 
+            onAddToCart={() => addToCart(product)} 
+          />
         ))}
       </div>
     </div>

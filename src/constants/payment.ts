@@ -3,7 +3,9 @@ import type {
   OrderConfig,
   ProductConfig,
   NotificationConfig,
+  SupportedLocale,
 } from '@/types/constants'
+import { PRODUCT_TYPE_LABELS, PRODUCT_FEATURE_LABELS } from './localization'
 
 export const PAYMENT_CONFIG = {
   defaultCurrency: 'USD',
@@ -99,27 +101,47 @@ export const ORDER_CONFIG: OrderConfig = {
   },
 } as const
 
-export const PRODUCT_CONFIG: ProductConfig = {
+export const getProductConfig = (locale: SupportedLocale) => ({
   types: {
     digital: {
-      label: 'Digital Product',
+      label: PRODUCT_TYPE_LABELS[locale].digital,
       icon: 'digital',
-      features: ['instant-delivery', 'download', 'no-shipping'],
-    },
-    physical: {
-      label: 'Physical Product',
-      icon: 'physical',
-      features: ['shipping', 'inventory', 'tracking'],
+      features: ['instant-delivery', 'download', 'no-shipping'].map(
+        feature => ({
+          key: feature,
+          label: PRODUCT_FEATURE_LABELS[locale][feature],
+        })
+      ),
     },
     subscription: {
-      label: 'Subscription',
+      label: PRODUCT_TYPE_LABELS[locale].subscription,
       icon: 'subscription',
-      features: ['recurring-billing', 'access-control', 'updates'],
+      features: ['recurring-billing', 'access-control', 'updates'].map(
+        feature => ({
+          key: feature,
+          label: PRODUCT_FEATURE_LABELS[locale][feature],
+        })
+      ),
     },
     service: {
-      label: 'Service',
+      label: PRODUCT_TYPE_LABELS[locale].service,
       icon: 'service',
-      features: ['booking', 'scheduling', 'custom-delivery'],
+      features: ['booking', 'scheduling', 'custom-delivery'].map(
+        feature => ({
+          key: feature,
+          label: PRODUCT_FEATURE_LABELS[locale][feature],
+        })
+      ),
+    },
+    access: {
+      label: PRODUCT_TYPE_LABELS[locale].access,
+      icon: 'access',
+      features: ['instant-activation', 'feature-gating', 'access-control'].map(
+        feature => ({
+          key: feature,
+          label: PRODUCT_FEATURE_LABELS[locale][feature],
+        })
+      ),
     },
   },
   statuses: {
@@ -153,7 +175,7 @@ export const PRODUCT_CONFIG: ProductConfig = {
     lowStockThreshold: 5,
     allowBackorder: false,
   },
-} as const
+}) as const
 
 export const NOTIFICATION_CONFIG: NotificationConfig = {
   providers: {

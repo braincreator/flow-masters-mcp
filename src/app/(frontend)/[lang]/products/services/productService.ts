@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
 import { Locale } from '@/constants'
+import type { ProductType } from '@/types/constants'
 
 interface ProductQueryParams {
   category?: string
@@ -10,6 +11,7 @@ interface ProductQueryParams {
   locale: Locale
   minPrice?: number
   maxPrice?: number
+  productType?: ProductType
 }
 
 export async function getProducts({
@@ -20,6 +22,7 @@ export async function getProducts({
   locale,
   minPrice,
   maxPrice,
+  productType,
 }: ProductQueryParams) {
   const payload = await getPayload({ config: configPromise })
   
@@ -32,6 +35,12 @@ export async function getProducts({
   if (category && category !== 'all') {
     where.category = {
       equals: category,
+    }
+  }
+
+  if (productType) {
+    where.productType = {
+      equals: productType,
     }
   }
 
@@ -50,7 +59,6 @@ export async function getProducts({
     ]
   }
 
-  // Add price range filtering
   if (minPrice !== undefined || maxPrice !== undefined) {
     where.price = {
       ...(minPrice !== undefined && { greater_than_equal: minPrice }),
@@ -58,30 +66,28 @@ export async function getProducts({
     }
   }
 
-  let sort = '-createdAt'
-  if (sortParam) {
-    switch (sortParam) {
-      case 'price-low':
-        sort = 'price'
-        break
-      case 'price-high':
-        sort = '-price'
-        break
-    }
-  }
-
-  const page = parseInt(pageParam || '1', 10)
+  const page = pageParam ? parseInt(pageParam) : 1
   const limit = 12
 
-  return payload.find({
+  const sort = sortParam === 'price-low' ? 'price' : 
+               sortParam === 'price-high' ? '-price' : 
+               '-createdAt'
+
+  const products = await payload.find({
     collection: 'products',
     where,
     sort,
     page,
     limit,
     locale,
-    depth: 1,
   })
+
+  return {
+    items: products.docs,
+    totalPages: products.totalPages,
+    totalItems: products.totalDocs,
+    currentPage: page,
+  }
 }
 
 export async function getAllCategories(locale: Locale) {

@@ -1,0 +1,164 @@
+.product-detail-container {
+  @apply grid gap-8 lg:grid-cols-2;
+}
+
+.product-image-gallery {
+  @apply relative rounded-2xl overflow-hidden bg-muted/30;
+}
+
+.product-image-gallery::after {
+  content: '';
+  @apply absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/10 dark:ring-white/10;
+}
+
+.main-image {
+  @apply aspect-square w-full object-cover;
+}
+
+.thumbnail-grid {
+  @apply grid grid-cols-4 gap-4 mt-4;
+}
+
+.thumbnail-item {
+  @apply relative cursor-pointer overflow-hidden rounded-lg 
+         aspect-square bg-muted/50
+         transition-all duration-300 ease-out
+         hover:ring-2 hover:ring-primary hover:ring-offset-2
+         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+.thumbnail-item.active {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+.product-info {
+  @apply space-y-8 lg:sticky lg:top-20;
+}
+
+.product-header {
+  @apply space-y-4;
+}
+
+.badges-container {
+  @apply flex flex-wrap gap-2;
+}
+
+.product-title {
+  @apply text-4xl font-bold tracking-tight;
+}
+
+.product-type-info {
+  @apply flex items-center gap-3 text-sm text-muted-foreground
+         bg-muted/50 rounded-full px-4 py-2;
+}
+
+.price-section {
+  @apply space-y-2;
+}
+
+.price-tag {
+  @apply relative inline-flex items-center;
+}
+
+.price-tag::before {
+  content: '';
+  @apply absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg;
+}
+
+.original-price {
+  @apply text-lg text-muted-foreground line-through ml-2;
+}
+
+.discount-badge {
+  @apply ml-3 animate-pulse;
+}
+
+.description-section {
+  @apply prose dark:prose-invert max-w-none
+         bg-muted/30 rounded-xl p-6;
+}
+
+.features-section {
+  @apply space-y-4;
+}
+
+.features-grid {
+  @apply grid gap-3 sm:grid-cols-2;
+}
+
+.feature-item {
+  @apply flex items-center gap-3 rounded-xl p-4
+         bg-muted/30 backdrop-blur-sm
+         transition-all duration-200
+         hover:bg-muted/50;
+}
+
+.feature-icon {
+  @apply flex-shrink-0 h-8 w-8 rounded-lg
+         bg-primary/10 p-1.5
+         text-primary;
+}
+
+.product-actions {
+  @apply space-y-4 mt-8;
+}
+
+.add-to-cart-button {
+  @apply w-full relative overflow-hidden
+         transition-all duration-300 ease-out
+         hover:transform hover:scale-[1.02]
+         active:scale-[0.98];
+}
+
+.add-to-cart-button::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent
+         via-white/20 to-transparent opacity-0
+         transition-opacity duration-300
+         hover:opacity-100;
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.product-benefits {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-8;
+}
+
+.benefit-card {
+  @apply flex items-start gap-3 rounded-xl p-4
+         bg-muted/50 backdrop-blur-sm
+         transition-all duration-300
+         hover:bg-muted/70;
+}
+
+.benefit-icon {
+  @apply flex-shrink-0 h-10 w-10 rounded-lg
+         bg-primary/10 p-2
+         text-primary;
+}
+
+/* Dark mode enhancements */
+.dark .product-image-gallery::after {
+  @apply ring-white/5;
+}
+
+.dark .benefit-card {
+  @apply bg-muted/20 hover:bg-muted/30;
+}
+
+/* Responsive enhancements */
+@media (max-width: 640px) {
+  .feature-list {
+    @apply grid-cols-1;
+  }
+  
+  .product-benefits {
+    @apply grid-cols-1;
+  }
+}

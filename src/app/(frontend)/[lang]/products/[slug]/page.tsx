@@ -5,13 +5,14 @@ import { ProductDetail } from '@/components/ProductDetail'
 import { generateMeta } from '@/utilities/generateMeta'
 
 interface Props {
-  params: {
+  params: Promise<{
     slug: string
     lang: string
-  }
+  }>
 }
 
-export default async function ProductPage({ params: { slug, lang } }: Props) {
+export default async function ProductPage({ params }: Props) {
+  const { slug, lang } = await params
   const payload = await getPayloadClient()
   
   const product = await payload.find({
@@ -30,12 +31,13 @@ export default async function ProductPage({ params: { slug, lang } }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <ProductDetail product={product} />
+      <ProductDetail product={product} lang={lang} />
     </div>
   )
 }
 
-export async function generateMetadata({ params: { slug, lang } }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, lang } = await params
   const payload = await getPayloadClient()
   
   const product = await payload.find({
