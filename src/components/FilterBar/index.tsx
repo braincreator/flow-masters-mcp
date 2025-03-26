@@ -83,8 +83,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   )
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = React.useState(false)
   const [currentPriceRange, setCurrentPriceRange] = React.useState<[number, number]>([
-    priceRange.min,
-    priceRange.max,
+    parseInt(searchParams.get('minPrice') || priceRange.min.toString()),
+    parseInt(searchParams.get('maxPrice') || priceRange.max.toString()),
   ])
 
   const updateSearchParams = (key: string, value: string) => {
@@ -310,17 +310,26 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <SheetTrigger asChild>
               <Button
                 variant="outline"
-                className="justify-start bg-background hover:bg-accent/5 border-border/50"
+                className="justify-start bg-background hover:bg-accent/5 border-border/50 text-foreground font-medium"
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4" />
-                {t.filters.filters || 'Filters'}
+                {t.filters.filters || 'Фильтры'}
               </Button>
             </SheetTrigger>
             <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-xl">
               <div className="h-full flex flex-col">
-                <SheetHeader className="px-4 py-3 border-b bg-muted/40 dark:bg-muted/20 rounded-t-xl">
-                  <SheetTitle className="text-lg font-semibold">
-                    {t.filters.filters || 'Filters'}
+                <SheetHeader className="px-4 py-3 border-b bg-muted/40 dark:bg-muted/20 rounded-t-xl sticky top-0 z-10">
+                  <SheetTitle className="text-lg font-semibold flex items-center justify-between">
+                    <span>{t.filters.filters || 'Фильтры'}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="h-8 w-8 rounded-full"
+                    >
+                      <X className="h-5 w-5" />
+                      <span className="sr-only">Закрыть</span>
+                    </Button>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -329,7 +338,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
                       <Select value={currentCategory} onValueChange={handleCategoryChange}>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                           <SelectValue placeholder={t.filters.categories} />
                         </SelectTrigger>
                         <SelectContent>
@@ -347,7 +356,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
                       <Select value={currentProductType} onValueChange={handleProductTypeChange}>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                           <SelectValue placeholder={t.filters.productType.all} />
                         </SelectTrigger>
                         <SelectContent>
@@ -367,7 +376,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
                       <Select value={currentTag} onValueChange={handleTagChange}>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                           <SelectValue placeholder={t.filters.tags} />
                         </SelectTrigger>
                         <SelectContent>
@@ -409,7 +418,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold">{t.filters.sort}</h3>
                       <Select value={currentSort} onValueChange={handleSortChange}>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                           <SelectValue placeholder={t.filters.sort} />
                         </SelectTrigger>
                         <SelectContent>
@@ -425,7 +434,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 </div>
 
                 {/* Mobile Sheet Footer */}
-                <div className="px-4 py-3 border-t bg-background/80 backdrop-blur-sm">
+                <div className="px-4 py-3 border-t bg-background/80 backdrop-blur-sm sticky bottom-0">
                   <div className="flex gap-3 justify-end">
                     <Button
                       variant="outline"
@@ -437,10 +446,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         setIsMobileFiltersOpen(false)
                       }}
                     >
-                      {t.filters.clearAll || 'Clear all'}
+                      {t.filters.clearAll || 'Очистить всё'}
                     </Button>
-                    <Button onClick={() => setIsMobileFiltersOpen(false)}>
-                      {t.filters.apply || 'Apply filters'}
+                    <Button
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    >
+                      {t.filters.apply || 'Применить'}
                     </Button>
                   </div>
                 </div>
