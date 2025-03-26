@@ -5,10 +5,17 @@ import type {
   RevalidateDeleteArgs,
   CollectionHookOptions,
   GlobalHookOptions,
-  ContentType
+  ContentType,
 } from '@/types/revalidation'
 
-import { revalidateTag, revalidatePath } from 'next/cache'
+// Conditionally import revalidatePath based on Next.js version and directory structure
+let revalidatePath: (path: string, type?: 'layout' | 'page') => void
+try {
+  revalidatePath = require('next/cache').revalidatePath
+} catch (e) {
+  // Fallback for pages directory
+  revalidatePath = () => {}
+}
 
 export async function revalidateContent({
   path,
@@ -17,41 +24,26 @@ export async function revalidateContent({
   slug,
   payload,
   context,
-  type = ['layout', 'page']
+  type = ['layout', 'page'],
 }: RevalidateOptions) {
   if (context?.disableRevalidate) return
 
   const types = Array.isArray(type) ? type : [type]
 
   try {
-    // Global elements revalidation
-    const globalTags = ['header', 'footer', 'navigation', 'global_header', 'global_footer']
-    await Promise.all(globalTags.map(tag => revalidateTag(tag)))
-
     // Root path revalidation
-    await Promise.all(types.map(t => revalidatePath('/', t)))
+    await Promise.all(types.map((t) => revalidatePath('/', t)))
 
     // Specific path revalidation
     if (path) {
-      await Promise.all(types.map(t => revalidatePath(path, t)))
+      await Promise.all(types.map((t) => revalidatePath(path, t)))
     }
 
-    // Collection path and sitemap revalidation
+    // Collection path revalidation
     if (collection && slug) {
       const collectionPath = `/${collection}/${slug}`
-      await Promise.all([
-        ...types.map(t => revalidatePath(collectionPath, t)),
-        revalidateTag(`${collection}-sitemap`)
-      ])
+      await Promise.all(types.map((t) => revalidatePath(collectionPath, t)))
     }
-
-    // Specific tag revalidation
-    if (tag) {
-      await revalidateTag(tag)
-    }
-
-    // Main sitemap revalidation
-    await revalidateTag('sitemap')
 
     if (payload?.logger) {
       const revalidatedPath = path || (collection && slug ? `/${collection}/${slug}` : '')
@@ -64,7 +56,7 @@ export async function revalidateContent({
     } else {
       console.error('Revalidation error:', errorMessage)
     }
-    throw error // Re-throw to handle it in the calling function
+    throw error
   }
 }
 
@@ -83,7 +75,7 @@ export const revalidateCollection = async ({
       collection,
       slug: docToRevalidate.slug,
       payload,
-      context
+      context,
     })
   }
 
@@ -100,11 +92,7 @@ export const revalidateCollection = async ({
   }
 }
 
-export const revalidateDelete = async ({
-  doc,
-  req,
-  collection,
-}: RevalidateDeleteArgs) => {
+export const revalidateDelete = async ({ doc, req, collection }: RevalidateDeleteArgs) => {
   const { payload, context } = req
 
   try {
@@ -114,7 +102,7 @@ export const revalidateDelete = async ({
       collection,
       slug: doc?.slug,
       payload,
-      context
+      context,
     })
   } catch (error) {
     payload.logger.error(`Error in revalidateDelete: ${error}`)
@@ -122,15 +110,27 @@ export const revalidateDelete = async ({
 }
 
 // Collection-specific revalidation helpers
-export const revalidatePages = async (args: { doc: any; previousDoc?: any; req: PayloadRequest }) => {
+export const revalidatePages = async (args: {
+  doc: any
+  previousDoc?: any
+  req: PayloadRequest
+}) => {
   await revalidateCollection({ ...args, collection: 'pages' })
 }
 
-export const revalidatePosts = async (args: { doc: any; previousDoc?: any; req: PayloadRequest }) => {
+export const revalidatePosts = async (args: {
+  doc: any
+  previousDoc?: any
+  req: PayloadRequest
+}) => {
   await revalidateCollection({ ...args, collection: 'posts' })
 }
 
-export const revalidateProducts = async (args: { doc: any; previousDoc?: any; req: PayloadRequest }) => {
+export const revalidateProducts = async (args: {
+  doc: any
+  previousDoc?: any
+  req: PayloadRequest
+}) => {
   await revalidateCollection({ ...args, collection: 'products' })
 }
 
@@ -140,7 +140,7 @@ export function createCollectionHooks(collection: string, options: CollectionHoo
   return {
     afterChange: async ({ doc, previousDoc, req }) => {
       const { payload, context } = req
-      
+
       if (!context?.disableRevalidate) {
         const slug = handleSlug ? handleSlug(doc) : doc.slug
         const previousSlug = handleSlug && previousDoc ? handleSlug(previousDoc) : previousDoc?.slug
@@ -154,7 +154,7 @@ export function createCollectionHooks(collection: string, options: CollectionHoo
               slug,
               payload,
               context,
-              type: types
+              type: types,
             })
           }
 
@@ -166,7 +166,7 @@ export function createCollectionHooks(collection: string, options: CollectionHoo
               slug: previousSlug,
               payload,
               context,
-              type: types
+              type: types,
             })
           }
         } catch (error) {
@@ -178,7 +178,7 @@ export function createCollectionHooks(collection: string, options: CollectionHoo
 
     afterDelete: async ({ doc, req }) => {
       const { payload, context } = req
-      
+
       if (!context?.disableRevalidate) {
         try {
           const slug = handleSlug ? handleSlug(doc) : doc?.slug
@@ -189,14 +189,14 @@ export function createCollectionHooks(collection: string, options: CollectionHoo
             slug,
             payload,
             context,
-            type: types
+            type: types,
           })
         } catch (error) {
           payload.logger.error(`Error in delete hook: ${error}`)
         }
       }
       return doc
-    }
+    },
   }
 }
 
@@ -210,7 +210,7 @@ export function createGlobalHook(globalSlug: string, options: GlobalHookOptions 
           tag: `global_${globalSlug}`,
           payload,
           context,
-          type: types
+          type: types,
         })
       } catch (error) {
         payload.logger.error(`Error in global hook: ${error}`)

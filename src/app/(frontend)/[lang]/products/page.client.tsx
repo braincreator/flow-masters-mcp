@@ -4,6 +4,7 @@ import { FilterBar } from '@/components/FilterBar'
 import { ProductsGrid } from '@/components/ProductsGrid'
 import { type Locale } from '@/constants'
 import type { Category, Product } from '@/payload-types'
+import { translations } from './translations'
 
 interface ProductsClientProps {
   products: Product[]
@@ -28,58 +29,68 @@ export default function ProductsClient({
   totalPages,
   currentPage,
 }: ProductsClientProps) {
-  // Ensure products and categories are arrays
-  const productsList = Array.isArray(products) ? products : []
-  const categoriesList = Array.isArray(categories) 
-    ? categories.map(category => ({
-        label: category.title?.[currentLocale] || category.title || '', // handle localized titles
-        value: category.id // always use ID for consistent filtering
-      }))
-    : []
+  const t = translations[currentLocale as keyof typeof translations]
+
+  const categoriesList = categories.map((category) => ({
+    id: category.id,
+    label: typeof category.title === 'object' ? category.title[currentLocale] : category.title,
+    value: category.id,
+  }))
+
+  const productTypes = [
+    { id: 'digital', label: t.filters.productType.digital, value: 'digital' },
+    { id: 'subscription', label: t.filters.productType.subscription, value: 'subscription' },
+    { id: 'service', label: t.filters.productType.service, value: 'service' },
+    { id: 'access', label: t.filters.productType.access, value: 'access' },
+  ]
+
+  const tags = [
+    { id: 'new', label: 'New', value: 'new' },
+    { id: 'popular', label: 'Popular', value: 'popular' },
+    { id: 'featured', label: 'Featured', value: 'featured' },
+  ]
+
+  const priceRange = { min: 0, max: 1000 }
 
   return (
     <div>
       <FilterBar
         categories={categoriesList}
-        currentCategory={searchParams.category || 'all'}
-        currentSearch={searchParams.search}
-        currentSort={searchParams.sort}
-        layout={searchParams.layout || 'grid'}
-        labels={{
-          categories: currentLocale === 'ru' ? 'Категории' : 'Categories',
-          sort: currentLocale === 'ru' ? 'Сортировка' : 'Sort',
-          search: currentLocale === 'ru' ? 'Поиск' : 'Search',
-          searchPlaceholder: currentLocale === 'ru' ? 'Поиск продуктов...' : 'Search products...',
-          allCategories: currentLocale === 'ru' ? 'Все категории' : 'All categories',
-          layout: {
-            grid: currentLocale === 'ru' ? 'Сетка' : 'Grid',
-            list: currentLocale === 'ru' ? 'Список' : 'List'
-          }
-        }}
         sortOptions={[
-          { label: currentLocale === 'ru' ? 'Новые' : 'Newest', value: 'newest' },
-          { label: currentLocale === 'ru' ? 'Старые' : 'Oldest', value: 'oldest' },
-          { label: currentLocale === 'ru' ? 'По названию' : 'By title', value: 'title' },
-          { label: currentLocale === 'ru' ? 'Цена (выс-низ)' : 'Price (high-low)', value: 'price' },
-          { label: currentLocale === 'ru' ? 'Цена (низ-выс)' : 'Price (low-high)', value: 'price-asc' }
+          { label: t.sortOptions.newest, value: 'newest' },
+          { label: t.sortOptions.priceLowToHigh, value: 'price-asc' },
+          { label: t.sortOptions.priceHighToLow, value: 'price' },
         ]}
+        productTypes={productTypes}
+        tags={tags}
+        priceRange={priceRange}
+        defaultLayout={searchParams.layout || 'grid'}
+        locale={currentLocale}
+        labels={{
+          categories: t.filters.categories,
+          sort: t.filters.sort,
+          search: t.filters.search,
+          searchPlaceholder: t.filters.searchPlaceholder,
+          allCategories: t.categories.all,
+          productTypes: t.filters.productTypes,
+          tags: t.filters.tags,
+          priceRange: t.filters.priceRange,
+          layout: t.filters.layout,
+        }}
       />
-
-      {productsList.length > 0 ? (
-        <ProductsGrid
-          products={productsList}
-          layout={searchParams.layout || 'grid'}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          locale={currentLocale}
-        />
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {currentLocale === 'ru' ? 'Продукты не найдены' : 'No products found'}
-          </p>
-        </div>
-      )}
+      <ProductsGrid
+        products={products}
+        layout={searchParams.layout || 'grid'}
+        locale={currentLocale}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        labels={{
+          prev: t.pagination.prev,
+          next: t.pagination.next,
+          page: t.pagination.page,
+          of: t.pagination.of,
+        }}
+      />
     </div>
   )
 }

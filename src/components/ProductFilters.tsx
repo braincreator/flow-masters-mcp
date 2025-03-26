@@ -1,124 +1,335 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
-} from '@/components/ui/sheet'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Slider } from '@/components/ui/slider'
+import {
+  SlidersHorizontal,
+  X,
+  ArrowUpDown,
+  Tag,
+  Clock,
+  Search,
+  GridIcon,
+  ListIcon,
+} from 'lucide-react'
+import { cn } from '@/utilities/ui'
 
 interface FilterOption {
   id: string
   label: string
   value: string
+  count?: number
 }
 
 interface ProductFiltersProps {
   categories: FilterOption[]
   productTypes: FilterOption[]
+  tags?: FilterOption[]
+  priceRange: { min: number; max: number }
   locale: string
-  onFilterChange: (filters: any) => void
+  searchTerm: string
+  layout?: 'grid' | 'list'
+  onFilterChange: (filters: {
+    categories: string[]
+    productTypes: string[]
+    tags: string[]
+    priceRange: { min: number; max: number }
+    sort: string
+    search: string
+  }) => void
+  onLayoutChange?: (layout: 'grid' | 'list') => void
 }
 
-export function ProductFilters({ 
-  categories, 
-  productTypes, 
+export function ProductFilters({
+  categories = [],
+  productTypes = [],
+  tags = [],
+  priceRange,
   locale,
-  onFilterChange 
+  searchTerm,
+  layout = 'grid',
+  onFilterChange,
+  onLayoutChange,
 }: ProductFiltersProps) {
-  const [filters, setFilters] = useState({
-    categories: [] as string[],
-    productTypes: [] as string[],
-    priceRange: { min: '', max: '' },
-    search: ''
-  })
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [sort, setSort] = useState('newest')
+  const [search, setSearch] = useState(searchTerm)
 
-  const handleFilterChange = (type: string, value: any) => {
-    const newFilters = {
-      ...filters,
-      [type]: value
-    }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
+  // Update local state when props change
+  useEffect(() => {
+    setSearch(searchTerm)
+  }, [searchTerm])
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: selectedProductTypes,
+      tags: selectedTags,
+      priceRange,
+      sort,
+      search: value,
+    })
   }
 
-  const clearFilters = () => {
-    const emptyFilters = {
-      categories: [],
-      productTypes: [],
-      priceRange: { min: '', max: '' },
-      search: ''
-    }
-    setFilters(emptyFilters)
-    onFilterChange(emptyFilters)
+  const handleCategoryChange = (categoryValue: string) => {
+    const newCategories = selectedCategories.includes(categoryValue)
+      ? selectedCategories.filter((value) => value !== categoryValue)
+      : [...selectedCategories, categoryValue]
+    setSelectedCategories(newCategories)
+    onFilterChange({
+      categories: newCategories,
+      productTypes: selectedProductTypes,
+      tags: selectedTags,
+      priceRange,
+      sort,
+      search,
+    })
+  }
+
+  const handleProductTypeChange = (typeValue: string) => {
+    const newTypes = selectedProductTypes.includes(typeValue)
+      ? selectedProductTypes.filter((value) => value !== typeValue)
+      : [...selectedProductTypes, typeValue]
+    setSelectedProductTypes(newTypes)
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: newTypes,
+      tags: selectedTags,
+      priceRange,
+      sort,
+      search,
+    })
+  }
+
+  const handleTagChange = (tagValue: string) => {
+    const newTags = selectedTags.includes(tagValue)
+      ? selectedTags.filter((value) => value !== tagValue)
+      : [...selectedTags, tagValue]
+    setSelectedTags(newTags)
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: selectedProductTypes,
+      tags: newTags,
+      priceRange,
+      sort,
+      search,
+    })
+  }
+
+  const handleSortChange = (value: string) => {
+    setSort(value)
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: selectedProductTypes,
+      tags: selectedTags,
+      priceRange,
+      sort: value,
+      search,
+    })
+  }
+
+  const handlePriceRangeChange = (value: number[]) => {
+    const newPriceRange = { min: value[0], max: value[1] }
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: selectedProductTypes,
+      tags: selectedTags,
+      priceRange: newPriceRange,
+      sort,
+      search,
+    })
   }
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button 
-          variant="outline" 
-          className="lg:hidden dark:border-border/50 dark:hover:border-primary/30"
-        >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
-          {locale === 'ru' ? 'Фильтры' : 'Filters'}
-        </Button>
-      </SheetTrigger>
-      <div className="hidden lg:block space-y-6">
-        <FilterSection />
-      </div>
-      <SheetContent side="left" className="w-80">
-        <SheetHeader>
-          <SheetTitle>{locale === 'ru' ? 'Фильтры' : 'Filters'}</SheetTitle>
-        </SheetHeader>
-        <FilterSection />
-      </SheetContent>
-    </Sheet>
-  )
+    <div className="space-y-6">
+      {/* Mobile Filters Button */}
+      <div className="lg:hidden">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="w-full justify-start">
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              Filters
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              {/* Search */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <Input
+                  type="search"
+                  placeholder="Search products..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full"
+                />
+              </div>
 
-  function FilterSection() {
-    return (
-      <div className="space-y-6 py-4">
+              {/* Categories */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Categories</label>
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <div key={category.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={category.id}
+                        checked={selectedCategories.includes(category.value)}
+                        onCheckedChange={() => handleCategoryChange(category.value)}
+                      />
+                      <label
+                        htmlFor={category.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {category.label}
+                        {category.count && (
+                          <span className="ml-2 text-muted-foreground">({category.count})</span>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Types */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Product Types</label>
+                <div className="space-y-2">
+                  {productTypes.map((type) => (
+                    <div key={type.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={type.id}
+                        checked={selectedProductTypes.includes(type.value)}
+                        onCheckedChange={() => handleProductTypeChange(type.value)}
+                      />
+                      <label
+                        htmlFor={type.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {type.label}
+                        {type.count && (
+                          <span className="ml-2 text-muted-foreground">({type.count})</span>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.value) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => handleTagChange(tag.value)}
+                    >
+                      {tag.label}
+                      {tag.count && (
+                        <span className="ml-1 text-muted-foreground">({tag.count})</span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Price Range</label>
+                <Slider
+                  value={[priceRange.min, priceRange.max]}
+                  onValueChange={handlePriceRangeChange}
+                  max={1000}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>${priceRange.min}</span>
+                  <span>${priceRange.max}</span>
+                </div>
+              </div>
+
+              {/* Sort */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Sort</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'newest', label: 'Newest' },
+                    { value: 'price-asc', label: 'Price: Low to High' },
+                    { value: 'price-desc', label: 'Price: High to Low' },
+                    { value: 'name-asc', label: 'Name: A to Z' },
+                    { value: 'name-desc', label: 'Name: Z to A' },
+                  ].map((option) => (
+                    <Badge
+                      key={option.value}
+                      variant={sort === option.value ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => handleSortChange(option.value)}
+                    >
+                      {option.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Filters */}
+      <div className="hidden lg:block space-y-6">
         {/* Search */}
         <div className="space-y-2">
-          <h3 className="font-medium">
-            {locale === 'ru' ? 'Поиск' : 'Search'}
-          </h3>
+          <label className="text-sm font-medium">Search</label>
           <Input
-            placeholder={locale === 'ru' ? 'Поиск...' : 'Search...'}
-            value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
-            className="dark:border-border/50 dark:focus:border-primary/30"
+            type="search"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full"
           />
         </div>
 
         {/* Categories */}
-        <div className="space-y-4">
-          <h3 className="font-medium">
-            {locale === 'ru' ? 'Категории' : 'Categories'}
-          </h3>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Categories</label>
           <div className="space-y-2">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={category.id}
-                  checked={filters.categories.includes(category.value)}
-                  onCheckedChange={(checked) => {
-                    const newCategories = checked
-                      ? [...filters.categories, category.value]
-                      : filters.categories.filter(id => id !== category.value)
-                    handleFilterChange('categories', newCategories)
-                  }}
-                  className="dark:border-border/50 dark:data-[state=checked]:border-primary"
+                  checked={selectedCategories.includes(category.value)}
+                  onCheckedChange={() => handleCategoryChange(category.value)}
                 />
-                <label htmlFor={category.id} className="text-sm">
+                <label
+                  htmlFor={category.id}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
                   {category.label}
+                  {category.count && (
+                    <span className="ml-2 text-muted-foreground">({category.count})</span>
+                  )}
                 </label>
               </div>
             ))}
@@ -126,71 +337,129 @@ export function ProductFilters({
         </div>
 
         {/* Product Types */}
-        <div className="space-y-4">
-          <h3 className="font-medium">
-            {locale === 'ru' ? 'Тип продукта' : 'Product Type'}
-          </h3>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Product Types</label>
           <div className="space-y-2">
             {productTypes.map((type) => (
               <div key={type.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={type.id}
-                  checked={filters.productTypes.includes(type.value)}
-                  onCheckedChange={(checked) => {
-                    const newTypes = checked
-                      ? [...filters.productTypes, type.value]
-                      : filters.productTypes.filter(id => id !== type.value)
-                    handleFilterChange('productTypes', newTypes)
-                  }}
-                  className="dark:border-border/50 dark:data-[state=checked]:border-primary"
+                  checked={selectedProductTypes.includes(type.value)}
+                  onCheckedChange={() => handleProductTypeChange(type.value)}
                 />
-                <label htmlFor={type.id} className="text-sm">
+                <label
+                  htmlFor={type.id}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
                   {type.label}
+                  {type.count && <span className="ml-2 text-muted-foreground">({type.count})</span>}
                 </label>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Price Range */}
-        <div className="space-y-4">
-          <h3 className="font-medium">
-            {locale === 'ru' ? 'Цена' : 'Price Range'}
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="number"
-              placeholder={locale === 'ru' ? 'От' : 'Min'}
-              value={filters.priceRange.min}
-              onChange={(e) => handleFilterChange('priceRange', {
-                ...filters.priceRange,
-                min: e.target.value
-              })}
-              className="dark:border-border/50 dark:focus:border-primary/30"
-            />
-            <Input
-              type="number"
-              placeholder={locale === 'ru' ? 'До' : 'Max'}
-              value={filters.priceRange.max}
-              onChange={(e) => handleFilterChange('priceRange', {
-                ...filters.priceRange,
-                max: e.target.value
-              })}
-              className="dark:border-border/50 dark:focus:border-primary/30"
-            />
+        {/* Tags */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tags</label>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant={selectedTags.includes(tag.value) ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => handleTagChange(tag.value)}
+              >
+                {tag.label}
+                {tag.count && <span className="ml-1 text-muted-foreground">({tag.count})</span>}
+              </Badge>
+            ))}
           </div>
         </div>
 
-        {/* Clear Filters */}
-        <Button
-          variant="outline"
-          className="w-full dark:border-border/50 dark:hover:border-primary/30"
-          onClick={clearFilters}
-        >
-          <X className="h-4 w-4 mr-2" />
-          {locale === 'ru' ? 'Очистить фильтры' : 'Clear Filters'}
-        </Button>
+        {/* Price Range */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Price Range</label>
+          <Slider
+            value={[priceRange.min, priceRange.max]}
+            onValueChange={handlePriceRangeChange}
+            max={1000}
+            step={10}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>${priceRange.min}</span>
+            <span>${priceRange.max}</span>
+          </div>
+        </div>
+
+        {/* Sort */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Sort</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'newest', label: 'Newest' },
+              { value: 'price-asc', label: 'Price: Low to High' },
+              { value: 'price-desc', label: 'Price: High to Low' },
+              { value: 'name-asc', label: 'Name: A to Z' },
+              { value: 'name-desc', label: 'Name: Z to A' },
+            ].map((option) => (
+              <Badge
+                key={option.value}
+                variant={sort === option.value ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => handleSortChange(option.value)}
+              >
+                {option.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Layout Toggle */}
+        {onLayoutChange && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Layout</label>
+            <div className="flex gap-2 h-10 p-1 bg-muted/40 dark:bg-muted/20 rounded-[8px] relative border border-border/50">
+              <button
+                type="button"
+                onClick={() => onLayoutChange('grid')}
+                className={cn(
+                  'relative z-20',
+                  'h-8 w-8 p-0 rounded-[6px]',
+                  'flex items-center justify-center',
+                  'transition-colors duration-200',
+                  'border border-transparent',
+                  layout === 'grid' && 'bg-accent text-accent-foreground border-accent/50',
+                  layout !== 'grid' &&
+                    'hover:bg-accent hover:text-accent-foreground hover:border-accent/50',
+                )}
+              >
+                <GridIcon className="h-4 w-4" />
+                <span className="sr-only">Grid view</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onLayoutChange('list')}
+                className={cn(
+                  'relative z-20',
+                  'h-8 w-8 p-0 rounded-[6px]',
+                  'flex items-center justify-center',
+                  'transition-colors duration-200',
+                  'border border-transparent',
+                  layout === 'list' && 'bg-accent text-accent-foreground border-accent/50',
+                  layout !== 'list' &&
+                    'hover:bg-accent hover:text-accent-foreground hover:border-accent/50',
+                )}
+              >
+                <ListIcon className="h-4 w-4" />
+                <span className="sr-only">List view</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    )
-  }
-} 
+    </div>
+  )
+}

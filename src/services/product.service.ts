@@ -1,18 +1,21 @@
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { Product, Media } from '../payload-types'
-import { 
-  ProductCreateInput, 
-  ProductUpdateInput, 
-  ProductQueryOptions, 
+import {
+  ProductCreateInput,
+  ProductUpdateInput,
+  ProductQueryOptions,
   ProductListResponse,
-  ProductStats
+  ProductStats,
 } from '../types/product.service'
-import { CACHE_REVALIDATE_SECONDS } from '../constants'
+import { CACHE_REVALIDATE_SECONDS, DEFAULT_LOCALE } from '../constants'
 import { LRUCache } from 'lru-cache'
 import { StorageService } from './storage.service'
 import { IntegrationService } from './integration.service'
 import { revalidateContent } from '../utilities/revalidation'
+
+// Import unstable_cache from next/cache
+import { unstable_cache } from 'next/cache'
 
 export class ProductService extends BaseService {
   private static instance: ProductService | null = null
@@ -46,7 +49,7 @@ export class ProductService extends BaseService {
       if (integration) {
         await this.integrationService.testIntegration(integration.id, {
           event,
-          data
+          data,
         })
       }
     } catch (error) {
@@ -80,7 +83,7 @@ export class ProductService extends BaseService {
         path: '/products',
         collection: 'products',
         slug: product.slug,
-        payload: this.payload
+        payload: this.payload,
       })
 
       return product
@@ -90,7 +93,11 @@ export class ProductService extends BaseService {
     }
   }
 
-  async update(id: string, input: ProductUpdateInput, file?: Express.Multer.File): Promise<Product> {
+  async update(
+    id: string,
+    input: ProductUpdateInput,
+    file?: Express.Multer.File,
+  ): Promise<Product> {
     try {
       const existingProduct = await this.findById(id)
       if (!existingProduct) {
@@ -111,7 +118,7 @@ export class ProductService extends BaseService {
       const data = {
         ...input,
         fileDetails,
-        publishedAt: (!wasPublished && isPublished) ? new Date() : existingProduct.publishedAt,
+        publishedAt: !wasPublished && isPublished ? new Date() : existingProduct.publishedAt,
       }
 
       const result = await this.payload.update({
@@ -127,7 +134,7 @@ export class ProductService extends BaseService {
         path: '/products',
         collection: 'products',
         slug: product.slug,
-        payload: this.payload
+        payload: this.payload,
       })
 
       return product
@@ -159,7 +166,7 @@ export class ProductService extends BaseService {
         path: '/products',
         collection: 'products',
         slug: product.slug,
-        payload: this.payload
+        payload: this.payload,
       })
     } catch (error) {
       console.error('Failed to delete product:', error)
@@ -167,10 +174,13 @@ export class ProductService extends BaseService {
     }
   }
 
-  async getProduct(id: string, options: CacheOptions = { ttl: CACHE_REVALIDATE_SECONDS }): Promise<Product | null> {
+  async getProduct(
+    id: string,
+    options: CacheOptions = { ttl: CACHE_REVALIDATE_SECONDS },
+  ): Promise<Product | null> {
     try {
       const cached = this.cache.get(id)
-      
+
       if (cached) {
         const age = this.cache.getRemainingTTL(id)
         if (age < 0 && options.staleWhileRevalidate) {
@@ -194,18 +204,20 @@ export class ProductService extends BaseService {
     try {
       const product = await this.payload.findByID({
         collection: 'products',
-        id
+        id,
       })
       return product
     } catch (error) {
       console.error(`Failed to fetch product ${id}:`, error)
-      throw new Error(`Product fetch failed: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Product fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
   private async revalidateAsync(id: string): Promise<void> {
     if (this.revalidationQueue.has(id)) return
-    
+
     this.revalidationQueue.add(id)
     try {
       const product = await this.fetchProduct(id)
@@ -226,9 +238,7 @@ export class ProductService extends BaseService {
   }
 
   async warmCache(ids: string[]): Promise<void> {
-    await Promise.allSettled(
-      ids.map(id => this.getProduct(id))
-    )
+    await Promise.allSettled(ids.map((id) => this.getProduct(id)))
   }
 
   async findBySlug(slug: string, locale = DEFAULT_LOCALE): Promise<Product | null> {
@@ -240,7 +250,7 @@ export class ProductService extends BaseService {
         locale,
       })
 
-      return result.docs[0] as Product || null
+      return (result.docs[0] as Product) || null
     } catch (error) {
       console.error('Failed to find product by slug:', error)
       return null
@@ -252,32 +262,36 @@ export class ProductService extends BaseService {
 
     const cacheKey = `products-${JSON.stringify({ page, limit, where, locale })}`
 
-    const getCachedProducts = unstable_cache(
-      async () => {
-        try {
-          const result = await this.payload.find({
-            collection: 'products',
-            where,
-            page,
-            limit,
-            locale,
-          })
+    try {
+      // Check client-side cache first
+      const cached = this.cache.get(cacheKey)
+      if (cached) {
+        return cached as ProductListResponse
+      }
 
-          return {
-            items: result.docs as Product[],
-            totalCount: result.totalDocs,
-            totalPages: result.totalPages,
-          }
-        } catch (error) {
-          console.error('Failed to find products:', error)
-          throw error
-        }
-      },
-      [cacheKey],
-      { revalidate: CACHE_REVALIDATE_SECONDS }
-    )
+      // If not in client cache, fetch from server
+      const result = await this.payload.find({
+        collection: 'products',
+        where,
+        page,
+        limit,
+        locale,
+      })
 
-    return getCachedProducts()
+      const response: ProductListResponse = {
+        items: result.docs as Product[],
+        totalCount: result.totalDocs,
+        totalPages: result.totalPages,
+      }
+
+      // Cache the result
+      this.cache.set(cacheKey, response, { ttl: CACHE_REVALIDATE_SECONDS * 1000 })
+
+      return response
+    } catch (error) {
+      console.error('Failed to find products:', error)
+      throw error
+    }
   }
 
   async getStats(): Promise<ProductStats> {
@@ -286,24 +300,24 @@ export class ProductService extends BaseService {
         try {
           const [total, published] = await Promise.all([
             this.payload.find({ collection: 'products' }),
-            this.payload.find({ 
+            this.payload.find({
               collection: 'products',
-              where: { status: { equals: 'published' } }
-            })
+              where: { status: { equals: 'published' } },
+            }),
           ])
 
           const totalProducts = total.totalDocs
           const publishedProducts = published.totalDocs
           const draftProducts = totalProducts - publishedProducts
 
-          const averagePrice = published.docs.reduce((acc, doc: any) => 
-            acc + (doc.price || 0), 0) / publishedProducts
+          const averagePrice =
+            published.docs.reduce((acc, doc: any) => acc + (doc.price || 0), 0) / publishedProducts
 
           return {
             totalProducts,
             publishedProducts,
             draftProducts,
-            averagePrice
+            averagePrice,
           }
         } catch (error) {
           console.error('Failed to get product stats:', error)
@@ -311,7 +325,7 @@ export class ProductService extends BaseService {
         }
       },
       ['product-stats'],
-      { revalidate: CACHE_REVALIDATE_SECONDS }
+      { revalidate: CACHE_REVALIDATE_SECONDS },
     )
 
     return getCachedStats()
@@ -319,10 +333,10 @@ export class ProductService extends BaseService {
 
   async updateThumbnail(id: string, mediaId: string): Promise<Product> {
     try {
-      const media = await this.payload.findByID({
+      const media = (await this.payload.findByID({
         collection: 'media',
         id: mediaId,
-      }) as Media
+      })) as Media
 
       if (!media) {
         throw new Error(`Media with id ${mediaId} not found`)
@@ -341,7 +355,7 @@ export class ProductService extends BaseService {
         path: '/products',
         collection: 'products',
         slug: result.slug,
-        payload: this.payload
+        payload: this.payload,
       })
 
       return result as Product
@@ -377,9 +391,9 @@ export class ProductService extends BaseService {
       where: {
         ...where,
         status: {
-          equals: 'published'
-        }
-      }
+          equals: 'published',
+        },
+      },
     })
   }
 
@@ -389,16 +403,16 @@ export class ProductService extends BaseService {
         collection: 'products',
         where: {
           category: {
-            equals: product.category
+            equals: product.category,
           },
           id: {
-            not_equals: product.id
+            not_equals: product.id,
           },
           status: {
-            equals: 'published'
-          }
+            equals: 'published',
+          },
         },
-        limit
+        limit,
       })
 
       return result.docs as Product[]

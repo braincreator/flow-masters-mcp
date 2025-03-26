@@ -1,11 +1,12 @@
 export const translations = {
   en: {
     pageTitle: 'Digital Products Store',
-    pageDescription: 'Discover our collection of N8N workflows, Make.com automations, tutorials, and courses',
+    pageDescription:
+      'Discover our collection of N8N workflows, Make.com automations, tutorials, and courses',
     sortOptions: {
       newest: 'Newest',
       priceLowToHigh: 'Price: Low to High',
-      priceHighToLow: 'Price: High to Low'
+      priceHighToLow: 'Price: High to Low',
     },
     categories: {
       all: 'All Categories',
@@ -14,7 +15,7 @@ export const translations = {
       tutorial: 'Tutorial',
       course: 'Course',
       template: 'Template',
-      integration: 'Integration'
+      integration: 'Integration',
     },
     filters: {
       categories: 'Categories',
@@ -23,12 +24,12 @@ export const translations = {
       searchPlaceholder: 'Search products...',
       layout: {
         grid: 'Grid view',
-        list: 'List view'
+        list: 'List view',
       },
       priceRange: {
         label: 'Price Range',
         min: 'Min',
-        max: 'Max'
+        max: 'Max',
       },
       productType: {
         label: 'Product Type',
@@ -36,15 +37,18 @@ export const translations = {
         digital: 'Digital Product',
         subscription: 'Subscription',
         service: 'Service',
-        access: 'Feature Access'
-      }
+        access: 'Feature Access',
+      },
+      productTypes: 'Product Types',
+      tags: 'Tags',
+      priceRange: 'Price Range',
     },
     buttons: {
       buyNow: 'Buy Now',
       subscribe: 'Subscribe',
       bookService: 'Book Service',
       getAccess: 'Get Access',
-      viewDemo: 'View Demo'
+      viewDemo: 'View Demo',
     },
     productDetails: {
       instantDelivery: 'Instant Delivery',
@@ -60,23 +64,24 @@ export const translations = {
       securePayment: 'Secure payment',
       freeShipping: 'Free shipping on orders over $50',
       instantDelivery: 'Instant digital delivery',
-      features: 'Features'
+      features: 'Features',
     },
     pagination: {
       prev: 'Previous',
       next: 'Next',
       page: 'Page',
-      of: 'of'
+      of: 'of',
     },
-    noResults: 'No products found'
+    noResults: 'No products found',
   },
   ru: {
     pageTitle: 'Магазин Цифровых Продуктов',
-    pageDescription: 'Откройте для себя нашу коллекцию рабочих процессов N8N, автоматизаций Make.com, руководств и курсов',
+    pageDescription:
+      'Откройте для себя нашу коллекцию рабочих процессов N8N, автоматизаций Make.com, руководств и курсов',
     sortOptions: {
       newest: 'Новые',
       priceLowToHigh: 'Цена: по возрастанию',
-      priceHighToLow: 'Цена: по убыванию'
+      priceHighToLow: 'Цена: по убыванию',
     },
     categories: {
       all: 'Все категории',
@@ -85,7 +90,7 @@ export const translations = {
       tutorial: 'Руководство',
       course: 'Курс',
       template: 'Шаблон',
-      integration: 'Интеграция'
+      integration: 'Интеграция',
     },
     filters: {
       categories: 'Категории',
@@ -94,12 +99,12 @@ export const translations = {
       searchPlaceholder: 'Поиск продуктов...',
       layout: {
         grid: 'Сетка',
-        list: 'Список'
+        list: 'Список',
       },
       priceRange: {
         label: 'Ценовой диапазон',
         min: 'Мин',
-        max: 'Макс'
+        max: 'Макс',
       },
       productType: {
         label: 'Тип продукта',
@@ -107,15 +112,18 @@ export const translations = {
         digital: 'Цифровой продукт',
         subscription: 'Подписка',
         service: 'Услуга',
-        access: 'Доступ к функциям'
-      }
+        access: 'Доступ к функциям',
+      },
+      productTypes: 'Типы продуктов',
+      tags: 'Теги',
+      priceRange: 'Ценовой диапазон',
     },
     buttons: {
       buyNow: 'Купить',
       subscribe: 'Подписаться',
       bookService: 'Заказать услугу',
       getAccess: 'Получить доступ',
-      viewDemo: 'Смотреть демо'
+      viewDemo: 'Смотреть демо',
     },
     productDetails: {
       instantDelivery: 'Мгновенная доставка',
@@ -131,16 +139,16 @@ export const translations = {
       securePayment: 'Безопасная оплата',
       freeShipping: 'Бесплатная доставка при заказе от $50',
       instantDelivery: 'Мгновенная цифровая доставка',
-      features: 'Функции'
+      features: 'Функции',
     },
     pagination: {
       prev: 'Назад',
       next: 'Вперед',
       page: 'Страница',
-      of: 'из'
+      of: 'из',
     },
-    noResults: 'Продукты не найдены'
-  }
+    noResults: 'Продукты не найдены',
+  },
 } as const
 
 export type ProductsTranslations = typeof translations

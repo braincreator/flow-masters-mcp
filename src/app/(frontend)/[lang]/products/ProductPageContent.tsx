@@ -25,11 +25,11 @@ interface ProductPageContentProps {
   payload: any
 }
 
-const ProductPageContent: React.FC<ProductPageContentProps> = ({ 
-  lang, 
-  searchParams, 
-  t, 
-  payload 
+const ProductPageContent: React.FC<ProductPageContentProps> = ({
+  lang,
+  searchParams,
+  t,
+  payload,
 }) => {
   const [loading, setLoading] = useState(false)
   const [products, setProducts] = useState<{
@@ -44,7 +44,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
 
     const fetchProducts = async () => {
       if (!isMounted) return
-      
+
       setLoading(true)
       try {
         const where: Record<string, any> = {
@@ -79,11 +79,11 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
         // Add price range
         if (searchParams?.minPrice || searchParams?.maxPrice) {
           where.price = {
-            ...(searchParams.minPrice !== undefined && { 
-              greater_than_equal: searchParams.minPrice 
+            ...(searchParams.minPrice !== undefined && {
+              greater_than_equal: searchParams.minPrice,
             }),
-            ...(searchParams.maxPrice !== undefined && { 
-              less_than_equal: searchParams.maxPrice 
+            ...(searchParams.maxPrice !== undefined && {
+              less_than_equal: searchParams.maxPrice,
             }),
           }
         }
@@ -97,7 +97,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
           limit: 12,
           sort: searchParams?.sort ? { [searchParams.sort]: -1 } : { createdAt: -1 },
         })
-        
+
         if (isMounted) {
           setProducts(result)
         }
@@ -126,18 +126,22 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
         </div>
 
         <FilterBar
-          categories={[]}  // Pass actual categories if needed
-          sortOptions={[]}  // Pass actual sort options if needed
+          categories={[]} // Pass actual categories if needed
+          sortOptions={[]} // Pass actual sort options if needed
+          productTypes={[]} // Pass actual product types if needed
+          tags={[]} // Pass actual tags if needed
+          priceRange={{ min: 0, max: 1000 }} // Default price range
           defaultLayout={searchParams?.layout || 'grid'}
-          currentSearch={searchParams?.search}
-          currentCategory={searchParams?.category}
-          currentSort={searchParams?.sort}
+          locale={lang}
           labels={{
             categories: t.filters.categories,
             sort: t.filters.sort,
             search: t.filters.search,
             searchPlaceholder: t.filters.searchPlaceholder,
             allCategories: t.categories.all,
+            productTypes: t.filters.productTypes,
+            tags: t.filters.tags,
+            priceRange: t.filters.priceRange,
             layout: t.filters.layout,
           }}
         />

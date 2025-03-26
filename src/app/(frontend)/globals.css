@@ -7,13 +7,13 @@
     /* Base colors - Light theme */
     --background: 220 33% 98%;
     --foreground: 222 47% 11%;
-    
+
     /* Surface colors */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    
+
     /* Brand colors - Adjusted for better contrast */
     --primary: 224 82% 56%;
     --primary-foreground: 210 40% 98%;
@@ -21,7 +21,7 @@
     --secondary-foreground: 210 40% 98%;
     --accent: 260 84% 60%;
     --accent-foreground: 210 40% 98%;
-    
+
     /* UI colors - Enhanced for better visibility */
     --muted: 217 33% 97%;
     --muted-foreground: 215 25% 27%;
@@ -31,35 +31,43 @@
     --success-foreground: 210 40% 98%;
     --warning: 38 92% 50%;
     --warning-foreground: 210 40% 98%;
-    --info: 221 83% 53%;
+    --info: 199 89% 48%;
     --info-foreground: 210 40% 98%;
 
-    /* Border & Input - Subtle adjustments */
+    /* Border & Input */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 224 82% 56%;
 
     /* Enhanced Shadows */
-    --shadow-sm: 0 2px 8px -2px rgba(0, 86, 255, 0.08);
-    --shadow: 0 4px 12px -4px rgba(0, 86, 255, 0.12);
-    --shadow-md: 0 8px 16px -6px rgba(0, 86, 255, 0.16);
-    --shadow-lg: 0 16px 24px -8px rgba(0, 86, 255, 0.20);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+
+    /* Transition & Timing */
+    --transition-default: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-bezier: cubic-bezier(0.4, 0, 0.2, 1);
 
     /* Radius */
-    --radius: 0.5rem; /* 8px */
+    --radius: 0.5rem;
   }
 
-  [data-theme="dark"] {
+  [data-theme='dark'] {
     /* Base colors - Dark theme - Adjusted for better readability */
     --background: 222 47% 6%;
     --foreground: 213 31% 95%;
-    
+
     /* Surface colors - Enhanced contrast */
     --card: 223 47% 4%;
     --card-foreground: 213 31% 95%;
     --popover: 223 47% 4%;
     --popover-foreground: 213 31% 95%;
-    
+
     /* Brand colors - Brightened for dark mode */
     --primary: 224 82% 65%;
     --primary-foreground: 210 40% 98%;
@@ -67,7 +75,7 @@
     --secondary-foreground: 210 40% 98%;
     --accent: 260 84% 75%;
     --accent-foreground: 210 40% 98%;
-    
+
     /* UI colors - Adjusted for dark mode visibility */
     --muted: 223 47% 9%;
     --muted-foreground: 215 20.2% 85%;
@@ -77,7 +85,7 @@
     --success-foreground: 210 40% 98%;
     --warning: 38 92% 60%;
     --warning-foreground: 210 40% 98%;
-    --info: 221 83% 65%;
+    --info: 199 89% 60%;
     --info-foreground: 210 40% 98%;
 
     /* Border & Input - Increased contrast */
@@ -86,10 +94,11 @@
     --ring: 224 82% 65%;
 
     /* Enhanced Shadows */
-    --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
-    --shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 16px -6px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 16px 24px -8px rgba(0, 0, 0, 0.6);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.3), 0 4px 6px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 10px 10px -5px rgb(0 0 0 / 0.2);
   }
 }
 
@@ -97,7 +106,7 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground transition-colors duration-300;
   }
@@ -109,7 +118,7 @@
 
   /* Improve contrast for focus states */
   *:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background border-transparent;
   }
 }
 
@@ -148,12 +157,7 @@
   }
 
   .interactive-element {
-    @apply transition-all duration-300 ease-out
-           hover:scale-[1.02]
-           active:scale-[0.98]
-           hover:shadow-md
-           hover:border-primary/30 dark:hover:border-primary/40
-           hover:bg-background/60 dark:hover:bg-background/40;
+    @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-md hover:bg-background/60 dark:hover:bg-background/40;
   }
 
   /* AI-themed card */
@@ -191,19 +195,14 @@
     @apply text-base md:text-lg relative overflow-hidden
            font-medium
            disabled:opacity-50 disabled:pointer-events-none
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:border-transparent
            active:scale-[0.98]
            select-none
            transition-all duration-300 ease-out;
   }
 
   .input-base {
-    @apply text-base md:text-lg w-full rounded-lg border border-input bg-background px-4 py-2.5
-           placeholder:text-muted-foreground/70
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-           disabled:cursor-not-allowed disabled:opacity-50
-           transition-all duration-200
-           dark:bg-background/80;
+    @apply text-base md:text-lg w-full rounded-lg border border-input bg-background px-4 py-2.5 placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 dark:bg-background/80;
   }
 
   /* Update badge size */
@@ -265,18 +264,28 @@
 
   /* Modern form elements */
   .input-modern {
-    @apply input-base
-           bg-gradient-to-br from-background to-muted/30
-           dark:from-background dark:to-muted/10
-           border-2
-           focus:border-primary/30
-           placeholder:text-muted-foreground/50;
+    @apply input-base bg-gradient-to-br from-background to-muted/30 dark:from-background dark:to-muted/10 border-2 focus:border-transparent placeholder:text-muted-foreground/50;
   }
 
   .select-modern {
-    @apply input-modern appearance-none
-           bg-[url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 7l3 3 3-3" fill="none" stroke="%239fa6b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')]
-           bg-no-repeat bg-right-1 bg-[length:20px];
+    @apply input-modern appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 7l3 3 3-3" fill="none" stroke="%239fa6b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')] bg-no-repeat bg-right-1 bg-[length:20px] focus:border-transparent;
+  }
+
+  /* Select component styles */
+  .select-trigger {
+    @apply flex h-10 w-full items-center justify-between rounded-lg border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent disabled:cursor-not-allowed disabled:opacity-50 hover:border-border/80 transition-all duration-200;
+  }
+
+  .select-content {
+    @apply relative z-50 min-w-[8rem] overflow-hidden rounded-lg border border-border/50 bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
+  }
+
+  .select-item {
+    @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+  }
+
+  .select-item-indicator {
+    @apply absolute left-2 flex h-3.5 w-3.5 items-center justify-center;
   }
 
   /* Badge variations */
@@ -507,13 +516,43 @@
            glass-effect px-3 py-1.5 rounded-full
            mt-2;
   }
+
+  /* Focus styles for all interactive elements */
+  .interactive-element:focus,
+  .input-base:focus,
+  .input-modern:focus,
+  .select-modern:focus,
+  .select-trigger:focus,
+  button:focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent;
+  }
+
+  /* Hover styles for all interactive elements */
+  .interactive-element:hover,
+  .input-base:hover,
+  .input-modern:hover,
+  .select-modern:hover,
+  .select-trigger:hover,
+  button:hover {
+    @apply hover:border-border/80;
+  }
+
+  /* Active styles for all interactive elements */
+  .interactive-element:active,
+  .input-base:active,
+  .input-modern:active,
+  .select-modern:active,
+  .select-trigger:active,
+  button:active {
+    @apply active:scale-[0.98] active:opacity-90;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .animate-smooth {
     @apply transition-all duration-300 ease-out;
   }
@@ -561,7 +600,9 @@
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
 }
 
 .page-transition-exit {
@@ -572,14 +613,22 @@
 .page-transition-exit-active {
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
 }
 
 /* Add modern animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-float {
@@ -732,7 +781,8 @@ body.modal-open {
 
 /* Animation keyframes */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
