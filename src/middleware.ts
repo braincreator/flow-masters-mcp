@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
     metricsCollector.recordRequest()
 
     // Early return for static and system paths
-    if (SKIP_PATHS.some(path => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {
+    if (SKIP_PATHS.some((path) => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {
       return nextResponse(requestHeaders, startTime)
     }
 
@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Handle paths without locale
-    if (!SUPPORTED_LOCALES.some(l => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
+    if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
       // Skip locale redirect for posts collection
       if (pathname.startsWith('/posts/')) {
         return nextResponse(requestHeaders, startTime)
@@ -62,7 +62,5 @@ function redirectResponse(path: string, baseUrl: string, startTime: number) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

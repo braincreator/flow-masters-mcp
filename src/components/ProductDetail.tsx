@@ -122,10 +122,12 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       {/* Image Gallery */}
-      <div className="glass-effect relative overflow-hidden
+      <div
+        className="glass-effect relative overflow-hidden
                       before:absolute before:inset-0 
                       before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5
-                      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300">
+                      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300"
+      >
         <div className="relative aspect-square">
           {!currentImage ? (
             renderPlaceholder()
@@ -161,7 +163,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                 className={cn(
                   'relative aspect-square overflow-hidden rounded-lg',
                   'glass-effect interactive-element',
-                  selectedImageIndex === index && 'ring-2 ring-primary ring-offset-2'
+                  selectedImageIndex === index ? 'ring-2 ring-primary ring-offset-2' : '',
                 )}
               >
                 <div className="absolute inset-0 bg-muted/30" />
@@ -185,7 +187,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
       <div className="space-y-6 lg:sticky lg:top-20">
         <div className="glass-effect p-6 space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="interactive-element">{getCategoryTitle()}</Badge>
+            <Badge variant="secondary" className="interactive-element">
+              {getCategoryTitle()}
+            </Badge>
           </div>
 
           <h1 className="text-4xl font-bold tracking-tight">{getProductTitle()}</h1>
@@ -199,8 +203,10 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
         <div className="space-y-2">
           <div className="relative inline-flex items-center group">
-            <div className="absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg 
-                          group-hover:bg-primary/10 transition-colors duration-300" />
+            <div
+              className="absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg 
+                          group-hover:bg-primary/10 transition-colors duration-300"
+            />
             <span className="text-3xl font-bold relative">
               ${product.pricing?.finalPrice || product.pricing?.basePrice}
             </span>
@@ -210,7 +216,10 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               </span>
             )}
             {product.pricing?.discountPercentage && (
-              <Badge variant="destructive" className="ml-3 animate-pulse relative interactive-element">
+              <Badge
+                variant="destructive"
+                className="ml-3 animate-pulse relative interactive-element"
+              >
                 -{product.pricing.discountPercentage}%
               </Badge>
             )}
@@ -227,7 +236,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
         {product.features && product.features.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold px-1">{t.productDetails?.features || 'Features'}</h3>
+            <h3 className="text-xl font-semibold px-1">
+              {t.productDetails?.features || 'Features'}
+            </h3>
             <div className="grid gap-3 sm:grid-cols-2">
               {product.features.map((feature, index) => {
                 // Get the icon based on feature type
@@ -281,25 +292,31 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
           >
             <ShoppingCart className="w-5 h-5 mr-2" />
             Add to Cart
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent 
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent 
                          via-white/20 to-transparent opacity-0 
                          group-hover:opacity-100 transition-opacity duration-300 
-                         -translate-x-full group-hover:translate-x-full" />
+                         -translate-x-full group-hover:translate-x-full"
+            />
           </Button>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Trust indicators */}
-            <div className="glass-effect p-4 interactive-element
-                         flex items-start gap-3">
+            <div
+              className="glass-effect p-4 interactive-element
+                         flex items-start gap-3"
+            >
               <Package className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
               <div>
                 <h4 className="font-medium">Free Shipping</h4>
                 <p className="text-sm text-muted-foreground">On orders over $50</p>
               </div>
             </div>
-            
-            <div className="glass-effect p-4 interactive-element
-                         flex items-start gap-3">
+
+            <div
+              className="glass-effect p-4 interactive-element
+                         flex items-start gap-3"
+            >
               <Shield className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
               <div>
                 <h4 className="font-medium">Secure Payment</h4>

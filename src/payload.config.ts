@@ -37,7 +37,7 @@ import { ENV } from '@/constants/env'
 import { DATABASE_CONFIG } from '@/constants/index'
 
 // Create a collections array
-const collections = [
+const payloadCollections = [
   Categories,
   Media,
   Pages,
@@ -163,7 +163,7 @@ export default buildConfig({
     defaultLocale: 'ru',
     fallback: true,
   },
-  collections: [Categories, Media, Pages, Posts, Users, Solutions, Products, Orders],
+  collections: payloadCollections,
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
