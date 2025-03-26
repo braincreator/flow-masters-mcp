@@ -17,6 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
@@ -26,6 +34,12 @@ interface FilterBarProps {
   priceRange: { min: number; max: number }
   defaultLayout?: 'grid' | 'list'
   locale?: string
+  currency?: {
+    code: string // USD, EUR, RUB, etc.
+    symbol: string // $, €, ₽, etc.
+    position: 'before' | 'after' // $ before number or after
+    rate?: number // conversion rate from base currency
+  }
   labels?: {
     categories: string
     sort: string
@@ -50,11 +64,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   priceRange,
   defaultLayout = 'grid',
   locale,
+  currency = { code: 'USD', symbol: '$', position: 'before', rate: 1 },
   labels,
 }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { setOpenDropdown } = useDropdown()
+  const [isFiltersOpen, setIsFiltersOpen] = React.useState(false)
+  const [isSortOpen, setIsSortOpen] = React.useState(false)
 
   // Use translations if locale is provided, otherwise use labels prop
   const t = locale
@@ -142,343 +159,133 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     router.push(`?${params.toString()}`)
   }
 
+  // Format price for display with appropriate currency
+  const formatPrice = (price: number) => {
+    const formattedNumber = Math.round(price * (currency.rate || 1)).toLocaleString(
+      locale || 'en-US',
+    )
+    return currency.position === 'before'
+      ? `${currency.symbol}${formattedNumber}`
+      : `${formattedNumber} ${currency.symbol}`
+  }
+
   const currentCategory = searchParams.get('category') || 'all'
   const currentSort = searchParams.get('sort') || 'newest'
   const currentProductType = searchParams.get('productType') || 'all'
   const currentTag = searchParams.get('tag') || 'all'
   const currentSearch = searchParams.get('search') || ''
 
+  // Open filter dialog
+  const openFiltersDialog = () => {
+    setIsFiltersOpen(true)
+  }
+
+  // Reset all filters
+  const resetAllFilters = () => {
+    handleCategoryChange('all')
+    handleProductTypeChange('all')
+    handleTagChange('all')
+    handlePriceRangeChange([priceRange.min, priceRange.max])
+    handleSearch('')
+  }
+
+  // Reset only specific filter
+  const hasActiveFilters =
+    currentCategory !== 'all' ||
+    currentProductType !== 'all' ||
+    currentTag !== 'all' ||
+    currentSearch ||
+    currentPriceRange[0] !== priceRange.min ||
+    currentPriceRange[1] !== priceRange.max
+
   return (
-    <div className="space-y-4">
-      {/* Common Search Bar - Visible on all devices */}
-      <div className="relative w-full">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="search"
-          placeholder={t.filters.searchPlaceholder}
-          defaultValue={currentSearch}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="w-full h-11 pl-10 pr-4 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200"
-        />
-      </div>
+    <div className="space-y-4 mb-8 border-b pb-6">
+      {/* Main Controls Row - Search, Filters, Sort, and Layout */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {/* Search Input */}
+        <div className="relative flex-1 min-w-[200px]">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="search"
+            placeholder={t.filters.searchPlaceholder}
+            defaultValue={currentSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200"
+          />
+        </div>
 
-      {/* Active Filters Chips - Visible on all devices */}
-      <div className="flex flex-wrap gap-2">
-        {currentCategory !== 'all' && (
-          <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm">
-            <span className="mr-1">
-              {categories.find((c) => c.value === currentCategory)?.label || currentCategory}
+        {/* Filters Button */}
+        <Button
+          variant="outline"
+          onClick={openFiltersDialog}
+          className="h-10 px-3 justify-center bg-background hover:bg-accent/5 border border-border"
+        >
+          <SlidersHorizontal className="mr-2 h-4 w-4" />
+          <span>{t.filters.filters || 'Фильтры'}</span>
+          {hasActiveFilters && (
+            <span className="ml-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-white">
+              {
+                [
+                  currentCategory !== 'all',
+                  currentProductType !== 'all',
+                  currentTag !== 'all',
+                  currentPriceRange[0] !== priceRange.min ||
+                    currentPriceRange[1] !== priceRange.max,
+                ].filter(Boolean).length
+              }
             </span>
-            <button
-              onClick={() => handleCategoryChange('all')}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Clear category filter"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
+          )}
+        </Button>
 
-        {currentProductType !== 'all' && (
-          <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm">
-            <span className="mr-1">
-              {t.filters.productType[currentProductType as keyof typeof t.filters.productType] ||
-                productTypes.find((t) => t.value === currentProductType)?.label ||
-                currentProductType}
-            </span>
-            <button
-              onClick={() => handleProductTypeChange('all')}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Clear product type filter"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {currentTag !== 'all' && (
-          <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm">
-            <span className="mr-1">
-              {tags.find((t) => t.value === currentTag)?.label || currentTag}
-            </span>
-            <button
-              onClick={() => handleTagChange('all')}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Clear tag filter"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {(searchParams.get('minPrice') || searchParams.get('maxPrice')) && (
-          <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm">
-            <span className="mr-1">
-              ${currentPriceRange[0].toLocaleString('en-US')} - $
-              {currentPriceRange[1].toLocaleString('en-US')}
-            </span>
-            <button
-              onClick={() => handlePriceRangeChange([priceRange.min, priceRange.max])}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Clear price filter"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {(currentCategory !== 'all' ||
-          currentProductType !== 'all' ||
-          currentTag !== 'all' ||
-          searchParams.get('minPrice') ||
-          searchParams.get('maxPrice')) && (
-          <button
-            onClick={() => {
-              handleCategoryChange('all')
-              handleProductTypeChange('all')
-              handleTagChange('all')
-              handlePriceRangeChange([priceRange.min, priceRange.max])
-            }}
-            className="inline-flex items-center text-sm text-primary hover:underline"
+        {/* Sort Dropdown */}
+        <div>
+          <Button
+            variant="outline"
+            onClick={() => setIsSortOpen(!isSortOpen)}
+            className="h-10 px-3 justify-center bg-background hover:bg-accent/5 border border-border"
           >
-            {t.filters.clearAll || 'Clear all filters'}
-          </button>
-        )}
-      </div>
-
-      {/* Controls Row - Visible on all devices */}
-      <div className="flex items-center justify-between">
-        {/* Mobile Filters Button */}
-        <div className="lg:hidden">
-          <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                className="justify-start bg-background hover:bg-accent/5 border-border/50 text-foreground font-medium"
-              >
-                <SlidersHorizontal className="mr-2 h-4 w-4" />
-                {t.filters.filters || 'Фильтры'}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-xl">
-              <div className="h-full flex flex-col">
-                <SheetHeader className="px-4 py-3 border-b bg-muted/40 dark:bg-muted/20 rounded-t-xl sticky top-0 z-10">
-                  <SheetTitle className="text-lg font-semibold flex items-center justify-between">
-                    <span>{t.filters.filters || 'Фильтры'}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                      className="h-8 w-8 rounded-full"
-                    >
-                      <X className="h-5 w-5" />
-                      <span className="sr-only">Закрыть</span>
-                    </Button>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto px-4 py-4">
-                  <div className="space-y-6">
-                    {/* Categories */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
-                      <Select value={currentCategory} onValueChange={handleCategoryChange}>
-                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                          <SelectValue placeholder={t.filters.categories} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t.filters.categories}</SelectItem>
-                          {categories.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Product Types */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
-                      <Select value={currentProductType} onValueChange={handleProductTypeChange}>
-                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                          <SelectValue placeholder={t.filters.productType.all} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t.filters.productType.all}</SelectItem>
-                          {productTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {t.filters.productType[
-                                type.value as keyof typeof t.filters.productType
-                              ] || type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
-                      <Select value={currentTag} onValueChange={handleTagChange}>
-                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                          <SelectValue placeholder={t.filters.tags} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t.filters.tags}</SelectItem>
-                          {tags.map((tag) => (
-                            <SelectItem key={tag.value} value={tag.value}>
-                              {tag.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Price Range */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold">{t.filters.priceRange.label}</h3>
-                      <div className="px-3 py-4 rounded-lg bg-background border border-border/50">
-                        <Slider
-                          value={currentPriceRange}
-                          onValueChange={handlePriceRangeChange}
-                          max={priceRange.max}
-                          step={10}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-muted-foreground mt-4">
-                          <span>
-                            {t.filters.priceRange.min}: $
-                            {currentPriceRange[0].toLocaleString('en-US')}
-                          </span>
-                          <span>
-                            {t.filters.priceRange.max}: $
-                            {currentPriceRange[1].toLocaleString('en-US')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sort Options */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold">{t.filters.sort}</h3>
-                      <Select value={currentSort} onValueChange={handleSortChange}>
-                        <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                          <SelectValue placeholder={t.filters.sort} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {sortOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile Sheet Footer */}
-                <div className="px-4 py-3 border-t bg-background/80 backdrop-blur-sm sticky bottom-0">
-                  <div className="flex gap-3 justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        handleCategoryChange('all')
-                        handleProductTypeChange('all')
-                        handleTagChange('all')
-                        handlePriceRangeChange([priceRange.min, priceRange.max])
-                        setIsMobileFiltersOpen(false)
-                      }}
-                    >
-                      {t.filters.clearAll || 'Очистить всё'}
-                    </Button>
-                    <Button
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    >
-                      {t.filters.apply || 'Применить'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        {/* Sort Dropdown (Mobile) */}
-        <div className="lg:hidden">
-          <Select value={currentSort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[160px] h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-              <SelectValue placeholder={t.filters.sort} />
-            </SelectTrigger>
-            <SelectContent>
+            <span className="mr-1">{t.filters.sort || 'Сортировка'}</span>
+            <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
+          </Button>
+          {isSortOpen && (
+            <div className="absolute z-10 mt-1 bg-background rounded-lg shadow-lg border border-border p-1 w-[220px]">
               {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <Button
+                  key={option.value}
+                  variant="ghost"
+                  onClick={() => {
+                    handleSortChange(option.value)
+                    setIsSortOpen(false)
+                  }}
+                  className={cn(
+                    'w-full justify-start text-left mb-1 last:mb-0',
+                    currentSort === option.value &&
+                      'bg-accent/10 text-accent-foreground font-medium',
+                  )}
+                >
                   {option.label}
-                </SelectItem>
+                </Button>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          )}
         </div>
 
-        {/* Layout Toggle (Mobile & Desktop) */}
-        <div className="flex gap-2 h-10 p-1 bg-background rounded-lg relative border border-border/50">
+        {/* Reset Filters */}
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            onClick={resetAllFilters}
+            size="icon"
+            className="h-10 w-10 rounded-full hover:bg-destructive/10 border border-transparent hover:border-destructive/20"
+            title={t.filters.clearAll || 'Сбросить все фильтры'}
+          >
+            <X className="h-4 w-4 text-destructive" />
+            <span className="sr-only">{t.filters.clearAll || 'Сбросить все фильтры'}</span>
+          </Button>
+        )}
+
+        {/* Layout Toggle */}
+        <div className="flex-none ml-auto flex gap-2 h-10 p-1 bg-background rounded-lg relative border border-border">
           <button
             type="button"
             onClick={() => handleLayoutChange('grid')}
@@ -515,91 +322,237 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
       </div>
 
-      {/* Desktop Filters */}
-      <div className="hidden lg:block">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Categories Dropdown */}
-          <div className="w-[180px]">
-            <Select value={currentCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                <SelectValue placeholder={t.filters.categories} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.filters.categories}</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Product Types Dropdown */}
-          <div className="w-[180px]">
-            <Select value={currentProductType} onValueChange={handleProductTypeChange}>
-              <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                <SelectValue placeholder={t.filters.productType.all} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.filters.productType.all}</SelectItem>
-                {productTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {t.filters.productType[type.value as keyof typeof t.filters.productType] ||
-                      type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Tags Dropdown */}
-          <div className="w-[180px]">
-            <Select value={currentTag} onValueChange={handleTagChange}>
-              <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                <SelectValue placeholder={t.filters.tags} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.filters.tags}</SelectItem>
-                {tags.map((tag) => (
-                  <SelectItem key={tag.value} value={tag.value}>
-                    {tag.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="w-[180px]">
-            <Select value={currentSort} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
-                <SelectValue placeholder={t.filters.sort} />
-              </SelectTrigger>
-              <SelectContent>
-                {sortOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Price Range */}
-          <div className="w-[280px]">
-            <div className="px-3 py-2 rounded-lg bg-background border border-border/50 h-10 flex items-center">
-              <span className="text-sm text-muted-foreground mr-2">
-                {t.filters.priceRange.label}:
+      {/* Active Filters Chips - Visible when there are active filters */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2">
+          {currentCategory !== 'all' && (
+            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
+              <span className="mr-1">
+                {categories.find((c) => c.value === currentCategory)?.label || currentCategory}
               </span>
-              <span className="text-sm">
-                ${currentPriceRange[0].toLocaleString('en-US')} - $
-                {currentPriceRange[1].toLocaleString('en-US')}
+              <button
+                onClick={() => handleCategoryChange('all')}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear category filter"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {currentProductType !== 'all' && (
+            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
+              <span className="mr-1">
+                {t.filters.productType[currentProductType as keyof typeof t.filters.productType] ||
+                  productTypes.find((t) => t.value === currentProductType)?.label ||
+                  currentProductType}
               </span>
+              <button
+                onClick={() => handleProductTypeChange('all')}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear product type filter"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {currentTag !== 'all' && (
+            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
+              <span className="mr-1">
+                {tags.find((t) => t.value === currentTag)?.label || currentTag}
+              </span>
+              <button
+                onClick={() => handleTagChange('all')}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear tag filter"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {(currentPriceRange[0] !== priceRange.min || currentPriceRange[1] !== priceRange.max) && (
+            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
+              <span className="mr-1">
+                {formatPrice(currentPriceRange[0])} - {formatPrice(currentPriceRange[1])}
+              </span>
+              <button
+                onClick={() => handlePriceRangeChange([priceRange.min, priceRange.max])}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear price filter"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Filters Dialog */}
+      <Dialog open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+        <DialogContent className="sm:max-w-[500px] p-0 border border-border">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle>{t.filters.filters || 'Фильтры'}</DialogTitle>
+            <DialogDescription>
+              {t.filters.filtersDescription || 'Выберите фильтры для товаров'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 p-4 max-h-[70vh] overflow-y-auto">
+            {/* Categories */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
+              <Select value={currentCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                  <SelectValue placeholder={t.filters.categories} />
+                </SelectTrigger>
+                <SelectContent className="border border-border">
+                  <SelectItem value="all">{t.filters.categories}</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Product Types */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
+              <Select value={currentProductType} onValueChange={handleProductTypeChange}>
+                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                  <SelectValue placeholder={t.filters.productType.all} />
+                </SelectTrigger>
+                <SelectContent className="border border-border">
+                  <SelectItem value="all">{t.filters.productType.all}</SelectItem>
+                  {productTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {t.filters.productType[type.value as keyof typeof t.filters.productType] ||
+                        type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
+              <Select value={currentTag} onValueChange={handleTagChange}>
+                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                  <SelectValue placeholder={t.filters.tags} />
+                </SelectTrigger>
+                <SelectContent className="border border-border">
+                  <SelectItem value="all">{t.filters.tags}</SelectItem>
+                  {tags.map((tag) => (
+                    <SelectItem key={tag.value} value={tag.value}>
+                      {tag.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Price Range */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">{t.filters.priceRange.label}</h3>
+                <span className="text-xs bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full border border-accent/20">
+                  {formatPrice(currentPriceRange[0])} - {formatPrice(currentPriceRange[1])}
+                </span>
+              </div>
+              <div className="px-4 py-4 rounded-lg bg-background border border-border">
+                <Slider
+                  value={currentPriceRange}
+                  onValueChange={handlePriceRangeChange}
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-3">
+                  <span>{formatPrice(priceRange.min)}</span>
+                  <div className="h-4 border-l border-border/50"></div>
+                  <div className="h-4 border-l border-border/50"></div>
+                  <div className="h-4 border-l border-border/50"></div>
+                  <span>{formatPrice(priceRange.max)}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+
+          <DialogFooter className="px-4 py-3 border-t border-border">
+            <Button
+              variant="outline"
+              onClick={resetAllFilters}
+              className="mr-auto border border-border"
+            >
+              {t.filters.clearAll || 'Сбросить'}
+            </Button>
+            <Button onClick={() => setIsFiltersOpen(false)} className="border border-accent/20">
+              {t.filters.apply || 'Применить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

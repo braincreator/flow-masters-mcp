@@ -88,9 +88,9 @@
     --info: 199 89% 60%;
     --info-foreground: 210 40% 98%;
 
-    /* Border & Input - Increased contrast */
-    --border: 222 47% 15%;
-    --input: 222 47% 15%;
+    /* Border & Input - Increased contrast for dark mode */
+    --border: 222 47% 25%; /* Increased lightness for better visibility */
+    --input: 222 47% 25%;
     --ring: 224 82% 65%;
 
     /* Enhanced Shadows */
@@ -545,6 +545,48 @@
   .select-trigger:active,
   button:active {
     @apply active:scale-[0.98] active:opacity-90;
+  }
+
+  /* Border styles for dark mode */
+  .dark .border,
+  [data-theme='dark'] .border {
+    @apply border-border/80; /* Increased opacity for better visibility */
+  }
+
+  /* Input and form control styles for dark mode */
+  .dark .input-base,
+  .dark .select-trigger,
+  .dark .select-content,
+  .dark button[class*='border'],
+  [data-theme='dark'] .input-base,
+  [data-theme='dark'] .select-trigger,
+  [data-theme='dark'] .select-content,
+  [data-theme='dark'] button[class*='border'] {
+    @apply border-border/90; /* Higher opacity borders for dark mode */
+  }
+
+  /* Dialog and popover styles for dark mode */
+  .dark .border-t,
+  .dark .border-b,
+  .dark .border-l,
+  .dark .border-r,
+  [data-theme='dark'] .border-t,
+  [data-theme='dark'] .border-b,
+  [data-theme='dark'] .border-l,
+  [data-theme='dark'] .border-r {
+    @apply border-border/80; /* Increased opacity for directional borders */
+  }
+
+  /* Focus and hover styles for dark mode */
+  .dark .interactive-element:hover,
+  .dark .input-base:hover,
+  .dark .select-trigger:hover,
+  .dark button:hover,
+  [data-theme='dark'] .interactive-element:hover,
+  [data-theme='dark'] .input-base:hover,
+  [data-theme='dark'] .select-trigger:hover,
+  [data-theme='dark'] button:hover {
+    @apply border-border; /* Full opacity on hover */
   }
 }
 
