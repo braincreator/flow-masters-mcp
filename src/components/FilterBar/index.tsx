@@ -517,9 +517,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Desktop Filters */}
       <div className="hidden lg:block">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           {/* Categories Dropdown */}
-          <div className="w-[200px]">
+          <div className="w-[180px]">
             <Select value={currentCategory} onValueChange={handleCategoryChange}>
               <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                 <SelectValue placeholder={t.filters.categories} />
@@ -536,7 +536,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
 
           {/* Product Types Dropdown */}
-          <div className="w-[200px]">
+          <div className="w-[180px]">
             <Select value={currentProductType} onValueChange={handleProductTypeChange}>
               <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                 <SelectValue placeholder={t.filters.productType.all} />
@@ -554,7 +554,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
 
           {/* Tags Dropdown */}
-          <div className="w-[200px]">
+          <div className="w-[180px]">
             <Select value={currentTag} onValueChange={handleTagChange}>
               <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                 <SelectValue placeholder={t.filters.tags} />
@@ -570,21 +570,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </Select>
           </div>
 
-          {/* Price Range */}
-          <div className="w-[300px]">
-            <div className="px-3 py-2 rounded-lg bg-background border border-border/50 h-10 flex items-center">
-              <span className="text-sm text-muted-foreground mr-2">
-                {t.filters.priceRange.label}:
-              </span>
-              <span className="text-sm">
-                ${currentPriceRange[0].toLocaleString('en-US')} - $
-                {currentPriceRange[1].toLocaleString('en-US')}
-              </span>
-            </div>
-          </div>
-
           {/* Sort Dropdown */}
-          <div className="w-[200px] ml-auto">
+          <div className="w-[180px]">
             <Select value={currentSort} onValueChange={handleSortChange}>
               <SelectTrigger className="w-full h-10 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
                 <SelectValue placeholder={t.filters.sort} />
@@ -597,6 +584,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Price Range */}
+          <div className="w-[280px]">
+            <div className="px-3 py-2 rounded-lg bg-background border border-border/50 h-10 flex items-center">
+              <span className="text-sm text-muted-foreground mr-2">
+                {t.filters.priceRange.label}:
+              </span>
+              <span className="text-sm">
+                ${currentPriceRange[0].toLocaleString('en-US')} - $
+                {currentPriceRange[1].toLocaleString('en-US')}
+              </span>
+            </div>
           </div>
         </div>
       </div>
