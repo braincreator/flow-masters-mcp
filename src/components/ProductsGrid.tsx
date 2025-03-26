@@ -2,7 +2,7 @@
 
 import React from 'react'
 import type { Product } from '@/payload-types'
-import { ProductCard } from '@/components/ProductCard'
+import { ProductCard } from '@/components/ProductCard/index'
 import { Pagination } from './Pagination'
 
 interface ProductsGridProps {

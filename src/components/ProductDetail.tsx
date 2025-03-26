@@ -288,7 +288,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
           <Button
             size="lg"
             className="w-full glass-effect interactive-element
-                     relative overflow-hidden group"
+                     relative overflow-hidden group
+                     dark:border dark:border-primary/30 dark:hover:border-primary/50"
           >
             <ShoppingCart className="w-5 h-5 mr-2" />
             Add to Cart
@@ -296,7 +297,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               className="absolute inset-0 bg-gradient-to-r from-transparent 
                          via-white/20 to-transparent opacity-0 
                          group-hover:opacity-100 transition-opacity duration-300 
-                         -translate-x-full group-hover:translate-x-full"
+                         -translate-x-full group-hover:translate-x-full
+                         dark:from-transparent dark:via-primary/20 dark:to-transparent"
             />
           </Button>
 
@@ -304,7 +306,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
             {/* Trust indicators */}
             <div
               className="glass-effect p-4 interactive-element
-                         flex items-start gap-3"
+                         flex items-start gap-3
+                         dark:border dark:border-border/50 dark:hover:border-primary/30"
             >
               <Package className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
               <div>

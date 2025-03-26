@@ -15,7 +15,7 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void
 }
 
-export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
   const getButtonConfig = (type: string) => {
     switch (type) {
       case 'digital':
@@ -53,6 +53,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     <div
       className={`group bg-card rounded-xl border border-border overflow-hidden
         transition-all duration-300 hover:shadow-lg
+        dark:border-border/50 dark:hover:border-primary/30
         ${layout === 'list' ? 'flex gap-6' : 'flex flex-col'}
       `}
     >
@@ -61,6 +62,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         href={`/${locale}/products/${product.slug}`}
         className={`
           relative overflow-hidden
+          dark:border-b dark:border-border/50 dark:group-hover:border-primary/30
           ${layout === 'list' ? 'w-48 h-48 shrink-0' : 'w-full aspect-[4/3]'}
         `}
       >
@@ -81,7 +83,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {/* Price Badge */}
         {product.pricing?.[locale]?.amount && (
           <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
-                        px-3 py-1 rounded-full border border-border">
+                        px-3 py-1 rounded-full border border-border
+                        dark:border-border/50 dark:hover:border-primary/30">
             <span className="font-semibold">
               {formatPrice(product.pricing[locale].amount, locale)}
             </span>
@@ -116,7 +119,9 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             {product.categories.map((category) => (
               <span 
                 key={category.id}
-                className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-full"
+                className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-full
+                         dark:border dark:border-border/50 dark:hover:border-primary/30
+                         transition-colors duration-200"
               >
                 {typeof category.title === 'object' 
                   ? category.title[locale] 
@@ -131,7 +136,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           onClick={() => onAddToCart?.(product)}
           className="w-full glass-effect interactive-element
                    relative overflow-hidden group/button
-                   hover:border-primary/30 mt-auto"
+                   hover:border-primary/30 mt-auto
+                   dark:border dark:border-primary/30 dark:hover:border-primary/50"
           disabled={product.status !== 'published'}
           size="lg"
         >
@@ -140,7 +146,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           <div className="absolute inset-0 bg-gradient-to-r from-transparent 
                        via-white/20 to-transparent opacity-0 
                        group-hover/button:opacity-100 transition-opacity duration-300 
-                       -translate-x-full group-hover/button:translate-x-full" />
+                       -translate-x-full group-hover/button:translate-x-full
+                       dark:from-transparent dark:via-primary/20 dark:to-transparent" />
         </Button>
 
         {/* Subscription Info */}
@@ -157,3 +164,5 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     </div>
   )
 }
+
+export { ProductCard }
