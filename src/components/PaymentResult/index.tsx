@@ -22,7 +22,11 @@ const ResultIcon = ({ success }: { success: boolean }) => (
   </div>
 )
 
-const ActionButton = ({ href, variant = 'primary', children }: {
+const ActionButton = ({
+  href,
+  variant = 'primary',
+  children,
+}: {
   href: string
   variant?: 'primary' | 'secondary'
   children: React.ReactNode
@@ -31,9 +35,11 @@ const ActionButton = ({ href, variant = 'primary', children }: {
     href={href}
     className={`
       inline-block px-6 py-2 rounded-md
-      ${variant === 'primary' 
-        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-        : 'border border-gray-300 hover:bg-gray-50'}
+      ${
+        variant === 'primary'
+          ? 'bg-purple-600 text-white hover:bg-purple-700'
+          : 'border border-gray-300 hover:bg-gray-50'
+      }
     `}
   >
     {children}
@@ -57,17 +63,13 @@ export const PaymentResult = ({ result, onRetry }: PaymentResultProps) => {
       showToast('Too many retry attempts. Please contact support.', 'error')
       return
     }
-    setRetryCount(prev => prev + 1)
+    setRetryCount((prev) => prev + 1)
     onRetry?.()
   }
 
   return (
     <ErrorBoundary fallback={<div>Something went wrong. Please refresh the page.</div>}>
-      <div 
-        className="max-w-lg mx-auto p-6"
-        role="alert"
-        aria-live="polite"
-      >
+      <div className="max-w-lg mx-auto p-6" role="alert" aria-live="polite">
         {result.success ? (
           <div className="text-center space-y-4">
             <ResultIcon success={true} />
@@ -76,9 +78,7 @@ export const PaymentResult = ({ result, onRetry }: PaymentResultProps) => {
               Thank you for your payment. Your order #{result.orderId} has been confirmed.
             </p>
             {result.transactionId && (
-              <p className="text-sm text-gray-500">
-                Transaction ID: {result.transactionId}
-              </p>
+              <p className="text-sm text-gray-500">Transaction ID: {result.transactionId}</p>
             )}
             <div className="pt-6">
               <ActionButton href="/orders">View Orders</ActionButton>

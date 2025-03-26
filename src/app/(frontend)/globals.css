@@ -100,6 +100,26 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 10px 10px -5px rgb(0 0 0 / 0.2);
   }
+
+  /* Global rule to ensure focus styles are only applied during focus and removed after */
+  *:focus {
+    @apply outline-none;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background border-transparent;
+  }
+
+  /* Global CSS reset for all interactive elements to completely remove focus styling after focus is lost */
+  /* This is a more aggressive reset that will apply to ALL elements */
+  *:not(:focus-visible) {
+    @apply ring-0 ring-offset-0 !border-border outline-none;
+  }
+
+  /* Fix hover behavior for all elements with borders */
+  *:hover {
+    @apply border-border;
+  }
 }
 
 @layer base {
@@ -116,9 +136,14 @@
     @apply transition-colors duration-300;
   }
 
-  /* Improve contrast for focus states */
+  /* Improve contrast for focus states - only apply during focus */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background border-transparent;
+  }
+
+  /* Reset styles when not focused - make sure borders are completely removed after focus */
+  *:not(:focus-visible) {
+    @apply ring-0 ring-offset-0 border-border;
   }
 }
 
@@ -157,7 +182,11 @@
   }
 
   .interactive-element {
-    @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-md hover:bg-background/60 dark:hover:bg-background/40;
+    @apply relative overflow-hidden
+           transition-all duration-300
+           hover:scale-[1.02]
+           active:scale-[0.98]
+           hover:bg-accent/5 dark:hover:bg-accent/10;
   }
 
   /* AI-themed card */
@@ -195,43 +224,48 @@
     @apply text-base md:text-lg relative overflow-hidden
            font-medium
            disabled:opacity-50 disabled:pointer-events-none
-           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:border-transparent
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:border-transparent
+           focus:border-transparent
            active:scale-[0.98]
            select-none
            transition-all duration-300 ease-out;
   }
 
   .input-base {
-    @apply text-base md:text-lg w-full rounded-lg border border-input bg-background px-4 py-2.5 placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 dark:bg-background/80;
+    @apply text-base md:text-lg w-full rounded-lg border border-border bg-background px-4 py-2.5 
+      placeholder:text-muted-foreground/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+      focus:border-transparent focus-visible:border-transparent hover:border-border
+      disabled:cursor-not-allowed disabled:opacity-50 
+      transition-all duration-200 dark:bg-background/80;
   }
 
   /* Update badge size */
   .badge {
     @apply inline-flex items-center rounded-full px-3 py-1
            text-sm font-medium transition-colors duration-200
-           bg-primary/10 text-primary-foreground
-           dark:bg-primary/20;
+           bg-accent/10 text-accent-foreground
+           dark:bg-accent/20;
   }
 
   /* Enhanced AI button */
   .ai-button {
     @apply px-6 py-3 rounded-xl
-           bg-gradient-to-br from-primary via-secondary to-accent
+           bg-gradient-to-br from-accent via-secondary to-accent
            text-white font-medium
-           shadow-lg shadow-primary/20
+           shadow-lg shadow-accent/20
            transition-all duration-300
-           hover:shadow-xl hover:shadow-primary/30
+           hover:shadow-xl hover:shadow-accent/30
            hover:scale-[1.02]
            active:scale-[0.98]
            disabled:opacity-50 disabled:pointer-events-none
-           dark:shadow-primary/40
-           dark:hover:shadow-primary/50;
+           dark:shadow-accent/40
+           dark:hover:shadow-accent/50;
   }
 
   /* Futuristic input */
   .ai-input {
     @apply glass-effect px-6 py-3
-           focus:outline-none focus:ring-2 focus:ring-primary/50
+           focus:outline-none focus:ring-2 focus:ring-accent/50
            placeholder:text-muted-foreground/70
            text-base relative
            transition-all duration-200;
@@ -241,8 +275,8 @@
   .card-hover {
     @apply card hover:scale-[1.02] hover:-translate-y-1 
            transition-all duration-300 ease-out
-           hover:shadow-xl hover:shadow-primary/10
-           dark:hover:shadow-primary/20;
+           hover:shadow-xl hover:shadow-accent/10
+           dark:hover:shadow-accent/20;
   }
 
   .card-gradient {
@@ -273,7 +307,13 @@
 
   /* Select component styles */
   .select-trigger {
-    @apply flex h-10 w-full items-center justify-between rounded-lg border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent disabled:cursor-not-allowed disabled:opacity-50 hover:border-border/80 transition-all duration-200;
+    @apply flex h-10 w-full items-center justify-between rounded-lg border border-border bg-background 
+      px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground 
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent 
+      focus:border-transparent
+      focus:!ring-0 focus:!ring-offset-0 focus-visible:!ring-2 focus-visible:!ring-offset-2
+      disabled:cursor-not-allowed disabled:opacity-50 
+      transition-all duration-200;
   }
 
   .select-content {
@@ -281,11 +321,58 @@
   }
 
   .select-item {
-    @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+    @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm 
+           outline-none border-transparent 
+           focus:bg-accent focus:text-accent-foreground focus:border-transparent focus:outline-none focus:ring-0 focus:ring-offset-0
+           data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[highlighted]:border-transparent data-[highlighted]:outline-none data-[highlighted]:ring-0 data-[highlighted]:ring-offset-0
+           data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
   }
 
   .select-item-indicator {
     @apply absolute left-2 flex h-3.5 w-3.5 items-center justify-center;
+  }
+
+  /* Comprehensive fix for removing borders from all dropdown/listbox items during keyboard navigation */
+  [role='listbox'] [role='option'],
+  [role='menu'] [role='menuitem'],
+  [role='combobox'] [role='option'],
+  [role='dialog'] [role='option'],
+  [role='grid'] [role='row'],
+  [role='grid'] [role='gridcell'],
+  [role='listbox'] [role='option'],
+  .select-item,
+  .command-item,
+  .dropdown-item {
+    @apply border-transparent outline-none;
+  }
+
+  /* States for keyboard navigation of list items */
+  [role='listbox'] [role='option']:focus,
+  [role='listbox'] [role='option']:focus-visible,
+  [role='menu'] [role='menuitem']:focus,
+  [role='menu'] [role='menuitem']:focus-visible,
+  [role='combobox'] [role='option']:focus,
+  [role='combobox'] [role='option']:focus-visible,
+  [role='dialog'] [role='option']:focus,
+  [role='dialog'] [role='option']:focus-visible,
+  [role='grid'] [role='row']:focus,
+  [role='grid'] [role='row']:focus-visible,
+  [role='grid'] [role='gridcell']:focus,
+  [role='grid'] [role='gridcell']:focus-visible,
+  [role='listbox'] [role='option'][data-highlighted],
+  [role='listbox'] [role='option'][data-state='checked'],
+  [role='menu'] [role='menuitem'][data-highlighted],
+  [role='combobox'] [role='option'][data-highlighted],
+  .select-item:focus,
+  .select-item:focus-visible,
+  .select-item[data-highlighted],
+  .command-item:focus,
+  .command-item:focus-visible,
+  .command-item[data-highlighted],
+  .dropdown-item:focus,
+  .dropdown-item:focus-visible,
+  .dropdown-item[data-highlighted] {
+    @apply !border-transparent !ring-0 !ring-offset-0 !outline-none;
   }
 
   /* Badge variations */
@@ -415,7 +502,7 @@
 
   .glow-effect::after {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20
+    @apply absolute inset-0 bg-gradient-to-r from-accent/20 via-secondary/20 to-accent/20
            blur-xl opacity-0 transition-opacity duration-500;
   }
 
@@ -435,7 +522,7 @@
   .product-card::before {
     content: '';
     @apply absolute inset-0
-           bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+           bg-gradient-to-br from-accent/5 via-transparent to-accent/5
            opacity-0 transition-opacity duration-300;
   }
 
@@ -446,7 +533,7 @@
   .product-card::after {
     content: '';
     @apply absolute inset-0
-           border border-primary/10
+           border border-accent/10
            rounded-xl
            opacity-0 scale-[1.02]
            transition-all duration-300;
@@ -470,7 +557,7 @@
            transition-all duration-300
            hover:scale-[1.02]
            active:scale-[0.98]
-           hover:bg-primary/5 dark:hover:bg-primary/10;
+           hover:bg-accent/5 dark:hover:bg-accent/10;
   }
 
   /* Shimmer animation */
@@ -492,7 +579,7 @@
            transition-all duration-300
            hover:scale-[1.02]
            active:scale-[0.98]
-           hover:bg-primary/5 dark:hover:bg-primary/10;
+           hover:bg-accent/5 dark:hover:bg-accent/10;
   }
 
   /* Button shimmer effect */
@@ -517,34 +604,76 @@
            mt-2;
   }
 
-  /* Focus styles for all interactive elements */
-  .interactive-element:focus,
-  .input-base:focus,
-  .input-modern:focus,
-  .select-modern:focus,
-  .select-trigger:focus,
-  button:focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent;
+  /* Explicitly reset focus styles for all interactive controls */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  .interactive-element,
+  .input-base,
+  .input-modern,
+  .select-modern,
+  .select-trigger {
+    @apply focus:outline-none focus-visible:outline-none 
+           focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:border-transparent
+           focus:border-transparent;
   }
 
-  /* Hover styles for all interactive elements */
+  /* Ensure focus styles are ONLY present during actual focus */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  .interactive-element:focus-visible,
+  .input-base:focus-visible,
+  .input-modern:focus-visible,
+  .select-modern:focus-visible,
+  .select-trigger:focus-visible {
+    @apply outline-none ring-2 ring-accent/50 ring-offset-2 ring-offset-background border-transparent;
+  }
+
+  /* Complete reset when focus is lost - with !important to override any other styles */
+  button:not(:focus-visible),
+  a:not(:focus-visible),
+  input:not(:focus-visible),
+  select:not(:focus-visible),
+  textarea:not(:focus-visible),
+  .interactive-element:not(:focus-visible),
+  .input-base:not(:focus-visible),
+  .input-modern:not(:focus-visible),
+  .select-modern:not(:focus-visible),
+  .select-trigger:not(:focus-visible) {
+    @apply !ring-0 !ring-offset-0;
+  }
+
+  /* Fix hover behavior for input elements - explicitly set border color on hover */
+  input,
+  .input-base,
+  .input-modern,
+  select,
+  .select-modern,
+  .select-trigger,
+  .interactive-element,
+  button {
+    @apply hover:border-border;
+  }
+
+  /* Update hover styles to not show focus-like effects - make sure borders don't disappear on hover */
+  .dark .interactive-element:hover,
+  .dark .input-base:hover,
+  .dark .select-trigger:hover,
+  .dark button:hover,
+  [data-theme='dark'] .interactive-element:hover,
+  [data-theme='dark'] .input-base:hover,
+  [data-theme='dark'] .select-trigger:hover,
+  [data-theme='dark'] button:hover,
   .interactive-element:hover,
   .input-base:hover,
-  .input-modern:hover,
-  .select-modern:hover,
   .select-trigger:hover,
   button:hover {
-    @apply hover:border-border/80;
-  }
-
-  /* Active styles for all interactive elements */
-  .interactive-element:active,
-  .input-base:active,
-  .input-modern:active,
-  .select-modern:active,
-  .select-trigger:active,
-  button:active {
-    @apply active:scale-[0.98] active:opacity-90;
+    @apply border-border ring-0;
   }
 
   /* Border styles for dark mode */
@@ -575,18 +704,6 @@
   [data-theme='dark'] .border-l,
   [data-theme='dark'] .border-r {
     @apply border-border/80; /* Increased opacity for directional borders */
-  }
-
-  /* Focus and hover styles for dark mode */
-  .dark .interactive-element:hover,
-  .dark .input-base:hover,
-  .dark .select-trigger:hover,
-  .dark button:hover,
-  [data-theme='dark'] .interactive-element:hover,
-  [data-theme='dark'] .input-base:hover,
-  [data-theme='dark'] .select-trigger:hover,
-  [data-theme='dark'] button:hover {
-    @apply border-border; /* Full opacity on hover */
   }
 }
 
@@ -753,7 +870,7 @@ body.modal-open {
 
 .product-card::before {
   content: '';
-  @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5
+  @apply absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/5
          opacity-0 transition-opacity duration-300;
 }
 
@@ -834,4 +951,17 @@ body.modal-open {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+/* Filter button styles with better hover contrast */
+.filter-button {
+  @apply bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent
+         transition-all duration-200;
+}
+
+/* Ghost button hover states for filter lists */
+.filter-option {
+  @apply hover:bg-accent hover:text-accent-foreground 
+         data-[state=active]:bg-accent data-[state=active]:text-accent-foreground
+         transition-all duration-200;
 }

@@ -210,7 +210,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             placeholder={t.filters.searchPlaceholder}
             defaultValue={currentSearch}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200"
+            className="input-base w-full h-10 pl-10 pr-4 rounded-lg"
           />
         </div>
 
@@ -218,7 +218,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <Button
           variant="outline"
           onClick={openFiltersDialog}
-          className="h-10 px-3 justify-center bg-background hover:bg-accent/5 border border-border"
+          className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           <span>{t.filters.filters || 'Фильтры'}</span>
@@ -242,7 +242,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <Button
             variant="outline"
             onClick={() => setIsSortOpen(!isSortOpen)}
-            className="h-10 px-3 justify-center bg-background hover:bg-accent/5 border border-border"
+            className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
           >
             <span className="mr-1">{t.filters.sort || 'Сортировка'}</span>
             <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
@@ -258,9 +258,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     setIsSortOpen(false)
                   }}
                   className={cn(
-                    'w-full justify-start text-left mb-1 last:mb-0',
-                    currentSort === option.value &&
-                      'bg-accent/10 text-accent-foreground font-medium',
+                    'w-full justify-start text-left mb-1 last:mb-0 hover:bg-accent hover:text-accent-foreground',
+                    currentSort === option.value && 'bg-accent text-accent-foreground font-medium',
                   )}
                 >
                   {option.label}
@@ -276,7 +275,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             variant="ghost"
             onClick={resetAllFilters}
             size="icon"
-            className="h-10 w-10 rounded-full hover:bg-destructive/10 border border-transparent hover:border-destructive/20"
+            className="h-10 w-10 rounded-full hover:bg-destructive hover:text-destructive-foreground border border-transparent hover:border-destructive"
             title={t.filters.clearAll || 'Сбросить все фильтры'}
           >
             <X className="h-4 w-4 text-destructive" />
@@ -296,7 +295,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               'transition-all duration-200',
               'border border-transparent',
               layout === 'grid' && 'bg-accent text-accent-foreground shadow-sm',
-              layout !== 'grid' && 'hover:bg-accent/10',
+              layout !== 'grid' && 'hover:bg-accent hover:text-accent-foreground',
             )}
           >
             <GridIcon className="h-4 w-4" />
@@ -313,7 +312,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               'transition-all duration-200',
               'border border-transparent',
               layout === 'list' && 'bg-accent text-accent-foreground shadow-sm',
-              layout !== 'list' && 'hover:bg-accent/10',
+              layout !== 'list' && 'hover:bg-accent hover:text-accent-foreground',
             )}
           >
             <ListIcon className="h-4 w-4" />
@@ -460,7 +459,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
               <Select value={currentCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                <SelectTrigger className="select-trigger w-full">
                   <SelectValue placeholder={t.filters.categories} />
                 </SelectTrigger>
                 <SelectContent className="border border-border">
@@ -478,7 +477,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
               <Select value={currentProductType} onValueChange={handleProductTypeChange}>
-                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                <SelectTrigger className="select-trigger w-full">
                   <SelectValue placeholder={t.filters.productType.all} />
                 </SelectTrigger>
                 <SelectContent className="border border-border">
@@ -497,7 +496,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
               <Select value={currentTag} onValueChange={handleTagChange}>
-                <SelectTrigger className="w-full h-11 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-transparent transition-all duration-200">
+                <SelectTrigger className="select-trigger w-full">
                   <SelectValue placeholder={t.filters.tags} />
                 </SelectTrigger>
                 <SelectContent className="border border-border">
