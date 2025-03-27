@@ -3,44 +3,20 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import {
-  ShoppingCart,
-  Download,
-  Clock,
-  Shield,
-  Star,
-  Tag,
-  PercentIcon,
-  Award,
-  Gift,
-  Truck,
-  BatteryCharging,
-  ImageIcon,
-  Heart,
-} from 'lucide-react'
+import { ShoppingCart, Download, Clock, Shield, ImageIcon } from 'lucide-react'
 import type { Product as PayloadProduct } from '@/payload-types'
-import { Button } from '@/components/ui/button'
 import { formatPrice, getLocalePrice, convertPrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/utilities/ui'
 import { useState, useEffect } from 'react'
 import { useFavorites } from '@/hooks/useFavorites'
-import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
 import { FavoriteButton } from '@/components/ui/FavoriteButton'
 import { ShareButton } from '@/components/ui/ShareButton'
-import {
-  NewBadge,
-  BestsellerBadge,
-  DiscountBadge,
-  ProductTypeBadge,
-  RatingBadge,
-  CategoryBadge,
-  TagBadge,
-} from '@/components/ui/badges'
+import { NewBadge, BestsellerBadge, DiscountBadge } from '@/components/ui/badges'
+import { ProductPrice } from '@/components/ui/ProductPrice'
 
 // Enhanced Product interface that extends the base PayloadProduct
 interface EnhancedProduct extends PayloadProduct {
@@ -54,16 +30,10 @@ interface EnhancedProduct extends PayloadProduct {
   }
   isBestseller?: boolean
   hasFreeDelivery?: boolean
-  rating?: number
   featuredImage?: {
     url: string
     alt?: string
   }
-  categories?: Array<{
-    id: string
-    title: string | Record<string, string>
-    slug?: string
-  }>
 }
 
 interface ProductCardProps {
@@ -76,7 +46,7 @@ interface ProductCardProps {
 export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
   const router = useRouter()
   const t = useTranslations(locale)
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
+  const { isFavorite } = useFavorites()
   const [isFav, setIsFav] = useState(false)
 
   useEffect(() => {
@@ -84,24 +54,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
       setIsFav(isFavorite(product.id))
     }
   }, [product?.id, isFavorite])
-
-  const handleFavoriteToggle = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (isFav) {
-      removeFromFavorites(product.id)
-      toast.success(
-        `${typeof product.title === 'object' ? product.title[locale] : product.title} removed from favorites`,
-      )
-    } else {
-      addToFavorites(product)
-      toast.success(
-        `${typeof product.title === 'object' ? product.title[locale] : product.title} added to favorites`,
-      )
-    }
-    setIsFav(!isFav)
-  }
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only navigate if the click was directly on the card and not on a button or link
@@ -148,39 +100,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     return product.productType || 'physical'
   }
 
-  const getButtonConfig = (type: string) => {
-    switch (type) {
-      case 'digital':
-        return {
-          text: locale === 'ru' ? 'Купить' : 'Buy Now',
-          icon: Download,
-        }
-      case 'subscription':
-        return {
-          text: locale === 'ru' ? 'Подписаться' : 'Subscribe',
-          icon: Clock,
-        }
-      case 'service':
-        return {
-          text: locale === 'ru' ? 'Заказать услугу' : 'Book Service',
-          icon: Clock,
-        }
-      case 'access':
-        return {
-          text: locale === 'ru' ? 'Получить доступ' : 'Get Access',
-          icon: Shield,
-        }
-      default:
-        return {
-          text: locale === 'ru' ? 'В корзину' : 'Add to Cart',
-          icon: ShoppingCart,
-        }
-    }
-  }
-
-  const buttonConfig = getButtonConfig(getProductType())
-  const ButtonIcon = buttonConfig.icon
-
   // Calculate discount percentage if available
   const price = getProductPrice()
   const compareAtPrice = getCompareAtPrice()
@@ -200,28 +119,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
   // Text for no image placeholder
   const noImageText = locale === 'ru' ? 'Нет изображения' : 'No image'
-
-  // Generate product URL for sharing
-  const productUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/${locale}/products/${product.slug}`
-      : ''
-
-  // Get featured image URL for sharing
-  const getImageUrl = (item: any) => {
-    if (typeof item === 'string') return item
-    return item?.url || ''
-  }
-
-  const featuredImageUrl = product.thumbnail ? getImageUrl(product.thumbnail) : ''
-
-  // Utility function to get translated messages
-  const getShareDescription = () => {
-    return (
-      t.sharing?.shareVia ||
-      `Check out this product: ${typeof product.title === 'object' ? product.title[locale] : product.title}`
-    )
-  }
 
   const getAddToCartMessage = () => {
     const productName = typeof product.title === 'object' ? product.title[locale] : product.title
@@ -254,7 +151,12 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
       >
         {product.featuredImage?.url || product.thumbnail ? (
           <Image
-            src={product.featuredImage?.url || getImageUrl(product.thumbnail)}
+            src={
+              product.featuredImage?.url ||
+              (typeof product.thumbnail === 'string'
+                ? product.thumbnail
+                : product.thumbnail?.url || '')
+            }
             alt={
               product.featuredImage?.alt ||
               (typeof product.title === 'object' ? product.title[locale] : product.title)
@@ -283,37 +185,26 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           {discountPercentage && <DiscountBadge percentage={discountPercentage} />}
         </div>
 
-        {/* Price Badge */}
+        {/* Price Badge - Используем ProductPrice */}
         {price > 0 && (
           <div
             className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
                         px-3 py-1 rounded-full border border-border
                         dark:border-border/50 dark:hover:border-accent/30"
           >
-            <div className="flex flex-col items-end">
-              <span className="font-semibold">{formatPrice(price, locale)}</span>
-
-              {compareAtPrice && compareAtPrice > price && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(compareAtPrice, locale)}
-                </span>
-              )}
-            </div>
+            <ProductPrice
+              product={product}
+              locale={locale}
+              size="sm"
+              variant="card"
+              showDiscountBadge={false}
+            />
           </div>
         )}
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col flex-grow p-4 space-y-4">
-        {/* Type & Rating */}
-        <div className="flex justify-between items-center">
-          {/* Product Type Badge */}
-          <ProductTypeBadge type={getProductType()} />
-
-          {/* Rating Stars */}
-          {product.rating && <RatingBadge rating={product.rating} />}
-        </div>
-
+      <div className="flex flex-col flex-grow p-4 space-y-2">
         {/* Title */}
         <Link
           href={`/${locale}/products/${product.slug}`}
@@ -334,55 +225,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </p>
         )}
 
-        {/* Features Highlights */}
-        {product.features && product.features.length > 0 && (
-          <ul className="text-sm grid grid-cols-1 gap-1">
-            {product.features.slice(0, 2).map((feature, index) => (
-              <li key={index} className="flex items-start gap-1.5">
-                <div className="rounded-full bg-accent/10 p-0.5 mt-0.5">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-2.5 w-2.5 text-accent"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <span className="text-muted-foreground line-clamp-1">
-                  {typeof feature === 'string' ? feature : feature.feature || ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* Categories & Tags */}
-        {((product.categories && product.categories.length > 0) ||
-          (product.tags && product.tags.length > 0)) && (
-          <div className="flex flex-wrap gap-2">
-            {/* Categories */}
-            {product.categories &&
-              product.categories.length > 0 &&
-              product.categories
-                .slice(0, 2)
-                .map((category) => (
-                  <CategoryBadge key={category.id} title={category.title} locale={locale} />
-                ))}
-
-            {/* Tags */}
-            {product.tags &&
-              product.tags.length > 0 &&
-              product.tags.slice(0, 2).map((tag, index) => <TagBadge key={index} tag={tag} />)}
-          </div>
-        )}
-
-        {/* Action Buttons and Sharing */}
-        <div className="flex gap-2">
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-2">
           <AddToCartButton
             product={product}
             locale={locale}
@@ -407,7 +251,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           <ShareButton
             product={product}
             locale={locale}
-            description={getShareDescription()}
             showToastOnCopy={true}
             copyMessage={t.sharing?.linkCopied || 'Link copied!'}
             size="icon"
@@ -415,29 +258,12 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           />
         </div>
 
-        {/* Product Info Footer */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground mt-1 pt-1">
-          {/* Subscription Info */}
-          {getProductType() === 'subscription' && product.pricing?.[locale]?.interval && (
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-3 w-3" />
-              <span>{product.pricing[locale].interval}</span>
-              <span className="mx-1">•</span>
-              <Shield className="h-3 w-3" />
-              <span>
-                {t.products?.autoRenewal || (locale === 'ru' ? 'Автопродление' : 'Auto-renewal')}
-              </span>
-            </div>
-          )}
-
-          {/* Free Delivery */}
-          {hasFreeDelivery && (
-            <div className="flex items-center gap-1.5 text-success">
-              <Truck className="h-3 w-3" />
-              <span>{locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}</span>
-            </div>
-          )}
-        </div>
+        {/* Delivery Info - Only show if free delivery */}
+        {hasFreeDelivery && (
+          <div className="text-xs text-success pt-1">
+            {locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}
+          </div>
+        )}
       </div>
     </div>
   )

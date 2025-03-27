@@ -6,6 +6,17 @@ import { ProductCard } from '@/components/ProductCard/index'
 import { useTranslations } from '@/hooks/useTranslations'
 import { Locale } from '@/constants'
 
+// Определяем EnhancedProduct для совместимости с ProductCard
+interface EnhancedProduct extends Product {
+  productType: 'physical' | 'digital' | 'subscription' | 'service' | 'access'
+  isBestseller?: boolean
+  hasFreeDelivery?: boolean
+  featuredImage?: {
+    url: string
+    alt?: string
+  }
+}
+
 interface RelatedProductsProps {
   product: Product
   lang: string
@@ -13,8 +24,9 @@ interface RelatedProductsProps {
 
 export function RelatedProducts({ product, lang }: RelatedProductsProps) {
   const t = useTranslations(lang)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [relatedProducts, setRelatedProducts] = useState<EnhancedProduct[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasProducts, setHasProducts] = useState(false)
 
   useEffect(() => {
     const fetchRelatedProducts = async () => {
@@ -26,10 +38,21 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
           throw new Error('Failed to fetch related products')
         }
         const products = await response.json()
-        setRelatedProducts(products)
+
+        // Добавляем недостающие поля для совместимости с EnhancedProduct
+        const enhancedProducts = products.map((prod: any) => ({
+          ...prod,
+          productType: prod.productType || 'physical',
+          isBestseller: prod.isBestseller || false,
+          hasFreeDelivery: prod.hasFreeDelivery || false,
+        })) as EnhancedProduct[]
+
+        setRelatedProducts(enhancedProducts)
+        setHasProducts(enhancedProducts.length > 0)
       } catch (error) {
         console.error('Error fetching related products:', error)
         setRelatedProducts([])
+        setHasProducts(false)
       } finally {
         setIsLoading(false)
       }
@@ -38,34 +61,13 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
     fetchRelatedProducts()
   }, [product.id])
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: EnhancedProduct) => {
     // Here you would add logic to add the product to cart
     console.log('Adding to cart:', product.title)
   }
 
-  if (isLoading) {
-    return (
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-6">
-          {t.products?.relatedProducts || 'You may also like'}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="rounded-lg overflow-hidden border p-4">
-              <div className="w-full aspect-[4/3] bg-muted/40 animate-pulse rounded"></div>
-              <div className="mt-4 space-y-3">
-                <div className="h-5 w-2/3 bg-muted/40 animate-pulse rounded"></div>
-                <div className="h-4 w-1/2 bg-muted/40 animate-pulse rounded"></div>
-                <div className="h-6 w-1/3 bg-muted/40 animate-pulse rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (relatedProducts.length === 0) {
+  // Не отображаем ничего во время загрузки или если нет товаров
+  if (isLoading || !hasProducts) {
     return null
   }
 
