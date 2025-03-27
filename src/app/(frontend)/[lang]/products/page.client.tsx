@@ -5,6 +5,8 @@ import { ProductsGrid } from '@/components/ProductsGrid'
 import { type Locale } from '@/constants'
 import type { Category, Product } from '@/payload-types'
 import { translations } from './translations'
+import { useFavorites } from '@/hooks/useFavorites'
+import { useState, useEffect } from 'react'
 
 interface ProductsClientProps {
   products: Product[]
@@ -16,6 +18,7 @@ interface ProductsClientProps {
     sort?: string
     layout?: 'grid' | 'list'
     page?: string
+    favorites?: string
   }
   totalPages: number
   currentPage: number
@@ -30,6 +33,19 @@ export default function ProductsClient({
   currentPage,
 }: ProductsClientProps) {
   const t = translations[currentLocale as keyof typeof translations]
+  const { favorites } = useFavorites()
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>(products)
+
+  // Фильтрация продуктов по избранным, если параметр favorites установлен
+  useEffect(() => {
+    if (searchParams.favorites === 'true' && favorites.length > 0) {
+      const favoriteIds = favorites.map((fav) => fav.id)
+      const filteredProducts = products.filter((product) => favoriteIds.includes(product.id))
+      setDisplayedProducts(filteredProducts)
+    } else {
+      setDisplayedProducts(products)
+    }
+  }, [searchParams.favorites, favorites, products])
 
   const categoriesList = categories.map((category) => ({
     id: category.id,
@@ -66,6 +82,7 @@ export default function ProductsClient({
         priceRange={priceRange}
         defaultLayout={searchParams.layout || 'grid'}
         locale={currentLocale}
+        showFavorites={searchParams.favorites === 'true'}
         labels={{
           categories: t.filters.categories,
           sort: t.filters.sort,
@@ -79,7 +96,7 @@ export default function ProductsClient({
         }}
       />
       <ProductsGrid
-        products={products}
+        products={displayedProducts}
         layout={searchParams.layout || 'grid'}
         locale={currentLocale}
         currentPage={currentPage}

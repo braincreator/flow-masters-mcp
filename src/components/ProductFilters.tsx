@@ -23,8 +23,10 @@ import {
   Search,
   GridIcon,
   ListIcon,
+  Heart,
 } from 'lucide-react'
 import { cn } from '@/utilities/ui'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface FilterOption {
   id: string
@@ -48,6 +50,7 @@ interface ProductFiltersProps {
     priceRange: { min: number; max: number }
     sort: string
     search: string
+    favorites: boolean
   }) => void
   onLayoutChange?: (layout: 'grid' | 'list') => void
 }
@@ -63,12 +66,14 @@ export function ProductFilters({
   onFilterChange,
   onLayoutChange,
 }: ProductFiltersProps) {
+  const { count: favoritesCount } = useFavorites()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sort, setSort] = useState('newest')
   const [search, setSearch] = useState(searchTerm)
+  const [showFavorites, setShowFavorites] = useState(false)
 
   // Update local state when props change
   useEffect(() => {
@@ -84,6 +89,7 @@ export function ProductFilters({
       priceRange,
       sort,
       search: value,
+      favorites: showFavorites,
     })
   }
 
@@ -99,6 +105,7 @@ export function ProductFilters({
       priceRange,
       sort,
       search,
+      favorites: showFavorites,
     })
   }
 
@@ -114,6 +121,7 @@ export function ProductFilters({
       priceRange,
       sort,
       search,
+      favorites: showFavorites,
     })
   }
 
@@ -129,6 +137,7 @@ export function ProductFilters({
       priceRange,
       sort,
       search,
+      favorites: showFavorites,
     })
   }
 
@@ -141,6 +150,7 @@ export function ProductFilters({
       priceRange,
       sort: value,
       search,
+      favorites: showFavorites,
     })
   }
 
@@ -153,6 +163,20 @@ export function ProductFilters({
       priceRange: newPriceRange,
       sort,
       search,
+      favorites: showFavorites,
+    })
+  }
+
+  const handleFavoritesChange = (checked: boolean) => {
+    setShowFavorites(checked)
+    onFilterChange({
+      categories: selectedCategories,
+      productTypes: selectedProductTypes,
+      tags: selectedTags,
+      priceRange,
+      sort,
+      search,
+      favorites: checked,
     })
   }
 
@@ -182,6 +206,27 @@ export function ProductFilters({
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full"
                 />
+              </div>
+
+              {/* Favorites filter */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="favorites-mobile"
+                    checked={showFavorites}
+                    onCheckedChange={handleFavoritesChange}
+                  />
+                  <label
+                    htmlFor="favorites-mobile"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
+                  >
+                    <Heart className="h-4 w-4 mr-1.5 text-rose-500" />
+                    {locale === 'ru' ? 'Избранные товары' : 'Favorite items'}
+                    {favoritesCount > 0 && (
+                      <span className="ml-2 text-muted-foreground">({favoritesCount})</span>
+                    )}
+                  </label>
+                </div>
               </div>
 
               {/* Categories */}
@@ -309,6 +354,27 @@ export function ProductFilters({
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full"
           />
+        </div>
+
+        {/* Favorites filter */}
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="favorites-desktop"
+              checked={showFavorites}
+              onCheckedChange={handleFavoritesChange}
+            />
+            <label
+              htmlFor="favorites-desktop"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
+            >
+              <Heart className="h-4 w-4 mr-1.5 text-rose-500" />
+              {locale === 'ru' ? 'Избранные товары' : 'Favorite items'}
+              {favoritesCount > 0 && (
+                <span className="ml-2 text-muted-foreground">({favoritesCount})</span>
+              )}
+            </label>
+          </div>
         </div>
 
         {/* Categories */}

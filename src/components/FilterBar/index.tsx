@@ -34,6 +34,7 @@ interface FilterBarProps {
   priceRange: { min: number; max: number }
   defaultLayout?: 'grid' | 'list'
   locale?: string
+  showFavorites?: boolean
   currency?: {
     code: string // USD, EUR, RUB, etc.
     symbol: string // $, €, ₽, etc.
@@ -49,10 +50,8 @@ interface FilterBarProps {
     productTypes: string
     tags: string
     priceRange: string
-    layout: {
-      grid: string
-      list: string
-    }
+    layout: string
+    favorites?: string
   }
 }
 
@@ -64,6 +63,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   priceRange,
   defaultLayout = 'grid',
   locale,
+  showFavorites = false,
   currency = { code: 'USD', symbol: '$', position: 'before', rate: 1 },
   labels,
 }) => {
@@ -198,6 +198,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     currentPriceRange[0] !== priceRange.min ||
     currentPriceRange[1] !== priceRange.max
 
+  const handleFavoritesToggle = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (params.get('favorites') === 'true') {
+      params.delete('favorites')
+    } else {
+      params.set('favorites', 'true')
+    }
+    params.delete('page')
+    router.push(`?${params.toString()}`)
+  }
+
   return (
     <div className="space-y-4 mb-8 border-b pb-6">
       {/* Main Controls Row - Search, Filters, Sort, and Layout */}
@@ -213,6 +224,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             className="input-base w-full h-10 pl-10 pr-4 rounded-lg"
           />
         </div>
+
+        {/* Favorites Toggle Button */}
+        <Button
+          variant={searchParams.get('favorites') === 'true' ? 'default' : 'outline'}
+          onClick={handleFavoritesToggle}
+          className="h-10 px-3 justify-center"
+        >
+          <svg
+            className={`mr-2 h-4 w-4 ${searchParams.get('favorites') === 'true' ? 'fill-white' : 'stroke-current fill-none'}`}
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>{labels?.favorites || 'Избранное'}</span>
+        </Button>
 
         {/* Filters Button */}
         <Button

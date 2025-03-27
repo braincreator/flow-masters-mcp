@@ -11,6 +11,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
 import CartInitializer from '@/components/CartInitializer'
+import FavoritesInitializer from '@/components/FavoritesInitializer'
 
 const locales = ['en', 'ru']
 
@@ -55,13 +56,15 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         style={{ '--header-height': '4rem' } as React.CSSProperties}
       >
         <CartInitializer locale={lang}>
-          {/* Removing gradient background as requested */}
+          <FavoritesInitializer locale={lang}>
+            {/* Removing gradient background as requested */}
 
-          {isDraftMode && <AdminBar />}
-          <Header locale={lang} />
-          <main className="relative pt-[var(--header-height)]">{children}</main>
-          <Footer locale={lang} />
-          <FloatingCartButtonWrapper locale={lang} />
+            {isDraftMode && <AdminBar />}
+            <Header locale={lang} />
+            <main className="relative pt-[var(--header-height)]">{children}</main>
+            <Footer locale={lang} />
+            <FloatingCartButtonWrapper locale={lang} />
+          </FavoritesInitializer>
         </CartInitializer>
       </body>
     </html>

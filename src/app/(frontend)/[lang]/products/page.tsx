@@ -15,6 +15,7 @@ interface Props {
     sort?: string
     page?: string
     layout?: 'grid' | 'list'
+    favorites?: string
   }>
 }
 
@@ -22,7 +23,7 @@ export default async function StorePage({ params, searchParams }: Props) {
   const { lang } = await params
   const searchParamsResolved = await searchParams
   const currentLocale = (lang || DEFAULT_LOCALE) as Locale
-  
+
   try {
     const payload = await getPayloadClient()
 
@@ -40,6 +41,9 @@ export default async function StorePage({ params, searchParams }: Props) {
     if (searchParamsResolved.category && searchParamsResolved.category !== 'all') {
       where.category = { equals: searchParamsResolved.category }
     }
+
+    // Фильтрация по избранным товарам будет реализована на клиентской стороне
+    // так как список избранных хранится в localStorage
 
     let sort: string = '-createdAt'
 
@@ -77,7 +81,7 @@ export default async function StorePage({ params, searchParams }: Props) {
         collection: 'categories',
         locale: currentLocale,
         limit: 100,
-      })
+      }),
     ])
 
     if (!products?.docs || !categories?.docs) {
@@ -85,14 +89,14 @@ export default async function StorePage({ params, searchParams }: Props) {
       return notFound()
     }
 
-    const productDocs = products.docs.map(doc => ({
+    const productDocs = products.docs.map((doc) => ({
       ...doc,
       id: doc.id?.toString(),
       title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
       description: doc.description || null,
     }))
 
-    const categoryDocs = categories.docs.map(doc => ({
+    const categoryDocs = categories.docs.map((doc) => ({
       ...doc,
       id: doc.id?.toString(),
       name: typeof doc.name === 'string' ? doc.name : doc.name?.[currentLocale] || '',
@@ -124,21 +128,26 @@ export default async function StorePage({ params, searchParams }: Props) {
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       })
     }
     return notFound()
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
   const { lang } = await params
   const currentLocale = (lang || DEFAULT_LOCALE) as Locale
-  
+
   return {
     title: currentLocale === 'ru' ? 'Продукты | Flow Masters' : 'Products | Flow Masters',
-    description: currentLocale === 'ru' 
-      ? 'Исследуйте нашу коллекцию продуктов автоматизации'
-      : 'Explore our collection of automation products',
+    description:
+      currentLocale === 'ru'
+        ? 'Исследуйте нашу коллекцию продуктов автоматизации'
+        : 'Explore our collection of automation products',
   }
 }

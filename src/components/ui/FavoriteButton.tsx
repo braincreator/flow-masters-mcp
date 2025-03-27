@@ -60,9 +60,15 @@ export function FavoriteButton({
   // Get the appropriate localized texts object, falling back to English if locale not supported
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
 
+  // Проверка избранного при монтировании и при изменении favorites
   useEffect(() => {
     if (product?.id) {
-      setIsFav(isFavorite(product.id))
+      const currentIsFavorite = isFavorite(product.id)
+      setIsFav(currentIsFavorite)
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[FavoriteButton] Product ${product.id} isFavorite:`, currentIsFavorite)
+      }
     }
   }, [product?.id, isFavorite])
 
