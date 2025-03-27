@@ -29,6 +29,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
+import { AddToCartButton } from '@/components/ui/AddToCartButton'
 
 // Enhanced Product interface that extends the base PayloadProduct
 interface EnhancedProduct extends PayloadProduct {
@@ -395,31 +396,12 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
         {/* Action Buttons and Sharing */}
         <div className="flex gap-2">
-          <Button
-            onClick={(e) => {
-              e.stopPropagation()
-              onAddToCart?.(product)
-            }}
-            className={cn(
-              'add-to-cart-button flex-1 gap-2',
-              'glass-effect interactive-element',
-              'relative overflow-hidden group/button',
-              'hover:border-accent/30 mt-auto',
-              'dark:border dark:border-accent/30',
-            )}
+          <AddToCartButton
+            product={product}
+            locale={locale}
+            onClick={onAddToCart}
             disabled={product.status !== 'published'}
-            size="lg"
-          >
-            <ButtonIcon className="w-5 h-5 mr-2" />
-            {buttonConfig.text}
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-transparent 
-                       via-white/20 to-transparent opacity-0 
-                       group-hover/button:opacity-100 transition-opacity duration-300 
-                       -translate-x-full group-hover/button:translate-x-full
-                       dark:opacity-0"
-            />
-          </Button>
+          />
 
           <Button
             variant="outline"

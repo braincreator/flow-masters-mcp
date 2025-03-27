@@ -32,6 +32,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { toast } from 'sonner'
 import type { Product as ProductType } from '@/payload-types'
+import { AddToCartButton } from '@/components/ui/AddToCartButton'
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -159,6 +160,12 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
       ? getImageUrl(product.gallery[0].image)
       : getImageUrl(product.thumbnail)
 
+  const handleAddToCart = (productToAdd: any) => {
+    // Implement add to cart functionality
+    console.log('Adding to cart:', productToAdd)
+    // You could call useCart hook or dispatch an action here
+  }
+
   return (
     <div className="product-detail-container">
       {/* Image Gallery - Use the updated ImageGallery component which handles no images */}
@@ -220,10 +227,14 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         {/* Action buttons - With fully functional favorite and share buttons */}
         <div className="product-actions">
           <div className="flex items-center gap-4">
-            <Button className="add-to-cart-button flex-1 gap-2" size="lg">
-              <ShoppingCart className="h-5 w-5" />
-              {TEXT.ADD_TO_CART}
-            </Button>
+            <AddToCartButton
+              product={product}
+              locale={lang}
+              onClick={handleAddToCart}
+              buttonText={TEXT.ADD_TO_CART}
+              productType={product.productType}
+              className="flex-1"
+            />
 
             <Button
               variant="outline"
