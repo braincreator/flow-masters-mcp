@@ -29,7 +29,24 @@ export const shareContent = async (
   try {
     switch (platform) {
       case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
+        // Facebook использует Open Graph метатеги на странице, а не параметры URL
+        // Добавляем хеш фрагмент с заголовком для отладки
+        console.log('Sharing to Facebook:', { url, title, description })
+
+        // Создаем безопасный хэштег для Facebook из названия продукта (если есть)
+        let hashtag = ''
+        if (title) {
+          // Берем первое слово из названия и удаляем все кроме букв и цифр
+          const safeWord = title.split(' ')[0].replace(/[^\w\dа-яА-Я]/g, '')
+          if (safeWord) {
+            hashtag = `&hashtag=${encodeURIComponent('#' + safeWord)}`
+          }
+        }
+
+        // Используем параметр quote для предварительного заполнения текста поста
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(description || title)}${hashtag}`,
+        )
         break
       case 'twitter':
         window.open(

@@ -34,25 +34,33 @@ export const DEFAULT_FORMATS: Record<string, LocaleCurrencySettings> = {
 async function getSettings() {
   if (!localeSettingsCache) {
     try {
-      // Use dynamic import to avoid SSR issues
-      const { getPayloadClient } = await import('@/lib/payload')
-      const payload = await getPayloadClient()
-      const settings = await payload.findGlobal({
-        slug: 'settings',
-      })
+      // Check if we're running on the server, not the client
+      if (typeof window === 'undefined') {
+        // Use dynamic import to avoid SSR issues
+        const { getPayloadClient } = await import('@/utilities/payload')
+        const payload = await getPayloadClient()
+        const settings = await payload.findGlobal({
+          slug: 'settings',
+        })
 
-      baseCurrencyCache = settings.currencies.baseCurrency
+        baseCurrencyCache = settings.currencies.baseCurrency
 
-      localeSettingsCache = settings.currencies.localeDefaults.reduce(
-        (acc, item) => ({
-          ...acc,
-          [item.locale]: {
-            currency: item.currency,
-            format: item.format,
-          },
-        }),
-        {},
-      )
+        localeSettingsCache = settings.currencies.localeDefaults.reduce(
+          (acc, item) => ({
+            ...acc,
+            [item.locale]: {
+              currency: item.currency,
+              format: item.format,
+            },
+          }),
+          {},
+        )
+      } else {
+        // On client, just use defaults
+        console.warn('Running on client side, using default currency settings')
+        localeSettingsCache = DEFAULT_FORMATS
+        baseCurrencyCache = 'USD'
+      }
     } catch (error) {
       console.warn('Could not fetch currency settings from Payload, using defaults')
       localeSettingsCache = DEFAULT_FORMATS

@@ -73,17 +73,6 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
     }
   }, [product?.id, isFavorite])
 
-  const handleFavoriteToggle = () => {
-    if (isFav) {
-      removeFromFavorites(product.id)
-      toast.success('Removed from favorites')
-    } else {
-      addToFavorites(product)
-      toast.success('Added to favorites')
-    }
-    setIsFav(!isFav)
-  }
-
   const getCategoryTitle = () => {
     if (typeof product.category === 'string') {
       return product.category
@@ -168,6 +157,18 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
     // You could call useCart hook or dispatch an action here
   }
 
+  const getAddToCartMessage = () => {
+    return lang === 'ru'
+      ? `${getProductTitle()} добавлен в корзину`
+      : `${getProductTitle()} added to cart`
+  }
+
+  const getRemoveFromCartMessage = () => {
+    return lang === 'ru'
+      ? `${getProductTitle()} удален из корзины`
+      : `${getProductTitle()} removed from cart`
+  }
+
   return (
     <div className="product-detail-container">
       {/* Image Gallery - Use the updated ImageGallery component which handles no images */}
@@ -233,22 +234,36 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               product={product}
               locale={lang as any}
               onClick={handleAddToCart}
-              productType={product.productType as string}
               className="flex-1"
+              showToast={true}
+              successMessage={getAddToCartMessage()}
+              removeMessage={getRemoveFromCartMessage()}
             />
 
             <FavoriteButton
               product={product}
               locale={lang as any}
-              className="flex-none w-12 h-12 p-0"
-              successMessage="Added to favorites"
-              removeMessage="Removed from favorites"
+              size="icon"
+              className="h-[40px] w-[40px]"
+              showToast={true}
             />
 
             <ShareButton
               product={product}
               locale={lang as any}
-              description={t.sharing?.shareVia || 'Check out this product!'}
+              size="icon"
+              className="h-[40px] w-[40px]"
+              description={
+                lang === 'ru'
+                  ? `Посмотрите этот товар: ${getProductTitle()}`
+                  : `Check out this product: ${getProductTitle()}`
+              }
+              showToastOnCopy={true}
+              copyMessage={
+                lang === 'ru'
+                  ? `Ссылка на ${getProductTitle()} скопирована!`
+                  : `Link to ${getProductTitle()} copied!`
+              }
             />
           </div>
 

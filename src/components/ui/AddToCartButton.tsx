@@ -1,78 +1,131 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/utilities/ui'
-import { ShoppingCart, Download, Clock, Shield } from 'lucide-react'
-import { type Locale } from '@/constants'
-import { ReactNode } from 'react'
+import { ShoppingCart, Download, Clock, Shield, Check } from 'lucide-react'
 import { useTranslations } from '@/hooks/useTranslations'
+import { toast } from 'sonner'
+import { useCart } from '@/providers/CartProvider'
+import { cn } from '@/utilities/ui'
 
-export interface AddToCartButtonProps {
-  product: any // Using any type to avoid compatibility issues across components
-  locale: Locale
+// Define localized texts for each supported locale
+const LOCALIZED_TEXTS = {
+  en: {
+    addToCart: 'Add to Cart',
+    inCart: 'In Cart',
+    buyNow: 'Buy Now',
+    subscribe: 'Subscribe',
+    bookService: 'Book Service',
+    getAccess: 'Get Access',
+    addedToCart: (productName: string) => `${productName} added to cart`,
+    removedFromCart: (productName: string) => `${productName} removed from cart`,
+    ariaLabelAdd: 'Add to cart',
+    ariaLabelRemove: 'Remove from cart',
+  },
+  ru: {
+    addToCart: 'В корзину',
+    inCart: 'В корзине',
+    buyNow: 'Купить',
+    subscribe: 'Подписаться',
+    bookService: 'Заказать услугу',
+    getAccess: 'Получить доступ',
+    addedToCart: (productName: string) => `${productName} добавлен в корзину`,
+    removedFromCart: (productName: string) => `${productName} удален из корзины`,
+    ariaLabelAdd: 'Добавить в корзину',
+    ariaLabelRemove: 'Удалить из корзины',
+  },
+  // Add other languages here following the same pattern
+}
+
+interface AddToCartButtonProps {
+  product: any
+  locale: string
   onClick?: (product: any) => void
-  size?: 'default' | 'sm' | 'lg'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
   disabled?: boolean
-  children?: ReactNode
-  buttonText?: string
-  productType?: string
+  children?: React.ReactNode
+  showToast?: boolean
+  successMessage?: string
+  removeMessage?: string
 }
 
 export function AddToCartButton({
   product,
   locale,
   onClick,
-  size = 'lg',
+  size = 'default',
   className,
   disabled = false,
   children,
-  buttonText,
-  productType: propProductType,
+  showToast = true,
+  successMessage,
+  removeMessage,
 }: AddToCartButtonProps) {
   const t = useTranslations(locale)
+  const { isInCart, addToCart, removeFromCart } = useCart()
 
-  // Get button config based on product type
-  const getButtonConfig = (type: string = 'physical') => {
+  // Get the appropriate localized texts, falling back to English if not supported
+  const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
+
+  const getButtonConfig = (type: string) => {
     switch (type) {
       case 'digital':
         return {
-          text: t.products?.buyNow || (locale === 'ru' ? 'Купить' : 'Buy Now'),
+          text: texts.buyNow,
           icon: Download,
         }
       case 'subscription':
         return {
-          text: t.products?.subscribe || (locale === 'ru' ? 'Подписаться' : 'Subscribe'),
+          text: texts.subscribe,
           icon: Clock,
         }
       case 'service':
         return {
-          text: t.products?.bookService || (locale === 'ru' ? 'Заказать услугу' : 'Book Service'),
+          text: texts.bookService,
           icon: Clock,
         }
       case 'access':
         return {
-          text: t.products?.getAccess || (locale === 'ru' ? 'Получить доступ' : 'Get Access'),
+          text: texts.getAccess,
           icon: Shield,
         }
       default:
         return {
-          text: t.products?.addToCart || (locale === 'ru' ? 'В корзину' : 'Add to Cart'),
+          text: texts.addToCart,
           icon: ShoppingCart,
         }
     }
   }
 
-  // Use product.productType, propProductType, or default to 'physical'
-  const productType = propProductType || product?.productType || 'physical'
-  const buttonConfig = getButtonConfig(productType)
-  const ButtonIcon = buttonConfig.icon
+  const getProductTitle = () => {
+    if (!product?.title) return ''
+    return typeof product.title === 'object'
+      ? product.title[locale] || product.title.en || ''
+      : product.title
+  }
 
-  // Allow custom button text to override the default text based on product type
-  const displayText = buttonText || buttonConfig.text
+  const buttonConfig = getButtonConfig(product.productType || 'physical')
+  const ButtonIcon = buttonConfig.icon
+  const isInCartState = isInCart(product.id)
 
   const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
     e.stopPropagation()
+
+    const productName = getProductTitle()
+
+    if (isInCartState) {
+      removeFromCart(product.id)
+      if (showToast) {
+        toast.success(removeMessage || texts.removedFromCart(productName))
+      }
+    } else {
+      addToCart(product)
+      if (showToast) {
+        toast.success(successMessage || texts.addedToCart(productName))
+      }
+    }
+
     if (onClick) {
       onClick(product)
     }
@@ -80,31 +133,28 @@ export function AddToCartButton({
 
   return (
     <Button
-      onClick={handleClick}
+      variant={isInCartState ? 'outline' : 'default'}
+      size={size}
       className={cn(
-        'add-to-cart-button flex-1 gap-2',
-        'glass-effect interactive-element',
-        'relative overflow-hidden group/button',
-        'hover:bg-accent hover:text-accent-foreground hover:border-accent',
-        'dark:hover:bg-accent dark:hover:text-accent-foreground dark:hover:border-accent',
-        'whitespace-nowrap flex items-center justify-center',
-        'px-2 sm:px-4',
+        'relative group whitespace-nowrap',
+        isInCartState && 'border-accent bg-accent/10 hover:bg-accent/20 text-accent font-medium',
         className,
       )}
-      disabled={disabled || product?.status !== 'published'}
-      size={size}
+      onClick={handleClick}
+      disabled={disabled}
+      aria-label={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
+      title={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
     >
       {children || (
         <>
-          <ButtonIcon className="w-5 h-5 flex-shrink-0 mr-1" />
-          <span>{displayText}</span>
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-transparent 
-                     via-white/20 to-transparent opacity-0 
-                     group-hover/button:opacity-100 transition-opacity duration-300 
-                     -translate-x-full group-hover/button:translate-x-full
-                     dark:opacity-0"
-          />
+          {isInCartState ? (
+            <Check className="h-5 w-5 mr-2 text-accent" />
+          ) : (
+            <ButtonIcon className="h-5 w-5 mr-2" />
+          )}
+          <span className="whitespace-nowrap">
+            {isInCartState ? texts.inCart : buttonConfig.text}
+          </span>
         </>
       )}
     </Button>

@@ -82,10 +82,14 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
     if (isFav) {
       removeFromFavorites(product.id)
-      toast.success('Removed from favorites')
+      toast.success(
+        `${typeof product.title === 'object' ? product.title[locale] : product.title} removed from favorites`,
+      )
     } else {
       addToFavorites(product)
-      toast.success('Added to favorites')
+      toast.success(
+        `${typeof product.title === 'object' ? product.title[locale] : product.title} added to favorites`,
+      )
     }
     setIsFav(!isFav)
   }
@@ -204,15 +208,20 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
   // Utility function to get translated messages
   const getShareDescription = () => {
-    return t.sharing?.shareVia || 'Check out this product!'
+    return (
+      t.sharing?.shareVia ||
+      `Check out this product: ${typeof product.title === 'object' ? product.title[locale] : product.title}`
+    )
   }
 
-  const getFavoriteSuccessMessage = () => {
-    return 'Added to favorites'
+  const getAddToCartMessage = () => {
+    const productName = typeof product.title === 'object' ? product.title[locale] : product.title
+    return locale === 'ru' ? `${productName} добавлен в корзину` : `${productName} added to cart`
   }
 
-  const getFavoriteRemoveMessage = () => {
-    return 'Removed from favorites'
+  const getRemoveFromCartMessage = () => {
+    const productName = typeof product.title === 'object' ? product.title[locale] : product.title
+    return locale === 'ru' ? `${productName} удален из корзины` : `${productName} removed from cart`
   }
 
   return (
@@ -414,18 +423,33 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           <AddToCartButton
             product={product}
             locale={locale}
-            onClick={onAddToCart}
+            onClick={(product) => {
+              if (onAddToCart) onAddToCart(product)
+            }}
             disabled={product.status !== 'published'}
+            showToast={true}
+            successMessage={getAddToCartMessage()}
+            removeMessage={getRemoveFromCartMessage()}
+            className="flex-1"
           />
 
           <FavoriteButton
             product={product}
             locale={locale}
-            successMessage={getFavoriteSuccessMessage()}
-            removeMessage={getFavoriteRemoveMessage()}
+            showToast={true}
+            size="icon"
+            className="h-[40px] w-[40px]"
           />
 
-          <ShareButton product={product} locale={locale} description={getShareDescription()} />
+          <ShareButton
+            product={product}
+            locale={locale}
+            description={getShareDescription()}
+            showToastOnCopy={true}
+            copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+            size="icon"
+            className="h-[40px] w-[40px]"
+          />
         </div>
 
         {/* Product Info Footer */}

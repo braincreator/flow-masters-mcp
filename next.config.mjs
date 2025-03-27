@@ -60,8 +60,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  
-  // Add CSS optimization settings
+
+  // Add CSS optimization settings and fix worker_threads issue
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
       config.optimization.splitChunks.cacheGroups.styles = {
@@ -71,6 +71,37 @@ const nextConfig = {
         enforce: true,
       }
     }
+
+    // Fix for worker_threads issue
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        worker_threads: false,
+        dns: false,
+        net: false,
+        tls: false,
+        fs: false,
+        child_process: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer/'),
+        util: require.resolve('util/'),
+        path: require.resolve('path-browserify'),
+        os: require.resolve('os-browserify/browser'),
+        http: require.resolve('stream-http'),
+        https: require.resolve('https-browserify'),
+        zlib: require.resolve('browserify-zlib'),
+      }
+
+      // Добавляем полифиллы для буфера и других необходимых модулей
+      config.plugins.push(
+        new config.constructor.ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+          process: 'process/browser',
+        }),
+      )
+    }
+
     return config
   },
 }
