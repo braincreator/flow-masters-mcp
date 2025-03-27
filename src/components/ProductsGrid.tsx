@@ -53,6 +53,22 @@ export function ProductsGrid({
     }))
   }, [])
 
+  // Empty state
+  if (products.length === 0) {
+    return (
+      <div className="w-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border border-dashed rounded-xl mt-4">
+        <h3 className="text-xl font-semibold mb-2">
+          {locale === 'ru' ? 'Товары не найдены' : 'No products found'}
+        </h3>
+        <p className="text-muted-foreground max-w-md">
+          {locale === 'ru'
+            ? 'Попробуйте изменить параметры поиска или фильтры'
+            : 'Try changing your search or filter parameters'}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
       <div className="space-y-8 flex flex-col">
@@ -61,7 +77,7 @@ export function ProductsGrid({
             'flex-grow h-auto',
             layout === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-auto'
-              : 'flex flex-col space-y-4',
+              : 'flex flex-col space-y-3',
           )}
         >
           {products.map((product) => (
@@ -76,14 +92,16 @@ export function ProductsGrid({
           ))}
         </div>
 
-        <PaginationRenderer>
-          <Pagination
-            page={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            labels={labels}
-          />
-        </PaginationRenderer>
+        {totalPages > 1 && (
+          <PaginationRenderer>
+            <Pagination
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              labels={labels}
+            />
+          </PaginationRenderer>
+        )}
       </div>
     </div>
   )

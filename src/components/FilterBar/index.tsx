@@ -316,22 +316,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         )}
 
         {/* Layout Toggle */}
-        <div className="flex-none ml-auto flex gap-2 h-10 p-1 bg-background rounded-lg relative border border-border">
+        <div className="flex-none ml-auto flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
           <button
             type="button"
             onClick={() => handleLayoutChange('grid')}
             className={cn(
               'relative z-20',
-              'h-8 px-2 rounded-md',
+              'h-10 px-3 rounded-l-md',
               'flex items-center justify-center',
               'transition-all duration-200',
-              'border border-transparent',
-              layout === 'grid' && 'bg-accent text-accent-foreground shadow-sm',
-              layout !== 'grid' && 'hover:bg-accent hover:text-accent-foreground',
+              'border-r border-border/30',
+              layout === 'grid'
+                ? 'bg-accent text-accent-foreground font-medium'
+                : 'hover:bg-accent/20',
             )}
           >
-            <GridIcon className="h-4 w-4 mr-1" />
-            <span className="text-xs hidden sm:inline">{t.filters.layout.grid}</span>
+            <GridIcon className="h-4 w-4 mr-1.5" />
+            <span className="text-xs sm:text-sm">{t.filters.layout.grid}</span>
           </button>
 
           <button
@@ -339,16 +340,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => handleLayoutChange('list')}
             className={cn(
               'relative z-20',
-              'h-8 px-2 rounded-md',
+              'h-10 px-3 rounded-r-md',
               'flex items-center justify-center',
               'transition-all duration-200',
-              'border border-transparent',
-              layout === 'list' && 'bg-accent text-accent-foreground shadow-sm',
-              layout !== 'list' && 'hover:bg-accent hover:text-accent-foreground',
+              layout === 'list'
+                ? 'bg-accent text-accent-foreground font-medium'
+                : 'hover:bg-accent/20',
             )}
           >
-            <ListIcon className="h-4 w-4 mr-1" />
-            <span className="text-xs hidden sm:inline">{t.filters.layout.list}</span>
+            <ListIcon className="h-4 w-4 mr-1.5" />
+            <span className="text-xs sm:text-sm">{t.filters.layout.list}</span>
           </button>
         </div>
       </div>

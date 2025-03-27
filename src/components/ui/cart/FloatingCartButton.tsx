@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { ShoppingCart, ArrowRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion'
 import { cn } from '@/utilities/ui'
 import { Locale } from '@/constants'
 
@@ -20,6 +20,9 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
   const [hasItems, setHasItems] = useState(false)
   const [animate, setAnimate] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const dragControls = useDragControls()
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Handle scroll behavior
   useEffect(() => {
@@ -53,13 +56,88 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
     setHasItems(newHasItems)
   }, [items, hasItems])
 
-  // Show button always, not only when there are items
-  // if (!hasItems) return null
+  // Load saved position from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedPosition = localStorage.getItem('cartButtonPosition')
+        if (savedPosition) {
+          setPosition(JSON.parse(savedPosition))
+        }
+      } catch (error) {
+        console.error('Error loading cart button position:', error)
+      }
+    }
+  }, [])
+
+  // Function to start drag with pointer events
+  function startDrag(event: React.PointerEvent<HTMLDivElement>) {
+    dragControls.start(event)
+  }
+
+  // Function to handle drag end and save position
+  function handleDragEnd(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    const newPosition = {
+      x: position.x + info.offset.x,
+      y: position.y + info.offset.y,
+    }
+
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cartButtonPosition', JSON.stringify(newPosition))
+      } catch (error) {
+        console.error('Error saving cart button position:', error)
+      }
+    }
+
+    setPosition(newPosition)
+  }
+
+  // Check viewport boundaries on resize
+  useEffect(() => {
+    function checkBoundaries() {
+      if (!containerRef.current) return
+
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const buttonWidth = containerRef.current.offsetWidth
+      const buttonHeight = containerRef.current.offsetHeight
+
+      // Check if button is outside viewport and adjust if needed
+      let newX = position.x
+      let newY = position.y
+
+      if (position.x < -viewportWidth / 2 + buttonWidth / 2) {
+        newX = -viewportWidth / 2 + buttonWidth / 2
+      } else if (position.x > viewportWidth / 2 - buttonWidth / 2) {
+        newX = viewportWidth / 2 - buttonWidth / 2
+      }
+
+      if (position.y < -viewportHeight / 2 + buttonHeight / 2) {
+        newY = -viewportHeight / 2 + buttonHeight / 2
+      } else if (position.y > viewportHeight / 2 - buttonHeight) {
+        newY = viewportHeight / 2 - buttonHeight
+      }
+
+      if (newX !== position.x || newY !== position.y) {
+        setPosition({ x: newX, y: newY })
+        localStorage.setItem('cartButtonPosition', JSON.stringify({ x: newX, y: newY }))
+      }
+    }
+
+    window.addEventListener('resize', checkBoundaries)
+    return () => window.removeEventListener('resize', checkBoundaries)
+  }, [position])
+
+  // Only show button when there are items in cart
+  if (!hasItems) return null
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={containerRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{
             opacity: 1,
@@ -71,24 +149,41 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
             duration: 0.3,
             scale: { duration: 0.4 },
           }}
-          className={cn('fixed bottom-8 right-8 z-50', className)}
+          className={cn('fixed z-50', className)}
+          style={{
+            right: '2rem',
+            bottom: '2rem',
+            touchAction: 'none',
+            userSelect: 'none',
+          }}
+          drag
+          dragControls={dragControls}
+          onPointerDown={startDrag}
+          dragMomentum={false}
+          dragTransition={{ timeConstant: 50 }}
+          x={position.x}
+          y={position.y}
+          onDragEnd={handleDragEnd}
+          whileDrag={{ scale: 1.05 }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <Link href={`/${locale}/checkout`} className="relative group flex items-center">
+          <Link
+            href={`/${locale}/checkout`}
+            className="relative group flex items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <motion.div
-              className="bg-primary text-primary-foreground p-4 rounded-full shadow-lg flex items-center justify-center relative hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground p-4 rounded-full shadow-lg flex items-center justify-center relative hover:bg-primary/90 transition-colors cursor-pointer"
               animate={{ width: isHovered ? 'auto' : 'auto' }}
             >
               <ShoppingCart className="w-6 h-6" />
 
-              {/* Always show counter, even with zero items */}
+              {/* Show counter with item count */}
               <span
                 className={cn(
                   'absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium shadow-sm border border-background',
-                  itemCount > 0
-                    ? 'bg-amber-500 text-black font-bold'
-                    : 'bg-slate-200 text-slate-600',
+                  'bg-amber-500 text-black font-bold',
                 )}
               >
                 {itemCount}
@@ -112,6 +207,16 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
               )}
             </AnimatePresence>
           </Link>
+
+          {/* Drag handle hint - appears briefly when cart first shows */}
+          <motion.div
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 0 }}
+            transition={{ delay: 1, duration: 1.5 }}
+            className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none"
+          >
+            {locale === 'ru' ? 'Перетащите для перемещения' : 'Drag to move'}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

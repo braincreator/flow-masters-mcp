@@ -135,7 +135,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     <div
       className={cn(
         'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto',
-        layout === 'list' ? 'flex items-center gap-6' : 'flex flex-col',
+        layout === 'list' ? 'flex items-start py-4 gap-6 md:gap-6' : 'flex flex-col',
       )}
       onClick={handleCardClick}
     >
@@ -144,7 +144,9 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         href={`/${locale}/products/${product.slug}`}
         className={cn(
           'relative overflow-hidden dark:border-b dark:border-border/50 dark:group-hover:border-accent/30',
-          layout === 'list' ? 'w-32 h-32 shrink-0 ml-4 my-4' : 'w-full aspect-[4/3]',
+          layout === 'list'
+            ? 'w-24 h-24 shrink-0 ml-4 md:w-32 md:h-32 lg:w-36 lg:h-36 mt-1'
+            : 'w-full aspect-[4/3]',
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -163,7 +165,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             fill
             sizes={
               layout === 'list'
-                ? '128px'
+                ? '(max-width: 768px) 96px, (max-width: 1024px) 128px, 144px'
                 : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
             }
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -177,11 +179,13 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
         )}
 
-        {/* Badges */}
+        {/* Badges - Only show in grid mode or at most one badge in list mode */}
         <div
           className={cn(
             'absolute top-2 left-2 flex gap-2',
-            layout === 'list' ? 'flex-row' : 'flex-col',
+            layout === 'list'
+              ? 'hidden md:flex md:flex-row md:flex-wrap max-w-[120px]'
+              : 'flex-col',
           )}
         >
           {isNew && <NewBadge locale={locale} />}
@@ -193,8 +197,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {price > 0 && layout === 'grid' && (
           <div
             className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
-                      px-3 py-1 rounded-full border border-border
-                      dark:border-border/50 dark:hover:border-accent/30"
+                        px-3 py-1 rounded-full border border-border
+                        dark:border-border/50 dark:hover:border-accent/30"
           >
             <ProductPrice
               product={product}
@@ -207,86 +211,160 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         )}
       </Link>
 
-      {/* Content */}
-      <div className={cn('flex flex-col flex-grow p-4 space-y-2', layout === 'list' && 'flex-1')}>
-        {/* Title */}
-        <Link
-          href={`/${locale}/products/${product.slug}`}
-          className="group-hover:text-accent transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h2 className="text-xl font-semibold line-clamp-2">
-            {typeof product.title === 'object' ? product.title[locale] : product.title}
-          </h2>
-        </Link>
+      {/* Content - in list mode, make this a flex container */}
+      {layout === 'list' ? (
+        <div className="flex flex-1 justify-between items-start h-full relative pl-2 pr-6 pb-[58px]">
+          {/* Left Column - Title and Description */}
+          <div className="flex flex-col flex-1 space-y-2 md:space-y-3 min-h-[96px] pt-9">
+            <div>
+              {/* Title */}
+              <Link
+                href={`/${locale}/products/${product.slug}`}
+                className="group-hover:text-accent transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-xl font-semibold line-clamp-1 md:text-2xl">
+                  {typeof product.title === 'object' ? product.title[locale] : product.title}
+                </h2>
+              </Link>
 
-        {/* Short Description */}
-        {product.shortDescription && (
-          <p
-            className={cn(
-              'text-sm text-muted-foreground',
-              layout === 'list' ? 'line-clamp-3' : 'line-clamp-2',
+              {/* Short Description */}
+              {product.shortDescription && (
+                <p className="text-sm text-muted-foreground line-clamp-2 md:line-clamp-3 mt-2 max-w-2xl">
+                  {typeof product.shortDescription === 'object'
+                    ? product.shortDescription[locale]
+                    : product.shortDescription}
+                </p>
+              )}
+            </div>
+
+            {/* Product Type and Features */}
+            <div className="flex gap-3 hidden md:flex mt-auto pb-1">
+              {getProductType() === 'digital' && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                  <span>{locale === 'ru' ? 'Цифровой товар' : 'Digital Product'}</span>
+                </div>
+              )}
+              {getProductType() === 'subscription' && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5 mr-1" />
+                  <span>{locale === 'ru' ? 'Подписка' : 'Subscription'}</span>
+                </div>
+              )}
+              {hasFreeDelivery && (
+                <div className="flex items-center text-xs text-success">
+                  <Shield className="h-3.5 w-3.5 mr-1" />
+                  <span>{locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Price - Moved to top left */}
+          <div className="absolute top-1 left-2 min-w-[100px] md:min-w-[170px]">
+            {/* Price */}
+            {price > 0 && (
+              <div>
+                <ProductPrice
+                  product={product}
+                  locale={locale}
+                  size="lg"
+                  variant="default"
+                  showDiscountBadge={true}
+                />
+              </div>
             )}
-          >
-            {typeof product.shortDescription === 'object'
-              ? product.shortDescription[locale]
-              : product.shortDescription}
-          </p>
-        )}
+          </div>
 
-        {/* Price in list mode */}
-        {price > 0 && layout === 'list' && (
-          <div className="mt-2">
-            <ProductPrice
+          {/* Action Buttons - Absolute positioned in bottom right corner */}
+          <div className="absolute bottom-0 right-6 flex gap-2 justify-end">
+            <AddToCartButton
               product={product}
               locale={locale}
-              size="md"
-              variant="default"
-              showDiscountBadge={true}
+              onClick={(product) => {
+                if (onAddToCart) onAddToCart(product)
+              }}
+              disabled={product.status !== 'published'}
+              showToast={true}
+              successMessage={getAddToCartMessage()}
+              removeMessage={getRemoveFromCartMessage()}
+              className="h-10"
+            />
+
+            <FavoriteButton
+              product={product}
+              locale={locale}
+              showToast={true}
+              size="icon"
+              className="h-10 w-10"
+            />
+
+            <ShareButton
+              product={product}
+              locale={locale}
+              showToastOnCopy={true}
+              copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+              size="icon"
+              className="h-10 w-10"
             />
           </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className={cn('flex gap-2 pt-2', layout === 'list' && 'mt-auto')}>
-          <AddToCartButton
-            product={product}
-            locale={locale}
-            onClick={(product) => {
-              if (onAddToCart) onAddToCart(product)
-            }}
-            disabled={product.status !== 'published'}
-            showToast={true}
-            successMessage={getAddToCartMessage()}
-            removeMessage={getRemoveFromCartMessage()}
-            className="flex-1"
-          />
-
-          <FavoriteButton
-            product={product}
-            locale={locale}
-            showToast={true}
-            size="icon"
-            className="h-[40px] w-[40px]"
-          />
-
-          <ShareButton
-            product={product}
-            locale={locale}
-            showToastOnCopy={true}
-            copyMessage={t.sharing?.linkCopied || 'Link copied!'}
-            size="icon"
-            className="h-[40px] w-[40px]"
-          />
         </div>
+      ) : (
+        /* Grid Layout Content */
+        <div className="flex flex-col flex-grow p-4 space-y-2">
+          {/* Title */}
+          <Link
+            href={`/${locale}/products/${product.slug}`}
+            className="group-hover:text-accent transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold line-clamp-2">
+              {typeof product.title === 'object' ? product.title[locale] : product.title}
+            </h2>
+          </Link>
 
-        {/* Delivery Info - Only show if free delivery */}
-        {hasFreeDelivery && (
-          <div className="text-xs text-success pt-1">
-            {locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}
+          {/* Short Description */}
+          {product.shortDescription && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {typeof product.shortDescription === 'object'
+                ? product.shortDescription[locale]
+                : product.shortDescription}
+            </p>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-2">
+            <AddToCartButton
+              product={product}
+              locale={locale}
+              onClick={(product) => {
+                if (onAddToCart) onAddToCart(product)
+              }}
+              disabled={product.status !== 'published'}
+              showToast={true}
+              successMessage={getAddToCartMessage()}
+              removeMessage={getRemoveFromCartMessage()}
+              className="flex-1"
+            />
+
+            <FavoriteButton
+              product={product}
+              locale={locale}
+              showToast={true}
+              size="icon"
+              className="h-[40px] w-[40px]"
+            />
           </div>
-        )}
-      </div>
+
+          {/* Delivery Info */}
+          {hasFreeDelivery && (
+            <div className="text-xs text-success pt-1">
+              {locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
