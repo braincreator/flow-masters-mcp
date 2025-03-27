@@ -27,7 +27,23 @@ export const DropdownProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const handleClickOutside = (event: MouseEvent) => {
       if (openDropdown) {
         const target = event.target as HTMLElement
-        if (!target.closest('.relative')) {
+        // Проверяем, кликнул ли пользователь вне открытого дропдауна
+        // Сначала ищем элемент с id равным openDropdown
+        const dropdownElement = document.getElementById(openDropdown)
+
+        // Также ищем кнопку, которая открывает дропдаун
+        // Обычно она находится прямо перед dropdown и имеет атрибут aria-expanded="true"
+        const dropdownTrigger = document.querySelector(
+          `[aria-controls="${openDropdown}"], button[aria-expanded="true"]`,
+        )
+
+        // Если клик был не внутри дропдауна и не на кнопке-триггере
+        if (
+          dropdownElement &&
+          !dropdownElement.contains(target) &&
+          (!dropdownTrigger || !dropdownTrigger.contains(target))
+        ) {
+          // Закрываем дропдаун
           setOpenDropdown(null)
         }
       }

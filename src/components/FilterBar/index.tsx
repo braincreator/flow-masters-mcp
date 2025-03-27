@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
@@ -69,7 +70,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setOpenDropdown } = useDropdown()
+  const { setOpenDropdown, openDropdown } = useDropdown()
   const [isFiltersOpen, setIsFiltersOpen] = React.useState(false)
   const [isSortOpen, setIsSortOpen] = React.useState(false)
 
@@ -103,6 +104,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     parseInt(searchParams.get('minPrice') || priceRange.min.toString()),
     parseInt(searchParams.get('maxPrice') || priceRange.max.toString()),
   ])
+
+  // Effect to handle closing dropdowns when dropdown context changes
+  React.useEffect(() => {
+    if (openDropdown !== 'sort-dropdown') {
+      setIsSortOpen(false)
+    }
+  }, [openDropdown])
 
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -204,6 +212,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       params.delete('favorites')
     } else {
       params.set('favorites', 'true')
+
+      // Перед переходом на страницу с избранными товарами, принудительно загружаем их из локального хранилища
+      try {
+        const { loadFromStorage, forceUpdate } = useFavorites.getState()
+        loadFromStorage()
+        setTimeout(() => forceUpdate(), 10)
+      } catch (error) {
+        console.error('Error updating favorites:', error)
+      }
     }
     params.delete('page')
     router.push(`?${params.toString()}`)
@@ -270,17 +287,35 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </Button>
 
         {/* Sort Dropdown */}
-        <div>
+        <div className="relative">
           <Button
             variant="outline"
-            onClick={() => setIsSortOpen(!isSortOpen)}
+            onClick={() => {
+              if (isSortOpen) {
+                setIsSortOpen(false)
+                setOpenDropdown(null)
+              } else {
+                setIsSortOpen(true)
+                setOpenDropdown('sort-dropdown')
+              }
+            }}
+            aria-expanded={isSortOpen}
+            aria-controls="sort-dropdown"
             className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
           >
-            <span className="mr-1">{t.filters.sort || 'Сортировка'}</span>
+            <span className="mr-1">{t.filters.sort || 'Сортировка'}: </span>
+            <span className="font-medium mr-1">
+              {sortOptions.find((option) => option.value === currentSort)?.label ||
+                t.sortOptions?.newest ||
+                'По новизне'}
+            </span>
             <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
           </Button>
           {isSortOpen && (
-            <div className="absolute z-10 mt-1 bg-background rounded-lg shadow-lg border border-border p-1 w-[220px]">
+            <div
+              id="sort-dropdown"
+              className="absolute z-10 mt-1 bg-background rounded-lg shadow-lg border border-border p-1 w-[220px]"
+            >
               {sortOptions.map((option) => (
                 <Button
                   key={option.value}
@@ -288,6 +323,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   onClick={() => {
                     handleSortChange(option.value)
                     setIsSortOpen(false)
+                    setOpenDropdown(null)
                   }}
                   className={cn(
                     'w-full justify-start text-left mb-1 last:mb-0 hover:bg-accent hover:text-accent-foreground',

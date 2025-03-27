@@ -6,7 +6,7 @@ import { type Locale } from '@/constants'
 import type { Category, Product } from '@/payload-types'
 import { translations } from './translations'
 import { useFavorites } from '@/hooks/useFavorites'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface ProductsClientProps {
   products: Product[]
@@ -33,19 +33,50 @@ export default function ProductsClient({
   currentPage,
 }: ProductsClientProps) {
   const t = translations[currentLocale as keyof typeof translations]
-  const { favorites } = useFavorites()
+  const { favorites, forceUpdate } = useFavorites()
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>(products)
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Фильтрация продуктов по избранным, если параметр favorites установлен
+  // Форсируем обновление данных избранного при первой загрузке
   useEffect(() => {
-    if (searchParams.favorites === 'true' && favorites.length > 0) {
-      const favoriteIds = favorites.map((fav) => fav.id)
-      const filteredProducts = products.filter((product) => favoriteIds.includes(product.id))
-      setDisplayedProducts(filteredProducts)
+    if (!isInitialized) {
+      forceUpdate()
+      setIsInitialized(true)
+    }
+  }, [forceUpdate, isInitialized])
+
+  // Функция для фильтрации продуктов, вынесена отдельно чтобы можно было вызвать при необходимости
+  const filterFavoriteProducts = useCallback(() => {
+    if (searchParams.favorites === 'true') {
+      // Проверяем, есть ли избранные товары
+      if (favorites && favorites.length > 0) {
+        const favoriteIds = favorites.map((fav) => fav.id)
+        const filteredProducts = products.filter((product) => favoriteIds.includes(product.id))
+        setDisplayedProducts(filteredProducts)
+      } else {
+        // Если нет избранных, показываем пустой список
+        setDisplayedProducts([])
+      }
     } else {
       setDisplayedProducts(products)
     }
   }, [searchParams.favorites, favorites, products])
+
+  // Фильтрация продуктов по избранным, если параметр favorites установлен
+  useEffect(() => {
+    filterFavoriteProducts()
+  }, [searchParams.favorites, favorites, products, filterFavoriteProducts])
+
+  // Дополнительная проверка на случай, если избранные не загрузились сразу
+  useEffect(() => {
+    if (searchParams.favorites === 'true') {
+      const timeoutId = setTimeout(() => {
+        filterFavoriteProducts()
+      }, 300)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [searchParams.favorites, filterFavoriteProducts])
 
   const categoriesList = categories.map((category) => ({
     id: category.id,
@@ -93,6 +124,7 @@ export default function ProductsClient({
           tags: t.filters.tags,
           priceRange: t.filters.priceRange,
           layout: t.filters.layout,
+          favorites: currentLocale === 'ru' ? 'Избранное' : 'Favorites',
         }}
       />
       <ProductsGrid

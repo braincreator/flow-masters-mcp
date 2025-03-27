@@ -58,7 +58,7 @@ export function ProductsGrid({
     return (
       <div className="w-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border border-dashed rounded-xl mt-4">
         <h3 className="text-xl font-semibold mb-2">
-          {locale === 'ru' ? 'Товары не найдены' : 'No products found'}
+          {locale === 'ru' ? 'Продукты не найдены' : 'No products found'}
         </h3>
         <p className="text-muted-foreground max-w-md">
           {locale === 'ru'

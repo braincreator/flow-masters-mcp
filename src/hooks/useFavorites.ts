@@ -18,6 +18,8 @@ interface FavoritesStore {
   persistState: () => void
   // Функция для принудительного обновления состояния после гидратации
   forceUpdate: () => void
+  // Новая функция для загрузки состояния из localStorage
+  loadFromStorage: () => void
 }
 
 // Создаем адаптер хранилища с поддержкой отладки и обработкой ошибок
@@ -176,6 +178,26 @@ export const useFavorites = create<FavoritesStore>()(
           // Создаем новую ссылку на массив, чтобы вызвать перерисовку компонентов
           return { favorites: [...state.favorites] }
         })
+      },
+
+      // Функция для загрузки состояния из localStorage
+      loadFromStorage: () => {
+        if (typeof window === 'undefined') return
+
+        try {
+          const storedData = localStorage.getItem('product-favorites')
+          if (storedData) {
+            const parsed = JSON.parse(storedData)
+            if (parsed.state) {
+              set({
+                favorites: Array.isArray(parsed.state.favorites) ? parsed.state.favorites : [],
+                locale: parsed.state.locale || get().locale,
+              })
+            }
+          }
+        } catch (error) {
+          console.error('[Favorites] Error loading from storage:', error)
+        }
       },
     }),
     {

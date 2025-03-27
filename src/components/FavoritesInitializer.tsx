@@ -104,15 +104,39 @@ export default function FavoritesInitializer({ children, locale }: FavoritesInit
     // Немедленное сохранение при гидратации
     persistState()
 
+    // Дополнительное обновление чтобы гарантировать правильное отображение
+    setTimeout(() => {
+      forceUpdate()
+    }, 500)
+
     // Настраиваем интервал для периодического сохранения
     const interval = setInterval(() => {
       persistState()
     }, 5000) // Каждые 5 секунд
 
+    // Также добавляем проверку изменения localStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'product-favorites' && e.newValue !== null) {
+        // Если localStorage изменился из другой вкладки, обновляем состояние
+        try {
+          const parsed = JSON.parse(e.newValue)
+          if (parsed.state?.favorites) {
+            // Форсируем обновление чтобы синхронизировать состояние
+            setTimeout(() => forceUpdate(), 0)
+          }
+        } catch (error) {
+          console.error('[Favorites] Error parsing storage event data:', error)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
     return () => {
       clearInterval(interval)
+      window.removeEventListener('storage', handleStorageChange)
     }
-  }, [persistState, isHydrated])
+  }, [persistState, isHydrated, forceUpdate])
 
   return <>{children}</>
 }
