@@ -139,3 +139,15 @@
 .bg-ai-radial {
   background: radial-gradient(circle at center, hsl(var(--accent)) 0%, transparent 70%);
 }
+
+/* Добавить стили для toast-offset, чтобы уведомления не перекрывали кнопку корзины */
+.toast-offset {
+  margin-bottom: 80px !important;
+}
+
+/* Настроить позиционирование всех toast-уведомлений */
+[data-sonner-toaster][data-position='top-right'] {
+  bottom: 20px !important;
+  right: 20px !important;
+  top: auto !important;
+}

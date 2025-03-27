@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
 import { useTranslations } from '@/hooks/useTranslations'
-import { formatPrice } from '@/utilities/formatPrice'
+import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Button } from '@/components/ui/button'
 import { X, CreditCard, Wallet, ArrowRight, ShoppingBag } from 'lucide-react'
@@ -37,12 +37,10 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
   // Вычисляем итоговую сумму заказа
   const total = items.reduce((sum, item) => {
-    const price =
-      item.product.pricing?.[locale]?.amount ||
-      item.product.pricing?.basePrice ||
-      item.product.price ||
-      0
-    return sum + price
+    // Используем функцию getLocalePrice для получения локализованной цены
+    const price = getLocalePrice(item.product, locale)
+    // Умножаем цену на количество товара
+    return sum + price * item.quantity
   }, 0)
 
   const handleRemoveItem = (productId: string) => {
@@ -154,18 +152,18 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     <p className="text-sm text-muted-foreground">
                       {locale === 'ru' ? 'Цифровой товар' : 'Digital product'}
                     </p>
+                    <div className="text-sm mt-1">
+                      <span className="text-muted-foreground">
+                        {formatPrice(getLocalePrice(item.product, locale), locale)} ×{' '}
+                        {item.quantity}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Цена и кнопка удаления */}
                   <div className="flex flex-col items-end gap-2">
                     <span className="font-medium">
-                      {formatPrice(
-                        item.product.pricing?.[locale]?.amount ||
-                          item.product.pricing?.basePrice ||
-                          item.product.price ||
-                          0,
-                        locale,
-                      )}
+                      {formatPrice(getLocalePrice(item.product, locale) * item.quantity, locale)}
                     </span>
 
                     <button

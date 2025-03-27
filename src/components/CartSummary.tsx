@@ -1,7 +1,7 @@
 'use client'
 
 import { useCart } from '@/hooks/useCart'
-import { formatCurrency } from '@/utilities/formatPrice'
+import { formatCurrency, formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 
 interface CartSummaryProps {
@@ -20,25 +20,23 @@ export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
 
       {showItems && items.length > 0 && (
         <div className="space-y-2 mb-4">
-          {items.map((item) => (
-            <div key={item.product.id} className="flex justify-between text-sm">
-              <span>
-                {typeof item.product.title === 'object'
-                  ? item.product.title[locale] || item.product.title.en
-                  : item.product.title}
-                {item.quantity > 1 && ` × ${item.quantity}`}
-              </span>
-              <span className="font-medium">
-                {formatCurrency(
-                  (item.product.pricing?.[locale]?.amount ||
-                    item.product.pricing?.basePrice ||
-                    item.product.price ||
-                    0) * (item.quantity || 1),
-                  locale,
-                )}
-              </span>
-            </div>
-          ))}
+          {items.map((item) => {
+            const itemPrice = getLocalePrice(item.product, locale)
+
+            return (
+              <div key={item.product.id} className="flex justify-between text-sm">
+                <span>
+                  {typeof item.product.title === 'object'
+                    ? item.product.title[locale] || item.product.title.en
+                    : item.product.title}
+                  {item.quantity > 1 && ` × ${item.quantity}`}
+                </span>
+                <span className="font-medium">
+                  {formatPrice(itemPrice * item.quantity, locale)}
+                </span>
+              </div>
+            )
+          })}
           <div className="border-t border-gray-200 my-2" />
         </div>
       )}
@@ -50,7 +48,7 @@ export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
         </div>
         <div className="flex justify-between font-semibold text-lg">
           <span>{locale === 'ru' ? 'Итого' : 'Total'}</span>
-          <span>{formatCurrency(total, locale)}</span>
+          <span>{formatPrice(total, locale)}</span>
         </div>
       </div>
     </div>

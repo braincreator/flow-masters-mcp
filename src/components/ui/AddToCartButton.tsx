@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ShoppingCart, Download, Clock, Shield, Check } from 'lucide-react'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
-import { useCart } from '@/providers/CartProvider'
+import { useCart } from '@/hooks/useCart'
 import { cn } from '@/utilities/ui'
 
 // Define localized texts for each supported locale
@@ -108,7 +108,7 @@ export function AddToCartButton({
   const ButtonIcon = buttonConfig.icon
 
   // Fix the isInCart function call
-  const isInCartState = cart.isInCart ? cart.isInCart(product.id) : false
+  const isInCartState = cart.isInCart(product.id)
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -116,12 +116,12 @@ export function AddToCartButton({
 
     const productName = getProductTitle()
 
-    if (isInCartState && cart.removeFromCart) {
+    if (isInCartState) {
       cart.removeFromCart(product.id)
       if (showToast) {
         toast.success(removeMessage || texts.removedFromCart(productName))
       }
-    } else if (cart.addToCart) {
+    } else {
       cart.addToCart(product)
       if (showToast) {
         toast.success(successMessage || texts.addedToCart(productName))
