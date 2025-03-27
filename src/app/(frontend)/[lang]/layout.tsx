@@ -55,13 +55,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
       >
         <CartProvider locale={lang}>
           {/* AI-themed background elements */}
-          <div className="fixed inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-ai-radial opacity-20 animate-float" />
-            <div
-              className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-ai-radial opacity-20 animate-float"
-              style={{ animationDelay: '-3s' }}
-            />
-          </div>
+          {/* Removing gradient background as requested */}
 
           {isDraftMode && <AdminBar />}
           <Header locale={lang} />
