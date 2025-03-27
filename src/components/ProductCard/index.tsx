@@ -30,6 +30,8 @@ import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
+import { FavoriteButton } from '@/components/ui/FavoriteButton'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 // Enhanced Product interface that extends the base PayloadProduct
 interface EnhancedProduct extends PayloadProduct {
@@ -80,10 +82,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
     if (isFav) {
       removeFromFavorites(product.id)
-      toast.success(t.sharing?.linkCopied || 'Removed from favorites')
+      toast.success('Removed from favorites')
     } else {
       addToFavorites(product)
-      toast.success(t.sharing?.linkCopied || 'Added to favorites')
+      toast.success('Added to favorites')
     }
     setIsFav(!isFav)
   }
@@ -199,6 +201,19 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
   }
 
   const featuredImageUrl = product.thumbnail ? getImageUrl(product.thumbnail) : ''
+
+  // Utility function to get translated messages
+  const getShareDescription = () => {
+    return t.sharing?.shareVia || 'Check out this product!'
+  }
+
+  const getFavoriteSuccessMessage = () => {
+    return 'Added to favorites'
+  }
+
+  const getFavoriteRemoveMessage = () => {
+    return 'Removed from favorites'
+  }
 
   return (
     <div
@@ -403,24 +418,14 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             disabled={product.status !== 'published'}
           />
 
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-12 w-12 p-0 shrink-0"
-            onClick={handleFavoriteToggle}
-            aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
-          </Button>
-
-          <SocialSharePopover
-            url={productUrl}
-            title={typeof product.title === 'object' ? product.title[locale] : product.title}
-            description={t.sharing?.shareVia || 'Check out this product!'}
-            image={featuredImageUrl}
-            lang={locale}
-            triggerClassName="h-12 w-12 p-0"
+          <FavoriteButton
+            product={product}
+            locale={locale}
+            successMessage={getFavoriteSuccessMessage()}
+            removeMessage={getFavoriteRemoveMessage()}
           />
+
+          <ShareButton product={product} locale={locale} description={getShareDescription()} />
         </div>
 
         {/* Product Info Footer */}

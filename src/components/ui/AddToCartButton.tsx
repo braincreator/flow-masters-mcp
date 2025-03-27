@@ -5,6 +5,7 @@ import { cn } from '@/utilities/ui'
 import { ShoppingCart, Download, Clock, Shield } from 'lucide-react'
 import { type Locale } from '@/constants'
 import { ReactNode } from 'react'
+import { useTranslations } from '@/hooks/useTranslations'
 
 export interface AddToCartButtonProps {
   product: any // Using any type to avoid compatibility issues across components
@@ -29,32 +30,34 @@ export function AddToCartButton({
   buttonText,
   productType: propProductType,
 }: AddToCartButtonProps) {
+  const t = useTranslations(locale)
+
   // Get button config based on product type
   const getButtonConfig = (type: string = 'physical') => {
     switch (type) {
       case 'digital':
         return {
-          text: locale === 'ru' ? 'Купить' : 'Buy Now',
+          text: t.products?.buyNow || (locale === 'ru' ? 'Купить' : 'Buy Now'),
           icon: Download,
         }
       case 'subscription':
         return {
-          text: locale === 'ru' ? 'Подписаться' : 'Subscribe',
+          text: t.products?.subscribe || (locale === 'ru' ? 'Подписаться' : 'Subscribe'),
           icon: Clock,
         }
       case 'service':
         return {
-          text: locale === 'ru' ? 'Заказать услугу' : 'Book Service',
+          text: t.products?.bookService || (locale === 'ru' ? 'Заказать услугу' : 'Book Service'),
           icon: Clock,
         }
       case 'access':
         return {
-          text: locale === 'ru' ? 'Получить доступ' : 'Get Access',
+          text: t.products?.getAccess || (locale === 'ru' ? 'Получить доступ' : 'Get Access'),
           icon: Shield,
         }
       default:
         return {
-          text: locale === 'ru' ? 'В корзину' : 'Add to Cart',
+          text: t.products?.addToCart || (locale === 'ru' ? 'В корзину' : 'Add to Cart'),
           icon: ShoppingCart,
         }
     }

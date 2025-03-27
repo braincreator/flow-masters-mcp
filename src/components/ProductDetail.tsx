@@ -33,6 +33,8 @@ import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { toast } from 'sonner'
 import type { Product as ProductType } from '@/payload-types'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
+import { FavoriteButton } from '@/components/ui/FavoriteButton'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -224,37 +226,29 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
         <Separator />
 
-        {/* Action buttons - With fully functional favorite and share buttons */}
+        {/* Action buttons - Replace with new components */}
         <div className="product-actions">
           <div className="flex items-center gap-4">
             <AddToCartButton
               product={product}
-              locale={lang}
+              locale={lang as any}
               onClick={handleAddToCart}
-              buttonText={TEXT.ADD_TO_CART}
-              productType={product.productType}
+              productType={product.productType as string}
               className="flex-1"
             />
 
-            <Button
-              variant="outline"
-              size="lg"
+            <FavoriteButton
+              product={product}
+              locale={lang as any}
               className="flex-none w-12 h-12 p-0"
-              onClick={handleFavoriteToggle}
-              aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
-            </Button>
+              successMessage="Added to favorites"
+              removeMessage="Removed from favorites"
+            />
 
-            <SocialSharePopover
-              url={productUrl}
-              title={getProductTitle()}
-              description={
-                product.description ? t.sharing?.shareVia || 'Check out this product!' : ''
-              }
-              image={featuredImageUrl}
-              lang={lang}
-              triggerClassName="h-12 w-12 p-0"
+            <ShareButton
+              product={product}
+              locale={lang as any}
+              description={t.sharing?.shareVia || 'Check out this product!'}
             />
           </div>
 
