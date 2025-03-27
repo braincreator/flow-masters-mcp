@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  /* Добавление базовых стилей для создания правильного sticky footer */
+  html {
+    @apply h-full;
+  }
+
+  body {
+    @apply min-h-full flex flex-col;
+  }
+
+  main {
+    @apply flex-grow;
+  }
+
   :root {
     /* Base colors - Light theme */
     --background: 220 33% 98%;
@@ -111,6 +124,11 @@
 
   .badge {
     @apply inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-accent/10 text-accent-foreground;
+  }
+
+  /* Pagination style removed */
+  .pagination-footer {
+    @apply w-full py-3;
   }
 }
 

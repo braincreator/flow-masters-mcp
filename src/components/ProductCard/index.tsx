@@ -133,21 +133,19 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
   return (
     <div
-      className={`group bg-card rounded-xl border border-border overflow-hidden
-        transition-all duration-300 hover:shadow-lg cursor-pointer
-        dark:border-border/50 dark:hover:border-accent/30
-        ${layout === 'list' ? 'flex gap-6' : 'flex flex-col'}
-      `}
+      className={cn(
+        'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto',
+        layout === 'list' ? 'flex items-center gap-6' : 'flex flex-col',
+      )}
       onClick={handleCardClick}
     >
       {/* Image Container */}
       <Link
         href={`/${locale}/products/${product.slug}`}
-        className={`
-          relative overflow-hidden
-          dark:border-b dark:border-border/50 dark:group-hover:border-accent/30
-          ${layout === 'list' ? 'w-48 h-48 shrink-0' : 'w-full aspect-[4/3]'}
-        `}
+        className={cn(
+          'relative overflow-hidden dark:border-b dark:border-border/50 dark:group-hover:border-accent/30',
+          layout === 'list' ? 'w-32 h-32 shrink-0 ml-4 my-4' : 'w-full aspect-[4/3]',
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {product.featuredImage?.url || product.thumbnail ? (
@@ -165,7 +163,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             fill
             sizes={
               layout === 'list'
-                ? '200px'
+                ? '128px'
                 : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
             }
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -180,18 +178,23 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         )}
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-2">
+        <div
+          className={cn(
+            'absolute top-2 left-2 flex gap-2',
+            layout === 'list' ? 'flex-row' : 'flex-col',
+          )}
+        >
           {isNew && <NewBadge locale={locale} />}
           {isBestseller && <BestsellerBadge locale={locale} />}
           {discountPercentage && <DiscountBadge percentage={discountPercentage} />}
         </div>
 
-        {/* Price Badge - Используем ProductPrice */}
-        {price > 0 && (
+        {/* Price Badge - Only show in grid mode */}
+        {price > 0 && layout === 'grid' && (
           <div
             className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
-                        px-3 py-1 rounded-full border border-border
-                        dark:border-border/50 dark:hover:border-accent/30"
+                      px-3 py-1 rounded-full border border-border
+                      dark:border-border/50 dark:hover:border-accent/30"
           >
             <ProductPrice
               product={product}
@@ -205,7 +208,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
       </Link>
 
       {/* Content */}
-      <div className="flex flex-col flex-grow p-4 space-y-2">
+      <div className={cn('flex flex-col flex-grow p-4 space-y-2', layout === 'list' && 'flex-1')}>
         {/* Title */}
         <Link
           href={`/${locale}/products/${product.slug}`}
@@ -219,15 +222,33 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
         {/* Short Description */}
         {product.shortDescription && (
-          <p className="line-clamp-2 text-sm text-muted-foreground">
+          <p
+            className={cn(
+              'text-sm text-muted-foreground',
+              layout === 'list' ? 'line-clamp-3' : 'line-clamp-2',
+            )}
+          >
             {typeof product.shortDescription === 'object'
               ? product.shortDescription[locale]
               : product.shortDescription}
           </p>
         )}
 
+        {/* Price in list mode */}
+        {price > 0 && layout === 'list' && (
+          <div className="mt-2">
+            <ProductPrice
+              product={product}
+              locale={locale}
+              size="md"
+              variant="default"
+              showDiscountBadge={true}
+            />
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
+        <div className={cn('flex gap-2 pt-2', layout === 'list' && 'mt-auto')}>
           <AddToCartButton
             product={product}
             locale={locale}

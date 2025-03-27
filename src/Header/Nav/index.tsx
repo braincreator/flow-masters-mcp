@@ -17,7 +17,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const currentLocale = pathname?.split('/')[1] || 'en'
 
   return (
-    <nav className="flex items-center gap-6">
+    <nav className="flex items-center gap-2">
       {navItems.map(({ link }, i) => (
         <CMSLink
           key={i}

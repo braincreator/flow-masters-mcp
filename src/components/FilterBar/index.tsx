@@ -322,7 +322,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => handleLayoutChange('grid')}
             className={cn(
               'relative z-20',
-              'h-8 w-8 p-0 rounded-md',
+              'h-8 px-2 rounded-md',
               'flex items-center justify-center',
               'transition-all duration-200',
               'border border-transparent',
@@ -330,8 +330,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               layout !== 'grid' && 'hover:bg-accent hover:text-accent-foreground',
             )}
           >
-            <GridIcon className="h-4 w-4" />
-            <span className="sr-only">{t.filters.layout.grid}</span>
+            <GridIcon className="h-4 w-4 mr-1" />
+            <span className="text-xs hidden sm:inline">{t.filters.layout.grid}</span>
           </button>
 
           <button
@@ -339,7 +339,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => handleLayoutChange('list')}
             className={cn(
               'relative z-20',
-              'h-8 w-8 p-0 rounded-md',
+              'h-8 px-2 rounded-md',
               'flex items-center justify-center',
               'transition-all duration-200',
               'border border-transparent',
@@ -347,8 +347,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               layout !== 'list' && 'hover:bg-accent hover:text-accent-foreground',
             )}
           >
-            <ListIcon className="h-4 w-4" />
-            <span className="sr-only">{t.filters.layout.list}</span>
+            <ListIcon className="h-4 w-4 mr-1" />
+            <span className="text-xs hidden sm:inline">{t.filters.layout.list}</span>
           </button>
         </div>
       </div>

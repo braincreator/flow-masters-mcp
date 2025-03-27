@@ -44,53 +44,82 @@ export const Pagination: React.FC<{
     }
   }
 
+  // Если всего одна страница, показываем упрощенную версию
+  if (totalPages <= 1) {
+    return (
+      <div className={cn('py-3 w-full', className)}>
+        <div className="container">
+          <PaginationComponent>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious disabled={true}>
+                  {labels?.prev || 'Previous'}
+                </PaginationPrevious>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink isActive onClick={() => updatePage(1)}>
+                  1
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext disabled={true}>{labels?.next || 'Next'}</PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </PaginationComponent>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className={cn('my-12', className)}>
-      <PaginationComponent>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious disabled={!hasPrevPage} onClick={() => updatePage(page - 1)}>
-              {labels?.prev || 'Previous'}
-            </PaginationPrevious>
-          </PaginationItem>
-
-          {hasExtraPrevPages && (
+    <div className={cn('py-3 w-full', className)}>
+      <div className="container">
+        <PaginationComponent>
+          <PaginationContent>
             <PaginationItem>
-              <PaginationEllipsis />
+              <PaginationPrevious disabled={!hasPrevPage} onClick={() => updatePage(page - 1)}>
+                {labels?.prev || 'Previous'}
+              </PaginationPrevious>
             </PaginationItem>
-          )}
 
-          {hasPrevPage && (
+            {hasExtraPrevPages && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {hasPrevPage && (
+              <PaginationItem>
+                <PaginationLink onClick={() => updatePage(page - 1)}>{page - 1}</PaginationLink>
+              </PaginationItem>
+            )}
+
             <PaginationItem>
-              <PaginationLink onClick={() => updatePage(page - 1)}>{page - 1}</PaginationLink>
+              <PaginationLink isActive onClick={() => updatePage(page)}>
+                {page}
+              </PaginationLink>
             </PaginationItem>
-          )}
 
-          <PaginationItem>
-            <PaginationLink isActive onClick={() => updatePage(page)}>
-              {page}
-            </PaginationLink>
-          </PaginationItem>
+            {hasNextPage && (
+              <PaginationItem>
+                <PaginationLink onClick={() => updatePage(page + 1)}>{page + 1}</PaginationLink>
+              </PaginationItem>
+            )}
 
-          {hasNextPage && (
+            {hasExtraNextPages && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
             <PaginationItem>
-              <PaginationLink onClick={() => updatePage(page + 1)}>{page + 1}</PaginationLink>
+              <PaginationNext disabled={!hasNextPage} onClick={() => updatePage(page + 1)}>
+                {labels?.next || 'Next'}
+              </PaginationNext>
             </PaginationItem>
-          )}
-
-          {hasExtraNextPages && (
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-          )}
-
-          <PaginationItem>
-            <PaginationNext disabled={!hasNextPage} onClick={() => updatePage(page + 1)}>
-              {labels?.next || 'Next'}
-            </PaginationNext>
-          </PaginationItem>
-        </PaginationContent>
-      </PaginationComponent>
+          </PaginationContent>
+        </PaginationComponent>
+      </div>
     </div>
   )
 }

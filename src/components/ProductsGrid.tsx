@@ -6,6 +6,8 @@ import type { Product } from '@/payload-types'
 import { ProductCard } from '@/components/ProductCard'
 import { Pagination } from './Pagination'
 import type { ProductQueryOptions } from '@/types/product.service'
+import { cn } from '@/utilities/ui'
+import PaginationRenderer from '@/components/PaginationRenderer'
 
 interface ProductsGridProps {
   layout?: 'grid' | 'list'
@@ -26,8 +28,8 @@ export function ProductsGrid({
   layout = 'grid',
   locale,
   products,
-  currentPage,
-  totalPages,
+  currentPage = 1,
+  totalPages = 1,
   onAddToCart,
   labels,
 }: ProductsGridProps) {
@@ -53,31 +55,35 @@ export function ProductsGrid({
 
   return (
     <div className="w-full">
-      <div className="space-y-8 flex flex-col min-h-[calc(100vh-200px)]">
+      <div className="space-y-8 flex flex-col">
         <div
-          className={
-            layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6' : 'space-y-6'
-          }
+          className={cn(
+            'flex-grow h-auto',
+            layout === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-auto'
+              : 'flex flex-col space-y-4',
+          )}
         >
           {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              locale={locale}
-              layout={layout}
-              onAddToCart={onAddToCart}
-            />
+            <div key={product.id} className={cn('h-auto', layout === 'list' && 'w-full')}>
+              <ProductCard
+                product={product}
+                locale={locale}
+                layout={layout}
+                onAddToCart={onAddToCart}
+              />
+            </div>
           ))}
         </div>
 
-        <div className="mt-auto">
+        <PaginationRenderer>
           <Pagination
             page={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             labels={labels}
           />
-        </div>
+        </PaginationRenderer>
       </div>
     </div>
   )

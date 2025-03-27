@@ -7,11 +7,12 @@ import { getPayload } from 'payload'
 import React, { Suspense, lazy } from 'react'
 import PageClient from './page.client'
 import { VirtualList } from '@/components/VirtualList'
+import PaginationRenderer from '@/components/PaginationRenderer'
 
-const LazyCollectionArchive = lazy(() => 
-  import('@/components/CollectionArchive').then(mod => ({ 
-    default: mod.CollectionArchive 
-  }))
+const LazyCollectionArchive = lazy(() =>
+  import('@/components/CollectionArchive').then((mod) => ({
+    default: mod.CollectionArchive,
+  })),
 )
 
 export const dynamic = 'force-static'
@@ -33,8 +34,12 @@ export default async function Page() {
     },
   })
 
+  // Убедимся что у нас есть данные о пагинации
+  const currentPage = posts.page || 1
+  const totalPages = posts.totalPages || 1
+
   return (
-    <div className="pb-24">
+    <div className="pb-24 flex flex-col">
       <PageClient />
       <div className="container mb-16">
         <div className="prose dark:prose-invert max-w-none">
@@ -51,21 +56,18 @@ export default async function Page() {
         />
       </div>
 
-      <Suspense fallback={<div>Loading posts...</div>}>
+      <Suspense fallback={<div className="flex-grow">Loading posts...</div>} className="flex-grow">
         <VirtualList
           items={posts.docs}
           itemHeight={300}
-          renderItem={(post) => (
-            <LazyCollectionArchive posts={[post]} />
-          )}
+          renderItem={(post) => <LazyCollectionArchive posts={[post]} />}
+          className="flex-grow"
         />
       </Suspense>
 
-      <div className="container">
-        {posts.totalPages > 1 && posts.page && (
-          <Pagination page={posts.page} totalPages={posts.totalPages} />
-        )}
-      </div>
+      <PaginationRenderer>
+        <Pagination page={currentPage} totalPages={totalPages} />
+      </PaginationRenderer>
     </div>
   )
 }

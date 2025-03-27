@@ -25,10 +25,10 @@ export function ProductsSection({
   productsPerPage,
   layout = 'grid',
   minPrice = 0,
-  maxPrice = 1000
+  maxPrice = 1000,
 }: ProductsSectionProps) {
   return (
-    <>
+    <div className="flex flex-col pagination-container">
       <FilterBar
         categories={categories}
         sortOptions={sortOptions}
@@ -42,11 +42,11 @@ export function ProductsSection({
           searchPlaceholder: t.filters.searchPlaceholder,
           allCategories: t.categories.all,
           layout: t.filters.layout,
-          priceRange: t.filters.priceRange
+          priceRange: t.filters.priceRange,
         }}
       />
 
-      <div className="mt-8">
+      <div className="mt-8 flex-grow">
         <ProductsGrid
           products={products}
           productsPerPage={productsPerPage}
@@ -56,10 +56,10 @@ export function ProductsSection({
             prev: t.pagination.prev,
             next: t.pagination.next,
             page: t.pagination.page,
-            of: t.pagination.of
+            of: t.pagination.of,
           }}
         />
       </div>
-    </>
+    </div>
   )
 }

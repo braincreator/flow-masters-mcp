@@ -1,12 +1,8 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useRef } from 'react'
+import { cn } from '@/utilities/ui'
 
-export const VirtualList = ({ 
-  items, 
-  renderItem, 
-  itemHeight = 50,
-  overscan = 5 
-}) => {
+export const VirtualList = ({ items, renderItem, itemHeight = 50, overscan = 5, className }) => {
   const parentRef = useRef(null)
 
   const virtualizer = useVirtualizer({
@@ -19,8 +15,8 @@ export const VirtualList = ({
   return (
     <div
       ref={parentRef}
-      className="h-full overflow-auto"
-      style={{ contain: 'strict' }}
+      className={cn('h-full overflow-auto', className)}
+      style={{ contain: 'strict', minHeight: 'calc(100vh - 200px)' }}
     >
       <div
         style={{

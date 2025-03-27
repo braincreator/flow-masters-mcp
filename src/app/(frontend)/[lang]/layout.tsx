@@ -12,7 +12,7 @@ import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
 import CartInitializer from '@/components/CartInitializer'
 import FavoritesInitializer from '@/components/FavoritesInitializer'
-import { CartCounter } from '@/components/ui/cart/CartCounter'
+import DefaultPagination from '@/components/DefaultPagination'
 
 const locales = ['en', 'ru']
 
@@ -36,7 +36,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -52,7 +52,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         className={cn(
           GeistSans.variable,
           GeistMono.variable,
-          'min-h-screen bg-background font-sans antialiased',
+          'flex flex-col min-h-full bg-background font-sans antialiased',
         )}
         style={{ '--header-height': '4rem' } as React.CSSProperties}
       >
@@ -62,11 +62,12 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
             {isDraftMode && <AdminBar />}
             <Header locale={lang} />
-            <main className="relative pt-[var(--header-height)]">{children}</main>
+            <main className="relative flex-grow pt-[var(--header-height)]">{children}</main>
+            <div id="pagination-slot" className="flex items-center justify-center">
+              {/* DefaultPagination component removed to prevent duplication */}
+            </div>
             <Footer locale={lang} />
             <FloatingCartButtonWrapper locale={lang} />
-            {/* Test component to verify cart count updates - remove in production */}
-            <CartCounter />
           </FavoritesInitializer>
         </CartInitializer>
       </body>

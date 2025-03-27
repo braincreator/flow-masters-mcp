@@ -8,6 +8,7 @@ import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
+import PaginationRenderer from '@/components/PaginationRenderer'
 
 export const revalidate = 600
 
@@ -33,8 +34,12 @@ export default async function Page({ params: paramsPromise }: Args) {
     overrideAccess: false,
   })
 
+  // Убедимся что у нас есть данные о пагинации
+  const currentPage = posts.page || sanitizedPageNumber
+  const totalPages = posts.totalPages || 1
+
   return (
-    <div className="pt-24 pb-24">
+    <div className="pt-24 pb-24 flex flex-col">
       <PageClient />
       <div className="container mb-16">
         <div className="prose dark:prose-invert max-w-none">
@@ -45,19 +50,19 @@ export default async function Page({ params: paramsPromise }: Args) {
       <div className="container mb-8">
         <PageRange
           collection="posts"
-          currentPage={posts.page}
+          currentPage={currentPage}
           limit={12}
           totalDocs={posts.totalDocs}
         />
       </div>
 
-      <CollectionArchive posts={posts.docs} />
-
-      <div className="container">
-        {posts?.page && posts?.totalPages > 1 && (
-          <Pagination page={posts.page} totalPages={posts.totalPages} />
-        )}
+      <div className="flex-grow">
+        <CollectionArchive posts={posts.docs} />
       </div>
+
+      <PaginationRenderer>
+        <Pagination page={currentPage} totalPages={totalPages} />
+      </PaginationRenderer>
     </div>
   )
 }
