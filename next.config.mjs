@@ -1,6 +1,28 @@
 // @ts-check
 import { withPayload } from '@payloadcms/next/withPayload'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Импортируем пакеты, которые использовались через require.resolve
+import cryptoBrowserify from 'crypto-browserify'
+import streamBrowserify from 'stream-browserify'
+import buffer from 'buffer'
+import util from 'util'
+import pathBrowserify from 'path-browserify'
+import osBrowserify from 'os-browserify/browser.js'
+import streamHttp from 'stream-http'
+import httpsBrowserify from 'https-browserify'
+import zlib from 'browserify-zlib'
+import process from 'process/browser.js'
+
+// Получаем пути к модулям
+const getModulePath = (pkg) => {
+  try {
+    return fileURLToPath(new URL(`node_modules/${pkg}`, import.meta.url))
+  } catch (e) {
+    return pkg
+  }
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -62,7 +84,7 @@ const nextConfig = {
   },
 
   // Add CSS optimization settings and fix worker_threads issue
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer, webpack }) => {
     if (!dev && !isServer) {
       config.optimization.splitChunks.cacheGroups.styles = {
         name: 'styles',
@@ -82,22 +104,22 @@ const nextConfig = {
         tls: false,
         fs: false,
         child_process: false,
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        buffer: require.resolve('buffer/'),
-        util: require.resolve('util/'),
-        path: require.resolve('path-browserify'),
-        os: require.resolve('os-browserify/browser'),
-        http: require.resolve('stream-http'),
-        https: require.resolve('https-browserify'),
-        zlib: require.resolve('browserify-zlib'),
+        crypto: getModulePath('crypto-browserify'),
+        stream: getModulePath('stream-browserify'),
+        buffer: getModulePath('buffer'),
+        util: getModulePath('util'),
+        path: getModulePath('path-browserify'),
+        os: getModulePath('os-browserify/browser.js'),
+        http: getModulePath('stream-http'),
+        https: getModulePath('https-browserify'),
+        zlib: getModulePath('browserify-zlib'),
       }
 
       // Добавляем полифиллы для буфера и других необходимых модулей
       config.plugins.push(
-        new config.constructor.ProvidePlugin({
+        new webpack.ProvidePlugin({
           Buffer: ['buffer', 'Buffer'],
-          process: 'process/browser',
+          process: 'process/browser.js',
         }),
       )
     }

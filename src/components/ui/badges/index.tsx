@@ -1,0 +1,7 @@
+export { NewBadge } from './NewBadge'
+export { BestsellerBadge } from './BestsellerBadge'
+export { DiscountBadge } from './DiscountBadge'
+export { ProductTypeBadge } from './ProductTypeBadge'
+export { RatingBadge } from './RatingBadge'
+export { CategoryBadge } from './CategoryBadge'
+export { TagBadge } from './TagBadge'

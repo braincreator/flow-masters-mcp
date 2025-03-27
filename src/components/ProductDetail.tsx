@@ -1,7 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -9,63 +7,69 @@ import {
   FileText,
   Clock,
   Shield,
-  Star,
-  ShoppingCart,
   Package,
   Zap,
   RefreshCw,
-  ImageIcon,
   Check,
-  Heart,
-  Share2,
-  Truck,
   Info,
+  Truck,
 } from 'lucide-react'
 import RichText from '@/components/RichText'
 import { useTranslations } from '@/hooks/useTranslations'
-import LoadingIndicator from '@/components/ui/LoadingIndicator'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { ImageGallery } from '@/components/ProductDetail/ImageGallery'
 import './ProductDetail/styles.css'
 import { useFavorites } from '@/hooks/useFavorites'
-import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { toast } from 'sonner'
 import type { Product as ProductType } from '@/payload-types'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
 import { FavoriteButton } from '@/components/ui/FavoriteButton'
 import { ShareButton } from '@/components/ui/ShareButton'
-
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
+import {
+  CategoryBadge,
+  TagBadge,
+  RatingBadge,
+  DiscountBadge,
+  ProductTypeBadge,
+  BestsellerBadge,
+  NewBadge,
+} from '@/components/ui/badges'
+import { formatPrice } from '@/utilities/formatPrice'
+import { type Locale } from '@/constants'
 
 interface ProductDetailProps {
-  product: ProductType
-  lang: string
-}
-
-// Text constants for fallback translations
-const TEXT = {
-  ADD_TO_CART: 'Add to Cart',
-  FREE_SHIPPING: 'Free shipping available',
-  DESCRIPTION: 'Description',
-  FEATURES: 'Features',
-  SPECIFICATIONS: 'Specifications',
-  SECURE_PACKAGING: 'Secure Packaging',
-  SAFE_DELIVERY: 'Safe delivery',
-  GUARANTEE: 'Guarantee',
-  DAYS_MONEY: '30-day money back',
-  SUPPORT: 'Support',
-  HELP_AVAILABLE: 'Help available',
-  INSTANT_DELIVERY: 'Instant Delivery',
-  AUTO_RENEWAL: 'Auto-renewal',
+  product: ProductType & {
+    productType?: 'physical' | 'digital' | 'subscription' | 'service' | 'access'
+    pricing?: {
+      basePrice?: number
+      finalPrice?: number
+      compareAtPrice?: number
+      discountPercentage?: number
+      interval?: string
+    }
+    rating?: number
+    digitalContent?: {
+      fileSize?: string
+    }
+    isBestseller?: boolean
+    hasFreeDelivery?: boolean
+    category?: {
+      title: string | Record<string, string>
+    }
+    specs?: Record<string, string> | any
+  }
+  lang: Locale
 }
 
 export function ProductDetail({ product, lang }: ProductDetailProps) {
   const t = useTranslations(lang)
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
+  const { isFavorite } = useFavorites()
   const [isFav, setIsFav] = useState(false)
+
+  // Determine if product is new (published within last 14 days)
+  const isNew = product.publishedAt
+    ? (new Date().getTime() - new Date(product.publishedAt).getTime()) / (1000 * 3600 * 24) < 14
+    : false
 
   useEffect(() => {
     if (product?.id) {
@@ -77,7 +81,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
     if (typeof product.category === 'string') {
       return product.category
     }
-    return product.category?.title || ''
+    return product.category && 'title' in product.category ? product.category.title : ''
   }
 
   const getProductTitle = () => {
@@ -95,7 +99,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         return (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Download className="h-4 w-4" />
-            <span>{t.products?.instantDelivery || TEXT.INSTANT_DELIVERY}</span>
+            <span>{t.products?.instantDelivery || 'Instant Delivery'}</span>
             {product.digitalContent?.fileSize && (
               <>
                 <span className="mx-2">•</span>
@@ -112,7 +116,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
             <span>{product.pricing?.interval}</span>
             <span className="mx-2">•</span>
             <Shield className="h-4 w-4" />
-            <span>{t.products?.autoRenewal || TEXT.AUTO_RENEWAL}</span>
+            <span>{t.products?.autoRenewal || 'Auto-renewal'}</span>
           </div>
         )
       default:
@@ -131,30 +135,8 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
       }
     }) || []
 
-  // Text for the image placeholder
-  const noImageText = lang === 'ru' ? 'Изображение отсутствует' : 'No image available'
-
-  // Product page URL for sharing
-  const productUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/${lang}/products/${product.slug || ''}`
-      : ''
-
-  // Get featured image URL for sharing
-  const getImageUrl = (item: any) => {
-    if (typeof item === 'string') return item
-    return item?.url || ''
-  }
-
-  const featuredImageUrl =
-    product.gallery && product.gallery.length > 0
-      ? getImageUrl(product.gallery[0].image)
-      : getImageUrl(product.thumbnail)
-
   const handleAddToCart = (productToAdd: any) => {
-    // Implement add to cart functionality
     console.log('Adding to cart:', productToAdd)
-    // You could call useCart hook or dispatch an action here
   }
 
   const getAddToCartMessage = () => {
@@ -169,9 +151,74 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
       : `${getProductTitle()} removed from cart`
   }
 
+  const getProductDescriptionLabel = () => {
+    return lang === 'ru' ? 'Описание' : 'Description'
+  }
+
+  const getFeaturesLabel = () => {
+    return lang === 'ru' ? 'Особенности' : 'Features'
+  }
+
+  const getSpecificationsLabel = () => {
+    return lang === 'ru' ? 'Характеристики' : 'Specifications'
+  }
+
+  const renderTrustBadges = () => {
+    const hasFreeDelivery = product.hasFreeDelivery || product.productType === 'digital'
+    const guaranteeLabel = lang === 'ru' ? 'Гарантия' : 'Guarantee'
+    const moneyBackLabel = lang === 'ru' ? '30 дней возврата' : '30-day money back'
+    const supportLabel = lang === 'ru' ? 'Поддержка' : 'Support'
+    const helpLabel = lang === 'ru' ? 'Помощь доступна' : 'Help available'
+    const securePackagingLabel = lang === 'ru' ? 'Надёжная упаковка' : 'Secure Packaging'
+    const safeDeliveryLabel = lang === 'ru' ? 'Безопасная доставка' : 'Safe delivery'
+    const freeDeliveryLabel = lang === 'ru' ? 'Бесплатная доставка' : 'Free delivery'
+
+    return (
+      <div className="product-benefits">
+        {product.productType !== 'digital' && (
+          <div className="benefit-card">
+            <Package className="benefit-icon" />
+            <div>
+              <h4 className="font-medium">{securePackagingLabel}</h4>
+              <p className="text-xs text-muted-foreground">{safeDeliveryLabel}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="benefit-card">
+          <Shield className="benefit-icon" />
+          <div>
+            <h4 className="font-medium">{guaranteeLabel}</h4>
+            <p className="text-xs text-muted-foreground">{moneyBackLabel}</p>
+          </div>
+        </div>
+
+        <div className="benefit-card">
+          <Info className="benefit-icon" />
+          <div>
+            <h4 className="font-medium">{supportLabel}</h4>
+            <p className="text-xs text-muted-foreground">{helpLabel}</p>
+          </div>
+        </div>
+
+        {hasFreeDelivery && (
+          <div className="benefit-card">
+            <Truck className="benefit-icon text-emerald-500" />
+            <div>
+              <h4 className="font-medium text-emerald-500">{freeDeliveryLabel}</h4>
+              <p className="text-xs text-muted-foreground">
+                {lang === 'ru' ? 'Для этого товара' : 'For this product'}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="product-detail-container">
-      {/* Image Gallery - Use the updated ImageGallery component which handles no images */}
+      {/* Image Gallery */}
       <ImageGallery images={formattedImages} className="product-image-gallery" locale={lang} />
 
       {/* Product Info */}
@@ -179,23 +226,28 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         {/* Header section */}
         <div className="product-header">
           <div className="badges-container">
-            <Badge variant="outline" className="rounded-md">
-              {getCategoryTitle()}
-            </Badge>
+            {product.category && (
+              <CategoryBadge title={getCategoryTitle()} locale={lang} className="rounded-md" />
+            )}
+
+            {product.productType && (
+              <ProductTypeBadge type={product.productType} className="rounded-md" />
+            )}
+
+            {isNew && <NewBadge locale={lang} className="rounded-md" />}
+
+            {product.isBestseller && <BestsellerBadge locale={lang} className="rounded-md" />}
 
             {product.tags &&
               product.tags.length > 0 &&
-              product.tags.slice(0, 3).map((tag, idx) => (
-                <Badge key={idx} variant="secondary" className="rounded-md">
-                  {typeof tag === 'string' ? tag : tag.tag}
-                </Badge>
-              ))}
+              product.tags
+                .slice(0, 2)
+                .map((tag, idx) => <TagBadge key={idx} tag={tag} className="rounded-md" />)}
 
             {product.rating && (
-              <Badge variant="secondary" className="ml-auto flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                <span>{product.rating.toFixed(1)}</span>
-              </Badge>
+              <div className="ml-auto">
+                <RatingBadge rating={product.rating} />
+              </div>
             )}
           </div>
 
@@ -210,31 +262,37 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         <div className="price-section">
           <div className="price-tag">
             <span className="text-3xl font-bold">
-              ${product.pricing?.finalPrice || product.pricing?.basePrice || product.price}
+              {formatPrice(
+                product.pricing?.finalPrice || product.pricing?.basePrice || product.price || 0,
+                lang,
+              )}
             </span>
 
-            {product.pricing?.compareAtPrice && (
-              <span className="original-price">${product.pricing.compareAtPrice}</span>
+            {product.pricing?.compareAtPrice && product.pricing.compareAtPrice > 0 && (
+              <span className="original-price">
+                {formatPrice(product.pricing.compareAtPrice, lang)}
+              </span>
             )}
 
-            {product.pricing?.discountPercentage && (
-              <Badge variant="destructive" className="discount-badge">
-                Save {product.pricing.discountPercentage}%
-              </Badge>
+            {product.pricing?.discountPercentage && product.pricing.discountPercentage > 0 && (
+              <DiscountBadge
+                percentage={product.pricing.discountPercentage}
+                className="discount-badge"
+              />
             )}
           </div>
         </div>
 
-        <Separator />
+        <Separator className="my-6" />
 
-        {/* Action buttons - Replace with new components */}
+        {/* Action buttons */}
         <div className="product-actions">
           <div className="flex items-center gap-4">
             <AddToCartButton
               product={product}
-              locale={lang as any}
+              locale={lang}
               onClick={handleAddToCart}
-              className="flex-1"
+              className="flex-1 add-to-cart-button"
               showToast={true}
               successMessage={getAddToCartMessage()}
               removeMessage={getRemoveFromCartMessage()}
@@ -242,7 +300,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
             <FavoriteButton
               product={product}
-              locale={lang as any}
+              locale={lang}
               size="icon"
               className="h-[40px] w-[40px]"
               showToast={true}
@@ -250,7 +308,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
             <ShareButton
               product={product}
-              locale={lang as any}
+              locale={lang}
               size="icon"
               className="h-[40px] w-[40px]"
               description={
@@ -270,8 +328,10 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
           {/* Delivery info for digital goods */}
           {product.productType === 'digital' && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-              <Download className="h-4 w-4" />
-              <span>{t.products?.instantDelivery || TEXT.INSTANT_DELIVERY}</span>
+              <Download className="h-4 w-4 text-emerald-500" />
+              <span className="text-emerald-500">
+                {t.products?.instantDelivery || 'Instant Delivery'}
+              </span>
             </div>
           )}
         </div>
@@ -280,9 +340,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         <div className="mt-8">
           <Tabs defaultValue="description" className="w-full">
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="description">{TEXT.DESCRIPTION}</TabsTrigger>
-              <TabsTrigger value="features">{TEXT.FEATURES}</TabsTrigger>
-              <TabsTrigger value="specs">{TEXT.SPECIFICATIONS}</TabsTrigger>
+              <TabsTrigger value="description">{getProductDescriptionLabel()}</TabsTrigger>
+              <TabsTrigger value="features">{getFeaturesLabel()}</TabsTrigger>
+              <TabsTrigger value="specs">{getSpecificationsLabel()}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="description" className="description-section">
@@ -291,7 +351,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                   <RichText data={product.description} />
                 </div>
               ) : (
-                <div className="text-muted-foreground italic">No description available</div>
+                <div className="text-muted-foreground italic">
+                  {lang === 'ru' ? 'Описание отсутствует' : 'No description available'}
+                </div>
               )}
             </TabsContent>
 
@@ -333,7 +395,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                     return (
                       <div key={index} className="feature-item">
                         <div className="feature-icon">
-                          <Icon className="h-4 w-4 text-primary" />
+                          <Icon className="h-4 w-4" />
                         </div>
                         <span>{typeof feature === 'string' ? feature : feature.feature || ''}</span>
                       </div>
@@ -341,7 +403,9 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                   })}
                 </div>
               ) : (
-                <div className="text-muted-foreground italic">No features available</div>
+                <div className="text-muted-foreground italic p-4">
+                  {lang === 'ru' ? 'Особенности отсутствуют' : 'No features available'}
+                </div>
               )}
             </TabsContent>
 
@@ -349,11 +413,25 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               <div className="text-muted-foreground">
                 {product.specs ? (
                   <div className="space-y-4">
-                    {/* Implement specs rendering here */}
-                    <p>Product specifications would be displayed here.</p>
+                    {typeof product.specs === 'object' && !Array.isArray(product.specs) ? (
+                      Object.entries(product.specs as Record<string, string>).map(
+                        ([key, value]) => (
+                          <div key={key} className="flex justify-between">
+                            <span className="font-medium">{key}</span>
+                            <span>{String(value)}</span>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <div className="prose dark:prose-invert max-w-none">
+                        {product.specs && <RichText data={product.specs} />}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="italic">No specifications available</div>
+                  <div className="italic">
+                    {lang === 'ru' ? 'Характеристики отсутствуют' : 'No specifications available'}
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -361,31 +439,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         </div>
 
         {/* Trust badges */}
-        <div className="product-benefits">
-          <div className="benefit-card">
-            <Package className="benefit-icon" />
-            <div>
-              <h4 className="font-medium">{TEXT.SECURE_PACKAGING}</h4>
-              <p className="text-xs text-muted-foreground">{TEXT.SAFE_DELIVERY}</p>
-            </div>
-          </div>
-
-          <div className="benefit-card">
-            <Shield className="benefit-icon" />
-            <div>
-              <h4 className="font-medium">{TEXT.GUARANTEE}</h4>
-              <p className="text-xs text-muted-foreground">{TEXT.DAYS_MONEY}</p>
-            </div>
-          </div>
-
-          <div className="benefit-card">
-            <Info className="benefit-icon" />
-            <div>
-              <h4 className="font-medium">{TEXT.SUPPORT}</h4>
-              <p className="text-xs text-muted-foreground">{TEXT.HELP_AVAILABLE}</p>
-            </div>
-          </div>
-        </div>
+        {renderTrustBadges()}
       </div>
     </div>
   )

@@ -32,6 +32,15 @@ import { toast } from 'sonner'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
 import { FavoriteButton } from '@/components/ui/FavoriteButton'
 import { ShareButton } from '@/components/ui/ShareButton'
+import {
+  NewBadge,
+  BestsellerBadge,
+  DiscountBadge,
+  ProductTypeBadge,
+  RatingBadge,
+  CategoryBadge,
+  TagBadge,
+} from '@/components/ui/badges'
 
 // Enhanced Product interface that extends the base PayloadProduct
 interface EnhancedProduct extends PayloadProduct {
@@ -135,7 +144,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     return null
   }
 
-  const getProductType = (): string => {
+  const getProductType = (): 'physical' | 'digital' | 'subscription' | 'service' | 'access' => {
     return product.productType || 'physical'
   }
 
@@ -269,24 +278,9 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-2">
-          {isNew && (
-            <Badge variant="default" className="bg-accent text-accent-foreground">
-              {locale === 'ru' ? 'Новинка' : 'New'}
-            </Badge>
-          )}
-
-          {isBestseller && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Award className="h-3 w-3" />
-              {locale === 'ru' ? 'Хит продаж' : 'Bestseller'}
-            </Badge>
-          )}
-
-          {discountPercentage && (
-            <Badge variant="destructive" className="flex items-center gap-1">
-              <PercentIcon className="h-3 w-3" />-{discountPercentage}%
-            </Badge>
-          )}
+          {isNew && <NewBadge locale={locale} />}
+          {isBestseller && <BestsellerBadge locale={locale} />}
+          {discountPercentage && <DiscountBadge percentage={discountPercentage} />}
         </div>
 
         {/* Price Badge */}
@@ -314,27 +308,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {/* Type & Rating */}
         <div className="flex justify-between items-center">
           {/* Product Type Badge */}
-          <Badge
-            variant="outline"
-            className="text-xs bg-accent/5 border-accent/20 text-accent-foreground"
-          >
-            {getProductType() === 'digital' ? (
-              <Download className="h-3 w-3 mr-1" />
-            ) : getProductType() === 'subscription' ? (
-              <BatteryCharging className="h-3 w-3 mr-1" />
-            ) : (
-              <Tag className="h-3 w-3 mr-1" />
-            )}
-            {getProductType()}
-          </Badge>
+          <ProductTypeBadge type={getProductType()} />
 
-          {/* Rating Stars - Replace with your actual rating system */}
-          {product.rating && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-              <span className="text-xs font-medium">{product.rating.toFixed(1)}</span>
-            </div>
-          )}
+          {/* Rating Stars */}
+          {product.rating && <RatingBadge rating={product.rating} />}
         </div>
 
         {/* Title */}
@@ -391,30 +368,16 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             {/* Categories */}
             {product.categories &&
               product.categories.length > 0 &&
-              product.categories.slice(0, 2).map((category) => (
-                <span
-                  key={category.id}
-                  className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full
-                          dark:border dark:border-border/50 dark:hover:border-accent/30
-                          transition-colors duration-200"
-                >
-                  {typeof category.title === 'object' ? category.title[locale] : category.title}
-                </span>
-              ))}
+              product.categories
+                .slice(0, 2)
+                .map((category) => (
+                  <CategoryBadge key={category.id} title={category.title} locale={locale} />
+                ))}
 
             {/* Tags */}
             {product.tags &&
               product.tags.length > 0 &&
-              product.tags.slice(0, 2).map((tag, index) => (
-                <span
-                  key={index}
-                  className="text-xs text-accent bg-accent/5 px-2 py-1 rounded-full
-                          border border-accent/20
-                          transition-colors duration-200"
-                >
-                  {typeof tag === 'string' ? tag : tag.tag || ''}
-                </span>
-              ))}
+              product.tags.slice(0, 2).map((tag, index) => <TagBadge key={index} tag={tag} />)}
           </div>
         )}
 
