@@ -30,9 +30,6 @@ const createCustomStorage = () => {
 
       try {
         const item = localStorage.getItem(name)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Reading ${name}:`, item ? 'Favorites found' : 'No favorites data')
-        }
         return item || ''
       } catch (error) {
         console.error(`[Storage] Error getting ${name} from localStorage:`, error)
@@ -45,9 +42,6 @@ const createCustomStorage = () => {
 
       try {
         localStorage.setItem(name, value)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Successfully stored ${name}, size: ${value.length} bytes`)
-        }
       } catch (error) {
         console.error(`[Storage] Error setting ${name} in localStorage:`, error)
       }
@@ -58,9 +52,6 @@ const createCustomStorage = () => {
 
       try {
         localStorage.removeItem(name)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Successfully removed ${name}`)
-        }
       } catch (error) {
         console.error(`[Storage] Error removing ${name} from localStorage:`, error)
       }
@@ -84,19 +75,6 @@ const manualPersist = (state: any) => {
     })
 
     localStorage.setItem('product-favorites', storageContent)
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        '[Favorites] Manually persisted favorites:',
-        state.favorites.length,
-        'items',
-        'Storage size:',
-        Math.round(storageContent.length / 1024),
-        'KB',
-        'Locale:',
-        state.locale,
-      )
-    }
   } catch (error) {
     console.error('[Favorites] Error manually persisting favorites state:', error)
   }
@@ -195,15 +173,6 @@ export const useFavorites = create<FavoritesStore>()(
       // Функция для принудительного обновления состояния после гидратации
       forceUpdate: () => {
         set((state) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(
-              '[Favorites] Forcing update, current favorites:',
-              state.favorites.length,
-              'items',
-              state.favorites.map((f) => f.id).join(', '),
-            )
-          }
-
           // Создаем новую ссылку на массив, чтобы вызвать перерисовку компонентов
           return { favorites: [...state.favorites] }
         })

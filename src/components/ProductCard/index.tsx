@@ -53,10 +53,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     if (product?.id) {
       const currentIsFavorite = isFavorite(product.id)
       setIsFav(currentIsFavorite)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[ProductCard] Product ${product.id} isFavorite:`, currentIsFavorite)
-      }
     }
   }, [product?.id, isFavorite])
 

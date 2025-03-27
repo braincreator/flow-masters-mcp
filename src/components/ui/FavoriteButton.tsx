@@ -65,10 +65,6 @@ export function FavoriteButton({
     if (product?.id) {
       const currentIsFavorite = isFavorite(product.id)
       setIsFav(currentIsFavorite)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[FavoriteButton] Product ${product.id} isFavorite:`, currentIsFavorite)
-      }
     }
   }, [product?.id, isFavorite])
 
