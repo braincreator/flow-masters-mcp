@@ -282,3 +282,17 @@ export const invalidateSettingsCache = () => {
   localeSettingsCache = null
   baseCurrencyCache = null
 }
+
+// Simple currency formatter for client components that don't need localization settings
+export const formatCurrency = (amount: number, locale: string = 'en'): string => {
+  const currency = locale === 'ru' ? 'RUB' : 'USD'
+  const minimumFractionDigits = currency === 'RUB' ? 0 : 2
+  const maximumFractionDigits = currency === 'RUB' ? 0 : 2
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(amount)
+}

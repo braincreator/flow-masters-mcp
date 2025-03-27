@@ -15,6 +15,7 @@ import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 
 interface HeaderClientProps {
   data: Header
+  locale: string
 }
 
 const Header = memo(function Header({ data, theme, currentLocale }) {
@@ -25,16 +26,16 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
   // Throttled scroll handler
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY
-    
+
     if (Math.abs(currentScrollY - lastScrollY) < 50) return
-    
+
     setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100)
     setLastScrollY(currentScrollY)
   }, [lastScrollY])
 
   useEffect(() => {
     let ticking = false
-    
+
     const onScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
@@ -49,19 +50,21 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [handleScroll])
 
-  const headerAnimation = prefersReducedMotion ? {} : {
-    initial: { y: -20, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    transition: { duration: 0.5 }
-  }
+  const headerAnimation = prefersReducedMotion
+    ? {}
+    : {
+        initial: { y: -20, opacity: 0 },
+        animate: { y: 0, opacity: 1 },
+        transition: { duration: 0.5 },
+      }
 
   return (
     <motion.header
       {...headerAnimation}
       className={cn(
-        "fixed top-0 left-0 right-0 h-16 z-50 transform transition-transform duration-300",
-        "bg-background/80 backdrop-blur-md border-b border-border/40",
-        !isVisible && "translate-y-[-100%]"
+        'fixed top-0 left-0 right-0 h-16 z-50 transform transition-transform duration-300',
+        'bg-background/80 backdrop-blur-md border-b border-border/40',
+        !isVisible && 'translate-y-[-100%]',
       )}
       {...(theme ? { 'data-theme': theme } : {})}
     >
@@ -69,15 +72,15 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
         <div className="flex justify-between items-center h-full">
           <motion.div
             whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             className="hover:text-accent transition-colors duration-300"
           >
             <Link href={`/${currentLocale}`}>
-              <Logo 
-                loading="eager" 
-                priority="high" 
-                className="invert dark:invert-0 transition-all duration-300 hover:opacity-80" 
-                logo={data.logo} 
+              <Logo
+                loading="eager"
+                priority="high"
+                className="invert dark:invert-0 transition-all duration-300 hover:opacity-80"
+                logo={data.logo}
                 size="small"
               />
             </Link>
@@ -95,7 +98,7 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
   )
 })
 
-export function HeaderClient({ data: initialData }: HeaderClientProps) {
+export function HeaderClient({ data: initialData, locale }: HeaderClientProps) {
   const [data, setData] = useState(initialData)
   const { theme } = useHeaderTheme()
   const pathname = usePathname()
@@ -111,7 +114,5 @@ export function HeaderClient({ data: initialData }: HeaderClientProps) {
     loadData()
   }, [currentLocale])
 
-  return (
-    <Header data={data} theme={theme} currentLocale={currentLocale} />
-  )
+  return <Header data={data} theme={theme} currentLocale={currentLocale} />
 }

@@ -4,18 +4,23 @@ import { getCurrentLocale } from '@/utilities/getCurrentLocale'
 import type { Footer } from '@/payload-types'
 import { notFound } from 'next/navigation'
 import type { PayloadGlobalResponse } from 'payload/types'
+import { Locale } from '@/constants'
 
 import { FooterClient } from './Component.client'
 
-export async function Footer() {
+interface FooterProps {
+  locale?: Locale
+}
+
+export async function Footer({ locale: propLocale }: FooterProps = {}) {
   try {
-    const locale = await getCurrentLocale()
+    const locale = propLocale || (await getCurrentLocale())
     const [footerData] = await Promise.all([
       getCachedGlobal({
         slug: 'footer',
         depth: 1,
         locale,
-        tags: ['footer']
+        tags: ['footer'],
       })(),
     ])
 
@@ -23,12 +28,7 @@ export async function Footer() {
       return notFound()
     }
 
-    return (
-      <FooterClient
-        data={footerData as PayloadGlobalResponse<Footer>}
-        locale={locale}
-      />
-    )
+    return <FooterClient data={footerData as PayloadGlobalResponse<Footer>} locale={locale} />
   } catch (error) {
     console.error('Error loading footer:', error)
     return null // Or a fallback footer component
