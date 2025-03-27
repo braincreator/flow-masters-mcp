@@ -19,6 +19,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
   const [lastScrollY, setLastScrollY] = useState(0)
   const [hasItems, setHasItems] = useState(false)
   const [animate, setAnimate] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   // Refs and state for manual drag
   const buttonRef = useRef<HTMLDivElement>(null)
@@ -256,16 +257,21 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{
               opacity: 1,
-              scale: animate ? [1, 1.2, 1] : 1,
+              scale: animate ? [1, 1.2, 1] : isHovered ? 1.05 : 1,
             }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-            className="rounded-full bg-accent shadow-xl relative"
+            transition={{ duration: 0.2 }}
+            className={cn(
+              'rounded-full bg-accent shadow-xl relative',
+              isHovered && 'shadow-accent/50 shadow-2xl',
+            )}
           >
             <Link
               href={`/${locale}/checkout`}
