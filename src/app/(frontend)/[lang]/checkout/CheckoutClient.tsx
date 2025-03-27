@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/utilities/ui'
 
 interface CheckoutClientProps {
   locale: Locale
@@ -29,6 +30,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   const { items, removeFromCart } = useCart()
   const t = useTranslations(locale)
   const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState('card')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,15 +49,59 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     removeFromCart(productId)
   }
 
+  // Функция валидации email
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Обработчик изменения email с валидацией
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+
+    // Проверяем email на валидность при каждом изменении
+    if (value.length > 0) {
+      if (!isValidEmail(value)) {
+        setEmailError(
+          locale === 'ru'
+            ? 'Пожалуйста, укажите корректный email (например, name@example.com)'
+            : 'Please enter a valid email address (e.g., name@example.com)',
+        )
+      } else {
+        setEmailError(null)
+      }
+    } else {
+      setEmailError(null) // Если поле пустое, убираем ошибку
+    }
+  }
+
+  // Проверка валидности email для активации кнопки
+  const isEmailValid = email.length > 0 && isValidEmail(email)
+
   const handleCheckout = async () => {
+    // Сбрасываем ошибки перед проверкой
+    setError(null)
+    setEmailError(null)
+
+    // Проверка наличия email
     if (!email) {
-      setError(locale === 'ru' ? 'Пожалуйста, укажите email' : 'Please enter your email')
+      setEmailError(locale === 'ru' ? 'Пожалуйста, укажите email' : 'Please enter your email')
+      return
+    }
+
+    // Проверка формата email
+    if (!isValidEmail(email)) {
+      setEmailError(
+        locale === 'ru'
+          ? 'Пожалуйста, укажите корректный email (например, name@example.com)'
+          : 'Please enter a valid email address (e.g., name@example.com)',
+      )
       return
     }
 
     try {
       setIsLoading(true)
-      setError(null)
 
       // Здесь будет API-запрос для создания заказа и перехода к оплате
       console.log('Checkout initiated:', {
@@ -201,9 +247,18 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                   type="email"
                   placeholder="your@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
+                  className={cn(
+                    'transition-colors duration-200',
+                    email.length > 0 && !isEmailValid
+                      ? 'border-2 border-destructive focus:border-destructive focus:ring-destructive/40 focus-visible:outline-none'
+                      : email.length > 0 && isEmailValid
+                        ? 'border-2 border-green-500 focus:border-green-500 focus:ring-accent/40 focus-visible:outline-none'
+                        : 'hover:border-accent/50 focus:border-2 focus:border-accent/50 focus:ring-accent/30 focus-visible:outline-none',
+                  )}
                   required
                 />
+                {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
               </div>
             </div>
           </CardContent>
@@ -251,21 +306,34 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                   </span>
                   <span>{formatPrice(total, locale)}</span>
                 </div>
-
-                <Separator />
-
-                <div className="flex justify-between text-lg font-medium">
-                  <span>{locale === 'ru' ? 'Итого' : 'Total'}</span>
-                  <span>{formatPrice(total, locale)}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {locale === 'ru' ? 'Доставка' : 'Shipping'}
+                  </span>
+                  <span>{locale === 'ru' ? 'Бесплатно' : 'Free'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {locale === 'ru' ? 'Налоги' : 'Taxes'}
+                  </span>
+                  <span>{locale === 'ru' ? 'Включены' : 'Included'}</span>
                 </div>
               </div>
+
+              <Separator className="my-4" />
+
+              <div className="flex justify-between font-medium text-lg">
+                <span>{locale === 'ru' ? 'Итого к оплате' : 'Total'}</span>
+                <span>{formatPrice(total, locale)}</span>
+              </div>
             </CardContent>
+
             <CardFooter className="flex flex-col gap-3">
               <Button
                 className="w-full"
                 size="lg"
                 onClick={handleCheckout}
-                disabled={isLoading || !email}
+                disabled={isLoading || !isEmailValid}
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">

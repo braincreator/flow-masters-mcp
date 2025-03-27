@@ -303,13 +303,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             aria-controls="sort-dropdown"
             className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
           >
-            <span className="mr-1">{t.filters.sort || 'Сортировка'}: </span>
-            <span className="font-medium mr-1">
+            <span className="font-medium">
               {sortOptions.find((option) => option.value === currentSort)?.label ||
                 t.sortOptions?.newest ||
                 'По новизне'}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
+            <ChevronDown className="h-3.5 w-3.5 ml-1.5" />
           </Button>
           {isSortOpen && (
             <div
