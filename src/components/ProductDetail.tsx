@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Download,
   FileText,
@@ -14,50 +15,71 @@ import {
   Zap,
   RefreshCw,
   ImageIcon,
+  Check,
+  Heart,
+  Share2,
+  Truck,
+  Info,
 } from 'lucide-react'
 import RichText from '@/components/RichText'
 import { useTranslations } from '@/hooks/useTranslations'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { ImageGallery } from '@/components/ProductDetail/ImageGallery'
+import './ProductDetail/styles.css'
+import { useFavorites } from '@/hooks/useFavorites'
+import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
+import { toast } from 'sonner'
+import type { Product as ProductType } from '@/payload-types'
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
 interface ProductDetailProps {
-  product: {
-    title: string | { [key: string]: string }
-    category:
-      | {
-          title: string
-          id: string
-          [key: string]: any
-        }
-      | string
-    status: string
-    productType: 'digital' | 'subscription' | string
-    pricing: {
-      finalPrice?: number
-      basePrice?: number
-      compareAtPrice?: number
-      discountPercentage?: number
-      interval?: string
-    }
-    digitalContent?: {
-      fileSize?: string
-    }
-    description: any
-    features?: Array<{ feature: string }>
-    images?: Array<{ url: string }>
-  }
+  product: ProductType
   lang: string
+}
+
+// Text constants for fallback translations
+const TEXT = {
+  ADD_TO_CART: 'Add to Cart',
+  FREE_SHIPPING: 'Free shipping available',
+  DESCRIPTION: 'Description',
+  FEATURES: 'Features',
+  SPECIFICATIONS: 'Specifications',
+  SECURE_PACKAGING: 'Secure Packaging',
+  SAFE_DELIVERY: 'Safe delivery',
+  GUARANTEE: 'Guarantee',
+  DAYS_MONEY: '30-day money back',
+  SUPPORT: 'Support',
+  HELP_AVAILABLE: 'Help available',
+  INSTANT_DELIVERY: 'Instant Delivery',
+  AUTO_RENEWAL: 'Auto-renewal',
 }
 
 export function ProductDetail({ product, lang }: ProductDetailProps) {
   const t = useTranslations(lang)
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
+  const [isFav, setIsFav] = useState(false)
+
+  useEffect(() => {
+    if (product?.id) {
+      setIsFav(isFavorite(product.id))
+    }
+  }, [product?.id, isFavorite])
+
+  const handleFavoriteToggle = () => {
+    if (isFav) {
+      removeFromFavorites(product.id)
+      toast.success('Removed from favorites')
+    } else {
+      addToFavorites(product)
+      toast.success('Added to favorites')
+    }
+    setIsFav(!isFav)
+  }
 
   const getCategoryTitle = () => {
     if (typeof product.category === 'string') {
@@ -74,12 +96,14 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
   }
 
   const renderProductTypeInfo = () => {
+    if (!product.productType) return null
+
     switch (product.productType) {
       case 'digital':
         return (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Download className="h-4 w-4" />
-            <span>{t.products.instantDelivery}</span>
+            <span>{t.products?.instantDelivery || TEXT.INSTANT_DELIVERY}</span>
             {product.digitalContent?.fileSize && (
               <>
                 <span className="mx-2">•</span>
@@ -93,10 +117,10 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
         return (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            <span>{product.pricing.interval}</span>
+            <span>{product.pricing?.interval}</span>
             <span className="mx-2">•</span>
             <Shield className="h-4 w-4" />
-            <span>{t.products.autoRenewal}</span>
+            <span>{t.products?.autoRenewal || TEXT.AUTO_RENEWAL}</span>
           </div>
         )
       default:
@@ -104,227 +128,241 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
     }
   }
 
-  const currentImage = product.images?.[selectedImageIndex]?.url
+  // Format product images for the gallery
+  const formattedImages =
+    product.gallery?.map((item, index) => {
+      const image = typeof item.image === 'string' ? { url: item.image } : item.image
+      return {
+        id: `img-${index}`,
+        url: image?.url || '',
+        alt: getProductTitle(),
+      }
+    }) || []
 
-  const handleImageLoad = () => {
-    setIsLoading(false)
+  // Text for the image placeholder
+  const noImageText = lang === 'ru' ? 'Изображение отсутствует' : 'No image available'
+
+  // Product page URL for sharing
+  const productUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/${lang}/products/${product.slug || ''}`
+      : ''
+
+  // Get featured image URL for sharing
+  const getImageUrl = (item: any) => {
+    if (typeof item === 'string') return item
+    return item?.url || ''
   }
 
-  const renderPlaceholder = () => (
-    <div className="absolute inset-0 flex items-center justify-center bg-muted/30">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <ImageIcon className="h-10 w-10" />
-        <span className="text-sm">No image available</span>
-      </div>
-    </div>
-  )
+  const featuredImageUrl =
+    product.gallery && product.gallery.length > 0
+      ? getImageUrl(product.gallery[0].image)
+      : getImageUrl(product.thumbnail)
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* Image Gallery */}
-      <div
-        className="glass-effect relative overflow-hidden
-                      before:absolute before:inset-0 
-                      before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5
-                      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300"
-      >
-        <div className="relative aspect-square">
-          {!currentImage ? (
-            renderPlaceholder()
-          ) : (
-            <>
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted/30">
-                  <LoadingIndicator className="h-10 w-10 border-primary/30 border-r-primary" />
-                </div>
-              )}
-              <Image
-                src={currentImage}
-                alt={getProductTitle()}
-                fill
-                className={cn(
-                  'object-cover transition-opacity duration-300',
-                  isLoading ? 'opacity-0' : 'opacity-100',
-                )}
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority={selectedImageIndex === 0}
-                onLoad={handleImageLoad}
-              />
-            </>
-          )}
-        </div>
-
-        {product.images && product.images.length > 1 && (
-          <div className="grid grid-cols-4 gap-4 mt-4 p-4">
-            {product.images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedImageIndex(index)}
-                className={cn(
-                  'relative aspect-square overflow-hidden rounded-lg',
-                  'glass-effect interactive-element',
-                  selectedImageIndex === index ? 'ring-2 ring-primary ring-offset-2' : '',
-                )}
-              >
-                <div className="absolute inset-0 bg-muted/30" />
-                <Image
-                  src={image.url}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 25vw, 10vw"
-                  className={cn(
-                    'object-cover transition-transform duration-300',
-                    'group-hover:scale-110',
-                  )}
-                />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="product-detail-container">
+      {/* Image Gallery - Use the updated ImageGallery component which handles no images */}
+      <ImageGallery images={formattedImages} className="product-image-gallery" locale={lang} />
 
       {/* Product Info */}
-      <div className="space-y-6 lg:sticky lg:top-20">
-        <div className="glass-effect p-6 space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="interactive-element">
+      <div className="product-info">
+        {/* Header section */}
+        <div className="product-header">
+          <div className="badges-container">
+            <Badge variant="outline" className="rounded-md">
               {getCategoryTitle()}
             </Badge>
+
+            {product.tags &&
+              product.tags.length > 0 &&
+              product.tags.slice(0, 3).map((tag, idx) => (
+                <Badge key={idx} variant="secondary" className="rounded-md">
+                  {typeof tag === 'string' ? tag : tag.tag}
+                </Badge>
+              ))}
+
+            {product.rating && (
+              <Badge variant="secondary" className="ml-auto flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                <span>{product.rating.toFixed(1)}</span>
+              </Badge>
+            )}
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">{getProductTitle()}</h1>
+          <h1 className="product-title">{getProductTitle()}</h1>
 
           {renderProductTypeInfo() && (
-            <div className="glass-effect px-4 py-2 inline-flex items-center gap-3">
-              {renderProductTypeInfo()}
-            </div>
+            <div className="product-type-info">{renderProductTypeInfo()}</div>
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="relative inline-flex items-center group">
-            <div
-              className="absolute -inset-4 -skew-x-12 bg-primary/5 rounded-lg 
-                          group-hover:bg-primary/10 transition-colors duration-300"
-            />
-            <span className="text-3xl font-bold relative">
-              ${product.pricing?.finalPrice || product.pricing?.basePrice}
+        {/* Price section */}
+        <div className="price-section">
+          <div className="price-tag">
+            <span className="text-3xl font-bold">
+              ${product.pricing?.finalPrice || product.pricing?.basePrice || product.price}
             </span>
+
             {product.pricing?.compareAtPrice && (
-              <span className="text-lg text-muted-foreground line-through ml-2 relative">
-                ${product.pricing.compareAtPrice}
-              </span>
+              <span className="original-price">${product.pricing.compareAtPrice}</span>
             )}
+
             {product.pricing?.discountPercentage && (
-              <Badge
-                variant="destructive"
-                className="ml-3 animate-pulse relative interactive-element"
-              >
-                -{product.pricing.discountPercentage}%
+              <Badge variant="destructive" className="discount-badge">
+                Save {product.pricing.discountPercentage}%
               </Badge>
             )}
           </div>
         </div>
 
-        <Separator className="opacity-50 dark:opacity-30 shadow-sm" />
+        <Separator />
 
-        {product.description && (
-          <div className="glass-effect p-6 prose dark:prose-invert max-w-none">
-            <RichText data={product.description} />
-          </div>
-        )}
+        {/* Action buttons - With fully functional favorite and share buttons */}
+        <div className="product-actions">
+          <div className="flex items-center gap-4">
+            <Button className="add-to-cart-button flex-1 gap-2" size="lg">
+              <ShoppingCart className="h-5 w-5" />
+              {TEXT.ADD_TO_CART}
+            </Button>
 
-        {product.features && product.features.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold px-1">
-              {t.productDetails?.features || 'Features'}
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {product.features.map((feature, index) => {
-                // Get the icon based on feature type
-                let Icon = Star // Default icon
-                switch (feature.feature) {
-                  case 'instant-delivery':
-                  case 'download':
-                    Icon = Download
-                    break
-                  case 'recurring-billing':
-                    Icon = RefreshCw
-                    break
-                  case 'access-control':
-                  case 'feature-gating':
-                    Icon = Shield
-                    break
-                  case 'updates':
-                    Icon = Zap
-                    break
-                  case 'booking':
-                  case 'scheduling':
-                    Icon = Clock
-                    break
-                  case 'instant-activation':
-                    Icon = Zap
-                    break
-                }
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-none w-12 h-12 p-0"
+              onClick={handleFavoriteToggle}
+              aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
+            </Button>
 
-                return (
-                  <div
-                    key={index}
-                    className="glass-effect p-4 interactive-element
-                             flex items-center gap-3"
-                  >
-                    <div className="rounded-lg bg-primary/10 dark:bg-primary/20 p-1.5">
-                      <Icon className="h-6 w-6 text-primary dark:text-primary-foreground" />
-                    </div>
-                    <span className="font-medium">{feature.feature}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-4 mt-8">
-          <Button
-            size="lg"
-            className="w-full glass-effect interactive-element
-                     relative overflow-hidden group
-                     dark:border dark:border-primary/30 dark:hover:border-primary/50"
-          >
-            <ShoppingCart className="w-5 h-5 mr-2" />
-            Add to Cart
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-transparent 
-                         via-white/20 to-transparent opacity-0 
-                         group-hover:opacity-100 transition-opacity duration-300 
-                         -translate-x-full group-hover:translate-x-full
-                         dark:from-transparent dark:via-primary/20 dark:to-transparent"
+            <SocialSharePopover
+              url={productUrl}
+              title={getProductTitle()}
+              description={
+                product.description ? t.sharing?.shareVia || 'Check out this product!' : ''
+              }
+              image={featuredImageUrl}
+              lang={lang}
+              triggerClassName="h-12 w-12 p-0"
             />
-          </Button>
+          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* Trust indicators */}
-            <div
-              className="glass-effect p-4 interactive-element
-                         flex items-start gap-3
-                         dark:border dark:border-border/50 dark:hover:border-primary/30"
-            >
-              <Package className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
-              <div>
-                <h4 className="font-medium">Free Shipping</h4>
-                <p className="text-sm text-muted-foreground">On orders over $50</p>
-              </div>
+          {/* Delivery info for digital goods */}
+          {product.productType === 'digital' && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+              <Download className="h-4 w-4" />
+              <span>{t.products?.instantDelivery || TEXT.INSTANT_DELIVERY}</span>
             </div>
+          )}
+        </div>
 
-            <div
-              className="glass-effect p-4 interactive-element
-                         flex items-start gap-3"
-            >
-              <Shield className="flex-shrink-0 h-5 w-5 mt-1 text-primary dark:text-primary-foreground" />
-              <div>
-                <h4 className="font-medium">Secure Payment</h4>
-                <p className="text-sm text-muted-foreground">100% protected</p>
+        {/* Product information tabs */}
+        <div className="mt-8">
+          <Tabs defaultValue="description" className="w-full">
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="description">{TEXT.DESCRIPTION}</TabsTrigger>
+              <TabsTrigger value="features">{TEXT.FEATURES}</TabsTrigger>
+              <TabsTrigger value="specs">{TEXT.SPECIFICATIONS}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="description" className="description-section">
+              {product.description ? (
+                <div className="prose dark:prose-invert max-w-none">
+                  <RichText data={product.description} />
+                </div>
+              ) : (
+                <div className="text-muted-foreground italic">No description available</div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="features" className="features-section">
+              {product.features && product.features.length > 0 ? (
+                <div className="features-grid">
+                  {product.features.map((feature, index) => {
+                    // Get the icon based on feature type
+                    let Icon = Check
+                    // Add null check before toLowerCase to prevent errors
+                    const featureText =
+                      typeof feature === 'string' ? feature : feature.feature || ''
+                    const featureKey = featureText.toLowerCase()
+
+                    switch (featureKey) {
+                      case 'instant-delivery':
+                      case 'download':
+                        Icon = Download
+                        break
+                      case 'recurring-billing':
+                        Icon = RefreshCw
+                        break
+                      case 'access-control':
+                      case 'feature-gating':
+                        Icon = Shield
+                        break
+                      case 'updates':
+                        Icon = Zap
+                        break
+                      case 'booking':
+                      case 'scheduling':
+                        Icon = Clock
+                        break
+                      case 'instant-activation':
+                        Icon = Zap
+                        break
+                    }
+
+                    return (
+                      <div key={index} className="feature-item">
+                        <div className="feature-icon">
+                          <Icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <span>{typeof feature === 'string' ? feature : feature.feature || ''}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-muted-foreground italic">No features available</div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="specs" className="p-4 rounded-md bg-muted/20 mt-4">
+              <div className="text-muted-foreground">
+                {product.specs ? (
+                  <div className="space-y-4">
+                    {/* Implement specs rendering here */}
+                    <p>Product specifications would be displayed here.</p>
+                  </div>
+                ) : (
+                  <div className="italic">No specifications available</div>
+                )}
               </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Trust badges */}
+        <div className="product-benefits">
+          <div className="benefit-card">
+            <Package className="benefit-icon" />
+            <div>
+              <h4 className="font-medium">{TEXT.SECURE_PACKAGING}</h4>
+              <p className="text-xs text-muted-foreground">{TEXT.SAFE_DELIVERY}</p>
+            </div>
+          </div>
+
+          <div className="benefit-card">
+            <Shield className="benefit-icon" />
+            <div>
+              <h4 className="font-medium">{TEXT.GUARANTEE}</h4>
+              <p className="text-xs text-muted-foreground">{TEXT.DAYS_MONEY}</p>
+            </div>
+          </div>
+
+          <div className="benefit-card">
+            <Info className="benefit-icon" />
+            <div>
+              <h4 className="font-medium">{TEXT.SUPPORT}</h4>
+              <p className="text-xs text-muted-foreground">{TEXT.HELP_AVAILABLE}</p>
             </div>
           </div>
         </div>

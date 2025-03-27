@@ -705,6 +705,151 @@
   [data-theme='dark'] .border-r {
     @apply border-border/80; /* Increased opacity for directional borders */
   }
+
+  /* Enhanced Product Detail Page Styles */
+  /* Product Details Specific Styles */
+  .product-detail-container {
+    @apply grid gap-8 lg:grid-cols-2 max-w-7xl mx-auto px-4 md:px-6;
+  }
+
+  .product-image-gallery {
+    @apply relative rounded-xl overflow-hidden bg-muted/30 shadow-md dark:bg-muted/10;
+  }
+
+  .product-image-gallery::after {
+    content: '';
+    @apply absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10 pointer-events-none;
+  }
+
+  .product-info {
+    @apply space-y-6 lg:sticky lg:top-24;
+  }
+
+  .product-header {
+    @apply space-y-4;
+  }
+
+  .badges-container {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .product-title {
+    @apply text-3xl font-bold tracking-tight md:text-4xl;
+  }
+
+  .product-type-info {
+    @apply inline-flex items-center gap-3 text-sm text-muted-foreground;
+  }
+
+  .price-section {
+    @apply my-6;
+  }
+
+  .price-tag {
+    @apply flex items-center gap-3;
+  }
+
+  .original-price {
+    @apply text-lg text-muted-foreground line-through;
+  }
+
+  .discount-badge {
+    @apply text-sm;
+  }
+
+  .product-actions {
+    @apply space-y-4;
+  }
+
+  .add-to-cart-button {
+    @apply relative overflow-hidden transition-all duration-300 hover:transform hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .add-to-cart-button::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-300;
+    transform: translateX(-100%);
+  }
+
+  .add-to-cart-button:hover::after {
+    @apply opacity-100;
+    animation: shimmer 2s infinite;
+  }
+
+  .description-section {
+    @apply p-4 rounded-md bg-muted/20 mt-4;
+  }
+
+  .features-section {
+    @apply p-4 rounded-md bg-muted/20 mt-4 space-y-4;
+  }
+
+  .features-grid {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+
+  .feature-item {
+    @apply flex items-center gap-3 p-3 rounded-md bg-background;
+  }
+
+  .feature-icon {
+    @apply rounded-full bg-primary/10 p-1.5;
+  }
+
+  .product-benefits {
+    @apply grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8;
+  }
+
+  .benefit-card {
+    @apply flex items-start gap-3 p-3 rounded-md bg-muted/20;
+  }
+
+  .benefit-icon {
+    @apply h-5 w-5 text-primary flex-shrink-0 mt-1;
+  }
+
+  /* Dark mode adjustments */
+  .dark .product-image-gallery {
+    @apply bg-muted/10 shadow-lg shadow-black/20;
+  }
+
+  .dark .feature-item {
+    @apply bg-muted/20;
+  }
+
+  .dark .benefit-card {
+    @apply bg-muted/10;
+  }
+
+  /* Responsive adjustments for product detail page */
+  @media (max-width: 768px) {
+    .product-detail-container {
+      @apply grid-cols-1;
+    }
+
+    .product-info {
+      @apply static;
+    }
+
+    .features-grid {
+      @apply grid-cols-1;
+    }
+
+    .product-benefits {
+      @apply grid-cols-1;
+    }
+
+    .price-tag {
+      @apply flex-wrap;
+    }
+  }
+
+  /* Tablet adjustments */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .product-benefits {
+      @apply grid-cols-2;
+    }
+  }
 }
 
 @layer utilities {

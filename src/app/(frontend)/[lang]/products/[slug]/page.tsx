@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPayloadClient } from '@/utilities/payload'
 import { ProductDetail } from '@/components/ProductDetail'
+import { RelatedProducts } from '@/components/RelatedProducts'
 import { generateMeta } from '@/utilities/generateMeta'
 
 interface Props {
@@ -14,24 +15,29 @@ interface Props {
 export default async function ProductPage({ params }: Props) {
   const { slug, lang } = await params
   const payload = await getPayloadClient()
-  
-  const product = await payload.find({
-    collection: 'products',
-    where: {
-      slug: {
-        equals: slug,
+
+  const product = await payload
+    .find({
+      collection: 'products',
+      where: {
+        slug: {
+          equals: slug,
+        },
       },
-    },
-    locale: lang,
-  }).then(result => result.docs[0])
+      locale: lang,
+    })
+    .then((result) => result.docs[0])
 
   if (!product) {
     return notFound()
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="py-10 px-4 md:px-6 lg:px-8">
       <ProductDetail product={product} lang={lang} />
+      <div className="max-w-7xl mx-auto">
+        <RelatedProducts product={product} lang={lang} />
+      </div>
     </div>
   )
 }
@@ -39,16 +45,18 @@ export default async function ProductPage({ params }: Props) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, lang } = await params
   const payload = await getPayloadClient()
-  
-  const product = await payload.find({
-    collection: 'products',
-    where: {
-      slug: {
-        equals: slug,
+
+  const product = await payload
+    .find({
+      collection: 'products',
+      where: {
+        slug: {
+          equals: slug,
+        },
       },
-    },
-    locale: lang,
-  }).then(result => result.docs[0])
+      locale: lang,
+    })
+    .then((result) => result.docs[0])
 
   if (!product) {
     return {

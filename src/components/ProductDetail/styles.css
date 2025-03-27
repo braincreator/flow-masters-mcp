@@ -107,7 +107,8 @@
   @apply w-full relative overflow-hidden
          transition-all duration-300 ease-out
          hover:transform hover:scale-[1.02]
-         active:scale-[0.98];
+         active:scale-[0.98]
+         dark:hover:bg-accent dark:hover:text-accent-foreground dark:hover:border-accent;
 }
 
 .add-to-cart-button::after {
@@ -118,6 +119,11 @@
          hover:opacity-100;
   transform: translateX(-100%);
   animation: shimmer 2s infinite;
+}
+
+/* Dark mode overrides */
+.dark .add-to-cart-button::after {
+  animation: none;
 }
 
 @keyframes shimmer {
@@ -157,7 +163,7 @@
   .feature-list {
     @apply grid-cols-1;
   }
-  
+
   .product-benefits {
     @apply grid-cols-1;
   }

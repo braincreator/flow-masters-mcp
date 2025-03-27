@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Product } from '@/payload-types'
-import { ProductCard } from './ProductCard/index'
+import { ProductCard } from '@/components/ProductCard'
 import { Pagination } from './Pagination'
 import type { ProductQueryOptions } from '@/types/product.service'
 

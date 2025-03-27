@@ -2,11 +2,33 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, Download, Clock, Shield, Tag } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import {
+  ShoppingCart,
+  Download,
+  Clock,
+  Shield,
+  Star,
+  Tag,
+  PercentIcon,
+  Award,
+  Gift,
+  Truck,
+  BatteryCharging,
+  ImageIcon,
+  Heart,
+} from 'lucide-react'
 import type { Product } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/utilities/ui'
+import { useState, useEffect } from 'react'
+import { useFavorites } from '@/hooks/useFavorites'
+import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
+import { useTranslations } from '@/hooks/useTranslations'
+import { toast } from 'sonner'
 
 interface ProductCardProps {
   product: Product
@@ -15,33 +37,70 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void
 }
 
-export default function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
+  const router = useRouter()
+  const t = useTranslations(locale)
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
+  const [isFav, setIsFav] = useState(false)
+
+  useEffect(() => {
+    if (product?.id) {
+      setIsFav(isFavorite(product.id))
+    }
+  }, [product?.id, isFavorite])
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (isFav) {
+      removeFromFavorites(product.id)
+      toast.success(t.sharing?.linkCopied || 'Removed from favorites')
+    } else {
+      addToFavorites(product)
+      toast.success(t.sharing?.linkCopied || 'Added to favorites')
+    }
+    setIsFav(!isFav)
+  }
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if the click was directly on the card and not on a button or link
+    if (
+      e.target instanceof HTMLElement &&
+      !e.target.closest('button') &&
+      !e.target.closest('a') &&
+      !e.defaultPrevented
+    ) {
+      router.push(`/${locale}/products/${product.slug}`)
+    }
+  }
+
   const getButtonConfig = (type: string) => {
     switch (type) {
       case 'digital':
         return {
           text: locale === 'ru' ? 'Купить' : 'Buy Now',
-          icon: Download
+          icon: Download,
         }
       case 'subscription':
         return {
           text: locale === 'ru' ? 'Подписаться' : 'Subscribe',
-          icon: Clock
+          icon: Clock,
         }
       case 'service':
         return {
           text: locale === 'ru' ? 'Заказать услугу' : 'Book Service',
-          icon: Clock
+          icon: Clock,
         }
       case 'access':
         return {
           text: locale === 'ru' ? 'Получить доступ' : 'Get Access',
-          icon: Shield
+          icon: Shield,
         }
       default:
         return {
           text: locale === 'ru' ? 'В корзину' : 'Add to Cart',
-          icon: ShoppingCart
+          icon: ShoppingCart,
         }
     }
   }
@@ -49,120 +108,306 @@ export default function ProductCard({ product, locale, layout = 'grid', onAddToC
   const buttonConfig = getButtonConfig(product.productType)
   const ButtonIcon = buttonConfig.icon
 
+  // Calculate discount percentage if available
+  const hasDiscount = product.pricing?.[locale]?.compareAtPrice && product.pricing?.[locale]?.amount
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        100 - (product.pricing[locale].amount / product.pricing[locale].compareAtPrice) * 100,
+      )
+    : null
+
+  // Determine if product is new (published within last 14 days)
+  const isNew = product.publishedAt
+    ? (new Date().getTime() - new Date(product.publishedAt).getTime()) / (1000 * 3600 * 24) < 14
+    : false
+
+  // Determine if product is a bestseller (based on some arbitrary property, add yours)
+  const isBestseller = product.isBestseller || false
+
+  // Determine if product has free delivery
+  const hasFreeDelivery = product.hasFreeDelivery || product.productType === 'digital'
+
+  // Text for no image placeholder
+  const noImageText = locale === 'ru' ? 'Нет изображения' : 'No image'
+
+  // Generate product URL for sharing
+  const productUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/${locale}/products/${product.slug}`
+      : ''
+
+  // Get featured image URL for sharing
+  const getImageUrl = (item: any) => {
+    if (typeof item === 'string') return item
+    return item?.url || ''
+  }
+
+  const featuredImageUrl = product.thumbnail ? getImageUrl(product.thumbnail) : ''
+
   return (
     <div
       className={`group bg-card rounded-xl border border-border overflow-hidden
-        transition-all duration-300 hover:shadow-lg
-        dark:border-border/50 dark:hover:border-primary/30
+        transition-all duration-300 hover:shadow-lg cursor-pointer
+        dark:border-border/50 dark:hover:border-accent/30
         ${layout === 'list' ? 'flex gap-6' : 'flex flex-col'}
       `}
+      onClick={handleCardClick}
     >
       {/* Image Container */}
-      <Link 
+      <Link
         href={`/${locale}/products/${product.slug}`}
         className={`
           relative overflow-hidden
-          dark:border-b dark:border-border/50 dark:group-hover:border-primary/30
+          dark:border-b dark:border-border/50 dark:group-hover:border-accent/30
           ${layout === 'list' ? 'w-48 h-48 shrink-0' : 'w-full aspect-[4/3]'}
         `}
+        onClick={(e) => e.stopPropagation()}
       >
         {product.featuredImage ? (
           <Image
             src={product.featuredImage.url}
             alt={product.featuredImage.alt || product.title}
             fill
-            sizes={layout === 'list' ? '200px' : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'}
+            sizes={
+              layout === 'list'
+                ? '200px'
+                : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+            }
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full bg-muted/50 flex items-center justify-center">
-            <span className="text-muted-foreground">No image</span>
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <ImageIcon className="h-6 w-6" />
+              <span className="text-sm">{noImageText}</span>
+            </div>
           </div>
         )}
-        
+
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-2">
+          {isNew && (
+            <Badge variant="default" className="bg-accent text-accent-foreground">
+              {locale === 'ru' ? 'Новинка' : 'New'}
+            </Badge>
+          )}
+
+          {isBestseller && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Award className="h-3 w-3" />
+              {locale === 'ru' ? 'Хит продаж' : 'Bestseller'}
+            </Badge>
+          )}
+
+          {discountPercentage && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <PercentIcon className="h-3 w-3" />-{discountPercentage}%
+            </Badge>
+          )}
+        </div>
+
         {/* Price Badge */}
         {product.pricing?.[locale]?.amount && (
-          <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
+          <div
+            className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
                         px-3 py-1 rounded-full border border-border
-                        dark:border-border/50 dark:hover:border-primary/30">
-            <span className="font-semibold">
-              {formatPrice(product.pricing[locale].amount, locale)}
-            </span>
+                        dark:border-border/50 dark:hover:border-accent/30"
+          >
+            <div className="flex flex-col items-end">
+              <span className="font-semibold">
+                {formatPrice(product.pricing[locale].amount, locale)}
+              </span>
+
+              {product.pricing[locale].compareAtPrice && (
+                <span className="text-sm text-muted-foreground line-through">
+                  {formatPrice(product.pricing[locale].compareAtPrice, locale)}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </Link>
-      
+
       {/* Content */}
       <div className="flex flex-col flex-grow p-4 space-y-4">
+        {/* Type & Rating */}
+        <div className="flex justify-between items-center">
+          {/* Product Type Badge */}
+          <Badge
+            variant="outline"
+            className="text-xs bg-accent/5 border-accent/20 text-accent-foreground"
+          >
+            {product.productType === 'digital' ? (
+              <Download className="h-3 w-3 mr-1" />
+            ) : product.productType === 'subscription' ? (
+              <BatteryCharging className="h-3 w-3 mr-1" />
+            ) : (
+              <Tag className="h-3 w-3 mr-1" />
+            )}
+            {product.productType}
+          </Badge>
+
+          {/* Rating Stars - Replace with your actual rating system */}
+          {product.rating && (
+            <div className="flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+              <span className="text-xs font-medium">{product.rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
         {/* Title */}
-        <Link 
+        <Link
           href={`/${locale}/products/${product.slug}`}
-          className="group-hover:text-primary transition-colors"
+          className="group-hover:text-accent transition-colors"
+          onClick={(e) => e.stopPropagation()}
         >
           <h2 className="text-xl font-semibold line-clamp-2">
             {typeof product.title === 'object' ? product.title[locale] : product.title}
           </h2>
         </Link>
-        
-        {/* Description */}
-        {product.description && (
-          <p className="line-clamp-3 text-muted-foreground">
-            {typeof product.description === 'object' 
-              ? product.description[locale] 
-              : product.description}
+
+        {/* Short Description */}
+        {product.shortDescription && (
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {typeof product.shortDescription === 'object'
+              ? product.shortDescription[locale]
+              : product.shortDescription}
           </p>
         )}
-        
-        {/* Categories */}
-        {product.categories && product.categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {product.categories.map((category) => (
-              <span 
-                key={category.id}
-                className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded-full
-                         dark:border dark:border-border/50 dark:hover:border-primary/30
-                         transition-colors duration-200"
-              >
-                {typeof category.title === 'object' 
-                  ? category.title[locale] 
-                  : category.title}
-              </span>
+
+        {/* Features Highlights */}
+        {product.features && product.features.length > 0 && (
+          <ul className="text-sm grid grid-cols-1 gap-1">
+            {product.features.slice(0, 2).map((feature, index) => (
+              <li key={index} className="flex items-start gap-1.5">
+                <div className="rounded-full bg-accent/10 p-0.5 mt-0.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-2.5 w-2.5 text-accent"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span className="text-muted-foreground line-clamp-1">
+                  {typeof feature === 'string' ? feature : feature.feature || feature.name}
+                </span>
+              </li>
             ))}
+          </ul>
+        )}
+
+        {/* Categories & Tags */}
+        {(product.categories?.length > 0 || product.tags?.length > 0) && (
+          <div className="flex flex-wrap gap-2">
+            {/* Categories */}
+            {product.categories &&
+              product.categories.length > 0 &&
+              product.categories.slice(0, 2).map((category) => (
+                <span
+                  key={category.id}
+                  className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full
+                          dark:border dark:border-border/50 dark:hover:border-accent/30
+                          transition-colors duration-200"
+                >
+                  {typeof category.title === 'object' ? category.title[locale] : category.title}
+                </span>
+              ))}
+
+            {/* Tags */}
+            {product.tags &&
+              product.tags.length > 0 &&
+              product.tags.slice(0, 2).map((tag, index) => (
+                <span
+                  key={index}
+                  className="text-xs text-accent bg-accent/5 px-2 py-1 rounded-full
+                          border border-accent/20
+                          transition-colors duration-200"
+                >
+                  {typeof tag === 'string' ? tag : tag.tag || tag.name}
+                </span>
+              ))}
           </div>
         )}
 
-        {/* Action Button */}
-        <Button
-          onClick={() => onAddToCart?.(product)}
-          className="w-full glass-effect interactive-element
-                   relative overflow-hidden group/button
-                   hover:border-primary/30 mt-auto
-                   dark:border dark:border-primary/30 dark:hover:border-primary/50"
-          disabled={product.status !== 'published'}
-          size="lg"
-        >
-          <ButtonIcon className="w-5 h-5 mr-2" />
-          {buttonConfig.text}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent 
+        {/* Action Buttons and Sharing */}
+        <div className="flex gap-2">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddToCart?.(product)
+            }}
+            className={cn(
+              'add-to-cart-button flex-1 gap-2',
+              'glass-effect interactive-element',
+              'relative overflow-hidden group/button',
+              'hover:border-accent/30 mt-auto',
+              'dark:border dark:border-accent/30',
+            )}
+            disabled={product.status !== 'published'}
+            size="lg"
+          >
+            <ButtonIcon className="w-5 h-5 mr-2" />
+            {buttonConfig.text}
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-transparent 
                        via-white/20 to-transparent opacity-0 
                        group-hover/button:opacity-100 transition-opacity duration-300 
                        -translate-x-full group-hover/button:translate-x-full
-                       dark:from-transparent dark:via-primary/20 dark:to-transparent" />
-        </Button>
+                       dark:opacity-0"
+            />
+          </Button>
 
-        {/* Subscription Info */}
-        {product.productType === 'subscription' && product.pricing?.interval && (
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{product.pricing.interval}</span>
-            <span className="mx-2">•</span>
-            <Shield className="h-4 w-4" />
-            <span>{locale === 'ru' ? 'Автопродление' : 'Auto-renewal'}</span>
-          </div>
-        )}
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-12 w-12 p-0 shrink-0"
+            onClick={handleFavoriteToggle}
+            aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
+          </Button>
+
+          <SocialSharePopover
+            url={productUrl}
+            title={typeof product.title === 'object' ? product.title[locale] : product.title}
+            description={t.sharing?.shareVia || 'Check out this product!'}
+            image={featuredImageUrl}
+            lang={locale}
+            triggerClassName="h-12 w-12 p-0"
+          />
+        </div>
+
+        {/* Product Info Footer */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground mt-1 pt-1">
+          {/* Subscription Info */}
+          {product.productType === 'subscription' && product.pricing?.interval && (
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3" />
+              <span>{product.pricing.interval}</span>
+              <span className="mx-1">•</span>
+              <Shield className="h-3 w-3" />
+              <span>
+                {t.products?.autoRenewal || (locale === 'ru' ? 'Автопродление' : 'Auto-renewal')}
+              </span>
+            </div>
+          )}
+
+          {/* Free Delivery */}
+          {hasFreeDelivery && (
+            <div className="flex items-center gap-1.5 text-success">
+              <Truck className="h-3 w-3" />
+              <span>{locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
-
-export { ProductCard }
