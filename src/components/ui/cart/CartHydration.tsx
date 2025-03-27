@@ -8,7 +8,7 @@ import { useCart } from '@/hooks/useCart'
  * due to using skipHydration: true in the Zustand store configuration
  */
 export function CartHydration() {
-  const { addToCart, setLocale, clearCart } = useCart()
+  const { addToCart, setLocale, clearCart, updateItemCount } = useCart()
 
   useEffect(() => {
     // Get cart data from localStorage
@@ -28,6 +28,9 @@ export function CartHydration() {
               addToCart(item.product, item.quantity)
             }
           })
+          
+          // Make sure itemCount is updated after adding items
+          updateItemCount()
         }
 
         // Restore locale if available
@@ -38,7 +41,7 @@ export function CartHydration() {
     } catch (error) {
       console.error('Error hydrating cart from localStorage:', error)
     }
-  }, [addToCart, setLocale, clearCart])
+  }, [addToCart, setLocale, clearCart, updateItemCount])
 
   // This component doesn't render anything
   return null

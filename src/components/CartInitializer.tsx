@@ -11,7 +11,15 @@ interface CartInitializerProps {
 
 export default function CartInitializer({ children, locale }: CartInitializerProps) {
   const cart = useCart()
-  const { setLocale, addToCart, clearCart, items, locale: cartLocale, persistState } = cart
+  const {
+    setLocale,
+    addToCart,
+    clearCart,
+    updateItemCount,
+    items,
+    locale: cartLocale,
+    persistState,
+  } = cart
   const [isHydrated, setIsHydrated] = useState(false)
 
   // Handle manual hydration once on mount
@@ -34,6 +42,9 @@ export default function CartInitializer({ children, locale }: CartInitializerPro
                 addToCart(item.product, item.quantity)
               }
             })
+
+            // Make sure itemCount is updated after adding items
+            updateItemCount()
           }
 
           // Restore locale if available
@@ -48,7 +59,7 @@ export default function CartInitializer({ children, locale }: CartInitializerPro
         setIsHydrated(true) // Mark as hydrated even on error to avoid infinite retries
       }
     }
-  }, [isHydrated, addToCart, clearCart, setLocale])
+  }, [isHydrated, addToCart, clearCart, setLocale, updateItemCount])
 
   // Force save cart state on page unload
   useEffect(() => {

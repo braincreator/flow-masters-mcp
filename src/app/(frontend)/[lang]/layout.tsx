@@ -12,6 +12,7 @@ import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
 import CartInitializer from '@/components/CartInitializer'
 import FavoritesInitializer from '@/components/FavoritesInitializer'
+import { CartCounter } from '@/components/ui/cart/CartCounter'
 
 const locales = ['en', 'ru']
 
@@ -64,6 +65,8 @@ export default async function LangLayout({ children, params }: LayoutProps) {
             <main className="relative pt-[var(--header-height)]">{children}</main>
             <Footer locale={lang} />
             <FloatingCartButtonWrapper locale={lang} />
+            {/* Test component to verify cart count updates - remove in production */}
+            <CartCounter />
           </FavoritesInitializer>
         </CartInitializer>
       </body>

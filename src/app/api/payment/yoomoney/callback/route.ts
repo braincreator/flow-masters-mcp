@@ -1,33 +1,41 @@
-import type { NextRequest } from 'next/server'
-
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment.service'
-import { OrderService } from '@/services/order.service'
+import { PaymentService } from '@/services/payment'
 
 export async function POST(req: Request) {
   try {
     const notification = await req.json()
-    
-    if (!paymentService.verifyYooMoneyPayment(notification)) {
+    const payload = await getPayloadClient()
+
+    const paymentService = new PaymentService(payload)
+
+    // Verify the payment notification
+    if (!(await paymentService.verifyYooMoneyPayment(notification))) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    const payload = await getPayloadClient()
-    
-    // Update order status
-    await payload.update({
+    // Extract order ID from label
+    const label = notification.label
+    const orderId = label.split('_').pop()
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 })
+    }
+
+    // Get the order
+    const order = await payload.findByID({
       collection: 'orders',
-      id: notification.label,
-      data: {
-        status: 'paid',
-        paymentId: notification.operation_id,
-      },
+      id: orderId,
     })
 
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Return success response
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('YooMoney callback error:', error)
-    return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 })
+    console.error('YooMoney notification handling error:', error)
+    return NextResponse.json({ error: 'Failed to process notification' }, { status: 500 })
   }
 }

@@ -53,7 +53,8 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
     setHasItems(newHasItems)
   }, [items, hasItems])
 
-  if (!hasItems) return null
+  // Show button always, not only when there are items
+  // if (!hasItems) return null
 
   return (
     <AnimatePresence>
@@ -81,11 +82,17 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
             >
               <ShoppingCart className="w-6 h-6" />
 
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
-                  {itemCount}
-                </span>
-              )}
+              {/* Always show counter, even with zero items */}
+              <span
+                className={cn(
+                  'absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium shadow-sm border border-background',
+                  itemCount > 0
+                    ? 'bg-amber-500 text-black font-bold'
+                    : 'bg-slate-200 text-slate-600',
+                )}
+              >
+                {itemCount}
+              </span>
             </motion.div>
 
             <AnimatePresence>

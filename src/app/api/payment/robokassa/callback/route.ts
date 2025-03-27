@@ -1,36 +1,42 @@
-import type { NextRequest } from 'next/server'
-
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment.service'
-import { OrderService } from '@/services/order.service'
+import { PaymentService } from '@/services/payment'
 
 export async function POST(req: Request) {
   try {
-    const data = await req.formData()
-    const invId = data.get('InvId') as string
-    const outSum = data.get('OutSum') as string
-    const signatureValue = data.get('SignatureValue') as string
+    const formData = await req.formData()
 
-    if (!paymentService.verifyRobokassaPayment(invId, outSum, signatureValue)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    // Extract Robokassa parameters
+    const invId = formData.get('InvId')?.toString() || ''
+    const outSum = formData.get('OutSum')?.toString() || ''
+    const signatureValue = formData.get('SignatureValue')?.toString() || ''
+
+    if (!invId || !outSum || !signatureValue) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 })
     }
 
     const payload = await getPayloadClient()
-    
-    // Update order status
-    await payload.update({
+    const paymentService = new PaymentService(payload)
+
+    // Verify payment signature
+    if (!(await paymentService.verifyRobokassaPayment(invId, outSum, signatureValue))) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    }
+
+    // Get the order
+    const order = await payload.findByID({
       collection: 'orders',
       id: invId,
-      data: {
-        status: 'paid',
-        paymentId: invId,
-      },
     })
 
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Return success response
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Robokassa callback error:', error)
-    return NextResponse.json({ error: 'Callback processing failed' }, { status: 500 })
+    console.error('Robokassa notification handling error:', error)
+    return NextResponse.json({ error: 'Failed to process notification' }, { status: 500 })
   }
 }

@@ -130,8 +130,8 @@ export const Settings: GlobalConfig = {
                 { label: 'Round up', value: 'ceil' },
                 { label: 'Round down', value: 'floor' },
               ],
-            }
-          ]
+            },
+          ],
         },
         {
           name: 'markup',
@@ -162,9 +162,9 @@ export const Settings: GlobalConfig = {
                 step: 0.1,
                 description: 'Markup percentage (e.g., 5 for 5%)',
               },
-            }
-          ]
-        }
+            },
+          ],
+        },
       ],
     },
     {
@@ -307,6 +307,299 @@ export const Settings: GlobalConfig = {
         },
       ],
     },
+    {
+      name: 'paymentSettings',
+      type: 'group',
+      label: 'Payment Settings',
+      admin: {
+        description: 'Configure payment providers and options',
+      },
+      fields: [
+        {
+          name: 'availableProviders',
+          type: 'array',
+          label: 'Payment Providers',
+          admin: {
+            description: 'Configure and enable payment providers',
+          },
+          fields: [
+            {
+              name: 'provider',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'YooMoney', value: 'yoomoney' },
+                { label: 'Robokassa', value: 'robokassa' },
+                { label: 'Stripe', value: 'stripe' },
+                { label: 'PayPal', value: 'paypal' },
+              ],
+            },
+            {
+              name: 'enabled',
+              type: 'checkbox',
+              defaultValue: false,
+            },
+            {
+              name: 'displayName',
+              type: 'group',
+              fields: [
+                {
+                  name: 'en',
+                  type: 'text',
+                  required: true,
+                },
+                {
+                  name: 'ru',
+                  type: 'text',
+                  required: true,
+                },
+              ],
+            },
+            {
+              name: 'config',
+              type: 'group',
+              fields: [
+                {
+                  name: 'yoomoney',
+                  type: 'group',
+                  admin: {
+                    condition: (data, siblingData) => siblingData.provider === 'yoomoney',
+                  },
+                  fields: [
+                    {
+                      name: 'shopId',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'YooMoney Shop ID',
+                      },
+                    },
+                    {
+                      name: 'secretKey',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'YooMoney Secret Key',
+                      },
+                    },
+                    {
+                      name: 'testMode',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Enable test mode',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'robokassa',
+                  type: 'group',
+                  admin: {
+                    condition: (data, siblingData) => siblingData.provider === 'robokassa',
+                  },
+                  fields: [
+                    {
+                      name: 'merchantLogin',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Robokassa Merchant Login',
+                      },
+                    },
+                    {
+                      name: 'password1',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Robokassa Password 1',
+                      },
+                    },
+                    {
+                      name: 'password2',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Robokassa Password 2',
+                      },
+                    },
+                    {
+                      name: 'testMode',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Enable test mode',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'stripe',
+                  type: 'group',
+                  admin: {
+                    condition: (data, siblingData) => siblingData.provider === 'stripe',
+                  },
+                  fields: [
+                    {
+                      name: 'publishableKey',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Stripe Publishable Key',
+                      },
+                    },
+                    {
+                      name: 'secretKey',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Stripe Secret Key',
+                      },
+                    },
+                    {
+                      name: 'webhookSecret',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Stripe Webhook Secret',
+                      },
+                    },
+                    {
+                      name: 'testMode',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Enable test mode (uses test keys)',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'paypal',
+                  type: 'group',
+                  admin: {
+                    condition: (data, siblingData) => siblingData.provider === 'paypal',
+                  },
+                  fields: [
+                    {
+                      name: 'clientId',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'PayPal Client ID',
+                      },
+                    },
+                    {
+                      name: 'clientSecret',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'PayPal Client Secret',
+                      },
+                    },
+                    {
+                      name: 'testMode',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Enable sandbox mode',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          admin: {
+            components: {
+              RowLabel: ({ data }) => {
+                return `${data?.provider} (${data?.enabled ? 'Enabled' : 'Disabled'})`
+              },
+            },
+          },
+        },
+        {
+          name: 'defaultProvider',
+          type: 'text',
+          admin: {
+            description: 'Default payment provider (provider value)',
+          },
+        },
+        {
+          name: 'orderCancellationTimeout',
+          type: 'number',
+          defaultValue: 30,
+          admin: {
+            description: 'Time in minutes before unpaid orders are automatically cancelled',
+          },
+        },
+      ],
+    },
+    {
+      name: 'notificationSettings',
+      type: 'group',
+      label: 'Notification Settings',
+      admin: {
+        description: 'Configure notifications for orders and cart',
+      },
+      fields: [
+        {
+          name: 'email',
+          type: 'group',
+          fields: [
+            {
+              name: 'enableOrderConfirmations',
+              type: 'checkbox',
+              defaultValue: true,
+              label: 'Send order confirmation emails',
+            },
+            {
+              name: 'enablePaymentNotifications',
+              type: 'checkbox',
+              defaultValue: true,
+              label: 'Send payment notifications',
+            },
+            {
+              name: 'enableAbandonedCartReminders',
+              type: 'checkbox',
+              defaultValue: true,
+              label: 'Send abandoned cart reminder emails',
+            },
+            {
+              name: 'abandonedCartDelay',
+              type: 'number',
+              defaultValue: 24,
+              label: 'Hours before sending abandoned cart reminder',
+              admin: {
+                condition: (data, siblingData) => siblingData.enableAbandonedCartReminders,
+              },
+            },
+            {
+              name: 'senderEmail',
+              type: 'email',
+              label: 'Sender email address',
+              required: true,
+            },
+            {
+              name: 'senderName',
+              type: 'group',
+              fields: [
+                {
+                  name: 'en',
+                  type: 'text',
+                  required: true,
+                },
+                {
+                  name: 'ru',
+                  type: 'text',
+                  required: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   ],
   hooks: {
     beforeChange: [
@@ -323,24 +616,25 @@ export const Settings: GlobalConfig = {
           }
         }
         return data
-      }
+      },
     ],
     afterChange: [
       async ({ doc, previousDoc }) => {
         // Если изменились курсы валют или правила округления
         if (
           JSON.stringify(doc.exchangeRates) !== JSON.stringify(previousDoc.exchangeRates) ||
-          JSON.stringify(doc.currencies.roundingRules) !== JSON.stringify(previousDoc.currencies.roundingRules) ||
+          JSON.stringify(doc.currencies.roundingRules) !==
+            JSON.stringify(previousDoc.currencies.roundingRules) ||
           JSON.stringify(doc.currencies.markup) !== JSON.stringify(previousDoc.currencies.markup)
         ) {
           // Инвалидируем кеш
           const priceService = PriceService.getInstance()
           priceService.invalidateCache()
-          
+
           // Обновляем цены всех продуктов
           await updateProductPrices()
         }
-      }
-    ]
+      },
+    ],
   },
 }
