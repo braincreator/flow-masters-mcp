@@ -18,9 +18,9 @@ import {
   ImageIcon,
   Heart,
 } from 'lucide-react'
-import type { Product } from '@/payload-types'
+import type { Product as PayloadProduct } from '@/payload-types'
 import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/utilities/formatPrice'
+import { formatPrice, getLocalePrice, convertPrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/utilities/ui'
@@ -30,11 +30,35 @@ import { SocialSharePopover } from '@/components/ui/SocialSharePopover'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
 
+// Enhanced Product interface that extends the base PayloadProduct
+interface EnhancedProduct extends PayloadProduct {
+  productType: 'physical' | 'digital' | 'subscription' | 'service' | 'access'
+  pricing?: {
+    [locale: string]: {
+      amount: number
+      compareAtPrice?: number
+      interval?: string
+    }
+  }
+  isBestseller?: boolean
+  hasFreeDelivery?: boolean
+  rating?: number
+  featuredImage?: {
+    url: string
+    alt?: string
+  }
+  categories?: Array<{
+    id: string
+    title: string | Record<string, string>
+    slug?: string
+  }>
+}
+
 interface ProductCardProps {
-  product: Product
+  product: EnhancedProduct
   locale: Locale
   layout?: 'grid' | 'list'
-  onAddToCart?: (product: Product) => void
+  onAddToCart?: (product: EnhancedProduct) => void
 }
 
 export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
@@ -75,6 +99,39 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     }
   }
 
+  // Helper functions to handle different product data structures
+  const getProductPrice = () => {
+    // This automatically applies currency conversion based on the target locale
+    return getLocalePrice(product, locale)
+  }
+
+  const getCompareAtPrice = () => {
+    // First check for locale-specific compareAtPrice
+    if (product.pricing?.[locale]?.compareAtPrice) {
+      return product.pricing[locale].compareAtPrice
+    }
+
+    // If there's no locale-specific compareAtPrice, try to use the base price as compare price
+    // if that's different from the locale price
+    const localePrice = getLocalePrice(product, locale)
+    if (product.pricing?.basePrice && typeof product.pricing.basePrice === 'number') {
+      const basePrice = product.pricing.basePrice
+      // Convert the base price to the target locale's currency for comparison
+      const baseLocale =
+        typeof product.pricing?.baseLocale === 'string' ? product.pricing.baseLocale : 'en'
+      const convertedBasePrice = convertPrice(basePrice, baseLocale, locale)
+      if (convertedBasePrice !== localePrice && convertedBasePrice > localePrice) {
+        return convertedBasePrice
+      }
+    }
+
+    return null
+  }
+
+  const getProductType = (): string => {
+    return product.productType || 'physical'
+  }
+
   const getButtonConfig = (type: string) => {
     switch (type) {
       case 'digital':
@@ -105,27 +162,25 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
     }
   }
 
-  const buttonConfig = getButtonConfig(product.productType)
+  const buttonConfig = getButtonConfig(getProductType())
   const ButtonIcon = buttonConfig.icon
 
   // Calculate discount percentage if available
-  const hasDiscount = product.pricing?.[locale]?.compareAtPrice && product.pricing?.[locale]?.amount
-  const discountPercentage = hasDiscount
-    ? Math.round(
-        100 - (product.pricing[locale].amount / product.pricing[locale].compareAtPrice) * 100,
-      )
-    : null
+  const price = getProductPrice()
+  const compareAtPrice = getCompareAtPrice()
+  const hasDiscount = compareAtPrice && price && compareAtPrice > price
+  const discountPercentage = hasDiscount ? Math.round(100 - (price / compareAtPrice) * 100) : null
 
   // Determine if product is new (published within last 14 days)
   const isNew = product.publishedAt
     ? (new Date().getTime() - new Date(product.publishedAt).getTime()) / (1000 * 3600 * 24) < 14
     : false
 
-  // Determine if product is a bestseller (based on some arbitrary property, add yours)
+  // Determine if product is a bestseller
   const isBestseller = product.isBestseller || false
 
   // Determine if product has free delivery
-  const hasFreeDelivery = product.hasFreeDelivery || product.productType === 'digital'
+  const hasFreeDelivery = product.hasFreeDelivery || getProductType() === 'digital'
 
   // Text for no image placeholder
   const noImageText = locale === 'ru' ? 'Нет изображения' : 'No image'
@@ -163,10 +218,13 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         `}
         onClick={(e) => e.stopPropagation()}
       >
-        {product.featuredImage ? (
+        {product.featuredImage?.url || product.thumbnail ? (
           <Image
-            src={product.featuredImage.url}
-            alt={product.featuredImage.alt || product.title}
+            src={product.featuredImage?.url || getImageUrl(product.thumbnail)}
+            alt={
+              product.featuredImage?.alt ||
+              (typeof product.title === 'object' ? product.title[locale] : product.title)
+            }
             fill
             sizes={
               layout === 'list'
@@ -207,20 +265,18 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         </div>
 
         {/* Price Badge */}
-        {product.pricing?.[locale]?.amount && (
+        {price > 0 && (
           <div
             className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
                         px-3 py-1 rounded-full border border-border
                         dark:border-border/50 dark:hover:border-accent/30"
           >
             <div className="flex flex-col items-end">
-              <span className="font-semibold">
-                {formatPrice(product.pricing[locale].amount, locale)}
-              </span>
+              <span className="font-semibold">{formatPrice(price, locale)}</span>
 
-              {product.pricing[locale].compareAtPrice && (
+              {compareAtPrice && compareAtPrice > price && (
                 <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(product.pricing[locale].compareAtPrice, locale)}
+                  {formatPrice(compareAtPrice, locale)}
                 </span>
               )}
             </div>
@@ -237,14 +293,14 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             variant="outline"
             className="text-xs bg-accent/5 border-accent/20 text-accent-foreground"
           >
-            {product.productType === 'digital' ? (
+            {getProductType() === 'digital' ? (
               <Download className="h-3 w-3 mr-1" />
-            ) : product.productType === 'subscription' ? (
+            ) : getProductType() === 'subscription' ? (
               <BatteryCharging className="h-3 w-3 mr-1" />
             ) : (
               <Tag className="h-3 w-3 mr-1" />
             )}
-            {product.productType}
+            {getProductType()}
           </Badge>
 
           {/* Rating Stars - Replace with your actual rating system */}
@@ -296,7 +352,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                   </svg>
                 </div>
                 <span className="text-muted-foreground line-clamp-1">
-                  {typeof feature === 'string' ? feature : feature.feature || feature.name}
+                  {typeof feature === 'string' ? feature : feature.feature || ''}
                 </span>
               </li>
             ))}
@@ -304,7 +360,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         )}
 
         {/* Categories & Tags */}
-        {(product.categories?.length > 0 || product.tags?.length > 0) && (
+        {((product.categories && product.categories.length > 0) ||
+          (product.tags && product.tags.length > 0)) && (
           <div className="flex flex-wrap gap-2">
             {/* Categories */}
             {product.categories &&
@@ -330,7 +387,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                           border border-accent/20
                           transition-colors duration-200"
                 >
-                  {typeof tag === 'string' ? tag : tag.tag || tag.name}
+                  {typeof tag === 'string' ? tag : tag.tag || ''}
                 </span>
               ))}
           </div>
@@ -387,10 +444,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {/* Product Info Footer */}
         <div className="flex items-center justify-between text-xs text-muted-foreground mt-1 pt-1">
           {/* Subscription Info */}
-          {product.productType === 'subscription' && product.pricing?.interval && (
+          {getProductType() === 'subscription' && product.pricing?.[locale]?.interval && (
             <div className="flex items-center gap-1.5">
               <Clock className="h-3 w-3" />
-              <span>{product.pricing.interval}</span>
+              <span>{product.pricing[locale].interval}</span>
               <span className="mx-1">•</span>
               <Shield className="h-3 w-3" />
               <span>

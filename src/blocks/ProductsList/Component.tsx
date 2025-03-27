@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { useI18n } from '@/providers/I18n'
 import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
@@ -48,14 +50,17 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         return (
           <div className="access-details">
             <span className="validity">
-              {product.accessDetails.validityPeriod 
-                ? t.productDetails.validity.replace('{period}', product.accessDetails.validityPeriod.toString())
+              {product.accessDetails.validityPeriod
+                ? t.productDetails.validity.replace(
+                    '{period}',
+                    product.accessDetails.validityPeriod.toString(),
+                  )
                 : t.productDetails.unlimitedAccess}
             </span>
             <div className="features">
               <h4>{t.productDetails.features}:</h4>
               <ul className="features-list">
-                {product.accessDetails.features.map(feature => (
+                {product.accessDetails.features.map((feature) => (
                   <li key={feature}>✓ {feature}</li>
                 ))}
               </ul>
@@ -73,9 +78,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         <AddToCart product={product} />
       </div>
       {renderProductTypeSpecificDetails()}
-      <div className="description">
-        {product.description?.[lang] || product.description}
-      </div>
+      <div className="description">{product.description?.[lang] || product.description}</div>
     </div>
   )
 }

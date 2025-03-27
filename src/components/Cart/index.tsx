@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { useLocale } from '@/hooks/useLocale'
 import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
@@ -8,7 +10,7 @@ export const Cart: React.FC = () => {
   const calculateTotal = (items: CartItem[]): number => {
     return items.reduce((sum, item) => {
       const price = getLocalePrice(item.product, locale)
-      return sum + (price * item.quantity)
+      return sum + price * item.quantity
     }, 0)
   }
 
@@ -27,7 +29,7 @@ export const Cart: React.FC = () => {
           </div>
         )
       })}
-      
+
       <div className="cart-total">
         <strong>Total: {formatPrice(calculateTotal(items), locale)}</strong>
       </div>
