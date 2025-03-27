@@ -59,13 +59,13 @@
 
   [data-theme='dark'] {
     /* Base colors - Dark theme - Adjusted for better readability */
-    --background: 222 47% 6%;
+    --background: 222 47% 11%;
     --foreground: 213 31% 95%;
 
     /* Surface colors - Enhanced contrast */
-    --card: 223 47% 4%;
+    --card: 223 47% 13%;
     --card-foreground: 213 31% 95%;
-    --popover: 223 47% 4%;
+    --popover: 223 47% 13%;
     --popover-foreground: 213 31% 95%;
 
     /* Brand colors - Brightened for dark mode */
@@ -77,7 +77,7 @@
     --accent-foreground: 210 40% 98%;
 
     /* UI colors - Adjusted for dark mode visibility */
-    --muted: 223 47% 9%;
+    --muted: 223 47% 15%;
     --muted-foreground: 215 20.2% 85%;
     --destructive: 0 84% 65%;
     --destructive-foreground: 210 40% 98%;
@@ -89,8 +89,8 @@
     --info-foreground: 210 40% 98%;
 
     /* Border & Input - Increased contrast for dark mode */
-    --border: 222 47% 25%; /* Increased lightness for better visibility */
-    --input: 222 47% 25%;
+    --border: 222 47% 30%;
+    --input: 222 47% 30%;
     --ring: 224 82% 65%;
 
     /* Enhanced Shadows */
