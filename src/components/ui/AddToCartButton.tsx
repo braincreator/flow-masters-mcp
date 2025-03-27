@@ -62,7 +62,7 @@ export function AddToCartButton({
   removeMessage,
 }: AddToCartButtonProps) {
   const t = useTranslations(locale)
-  const { isInCart, addToCart, removeFromCart } = useCart()
+  const cart = useCart()
 
   // Get the appropriate localized texts, falling back to English if not supported
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
@@ -106,7 +106,9 @@ export function AddToCartButton({
 
   const buttonConfig = getButtonConfig(product.productType || 'physical')
   const ButtonIcon = buttonConfig.icon
-  const isInCartState = isInCart(product.id)
+
+  // Fix the isInCart function call
+  const isInCartState = cart.isInCart ? cart.isInCart(product.id) : false
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -114,13 +116,13 @@ export function AddToCartButton({
 
     const productName = getProductTitle()
 
-    if (isInCartState) {
-      removeFromCart(product.id)
+    if (isInCartState && cart.removeFromCart) {
+      cart.removeFromCart(product.id)
       if (showToast) {
         toast.success(removeMessage || texts.removedFromCart(productName))
       }
-    } else {
-      addToCart(product)
+    } else if (cart.addToCart) {
+      cart.addToCart(product)
       if (showToast) {
         toast.success(successMessage || texts.addedToCart(productName))
       }

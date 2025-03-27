@@ -21,9 +21,11 @@ interface LayoutProps {
   }
 }
 
+// Using the params object properly with async Next.js approach
 export default async function LangLayout({ children, params }: LayoutProps) {
-  // Use async/await with params to resolve the NextJS warning
-  const lang = await Promise.resolve(params.lang)
+  // Access lang directly without spreading or awaiting params
+  const lang = (await params).lang
+
   const { isEnabled: isDraftMode } = await draftMode()
 
   if (!locales.includes(lang)) {

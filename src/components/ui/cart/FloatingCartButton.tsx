@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { ShoppingCart, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/utilities/cn'
+import { cn } from '@/utilities/ui'
 import { Locale } from '@/constants'
 
 interface FloatingCartButtonProps {
