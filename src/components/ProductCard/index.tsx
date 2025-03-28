@@ -312,7 +312,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         </div>
       ) : (
         /* Grid Layout Content */
-        <div className="flex flex-col flex-grow p-4 space-y-2">
+        <div className="flex flex-col flex-grow p-4 space-y-3">
           {/* Title */}
           <Link
             href={`/${locale}/products/${product.slug}`}
@@ -333,8 +333,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             </p>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          {/* Action Buttons - increased spacing and improved layout */}
+          <div className="flex flex-wrap gap-2 pt-3 mt-auto">
             <AddToCartButton
               product={product}
               locale={locale}
@@ -345,16 +345,27 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
               showToast={true}
               successMessage={getAddToCartMessage()}
               removeMessage={getRemoveFromCartMessage()}
-              className="flex-1"
+              className="flex-1 min-w-[120px]"
             />
 
-            <FavoriteButton
-              product={product}
-              locale={locale}
-              showToast={true}
-              size="icon"
-              className="h-[40px] w-[40px]"
-            />
+            <div className="flex gap-2">
+              <FavoriteButton
+                product={product}
+                locale={locale}
+                showToast={true}
+                size="icon"
+                className="h-[40px] w-[40px] shrink-0"
+              />
+
+              <ShareButton
+                product={product}
+                locale={locale}
+                showToastOnCopy={true}
+                copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+                size="icon"
+                className="h-[40px] w-[40px] shrink-0"
+              />
+            </div>
           </div>
 
           {/* Delivery Info */}

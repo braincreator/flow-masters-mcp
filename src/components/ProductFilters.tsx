@@ -188,20 +188,22 @@ export function ProductFilters({
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full justify-start">
               <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Filters
+              {locale === 'ru' ? 'Фильтры' : 'Filters'}
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] sm:w-[400px]">
             <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
+              <SheetTitle>{locale === 'ru' ? 'Фильтры' : 'Filters'}</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
               {/* Search */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Search</label>
+                <label className="text-sm font-medium">
+                  {locale === 'ru' ? 'Поиск' : 'Search'}
+                </label>
                 <Input
                   type="search"
-                  placeholder="Search products..."
+                  placeholder={locale === 'ru' ? 'Поиск продуктов...' : 'Search products...'}
                   value={search}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full"
@@ -231,7 +233,9 @@ export function ProductFilters({
 
               {/* Categories */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Categories</label>
+                <label className="text-sm font-medium">
+                  {locale === 'ru' ? 'Категории' : 'Categories'}
+                </label>
                 <div className="space-y-2">
                   {categories.map((category) => (
                     <div key={category.id} className="flex items-center space-x-2">
@@ -256,7 +260,9 @@ export function ProductFilters({
 
               {/* Product Types */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Product Types</label>
+                <label className="text-sm font-medium">
+                  {locale === 'ru' ? 'Типы продуктов' : 'Product Types'}
+                </label>
                 <div className="space-y-2">
                   {productTypes.map((type) => (
                     <div key={type.id} className="flex items-center space-x-2">
@@ -281,7 +287,7 @@ export function ProductFilters({
 
               {/* Tags */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tags</label>
+                <label className="text-sm font-medium">{locale === 'ru' ? 'Теги' : 'Tags'}</label>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag) => (
                     <Badge
@@ -301,7 +307,9 @@ export function ProductFilters({
 
               {/* Price Range */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Price Range</label>
+                <label className="text-sm font-medium">
+                  {locale === 'ru' ? 'Ценовой диапазон' : 'Price Range'}
+                </label>
                 <Slider
                   value={[priceRange.min, priceRange.max]}
                   onValueChange={handlePriceRangeChange}
@@ -317,14 +325,22 @@ export function ProductFilters({
 
               {/* Sort */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Sort</label>
+                <label className="text-sm font-medium">
+                  {locale === 'ru' ? 'Сортировать' : 'Sort'}
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'newest', label: 'Newest' },
-                    { value: 'price-asc', label: 'Price: Low to High' },
-                    { value: 'price-desc', label: 'Price: High to Low' },
-                    { value: 'name-asc', label: 'Name: A to Z' },
-                    { value: 'name-desc', label: 'Name: Z to A' },
+                    { value: 'newest', label: locale === 'ru' ? 'Новые' : 'Newest' },
+                    {
+                      value: 'price-asc',
+                      label: locale === 'ru' ? 'Цена: по возрастанию' : 'Price: Low to High',
+                    },
+                    {
+                      value: 'price-desc',
+                      label: locale === 'ru' ? 'Цена: по убыванию' : 'Price: High to Low',
+                    },
+                    { value: 'name-asc', label: locale === 'ru' ? 'Имя: А до Я' : 'Name: A to Z' },
+                    { value: 'name-desc', label: locale === 'ru' ? 'Имя: Я до А' : 'Name: Z to A' },
                   ].map((option) => (
                     <Badge
                       key={option.value}
@@ -346,10 +362,10 @@ export function ProductFilters({
       <div className="hidden lg:block space-y-6">
         {/* Search */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Search</label>
+          <label className="text-sm font-medium">{locale === 'ru' ? 'Поиск' : 'Search'}</label>
           <Input
             type="search"
-            placeholder="Search products..."
+            placeholder={locale === 'ru' ? 'Поиск продуктов...' : 'Search products...'}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full"
@@ -379,7 +395,9 @@ export function ProductFilters({
 
         {/* Categories */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Categories</label>
+          <label className="text-sm font-medium">
+            {locale === 'ru' ? 'Категории' : 'Categories'}
+          </label>
           <div className="space-y-2">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
@@ -404,7 +422,9 @@ export function ProductFilters({
 
         {/* Product Types */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Product Types</label>
+          <label className="text-sm font-medium">
+            {locale === 'ru' ? 'Типы продуктов' : 'Product Types'}
+          </label>
           <div className="space-y-2">
             {productTypes.map((type) => (
               <div key={type.id} className="flex items-center space-x-2">
@@ -427,7 +447,7 @@ export function ProductFilters({
 
         {/* Tags */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Tags</label>
+          <label className="text-sm font-medium">{locale === 'ru' ? 'Теги' : 'Tags'}</label>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <Badge
@@ -445,7 +465,9 @@ export function ProductFilters({
 
         {/* Price Range */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Price Range</label>
+          <label className="text-sm font-medium">
+            {locale === 'ru' ? 'Ценовой диапазон' : 'Price Range'}
+          </label>
           <Slider
             value={[priceRange.min, priceRange.max]}
             onValueChange={handlePriceRangeChange}
@@ -461,14 +483,20 @@ export function ProductFilters({
 
         {/* Sort */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Sort</label>
+          <label className="text-sm font-medium">{locale === 'ru' ? 'Сортировать' : 'Sort'}</label>
           <div className="flex flex-wrap gap-2">
             {[
-              { value: 'newest', label: 'Newest' },
-              { value: 'price-asc', label: 'Price: Low to High' },
-              { value: 'price-desc', label: 'Price: High to Low' },
-              { value: 'name-asc', label: 'Name: A to Z' },
-              { value: 'name-desc', label: 'Name: Z to A' },
+              { value: 'newest', label: locale === 'ru' ? 'Новые' : 'Newest' },
+              {
+                value: 'price-asc',
+                label: locale === 'ru' ? 'Цена: по возрастанию' : 'Price: Low to High',
+              },
+              {
+                value: 'price-desc',
+                label: locale === 'ru' ? 'Цена: по убыванию' : 'Price: High to Low',
+              },
+              { value: 'name-asc', label: locale === 'ru' ? 'Имя: А до Я' : 'Name: A to Z' },
+              { value: 'name-desc', label: locale === 'ru' ? 'Имя: Я до А' : 'Name: Z to A' },
             ].map((option) => (
               <Badge
                 key={option.value}

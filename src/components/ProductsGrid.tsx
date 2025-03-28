@@ -76,7 +76,7 @@ export function ProductsGrid({
           className={cn(
             'flex-grow h-auto',
             layout === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-auto'
+              ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-auto'
               : 'flex flex-col space-y-3',
           )}
         >

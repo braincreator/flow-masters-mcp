@@ -22,6 +22,8 @@ export const translations = {
       sort: 'Sort by',
       search: 'Search products',
       searchPlaceholder: 'Search products...',
+      filters: 'Filters',
+      clearAll: 'Clear all filters',
       layout: {
         grid: 'Grid view',
         list: 'List view',
@@ -97,6 +99,8 @@ export const translations = {
       sort: 'Сортировать по',
       search: 'Поиск продуктов',
       searchPlaceholder: 'Поиск продуктов...',
+      filters: 'Фильтры',
+      clearAll: 'Сбросить все фильтры',
       layout: {
         grid: 'Сетка',
         list: 'Список',

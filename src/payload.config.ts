@@ -21,6 +21,11 @@ import { plugins } from './plugins'
 // Import globals
 import { Header } from './Header/config'
 import { Footer } from './Footer/config'
+import { PaymentProviders } from './globals/PaymentProviders/config'
+import { NotificationSettings } from './globals/NotificationSettings'
+import { CurrencySettings } from './globals/CurrencySettings'
+import { ExchangeRateSettings } from './globals/ExchangeRateSettings'
+import { WebhookSettings } from './globals/WebhookSettings'
 
 // Import collections
 import { Categories } from './collections/Categories'
@@ -37,16 +42,7 @@ import { ENV } from '@/constants/env'
 import { DATABASE_CONFIG } from '@/constants/index'
 
 // Create a collections array
-const payloadCollections = [
-  Categories,
-  Media,
-  Pages,
-  Posts,
-  Users,
-  Solutions,
-  Products,
-  Orders
-]
+const payloadCollections = [Categories, Media, Pages, Posts, Users, Solutions, Products, Orders]
 
 // Add more robust connection options
 const mongooseConfig = {
@@ -66,7 +62,6 @@ const mongooseConfig = {
     // useUnifiedTopology: true,
   },
 }
-
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
@@ -98,7 +93,7 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(__dirname),
     },
-    
+
     livePreview: {
       breakpoints: [
         {
@@ -165,7 +160,15 @@ export default buildConfig({
   },
   collections: payloadCollections,
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
+  globals: [
+    Header,
+    Footer,
+    PaymentProviders,
+    NotificationSettings,
+    CurrencySettings,
+    ExchangeRateSettings,
+    WebhookSettings,
+  ],
   plugins,
   sharp,
   typescript: {

@@ -138,7 +138,7 @@ export function AddToCartButton({
       variant={isInCartState ? 'outline' : 'default'}
       size={size}
       className={cn(
-        'relative group whitespace-nowrap',
+        'relative group whitespace-nowrap min-w-[120px]',
         isInCartState && 'border-accent bg-accent/10 hover:bg-accent/20 text-accent font-medium',
         className,
       )}
@@ -150,11 +150,11 @@ export function AddToCartButton({
       {children || (
         <>
           {isInCartState ? (
-            <Check className="h-5 w-5 mr-2 text-accent" />
+            <Check className="h-5 w-5 mr-2 flex-shrink-0" />
           ) : (
-            <ButtonIcon className="h-5 w-5 mr-2" />
+            <ButtonIcon className="h-5 w-5 mr-2 flex-shrink-0" />
           )}
-          <span className="whitespace-nowrap">
+          <span className="whitespace-nowrap overflow-hidden text-ellipsis">
             {isInCartState ? texts.inCart : buttonConfig.text}
           </span>
         </>
