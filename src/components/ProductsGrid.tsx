@@ -22,6 +22,7 @@ interface ProductsGridProps {
     page: string
     of: string
   }
+  className?: string
 }
 
 export function ProductsGrid({
@@ -32,6 +33,7 @@ export function ProductsGrid({
   totalPages = 1,
   onAddToCart,
   labels,
+  className,
 }: ProductsGridProps) {
   // We now keep a filters state that will be sent to the product service.
   const [filters, setFilters] = useState<ProductQueryOptions>({
@@ -74,10 +76,8 @@ export function ProductsGrid({
       <div className="space-y-8 flex flex-col">
         <div
           className={cn(
-            'flex-grow h-auto',
-            layout === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-auto'
-              : 'flex flex-col space-y-3',
+            'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6',
+            className,
           )}
         >
           {products.map((product) => (

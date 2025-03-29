@@ -134,7 +134,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
   return (
     <div
       className={cn(
-        'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto',
+        'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto min-w-[260px]',
         layout === 'list' ? 'flex items-start py-4 gap-6 md:gap-6' : 'flex flex-col',
       )}
       onClick={handleCardClick}
@@ -278,7 +278,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
 
           {/* Action Buttons - Absolute positioned in bottom right corner */}
-          <div className="absolute bottom-0 right-6 flex gap-2 justify-end">
+          <div className="absolute bottom-0 right-6 flex gap-2 justify-end w-full max-w-[calc(100%-3rem)]">
             <AddToCartButton
               product={product}
               locale={locale}
@@ -289,30 +289,32 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
               showToast={true}
               successMessage={getAddToCartMessage()}
               removeMessage={getRemoveFromCartMessage()}
-              className="h-10"
+              className="h-10 flex-1 min-w-[120px]"
             />
 
-            <FavoriteButton
-              product={product}
-              locale={locale}
-              showToast={true}
-              size="icon"
-              className="h-10 w-10"
-            />
+            <div className="flex gap-2 flex-shrink-0">
+              <FavoriteButton
+                product={product}
+                locale={locale}
+                showToast={true}
+                size="icon"
+                className="h-10 w-10 flex-shrink-0"
+              />
 
-            <ShareButton
-              product={product}
-              locale={locale}
-              showToastOnCopy={true}
-              copyMessage={t.sharing?.linkCopied || 'Link copied!'}
-              size="icon"
-              className="h-10 w-10"
-            />
+              <ShareButton
+                product={product}
+                locale={locale}
+                showToastOnCopy={true}
+                copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+                size="icon"
+                className="h-10 w-10 flex-shrink-0"
+              />
+            </div>
           </div>
         </div>
       ) : (
         /* Grid Layout Content */
-        <div className="flex flex-col flex-grow p-4 space-y-3">
+        <div className="flex flex-col flex-grow p-4 space-y-2">
           {/* Title */}
           <Link
             href={`/${locale}/products/${product.slug}`}
@@ -333,8 +335,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             </p>
           )}
 
-          {/* Action Buttons - increased spacing and improved layout */}
-          <div className="flex flex-wrap gap-2 pt-3 mt-auto">
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-2 mt-auto">
             <AddToCartButton
               product={product}
               locale={locale}
@@ -348,13 +350,13 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
               className="flex-1 min-w-[120px]"
             />
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               <FavoriteButton
                 product={product}
                 locale={locale}
                 showToast={true}
                 size="icon"
-                className="h-[40px] w-[40px] shrink-0"
+                className="h-[40px] w-[40px] flex-shrink-0"
               />
 
               <ShareButton
@@ -363,7 +365,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                 showToastOnCopy={true}
                 copyMessage={t.sharing?.linkCopied || 'Link copied!'}
                 size="icon"
-                className="h-[40px] w-[40px] shrink-0"
+                className="h-[40px] w-[40px] flex-shrink-0"
               />
             </div>
           </div>

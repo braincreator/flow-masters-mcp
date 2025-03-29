@@ -270,7 +270,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
-          <span>{t.filters.filters}</span>
+          <span>{t.filters.filters || 'Фильтры'}</span>
           {hasActiveFilters && (
             <span className="ml-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-white">
               {

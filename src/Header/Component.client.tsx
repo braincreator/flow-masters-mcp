@@ -12,6 +12,8 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { cn } from '@/utilities/ui'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { Menu, X, ShoppingCart } from 'lucide-react'
+import { CartBadge } from '@/components/CartBadge'
 
 interface HeaderClientProps {
   data: Header
@@ -22,16 +24,23 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const prefersReducedMotion = useReducedMotion()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Throttled scroll handler
   const handleScroll = useCallback(() => {
+    // Never hide header when mobile menu is open
+    if (mobileMenuOpen) {
+      setIsVisible(true)
+      return
+    }
+
     const currentScrollY = window.scrollY
 
     if (Math.abs(currentScrollY - lastScrollY) < 50) return
 
     setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100)
     setLastScrollY(currentScrollY)
-  }, [lastScrollY])
+  }, [lastScrollY, mobileMenuOpen])
 
   useEffect(() => {
     let ticking = false
@@ -50,6 +59,18 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [handleScroll])
 
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
+
   const headerAnimation = prefersReducedMotion
     ? {}
     : {
@@ -59,42 +80,93 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
       }
 
   return (
-    <motion.header
-      {...headerAnimation}
-      className={cn(
-        'fixed top-0 left-0 right-0 h-16 z-50 transform transition-transform duration-300',
-        'bg-background/80 backdrop-blur-md border-b border-border/40',
-        !isVisible && 'translate-y-[-100%]',
-      )}
-      {...(theme ? { 'data-theme': theme } : {})}
-    >
-      <div className="container h-full">
-        <div className="flex justify-between items-center h-full">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-            className="hover:text-accent transition-colors duration-300"
-          >
-            <Link href={`/${currentLocale}`}>
-              <Logo
-                loading="eager"
-                priority="high"
-                className="invert dark:invert-0 transition-all duration-300 hover:opacity-80"
-                logo={data.logo}
-                size="small"
-              />
-            </Link>
-          </motion.div>
-          <div className="flex items-center gap-4">
-            <HeaderNav data={data} />
-            <div className="flex items-center gap-2 ml-4 border-l border-border/40 pl-4">
+    <>
+      <motion.header
+        {...headerAnimation}
+        className={cn(
+          'fixed top-0 left-0 right-0 h-16 z-50 transform transition-transform duration-300',
+          'bg-background/80 backdrop-blur-md border-b border-border/40',
+          !isVisible && !mobileMenuOpen && 'translate-y-[-100%]',
+        )}
+        {...(theme ? { 'data-theme': theme } : {})}
+      >
+        <div className="container h-full">
+          <div className="flex justify-between items-center h-full">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+              className="hover:text-accent transition-colors duration-300"
+            >
+              <Link href={`/${currentLocale}`}>
+                <Logo
+                  loading="eager"
+                  priority="high"
+                  className="invert dark:invert-0 transition-all duration-300 hover:opacity-80"
+                  logo={data.logo}
+                  size="small"
+                />
+              </Link>
+            </motion.div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-4">
+              <HeaderNav data={data} />
+              <div className="flex items-center gap-2 ml-4 border-l border-border/40 pl-4">
+                <ThemeSelector />
+                <LanguageSwitcher />
+                <Link
+                  href={`/${currentLocale}/checkout`}
+                  className="relative text-foreground/80 hover:text-accent transition-all duration-300 ml-1"
+                  aria-label="Cart"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <CartBadge />
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile Controls */}
+            <div className="flex items-center gap-3 md:hidden">
+              <Link
+                href={`/${currentLocale}/checkout`}
+                className="relative text-foreground/80 hover:text-accent active:scale-95 transition-all touch-manipulation"
+                aria-label="Cart"
+              >
+                <ShoppingCart className="w-6 h-6" />
+                <CartBadge />
+              </Link>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="p-2 text-foreground/70 hover:text-accent active:scale-95 transition-all touch-manipulation"
+                onClick={() => {
+                  const newState = !mobileMenuOpen
+                  console.log('Toggle mobile menu:', newState)
+                  setMobileMenuOpen(newState)
+                  setIsVisible(true) // Always ensure header is visible when toggling menu
+                }}
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Mobile menu as a separate component outside the header */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 pt-16 bg-background z-40 md:hidden overflow-auto">
+          <div className="container py-6">
+            <HeaderNav data={data} mobile={true} />
+            <div className="flex items-center justify-center gap-6 pt-6 mt-6 border-t border-border/40">
               <ThemeSelector />
               <LanguageSwitcher />
             </div>
           </div>
         </div>
-      </div>
-    </motion.header>
+      )}
+    </>
   )
 })
 

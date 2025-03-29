@@ -150,11 +150,11 @@ export function AddToCartButton({
       {children || (
         <>
           {isInCartState ? (
-            <Check className="h-5 w-5 mr-2 flex-shrink-0" />
+            <Check className="h-5 w-5 mr-2 text-accent flex-shrink-0" />
           ) : (
             <ButtonIcon className="h-5 w-5 mr-2 flex-shrink-0" />
           )}
-          <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+          <span className="text-sm sm:text-base overflow-hidden text-ellipsis">
             {isInCartState ? texts.inCart : buttonConfig.text}
           </span>
         </>
