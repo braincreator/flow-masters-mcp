@@ -134,8 +134,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
   return (
     <div
       className={cn(
-        'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto min-w-[260px]',
-        layout === 'list' ? 'flex items-start py-4 gap-6 md:gap-6' : 'flex flex-col',
+        'group bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer dark:border-border/50 dark:hover:border-accent/30 h-auto',
+        layout === 'list'
+          ? 'flex items-start py-4 gap-6 md:gap-6 w-full'
+          : 'flex flex-col min-w-[260px]',
       )}
       onClick={handleCardClick}
     >
@@ -213,9 +215,9 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
 
       {/* Content - in list mode, make this a flex container */}
       {layout === 'list' ? (
-        <div className="flex flex-1 justify-between items-start h-full relative pl-2 pr-6 pb-[58px]">
+        <div className="flex flex-1 justify-between items-start h-full relative pl-2 pr-6 pb-[58px] w-full">
           {/* Left Column - Title and Description */}
-          <div className="flex flex-col flex-1 space-y-2 md:space-y-3 min-h-[96px] pt-9">
+          <div className="flex flex-col flex-1 space-y-2 md:space-y-3 min-h-[96px] pt-9 min-w-0 pr-4">
             <div>
               {/* Title */}
               <Link
@@ -262,7 +264,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
 
           {/* Price - Moved to top left */}
-          <div className="absolute top-1 left-2 min-w-[100px] md:min-w-[170px]">
+          <div className="absolute top-1 left-2 min-w-[100px] md:min-w-[120px]">
             {/* Price */}
             {price > 0 && (
               <div>
@@ -278,7 +280,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
 
           {/* Action Buttons - Absolute positioned in bottom right corner */}
-          <div className="absolute bottom-0 right-6 flex gap-2 justify-end w-full max-w-[calc(100%-3rem)]">
+          <div className="absolute bottom-0 left-2 right-6 flex gap-2 w-[calc(100%-2rem)]">
             <AddToCartButton
               product={product}
               locale={locale}

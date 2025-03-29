@@ -73,24 +73,39 @@ export function ProductsGrid({
 
   return (
     <div className="w-full">
-      <div className="space-y-8 flex flex-col">
-        <div
-          className={cn(
-            'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6',
-            className,
-          )}
-        >
-          {products.map((product) => (
-            <div key={product.id} className={cn('h-auto', layout === 'list' && 'w-full')}>
-              <ProductCard
-                product={product}
-                locale={locale}
-                layout={layout}
-                onAddToCart={onAddToCart}
-              />
-            </div>
-          ))}
-        </div>
+      <div className={cn('space-y-8 flex flex-col', layout === 'list' && 'w-full')}>
+        {layout === 'list' ? (
+          <div className="w-full space-y-4">
+            {products.map((product) => (
+              <div key={product.id} className="w-full">
+                <ProductCard
+                  product={product}
+                  locale={locale}
+                  layout={layout}
+                  onAddToCart={onAddToCart}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className={cn(
+              'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6',
+              className,
+            )}
+          >
+            {products.map((product) => (
+              <div key={product.id} className="h-auto">
+                <ProductCard
+                  product={product}
+                  locale={locale}
+                  layout={layout}
+                  onAddToCart={onAddToCart}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {totalPages > 1 && (
           <PaginationRenderer>
