@@ -29,7 +29,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, mobile = false }) =>
             key={i}
             {...link}
             size="lg"
-            className="relative text-foreground/90 hover:text-accent active:scale-98 transition-all duration-300
+            className="relative text-foreground/90 active:text-accent active:scale-98 transition-all duration-300
               text-xl font-medium py-3 w-full border-b border-border/10 flex items-center"
           />
         ))}

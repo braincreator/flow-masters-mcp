@@ -42,6 +42,11 @@ export const translations = {
       productTypes: 'Product Types',
       tags: 'Tags',
       priceRange: 'Price Range',
+      filters: 'Filters',
+      clearAll: 'Clear all filters',
+      favorites: 'Favorites',
+      filtersDescription: 'Select filters for products',
+      apply: 'Apply',
     },
     buttons: {
       buyNow: 'Buy Now',
@@ -117,6 +122,11 @@ export const translations = {
       productTypes: 'Типы продуктов',
       tags: 'Теги',
       priceRange: 'Ценовой диапазон',
+      filters: 'Фильтры',
+      clearAll: 'Сбросить все фильтры',
+      favorites: 'Избранное',
+      filtersDescription: 'Выберите фильтры для товаров',
+      apply: 'Применить',
     },
     buttons: {
       buyNow: 'Купить',

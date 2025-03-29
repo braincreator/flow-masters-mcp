@@ -133,7 +133,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   }
 
   const debouncedSearch = useCallback(
-    debounce((value) => {
+    debounce((value: string) => {
       router.push(updateSearchParams('search', value))
     }, 500),
     [router, updateSearchParams],
@@ -159,7 +159,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     router.push(updateSearchParams('tag', tagValue))
   }
 
-  const handlePriceRangeChange = (values: number[]) => {
+  const handlePriceRangeChange = (values: [number, number]) => {
     setCurrentPriceRange(values)
     const params = new URLSearchParams(searchParams.toString())
     params.set('minPrice', values[0].toString())
@@ -238,7 +238,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             placeholder={t.filters.searchPlaceholder}
             defaultValue={currentSearch}
             onChange={(e) => handleSearch(e.target.value)}
-            className="input-base w-full h-10 pl-10 pr-4 rounded-lg"
+            className="input-base w-full h-10 pl-10 pr-4 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200"
           />
         </div>
 
@@ -260,7 +260,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               strokeLinejoin="round"
             />
           </svg>
-          <span>{labels?.favorites || 'Избранное'}</span>
+          <span>{t.filters.favorites || labels?.favorites || 'Favorites'}</span>
         </Button>
 
         {/* Filters Button */}
@@ -270,7 +270,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
-          <span>{t.filters.filters || 'Фильтры'}</span>
+          <span>{t?.filters?.filters || 'Filters'}</span>
           {hasActiveFilters && (
             <span className="ml-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-white">
               {
@@ -343,10 +343,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={resetAllFilters}
             size="icon"
             className="h-10 w-10 rounded-full hover:bg-destructive hover:text-destructive-foreground border border-transparent hover:border-destructive"
-            title={t.filters.clearAll || 'Сбросить все фильтры'}
+            title={t?.filters?.clearAll || 'Clear all filters'}
           >
             <X className="h-4 w-4 text-destructive" />
-            <span className="sr-only">{t.filters.clearAll || 'Сбросить все фильтры'}</span>
+            <span className="sr-only">{t?.filters?.clearAll || 'Clear all filters'}</span>
           </Button>
         )}
 
@@ -516,9 +516,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <Dialog open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
         <DialogContent className="sm:max-w-[500px] p-0 border border-border">
           <DialogHeader className="p-4 pb-0">
-            <DialogTitle>{t.filters.filters || 'Фильтры'}</DialogTitle>
+            <DialogTitle>{t?.filters?.filters || 'Filters'}</DialogTitle>
             <DialogDescription>
-              {t.filters.filtersDescription || 'Выберите фильтры для товаров'}
+              {t?.filters?.filtersDescription || 'Select filters for products'}
             </DialogDescription>
           </DialogHeader>
 
@@ -612,10 +612,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={resetAllFilters}
               className="mr-auto border border-border"
             >
-              {t.filters.clearAll || 'Сбросить'}
+              {t?.filters?.clearAll || 'Clear all filters'}
             </Button>
             <Button onClick={() => setIsFiltersOpen(false)} className="border border-accent/20">
-              {t.filters.apply || 'Применить'}
+              {t?.filters?.apply || 'Apply'}
             </Button>
           </DialogFooter>
         </DialogContent>
