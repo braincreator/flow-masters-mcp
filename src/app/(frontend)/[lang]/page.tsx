@@ -49,7 +49,7 @@ export default async function LangHome({ params: paramsPromise }: Props) {
   const { hero, layout } = page
 
   return (
-    <article className="min-h-[calc(100vh-var(--header-height))] pb-24">
+    <article className="min-h-screen pb-24">
       <PageClient />
       <PayloadRedirects disableNotFound url={`/${lang}`} />
 
