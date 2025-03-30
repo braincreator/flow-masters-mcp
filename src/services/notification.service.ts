@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { Payload } from 'payload'
 import { EmailService } from './EmailService'
 import { TelegramService } from './TelegramService'
 
@@ -13,117 +13,91 @@ export class NotificationService {
     this.telegramService = new TelegramService()
   }
 
-  async sendDigitalOrderStatusUpdate(orderTracking: any): Promise<void> {
+  async sendPaymentConfirmation(orderData: {
+    orderId: string
+    orderNumber: string
+    customerEmail: string
+    total: number
+    currency: string
+  }): Promise<boolean> {
     try {
+      // 1. Отправка email подтверждения
+      await this.emailService.sendTemplate('payment_confirmation', orderData.customerEmail, {
+        orderId: orderData.orderId,
+        orderNumber: orderData.orderNumber,
+        total: orderData.total,
+        currency: orderData.currency,
+      })
+
+      // 2. Отправка уведомления в Telegram (для администраторов)
+      await this.telegramService.sendMessage(
+        `💰 Новый оплаченный заказ!\n` +
+          `Номер заказа: ${orderData.orderNumber}\n` +
+          `Сумма: ${orderData.total} ${orderData.currency}\n` +
+          `Email клиента: ${orderData.customerEmail}`,
+      )
+
+      return true
+    } catch (error) {
+      console.error('Failed to send payment confirmation:', error)
+      return false
+    }
+  }
+
+  async sendDigitalOrderStatusUpdate(orderData: any): Promise<boolean> {
+    try {
+      if (!orderData.orderId || !orderData.status) {
+        console.error('Invalid order data for status update notification')
+        return false
+      }
+
+      // Получаем информацию о заказе
       const order = await this.payload.findByID({
         collection: 'orders',
-        id: orderTracking.orderId,
+        id: orderData.orderId,
       })
 
-      const user = await this.payload.findByID({
-        collection: 'users',
-        id: order.user,
-      })
-
-      const templateData = {
-        orderNumber: order.orderNumber,
-        status: orderTracking.status,
-        downloadLinks: orderTracking.downloadLinks,
-        accessExpiresAt: orderTracking.accessExpiresAt,
-        userName: user.name,
+      if (!order) {
+        console.error(`Order not found: ${orderData.orderId}`)
+        return false
       }
 
-      let emailTemplate = 'digital-order-status-update'
+      // Получаем email клиента
+      const customerEmail = order.user || orderData.customerEmail
 
-      // Send download links only when order is ready
-      if (orderTracking.status === 'ready_for_download') {
-        emailTemplate = 'digital-order-download-ready'
+      // Отправляем уведомление в зависимости от статуса
+      switch (orderData.status) {
+        case 'payment_confirmed':
+          await this.emailService.sendTemplate('order_paid', customerEmail, {
+            orderNumber: order.orderNumber,
+            products: order.items,
+          })
+          break
+
+        case 'ready_for_download':
+          await this.emailService.sendTemplate('download_ready', customerEmail, {
+            orderNumber: order.orderNumber,
+            downloadLinks: orderData.downloadLinks,
+          })
+          break
+
+        case 'completed':
+          await this.emailService.sendTemplate('order_completed', customerEmail, {
+            orderNumber: order.orderNumber,
+          })
+          break
+
+        default:
+          await this.emailService.sendTemplate('order_status_update', customerEmail, {
+            orderNumber: order.orderNumber,
+            status: orderData.status,
+          })
       }
 
-      // Send email notification
-      await this.emailService.sendTemplate(emailTemplate, {
-        to: user.email,
-        templateData,
-      })
-
-      // Send telegram notification if user has connected account
-      if (user.telegramChatId) {
-        await this.telegramService.sendDigitalOrderUpdate(user.telegramChatId, templateData)
-      }
-
-      // Store notification in database
-      await this.payload.create({
-        collection: 'notifications',
-        data: {
-          user: user.id,
-          type: 'digital_order_status_update',
-          title: `Order ${order.orderNumber} Status Update`,
-          message: this.getStatusMessage(orderTracking.status),
-          data: templateData,
-          read: false,
-        },
-      })
+      return true
     } catch (error) {
-      console.error('Failed to send digital order status notification:', error)
-      throw error
-    }
-  }
-
-  private getStatusMessage(status: string): string {
-    const messages = {
-      placed: 'Your order has been placed successfully',
-      payment_processing: 'Payment is being processed',
-      payment_confirmed: 'Payment confirmed successfully',
-      ready_for_download: 'Your digital products are ready for download',
-      completed: 'Order completed',
-      cancelled: 'Order has been cancelled',
-      refunded: 'Order has been refunded',
-    }
-    return messages[status] || `Order status updated to: ${status}`
-  }
-
-  async sendPaymentConfirmation(order: any): Promise<void> {
-    try {
-      const user = await this.payload.findByID({
-        collection: 'users',
-        id: order.user,
-      })
-
-      const templateData = {
-        orderNumber: order.orderNumber,
-        total: order.total,
-        currency: order.currency,
-        itemCount: order.items.length,
-        date: new Date().toLocaleDateString(),
-        userName: user.name || user.email,
-      }
-
-      // Send email notification
-      await this.emailService.sendTemplate('payment-confirmation', {
-        to: user.email,
-        templateData,
-      })
-
-      // Send telegram notification if user has connected account
-      if (user.telegramChatId) {
-        await this.telegramService.sendPaymentConfirmation(user.telegramChatId, templateData)
-      }
-
-      // Store notification in database
-      await this.payload.create({
-        collection: 'notifications',
-        data: {
-          user: user.id,
-          type: 'payment_confirmation',
-          title: `Payment for order ${order.orderNumber} confirmed`,
-          message: `Your payment of ${order.total} ${order.currency} has been received. Thank you for your purchase!`,
-          data: templateData,
-          read: false,
-        },
-      })
-    } catch (error) {
-      console.error('Failed to send payment confirmation notification:', error)
-      throw error
+      console.error('Failed to send order status update:', error)
+      return false
     }
   }
 

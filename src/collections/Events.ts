@@ -5,13 +5,12 @@ export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
     useAsTitle: 'type',
-    group: 'System',
-    description: 'System events log',
+    defaultColumns: ['type', 'timestamp'],
   },
   access: {
-    create: () => false,
     read: isAdmin,
-    update: () => false,
+    update: isAdmin,
+    create: isAdmin,
     delete: isAdmin,
   },
   fields: [
@@ -19,32 +18,16 @@ export const Events: CollectionConfig = {
       name: 'type',
       type: 'text',
       required: true,
-      admin: {
-        readOnly: true,
-      },
     },
     {
       name: 'data',
       type: 'json',
       required: true,
-      admin: {
-        readOnly: true,
-      },
     },
     {
       name: 'timestamp',
       type: 'date',
       required: true,
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
-    },
-  ],
-  timestamps: true,
-  indexes: [
-    {
-      fields: ['type', 'timestamp'],
     },
   ],
 }

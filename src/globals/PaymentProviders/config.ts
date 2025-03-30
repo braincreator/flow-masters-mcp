@@ -113,6 +113,22 @@ const cryptoCredFields = [
     label: 'Webhook Secret',
     required: true,
   },
+  {
+    name: 'wallet_connect_project_id',
+    type: 'text',
+    label: 'WalletConnect Project ID',
+    required: true,
+    admin: {
+      description: 'Create a project ID at https://cloud.walletconnect.com/',
+    },
+  },
+  {
+    name: 'supported_currencies',
+    type: 'text',
+    label: 'Supported Currencies (comma-separated)',
+    defaultValue: 'ETH,USDT,DAI',
+    required: true,
+  },
 ]
 
 export const PaymentProviders: GlobalConfig = {
@@ -368,65 +384,6 @@ export const PaymentProviders: GlobalConfig = {
             condition: (_, siblingData) => siblingData?.crypto_enabled === true,
           },
           fields: createTestProdConfigFields(cryptoCredFields, cryptoCredFields),
-        },
-      ],
-    },
-    {
-      name: 'bankTransfer',
-      type: 'group',
-      label: 'Bank Transfer',
-      fields: [
-        {
-          name: 'bankTransfer_enabled',
-          type: 'checkbox',
-          label: 'Enable Bank Transfer',
-          defaultValue: false,
-        },
-        {
-          name: 'bankTransfer_displayName',
-          type: 'group',
-          label: 'Display Name',
-          admin: {
-            condition: (_, siblingData) => siblingData?.bankTransfer_enabled === true,
-          },
-          fields: [
-            {
-              name: 'ru',
-              type: 'text',
-              label: 'Russian',
-              defaultValue: 'Банковский перевод',
-              required: true,
-            },
-            {
-              name: 'en',
-              type: 'text',
-              label: 'English',
-              defaultValue: 'Bank Transfer',
-              required: true,
-            },
-          ],
-        },
-        {
-          name: 'bankTransfer_instructions',
-          type: 'group',
-          label: 'Payment Instructions',
-          admin: {
-            condition: (_, siblingData) => siblingData?.bankTransfer_enabled === true,
-          },
-          fields: [
-            {
-              name: 'ru',
-              type: 'richText',
-              label: 'Russian',
-              required: true,
-            },
-            {
-              name: 'en',
-              type: 'richText',
-              label: 'English',
-              required: true,
-            },
-          ],
         },
       ],
     },

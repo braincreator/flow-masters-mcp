@@ -6,10 +6,13 @@ import { PaymentResult as PaymentResultType } from '@/types/payment'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useToast } from '@/hooks/useToast'
+import { useSearchParams, useRouter } from 'next/navigation'
+import styles from './PaymentResult.module.css'
 
 interface PaymentResultProps {
-  result: PaymentResultType
-  onRetry?: () => void
+  lang?: string
+  successText?: string
+  errorText?: string
 }
 
 const ResultIcon = ({ success }: { success: boolean }) => (
@@ -46,66 +49,183 @@ const ActionButton = ({
   </Link>
 )
 
-export const PaymentResult = ({ result, onRetry }: PaymentResultProps) => {
+export default function PaymentResult({
+  lang = 'en',
+  successText = 'Payment successful!',
+  errorText = 'Payment failed',
+}: PaymentResultProps) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const { trackEvent } = useAnalytics()
   const { showToast } = useToast()
-  const [retryCount, setRetryCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<'success' | 'error' | 'processing'>('processing')
+  const [orderNumber, setOrderNumber] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    trackEvent(result.success ? 'payment_success' : 'payment_failure', {
-      orderId: result.orderId,
-      transactionId: result.transactionId,
-    })
-  }, [result, trackEvent])
+    async function checkPaymentStatus() {
+      try {
+        // Extract payment information from URL parameters
+        const orderId = searchParams.get('orderId')
+        const paymentId = searchParams.get('paymentId')
+        const resultStatus = searchParams.get('status')
 
-  const handleRetry = async () => {
-    if (retryCount >= 3) {
-      showToast('Too many retry attempts. Please contact support.', 'error')
-      return
+        if (!orderId) {
+          setStatus('error')
+          setErrorMessage('Missing order information')
+          setLoading(false)
+          return
+        }
+
+        // If status is directly specified in URL
+        if (resultStatus === 'success' || resultStatus === 'paid') {
+          setStatus('success')
+          await fetchOrderDetails(orderId)
+          setLoading(false)
+          return
+        }
+
+        if (resultStatus === 'fail' || resultStatus === 'error' || resultStatus === 'cancelled') {
+          setStatus('error')
+          setErrorMessage('Payment was cancelled or failed')
+          await fetchOrderDetails(orderId)
+          setLoading(false)
+          return
+        }
+
+        // Otherwise check with API
+        await verifyPayment(orderId, paymentId)
+      } catch (error) {
+        console.error('Error checking payment status:', error)
+        setStatus('error')
+        setErrorMessage('An error occurred while checking payment status')
+        setLoading(false)
+      }
     }
-    setRetryCount((prev) => prev + 1)
-    onRetry?.()
+
+    checkPaymentStatus()
+  }, [searchParams])
+
+  async function fetchOrderDetails(orderId: string) {
+    try {
+      const res = await fetch(`/api/order/${orderId}`)
+      if (!res.ok) {
+        console.error('Failed to fetch order details:', res.statusText)
+        return
+      }
+
+      const data = await res.json()
+      if (data.order?.orderNumber) {
+        setOrderNumber(data.order.orderNumber)
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error)
+    }
   }
 
-  return (
-    <ErrorBoundary fallback={<div>Something went wrong. Please refresh the page.</div>}>
-      <div className="max-w-lg mx-auto p-6" role="alert" aria-live="polite">
-        {result.success ? (
-          <div className="text-center space-y-4">
-            <ResultIcon success={true} />
-            <h1 className="text-2xl font-bold">Payment Successful</h1>
-            <p className="text-gray-600">
-              Thank you for your payment. Your order #{result.orderId} has been confirmed.
-            </p>
-            {result.transactionId && (
-              <p className="text-sm text-gray-500">Transaction ID: {result.transactionId}</p>
-            )}
-            <div className="pt-6">
-              <ActionButton href="/orders">View Orders</ActionButton>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center space-y-4">
-            <ResultIcon success={false} />
-            <h1 className="text-2xl font-bold">Payment Failed</h1>
-            <p className="text-gray-600">
-              {result.error || 'There was an error processing your payment.'}
-            </p>
-            <div className="pt-6 space-x-4">
-              <button
-                onClick={handleRetry}
-                className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                disabled={retryCount >= 3}
-              >
-                Try Again ({3 - retryCount} attempts remaining)
-              </button>
-              <ActionButton href="/contact" variant="secondary">
-                Contact Support
-              </ActionButton>
-            </div>
-          </div>
-        )}
+  async function verifyPayment(orderId: string, paymentId: string | null) {
+    try {
+      const res = await fetch(
+        `/api/payment/verify?orderId=${orderId}${paymentId ? `&paymentId=${paymentId}` : ''}`,
+      )
+
+      if (!res.ok) {
+        setStatus('error')
+        setErrorMessage('Payment verification failed')
+        await fetchOrderDetails(orderId)
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json()
+
+      if (data.status === 'paid' || data.status === 'success') {
+        setStatus('success')
+      } else if (data.status === 'processing' || data.status === 'pending') {
+        setStatus('processing')
+        setErrorMessage('Payment is still processing, please wait')
+      } else {
+        setStatus('error')
+        setErrorMessage(data.message || 'Payment was not successful')
+      }
+
+      if (data.orderNumber) {
+        setOrderNumber(data.orderNumber)
+      } else {
+        await fetchOrderDetails(orderId)
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error)
+      setStatus('error')
+      setErrorMessage('Could not verify payment status')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Redirect to home after successful payment after delay
+  useEffect(() => {
+    let redirectTimer: NodeJS.Timeout
+    if (status === 'success') {
+      redirectTimer = setTimeout(() => {
+        router.push(`/${lang}`)
+      }, 5000)
+    }
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer)
+    }
+  }, [status, router, lang])
+
+  if (loading) {
+    return (
+      <div className={`${styles.paymentResult} ${styles.paymentProcessing}`}>
+        <div className={styles.spinner}></div>
+        <h2>Processing payment...</h2>
+        <p>Please wait while we verify your payment</p>
       </div>
-    </ErrorBoundary>
+    )
+  }
+
+  if (status === 'success') {
+    return (
+      <div className={`${styles.paymentResult} ${styles.paymentSuccess}`}>
+        <div className={styles.successIcon}>✓</div>
+        <h2>{successText}</h2>
+        {orderNumber && <p>Order: #{orderNumber}</p>}
+        <p>Thank you for your purchase!</p>
+        <p>You will be redirected to the home page in 5 seconds...</p>
+        <Link href={`/${lang}`} className={styles.button}>
+          Return to Home Page
+        </Link>
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div className={`${styles.paymentResult} ${styles.paymentError}`}>
+        <div className={styles.errorIcon}>✗</div>
+        <h2>{errorText}</h2>
+        {errorMessage && <p>{errorMessage}</p>}
+        {orderNumber && <p>Order: #{orderNumber}</p>}
+        <Link href={`/${lang}/checkout`} className={styles.button}>
+          Try Again
+        </Link>
+        <Link href={`/${lang}`} className={`${styles.button} ${styles.buttonSecondary}`}>
+          Return to Home Page
+        </Link>
+      </div>
+    )
+  }
+
+  // Processing state (fallback if status is still processing)
+  return (
+    <div className={`${styles.paymentResult} ${styles.paymentProcessing}`}>
+      <div className={styles.spinner}></div>
+      <h2>Processing payment...</h2>
+      <p>Your payment is being processed. This may take a moment.</p>
+      <p>Please do not close this page.</p>
+    </div>
   )
 }

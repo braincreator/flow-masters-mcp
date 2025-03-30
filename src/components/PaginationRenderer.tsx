@@ -10,33 +10,29 @@ interface PaginationRendererProps {
 
 export default function PaginationRenderer({ children }: PaginationRendererProps) {
   const [mounted, setMounted] = useState(false)
+  const [paginationSlot, setPaginationSlot] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
     setMounted(true)
-    console.log('PaginationRenderer mounted')
+    setPaginationSlot(document.getElementById('pagination-slot'))
+
     return () => {
       setMounted(false)
     }
   }, [])
 
-  // Если компонент не смонтирован, возвращаем null
+  // Если компонент не смонтирован, возвращаем дочерний контент напрямую
   if (!mounted) {
-    console.log('PaginationRenderer not mounted yet')
-    return null
+    return <div className="pagination-fallback">{children}</div>
   }
 
   // Если не переданы дети, создаем дефолтную пагинацию
   const paginationContent = children || <Pagination page={1} totalPages={1} />
 
-  // Находим слот для пагинации
-  const paginationSlot = document.getElementById('pagination-slot')
-
+  // Если слот для пагинации не найден, отображаем контент напрямую
   if (!paginationSlot) {
-    console.log('Pagination slot not found!')
     return <>{paginationContent}</>
   }
-
-  console.log('Pagination slot found, rendering pagination')
 
   // Создаем портал и рендерим пагинацию в слот
   return createPortal(paginationContent, paginationSlot)

@@ -3,7 +3,7 @@ import { PAYMENT_CONFIG, PAYMENT_STATUSES } from '@/constants/payment'
 /**
  * Payment provider types supported by the application
  */
-export type PaymentProvider = 'yoomoney' | 'robokassa' | 'stripe' | 'paypal'
+export type PaymentProvider = 'yoomoney' | 'robokassa' | 'stripe' | 'paypal' | 'crypto'
 
 /**
  * Payment method types

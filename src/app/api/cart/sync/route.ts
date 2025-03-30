@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getServerSession } from 'next-auth/next'
 import { getPayloadClient } from '@/utilities/payload'
-import { authOptions } from '@/utilities/auth'
 
 export async function POST(req: Request) {
   try {
     const payload = await getPayloadClient()
-    const session = await getServerSession(authOptions)
 
     // Extract cart data from request
     const { sessionId, items, total, currency } = await req.json()
@@ -16,13 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid cart data' }, { status: 400 })
     }
 
-    // Get user ID from session if authenticated
-    const userId = session?.user?.id
+    // No session in this version, using only sessionId
+    const userId = null
 
     // Try to find existing cart session
     const existingCartSessions = await payload.find({
       collection: 'cart-sessions',
-      where: userId ? { user: { equals: userId } } : { sessionId: { equals: sessionId } },
+      where: { sessionId: { equals: sessionId } },
       limit: 1,
     })
 

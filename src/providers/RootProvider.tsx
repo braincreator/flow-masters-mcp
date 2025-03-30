@@ -11,20 +11,15 @@ import CartInitializer from '@/components/CartInitializer'
 interface RootProviderProps {
   children: React.ReactNode
   lang: string
-  siteConfig: any
 }
 
-export function RootProvider({ children, lang, siteConfig }: RootProviderProps) {
+export function RootProvider({ children, lang }: RootProviderProps) {
   return (
     <DropdownProvider>
       <ThemeProvider>
         <I18nProvider defaultLang={lang}>
           <HeaderThemeProvider>
             <CartInitializer locale={lang as any}>
-              <Analytics
-                googleAnalyticsId={siteConfig?.analytics?.googleAnalyticsId}
-                metaPixelId={siteConfig?.analytics?.metaPixelId}
-              />
               {children}
               <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
             </CartInitializer>

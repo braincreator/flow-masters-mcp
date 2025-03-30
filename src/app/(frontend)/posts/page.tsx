@@ -4,16 +4,10 @@ import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
 import configPromise from '@/payload.config'
 import { getPayload } from 'payload'
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense } from 'react'
 import PageClient from './page.client'
-import { VirtualList } from '@/components/VirtualList'
+import { PostsVirtualList } from '@/components/PostsVirtualList'
 import PaginationRenderer from '@/components/PaginationRenderer'
-
-const LazyCollectionArchive = lazy(() =>
-  import('@/components/CollectionArchive').then((mod) => ({
-    default: mod.CollectionArchive,
-  })),
-)
 
 export const dynamic = 'force-static'
 export const revalidate = 600
@@ -57,12 +51,7 @@ export default async function Page() {
       </div>
 
       <Suspense fallback={<div className="flex-grow">Loading posts...</div>} className="flex-grow">
-        <VirtualList
-          items={posts.docs}
-          itemHeight={300}
-          renderItem={(post) => <LazyCollectionArchive posts={[post]} />}
-          className="flex-grow"
-        />
+        <PostsVirtualList posts={posts.docs} className="flex-grow" />
       </Suspense>
 
       <PaginationRenderer>

@@ -7,7 +7,7 @@ export default {
       process.env.NODE_ENV === 'production'
         ? {
             preset: [
-              'advanced',
+              'default',
               {
                 discardComments: { removeAll: true },
                 reduceIdents: false,

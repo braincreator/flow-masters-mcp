@@ -36,13 +36,26 @@ import { Users } from './collections/Users'
 import { Solutions } from './collections/Solutions'
 import { Products } from './collections/Products'
 import { Orders } from './collections/Orders'
+import { Integrations } from './collections/Integrations'
+import { Events } from './collections/Events'
 
 // Import constants
 import { ENV } from '@/constants/env'
 import { DATABASE_CONFIG } from '@/constants/index'
 
 // Create a collections array
-const payloadCollections = [Categories, Media, Pages, Posts, Users, Solutions, Products, Orders]
+const payloadCollections = [
+  Categories,
+  Media,
+  Pages,
+  Posts,
+  Users,
+  Solutions,
+  Products,
+  Orders,
+  Integrations,
+  Events,
+]
 
 // Add more robust connection options
 const mongooseConfig = {

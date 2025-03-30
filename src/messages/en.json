@@ -1,0 +1,117 @@
+"Account": {
+  "subscriptions": {
+    "metadata": {
+      "title": "Your Subscriptions",
+      "description": "Manage your subscription plans"
+    },
+    "title": "Subscriptions",
+    "description": "View and manage your active subscriptions or select a new subscription plan",
+    "tabs": {
+      "current": "Your Subscriptions",
+      "new": "Available Plans"
+    },
+    "notAuthenticated": {
+      "title": "Authentication Required",
+      "description": "Please login to view your subscriptions",
+      "loginButton": "Login"
+    },
+    "newSubscription": {
+      "heading": "Choose a Subscription Plan",
+      "description": "Select a plan that matches your needs"
+    }
+  }
+},
+
+"Subscription": {
+  "checkout": {
+    "metadata": {
+      "title": "Subscription Checkout",
+      "description": "Complete your subscription purchase"
+    },
+    "title": "Subscription Checkout",
+    "price": "Price",
+    "includedFeatures": "Included Features",
+    "trialPeriod": "Includes a free trial period of {days} days",
+    "paymentMethod": {
+      "title": "Payment Method",
+      "description": "Select your preferred payment method",
+      "provider": "Payment Provider",
+      "selectProvider": "Select a payment provider"
+    },
+    "terms": {
+      "agree": "I agree to the terms and conditions",
+      "description": "By subscribing, you agree to our terms of service and privacy policy"
+    },
+    "buttons": {
+      "subscribe": "Complete Subscription",
+      "processing": "Processing...",
+      "cancel": "Cancel"
+    },
+    "notAuthenticated": {
+      "title": "Authentication Required",
+      "description": "Please login to complete your subscription",
+      "loginButton": "Login"
+    },
+    "errors": {
+      "title": "An error occurred",
+      "planFetchFailed": "Failed to load subscription plan",
+      "invalidPlan": "The selected subscription plan is invalid",
+      "subscriptionFailed": "Failed to create subscription",
+      "unknown": "An unknown error occurred",
+      "backButton": "Back to plans"
+    },
+    "noPlan": {
+      "title": "No Plan Selected",
+      "description": "Please select a subscription plan to continue",
+      "browseButton": "Browse Plans"
+    },
+    "success": {
+      "title": "Subscription Created!",
+      "description": "Your subscription has been successfully created",
+      "redirectMessage": "You will be redirected to your subscriptions page",
+      "manageButton": "Manage Subscriptions"
+    }
+  },
+  "result": {
+    "metadata": {
+      "title": "Subscription Result",
+      "description": "Results of your subscription payment"
+    },
+    "loading": "Loading subscription details...",
+    "redirectMessage": "You will be redirected shortly...",
+    "success": {
+      "title": "Payment Successful",
+      "description": "Your subscription has been successfully activated"
+    },
+    "pending": {
+      "title": "Payment Processing",
+      "description": "Your payment is being processed. This may take a few moments."
+    },
+    "failed": {
+      "title": "Payment Failed",
+      "description": "There was an issue processing your payment. Please try again."
+    },
+    "unknown": {
+      "title": "Unknown Status",
+      "description": "We couldn't determine the status of your subscription"
+    },
+    "subscriptionDetails": {
+      "id": "Subscription ID",
+      "status": "Status",
+      "startDate": "Start Date",
+      "nextPayment": "Next Payment"
+    },
+    "errors": {
+      "title": "Error Loading Subscription",
+      "subscriptionFetchFailed": "Failed to load subscription details",
+      "invalidSubscription": "The subscription information is invalid",
+      "unknown": "An unknown error occurred"
+    },
+    "buttons": {
+      "viewSubscriptions": "View My Subscriptions",
+      "checkStatus": "Check Status",
+      "tryAgain": "Try Again",
+      "backToSubscriptions": "Back to Subscriptions"
+    }
+  }
+} 

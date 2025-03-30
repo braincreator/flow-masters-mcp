@@ -29,27 +29,36 @@ export const usePayment = ({
       .map(([provider]) => provider as PaymentProvider)
   }, [])
 
-  const initiatePayment = useCallback(async (provider: PaymentProvider) => {
-    setIsLoading(true)
-    setError(null)
+  const initiatePayment = useCallback(
+    async (provider: PaymentProvider) => {
+      setIsLoading(true)
+      setError(null)
 
-    try {
-      const paymentUrl = await paymentService.createPayment({
-        provider,
-        orderId,
-        amount,
-        currency,
-        description,
-        customerEmail,
-      })
+      try {
+        const paymentResult = await paymentService.createPayment(provider, {
+          orderId,
+          amount,
+          currency,
+          description,
+          customer: {
+            email: customerEmail,
+          },
+          locale: 'ru', // Could be made dynamic based on user preference
+        })
 
-      // Redirect to payment page
-      window.location.href = paymentUrl
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Payment initialization failed')
-      setIsLoading(false)
-    }
-  }, [orderId, amount, currency, description, customerEmail])
+        if (!paymentResult.success || !paymentResult.paymentUrl) {
+          throw new Error(paymentResult.error || 'Failed to create payment')
+        }
+
+        // Redirect to payment page
+        window.location.href = paymentResult.paymentUrl
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Payment initialization failed')
+        setIsLoading(false)
+      }
+    },
+    [orderId, amount, currency, description, customerEmail],
+  )
 
   return {
     isLoading,

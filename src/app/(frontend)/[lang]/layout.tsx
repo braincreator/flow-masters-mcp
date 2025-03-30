@@ -63,9 +63,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
             {isDraftMode && <AdminBar />}
             <Header locale={lang} />
             <main className="relative flex-grow pt-[var(--header-height)]">{children}</main>
-            <div id="pagination-slot" className="flex items-center justify-center">
-              {/* DefaultPagination component removed to prevent duplication */}
-            </div>
+            <div id="pagination-slot" className="container py-8"></div>
             <Footer locale={lang} />
             <FloatingCartButtonWrapper locale={lang} />
           </FavoritesInitializer>

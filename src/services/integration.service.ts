@@ -44,9 +44,9 @@ export class IntegrationService extends BaseService {
   }
 
   private async sendEventToIntegration(
-    integration: Integration, 
-    type: IntegrationEvent, 
-    data: IntegrationEventData
+    integration: Integration,
+    type: IntegrationEvent,
+    data: IntegrationEventData,
   ): Promise<void> {
     try {
       const response = await fetch(integration.webhookUrl, {
@@ -54,9 +54,9 @@ export class IntegrationService extends BaseService {
         headers: {
           'Content-Type': 'application/json',
           'X-Integration-Key': integration.apiKey,
-          'X-Event-Type': type
+          'X-Event-Type': type,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -68,8 +68,8 @@ export class IntegrationService extends BaseService {
         id: integration.id,
         data: {
           lastSync: new Date(),
-          lastSyncStatus: 'success'
-        }
+          lastSyncStatus: 'success',
+        },
       })
     } catch (error) {
       await this.payload.update({
@@ -78,8 +78,8 @@ export class IntegrationService extends BaseService {
         data: {
           lastSync: new Date(),
           lastSyncStatus: 'error',
-          lastError: error.message
-        }
+          lastError: error.message,
+        },
       })
       throw error
     }
@@ -91,13 +91,13 @@ export class IntegrationService extends BaseService {
         collection: 'integrations',
         where: {
           type: {
-            equals: type
+            equals: type,
           },
           status: {
-            equals: 'active'
-          }
+            equals: 'active',
+          },
         },
-        limit: 1
+        limit: 1,
       })
 
       return result.docs[0]
@@ -109,22 +109,32 @@ export class IntegrationService extends BaseService {
 
   async processEvent(type: IntegrationEvent, data: IntegrationEventData): Promise<void> {
     try {
-      const integrations = await this.payload.find({
-        collection: 'integrations',
-        where: {
-          status: { equals: 'active' },
-          'triggers.event': { equals: type },
-        },
-      })
+      try {
+        const integrations = await this.payload.find({
+          collection: 'integrations',
+          where: {
+            status: { equals: 'active' },
+            'triggers.event': { equals: type },
+          },
+        })
 
-      for (const integration of integrations.docs) {
-        await this.sendEventToIntegration(integration, type, data)
+        for (const integration of integrations.docs) {
+          await this.sendEventToIntegration(integration, type, data)
+        }
+      } catch (error) {
+        // If integrations collection doesn't exist yet, or other error, just log it
+        console.warn(`Could not process integrations for event ${type}:`, error)
       }
 
-      await this.logEvent(type, data)
+      // Still try to log the event even if integration processing failed
+      try {
+        await this.logEvent(type, data)
+      } catch (logError) {
+        console.warn('Failed to log event:', logError)
+      }
     } catch (error) {
       console.error('Failed to process event:', error)
-      throw error
+      // Don't throw the error to avoid failing the main operation
     }
   }
 }

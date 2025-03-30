@@ -24,6 +24,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}`, request.url))
   }
 
+  // Special case for /locale - redirect to default locale home page
+  if (pathname === '/locale') {
+    return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}`, request.url))
+  }
+
   // Handle paths without locale
   if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
     // Skip locale redirect for posts collection

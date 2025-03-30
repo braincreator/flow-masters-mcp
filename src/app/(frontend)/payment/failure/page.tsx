@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { PaymentResult } from '@/components/PaymentResult'
+import PaymentResult from '@/components/PaymentResult'
 
 export default function PaymentFailurePage() {
   const searchParams = useSearchParams()
@@ -14,5 +14,11 @@ export default function PaymentFailurePage() {
     error: error || 'Payment processing failed',
   }
 
-  return <PaymentResult result={result} />
+  return (
+    <div className="container mx-auto py-8">
+      <div className="max-w-lg mx-auto">
+        <PaymentResult lang="en" successText="Payment successful!" errorText="Payment failed" />
+      </div>
+    </div>
+  )
 }

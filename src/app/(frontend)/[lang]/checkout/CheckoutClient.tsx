@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
 import { useTranslations } from '@/hooks/useTranslations'
 import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Button } from '@/components/ui/button'
-import { X, CreditCard, Wallet, ArrowRight, ShoppingBag } from 'lucide-react'
+import { X, CreditCard, Wallet, ArrowRight, ShoppingBag, Loader2, Bitcoin } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -21,77 +21,125 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/utilities/ui'
+import { PaymentProvider } from '@/types/payment'
+import React from 'react'
+import { loadStripe } from '@stripe/stripe-js'
+import CryptoCurrencySelector from '@/components/CryptoCurrencySelector'
+
+// Validate email format
+const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
 
 interface CheckoutClientProps {
   locale: Locale
 }
 
 export default function CheckoutClient({ locale }: CheckoutClientProps) {
-  const { items, removeFromCart } = useCart()
+  const { items, removeFromCart, clearCart, total } = useCart()
   const t = useTranslations(locale)
+
   const [email, setEmail] = useState('')
+  const [isEmailValid, setIsEmailValid] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [paymentProviders, setPaymentProviders] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
+  const [isLoadingProviders, setIsLoadingProviders] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const hasItems = items.length > 0
+  // Add shipping address fields
+  const [shippingAddress, setShippingAddress] = useState({
+    street: '',
+    city: '',
+    state: '',
+    postalCode: '',
+  })
+  const [useDefaultAddress, setUseDefaultAddress] = useState(true)
 
-  // Вычисляем итоговую сумму заказа
-  const total = items.reduce((sum, item) => {
-    // Используем функцию getLocalePrice для получения локализованной цены
-    const price = getLocalePrice(item.product, locale)
-    // Умножаем цену на количество товара
-    return sum + price * item.quantity
-  }, 0)
+  // Add state for selected crypto currency
+  const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState('ETH')
 
-  const handleRemoveItem = (productId: string) => {
-    removeFromCart(productId)
-  }
+  useEffect(() => {
+    // Fetch available payment providers
+    const fetchPaymentProviders = async () => {
+      setIsLoadingProviders(true)
+      try {
+        const response = await fetch('/api/payment/providers')
+        let providersData = []
+        let defaultProviderId = null
 
-  // Функция валидации email
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+        if (response.ok) {
+          const data = await response.json()
+          providersData = data.providers || []
+          defaultProviderId = data.defaultProvider
+        } else {
+          console.error('Failed to fetch payment providers from API, using defaults')
+        }
 
-  // Обработчик изменения email с валидацией
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setEmail(value)
+        // Only use providers that exist and are enabled
+        providersData = providersData.filter((provider) => provider && provider.enabled !== false)
 
-    // Проверяем email на валидность при каждом изменении
-    if (value.length > 0) {
-      if (!isValidEmail(value)) {
-        setEmailError(
-          locale === 'ru'
-            ? 'Пожалуйста, укажите корректный email (например, name@example.com)'
-            : 'Please enter a valid email address (e.g., name@example.com)',
-        )
-      } else {
-        setEmailError(null)
+        // If API returned empty list, don't fall back to defaults since we only want to show enabled providers
+        if (!providersData || providersData.length === 0) {
+          console.warn('No enabled payment providers found')
+          providersData = []
+          defaultProviderId = null
+        }
+
+        // Ensure all providers have valid IDs
+        providersData = providersData.map((provider, index) => ({
+          id: provider.id || `provider-${index}`,
+          name: provider.name || `Provider ${index + 1}`,
+          credentials: provider.credentials || {},
+        }))
+
+        setPaymentProviders(providersData)
+
+        // Set default provider if it exists and is enabled
+        if (defaultProviderId && providersData.some((p) => p.id === defaultProviderId)) {
+          setSelectedProvider(defaultProviderId)
+        } else if (providersData.length > 0) {
+          setSelectedProvider(providersData[0].id)
+        } else {
+          setSelectedProvider(null)
+        }
+      } catch (error) {
+        console.error('Error fetching payment providers:', error)
+        // Don't use fallback providers - only show what's enabled
+        setPaymentProviders([])
+        setSelectedProvider(null)
+      } finally {
+        setIsLoadingProviders(false)
       }
-    } else {
-      setEmailError(null) // Если поле пустое, убираем ошибку
+    }
+
+    fetchPaymentProviders()
+  }, [])
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value
+    setEmail(newEmail)
+    setIsEmailValid(isValidEmail(newEmail))
+
+    if (emailError && isValidEmail(newEmail)) {
+      setEmailError(null)
     }
   }
 
-  // Проверка валидности email для активации кнопки
-  const isEmailValid = email.length > 0 && isValidEmail(email)
-
   const handleCheckout = async () => {
-    // Сбрасываем ошибки перед проверкой
+    // Reset errors before checking
     setError(null)
     setEmailError(null)
 
-    // Проверка наличия email
+    // Check for email
     if (!email) {
       setEmailError(locale === 'ru' ? 'Пожалуйста, укажите email' : 'Please enter your email')
       return
     }
 
-    // Проверка формата email
-    if (!isValidEmail(email)) {
+    // Check email format
+    if (!isEmailValid) {
       setEmailError(
         locale === 'ru'
           ? 'Пожалуйста, укажите корректный email (например, name@example.com)'
@@ -100,25 +148,100 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       return
     }
 
+    // Check shipping address if not using default
+    if (!useDefaultAddress) {
+      if (!shippingAddress.street) {
+        setError(locale === 'ru' ? 'Укажите улицу и номер дома' : 'Please enter street address')
+        return
+      }
+      if (!shippingAddress.city) {
+        setError(locale === 'ru' ? 'Укажите город' : 'Please enter city')
+        return
+      }
+      if (!shippingAddress.state) {
+        setError(locale === 'ru' ? 'Укажите область/регион' : 'Please enter state/province')
+        return
+      }
+      if (!shippingAddress.postalCode) {
+        setError(locale === 'ru' ? 'Укажите почтовый индекс' : 'Please enter postal code')
+        return
+      }
+    }
+
+    // Check if a payment provider is selected
+    if (!selectedProvider) {
+      setError(
+        locale === 'ru' ? 'Пожалуйста, выберите способ оплаты' : 'Please select a payment method',
+      )
+      return
+    }
+
     try {
       setIsLoading(true)
 
-      // Здесь будет API-запрос для создания заказа и перехода к оплате
-      console.log('Checkout initiated:', {
-        items: items.map((item) => item.product.id),
-        email,
-        paymentMethod,
-        total,
+      // Find the selected provider object
+      const provider = paymentProviders.find((p) => p.id === selectedProvider)
+
+      if (!provider) {
+        throw new Error(
+          locale === 'ru'
+            ? 'Выбранный способ оплаты недоступен'
+            : 'Selected payment method is unavailable',
+        )
+      }
+
+      // Modify the paymentData to include crypto currency if crypto provider is selected
+      const paymentData = {
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+        customer: {
+          email,
+          locale,
+          address: useDefaultAddress
+            ? undefined
+            : {
+                street: shippingAddress.street,
+                city: shippingAddress.city,
+                state: shippingAddress.state,
+                postalCode: shippingAddress.postalCode,
+              },
+        },
+        provider: provider,
+        returnUrl: `${window.location.origin}/${locale}/payment/success`,
+        ...(provider.id === 'crypto' && {
+          selectedCurrency: selectedCryptoCurrency,
+        }),
+      }
+
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
       })
 
-      // Заглушка - имитация задержки API
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Checkout failed')
+      }
 
-      // Редирект на страницу оплаты (в реальном проекте будет URL от платежной системы)
-      window.location.href = `/${locale}/payment-success?order=123456`
+      const { paymentUrl, orderId, orderNumber } = await response.json()
+
+      // Clear cart and redirect to payment page
+      clearCart()
+      window.location.href = paymentUrl
     } catch (err) {
       console.error('Checkout error:', err)
-      setError(locale === 'ru' ? 'Ошибка при оформлении заказа' : 'Checkout error occurred')
+      setError(
+        err instanceof Error
+          ? err.message
+          : locale === 'ru'
+            ? 'Ошибка при оформлении заказа'
+            : 'Checkout error occurred',
+      )
     } finally {
       setIsLoading(false)
     }
@@ -131,7 +254,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     return product.title || 'Product'
   }
 
-  if (!hasItems) {
+  if (items.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="mb-4 flex justify-center">
@@ -155,79 +278,105 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* Корзина и данные покупателя */}
-      <div className="lg:col-span-7 space-y-6">
-        {/* Список товаров */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Left column - Cart items */}
+      <div className="lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>{locale === 'ru' ? 'Ваши товары' : 'Your items'}</CardTitle>
+            <CardTitle>{locale === 'ru' ? 'Корзина товаров' : 'Shopping Cart'}</CardTitle>
             <CardDescription>
-              {locale === 'ru'
-                ? `${items.length} ${items.length === 1 ? 'товар' : 'товаров'} в корзине`
-                : `${items.length} ${items.length === 1 ? 'item' : 'items'} in your cart`}
+              {items.length === 0
+                ? locale === 'ru'
+                  ? 'Ваша корзина пуста'
+                  : 'Your cart is empty'
+                : locale === 'ru'
+                  ? `${items.length} ${
+                      items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'
+                    } в корзине`
+                  : `${items.length} ${items.length === 1 ? 'item' : 'items'} in your cart`}
             </CardDescription>
           </CardHeader>
+
           <CardContent>
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.product.id} className="flex gap-4 py-3">
-                  {/* Изображение товара */}
-                  <div className="relative w-16 h-16 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                    {item.product.thumbnail ? (
-                      <Image
-                        src={
-                          typeof item.product.thumbnail === 'string'
-                            ? item.product.thumbnail
-                            : item.product.thumbnail.url || ''
-                        }
-                        alt={getProductTitle(item.product)}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <span className="text-xs text-muted-foreground">No image</span>
+            {items.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">
+                  {locale === 'ru'
+                    ? 'Ваша корзина пуста. Добавьте товары для оформления заказа.'
+                    : 'Your cart is empty. Add some products to proceed with checkout.'}
+                </p>
+                <Button className="mt-4" asChild>
+                  <a href={`/${locale}`}>
+                    {locale === 'ru' ? 'Перейти к покупкам' : 'Continue shopping'}
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {/* Cart items */}
+                {items.map((item) => (
+                  <div key={`cart-item-${item.product.id}`} className="py-3 flex justify-between">
+                    <div className="flex items-start">
+                      <div className="mr-3 relative h-16 w-16 rounded-md overflow-hidden">
+                        {item.product.images?.[0]?.url ? (
+                          <Image
+                            src={item.product.images[0].url}
+                            alt={getProductTitle(item.product)}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-muted flex items-center justify-center">
+                            <ShoppingBag className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Информация о товаре */}
-                  <div className="flex-grow">
-                    <h3 className="font-medium mb-1">{getProductTitle(item.product)}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {locale === 'ru' ? 'Цифровой товар' : 'Digital product'}
-                    </p>
-                    <div className="text-sm mt-1">
-                      <span className="text-muted-foreground">
-                        {formatPrice(getLocalePrice(item.product, locale), locale)} ×{' '}
-                        {item.quantity}
-                      </span>
+                      <div>
+                        <p className="font-medium">
+                          {getProductTitle(item.product)}
+                          {item.quantity > 1 && ` × ${item.quantity}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {locale === 'ru' ? 'Кол-во' : 'Qty'}: {item.quantity}
+                        </p>
+                      </div>
                     </div>
+                    <p className="font-medium">
+                      {formatPrice(
+                        item.product.price * item.quantity,
+                        locale === 'ru' ? 'RUB' : 'USD',
+                      )}
+                    </p>
                   </div>
+                ))}
 
-                  {/* Цена и кнопка удаления */}
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="font-medium">
-                      {formatPrice(getLocalePrice(item.product, locale) * item.quantity, locale)}
-                    </span>
-
-                    <button
-                      onClick={() => handleRemoveItem(item.product.id)}
-                      className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      <span>{locale === 'ru' ? 'Удалить' : 'Remove'}</span>
-                    </button>
+                {/* Order summary */}
+                <div className="pt-3 space-y-2">
+                  <div key="subtotal" className="flex justify-between">
+                    <p className="text-muted-foreground">
+                      {locale === 'ru' ? 'Подытог' : 'Subtotal'}
+                    </p>
+                    <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
+                  </div>
+                  <div key="shipping" className="flex justify-between">
+                    <p className="text-muted-foreground">
+                      {locale === 'ru' ? 'Доставка' : 'Shipping'}
+                    </p>
+                    <p>{locale === 'ru' ? 'Бесплатно' : 'Free'}</p>
+                  </div>
+                  <div key="separator" className="border-t my-2" />
+                  <div key="total" className="flex justify-between font-medium">
+                    <p>{locale === 'ru' ? 'Итого' : 'Total'}</p>
+                    <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Email */}
-        <Card>
+        <Card className="mt-6">
           <CardHeader>
             <CardTitle>
               {locale === 'ru' ? 'Контактная информация' : 'Contact information'}
@@ -260,103 +409,250 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                 />
                 {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
               </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="use-default-address" className="text-base font-medium">
+                    {locale === 'ru' ? 'Адрес доставки' : 'Shipping Address'}
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="use-default-address"
+                      checked={useDefaultAddress}
+                      onChange={(e) => setUseDefaultAddress(e.target.checked)}
+                      className="rounded text-primary focus:ring-primary"
+                    />
+                    <Label
+                      htmlFor="use-default-address"
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {locale === 'ru' ? 'Использовать адрес по умолчанию' : 'Use default address'}
+                    </Label>
+                  </div>
+                </div>
+
+                {useDefaultAddress ? (
+                  <p className="text-sm text-muted-foreground">
+                    {locale === 'ru'
+                      ? 'Будет использоваться адрес по умолчанию'
+                      : 'The default address will be used'}
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="street">
+                        {locale === 'ru' ? 'Улица и номер дома' : 'Street Address'}
+                      </Label>
+                      <Input
+                        id="street"
+                        type="text"
+                        value={shippingAddress.street}
+                        onChange={(e) =>
+                          setShippingAddress({ ...shippingAddress, street: e.target.value })
+                        }
+                        placeholder={locale === 'ru' ? 'Ул. Пушкина, д. 10' : '123 Main St'}
+                        required={!useDefaultAddress}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="city">{locale === 'ru' ? 'Город' : 'City'}</Label>
+                        <Input
+                          id="city"
+                          type="text"
+                          value={shippingAddress.city}
+                          onChange={(e) =>
+                            setShippingAddress({ ...shippingAddress, city: e.target.value })
+                          }
+                          placeholder={locale === 'ru' ? 'Москва' : 'New York'}
+                          required={!useDefaultAddress}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="state">
+                          {locale === 'ru' ? 'Область/Регион' : 'State/Province'}
+                        </Label>
+                        <Input
+                          id="state"
+                          type="text"
+                          value={shippingAddress.state}
+                          onChange={(e) =>
+                            setShippingAddress({ ...shippingAddress, state: e.target.value })
+                          }
+                          placeholder={locale === 'ru' ? 'Московская обл.' : 'NY'}
+                          required={!useDefaultAddress}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="postalCode">
+                        {locale === 'ru' ? 'Почтовый индекс' : 'Postal Code'}
+                      </Label>
+                      <Input
+                        id="postalCode"
+                        type="text"
+                        value={shippingAddress.postalCode}
+                        onChange={(e) =>
+                          setShippingAddress({ ...shippingAddress, postalCode: e.target.value })
+                        }
+                        placeholder={locale === 'ru' ? '123456' : '10001'}
+                        required={!useDefaultAddress}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Способ оплаты */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{locale === 'ru' ? 'Способ оплаты' : 'Payment method'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-              <div className="flex items-center space-x-2 border rounded-md p-3 mb-3 hover:bg-muted/50 cursor-pointer">
-                <RadioGroupItem value="card" id="card" />
-                <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer">
-                  <CreditCard className="h-4 w-4" />
-                  <span>{locale === 'ru' ? 'Банковская карта' : 'Credit/Debit Card'}</span>
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 cursor-pointer">
-                <RadioGroupItem value="wallet" id="wallet" />
-                <Label htmlFor="wallet" className="flex items-center gap-2 cursor-pointer">
-                  <Wallet className="h-4 w-4" />
-                  <span>{locale === 'ru' ? 'Электронный кошелек' : 'Digital Wallet'}</span>
-                </Label>
-              </div>
-            </RadioGroup>
           </CardContent>
         </Card>
       </div>
 
-      {/* Итоги заказа */}
-      <div className="lg:col-span-5">
-        <div className="sticky top-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{locale === 'ru' ? 'Итоги заказа' : 'Order summary'}</CardTitle>
-            </CardHeader>
-            <CardContent>
+      {/* Right column - Payment method and summary */}
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>{locale === 'ru' ? 'Способ оплаты' : 'Payment Method'}</CardTitle>
+            <CardDescription>
+              {locale === 'ru'
+                ? 'Выберите удобный способ оплаты'
+                : 'Select your preferred payment method'}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {isLoadingProviders ? (
+              <div className="flex justify-center items-center py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : paymentProviders.length === 0 ? (
+              <div className="p-4 border border-destructive bg-destructive/10 rounded-md mb-4">
+                <h4 className="font-medium text-destructive mb-1">
+                  {locale === 'ru' ? 'Способы оплаты недоступны' : 'Payment Methods Unavailable'}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {locale === 'ru'
+                    ? 'В настоящее время способы оплаты недоступны. Пожалуйста, попробуйте позже или свяжитесь с поддержкой.'
+                    : 'Payment methods are currently unavailable. Please try again later or contact support.'}
+                </p>
+              </div>
+            ) : (
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {locale === 'ru' ? 'Итого товаров' : 'Items total'}
-                  </span>
-                  <span>{formatPrice(total, locale)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {locale === 'ru' ? 'Доставка' : 'Shipping'}
-                  </span>
-                  <span>{locale === 'ru' ? 'Бесплатно' : 'Free'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {locale === 'ru' ? 'Налоги' : 'Taxes'}
-                  </span>
-                  <span>{locale === 'ru' ? 'Включены' : 'Included'}</span>
-                </div>
-              </div>
+                {paymentProviders.map((provider, index) => {
+                  // Ensure provider has unique ID
+                  const providerId = provider.id || `provider-${index}`
 
-              <Separator className="my-4" />
+                  // Determine which icon to show based on provider ID
+                  let providerIcon = null
+                  if (providerId === 'yoomoney') {
+                    providerIcon = <CreditCard className="mr-2 h-5 w-5 text-yellow-500" />
+                  } else if (providerId === 'robokassa') {
+                    providerIcon = <Wallet className="mr-2 h-5 w-5 text-blue-500" />
+                  } else if (providerId === 'stripe') {
+                    providerIcon = <CreditCard className="mr-2 h-5 w-5 text-purple-500" />
+                  } else if (providerId === 'paypal') {
+                    providerIcon = <Wallet className="mr-2 h-5 w-5 text-blue-700" />
+                  } else if (providerId === 'crypto') {
+                    providerIcon = <Bitcoin className="mr-2 h-5 w-5 text-green-500" />
+                  }
 
-              <div className="flex justify-between font-medium text-lg">
-                <span>{locale === 'ru' ? 'Итого к оплате' : 'Total'}</span>
-                <span>{formatPrice(total, locale)}</span>
-              </div>
-            </CardContent>
+                  return (
+                    <div
+                      key={`payment-provider-${providerId}-${index}`}
+                      className={cn(
+                        'flex items-center space-x-3 border rounded-md p-4 cursor-pointer transition-colors',
+                        selectedProvider === providerId
+                          ? 'border-primary bg-primary/5'
+                          : 'hover:border-accent',
+                      )}
+                      onClick={() => setSelectedProvider(providerId)}
+                    >
+                      <input
+                        type="radio"
+                        id={`payment-method-${providerId}-${index}`}
+                        name="payment-provider"
+                        value={providerId}
+                        checked={selectedProvider === providerId}
+                        onChange={() => setSelectedProvider(providerId)}
+                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                      />
+                      <label
+                        htmlFor={`payment-method-${providerId}-${index}`}
+                        className="flex-1 flex items-center cursor-pointer pl-2"
+                      >
+                        {providerIcon}
+                        <span>{provider.name || 'Unknown Provider'}</span>
+                      </label>
+                    </div>
+                  )
+                })}
 
-            <CardFooter className="flex flex-col gap-3">
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={handleCheckout}
-                disabled={isLoading || !isEmailValid}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    {locale === 'ru' ? 'Обработка...' : 'Processing...'}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    {locale === 'ru' ? 'Перейти к оплате' : 'Proceed to payment'}
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
+                {/* Show crypto currency selector when crypto payment is selected */}
+                {selectedProvider === 'crypto' && (
+                  <div className="ml-8 mt-3">
+                    <CryptoCurrencySelector
+                      value={selectedCryptoCurrency}
+                      onChange={setSelectedCryptoCurrency}
+                      supportedCurrencies={
+                        paymentProviders.find((p) => p.id === 'crypto')?.credentials
+                          ?.supported_currencies || 'ETH,USDT,DAI'
+                      }
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      {locale === 'ru'
+                        ? 'Обратите внимание, что платеж будет в выбранной валюте'
+                        : 'Note: Payment will be in the selected currency'}
+                    </p>
+                  </div>
                 )}
-              </Button>
+              </div>
+            )}
+          </CardContent>
 
-              {error && <p className="text-sm text-destructive">{error}</p>}
+          <CardFooter className="flex flex-col gap-3">
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleCheckout}
+              disabled={
+                isLoading ||
+                items.length === 0 ||
+                !isEmailValid ||
+                isLoadingProviders ||
+                !selectedProvider
+              }
+            >
+              {isLoading ? (
+                /* Loading state */
+                <React.Fragment key="loading-state">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>{locale === 'ru' ? 'Обработка...' : 'Processing...'}</span>
+                </React.Fragment>
+              ) : (
+                /* Ready state */
+                <React.Fragment key="ready-state">
+                  <span>{locale === 'ru' ? 'Оплатить заказ' : 'Pay now'}</span>
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </React.Fragment>
+              )}
+            </Button>
 
-              <p className="text-xs text-muted-foreground text-center">
-                {locale === 'ru'
-                  ? 'Оплачивая заказ, вы соглашаетесь с условиями обслуживания и политикой конфиденциальности'
-                  : 'By completing your purchase, you agree to our terms of service and privacy policy'}
-              </p>
-            </CardFooter>
-          </Card>
-        </div>
+            {error && (
+              <div className="p-3 border border-destructive bg-destructive/10 rounded-md text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground text-center">
+              {locale === 'ru'
+                ? 'Оплачивая заказ, вы соглашаетесь с условиями обслуживания и политикой конфиденциальности'
+                : 'By completing your purchase, you agree to our terms of service and privacy policy'}
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )

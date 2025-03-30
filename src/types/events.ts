@@ -26,11 +26,13 @@ export const IntegrationEvents = {
   CRM_CONTACT_CREATED: 'crm.contact.created',
 
   // Custom events
-  CUSTOM: 'custom'
+  CUSTOM: 'custom',
 } as const
 
 // Type for all possible event names
-export type IntegrationEventType = typeof IntegrationEvents[keyof typeof IntegrationEvents]
+export type IntegrationEventType = (typeof IntegrationEvents)[keyof typeof IntegrationEvents]
+export type IntegrationEvent = IntegrationEventType
+export type IntegrationEventData = Record<string, any>
 
 // Interface for event payloads
 export interface EventPayloads {

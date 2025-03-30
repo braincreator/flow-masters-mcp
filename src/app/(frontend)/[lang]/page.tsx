@@ -22,19 +22,21 @@ export default async function LangHome({ params: paramsPromise }: Props) {
   const { isEnabled: draft } = await draftMode()
   const payload = await getPayload({ config })
 
-  let page = await payload.find({
-    collection: 'pages',
-    draft,
-    limit: 1,
-    pagination: false,
-    overrideAccess: draft,
-    locale: lang,
-    where: {
-      slug: {
-        equals: 'home',
+  let page = await payload
+    .find({
+      collection: 'pages',
+      draft,
+      limit: 1,
+      pagination: false,
+      overrideAccess: draft,
+      locale: lang,
+      where: {
+        slug: {
+          equals: 'home',
+        },
       },
-    },
-  }).then(result => result.docs[0])
+    })
+    .then((result) => result.docs[0])
 
   if (!page) {
     page = homeStatic
@@ -64,19 +66,21 @@ export async function generateMetadata({ params: paramsPromise }: Props): Promis
   const payload = await getPayload({ config })
   const { isEnabled: draft } = await draftMode()
 
-  const page = await payload.find({
-    collection: 'pages',
-    draft,
-    limit: 1,
-    pagination: false,
-    overrideAccess: draft,
-    locale: lang,
-    where: {
-      slug: {
-        equals: 'home',
+  const page = await payload
+    .find({
+      collection: 'pages',
+      draft,
+      limit: 1,
+      pagination: false,
+      overrideAccess: draft,
+      locale: lang,
+      where: {
+        slug: {
+          equals: 'home',
+        },
       },
-    },
-  }).then(result => result.docs[0])
+    })
+    .then((result) => result.docs[0])
 
   return generateMeta({ doc: page })
 }

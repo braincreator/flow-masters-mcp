@@ -1,6 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { IntegrationEvents } from '../types/events'
-import { IntegrationService } from '../services/IntegrationService'
+import { IntegrationService } from '../services/integration.service'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -76,8 +76,8 @@ export const Orders: CollectionConfig = {
               type: 'text',
               required: true,
               defaultValue: 'USD',
-            }
-          ]
+            },
+          ],
         },
         {
           name: 'ru',
@@ -93,9 +93,9 @@ export const Orders: CollectionConfig = {
               type: 'text',
               required: true,
               defaultValue: 'RUB',
-            }
-          ]
-        }
+            },
+          ],
+        },
       ],
       hooks: {
         beforeChange: [
@@ -105,19 +105,19 @@ export const Orders: CollectionConfig = {
             if (value.en?.amount && !value.ru?.amount) {
               value.ru = {
                 amount: convertPrice(value.en.amount, 'en', 'ru'),
-                currency: 'RUB'
+                currency: 'RUB',
               }
             }
             if (value.ru?.amount && !value.en?.amount) {
               value.en = {
                 amount: convertPrice(value.ru.amount, 'ru', 'en'),
-                currency: 'USD'
+                currency: 'USD',
               }
             }
             return value
-          }
-        ]
-      }
+          },
+        ],
+      },
     },
     {
       name: 'trackingNumber',
@@ -165,29 +165,19 @@ export const Orders: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, operation, req: { payload } }) => {
-        const integrationService = new IntegrationService(payload)
+        try {
+          const integrationService = IntegrationService.getInstance(payload)
 
-        if (operation === 'create') {
-          await integrationService.processEvent(IntegrationEvents.ORDER_CREATED, doc)
-        } else {
-          await integrationService.processEvent(IntegrationEvents.ORDER_UPDATED, doc)
+          if (operation === 'create') {
+            await integrationService.processEvent(IntegrationEvents.ORDER_CREATED, doc)
+          } else {
+            await integrationService.processEvent(IntegrationEvents.ORDER_UPDATED, doc)
+          }
+        } catch (error) {
+          console.error('Error processing integration for order:', error)
+          // Don't throw the error to avoid failing the order operation
         }
-      }
+      },
     ],
   },
-}
-
-export async function POST(req: Request) {
-  const data = await req.json()
-  const integrationService = new IntegrationService(payload)
-
-  await integrationService.processEvent(IntegrationEvents.PAYMENT_RECEIVED, {
-    orderId: data.orderId,
-    amount: data.amount,
-    currency: data.currency,
-    paymentMethod: data.paymentMethod,
-    ...data
-  })
-
-  return new Response('OK', { status: 200 })
 }

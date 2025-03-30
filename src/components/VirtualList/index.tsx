@@ -1,3 +1,5 @@
+'use client'
+
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useRef } from 'react'
 import { cn } from '@/utilities/ui'
