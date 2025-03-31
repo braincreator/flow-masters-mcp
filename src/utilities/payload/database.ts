@@ -1,5 +1,59 @@
 import mongoose from 'mongoose'
 
+// Check database connection and provide diagnostic information
+export const checkDatabaseConnection = async (): Promise<{
+  status: 'connected' | 'disconnected' | 'connecting' | 'disconnecting' | 'unknown'
+  details: string
+  isConnected: boolean
+}> => {
+  try {
+    const dbState = mongoose.connection.readyState
+    const dbStatuses: Record<
+      number,
+      'connected' | 'disconnected' | 'connecting' | 'disconnecting' | 'unknown'
+    > = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting',
+    }
+
+    const status = dbStatuses[dbState] || 'unknown'
+    let details = `MongoDB connection state: ${dbState}`
+
+    // Additional details if connected
+    if (dbState === 1) {
+      try {
+        const db = mongoose.connection.db
+        details += `. Database: ${db.databaseName}`
+
+        // Get collection names
+        const collections = await db.listCollections().toArray()
+        details += `. Collections: ${collections.map((c) => c.name).join(', ')}`
+      } catch (err) {
+        details += `. Error getting database details: ${String(err)}`
+      }
+    }
+
+    // Connection URI details (redacted for security)
+    const uri = process.env.DATABASE_URI || 'Not set'
+    const redactedUri = uri.replace(/:\/\/[^@]*@/, '://***:***@')
+    details += `. Connection URI: ${redactedUri}`
+
+    return {
+      status,
+      details,
+      isConnected: dbState === 1,
+    }
+  } catch (error) {
+    return {
+      status: 'unknown',
+      details: `Error checking connection: ${String(error)}`,
+      isConnected: false,
+    }
+  }
+}
+
 const enhanceMongooseConnection = () => {
   // Add connection event handlers
   mongoose.connection.on('error', (err) => {
@@ -39,7 +93,7 @@ const enhanceMongooseConnection = () => {
       maxPoolSize: 10,
       minPoolSize: 1,
     }),
-    timeoutPromise
+    timeoutPromise,
   ])
 }
 

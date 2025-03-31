@@ -43,19 +43,19 @@ import { Events } from './collections/Events'
 import { ENV } from '@/constants/env'
 import { DATABASE_CONFIG } from '@/constants/index'
 
-// Create a collections array
-const payloadCollections = [
-  Categories,
-  Media,
-  Pages,
-  Posts,
-  Users,
-  Solutions,
-  Products,
-  Orders,
-  Integrations,
-  Events,
-]
+// Use the collections array from collectionList.ts
+// const payloadCollections = [
+//   Categories,
+//   Media,
+//   Pages,
+//   Posts,
+//   Users,
+//   Solutions,
+//   Products,
+//   Orders,
+//   Integrations,
+//   Events,
+// ]
 
 // Add more robust connection options
 const mongooseConfig = {
@@ -171,7 +171,7 @@ export default buildConfig({
     defaultLocale: 'ru',
     fallback: true,
   },
-  collections: payloadCollections,
+  collections: collections,
   cors: [getServerSideURL()].filter(Boolean),
   globals: [
     Header,

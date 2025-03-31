@@ -13,15 +13,17 @@ export default async function Page() {
   const { isEnabled: draft } = await draftMode()
   const payload = await getPayload({ config: configPromise })
 
-  let page = await payload.find({
-    collection: 'pages',
-    where: {
-      'slug': {
-        equals: 'home',
+  let page = await payload
+    .find({
+      collection: 'pages',
+      where: {
+        slug: {
+          equals: 'home',
+        },
       },
-    },
-    locale: DEFAULT_LOCALE,
-  }).then(result => result.docs[0])
+      locale: DEFAULT_LOCALE,
+    })
+    .then((result) => result.docs[0])
 
   // Fallback to static content if no home page exists
   if (!page) {
@@ -46,15 +48,17 @@ export default async function Page() {
 // Generate metadata for the root page
 export async function generateMetadata() {
   const payload = await getPayload({ config: configPromise })
-  const page = await payload.find({
-    collection: 'pages',
-    where: {
-      'slug': {
-        equals: 'home',
+  const page = await payload
+    .find({
+      collection: 'pages',
+      where: {
+        slug: {
+          equals: 'home',
+        },
       },
-    },
-    locale: DEFAULT_LOCALE,
-  }).then(result => result.docs[0])
+      locale: DEFAULT_LOCALE,
+    })
+    .then((result) => result.docs[0])
 
   return {
     title: page?.meta?.title || 'Home',

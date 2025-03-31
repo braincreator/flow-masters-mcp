@@ -8,7 +8,7 @@ export type LocaleConfig = {
 }
 
 // Collection types
-export type CollectionSlug = 
+export type CollectionSlug =
   | 'categories'
   | 'media'
   | 'pages'
@@ -22,10 +22,7 @@ export type CollectionSlug =
   | 'solutions'
 
 // Global types
-export type GlobalSlug = 
-  | 'header'
-  | 'footer'
-  | 'site-config'
+export type GlobalSlug = 'header' | 'footer' | 'site-config'
 
 // Media types
 export type ImageSize = {
@@ -116,7 +113,8 @@ export type ErrorMessage = {
 // Payment types
 export type PaymentProvider = keyof typeof PAYMENT_CONFIG.providers
 export type PaymentStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'refunded'
-export type Currency = typeof PAYMENT_CONFIG.supportedCurrencies[number]
+export type Currency = (typeof PAYMENT_CONFIG.supportedCurrencies)[number]
+export type PaymentCurrency = 'USD' | 'RUB' | 'EUR'
 
 export interface PaymentMethod {
   id: string
@@ -127,22 +125,25 @@ export interface PaymentMethod {
 }
 
 export type PaymentConfig = {
-  providers: Record<PaymentProvider, {
-    enabled: boolean
-    test: boolean
-    credentials: {
-      merchantId: string
-      secretKey: string
-      publicKey?: string
+  providers: Record<
+    PaymentProvider,
+    {
+      enabled: boolean
+      test: boolean
+      credentials: {
+        merchantId: string
+        secretKey: string
+        publicKey?: string
+      }
+      methods: PaymentMethod[]
+      currencies: PaymentCurrency[]
+      webhookPath: string
+      successPath: string
+      failurePath: string
+      minAmount: number
+      maxAmount: number
     }
-    methods: PaymentMethod[]
-    currencies: PaymentCurrency[]
-    webhookPath: string
-    successPath: string
-    failurePath: string
-    minAmount: number
-    maxAmount: number
-  }>
+  >
   defaultProvider: PaymentProvider
   defaultCurrency: PaymentCurrency
   allowedCountries: string[]
@@ -154,7 +155,7 @@ export type PaymentConfig = {
 }
 
 // Order types
-export type OrderStatus = 
+export type OrderStatus =
   | 'draft'
   | 'pending'
   | 'confirmed'
@@ -164,12 +165,15 @@ export type OrderStatus =
   | 'refunded'
 
 export type OrderConfig = {
-  statuses: Record<OrderStatus, {
-    label: string
-    color: string
-    icon: string
-    description: string
-  }>
+  statuses: Record<
+    OrderStatus,
+    {
+      label: string
+      color: string
+      icon: string
+      description: string
+    }
+  >
   defaultStatus: OrderStatus
   expirationTime: number // in minutes
   autoCancel: boolean
@@ -183,9 +187,9 @@ export type OrderConfig = {
 // Product types
 export type ProductType = 'digital' | 'subscription' | 'service' | 'access'
 
-export type ProductFeatureKey = 
-  | 'instant-delivery' 
-  | 'download' 
+export type ProductFeatureKey =
+  | 'instant-delivery'
+  | 'download'
   | 'no-shipping'
   | 'recurring-billing'
   | 'access-control'
@@ -210,13 +214,9 @@ export interface ProductConfig {
 }
 
 // Notification types
-export type NotificationType = 
-  | 'email'
-  | 'sms'
-  | 'telegram'
-  | 'push'
+export type NotificationType = 'email' | 'sms' | 'telegram' | 'push'
 
-export type NotificationTemplate = 
+export type NotificationTemplate =
   | 'order_created'
   | 'order_confirmed'
   | 'order_completed'
@@ -224,15 +224,21 @@ export type NotificationTemplate =
   | 'payment_failed'
 
 export type NotificationConfig = {
-  providers: Record<NotificationType, {
-    enabled: boolean
-    credentials: Record<string, string>
-  }>
-  templates: Record<NotificationTemplate, {
-    subject: string
-    body: string
-    variables: string[]
-  }>
+  providers: Record<
+    NotificationType,
+    {
+      enabled: boolean
+      credentials: Record<string, string>
+    }
+  >
+  templates: Record<
+    NotificationTemplate,
+    {
+      subject: string
+      body: string
+      variables: string[]
+    }
+  >
   defaults: {
     from: string
     replyTo: string

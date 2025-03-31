@@ -1,97 +1,121 @@
-import type { ButtonProps } from '@/components/ui/button'
+'use client'
 
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/utilities/ui'
+import React from 'react'
+import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
-import * as React from 'react'
+import { cn } from '@/utilities/ui'
 
-const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
-  <nav
-    aria-label="pagination"
-    className={cn('mx-auto flex w-full justify-center', className)}
-    role="navigation"
-    {...props}
-  />
-)
-
-const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'>>(
-  ({ className, ...props }, ref) => (
-    <ul ref={ref} className={cn('flex flex-row items-center gap-1', className)} {...props} />
-  ),
-)
-PaginationContent.displayName = 'PaginationContent'
-
-const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li'>>(
-  ({ className, ...props }, ref) => <li ref={ref} className={cn('', className)} {...props} />,
-)
-PaginationItem.displayName = 'PaginationItem'
-
-type PaginationLinkProps = {
-  isActive?: boolean
-} & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'button'>
-
-const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
-  <button
-    aria-current={isActive ? 'page' : undefined}
-    className={cn(
-      buttonVariants({
-        variant: isActive ? 'outline' : 'ghost',
-        size,
-      }),
-      'focus:ring-2 focus:ring-accent/50 focus-visible:ring-2 focus-visible:ring-accent/50 focus:outline-none focus-visible:outline-none focus:border-transparent focus-visible:border-transparent',
-      className,
-    )}
-    {...props}
-  />
-)
-
-type PaginationButtonProps = {
+interface PaginationProps {
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
   className?: string
-  children?: React.ReactNode
-} & React.ComponentProps<typeof PaginationLink>
+  maxVisiblePages?: number
+}
 
-const PaginationPrevious = ({ className, children, ...props }: PaginationButtonProps) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    size="default"
-    className={cn('gap-1 pl-2.5', className)}
-    {...props}
-  >
-    <ChevronLeft className="h-4 w-4" />
-    {children}
-  </PaginationLink>
-)
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className,
+  maxVisiblePages = 5,
+}: PaginationProps) {
+  if (totalPages <= 1) return null
 
-const PaginationNext = ({ className, children, ...props }: PaginationButtonProps) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    size="default"
-    className={cn('gap-1 pr-2.5', className)}
-    {...props}
-  >
-    {children}
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-)
+  // Calculate the range of page numbers to display
+  const getPageRange = () => {
+    // If we can show all pages, just return the full array
+    if (totalPages <= maxVisiblePages) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
 
-const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => (
-  <span
-    aria-hidden
-    className={cn('flex h-9 w-9 items-center justify-center', className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More pages</span>
-  </span>
-)
+    // Always show first and last pages
+    const pages: (number | 'ellipsis')[] = []
+    const halfVisible = Math.floor(maxVisiblePages / 2)
 
-export {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+    // Determine start and end of the range
+    let startPage = Math.max(1, currentPage - halfVisible)
+    let endPage = Math.min(totalPages, currentPage + halfVisible)
+
+    // Adjust if we're near the start or end
+    if (currentPage <= halfVisible) {
+      endPage = maxVisiblePages
+    } else if (currentPage >= totalPages - halfVisible) {
+      startPage = totalPages - maxVisiblePages + 1
+    }
+
+    // Add first page
+    if (startPage > 1) {
+      pages.push(1)
+      if (startPage > 2) pages.push('ellipsis')
+    }
+
+    // Add range of pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+
+    // Add last page
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) pages.push('ellipsis')
+      pages.push(totalPages)
+    }
+
+    return pages
+  }
+
+  const pageRange = getPageRange()
+
+  return (
+    <nav
+      className={cn('flex justify-center items-center gap-1', className)}
+      aria-label="Pagination"
+    >
+      {/* Previous button */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        aria-label="Previous page"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      {/* Page numbers */}
+      {pageRange.map((page, index) =>
+        page === 'ellipsis' ? (
+          <span
+            key={`ellipsis-${index}`}
+            className="w-9 h-9 flex items-center justify-center text-muted-foreground"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </span>
+        ) : (
+          <Button
+            key={page}
+            variant={currentPage === page ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => onPageChange(page)}
+            aria-label={`Page ${page}`}
+            aria-current={currentPage === page ? 'page' : undefined}
+            className="w-9 h-9"
+          >
+            {page}
+          </Button>
+        ),
+      )}
+
+      {/* Next button */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        aria-label="Next page"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </nav>
+  )
 }

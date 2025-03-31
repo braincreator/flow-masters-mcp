@@ -16,11 +16,11 @@ const globalCache = new LRUCache<string, GlobalPayload>({
   dispose: (value, key) => {
     // Cleanup any references
     if (value && typeof value === 'object') {
-      Object.keys(value).forEach(k => {
-        (value as any)[k] = null
+      Object.keys(value).forEach((k) => {
+        ;(value as any)[k] = null
       })
     }
-  }
+  },
 })
 
 interface GetGlobalOptions {
@@ -33,7 +33,7 @@ interface GetGlobalOptions {
 // Separate uncached function for direct access
 async function getGlobal({ slug, depth = 1, locale }: GetGlobalOptions): Promise<GlobalPayload> {
   const payload = await getPayloadClient()
-  
+
   try {
     const global = await payload.findGlobal({
       slug,
@@ -67,27 +67,24 @@ export const getCachedGlobal = ({
   locale,
   forceFresh = false,
 }: GetGlobalOptions) =>
-  cache(
-    async () => {
-      const cacheKey = `global-${slug}-${locale}-${depth}`
+  cache(async () => {
+    const cacheKey = `global-${slug}-${locale}-${depth}`
 
-      // Check LRU cache first unless forceFresh is true
-      if (!forceFresh) {
-        const cached = globalCache.get(cacheKey)
-        if (cached) {
-          return cached
-        }
+    // Check LRU cache first unless forceFresh is true
+    if (!forceFresh) {
+      const cached = globalCache.get(cacheKey)
+      if (cached) {
+        return cached
       }
+    }
 
-      const global = await getGlobal({ slug, depth, locale })
-      
-      // Update LRU cache
-      globalCache.set(cacheKey, global)
-      
-      return global
-    },
-    [`global-${slug}-${locale}-${depth}`],
-  )
+    const global = await getGlobal({ slug, depth, locale })
+
+    // Update LRU cache
+    globalCache.set(cacheKey, global)
+
+    return global
+  }, [`global-${slug}-${locale}-${depth}`])
 
 // Cache invalidation helper
 export const invalidateGlobalCache = (slug: GlobalSlug, locale?: string) => {
@@ -105,7 +102,7 @@ let memoryInterval: NodeJS.Timeout
 if (typeof process !== 'undefined') {
   // Clear existing interval if it exists
   if (memoryInterval) clearInterval(memoryInterval)
-  
+
   memoryInterval = setInterval(() => {
     const usage = process.memoryUsage()
     if (usage.heapUsed / usage.heapTotal > 0.9) {

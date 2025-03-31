@@ -19,6 +19,34 @@ interface Props {
   }>
 }
 
+// Helper function to safely serialize objects with potential Buffer fields
+function safeSerialize(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+
+  if (Buffer.isBuffer(obj)) {
+    return obj.toString('base64')
+  }
+
+  if (typeof obj === 'object') {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => safeSerialize(item))
+    }
+
+    const result: Record<string, any> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      // Skip fields that could cause serialization issues
+      if (key !== 'buffer' && key !== '_id' && typeof value !== 'function') {
+        result[key] = safeSerialize(value)
+      }
+    }
+    return result
+  }
+
+  return obj
+}
+
 export default async function StorePage({ params, searchParams }: Props) {
   const { lang } = await params
   const searchParamsResolved = await searchParams
@@ -26,6 +54,34 @@ export default async function StorePage({ params, searchParams }: Props) {
 
   try {
     const payload = await getPayloadClient()
+
+    // Check if products collection exists
+    const collections = Object.keys(payload.collections)
+    if (!collections.includes('products')) {
+      console.error('Products collection not found. Available collections:', collections)
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="container mx-auto px-4 py-12">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                {currentLocale === 'ru' ? 'Продукты' : 'Products'}
+              </h1>
+              <div
+                className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded"
+                role="alert"
+              >
+                <p className="font-bold">{currentLocale === 'ru' ? 'Внимание' : 'Warning'}</p>
+                <p>
+                  {currentLocale === 'ru'
+                    ? 'Коллекция продуктов временно недоступна. Пожалуйста, повторите попытку позже.'
+                    : 'Products collection is temporarily unavailable. Please try again later.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     const where: Record<string, any> = {
       _status: { equals: 'published' },
@@ -67,61 +123,79 @@ export default async function StorePage({ params, searchParams }: Props) {
 
     const currentPage = Math.max(1, parseInt(searchParamsResolved.page || '1'))
 
-    const [products, categories] = await Promise.all([
-      payload.find({
-        collection: 'products',
-        where,
-        locale: currentLocale,
-        depth: 1,
-        page: currentPage,
-        limit: ITEMS_PER_PAGE,
-        sort,
-      }),
-      payload.find({
-        collection: 'categories',
-        locale: currentLocale,
-        limit: 100,
-      }),
-    ])
+    try {
+      const [products, categories] = await Promise.all([
+        payload.find({
+          collection: 'products',
+          where,
+          locale: currentLocale,
+          depth: 1,
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          sort,
+        }),
+        payload.find({
+          collection: 'categories',
+          locale: currentLocale,
+          limit: 100,
+        }),
+      ])
 
-    if (!products?.docs || !categories?.docs) {
-      console.error('Invalid response format from Payload')
-      return notFound()
-    }
+      if (!products?.docs || !categories?.docs) {
+        console.error('Invalid response format from Payload')
+        return notFound()
+      }
 
-    const productDocs = products.docs.map((doc) => ({
-      ...doc,
-      id: doc.id?.toString(),
-      title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
-      description: doc.description || null,
-    }))
+      // Serialize products to prevent non-serializable data issues
+      const productDocs = products.docs.map((doc) => {
+        // First convert the document to a plain object
+        const plainDoc = safeSerialize(doc)
 
-    const categoryDocs = categories.docs.map((doc) => ({
-      ...doc,
-      id: doc.id?.toString(),
-      name: typeof doc.name === 'string' ? doc.name : doc.name?.[currentLocale] || '',
-    }))
+        return {
+          ...plainDoc,
+          id: doc.id?.toString(),
+          title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
+          description: doc.description ? safeSerialize(doc.description) : null,
+          // Ensure category is properly serialized
+          category: typeof doc.category === 'string' ? doc.category : safeSerialize(doc.category),
+        }
+      })
 
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-12">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              {currentLocale === 'ru' ? 'Продукты' : 'Products'}
-            </h1>
+      // Serialize categories
+      const categoryDocs = categories.docs.map((doc) => {
+        const plainDoc = safeSerialize(doc)
+
+        return {
+          ...plainDoc,
+          id: doc.id?.toString(),
+          name: typeof doc.name === 'string' ? doc.name : doc.name?.[currentLocale] || '',
+        }
+      })
+
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="container mx-auto px-4 py-12">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                {currentLocale === 'ru' ? 'Продукты' : 'Products'}
+              </h1>
+            </div>
+
+            <ProductsClient
+              products={productDocs}
+              categories={categoryDocs}
+              currentLocale={currentLocale}
+              searchParams={searchParamsResolved}
+              totalPages={products.totalPages || 1}
+              currentPage={currentPage}
+            />
           </div>
-
-          <ProductsClient
-            products={productDocs}
-            categories={categoryDocs}
-            currentLocale={currentLocale}
-            searchParams={searchParamsResolved}
-            totalPages={products.totalPages || 1}
-            currentPage={currentPage}
-          />
         </div>
-      </div>
-    )
+      )
+    } catch (findError) {
+      console.error('Error executing find operation:', findError)
+      throw findError
+    }
   } catch (error) {
     console.error('Error loading products:', error)
     if (error instanceof Error) {

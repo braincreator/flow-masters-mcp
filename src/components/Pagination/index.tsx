@@ -1,13 +1,6 @@
 'use client'
-import {
-  Pagination as PaginationComponent,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
+
+import { Pagination as UIPagination } from '@/components/ui/pagination'
 import { cn } from '@/utilities/ui'
 import { useRouter, useSearchParams } from 'next/navigation'
 import React from 'react'
@@ -23,102 +16,54 @@ export const Pagination: React.FC<{
     page: string
     of: string
   }
+  baseUrl?: string
+  searchParams?: Record<string, string>
 }> = (props) => {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const searchParamsObj = useSearchParams()
 
-  const { className, page, totalPages, onPageChange, labels } = props
-  const hasNextPage = page < totalPages
-  const hasPrevPage = page > 1
+  const {
+    className,
+    page,
+    totalPages,
+    onPageChange,
+    labels,
+    baseUrl,
+    searchParams: externalSearchParams,
+  } = props
 
-  const hasExtraPrevPages = page - 1 > 1
-  const hasExtraNextPages = page + 1 < totalPages
-
-  const updatePage = (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     if (onPageChange) {
       onPageChange(newPage)
     } else {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(searchParamsObj.toString())
+
+      // Add any external search params
+      if (externalSearchParams) {
+        Object.entries(externalSearchParams).forEach(([key, value]) => {
+          if (value) params.set(key, value)
+        })
+      }
+
       params.set('page', newPage.toString())
-      router.push(`?${params.toString()}`)
+
+      if (baseUrl) {
+        router.push(`${baseUrl}?${params.toString()}`)
+      } else {
+        router.push(`?${params.toString()}`)
+      }
     }
   }
 
-  // Если всего одна страница, показываем упрощенную версию
+  // If only one page, don't show pagination
   if (totalPages <= 1) {
-    return (
-      <div className={cn('py-3 w-full', className)}>
-        <div className="container">
-          <PaginationComponent>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious disabled={true}>
-                  {labels?.prev || 'Previous'}
-                </PaginationPrevious>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink isActive onClick={() => updatePage(1)}>
-                  1
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext disabled={true}>{labels?.next || 'Next'}</PaginationNext>
-              </PaginationItem>
-            </PaginationContent>
-          </PaginationComponent>
-        </div>
-      </div>
-    )
+    return null
   }
 
   return (
     <div className={cn('py-3 w-full', className)}>
       <div className="container">
-        <PaginationComponent>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious disabled={!hasPrevPage} onClick={() => updatePage(page - 1)}>
-                {labels?.prev || 'Previous'}
-              </PaginationPrevious>
-            </PaginationItem>
-
-            {hasExtraPrevPages && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
-
-            {hasPrevPage && (
-              <PaginationItem>
-                <PaginationLink onClick={() => updatePage(page - 1)}>{page - 1}</PaginationLink>
-              </PaginationItem>
-            )}
-
-            <PaginationItem>
-              <PaginationLink isActive onClick={() => updatePage(page)}>
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-
-            {hasNextPage && (
-              <PaginationItem>
-                <PaginationLink onClick={() => updatePage(page + 1)}>{page + 1}</PaginationLink>
-              </PaginationItem>
-            )}
-
-            {hasExtraNextPages && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
-
-            <PaginationItem>
-              <PaginationNext disabled={!hasNextPage} onClick={() => updatePage(page + 1)}>
-                {labels?.next || 'Next'}
-              </PaginationNext>
-            </PaginationItem>
-          </PaginationContent>
-        </PaginationComponent>
+        <UIPagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
       </div>
     </div>
   )

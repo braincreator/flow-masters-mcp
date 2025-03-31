@@ -33,7 +33,7 @@ export async function generateStaticParams() {
   for (const locale of locales) {
     // Add home page params
     params.push({ lang: locale, slug: '' })
-    
+
     // Add other pages
     const localeParams = pages.docs
       ?.filter((doc) => {

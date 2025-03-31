@@ -1,38 +1,70 @@
-import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
-import { databaseConnection } from '@/utilities/payload/database/connection'
+import { checkDatabaseConnection } from '@/utilities/payload/database'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const payload = await getPayloadClient()
-    const healthCheck = {
-      uptime: process.uptime(),
-      timestamp: Date.now(),
-      status: 'ok',
-      connectionState: databaseConnection.getConnectionStatus(),
-      responseTime: 0,
-      memoryUsage: process.memoryUsage(),
-      poolStats: {
-        active: mongoose.connection.client?.topology?.s?.pool?.totalConnectionCount || 0,
-        available: mongoose.connection.client?.topology?.s?.pool?.availableConnectionCount || 0,
-        pending: mongoose.connection.client?.topology?.s?.pool?.pendingConnectionCount || 0,
+    // First, check the current connection status
+    const connectionStatus = await checkDatabaseConnection()
+
+    // Attempt a direct MongoDB connection test
+    let connectionTest = { success: false, message: 'Not attempted' }
+
+    // If we're not already connected, try to connect directly
+    if (!connectionStatus.isConnected) {
+      try {
+        const uri = process.env.DATABASE_URI
+
+        if (!uri) {
+          connectionTest.message = 'DATABASE_URI environment variable is not set'
+        } else {
+          // Try to establish a direct connection
+          await mongoose.connect(uri, {
+            serverSelectionTimeoutMS: 5000, // Shorter timeout for quick feedback
+            connectTimeoutMS: 5000,
+          })
+
+          // If we reach here, connection was successful
+          connectionTest = {
+            success: true,
+            message: 'Successfully connected to the database directly',
+          }
+
+          // Close this test connection to not interfere with the app's connection
+          await mongoose.disconnect()
+        }
+      } catch (connError) {
+        connectionTest = {
+          success: false,
+          message: `Failed to connect directly: ${String(connError)}`,
+        }
+      }
+    } else {
+      connectionTest = {
+        success: true,
+        message: 'Already connected to MongoDB',
       }
     }
 
-    const start = Date.now()
-    await payload.db.connection.db.admin().ping()
-    healthCheck.responseTime = Date.now() - start
-
-    return NextResponse.json(healthCheck)
+    return NextResponse.json({
+      connectionStatus,
+      connectionTest,
+      environmentVariables: {
+        databaseUri: process.env.DATABASE_URI
+          ? `Set (${process.env.DATABASE_URI.substring(0, 10)}...)`
+          : 'Not set',
+        nodeEnv: process.env.NODE_ENV,
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       {
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Database health check failed',
-        timestamp: Date.now()
+        error: 'Failed to check database connection',
+        details: String(error),
       },
-      { status: 503 }
+      {
+        status: 500,
+      },
     )
   }
 }

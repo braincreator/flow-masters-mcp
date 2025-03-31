@@ -1,9 +1,9 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin } from '../access/isAdmin'
-import { formatPreviewURL } from '../utilities/formatPreviewURL'
-import { revalidatePage } from '../utilities/revalidatePage'
-import { populatePublishedAt } from '../hooks/populatePublishedAt'
-import { slugField } from '../fields/slug'
+import { isAdmin } from '@/access/isAdmin'
+import { formatPreviewURL } from '@/utilities/formatPreviewURL'
+import { revalidatePage } from '@/utilities/revalidatePage'
+import { populatePublishedAt } from '@/hooks/populatePublishedAt'
+import { slugField } from '@/fields/slug'
 import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
 
@@ -85,9 +85,9 @@ export const Products: CollectionConfig = {
                   return basePrice * (1 - discount / 100)
                 }
                 return siblingData.basePrice
-              }
-            ]
-          }
+              },
+            ],
+          },
         },
         {
           name: 'compareAtPrice',
@@ -95,7 +95,7 @@ export const Products: CollectionConfig = {
           admin: {
             description: 'Original price for comparison (optional)',
           },
-        }
+        },
       ],
     },
     {
@@ -243,26 +243,26 @@ export const Products: CollectionConfig = {
               collection: 'orders',
               depth: 0,
             })
-            
+
             // Calculate average orders per product
             const productOrders = {} // Map to store order count per product
             let totalOrders = 0
-            
-            allOrders.docs.forEach(order => {
-              order.products.forEach(product => {
+
+            allOrders.docs.forEach((order) => {
+              order.products.forEach((product) => {
                 productOrders[product.id] = (productOrders[product.id] || 0) + 1
                 totalOrders++
               })
             })
-            
+
             const averageOrders = totalOrders / Object.keys(productOrders).length
             const thisProductOrders = productOrders[data.id] || 0
-            
+
             // Set isPopular if orders are 15% above average
-            return thisProductOrders > (averageOrders * 1.15)
-          }
-        ]
-      }
+            return thisProductOrders > averageOrders * 1.15
+          },
+        ],
+      },
     },
     {
       name: 'relatedProducts',
@@ -317,6 +317,6 @@ export const Products: CollectionConfig = {
         },
       ],
     },
-    slugField(),
+    ...slugField(),
   ],
 }
