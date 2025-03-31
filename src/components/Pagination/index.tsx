@@ -18,6 +18,7 @@ export const Pagination: React.FC<{
   }
   baseUrl?: string
   searchParams?: Record<string, string>
+  scroll?: boolean
 }> = (props) => {
   const router = useRouter()
   const searchParamsObj = useSearchParams()
@@ -30,6 +31,7 @@ export const Pagination: React.FC<{
     labels,
     baseUrl,
     searchParams: externalSearchParams,
+    scroll = false,
   } = props
 
   const handlePageChange = (newPage: number) => {
@@ -48,9 +50,9 @@ export const Pagination: React.FC<{
       params.set('page', newPage.toString())
 
       if (baseUrl) {
-        router.push(`${baseUrl}?${params.toString()}`)
+        router.push(`${baseUrl}?${params.toString()}`, { scroll })
       } else {
-        router.push(`?${params.toString()}`)
+        router.push(`?${params.toString()}`, { scroll })
       }
     }
   }

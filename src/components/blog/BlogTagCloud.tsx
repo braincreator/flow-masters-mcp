@@ -66,7 +66,7 @@ export function BlogTagCloud({
               variant === 'compact' ? 'text-xs py-0 px-2' : '',
             )}
           >
-            <Link href={buildHref(tag.slug)} className="block px-1">
+            <Link href={buildHref(tag.slug)} className="block px-1" scroll={false} prefetch={false}>
               {tag.title}
               {tag.count !== undefined && variant !== 'compact' && (
                 <span className="ml-1 text-xs opacity-70">({tag.count})</span>

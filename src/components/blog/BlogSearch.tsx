@@ -61,8 +61,8 @@ export function BlogSearch({
     }
     params.delete('page') // Reset to first page on new search
 
-    // Navigate to search results
-    router.push(`/${currentLocale}/blog?${params.toString()}`)
+    // Navigate to search results using client-side navigation
+    router.push(`/${currentLocale}/blog?${params.toString()}`, { scroll: false })
   }
 
   // Handle clear search
@@ -79,7 +79,8 @@ export function BlogSearch({
     params.delete('search')
     params.delete('page')
 
-    router.push(`/${currentLocale}/blog?${params.toString()}`)
+    // Use client-side navigation
+    router.push(`/${currentLocale}/blog?${params.toString()}`, { scroll: false })
 
     // Focus the input after clearing
     if (inputRef.current) {

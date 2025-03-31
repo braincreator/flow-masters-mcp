@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import { getPayloadClient } from '@/utilities/payload'
+import { getServerSideURL } from '@/utilities/getURL'
 import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
@@ -12,17 +13,7 @@ import { BlogPost, BlogTag } from '@/types/blocks'
 import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
-// Define the props interface
-interface BlogPageProps {
-  params: { lang: string }
-  searchParams: {
-    page?: string
-    category?: string
-    tag?: string
-    search?: string
-  }
-}
+import Link from 'next/link'
 
 // Localized texts
 const texts = {
@@ -56,12 +47,23 @@ const texts = {
   },
 }
 
+// Get properly typed params
+type PageParams = {
+  params: { lang: string }
+  searchParams: {
+    page?: string
+    category?: string
+    tag?: string
+    search?: string
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: { lang: string }
 }): Promise<Metadata> {
-  const locale = (params.lang || DEFAULT_LOCALE) as Locale
+  const locale = ((await params).lang || DEFAULT_LOCALE) as Locale
   const t = texts[locale]
 
   return {
@@ -70,15 +72,34 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPage({ params, searchParams }: BlogPageProps) {
+export default async function BlogPage(props: PageParams) {
   try {
-    const locale = (params.lang || DEFAULT_LOCALE) as Locale
+    // Destructure props
+    const { lang } = await props.params
+    const { page, category, tag, search } = await props.searchParams
+
+    const locale = (lang || DEFAULT_LOCALE) as Locale
     const t = texts[locale]
-    const currentPage = parseInt(searchParams.page || '1', 10)
+    const currentPage = parseInt(page || '1', 10)
     const limit = 9 // Posts per page
 
-    // Initialize PayloadCMS client
-    const payload = await getPayloadClient()
+    // Ensure we have a valid server URL for Payload
+    // This is critical for resolving the "Failed to fetch" error
+    const serverUrl = getServerSideURL()
+    console.log(`Using server URL: ${serverUrl}`)
+
+    // Initialize PayloadCMS client with proper error handling
+    let payload
+    try {
+      payload = await getPayloadClient()
+    } catch (error) {
+      console.error('Failed to initialize PayloadCMS client:', error)
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        console.error('Network error detected. Check server connectivity and CORS configuration.')
+        throw new Error('Database connection error: Cannot connect to Payload API. Please ensure the API server is running.')
+      }
+      throw new Error('Database connection error. Please try again later.')
+    }
 
     // Build the query conditions
     const query: any = {
@@ -86,46 +107,56 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
     }
 
     // Track if we have any active filters
-    const hasActiveFilters = !!(searchParams.category || searchParams.tag || searchParams.search)
+    const hasActiveFilters = !!(category || tag || search)
 
-    if (searchParams.category) {
-      query['categories.slug'] = { equals: searchParams.category }
+    if (category) {
+      query['categories.slug'] = { equals: category }
     }
 
-    if (searchParams.tag) {
-      query['tags.slug'] = { equals: searchParams.tag }
+    if (tag) {
+      query['tags.slug'] = { equals: tag }
     }
 
-    if (searchParams.search) {
-      query.or = [
-        { title: { like: searchParams.search } },
-        { excerpt: { like: searchParams.search } },
-      ]
+    if (search) {
+      query.or = [{ title: { like: search } }, { excerpt: { like: search } }]
     }
 
     // Fetch posts based on filters
-    const posts = await payload.find({
-      collection: 'posts',
-      where: query,
-      sort: '-publishedAt',
-      limit,
-      page: currentPage,
-      depth: 1, // Load relations 1 level deep
-      locale: locale,
-    })
+    let posts
+    try {
+      posts = await payload.find({
+        collection: 'posts',
+        where: query,
+        sort: '-publishedAt',
+        limit,
+        page: currentPage,
+        depth: 1, // Load relations 1 level deep
+        locale: locale,
+      })
+    } catch (error) {
+      console.error('Error fetching posts:', error)
+      throw new Error('Failed to fetch blog posts. Please try again later.')
+    }
 
     // Fetch all categories for filtering
-    const categories = await payload.find({
-      collection: 'categories',
-      limit: 100,
-      locale: locale,
-    })
+    let categories
+    try {
+      categories = await payload.find({
+        collection: 'categories',
+        limit: 100,
+        locale: locale,
+      })
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+      // Continue with empty categories
+      categories = { docs: [] }
+    }
 
     // Format categories
-    const formattedCategories = categories.docs.map((category: any) => ({
-      id: category.id,
-      title: category.title,
-      slug: category.slug || '',
+    const formattedCategories = categories.docs.map((cat: any) => ({
+      id: cat.id,
+      title: cat.title,
+      slug: cat.slug || '',
       count: 0, // We don't have this info
     }))
 
@@ -138,10 +169,10 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
         locale: locale,
       })
 
-      formattedTags = tagsResponse.docs.map((tag: any) => ({
-        id: tag.id,
-        title: tag.title || '',
-        slug: tag.slug || '',
+      formattedTags = tagsResponse.docs.map((tagItem: any) => ({
+        id: tagItem.id,
+        title: tagItem.title || '',
+        slug: tagItem.slug || '',
         count: 0,
       }))
     } catch (err) {
@@ -179,8 +210,14 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
         author:
           post.authors && post.authors.length > 0 && typeof post.authors[0] !== 'string'
             ? {
-                id: post.authors[0].id,
-                name: post.authors[0].name || 'Unknown',
+                id:
+                  typeof post.authors[0] === 'object' && post.authors[0]
+                    ? post.authors[0].id || ''
+                    : '',
+                name:
+                  typeof post.authors[0] === 'object' && post.authors[0]
+                    ? post.authors[0].name || 'Unknown'
+                    : 'Unknown',
                 avatar: undefined, // We don't have avatar in the Post type
               }
             : undefined,
@@ -197,9 +234,20 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
     })
 
     // Find active category details if we have a category filter
-    const activeCategory = searchParams.category
-      ? formattedCategories.find((cat) => cat.slug === searchParams.category)
+    const activeCategory = category
+      ? formattedCategories.find((cat) => cat.slug === category)
       : undefined
+
+    // Helper function to build filter URLs (preserving other params)
+    const buildFilterUrl = (params: { category?: string; tag?: string; search?: string }) => {
+      const urlParams = new URLSearchParams()
+
+      if (params.category) urlParams.set('category', params.category)
+      if (params.tag) urlParams.set('tag', params.tag)
+      if (params.search) urlParams.set('search', params.search)
+
+      return `/${locale}/blog${urlParams.toString() ? `?${urlParams.toString()}` : ''}`
+    }
 
     return (
       <div className="container mx-auto py-10 px-4 md:px-6">
@@ -215,7 +263,7 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
               {/* Search and filters */}
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <BlogSearch
-                  initialQuery={searchParams.search || ''}
+                  initialQuery={search || ''}
                   placeholder={t.searchPlaceholder}
                   preserveParams={true}
                   className="w-full sm:max-w-md"
@@ -225,7 +273,7 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
                   <div className="flex items-center gap-2 ml-auto">
                     <span className="text-sm text-muted-foreground">{t.activeFilters}:</span>
 
-                    {searchParams.category && activeCategory && (
+                    {category && activeCategory && (
                       <Badge
                         variant="outline"
                         className="bg-primary/10 border-primary/30 text-primary"
@@ -234,13 +282,12 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
                       </Badge>
                     )}
 
-                    {searchParams.tag && (
+                    {tag && (
                       <Badge
                         variant="outline"
                         className="bg-primary/10 border-primary/30 text-primary"
                       >
-                        {formattedTags.find((t) => t.slug === searchParams.tag)?.title ||
-                          searchParams.tag}
+                        {formattedTags.find((t) => t.slug === tag)?.title || tag}
                       </Badge>
                     )}
 
@@ -248,11 +295,11 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
                       variant="ghost"
                       size="sm"
                       className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        window.location.href = `/${locale}/blog`
-                      }}
+                      asChild
                     >
-                      {t.clearFilters}
+                      <Link href={`/${locale}/blog`} scroll={false}>
+                        {t.clearFilters}
+                      </Link>
                     </Button>
                   </div>
                 )}
@@ -263,23 +310,30 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
                 <div className="pt-2 pb-4 border-b">
                   <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     <Button
-                      variant={!searchParams.category ? 'secondary' : 'ghost'}
+                      variant={!category ? 'secondary' : 'ghost'}
                       size="sm"
                       className="whitespace-nowrap"
                       asChild
                     >
-                      <a href={`/${locale}/blog`}>{t.all}</a>
+                      <Link href={buildFilterUrl({ tag, search })} scroll={false}>
+                        {t.all}
+                      </Link>
                     </Button>
 
-                    {formattedCategories.slice(0, 8).map((category) => (
+                    {formattedCategories.slice(0, 8).map((cat) => (
                       <Button
-                        key={category.id}
-                        variant={searchParams.category === category.slug ? 'secondary' : 'ghost'}
+                        key={cat.id}
+                        variant={category === cat.slug ? 'secondary' : 'ghost'}
                         size="sm"
                         className="whitespace-nowrap"
                         asChild
                       >
-                        <a href={`/${locale}/blog?category=${category.slug}`}>{category.title}</a>
+                        <Link
+                          href={buildFilterUrl({ category: cat.slug, tag, search })}
+                          scroll={false}
+                        >
+                          {cat.title}
+                        </Link>
                       </Button>
                     ))}
                   </div>
@@ -314,8 +368,9 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
                   totalPages={posts.totalPages}
                   baseUrl={`/${locale}/blog`}
                   searchParams={Object.fromEntries(
-                    Object.entries(searchParams).filter(([key]) => key !== 'page'),
+                    Object.entries(props.searchParams).filter(([key]) => key !== 'page'),
                   )}
+                  scroll={false}
                 />
               )}
             </div>
@@ -326,11 +381,7 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
               {formattedTags.length > 0 && (
                 <div className="rounded-lg border shadow-sm p-6 bg-card">
                   <h3 className="font-medium text-lg mb-4">{t.tags}</h3>
-                  <BlogTagCloud
-                    tags={formattedTags}
-                    activeTag={searchParams.tag}
-                    preserveParams={true}
-                  />
+                  <BlogTagCloud tags={formattedTags} activeTag={tag} preserveParams={true} />
                 </div>
               )}
 
