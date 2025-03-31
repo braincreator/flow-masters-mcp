@@ -54,6 +54,7 @@ export type SupportedTimezones =
   | 'Asia/Singapore'
   | 'Asia/Tokyo'
   | 'Asia/Seoul'
+  | 'Australia/Brisbane'
   | 'Australia/Sydney'
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
@@ -68,12 +69,16 @@ export interface Config {
   collections: {
     categories: Category;
     media: Media;
+    testimonials: Testimonial;
     pages: Page;
     posts: Post;
-    users: User;
+    reviews: Review;
     solutions: Solution;
+    users: User;
+    tags: Tag;
     products: Product;
-    orders: Order;
+    comments: Comment;
+    'post-metrics': PostMetric;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -87,12 +92,16 @@ export interface Config {
   collectionsSelect: {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     solutions: SolutionsSelect<false> | SolutionsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
-    orders: OrdersSelect<false> | OrdersSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -108,10 +117,20 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'payment-providers': PaymentProvider;
+    'notification-settings': NotificationSetting;
+    'currency-settings': CurrencySetting;
+    'exchange-rate-settings': ExchangeRateSetting;
+    'webhook-settings': WebhookSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'payment-providers': PaymentProvidersSelect<false> | PaymentProvidersSelect<true>;
+    'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
+    'currency-settings': CurrencySettingsSelect<false> | CurrencySettingsSelect<true>;
+    'exchange-rate-settings': ExchangeRateSettingsSelect<false> | ExchangeRateSettingsSelect<true>;
+    'webhook-settings': WebhookSettingsSelect<false> | WebhookSettingsSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -261,6 +280,19 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonial {
+  id: string;
+  author: string;
+  authorTitle?: string | null;
+  quote: string;
+  avatar?: (string | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
@@ -309,7 +341,28 @@ export interface Page {
       | null;
     media?: (string | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  layout: (
+    | CallToActionBlock
+    | ContentBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+    | {
+        layout?: ('grid' | 'list') | null;
+        postsPerPage?: number | null;
+        showFeaturedPost?: boolean | null;
+        showSearch?: boolean | null;
+        showCategories?: boolean | null;
+        showTags?: boolean | null;
+        showPagination?: boolean | null;
+        categoryID?: (string | null) | Category;
+        tagID?: (string | null) | Tag;
+        authorID?: (string | null) | User;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'blog';
+      }
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -350,6 +403,7 @@ export interface Post {
   };
   relatedPosts?: (string | Post)[] | null;
   categories?: (string | Category)[] | null;
+  tags?: (string | Tag)[] | null;
   meta?: {
     title?: string | null;
     /**
@@ -371,6 +425,19 @@ export interface Post {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: string;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -632,6 +699,7 @@ export interface Form {
             label?: string | null;
             width?: number | null;
             defaultValue?: string | null;
+            placeholder?: string | null;
             options?:
               | {
                   label: string;
@@ -735,6 +803,21 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: string;
+  clientName: string;
+  companyName?: string | null;
+  rating: number;
+  reviewText: string;
+  clientPhoto?: (string | null) | Media;
+  project?: (string | null) | Solution;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "solutions".
  */
 export interface Solution {
@@ -787,7 +870,21 @@ export interface Product {
   id: string;
   title: string;
   category: 'n8n' | 'make' | 'tutorials' | 'courses';
-  price: number;
+  pricing: {
+    /**
+     * Base price in USD
+     */
+    basePrice: number;
+    /**
+     * Discount percentage (0-100)
+     */
+    discountPercentage?: number | null;
+    finalPrice?: number | null;
+    /**
+     * Original price for comparison (optional)
+     */
+    compareAtPrice?: number | null;
+  };
   description: {
     root: {
       type: string;
@@ -809,18 +906,11 @@ export interface Product {
   shortDescription: string;
   features?:
     | {
-        feature?: string | null;
+        name: string;
+        description: string;
         id?: string | null;
       }[]
     | null;
-  /**
-   * URL to download the digital product (only visible to customers after purchase)
-   */
-  downloadUrl?: string | null;
-  /**
-   * URL to preview/demo the product
-   */
-  demoUrl?: string | null;
   /**
    * Main product image (required)
    */
@@ -828,24 +918,46 @@ export interface Product {
   gallery?:
     | {
         image: string | Media;
+        alt?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
+   * Product type determines available features and delivery method
+   */
+  productType: 'digital' | 'subscription' | 'service' | 'access';
+  /**
+   * URL to download the digital product (only visible after purchase)
+   */
+  downloadLink?: string | null;
+  /**
+   * Define the features or areas this access product unlocks
+   */
+  accessDetails?: {
+    features: ('premium_content' | 'advanced_features' | 'api_access' | 'priority_support')[];
+    /**
+     * Access validity in days (0 for unlimited)
+     */
+    validityPeriod: number;
+  };
+  /**
+   * Show this product in featured section
+   */
+  isFeatured?: boolean | null;
+  /**
+   * Automatically set based on order volume (15% above average)
+   */
+  isPopular?: boolean | null;
+  /**
    * Select related products to display
    */
   relatedProducts?: (string | Product)[] | null;
-  tags?:
-    | {
-        tag?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  status: 'draft' | 'published' | 'archived';
   publishedAt?: string | null;
-  status: 'draft' | 'published';
   meta?: {
     title?: string | null;
     description?: string | null;
+    image?: (string | null) | Media;
   };
   slug?: string | null;
   slugLock?: boolean | null;
@@ -855,30 +967,64 @@ export interface Product {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
+ * via the `definition` "comments".
  */
-export interface Order {
+export interface Comment {
   id: string;
-  orderNumber: string;
-  customer: string | User;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items: {
-    product: string | Product;
-    quantity: number;
-    price: number;
-    id?: string | null;
-  }[];
-  total: number;
-  /**
-   * Enter shipping tracking number once order is shipped
-   */
-  trackingNumber?: string | null;
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
+  content: string;
+  author: {
+    name: string;
+    email: string;
+    website?: string | null;
   };
+  post: string | Post;
+  /**
+   * If this is a reply to another comment
+   */
+  parentComment?: (string | null) | Comment;
+  likes?: number | null;
+  ip?: string | null;
+  status?: ('pending' | 'approved' | 'spam' | 'trash') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-metrics".
+ */
+export interface PostMetric {
+  id: string;
+  /**
+   * Automatically generated from post title
+   */
+  title: string;
+  post: string | Post;
+  views?: number | null;
+  uniqueVisitors?: number | null;
+  /**
+   * Record of individual share events
+   */
+  shares?:
+    | {
+        platform: string;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  shareCount?: number | null;
+  likes?: number | null;
+  /**
+   * Reading progress tracking events
+   */
+  readingProgress?:
+    | {
+        progress: number;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  completedReads?: number | null;
+  lastUpdated?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -939,19 +1085,6 @@ export interface Search {
     relationTo: 'posts';
     value: string | Post;
   };
-  slug?: string | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (string | null) | Media;
-  };
-  categories?:
-    | {
-        relationTo?: string | null;
-        id?: string | null;
-        title?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1063,6 +1196,10 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'testimonials';
+        value: string | Testimonial;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: string | Page;
       } | null)
@@ -1071,20 +1208,32 @@ export interface PayloadLockedDocument {
         value: string | Post;
       } | null)
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'reviews';
+        value: string | Review;
       } | null)
     | ({
         relationTo: 'solutions';
         value: string | Solution;
       } | null)
     | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: string | Tag;
+      } | null)
+    | ({
         relationTo: 'products';
         value: string | Product;
       } | null)
     | ({
-        relationTo: 'orders';
-        value: string | Order;
+        relationTo: 'comments';
+        value: string | Comment;
+      } | null)
+    | ({
+        relationTo: 'post-metrics';
+        value: string | PostMetric;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1263,6 +1412,18 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  author?: T;
+  authorTitle?: T;
+  quote?: T;
+  avatar?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
@@ -1297,6 +1458,22 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        blog?:
+          | T
+          | {
+              layout?: T;
+              postsPerPage?: T;
+              showFeaturedPost?: T;
+              showSearch?: T;
+              showCategories?: T;
+              showTags?: T;
+              showPagination?: T;
+              categoryID?: T;
+              tagID?: T;
+              authorID?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -1409,6 +1586,7 @@ export interface PostsSelect<T extends boolean = true> {
   content?: T;
   relatedPosts?: T;
   categories?: T;
+  tags?: T;
   meta?:
     | T
     | {
@@ -1432,20 +1610,17 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "reviews_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
+export interface ReviewsSelect<T extends boolean = true> {
+  clientName?: T;
+  companyName?: T;
+  rating?: T;
+  reviewText?: T;
+  clientPhoto?: T;
+  project?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1479,43 +1654,84 @@ export interface SolutionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   category?: T;
-  price?: T;
+  pricing?:
+    | T
+    | {
+        basePrice?: T;
+        discountPercentage?: T;
+        finalPrice?: T;
+        compareAtPrice?: T;
+      };
   description?: T;
   shortDescription?: T;
   features?:
     | T
     | {
-        feature?: T;
+        name?: T;
+        description?: T;
         id?: T;
       };
-  downloadUrl?: T;
-  demoUrl?: T;
   thumbnail?: T;
   gallery?:
     | T
     | {
         image?: T;
+        alt?: T;
         id?: T;
       };
-  relatedProducts?: T;
-  tags?:
+  productType?: T;
+  downloadLink?: T;
+  accessDetails?:
     | T
     | {
-        tag?: T;
-        id?: T;
+        features?: T;
+        validityPeriod?: T;
       };
-  publishedAt?: T;
+  isFeatured?: T;
+  isPopular?: T;
+  relatedProducts?: T;
   status?: T;
+  publishedAt?: T;
   meta?:
     | T
     | {
         title?: T;
         description?: T;
+        image?: T;
       };
   slug?: T;
   slugLock?: T;
@@ -1525,30 +1741,52 @@ export interface ProductsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders_select".
+ * via the `definition` "comments_select".
  */
-export interface OrdersSelect<T extends boolean = true> {
-  orderNumber?: T;
-  customer?: T;
-  status?: T;
-  items?:
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  author?:
     | T
     | {
-        product?: T;
-        quantity?: T;
-        price?: T;
+        name?: T;
+        email?: T;
+        website?: T;
+      };
+  post?: T;
+  parentComment?: T;
+  likes?: T;
+  ip?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-metrics_select".
+ */
+export interface PostMetricsSelect<T extends boolean = true> {
+  title?: T;
+  post?: T;
+  views?: T;
+  uniqueVisitors?: T;
+  shares?:
+    | T
+    | {
+        platform?: T;
+        date?: T;
         id?: T;
       };
-  total?: T;
-  trackingNumber?: T;
-  shippingAddress?:
+  shareCount?: T;
+  likes?: T;
+  readingProgress?:
     | T
     | {
-        street?: T;
-        city?: T;
-        state?: T;
-        postalCode?: T;
+        progress?: T;
+        date?: T;
+        id?: T;
       };
+  completedReads?: T;
+  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1633,6 +1871,7 @@ export interface FormsSelect<T extends boolean = true> {
               label?: T;
               width?: T;
               defaultValue?: T;
+              placeholder?: T;
               options?:
                 | T
                 | {
@@ -1724,21 +1963,6 @@ export interface SearchSelect<T extends boolean = true> {
   title?: T;
   priority?: T;
   doc?: T;
-  slug?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  categories?:
-    | T
-    | {
-        relationTo?: T;
-        id?: T;
-        title?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1885,6 +2109,560 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-providers".
+ */
+export interface PaymentProvider {
+  id: string;
+  general: {
+    orderCancellationTimeout: number;
+  };
+  yoomoney?: {
+    yoomoney_enabled?: boolean | null;
+    yoomoney_displayName?: {
+      ru: string;
+      en: string;
+    };
+    yoomoney_config?: {
+      testMode?: boolean | null;
+      test?: {
+        shop_id: string;
+        secret_key: string;
+      };
+      production?: {
+        shop_id: string;
+        secret_key: string;
+      };
+    };
+  };
+  stripe?: {
+    stripe_enabled?: boolean | null;
+    stripe_displayName?: {
+      ru: string;
+      en: string;
+    };
+    stripe_config?: {
+      testMode?: boolean | null;
+      test?: {
+        publishable_key: string;
+        secret_key: string;
+      };
+      production?: {
+        publishable_key: string;
+        secret_key: string;
+      };
+    };
+  };
+  robokassa?: {
+    robokassa_enabled?: boolean | null;
+    robokassa_displayName?: {
+      ru: string;
+      en: string;
+    };
+    robokassa_config?: {
+      testMode?: boolean | null;
+      test?: {
+        merchant_login: string;
+        password1: string;
+        password2: string;
+      };
+      production?: {
+        merchant_login: string;
+        password1: string;
+        password2: string;
+      };
+    };
+  };
+  paypal?: {
+    paypal_enabled?: boolean | null;
+    paypal_displayName?: {
+      ru: string;
+      en: string;
+    };
+    paypal_config?: {
+      testMode?: boolean | null;
+      test?: {
+        client_id: string;
+        client_secret: string;
+      };
+      production?: {
+        client_id: string;
+        client_secret: string;
+      };
+    };
+  };
+  crypto?: {
+    crypto_enabled?: boolean | null;
+    crypto_displayName?: {
+      ru: string;
+      en: string;
+    };
+    crypto_config?: {
+      testMode?: boolean | null;
+      test?: {
+        api_key: string;
+        webhook_secret: string;
+        /**
+         * Create a project ID at https://cloud.walletconnect.com/
+         */
+        wallet_connect_project_id: string;
+        supported_currencies: string;
+      };
+      production?: {
+        api_key: string;
+        webhook_secret: string;
+        /**
+         * Create a project ID at https://cloud.walletconnect.com/
+         */
+        wallet_connect_project_id: string;
+        supported_currencies: string;
+      };
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-settings".
+ */
+export interface NotificationSetting {
+  id: string;
+  email: {
+    sender: {
+      senderName: {
+        ru: string;
+        en: string;
+      };
+      senderEmail: string;
+    };
+    /**
+     * Email address where admin notifications will be sent
+     */
+    adminEmail: string;
+    templates: {
+      orderConfirmation: {
+        enabled?: boolean | null;
+        subject: {
+          ru: string;
+          en: string;
+        };
+        template: {
+          ru: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+          en: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+        };
+      };
+      paymentConfirmation: {
+        enabled?: boolean | null;
+        subject: {
+          ru: string;
+          en: string;
+        };
+        template: {
+          ru: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+          en: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+        };
+      };
+      orderShipped: {
+        enabled?: boolean | null;
+        subject: {
+          ru: string;
+          en: string;
+        };
+        template: {
+          ru: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+          en: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+        };
+      };
+      downloadableProduct: {
+        enabled?: boolean | null;
+        subject: {
+          ru: string;
+          en: string;
+        };
+        template: {
+          ru: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+          en: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  sms?: {
+    enabled?: boolean | null;
+    provider?: ('twilio' | 'nexmo' | 'custom') | null;
+    providerConfig?: {
+      accountSid?: string | null;
+      authToken?: string | null;
+      fromNumber: string;
+      apiEndpoint?: string | null;
+    };
+    templates?: {
+      orderConfirmation: {
+        enabled?: boolean | null;
+        message: {
+          ru: string;
+          en: string;
+        };
+      };
+      paymentConfirmation: {
+        enabled?: boolean | null;
+        message: {
+          ru: string;
+          en: string;
+        };
+      };
+    };
+  };
+  push?: {
+    enabled?: boolean | null;
+    firebaseConfig?: {
+      apiKey: string;
+      projectId: string;
+      appId: string;
+      messagingSenderId: string;
+    };
+    templates?: {
+      orderStatusUpdate: {
+        enabled?: boolean | null;
+        title: {
+          ru: string;
+          en: string;
+        };
+        body: {
+          ru: string;
+          en: string;
+        };
+      };
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "currency-settings".
+ */
+export interface CurrencySetting {
+  id: string;
+  /**
+   * Primary currency used for internal calculations
+   */
+  baseCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
+  /**
+   * Currencies available to customers on the frontend
+   */
+  supportedCurrencies: ('RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF')[];
+  displayFormat: {
+    symbolPosition: 'before' | 'after';
+    /**
+     * Display currency code along with the symbol (e.g., $100 USD)
+     */
+    showCurrencyCode?: boolean | null;
+    thousandsSeparator: ' ' | ',' | '.' | '';
+    decimalSeparator: '.' | ',';
+    decimalPlaces: '0' | '1' | '2';
+  };
+  /**
+   * Override default currency for specific locales
+   */
+  localeDefaults?:
+    | {
+        locale: 'en' | 'ru';
+        currency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
+        format?: {
+          symbolPosition?: ('before' | 'after') | null;
+          thousandsSeparator?: (' ' | ',' | '.' | '') | null;
+          decimalSeparator?: ('.' | ',') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Rules for rounding prices in different ranges
+   */
+  roundingRules?:
+    | {
+        minPrice: number;
+        maxPrice: number;
+        /**
+         * Round to nearest value (e.g., 5, 10, 99, etc.)
+         */
+        roundTo: number;
+        strategy?: ('nearest' | 'down' | 'up') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Add additional markup for specific currencies
+   */
+  markup?:
+    | {
+        currency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
+        /**
+         * Additional percentage to add to exchange rate (can be negative for discounts)
+         */
+        percentage: number;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exchange-rate-settings".
+ */
+export interface ExchangeRateSetting {
+  id: string;
+  auto?: {
+    enabled?: boolean | null;
+    provider?: ('openexchangerates' | 'exchangerateapi' | 'fixer' | 'currencylayer') | null;
+    apiKey?: string | null;
+    updateFrequency?: ('hourly' | 'daily' | 'weekly') | null;
+    /**
+     * Timestamp of the last automatic update
+     */
+    lastUpdated?: string | null;
+  };
+  /**
+   * Manual exchange rates (these will override automatic rates)
+   */
+  rates?:
+    | {
+        fromCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
+        toCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
+        /**
+         * Rate to convert from the base currency to the target currency
+         */
+        rate: number;
+        /**
+         * Whether this rate should be preserved during automatic updates
+         */
+        manuallySet?: boolean | null;
+        /**
+         * Timestamp of the last update for this rate
+         */
+        lastUpdated?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  display?: {
+    /**
+     * Show the current exchange rate when user switches currency
+     */
+    showExchangeRate?: boolean | null;
+    allowUserCurrencySwitch?: boolean | null;
+    /**
+     * Show price in both the user-selected currency and the base currency
+     */
+    showPriceInMultipleCurrencies?: boolean | null;
+  };
+  failover: {
+    /**
+     * Maximum age of rates before they are considered stale
+     */
+    maxRateAge: number;
+    /**
+     * Use manually set rates if automatic update fails
+     */
+    fallbackToManualRates?: boolean | null;
+    disableCurrencySwitching?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-settings".
+ */
+export interface WebhookSetting {
+  id: string;
+  enabled?: boolean | null;
+  securitySettings?: {
+    /**
+     * Secret used to sign webhooks for verification
+     */
+    signatureSecret?: string | null;
+    enableIPWhitelist?: boolean | null;
+    /**
+     * List of allowed IP addresses
+     */
+    ipWhitelist?:
+      | {
+          ipAddress: string;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  retrySettings?: {
+    maxRetries?: number | null;
+    retryInterval?: ('fixed' | 'exponential') | null;
+  };
+  /**
+   * Configure webhook endpoints and events
+   */
+  endpoints?:
+    | {
+        name: string;
+        url: string;
+        active?: boolean | null;
+        events: (
+          | 'order.created'
+          | 'order.updated'
+          | 'order.completed'
+          | 'order.cancelled'
+          | 'payment.received'
+          | 'payment.failed'
+          | 'product.created'
+          | 'product.updated'
+          | 'product.deleted'
+          | 'user.created'
+          | 'user.updated'
+        )[];
+        headers?:
+          | {
+              key: string;
+              value: string;
+              id?: string | null;
+            }[]
+          | null;
+        lastSent?: string | null;
+        status?: ('healthy' | 'warning' | 'error') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Recent webhook delivery logs
+   */
+  logs?:
+    | {
+        timestamp?: string | null;
+        endpoint?: string | null;
+        event?: string | null;
+        status?: ('success' | 'failed' | 'retrying') | null;
+        responseCode?: number | null;
+        responseTime?: number | null;
+        attemptNumber?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -1937,6 +2715,488 @@ export interface FooterSelect<T extends boolean = true> {
               url?: T;
               label?: T;
             };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-providers_select".
+ */
+export interface PaymentProvidersSelect<T extends boolean = true> {
+  general?:
+    | T
+    | {
+        orderCancellationTimeout?: T;
+      };
+  yoomoney?:
+    | T
+    | {
+        yoomoney_enabled?: T;
+        yoomoney_displayName?:
+          | T
+          | {
+              ru?: T;
+              en?: T;
+            };
+        yoomoney_config?:
+          | T
+          | {
+              testMode?: T;
+              test?:
+                | T
+                | {
+                    shop_id?: T;
+                    secret_key?: T;
+                  };
+              production?:
+                | T
+                | {
+                    shop_id?: T;
+                    secret_key?: T;
+                  };
+            };
+      };
+  stripe?:
+    | T
+    | {
+        stripe_enabled?: T;
+        stripe_displayName?:
+          | T
+          | {
+              ru?: T;
+              en?: T;
+            };
+        stripe_config?:
+          | T
+          | {
+              testMode?: T;
+              test?:
+                | T
+                | {
+                    publishable_key?: T;
+                    secret_key?: T;
+                  };
+              production?:
+                | T
+                | {
+                    publishable_key?: T;
+                    secret_key?: T;
+                  };
+            };
+      };
+  robokassa?:
+    | T
+    | {
+        robokassa_enabled?: T;
+        robokassa_displayName?:
+          | T
+          | {
+              ru?: T;
+              en?: T;
+            };
+        robokassa_config?:
+          | T
+          | {
+              testMode?: T;
+              test?:
+                | T
+                | {
+                    merchant_login?: T;
+                    password1?: T;
+                    password2?: T;
+                  };
+              production?:
+                | T
+                | {
+                    merchant_login?: T;
+                    password1?: T;
+                    password2?: T;
+                  };
+            };
+      };
+  paypal?:
+    | T
+    | {
+        paypal_enabled?: T;
+        paypal_displayName?:
+          | T
+          | {
+              ru?: T;
+              en?: T;
+            };
+        paypal_config?:
+          | T
+          | {
+              testMode?: T;
+              test?:
+                | T
+                | {
+                    client_id?: T;
+                    client_secret?: T;
+                  };
+              production?:
+                | T
+                | {
+                    client_id?: T;
+                    client_secret?: T;
+                  };
+            };
+      };
+  crypto?:
+    | T
+    | {
+        crypto_enabled?: T;
+        crypto_displayName?:
+          | T
+          | {
+              ru?: T;
+              en?: T;
+            };
+        crypto_config?:
+          | T
+          | {
+              testMode?: T;
+              test?:
+                | T
+                | {
+                    api_key?: T;
+                    webhook_secret?: T;
+                    wallet_connect_project_id?: T;
+                    supported_currencies?: T;
+                  };
+              production?:
+                | T
+                | {
+                    api_key?: T;
+                    webhook_secret?: T;
+                    wallet_connect_project_id?: T;
+                    supported_currencies?: T;
+                  };
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-settings_select".
+ */
+export interface NotificationSettingsSelect<T extends boolean = true> {
+  email?:
+    | T
+    | {
+        sender?:
+          | T
+          | {
+              senderName?:
+                | T
+                | {
+                    ru?: T;
+                    en?: T;
+                  };
+              senderEmail?: T;
+            };
+        adminEmail?: T;
+        templates?:
+          | T
+          | {
+              orderConfirmation?:
+                | T
+                | {
+                    enabled?: T;
+                    subject?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                    template?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+              paymentConfirmation?:
+                | T
+                | {
+                    enabled?: T;
+                    subject?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                    template?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+              orderShipped?:
+                | T
+                | {
+                    enabled?: T;
+                    subject?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                    template?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+              downloadableProduct?:
+                | T
+                | {
+                    enabled?: T;
+                    subject?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                    template?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+            };
+      };
+  sms?:
+    | T
+    | {
+        enabled?: T;
+        provider?: T;
+        providerConfig?:
+          | T
+          | {
+              accountSid?: T;
+              authToken?: T;
+              fromNumber?: T;
+              apiEndpoint?: T;
+            };
+        templates?:
+          | T
+          | {
+              orderConfirmation?:
+                | T
+                | {
+                    enabled?: T;
+                    message?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+              paymentConfirmation?:
+                | T
+                | {
+                    enabled?: T;
+                    message?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+            };
+      };
+  push?:
+    | T
+    | {
+        enabled?: T;
+        firebaseConfig?:
+          | T
+          | {
+              apiKey?: T;
+              projectId?: T;
+              appId?: T;
+              messagingSenderId?: T;
+            };
+        templates?:
+          | T
+          | {
+              orderStatusUpdate?:
+                | T
+                | {
+                    enabled?: T;
+                    title?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                    body?:
+                      | T
+                      | {
+                          ru?: T;
+                          en?: T;
+                        };
+                  };
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "currency-settings_select".
+ */
+export interface CurrencySettingsSelect<T extends boolean = true> {
+  baseCurrency?: T;
+  supportedCurrencies?: T;
+  displayFormat?:
+    | T
+    | {
+        symbolPosition?: T;
+        showCurrencyCode?: T;
+        thousandsSeparator?: T;
+        decimalSeparator?: T;
+        decimalPlaces?: T;
+      };
+  localeDefaults?:
+    | T
+    | {
+        locale?: T;
+        currency?: T;
+        format?:
+          | T
+          | {
+              symbolPosition?: T;
+              thousandsSeparator?: T;
+              decimalSeparator?: T;
+            };
+        id?: T;
+      };
+  roundingRules?:
+    | T
+    | {
+        minPrice?: T;
+        maxPrice?: T;
+        roundTo?: T;
+        strategy?: T;
+        id?: T;
+      };
+  markup?:
+    | T
+    | {
+        currency?: T;
+        percentage?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exchange-rate-settings_select".
+ */
+export interface ExchangeRateSettingsSelect<T extends boolean = true> {
+  auto?:
+    | T
+    | {
+        enabled?: T;
+        provider?: T;
+        apiKey?: T;
+        updateFrequency?: T;
+        lastUpdated?: T;
+      };
+  rates?:
+    | T
+    | {
+        fromCurrency?: T;
+        toCurrency?: T;
+        rate?: T;
+        manuallySet?: T;
+        lastUpdated?: T;
+        id?: T;
+      };
+  display?:
+    | T
+    | {
+        showExchangeRate?: T;
+        allowUserCurrencySwitch?: T;
+        showPriceInMultipleCurrencies?: T;
+      };
+  failover?:
+    | T
+    | {
+        maxRateAge?: T;
+        fallbackToManualRates?: T;
+        disableCurrencySwitching?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-settings_select".
+ */
+export interface WebhookSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  securitySettings?:
+    | T
+    | {
+        signatureSecret?: T;
+        enableIPWhitelist?: T;
+        ipWhitelist?:
+          | T
+          | {
+              ipAddress?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  retrySettings?:
+    | T
+    | {
+        maxRetries?: T;
+        retryInterval?: T;
+      };
+  endpoints?:
+    | T
+    | {
+        name?: T;
+        url?: T;
+        active?: T;
+        events?: T;
+        headers?:
+          | T
+          | {
+              key?: T;
+              value?: T;
+              id?: T;
+            };
+        lastSent?: T;
+        status?: T;
+        id?: T;
+      };
+  logs?:
+    | T
+    | {
+        timestamp?: T;
+        endpoint?: T;
+        event?: T;
+        status?: T;
+        responseCode?: T;
+        responseTime?: T;
+        attemptNumber?: T;
         id?: T;
       };
   updatedAt?: T;

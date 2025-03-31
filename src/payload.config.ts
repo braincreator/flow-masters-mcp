@@ -5,6 +5,7 @@ import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import path from 'path'
 import sharp from 'sharp'
+import { fileURLToPath } from 'url'
 
 import { getServerSideURL } from './utilities/getURL'
 import collections from './collections/collectionList'
@@ -17,6 +18,10 @@ import downloadProductHandler from './endpoints/download-product'
 
 // Import plugins
 import { plugins } from './plugins'
+
+// Get the directory name properly in ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Import globals
 import { Header } from './Header/config'

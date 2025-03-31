@@ -96,7 +96,9 @@ export default async function BlogPage(props: PageParams) {
       console.error('Failed to initialize PayloadCMS client:', error)
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         console.error('Network error detected. Check server connectivity and CORS configuration.')
-        throw new Error('Database connection error: Cannot connect to Payload API. Please ensure the API server is running.')
+        throw new Error(
+          'Database connection error: Cannot connect to Payload API. Please ensure the API server is running.',
+        )
       }
       throw new Error('Database connection error. Please try again later.')
     }
