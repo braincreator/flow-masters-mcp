@@ -1,120 +1,155 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
+import { useSocialShare } from '@/lib/blogHooks'
+import { Facebook, Twitter, Linkedin, Mail, Link as LinkIcon, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Facebook, Twitter, Linkedin, Copy, Check, Mail } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { toast } from '@/components/ui/use-toast'
 
 interface BlogSocialShareProps {
   url: string
   title: string
-  description: string
+  description?: string
   postId?: string
 }
 
-export function BlogSocialShare({ url, title, description, postId }: BlogSocialShareProps) {
-  const [copied, setCopied] = useState(false)
+export function BlogSocialShare({ url, title, description = '', postId }: BlogSocialShareProps) {
+  // Add base URL for absolute URLs if not provided
+  const fullUrl = url.startsWith('http')
+    ? url
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'}${url}`
 
-  const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${url}` : url
+  // Track sharing events if postId is provided
+  const { trackShare } = postId ? useSocialShare(postId) : { trackShare: () => {} }
 
-  // Track share event
-  const trackShare = async (platform: string) => {
-    if (!postId) return
-
-    try {
-      await fetch(`/api/blog/share`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId,
-          platform,
-        }),
-      })
-    } catch (error) {
-      console.error('Failed to track share:', error)
-    }
+  const shareLinks = {
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`,
+    email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${description}\n\n${fullUrl}`)}`,
   }
 
-  // Copy to clipboard
+  const handleShare = (platform: string) => {
+    window.open(shareLinks[platform as keyof typeof shareLinks], '_blank', 'noopener,noreferrer')
+    trackShare(platform)
+  }
+
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(fullUrl)
-    setCopied(true)
-    trackShare('copy')
-
-    setTimeout(() => {
-      setCopied(false)
-    }, 2000)
+    navigator.clipboard.writeText(fullUrl).then(
+      () => {
+        toast({
+          title: 'Link copied!',
+          description: 'The link has been copied to your clipboard.',
+          duration: 3000,
+        })
+        trackShare('copy')
+      },
+      () => {
+        toast({
+          title: 'Failed to copy',
+          description: 'Could not copy the link to your clipboard.',
+          variant: 'destructive',
+          duration: 3000,
+        })
+      },
+    )
   }
-
-  // Share platforms
-  const sharePlatforms = [
-    {
-      name: 'Facebook',
-      icon: <Facebook className="h-4 w-4" />,
-      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`,
-      onClick: () => trackShare('facebook'),
-    },
-    {
-      name: 'Twitter',
-      icon: <Twitter className="h-4 w-4" />,
-      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(title)}`,
-      onClick: () => trackShare('twitter'),
-    },
-    {
-      name: 'LinkedIn',
-      icon: <Linkedin className="h-4 w-4" />,
-      url: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(fullUrl)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(description)}`,
-      onClick: () => trackShare('linkedin'),
-    },
-    {
-      name: 'Email',
-      icon: <Mail className="h-4 w-4" />,
-      url: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${description}\n\n${fullUrl}`)}`,
-      onClick: () => trackShare('email'),
-    },
-  ]
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground mr-1">Share:</span>
+    <div className="flex items-center">
+      <span className="mr-2 text-sm font-medium">Share:</span>
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Share on Twitter"
+          onClick={() => handleShare('twitter')}
+          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <Twitter className="h-4 w-4" />
+        </Button>
 
-      <TooltipProvider>
-        {sharePlatforms.map((platform) => (
-          <Tooltip key={platform.name}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  window.open(platform.url, '_blank', 'noopener,noreferrer')
-                  platform.onClick()
-                }}
-              >
-                {platform.icon}
-                <span className="sr-only">Share on {platform.name}</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Share on {platform.name}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Share on Facebook"
+          onClick={() => handleShare('facebook')}
+          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <Facebook className="h-4 w-4" />
+        </Button>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={copyToClipboard}>
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              <span className="sr-only">Copy link</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Share on LinkedIn"
+          onClick={() => handleShare('linkedin')}
+          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <Linkedin className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Share via Email"
+          onClick={() => handleShare('email')}
+          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <Mail className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Copy link"
+          onClick={copyToClipboard}
+          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <LinkIcon className="h-4 w-4" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="More sharing options"
+              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+            >
+              <Share2 className="h-4 w-4" />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{copied ? 'Copied!' : 'Copy link'}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleShare('twitter')}>
+              <Twitter className="h-4 w-4 mr-2" />
+              <span>Twitter</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleShare('facebook')}>
+              <Facebook className="h-4 w-4 mr-2" />
+              <span>Facebook</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+              <Linkedin className="h-4 w-4 mr-2" />
+              <span>LinkedIn</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleShare('email')}>
+              <Mail className="h-4 w-4 mr-2" />
+              <span>Email</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={copyToClipboard}>
+              <LinkIcon className="h-4 w-4 mr-2" />
+              <span>Copy link</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

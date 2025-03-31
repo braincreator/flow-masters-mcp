@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format } from 'date-fns'
-import { useToast } from '@/components/ui/useToast'
+import { useToast } from '@/components/ui/use-toast'
 
 interface Comment {
   id: string

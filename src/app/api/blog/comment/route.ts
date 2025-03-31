@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import getPayload from 'payload'
 import configPromise from '@/payload.config'
+import { getPayloadClient } from '@/utilities/payload'
+import { z } from 'zod'
 
 type CommentRequest = {
   postId: string
@@ -12,6 +14,18 @@ type CommentRequest = {
   content: string
   parentComment?: string
 }
+
+// Validation schema for comment submission
+const commentSchema = z.object({
+  postId: z.string(),
+  author: z.object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email('Invalid email address'),
+    website: z.string().url('Invalid URL').optional(),
+  }),
+  content: z.string().min(5, 'Comment must be at least 5 characters'),
+  parentComment: z.string().optional(),
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,55 +102,48 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const searchParams = req.nextUrl.searchParams
+    const { searchParams } = new URL(req.url)
     const postId = searchParams.get('postId')
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
-    // Initialize Payload
-    const payload = await getPayload({ config: configPromise })
-
-    // Get approved comments for this post
+    const payload = await getPayloadClient()
     const comments = await payload.find({
       collection: 'comments',
       where: {
         post: {
           equals: postId,
         },
-        status: {
-          equals: 'approved',
-        },
         parentComment: {
-          exists: false, // Only get top-level comments
+          equals: null,
         },
       },
-      sort: '-createdAt',
-      depth: 1, // Include referenced fields
     })
 
-    // Get replies to these comments
-    for (let i = 0; i < comments.docs.length; i++) {
-      const replies = await payload.find({
-        collection: 'comments',
-        where: {
-          parentComment: {
-            equals: comments.docs[i].id,
+    // Fetch replies for each comment
+    const commentsWithReplies = await Promise.all(
+      comments.docs.map(async (comment) => {
+        const replies = await payload.find({
+          collection: 'comments',
+          where: {
+            parentComment: {
+              equals: comment.id,
+            },
           },
-          status: {
-            equals: 'approved',
-          },
-        },
-        sort: 'createdAt',
-      })
+        })
 
-      comments.docs[i].replies = replies.docs
-    }
+        return {
+          ...comment,
+          replies: replies.docs,
+        }
+      }),
+    )
 
-    return NextResponse.json(comments)
+    return NextResponse.json(commentsWithReplies)
   } catch (error) {
     console.error('Error fetching comments:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@
  */
 
 import { format, parseISO } from 'date-fns'
+import { HeadingItem } from '@/components/blog/TableOfContents'
 
 /**
  * Format a date string into a human-readable format
@@ -22,54 +23,94 @@ export function formatDate(dateString: string, formatPattern = 'MMM d, yyyy'): s
   }
 }
 
-interface HeadingItem {
-  id: string
-  text: string
-  level: number
+/**
+ * Generates a kebab-case slug from a string
+ */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, '') // Trim - from end of text
 }
 
 /**
- * Extract headings from content for table of contents
- * @param content The content to extract headings from
- * @returns Array of heading items with id, text and level
+ * Extracts headings from a rich text content object
  */
 export function extractHeadingsFromContent(content: any): HeadingItem[] {
+  // This is a generic implementation - adjust based on your CMS's content structure
   if (!content) return []
 
-  // If content is a string (likely HTML), extract headings using regex
-  if (typeof content === 'string') {
-    const headingRegex = /<h([1-6])(?:[^>]*)id="([^"]*)"(?:[^>]*)>([^<]*)<\/h\1>/g
+  // For Payload CMS rich text content
+  if (content.root && content.root.children) {
     const headings: HeadingItem[] = []
-    let match
 
-    while ((match = headingRegex.exec(content)) !== null) {
-      const [, level, id, text] = match
-      headings.push({
-        id,
-        text: text.trim(),
-        level: parseInt(level, 10),
-      })
+    // Find all heading nodes in the content
+    const processNode = (node: any) => {
+      if (node.type && node.type.startsWith('heading') && node.children) {
+        const level = parseInt(node.type.replace('heading', ''))
+
+        if (!isNaN(level) && level >= 1 && level <= 6) {
+          // Extract text from children
+          let text = ''
+          node.children.forEach((child: any) => {
+            if (child.text) {
+              text += child.text
+            }
+          })
+
+          if (text) {
+            const id = slugify(text)
+            headings.push({ id, text, level })
+          }
+        }
+      }
+
+      // Process children recursively
+      if (node.children && Array.isArray(node.children)) {
+        node.children.forEach(processNode)
+      }
     }
 
+    content.root.children.forEach(processNode)
     return headings
   }
 
-  // If content has a nodes array (e.g., MDX/rich text content)
-  if (content.nodes && Array.isArray(content.nodes)) {
-    return content.nodes
-      .filter((node) => node.type && node.type.startsWith('heading'))
-      .map((node) => {
-        const level = parseInt(node.type.replace('heading', ''), 10)
-        return {
-          id: node.id || generateHeadingId(extractTextFromNode(node)),
-          text: extractTextFromNode(node),
-          level,
-        }
-      })
-  }
-
-  // If content is some other format, return empty array
+  // Fallback for simple content structures or other CMS formats
   return []
+}
+
+/**
+ * Extracts headings from DOM elements within a container
+ */
+export function extractHeadingsFromDOM(contentElement: Element, maxDepth = 3): HeadingItem[] {
+  const headings: HeadingItem[] = []
+
+  // Find all heading elements (h1-h6) up to maxDepth
+  const headingSelectors = Array.from({ length: maxDepth }, (_, i) => `h${i + 1}`)
+  const headingElements = contentElement.querySelectorAll(headingSelectors.join(','))
+
+  headingElements.forEach((el) => {
+    const level = parseInt(el.tagName[1])
+    const text = el.textContent || ''
+
+    // Skip empty headings
+    if (!text.trim()) return
+
+    // Use existing ID or generate one
+    const id = el.id || slugify(text)
+
+    // Set ID on element if it doesn't have one
+    if (!el.id) {
+      el.id = id
+    }
+
+    headings.push({ id, text, level })
+  })
+
+  return headings
 }
 
 /**
@@ -110,21 +151,19 @@ export function generateHeadingId(text: string): string {
 }
 
 /**
- * Calculate estimated reading time for content
- * @param content The content to calculate reading time for
- * @param wordsPerMinute Reading speed in words per minute
- * @returns Estimated reading time in minutes
+ * Calculates estimated reading time for article content
  */
-export function calculateReadingTime(content: any, wordsPerMinute = 225): number {
+export function calculateReadingTime(content: string, wordsPerMinute = 200): number {
   if (!content) return 0
 
-  const text =
-    typeof content === 'string'
-      ? content.replace(/<[^>]*>/g, '') // Strip HTML tags
-      : extractAllText(content)
+  // Count words in content
+  const wordCount = content.trim().split(/\s+/).length
 
-  const words = text.trim().split(/\s+/).length
-  return Math.max(1, Math.ceil(words / wordsPerMinute))
+  // Calculate reading time in minutes
+  const readingTime = Math.ceil(wordCount / wordsPerMinute)
+
+  // Return at least 1 minute
+  return Math.max(1, readingTime)
 }
 
 /**
@@ -159,24 +198,16 @@ export function extractAllText(content: any): string {
 }
 
 /**
- * Truncate text to a maximum length
- * @param text The text to truncate
- * @param maxLength Maximum length
- * @param ellipsis String to append when truncated
- * @returns Truncated text
+ * Truncates text to a specified length and adds ellipsis
  */
-export function truncateText(text: string, maxLength = 150, ellipsis = '...'): string {
+export function truncateText(text: string, maxLength: number = 150): string {
   if (!text || text.length <= maxLength) return text
 
-  // Try to truncate at the last space before maxLength
+  // Truncate at the last space before maxLength
   const truncated = text.substring(0, maxLength)
   const lastSpace = truncated.lastIndexOf(' ')
 
-  if (lastSpace > 0) {
-    return truncated.substring(0, lastSpace) + ellipsis
-  }
-
-  return truncated + ellipsis
+  return lastSpace > 0 ? truncated.substring(0, lastSpace) + '...' : truncated + '...'
 }
 
 /**
@@ -200,5 +231,23 @@ export async function trackPostView(postId: string): Promise<void> {
     })
   } catch (error) {
     console.error('Failed to track post view:', error)
+  }
+}
+
+/**
+ * Formats a date for display in blog posts
+ */
+export function formatBlogDate(date: string | Date, locale: string = 'en'): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(dateObj)
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return dateObj.toLocaleDateString()
   }
 }

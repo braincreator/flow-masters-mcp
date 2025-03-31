@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
-import { extractHeadingsFromContent } from '@/lib/blogHelpers'
+import { extractHeadingsFromContent, extractHeadingsFromDOM } from '@/lib/blogHelpers'
 
 export interface HeadingItem {
   id: string
@@ -11,7 +11,8 @@ export interface HeadingItem {
 }
 
 export interface TableOfContentsProps {
-  content: any // The MDX/content object
+  content?: any // The MDX/content object
+  contentSelector?: string // CSS selector for the content container (e.g., '#post-content')
   className?: string
   maxDepth?: number
   minHeadings?: number
@@ -23,6 +24,7 @@ export interface TableOfContentsProps {
 
 export function TableOfContents({
   content,
+  contentSelector,
   className,
   maxDepth = 3,
   minHeadings = 2,
@@ -35,16 +37,39 @@ export function TableOfContents({
   const [activeId, setActiveId] = useState<string>('')
   const [isCollapsed, setIsCollapsed] = useState(initiallyCollapsed)
 
-  // Extract headings from content
+  // Extract headings from either content object or DOM
   useEffect(() => {
-    if (!content) return
+    if (content) {
+      // Extract from content object
+      const extractedHeadings = extractHeadingsFromContent(content).filter(
+        (heading) => heading.level <= maxDepth,
+      )
+      setHeadings(extractedHeadings)
+    } else if (contentSelector && typeof window !== 'undefined') {
+      // Extract from DOM using selector
+      const contentElement = document.querySelector(contentSelector)
+      if (contentElement) {
+        const extractedHeadings = extractHeadingsFromDOM(contentElement, maxDepth)
+        setHeadings(extractedHeadings)
+      }
 
-    const extractedHeadings = extractHeadingsFromContent(content).filter(
-      (heading) => heading.level <= maxDepth,
-    )
+      // Set up mutation observer to update headings if content changes
+      const observer = new MutationObserver(() => {
+        const contentElement = document.querySelector(contentSelector)
+        if (contentElement) {
+          const extractedHeadings = extractHeadingsFromDOM(contentElement, maxDepth)
+          setHeadings(extractedHeadings)
+        }
+      })
 
-    setHeadings(extractedHeadings)
-  }, [content, maxDepth])
+      const targetElement = document.querySelector(contentSelector)
+      if (targetElement) {
+        observer.observe(targetElement, { childList: true, subtree: true })
+      }
+
+      return () => observer.disconnect()
+    }
+  }, [content, contentSelector, maxDepth])
 
   // Track active heading based on scroll position
   useEffect(() => {

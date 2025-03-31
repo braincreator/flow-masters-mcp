@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { payload } from '@/payload'
+import { getPayloadClient } from '@/utilities/payload'
 
 interface MetricsRequest {
   postId: string
-  action: 'view' | 'share' | 'like'
+  action: 'view' | 'share' | 'like' | 'progress'
   platform?: string // For share metrics
+  progress?: number // For reading progress (25, 75, 100)
 }
 
 export async function POST(req: NextRequest) {
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify post exists
+    const payload = await getPayloadClient()
     const postExists = await payload
       .findByID({
         collection: 'posts',
@@ -70,6 +72,23 @@ export async function POST(req: NextRequest) {
         case 'like':
           updateData.likes = (metrics.likes || 0) + 1
           break
+        case 'progress':
+          // Track reading progress
+          if (body.progress) {
+            // Add reading progress data
+            updateData.readingProgress = [
+              ...(metrics.readingProgress || []),
+              {
+                progress: body.progress,
+                date: now,
+              },
+            ]
+            // If user completed reading the article (100% progress)
+            if (body.progress === 100) {
+              updateData.completedReads = (metrics.completedReads || 0) + 1
+            }
+          }
+          break
       }
 
       await payload.update({
@@ -87,6 +106,7 @@ export async function POST(req: NextRequest) {
         views: 0,
         shareCount: 0,
         likes: 0,
+        completedReads: 0,
       }
 
       // Set the specific metric based on the action
@@ -105,6 +125,21 @@ export async function POST(req: NextRequest) {
           break
         case 'like':
           createData.likes = 1
+          break
+        case 'progress':
+          // Track reading progress for new metrics record
+          if (body.progress) {
+            createData.readingProgress = [
+              {
+                progress: body.progress,
+                date: now,
+              },
+            ]
+            // If user completed reading (100% progress)
+            if (body.progress === 100) {
+              createData.completedReads = 1
+            }
+          }
           break
       }
 

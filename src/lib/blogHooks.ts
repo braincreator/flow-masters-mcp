@@ -1,45 +1,188 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
- * Hook to track reading progress of a blog post
- * @returns Reading progress as a percentage (0-100)
+ * Custom hook that tracks reading progress on a page
+ * Returns a percentage value between 0 and 100
  */
-export function useReadingProgress() {
-  const [progress, setProgress] = useState(0)
+export function useReadingProgress(): number {
+  const [completion, setCompletion] = useState(0)
 
-  const scrollListener = useCallback(() => {
-    // If we're in a browser environment
-    if (typeof window !== 'undefined') {
-      // Get the total height of the document
-      const totalHeight =
-        document.documentElement.scrollHeight - document.documentElement.clientHeight
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-      // Get current scroll position
-      const scrollPosition = window.scrollY
+    // Function to calculate scroll progress
+    const updateScrollCompletion = () => {
+      // Get scroll position and document height
+      const currentScrollY = window.scrollY
+      const scrollHeight = document.body.scrollHeight - window.innerHeight
 
-      // Calculate progress
-      if (totalHeight) {
-        setProgress(Number(((scrollPosition / totalHeight) * 100).toFixed(0)))
+      // If scrollHeight is 0, set completion to 100% to avoid division by zero
+      if (scrollHeight <= 0) {
+        setCompletion(100)
+        return
       }
+
+      // Calculate percentage - limit between 0 and 100
+      const newPercentage = Math.min(100, Math.max(0, (currentScrollY / scrollHeight) * 100))
+      setCompletion(newPercentage)
+    }
+
+    // Update on mount
+    updateScrollCompletion()
+
+    // Add scroll and resize event listeners
+    window.addEventListener('scroll', updateScrollCompletion, { passive: true })
+    window.addEventListener('resize', updateScrollCompletion, { passive: true })
+
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener('scroll', updateScrollCompletion)
+      window.removeEventListener('resize', updateScrollCompletion)
     }
   }, [])
 
-  useEffect(() => {
-    // Add scroll event listener
-    window.addEventListener('scroll', scrollListener)
+  return completion
+}
 
-    // Call once to set initial value
-    scrollListener()
+/**
+ * Custom hook to track time spent on an article
+ * Records time spent in seconds
+ */
+export function useReadingTime(
+  postId: string,
+  apiEndpoint = '/api/blog/metrics',
+  updateInterval = 30000, // 30 seconds
+) {
+  const [activeTime, setActiveTime] = useState(0)
+  const startTimeRef = useRef<number>(Date.now())
+  const lastUpdateRef = useRef<number>(Date.now())
+  const isActiveRef = useRef<boolean>(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Function to send update to API
+  const sendUpdate = async (finalUpdate = false) => {
+    try {
+      if (activeTime <= 0) return
+
+      const data = {
+        postId,
+        timeSpent: activeTime,
+        isFinal: finalUpdate,
+      }
+
+      await fetch(`${apiEndpoint}?type=timeSpent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      lastUpdateRef.current = Date.now()
+    } catch (error) {
+      console.error('Failed to update reading time:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Track visibility change
+    const handleVisibilityChange = () => {
+      isActiveRef.current = document.visibilityState === 'visible'
+
+      if (isActiveRef.current) {
+        // User came back to the page - reset start time
+        startTimeRef.current = Date.now()
+      } else {
+        // User left page - update active time
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
+        setActiveTime((prevTime) => prevTime + elapsed)
+      }
+    }
+
+    // Track window focus/blur
+    const handleFocus = () => {
+      isActiveRef.current = true
+      startTimeRef.current = Date.now()
+    }
+
+    const handleBlur = () => {
+      isActiveRef.current = false
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
+      setActiveTime((prevTime) => prevTime + elapsed)
+    }
+
+    // Set interval to periodically update time spent
+    intervalRef.current = setInterval(() => {
+      if (isActiveRef.current) {
+        const currentTime = Date.now()
+        const elapsed = Math.floor((currentTime - startTimeRef.current) / 1000)
+
+        setActiveTime((prevTime) => {
+          const newTime = prevTime + elapsed
+          startTimeRef.current = currentTime
+
+          // Send update if enough time has passed since last update
+          if (currentTime - lastUpdateRef.current >= updateInterval) {
+            sendUpdate(false)
+          }
+
+          return newTime
+        })
+      }
+    }, 1000) // Update every second
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('blur', handleBlur)
 
     // Clean up
     return () => {
-      window.removeEventListener('scroll', scrollListener)
-    }
-  }, [scrollListener])
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('blur', handleBlur)
 
-  return progress
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+
+      // Add any active time since last check
+      if (isActiveRef.current) {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
+        setActiveTime((prevTime) => prevTime + elapsed)
+      }
+
+      // Send final update
+      sendUpdate(true)
+    }
+  }, [postId, apiEndpoint, updateInterval])
+
+  return { activeTime }
+}
+
+/**
+ * Custom hook to track social sharing events
+ */
+export function useSocialShare(postId: string, apiEndpoint = '/api/blog/metrics') {
+  // Function to track share events
+  const trackShare = async (platform: string) => {
+    try {
+      await fetch(`${apiEndpoint}?type=share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId,
+          platform,
+        }),
+      })
+    } catch (error) {
+      console.error(`Failed to track ${platform} share:`, error)
+    }
+  }
+
+  return { trackShare }
 }
 
 interface BlogSearchHookOptions {

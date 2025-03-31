@@ -4,17 +4,11 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { format } from 'date-fns'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { formatBlogDate } from '@/lib/blogHelpers'
 
-interface Post {
+interface RelatedPost {
   id: string
   title: string
   slug: string
@@ -32,7 +26,7 @@ interface Post {
 }
 
 interface BlogRelatedPostsProps {
-  posts: Post[]
+  posts: RelatedPost[]
 }
 
 export function BlogRelatedPosts({ posts }: BlogRelatedPostsProps) {
@@ -45,52 +39,55 @@ export function BlogRelatedPosts({ posts }: BlogRelatedPostsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {posts.map((post) => (
-        <Link
-          key={post.id}
-          href={`/${currentLocale}/blog/${post.slug}`}
-          className="block transition-transform hover:scale-[1.02]"
-        >
-          <Card className="h-full overflow-hidden">
-            {post.heroImage?.url && (
-              <div className="relative w-full h-48 overflow-hidden">
+        <Card key={post.id} className="overflow-hidden flex flex-col h-full">
+          {post.heroImage?.url && (
+            <div className="aspect-[16/9] relative w-full overflow-hidden">
+              <Link href={`/${currentLocale}/blog/${post.slug}`}>
                 <Image
                   src={post.heroImage.url}
                   alt={post.heroImage.alt || post.title}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
+              </Link>
+            </div>
+          )}
+
+          <CardContent className="flex-grow p-5">
+            {post.categories && post.categories.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {post.categories.slice(0, 2).map((category) => (
+                  <Badge key={category.id} variant="outline" className="font-normal">
+                    <Link href={`/${currentLocale}/blog?category=${category.slug}`}>
+                      {category.title}
+                    </Link>
+                  </Badge>
+                ))}
               </div>
             )}
 
-            <CardHeader className="p-4">
-              <CardTitle className="line-clamp-2 text-lg">{post.title}</CardTitle>
-
-              {post.categories && post.categories.length > 0 && (
-                <div className="flex gap-2 mt-2">
-                  {post.categories.slice(0, 1).map((category) => (
-                    <span key={category.id} className="text-xs text-primary font-medium">
-                      {category.title}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </CardHeader>
+            <Link href={`/${currentLocale}/blog/${post.slug}`} className="block group">
+              <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                {post.title}
+              </h3>
+            </Link>
 
             {post.excerpt && (
-              <CardContent className="p-4 pt-0">
-                <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
-              </CardContent>
+              <p className="text-muted-foreground text-sm line-clamp-2 mb-3">{post.excerpt}</p>
             )}
+          </CardContent>
 
+          <CardFooter className="border-t px-5 py-3">
             {post.publishedAt && (
-              <CardFooter className="p-4 pt-0 text-xs text-muted-foreground">
-                {format(new Date(post.publishedAt), 'MMMM d, yyyy')}
-              </CardFooter>
+              <time className="text-xs text-muted-foreground">
+                {formatBlogDate(post.publishedAt, currentLocale)}
+              </time>
             )}
-          </Card>
-        </Link>
+          </CardFooter>
+        </Card>
       ))}
     </div>
   )

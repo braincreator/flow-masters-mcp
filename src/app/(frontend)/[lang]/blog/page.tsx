@@ -10,21 +10,22 @@ const POSTS_PER_PAGE = 9
 
 // Define the props interface
 interface BlogPageProps {
-  params: { lang: string }
-  searchParams: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<{
     page?: string
     category?: string
     tag?: string
     search?: string
-  }
+  }>
 }
 
 export async function generateMetadata({
-  params,
+  params: paramsPromise,
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }>
 }): Promise<Metadata> {
-  const locale = (params.lang || DEFAULT_LOCALE) as Locale
+  const { lang } = await paramsPromise
+  const locale = (lang || DEFAULT_LOCALE) as Locale
 
   return {
     title: locale === 'ru' ? 'Блог' : 'Blog',
@@ -33,12 +34,18 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPage({ params, searchParams }: BlogPageProps) {
-  const locale = (params.lang || DEFAULT_LOCALE) as Locale
-  const currentPage = searchParams.page ? parseInt(searchParams.page, 10) : 1
-  const categorySlug = searchParams.category || ''
-  const tagSlug = searchParams.tag || ''
-  const searchQuery = searchParams.search || ''
+export default async function BlogPage({
+  params: paramsPromise,
+  searchParams: searchParamsPromise,
+}: BlogPageProps) {
+  const { lang } = await paramsPromise
+  const { page, category, tag, search } = await searchParamsPromise
+
+  const locale = (lang || DEFAULT_LOCALE) as Locale
+  const currentPage = page ? parseInt(page, 10) : 1
+  const categorySlug = category || ''
+  const tagSlug = tag || ''
+  const searchQuery = search || ''
 
   try {
     // Initialize Payload client
@@ -48,8 +55,8 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
     const query: any = {
       and: [
         {
-          published: {
-            equals: true,
+          _status: {
+            equals: 'published',
           },
         },
       ],
@@ -184,8 +191,8 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
           where: {
             and: [
               {
-                published: {
-                  equals: true,
+                _status: {
+                  equals: 'published',
                 },
               },
               {
@@ -216,8 +223,8 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
           where: {
             and: [
               {
-                published: {
-                  equals: true,
+                _status: {
+                  equals: 'published',
                 },
               },
               {
