@@ -39,6 +39,7 @@ import { Orders } from './collections/Orders'
 import { Integrations } from './collections/Integrations'
 import { Events } from './collections/Events'
 import { Comments } from './collections/Comments'
+import { PostMetrics } from './collections/PostMetrics'
 
 // Import constants
 import { ENV } from '@/constants/env'
@@ -172,7 +173,7 @@ export default buildConfig({
     defaultLocale: 'ru',
     fallback: true,
   },
-  collections: [...collections, Comments],
+  collections: [...collections, Comments, PostMetrics],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [
     Header,

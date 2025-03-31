@@ -101,12 +101,15 @@ export async function POST(req: NextRequest) {
     } else {
       // Create new metrics
       const createData: Record<string, any> = {
+        title: postExists.title || 'Untitled Post',
         post: body.postId,
         lastUpdated: now,
         views: 0,
         shareCount: 0,
         likes: 0,
         completedReads: 0,
+        shares: [],
+        readingProgress: [],
       }
 
       // Set the specific metric based on the action
