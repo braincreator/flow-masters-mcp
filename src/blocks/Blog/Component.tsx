@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { BlogSearch } from '@/components/blog/BlogSearch'
@@ -95,14 +95,24 @@ export function BlogBlock({
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const prevSearchParamsRef = useRef<string>(searchParams.toString())
 
   const [posts, setPosts] = useState<Post[]>(initialPosts || [])
   const [categories, setCategories] = useState<Category[]>(initialCategories || [])
   const [tags, setTags] = useState<Tag[]>(initialTags || [])
-  const [loading, setLoading] = useState(!initialPosts)
-  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [totalPages, setTotalPages] = useState(
+    initialPosts ? Math.ceil(initialPosts.length / postsPerPage) : 1,
+  )
   const [error, setError] = useState<string | null>(null)
   const [apiErrorOccurred, setApiErrorOccurred] = useState(false)
+
+  // Track if we need to fetch data from API
+  const shouldFetchFromAPI = useRef<boolean>(!initialPosts || !initialCategories || !initialTags)
+  // Track if initial data is already processed
+  const initialDataProcessed = useRef<boolean>(false)
+  // Track if a fetch is currently in progress
+  const fetchInProgress = useRef<boolean>(false)
 
   // Get the current locale from the pathname
   const segments = pathname.split('/')
@@ -119,39 +129,36 @@ export function BlogBlock({
   // Use Payload API to fetch data
   const { fetchPosts, fetchCategories, fetchTags } = usePayloadAPI()
 
-  // Fetch posts when parameters change
-  useEffect(() => {
-    if (!initialPosts) {
-      const fetchData = async () => {
-        setLoading(true)
-        try {
-          console.log('BlogBlock: Attempting to fetch posts')
-          const response = await fetchPosts({
-            locale: currentLocale || DEFAULT_LOCALE,
-            page: currentPage,
-            limit: postsPerPage,
-            searchQuery,
-            categorySlug: categorySlug || (categoryID ? categoryID : ''),
-            tagSlug: tagSlug || (tagID ? tagID : ''),
-            authorId: authorID || '',
-          })
+  // Memoize fetch functions to avoid recreating them on each render
+  const fetchPostsData = useCallback(async () => {
+    if (fetchInProgress.current) return
+    fetchInProgress.current = true
+    setLoading(true)
 
-          setPosts(response.docs)
-          setTotalPages(Math.ceil(response.totalDocs / postsPerPage))
-          setLoading(false)
-        } catch (err) {
-          console.error('BlogBlock: Error fetching posts:', err)
-          setError('An error occurred while fetching posts. Showing sample content instead.')
-          setPosts(FALLBACK_POSTS)
-          setApiErrorOccurred(true)
-          setLoading(false)
-        }
-      }
+    try {
+      console.log('BlogBlock: Fetching posts')
+      const response = await fetchPosts({
+        locale: currentLocale || DEFAULT_LOCALE,
+        page: currentPage,
+        limit: postsPerPage,
+        searchQuery,
+        categorySlug: categorySlug || (categoryID ? categoryID : ''),
+        tagSlug: tagSlug || (tagID ? tagID : ''),
+        authorId: authorID || '',
+      })
 
-      fetchData()
+      setPosts(response.docs)
+      setTotalPages(Math.ceil(response.totalDocs / postsPerPage))
+    } catch (err) {
+      console.error('BlogBlock: Error fetching posts:', err)
+      setError('An error occurred while fetching posts. Showing sample content instead.')
+      setPosts(FALLBACK_POSTS)
+      setApiErrorOccurred(true)
+    } finally {
+      setLoading(false)
+      fetchInProgress.current = false
     }
   }, [
-    fetchPosts,
     currentLocale,
     currentPage,
     postsPerPage,
@@ -161,54 +168,85 @@ export function BlogBlock({
     categoryID,
     tagID,
     authorID,
-    initialPosts,
+    fetchPosts,
   ])
 
-  // Fetch categories and tags if needed
-  useEffect(() => {
-    if (!initialCategories && showCategories) {
-      const fetchCategoriesData = async () => {
-        try {
-          console.log('BlogBlock: Attempting to fetch categories')
-          const categoriesData = await fetchCategories({ locale: currentLocale || DEFAULT_LOCALE })
-          console.log('BlogBlock: Successfully received categories data', categoriesData)
-          setCategories(categoriesData)
-        } catch (err) {
-          console.error('BlogBlock: Error fetching categories:', err)
-          // If categories fail to load, we should still show the blog without categories
-          // This prevents the entire component from breaking
-          setApiErrorOccurred(true)
-        }
-      }
+  const fetchCategoriesData = useCallback(async () => {
+    if (!showCategories || fetchInProgress.current || initialCategories) return
 
-      fetchCategoriesData()
+    try {
+      console.log('BlogBlock: Fetching categories')
+      const categoriesData = await fetchCategories({ locale: currentLocale || DEFAULT_LOCALE })
+      setCategories(categoriesData)
+    } catch (err) {
+      console.error('BlogBlock: Error fetching categories:', err)
+      setApiErrorOccurred(true)
+    }
+  }, [currentLocale, fetchCategories, initialCategories, showCategories])
+
+  const fetchTagsData = useCallback(async () => {
+    if (!showTags || fetchInProgress.current || initialTags) return
+
+    try {
+      console.log('BlogBlock: Fetching tags')
+      const tagsData = await fetchTags({ locale: currentLocale || DEFAULT_LOCALE })
+      setTags(tagsData)
+    } catch (err) {
+      console.error('BlogBlock: Error fetching tags:', err)
+      setApiErrorOccurred(true)
+    }
+  }, [currentLocale, fetchTags, initialTags, showTags])
+
+  // Effect for search params change detection
+  useEffect(() => {
+    const currentSearchParams = searchParams.toString()
+
+    // Only refetch if search params have changed and it's not the initial render
+    if (prevSearchParamsRef.current !== currentSearchParams && initialDataProcessed.current) {
+      console.log('BlogBlock: Search params changed, refetching data')
+      fetchPostsData()
     }
 
-    if (!initialTags && showTags) {
-      const fetchTagsData = async () => {
-        try {
-          console.log('BlogBlock: Attempting to fetch tags')
-          const tagsData = await fetchTags({ locale: currentLocale || DEFAULT_LOCALE })
-          console.log('BlogBlock: Successfully received tags data', tagsData)
-          setTags(tagsData)
-        } catch (err) {
-          console.error('BlogBlock: Error fetching tags:', err)
-          // If tags fail to load, we should still show the blog without tags
-          // This prevents the entire component from breaking
-          setApiErrorOccurred(true)
-        }
+    prevSearchParamsRef.current = currentSearchParams
+  }, [searchParams, fetchPostsData])
+
+  // Handle initial data loading or API fetching
+  useEffect(() => {
+    // Skip if we've already processed initial data
+    if (initialDataProcessed.current) return
+
+    // If we have initial data from the server, mark as processed
+    if (initialPosts) {
+      initialDataProcessed.current = true
+
+      // Only fetch categories or tags if we don't have them
+      if (!initialCategories && showCategories) {
+        fetchCategoriesData()
       }
 
+      if (!initialTags && showTags) {
+        fetchTagsData()
+      }
+
+      return
+    }
+
+    // Otherwise, fetch everything from the API
+    if (shouldFetchFromAPI.current) {
+      fetchPostsData()
+      fetchCategoriesData()
       fetchTagsData()
+      initialDataProcessed.current = true
     }
   }, [
-    fetchCategories,
-    fetchTags,
-    currentLocale,
-    showCategories,
-    showTags,
+    initialPosts,
     initialCategories,
     initialTags,
+    showCategories,
+    showTags,
+    fetchPostsData,
+    fetchCategoriesData,
+    fetchTagsData,
   ])
 
   // Handle search
@@ -236,7 +274,6 @@ export function BlogBlock({
         </div>
       )}
 
-      {/* Page Title and Description */}
       {(title || description) && (
         <PageHeading
           title={title || (currentLocale === 'ru' ? 'Блог' : 'Blog')}
@@ -246,14 +283,12 @@ export function BlogBlock({
         />
       )}
 
-      {/* Search */}
       {showSearch && !apiErrorOccurred && (
         <div className="mb-8 max-w-md mx-auto">
           <BlogSearch onSearch={handleSearch} initialQuery={searchQuery} />
         </div>
       )}
 
-      {/* Categories and Tags */}
       <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center">
         {showCategories && categories.length > 0 && (
           <div className="md:w-1/2">
@@ -270,7 +305,6 @@ export function BlogBlock({
         )}
       </div>
 
-      {/* Loading State */}
       {loading ? (
         <div className="py-12 text-center">
           <div
@@ -282,14 +316,12 @@ export function BlogBlock({
         </div>
       ) : (
         <>
-          {/* Featured Post */}
           {showFeaturedPost && posts.length > 0 && (
             <div className="mb-12">
               <BlogPostCard post={posts[0]} variant="featured" />
             </div>
           )}
 
-          {/* Posts Grid */}
           {posts.length > 0 ? (
             <div
               className={`grid ${
@@ -310,7 +342,6 @@ export function BlogBlock({
             </div>
           )}
 
-          {/* Pagination */}
           {showPagination && !apiErrorOccurred && totalPages > 1 && (
             <div className="mt-12 flex justify-center">
               <Pagination
