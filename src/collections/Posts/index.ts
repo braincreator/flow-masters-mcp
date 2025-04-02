@@ -131,6 +131,13 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
+              filterOptions: {
+                where: {
+                  categoryType: {
+                    equals: 'blog',
+                  },
+                },
+              },
             },
             {
               name: 'tags',

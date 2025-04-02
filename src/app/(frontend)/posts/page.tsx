@@ -120,6 +120,11 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
     // Fetch all categories for filters
     const categories = await payload.find({
       collection: 'categories',
+      where: {
+        categoryType: {
+          equals: 'blog',
+        },
+      },
       limit: 100,
     })
 

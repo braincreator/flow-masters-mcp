@@ -74,6 +74,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const [isFiltersOpen, setIsFiltersOpen] = React.useState(false)
   const [isSortOpen, setIsSortOpen] = React.useState(false)
 
+  // Local state for filter values in the dialog
+  const [tempCategory, setTempCategory] = React.useState(searchParams.get('category') || 'all')
+  const [tempProductType, setTempProductType] = React.useState(
+    searchParams.get('productType') || 'all',
+  )
+  const [tempTag, setTempTag] = React.useState(searchParams.get('tag') || 'all')
+  const [tempPriceRange, setTempPriceRange] = React.useState<[number, number]>([
+    parseInt(searchParams.get('minPrice') || priceRange.min.toString()),
+    parseInt(searchParams.get('maxPrice') || priceRange.max.toString()),
+  ])
+
+  // Debug - Log the categories prop
+  React.useEffect(() => {
+    console.log('FilterBar categories prop:', categories)
+  }, [categories])
+
   // Use translations if locale is provided, otherwise use labels prop
   const t = locale
     ? translations[locale as keyof typeof translations]
@@ -85,7 +101,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           searchPlaceholder: labels?.searchPlaceholder || 'Search products...',
           productTypes: labels?.productTypes || 'Product Types',
           tags: labels?.tags || 'Tags',
-          priceRange: labels?.priceRange || 'Price Range',
+          priceRange: {
+            label: labels?.priceRange || 'Price Range',
+            min: 'Min',
+            max: 'Max',
+            from: 'From',
+            to: 'To',
+            selected: 'Selected',
+            reset: 'Reset',
+          },
           layout: {
             grid: labels?.layout?.grid || 'Grid',
             list: labels?.layout?.list || 'List',
@@ -100,7 +124,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     (searchParams.get('layout') as 'grid' | 'list') || defaultLayout,
   )
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = React.useState(false)
-  const [currentPriceRange, setCurrentPriceRange] = React.useState<[number, number]>([
+  const [appliedPriceRange, setAppliedPriceRange] = React.useState<[number, number]>([
     parseInt(searchParams.get('minPrice') || priceRange.min.toString()),
     parseInt(searchParams.get('maxPrice') || priceRange.max.toString()),
   ])
@@ -111,6 +135,25 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       setIsSortOpen(false)
     }
   }, [openDropdown])
+
+  // Effect to reset temp filters when dialog opens
+  React.useEffect(() => {
+    if (isFiltersOpen) {
+      // Reset temp filters to current URL params when dialog opens
+      setTempCategory(searchParams.get('category') || 'all')
+      setTempProductType(searchParams.get('productType') || 'all')
+      setTempTag(searchParams.get('tag') || 'all')
+
+      // Use database values for min/max prices if no URL params
+      const urlMinPrice = searchParams.get('minPrice')
+      const urlMaxPrice = searchParams.get('maxPrice')
+
+      setTempPriceRange([
+        urlMinPrice ? parseInt(urlMinPrice) : priceRange.min,
+        urlMaxPrice ? parseInt(urlMaxPrice) : priceRange.max,
+      ])
+    }
+  }, [isFiltersOpen, searchParams, priceRange])
 
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -129,12 +172,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     setLayout(newLayout)
     setOpenDropdown(null)
     const newUrl = updateSearchParams('layout', newLayout)
-    router.push(newUrl)
+    router.replace(newUrl, { scroll: false })
   }
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
-      router.push(updateSearchParams('search', value))
+      router.replace(updateSearchParams('search', value), { scroll: false })
     }, 500),
     [router, updateSearchParams],
   )
@@ -144,27 +187,44 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   }
 
   const handleCategoryChange = (categoryValue: string) => {
-    router.push(updateSearchParams('category', categoryValue))
+    router.replace(updateSearchParams('category', categoryValue), { scroll: false })
   }
 
   const handleSortChange = (sortValue: string) => {
-    router.push(updateSearchParams('sort', sortValue))
+    router.replace(updateSearchParams('sort', sortValue), { scroll: false })
   }
 
   const handleProductTypeChange = (typeValue: string) => {
-    router.push(updateSearchParams('productType', typeValue))
+    router.replace(updateSearchParams('productType', typeValue), { scroll: false })
   }
 
   const handleTagChange = (tagValue: string) => {
-    router.push(updateSearchParams('tag', tagValue))
+    router.replace(updateSearchParams('tag', tagValue), { scroll: false })
   }
 
   const handlePriceRangeChange = (values: [number, number]) => {
-    setCurrentPriceRange(values)
+    setAppliedPriceRange(values)
     const params = new URLSearchParams(searchParams.toString())
     params.set('minPrice', values[0].toString())
     params.set('maxPrice', values[1].toString())
-    router.push(`?${params.toString()}`)
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
+
+  // These handlers are for the dialog and only update local state
+  const handleDialogCategoryChange = (value: string) => {
+    setTempCategory(value)
+  }
+
+  const handleDialogProductTypeChange = (value: string) => {
+    setTempProductType(value)
+  }
+
+  const handleDialogTagChange = (value: string) => {
+    setTempTag(value)
+  }
+
+  const handleDialogPriceRangeChange = (values: [number, number]) => {
+    setTempPriceRange(values)
   }
 
   // Format price for display with appropriate currency
@@ -183,28 +243,92 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const currentTag = searchParams.get('tag') || 'all'
   const currentSearch = searchParams.get('search') || ''
 
-  // Open filter dialog
-  const openFiltersDialog = () => {
-    setIsFiltersOpen(true)
-  }
-
-  // Reset all filters
-  const resetAllFilters = () => {
-    handleCategoryChange('all')
-    handleProductTypeChange('all')
-    handleTagChange('all')
-    handlePriceRangeChange([priceRange.min, priceRange.max])
-    handleSearch('')
-  }
-
   // Reset only specific filter
   const hasActiveFilters =
     currentCategory !== 'all' ||
     currentProductType !== 'all' ||
     currentTag !== 'all' ||
     currentSearch ||
-    currentPriceRange[0] !== priceRange.min ||
-    currentPriceRange[1] !== priceRange.max
+    appliedPriceRange[0] !== priceRange.min ||
+    appliedPriceRange[1] !== priceRange.max
+
+  // Open filter dialog
+  const openFiltersDialog = () => {
+    setIsFiltersOpen(true)
+  }
+
+  // Apply all filters from dialog
+  const onDialogApply = () => {
+    // Create a new URLSearchParams object
+    const params = new URLSearchParams(searchParams.toString())
+
+    // Update all filter params from temporary state
+    if (tempCategory && tempCategory !== 'all') {
+      params.set('category', tempCategory)
+    } else {
+      params.delete('category')
+    }
+
+    if (tempProductType && tempProductType !== 'all') {
+      params.set('productType', tempProductType)
+    } else {
+      params.delete('productType')
+    }
+
+    if (tempTag && tempTag !== 'all') {
+      params.set('tag', tempTag)
+    } else {
+      params.delete('tag')
+    }
+
+    if (tempPriceRange[0] !== priceRange.min || tempPriceRange[1] !== priceRange.max) {
+      params.set('minPrice', tempPriceRange[0].toString())
+      params.set('maxPrice', tempPriceRange[1].toString())
+    } else {
+      params.delete('minPrice')
+      params.delete('maxPrice')
+    }
+
+    // Reset page when filters change
+    params.delete('page')
+
+    // Close the dialog
+    setIsFiltersOpen(false)
+
+    // Navigate to the URL with all filters applied
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
+
+  // Reset all filters in the dialog
+  const resetDialogFilters = () => {
+    setTempCategory('all')
+    setTempProductType('all')
+    setTempTag('all')
+    setTempPriceRange([priceRange.min, priceRange.max])
+  }
+
+  // Reset all applied filters
+  const resetAllFilters = () => {
+    const params = new URLSearchParams()
+
+    // Preserve layout and sort
+    const layout = searchParams.get('layout')
+    const sort = searchParams.get('sort')
+
+    if (layout) params.set('layout', layout)
+    if (sort) params.set('sort', sort)
+
+    // Add a timestamp parameter to ensure the URL changes and triggers a refresh
+    params.set('_t', Date.now().toString())
+
+    router.replace(`?${params.toString()}`, { scroll: false })
+
+    // Also reset dialog filters
+    resetDialogFilters()
+
+    // Update local state to reflect changes
+    setAppliedPriceRange([priceRange.min, priceRange.max])
+  }
 
   const handleFavoritesToggle = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -223,7 +347,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       }
     }
     params.delete('page')
-    router.push(`?${params.toString()}`)
+    router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   return (
@@ -278,8 +402,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   currentCategory !== 'all',
                   currentProductType !== 'all',
                   currentTag !== 'all',
-                  currentPriceRange[0] !== priceRange.min ||
-                    currentPriceRange[1] !== priceRange.max,
+                  appliedPriceRange[0] !== priceRange.min ||
+                    appliedPriceRange[1] !== priceRange.max,
                 ].filter(Boolean).length
               }
             </span>
@@ -336,20 +460,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           )}
         </div>
 
-        {/* Reset Filters */}
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            onClick={resetAllFilters}
-            size="icon"
-            className="h-10 w-10 rounded-full hover:bg-destructive hover:text-destructive-foreground border border-transparent hover:border-destructive"
-            title={t?.filters?.clearAll || 'Clear all filters'}
-          >
-            <X className="h-4 w-4 text-destructive" />
-            <span className="sr-only">{t?.filters?.clearAll || 'Clear all filters'}</span>
-          </Button>
-        )}
-
         {/* Layout Toggle */}
         <div className="flex-none ml-auto flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
           <button
@@ -391,7 +501,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Active Filters Chips - Visible when there are active filters */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {currentCategory !== 'all' && (
             <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
               <span className="mr-1">
@@ -401,6 +511,37 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 onClick={() => handleCategoryChange('all')}
                 className="text-muted-foreground hover:text-foreground"
                 aria-label="Clear category filter"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Price Range Filter Chip - Always visible when price filter is applied */}
+          {(appliedPriceRange[0] !== priceRange.min || appliedPriceRange[1] !== priceRange.max) && (
+            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
+              <span className="mr-1">
+                {t.filters.priceRange.label}: {formatPrice(appliedPriceRange[0])} -{' '}
+                {formatPrice(appliedPriceRange[1])}
+              </span>
+              <button
+                onClick={() => handlePriceRangeChange([priceRange.min, priceRange.max])}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear price filter"
               >
                 <svg
                   width="14"
@@ -481,34 +622,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           )}
 
-          {(currentPriceRange[0] !== priceRange.min || currentPriceRange[1] !== priceRange.max) && (
-            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
-              <span className="mr-1">
-                {formatPrice(currentPriceRange[0])} - {formatPrice(currentPriceRange[1])}
-              </span>
-              <button
-                onClick={() => handlePriceRangeChange([priceRange.min, priceRange.max])}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="Clear price filter"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
+          {/* Clear All Filters button - moved to be part of the filter chips */}
+          <Button
+            variant="outline"
+            onClick={resetAllFilters}
+            size="sm"
+            className="h-8 border border-muted-foreground/20 hover:bg-muted/50 text-muted-foreground hover:text-foreground text-xs ml-2"
+          >
+            <X className="h-3.5 w-3.5 mr-1.5" />
+            {t?.filters?.clearAll || 'Clear all filters'}
+          </Button>
         </div>
       )}
 
@@ -526,17 +649,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Categories */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
-              <Select value={currentCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="select-trigger w-full">
-                  <SelectValue placeholder={t.filters.categories} />
+              <Select value={tempCategory} onValueChange={handleDialogCategoryChange}>
+                <SelectTrigger className="select-trigger w-full h-10 focus:outline-none focus:border-accent">
+                  <SelectValue placeholder={t.filters.categories}>
+                    {tempCategory === 'all'
+                      ? t?.categories?.all || 'All Categories'
+                      : categories.find((c) => c.value === tempCategory)?.label || tempCategory}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="border border-border">
-                  <SelectItem value="all">{t.filters.categories}</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  <SelectItem value="all">{t?.categories?.all || 'All Categories'}</SelectItem>
+                  {categories && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label || `Category ${category.value}`}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories" disabled>
+                      No categories available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -544,9 +677,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Product Types */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
-              <Select value={currentProductType} onValueChange={handleProductTypeChange}>
-                <SelectTrigger className="select-trigger w-full">
-                  <SelectValue placeholder={t.filters.productType.all} />
+              <Select value={tempProductType} onValueChange={handleDialogProductTypeChange}>
+                <SelectTrigger className="select-trigger w-full h-10 focus:outline-none focus:border-accent">
+                  <SelectValue placeholder={t.filters.productType.all}>
+                    {tempProductType === 'all'
+                      ? t.filters.productType.all
+                      : t.filters.productType[
+                          tempProductType as keyof typeof t.filters.productType
+                        ] ||
+                        productTypes.find((t) => t.value === tempProductType)?.label ||
+                        tempProductType}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="border border-border">
                   <SelectItem value="all">{t.filters.productType.all}</SelectItem>
@@ -563,9 +704,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Tags */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
-              <Select value={currentTag} onValueChange={handleTagChange}>
-                <SelectTrigger className="select-trigger w-full">
-                  <SelectValue placeholder={t.filters.tags} />
+              <Select value={tempTag} onValueChange={handleDialogTagChange}>
+                <SelectTrigger className="select-trigger w-full h-10 focus:outline-none focus:border-accent">
+                  <SelectValue placeholder={t.filters.tags}>
+                    {tempTag === 'all'
+                      ? t.filters.tags
+                      : tags.find((t) => t.value === tempTag)?.label || tempTag}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="border border-border">
                   <SelectItem value="all">{t.filters.tags}</SelectItem>
@@ -580,27 +725,116 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
             {/* Price Range */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">{t.filters.priceRange.label}</h3>
-                <span className="text-xs bg-accent/10 text-accent-foreground px-2 py-0.5 rounded-full border border-accent/20">
-                  {formatPrice(currentPriceRange[0])} - {formatPrice(currentPriceRange[1])}
-                </span>
-              </div>
-              <div className="px-4 py-4 rounded-lg bg-background border border-border">
-                <Slider
-                  value={currentPriceRange}
-                  onValueChange={handlePriceRangeChange}
-                  min={priceRange.min}
-                  max={priceRange.max}
-                  step={10}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-3">
-                  <span>{formatPrice(priceRange.min)}</span>
-                  <div className="h-4 border-l border-border/50"></div>
-                  <div className="h-4 border-l border-border/50"></div>
-                  <div className="h-4 border-l border-border/50"></div>
-                  <span>{formatPrice(priceRange.max)}</span>
+              <h3 className="text-sm font-semibold">{t.filters.priceRange.label}</h3>
+              <div className="rounded-md bg-background border border-border overflow-hidden">
+                <div className="p-4">
+                  <Slider
+                    value={tempPriceRange}
+                    onValueChange={handleDialogPriceRangeChange}
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    step={10}
+                    className="w-full"
+                  />
+
+                  <div className="flex justify-between mt-1.5 mb-4">
+                    <span className="text-xs text-muted-foreground">
+                      <span className="block text-[10px] uppercase mb-0.5">
+                        {t.filters.priceRange.min}
+                      </span>
+                      {formatPrice(priceRange.min)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      <span className="block text-[10px] uppercase mb-0.5">
+                        {t.filters.priceRange.max}
+                      </span>
+                      {formatPrice(priceRange.max)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <label className="block text-xs text-muted-foreground mb-1.5">
+                        {t.filters.priceRange.from || t.filters.priceRange.min || 'From'}
+                      </label>
+                      <div className="relative">
+                        {currency.position === 'before' && (
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            {currency.symbol}
+                          </span>
+                        )}
+                        <input
+                          type="text"
+                          value={Math.round(
+                            tempPriceRange[0] * (currency.rate || 1),
+                          ).toLocaleString(locale || 'en-US')}
+                          readOnly
+                          className={cn(
+                            'w-full h-9 rounded-md border border-border text-sm bg-muted/40',
+                            currency.position === 'before' ? 'pl-7 pr-3' : 'pl-3 pr-7',
+                          )}
+                          aria-label={
+                            t.filters.priceRange.from || t.filters.priceRange.min || 'From'
+                          }
+                        />
+                        {currency.position === 'after' && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            {currency.symbol}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground mt-6">—</div>
+                    <div className="relative flex-1">
+                      <label className="block text-xs text-muted-foreground mb-1.5">
+                        {t.filters.priceRange.to || t.filters.priceRange.max || 'To'}
+                      </label>
+                      <div className="relative">
+                        {currency.position === 'before' && (
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            {currency.symbol}
+                          </span>
+                        )}
+                        <input
+                          type="text"
+                          value={Math.round(
+                            tempPriceRange[1] * (currency.rate || 1),
+                          ).toLocaleString(locale || 'en-US')}
+                          readOnly
+                          className={cn(
+                            'w-full h-9 rounded-md border border-border text-sm bg-muted/40',
+                            currency.position === 'before' ? 'pl-7 pr-3' : 'pl-3 pr-7',
+                          )}
+                          aria-label={t.filters.priceRange.to || t.filters.priceRange.max || 'To'}
+                        />
+                        {currency.position === 'after' && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            {currency.symbol}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-4 py-3 border-t border-border bg-muted/20 flex items-center justify-between">
+                  <span className="text-sm">
+                    {t.filters.priceRange.selected || t.filters?.selected || 'Selected'}:{' '}
+                    <span className="font-medium">
+                      {formatPrice(tempPriceRange[0])} – {formatPrice(tempPriceRange[1])}
+                    </span>
+                  </span>
+                  {(tempPriceRange[0] !== priceRange.min ||
+                    tempPriceRange[1] !== priceRange.max) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => handleDialogPriceRangeChange([priceRange.min, priceRange.max])}
+                    >
+                      {t.filters.priceRange.reset || t.filters?.reset || 'Reset'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -609,12 +843,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <DialogFooter className="px-4 py-3 border-t border-border">
             <Button
               variant="outline"
-              onClick={resetAllFilters}
+              onClick={resetDialogFilters}
               className="mr-auto border border-border"
             >
               {t?.filters?.clearAll || 'Clear all filters'}
             </Button>
-            <Button onClick={() => setIsFiltersOpen(false)} className="border border-accent/20">
+            <Button onClick={onDialogApply} className="border border-accent/20">
               {t?.filters?.apply || 'Apply'}
             </Button>
           </DialogFooter>

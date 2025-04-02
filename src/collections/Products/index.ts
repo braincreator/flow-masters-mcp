@@ -6,12 +6,13 @@ import { populatePublishedAt } from '@/hooks/populatePublishedAt'
 import { slugField } from '@/fields/slug'
 import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
+import { validateCategory } from './hooks/beforeChange'
 
 export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category', 'price', 'publishedAt', 'status'],
+    defaultColumns: ['title', 'category.title', 'pricing.finalPrice', 'publishedAt', 'status'],
     preview: (doc, { locale }) => formatPreviewURL('products', doc, locale),
   },
   access: {
@@ -22,7 +23,7 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     afterChange: [revalidatePage],
-    beforeChange: [populatePublishedAt],
+    beforeChange: [populatePublishedAt, validateCategory],
   },
   versions: {
     drafts: true,
@@ -36,16 +37,13 @@ export const Products: CollectionConfig = {
     },
     {
       name: 'category',
-      type: 'select',
+      type: 'relationship',
+      relationTo: 'categories',
+      hasMany: false,
       required: true,
-      options: [
-        { label: 'N8N Workflows', value: 'n8n' },
-        { label: 'Make.com Workflows', value: 'make' },
-        { label: 'Tutorials', value: 'tutorials' },
-        { label: 'Courses', value: 'courses' },
-      ],
       admin: {
         position: 'sidebar',
+        description: 'Select a product category',
       },
     },
     {
@@ -74,7 +72,8 @@ export const Products: CollectionConfig = {
           name: 'finalPrice',
           type: 'number',
           admin: {
-            hidden: true,
+            description: 'Final price after discount (calculated automatically)',
+            readOnly: true,
           },
           hooks: {
             beforeChange: [
@@ -95,6 +94,44 @@ export const Products: CollectionConfig = {
           admin: {
             description: 'Original price for comparison (optional)',
           },
+        },
+        {
+          name: 'locales',
+          type: 'group',
+          admin: {
+            description: 'Localized prices (automatically updated)',
+            condition: () => false,
+          },
+          fields: [
+            {
+              name: 'en',
+              type: 'group',
+              fields: [
+                {
+                  name: 'amount',
+                  type: 'number',
+                },
+                {
+                  name: 'currency',
+                  type: 'text',
+                },
+              ],
+            },
+            {
+              name: 'ru',
+              type: 'group',
+              fields: [
+                {
+                  name: 'amount',
+                  type: 'number',
+                },
+                {
+                  name: 'currency',
+                  type: 'text',
+                },
+              ],
+            },
+          ],
         },
       ],
     },
@@ -132,7 +169,7 @@ export const Products: CollectionConfig = {
       name: 'thumbnail',
       type: 'upload',
       relationTo: 'media',
-      required: true,
+      required: false,
       filterOptions: {
         mimeType: { contains: 'image' },
       },
@@ -181,8 +218,65 @@ export const Products: CollectionConfig = {
         condition: (data) => data.productType === 'digital',
       },
       validate: (value, { data }) => {
-        if (data.productType === 'digital' && !value) {
+        const typedData = data as { productType?: string }
+        const typedValue = value as string | undefined
+
+        if (typedData.productType === 'digital' && !typedValue) {
           return 'Download link is required for digital products'
+        }
+        return true
+      },
+    },
+    {
+      name: 'subscriptionDetails',
+      type: 'group',
+      admin: {
+        description: 'Subscription details',
+        condition: (data) => data.productType === 'subscription',
+      },
+      fields: [
+        {
+          name: 'recurringPrice',
+          type: 'number',
+          required: true,
+          min: 0,
+          admin: {
+            description: 'Recurring price for subscription (per billing interval)',
+          },
+        },
+        {
+          name: 'billingInterval',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Monthly', value: 'monthly' },
+            { label: 'Quarterly', value: 'quarterly' },
+            { label: 'Annual', value: 'annual' },
+          ],
+          defaultValue: 'monthly',
+          admin: {
+            description: 'How often to bill the customer',
+          },
+        },
+        {
+          name: 'trialDays',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          admin: {
+            description: 'Number of trial days (0 for no trial)',
+          },
+        },
+      ],
+      validate: (value, { data }) => {
+        const typedData = data as { productType?: string }
+        if (typedData?.productType === 'subscription') {
+          if (!value?.recurringPrice) {
+            return 'Recurring price is required for subscription products'
+          }
+          if (!value?.billingInterval) {
+            return 'Billing interval is required for subscription products'
+          }
         }
         return true
       },
@@ -237,26 +331,33 @@ export const Products: CollectionConfig = {
       hooks: {
         beforeChange: [
           async ({ req, data }) => {
-            // You'll need to implement the logic to calculate if the product
-            // is ordered 15% more than others. This is just a placeholder.
-            const allOrders = await req.payload.find({
+            // Cast to any to bypass the TypeScript error for this demonstration
+            // In a real app, you'd define proper types for the orders collection
+            const allOrders = await (req.payload.find as any)({
               collection: 'orders',
               depth: 0,
             })
 
             // Calculate average orders per product
-            const productOrders = {} // Map to store order count per product
+            const productOrders: Record<string, number> = {} // Map to store order count per product
             let totalOrders = 0
 
-            allOrders.docs.forEach((order) => {
-              order.products.forEach((product) => {
-                productOrders[product.id] = (productOrders[product.id] || 0) + 1
-                totalOrders++
+            // Type check and safely access order products
+            if (allOrders?.docs && Array.isArray(allOrders.docs)) {
+              allOrders.docs.forEach((order: any) => {
+                if (order?.products && Array.isArray(order.products)) {
+                  order.products.forEach((product: any) => {
+                    if (product?.id) {
+                      productOrders[product.id] = (productOrders[product.id] || 0) + 1
+                      totalOrders++
+                    }
+                  })
+                }
               })
-            })
+            }
 
-            const averageOrders = totalOrders / Object.keys(productOrders).length
-            const thisProductOrders = productOrders[data.id] || 0
+            const averageOrders = totalOrders / Math.max(1, Object.keys(productOrders).length)
+            const thisProductOrders = data?.id ? productOrders[data.id] || 0 : 0
 
             // Set isPopular if orders are 15% above average
             return thisProductOrders > averageOrders * 1.15

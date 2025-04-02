@@ -53,19 +53,21 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
     // Track post view (metrics)
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/blog/metrics`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            postId: post.id,
-            action: 'view',
-          }),
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+      const response = await fetch(`${serverUrl}/api/blog/metrics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+        body: JSON.stringify({
+          postId: post.id,
+          action: 'view',
+        }),
+      })
+
+      if (!response.ok) {
+        console.error('Failed to track post view:', await response.text())
+      }
     } catch (error) {
       console.error('Failed to track post view:', error)
     }

@@ -72,13 +72,14 @@ export interface Config {
     testimonials: Testimonial;
     pages: Page;
     posts: Post;
+    comments: Comment;
+    'post-metrics': PostMetric;
     reviews: Review;
     solutions: Solution;
     users: User;
     tags: Tag;
     products: Product;
-    comments: Comment;
-    'post-metrics': PostMetric;
+    orders: Order;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -95,13 +96,14 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     solutions: SolutionsSelect<false> | SolutionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
-    comments: CommentsSelect<false> | CommentsSelect<true>;
-    'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -172,6 +174,44 @@ export interface UserAuthOperations {
 export interface Category {
   id: string;
   title: string;
+  /**
+   * Determines what type of content this category is for
+   */
+  categoryType: 'product' | 'blog' | 'general';
+  /**
+   * A brief description of this category
+   */
+  description?: string | null;
+  /**
+   * Fields specific to product categories
+   */
+  productCategoryDetails?: {
+    /**
+     * Show this category in the main navigation
+     */
+    featuredInNav?: boolean | null;
+    /**
+     * Order to display categories (lower numbers first)
+     */
+    displayOrder?: number | null;
+    /**
+     * Icon to represent this product category
+     */
+    icon?: (string | null) | Media;
+  };
+  /**
+   * Fields specific to blog categories
+   */
+  blogCategoryDetails?: {
+    /**
+     * Show this category in the blog sidebar
+     */
+    showInSidebar?: boolean | null;
+    /**
+     * Hex color code for this category (e.g. #FF5500)
+     */
+    color?: string | null;
+  };
   slug?: string | null;
   slugLock?: boolean | null;
   parent?: (string | null) | Category;
@@ -803,6 +843,71 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: string;
+  content: string;
+  author: {
+    name: string;
+    email: string;
+    /**
+     * Optional website URL
+     */
+    website?: string | null;
+  };
+  post: string | Post;
+  likes?: number | null;
+  /**
+   * Optional parent comment for replies
+   */
+  parentComment?: (string | null) | Comment;
+  status: 'pending' | 'approved' | 'rejected';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-metrics".
+ */
+export interface PostMetric {
+  id: string;
+  /**
+   * Automatically generated from post title
+   */
+  title: string;
+  post: string | Post;
+  views?: number | null;
+  uniqueVisitors?: number | null;
+  /**
+   * Record of individual share events
+   */
+  shares?:
+    | {
+        platform: string;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  shareCount?: number | null;
+  likes?: number | null;
+  /**
+   * Reading progress tracking events
+   */
+  readingProgress?:
+    | {
+        progress: number;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  completedReads?: number | null;
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "reviews".
  */
 export interface Review {
@@ -869,7 +974,10 @@ export interface Solution {
 export interface Product {
   id: string;
   title: string;
-  category: 'n8n' | 'make' | 'tutorials' | 'courses';
+  /**
+   * Select a product category
+   */
+  category: string | Category;
   pricing: {
     /**
      * Base price in USD
@@ -879,11 +987,27 @@ export interface Product {
      * Discount percentage (0-100)
      */
     discountPercentage?: number | null;
+    /**
+     * Final price after discount (calculated automatically)
+     */
     finalPrice?: number | null;
     /**
      * Original price for comparison (optional)
      */
     compareAtPrice?: number | null;
+    /**
+     * Localized prices (automatically updated)
+     */
+    locales?: {
+      en?: {
+        amount?: number | null;
+        currency?: string | null;
+      };
+      ru?: {
+        amount?: number | null;
+        currency?: string | null;
+      };
+    };
   };
   description: {
     root: {
@@ -914,7 +1038,7 @@ export interface Product {
   /**
    * Main product image (required)
    */
-  thumbnail: string | Media;
+  thumbnail?: (string | null) | Media;
   gallery?:
     | {
         image: string | Media;
@@ -930,6 +1054,23 @@ export interface Product {
    * URL to download the digital product (only visible after purchase)
    */
   downloadLink?: string | null;
+  /**
+   * Subscription details
+   */
+  subscriptionDetails?: {
+    /**
+     * Recurring price for subscription (per billing interval)
+     */
+    recurringPrice: number;
+    /**
+     * How often to bill the customer
+     */
+    billingInterval: 'monthly' | 'quarterly' | 'annual';
+    /**
+     * Number of trial days (0 for no trial)
+     */
+    trialDays?: number | null;
+  };
   /**
    * Define the features or areas this access product unlocks
    */
@@ -967,64 +1108,39 @@ export interface Product {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "comments".
+ * via the `definition` "orders".
  */
-export interface Comment {
+export interface Order {
   id: string;
-  content: string;
-  author: {
-    name: string;
-    email: string;
-    website?: string | null;
+  orderNumber: string;
+  customer: string | User;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  items: {
+    product: string | Product;
+    quantity: number;
+    price: number;
+    id?: string | null;
+  }[];
+  total: {
+    en: {
+      amount: number;
+      currency: string;
+    };
+    ru: {
+      amount: number;
+      currency: string;
+    };
   };
-  post: string | Post;
   /**
-   * If this is a reply to another comment
+   * Enter shipping tracking number once order is shipped
    */
-  parentComment?: (string | null) | Comment;
-  likes?: number | null;
-  ip?: string | null;
-  status?: ('pending' | 'approved' | 'spam' | 'trash') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "post-metrics".
- */
-export interface PostMetric {
-  id: string;
-  /**
-   * Automatically generated from post title
-   */
-  title: string;
-  post: string | Post;
-  views?: number | null;
-  uniqueVisitors?: number | null;
-  /**
-   * Record of individual share events
-   */
-  shares?:
-    | {
-        platform: string;
-        date: string;
-        id?: string | null;
-      }[]
-    | null;
-  shareCount?: number | null;
-  likes?: number | null;
-  /**
-   * Reading progress tracking events
-   */
-  readingProgress?:
-    | {
-        progress: number;
-        date: string;
-        id?: string | null;
-      }[]
-    | null;
-  completedReads?: number | null;
-  lastUpdated?: string | null;
+  trackingNumber?: string | null;
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1208,6 +1324,14 @@ export interface PayloadLockedDocument {
         value: string | Post;
       } | null)
     | ({
+        relationTo: 'comments';
+        value: string | Comment;
+      } | null)
+    | ({
+        relationTo: 'post-metrics';
+        value: string | PostMetric;
+      } | null)
+    | ({
         relationTo: 'reviews';
         value: string | Review;
       } | null)
@@ -1228,12 +1352,8 @@ export interface PayloadLockedDocument {
         value: string | Product;
       } | null)
     | ({
-        relationTo: 'comments';
-        value: string | Comment;
-      } | null)
-    | ({
-        relationTo: 'post-metrics';
-        value: string | PostMetric;
+        relationTo: 'orders';
+        value: string | Order;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1303,6 +1423,21 @@ export interface PayloadMigration {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  categoryType?: T;
+  description?: T;
+  productCategoryDetails?:
+    | T
+    | {
+        featuredInNav?: T;
+        displayOrder?: T;
+        icon?: T;
+      };
+  blogCategoryDetails?:
+    | T
+    | {
+        showInSidebar?: T;
+        color?: T;
+      };
   slug?: T;
   slugLock?: T;
   parent?: T;
@@ -1610,6 +1745,56 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  author?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        website?: T;
+      };
+  post?: T;
+  likes?: T;
+  parentComment?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-metrics_select".
+ */
+export interface PostMetricsSelect<T extends boolean = true> {
+  title?: T;
+  post?: T;
+  views?: T;
+  uniqueVisitors?: T;
+  shares?:
+    | T
+    | {
+        platform?: T;
+        date?: T;
+        id?: T;
+      };
+  shareCount?: T;
+  likes?: T;
+  readingProgress?:
+    | T
+    | {
+        progress?: T;
+        date?: T;
+        id?: T;
+      };
+  completedReads?: T;
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "reviews_select".
  */
 export interface ReviewsSelect<T extends boolean = true> {
@@ -1695,6 +1880,22 @@ export interface ProductsSelect<T extends boolean = true> {
         discountPercentage?: T;
         finalPrice?: T;
         compareAtPrice?: T;
+        locales?:
+          | T
+          | {
+              en?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+              ru?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+            };
       };
   description?: T;
   shortDescription?: T;
@@ -1715,6 +1916,13 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   productType?: T;
   downloadLink?: T;
+  subscriptionDetails?:
+    | T
+    | {
+        recurringPrice?: T;
+        billingInterval?: T;
+        trialDays?: T;
+      };
   accessDetails?:
     | T
     | {
@@ -1741,52 +1949,45 @@ export interface ProductsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "comments_select".
+ * via the `definition` "orders_select".
  */
-export interface CommentsSelect<T extends boolean = true> {
-  content?: T;
-  author?:
-    | T
-    | {
-        name?: T;
-        email?: T;
-        website?: T;
-      };
-  post?: T;
-  parentComment?: T;
-  likes?: T;
-  ip?: T;
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  customer?: T;
   status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "post-metrics_select".
- */
-export interface PostMetricsSelect<T extends boolean = true> {
-  title?: T;
-  post?: T;
-  views?: T;
-  uniqueVisitors?: T;
-  shares?:
+  items?:
     | T
     | {
-        platform?: T;
-        date?: T;
+        product?: T;
+        quantity?: T;
+        price?: T;
         id?: T;
       };
-  shareCount?: T;
-  likes?: T;
-  readingProgress?:
+  total?:
     | T
     | {
-        progress?: T;
-        date?: T;
-        id?: T;
+        en?:
+          | T
+          | {
+              amount?: T;
+              currency?: T;
+            };
+        ru?:
+          | T
+          | {
+              amount?: T;
+              currency?: T;
+            };
       };
-  completedReads?: T;
-  lastUpdated?: T;
+  trackingNumber?: T;
+  shippingAddress?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

@@ -8,11 +8,12 @@ export const isAdmin: Access = ({ req: { user } }) => {
   // Cast the user to the correct type
   const typedUser = user as User
 
-  // Check if the user has the admin role
-  return checkIsAdmin(typedUser)//Boolean(typedUser.roles?.includes('admin'))
+  // Use the checkIsAdmin helper function
+  return checkIsAdmin(typedUser)
 }
 
 // You can also use this function directly
 export const checkIsAdmin = (user: any) => {
+  // Check for role property which is used in the Users collection
   return Boolean(user?.role === 'admin')
 }

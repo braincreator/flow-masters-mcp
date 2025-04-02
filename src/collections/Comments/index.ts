@@ -51,6 +51,15 @@ export const Comments: CollectionConfig = {
       hasMany: false,
     },
     {
+      name: 'likes',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'parentComment',
       type: 'relationship',
       relationTo: 'comments',

@@ -136,6 +136,11 @@ export default async function StorePage({ params, searchParams }: Props) {
         }),
         payload.find({
           collection: 'categories',
+          where: {
+            categoryType: {
+              equals: 'product',
+            },
+          },
           locale: currentLocale,
           limit: 100,
         }),
@@ -165,9 +170,15 @@ export default async function StorePage({ params, searchParams }: Props) {
       const categoryDocs = categories.docs.map((doc) => {
         const plainDoc = safeSerialize(doc)
 
+        // Log a sample category to debug
+        if (categories.docs.length > 0 && doc === categories.docs[0]) {
+          console.log('Sample category structure:', JSON.stringify(plainDoc, null, 2))
+        }
+
         return {
           ...plainDoc,
           id: doc.id?.toString(),
+          title: doc.title, // Pass the original title
           name: typeof doc.name === 'string' ? doc.name : doc.name?.[currentLocale] || '',
         }
       })

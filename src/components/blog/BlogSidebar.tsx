@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Search } from 'lucide-react'
+import React from 'react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { BlogSearch } from './BlogSearch'
 
 interface Category {
   id: string
@@ -36,32 +36,19 @@ export function BlogSidebar({
   searchQuery = '',
   className,
 }: BlogSidebarProps) {
-  const [search, setSearch] = useState(searchQuery)
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (search.trim()) {
-      window.location.href = `/${currentLocale}/blog?search=${encodeURIComponent(search.trim())}`
-    }
-  }
-
   return (
     <aside className={cn('space-y-8', className)}>
       {/* Search */}
       <div className="rounded-lg border border-border p-4">
         <h3 className="font-medium text-lg mb-3">Search</h3>
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <Input
-            type="search"
-            placeholder="Search posts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1"
-          />
-          <Button type="submit" size="icon">
-            <Search className="h-4 w-4" />
-          </Button>
-        </form>
+        <BlogSearch
+          initialQuery={searchQuery}
+          placeholder="Search posts..."
+          className="w-full"
+          variant="product-style"
+          preserveParams={false}
+          size="default"
+        />
       </div>
 
       {/* Categories */}

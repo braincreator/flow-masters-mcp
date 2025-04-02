@@ -25,7 +25,7 @@ export async function getProducts({
   productType,
 }: ProductQueryParams) {
   const payload = await getPayload({ config: configPromise })
-  
+
   const where: any = {
     status: {
       equals: 'published',
@@ -69,9 +69,8 @@ export async function getProducts({
   const page = pageParam ? parseInt(pageParam) : 1
   const limit = 12
 
-  const sort = sortParam === 'price-low' ? 'price' : 
-               sortParam === 'price-high' ? '-price' : 
-               '-createdAt'
+  const sort =
+    sortParam === 'price-low' ? 'price' : sortParam === 'price-high' ? '-price' : '-createdAt'
 
   const products = await payload.find({
     collection: 'products',
@@ -92,14 +91,17 @@ export async function getProducts({
 
 export async function getAllCategories(locale: Locale) {
   const payload = await getPayload({ config: configPromise })
-  
-  return payload.find({
-    collection: 'products',
+
+  // Use the categories collection directly with the category type filter
+  const categories = await payload.find({
+    collection: 'categories',
     where: {
-      status: {
-        equals: 'published',
+      categoryType: {
+        equals: 'product',
       },
     },
     locale,
   })
+
+  return categories
 }

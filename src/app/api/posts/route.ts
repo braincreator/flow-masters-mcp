@@ -158,3 +158,52 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const payload = await getPayloadClient()
+
+    // Check content type to determine how to parse the body
+    const contentType = request.headers.get('content-type') || ''
+    let body
+
+    if (contentType.includes('application/json')) {
+      body = await request.json()
+    } else if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData()
+      body = {
+        where: {},
+        limit: parseInt(formData.get('limit') as string) || 10,
+        page: parseInt(formData.get('page') as string) || 1,
+        sort: (formData.get('sort') as string) || '-publishedAt',
+        depth: parseInt(formData.get('depth') as string) || 1,
+      }
+    } else {
+      // Default to empty query if content type is not recognized
+      body = {
+        where: {},
+        limit: 10,
+        page: 1,
+        sort: '-publishedAt',
+        depth: 1,
+      }
+    }
+
+    const posts = await payload.find({
+      collection: 'posts',
+      where: body.where || {},
+      limit: body.limit || 10,
+      page: body.page || 1,
+      sort: body.sort || '-publishedAt',
+      depth: body.depth || 1,
+    })
+
+    return NextResponse.json(posts)
+  } catch (error) {
+    console.error('Posts API: Error in POST method:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: String(error) },
+      { status: 500 },
+    )
+  }
+}

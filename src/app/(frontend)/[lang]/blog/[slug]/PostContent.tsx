@@ -7,9 +7,10 @@ import { highlightCode } from '@/utilities/highlightCode'
 
 interface PostContentProps {
   content: any // This should be the rich text content from the CMS
+  postId: string // Add postId to props
 }
 
-export function PostContent({ content }: PostContentProps) {
+export function PostContent({ content, postId }: PostContentProps) {
   // Handle code syntax highlighting
   useEffect(() => {
     highlightCode()
@@ -31,23 +32,43 @@ export function PostContent({ content }: PostContentProps) {
     if (section1InView) {
       try {
         // Analytics tracking for 25% read
-        fetch('/api/blog/metrics?type=progress&progress=25', { method: 'POST' })
+        fetch('/api/blog/metrics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            postId,
+            action: 'progress',
+            progress: 25,
+          }),
+        })
       } catch (error) {
         console.error('Failed to track reading progress:', error)
       }
     }
-  }, [section1InView])
+  }, [section1InView, postId])
 
   useEffect(() => {
     if (section2InView) {
       try {
         // Analytics tracking for 75% read
-        fetch('/api/blog/metrics?type=progress&progress=75', { method: 'POST' })
+        fetch('/api/blog/metrics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            postId,
+            action: 'progress',
+            progress: 75,
+          }),
+        })
       } catch (error) {
         console.error('Failed to track reading progress:', error)
       }
     }
-  }, [section2InView])
+  }, [section2InView, postId])
 
   // Set up tracking of complete read when user reaches the bottom
   useEffect(() => {
@@ -59,7 +80,17 @@ export function PostContent({ content }: PostContentProps) {
       if (scrollPosition > documentHeight * 0.95) {
         try {
           // Analytics tracking for completed read
-          fetch('/api/blog/metrics?type=progress&progress=100', { method: 'POST' })
+          fetch('/api/blog/metrics', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              postId,
+              action: 'progress',
+              progress: 100,
+            }),
+          })
           // Remove event listener after tracking completion once
           window.removeEventListener('scroll', handleScroll)
         } catch (error) {
@@ -70,7 +101,7 @@ export function PostContent({ content }: PostContentProps) {
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [postId])
 
   // Calculate the approximate middle points for section tracking
   const contentElement = document.getElementById('post-content')

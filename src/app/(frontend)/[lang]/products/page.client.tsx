@@ -7,6 +7,8 @@ import type { Category, Product } from '@/payload-types'
 import { translations } from './translations'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useState, useEffect, useCallback } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import LoadingIndicator from '@/components/ui/LoadingIndicator'
 
 interface ProductsClientProps {
   products: Product[]
@@ -25,64 +27,71 @@ interface ProductsClientProps {
 }
 
 export default function ProductsClient({
-  products,
+  products: initialProducts,
   categories,
   currentLocale,
-  searchParams,
-  totalPages,
-  currentPage,
+  searchParams: initialSearchParams,
+  totalPages: initialTotalPages,
+  currentPage: initialCurrentPage,
 }: ProductsClientProps) {
   const t = translations[currentLocale as keyof typeof translations]
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // State to hold products, which will be updated when filters change
+  const [displayProducts, setDisplayProducts] = useState(initialProducts)
+  const [isLoading, setIsLoading] = useState(false)
+  const [currentTotalPages, setCurrentTotalPages] = useState(initialTotalPages)
+  const [currentPageNum, setCurrentPageNum] = useState(initialCurrentPage)
+
   const { favorites, forceUpdate } = useFavorites()
-  const [displayedProducts, setDisplayedProducts] = useState<Product[]>(products)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Форсируем обновление данных избранного при первой загрузке
+  // Debug: Log categories to see their structure
   useEffect(() => {
-    if (!isInitialized) {
-      forceUpdate()
-      setIsInitialized(true)
+    if (categories && categories.length > 0) {
+      console.log('Categories in client component:', categories)
     }
-  }, [forceUpdate, isInitialized])
+  }, [categories])
 
-  // Функция для фильтрации продуктов, вынесена отдельно чтобы можно было вызвать при необходимости
+  // Update this to only handle force update of favorites data
   const filterFavoriteProducts = useCallback(() => {
-    if (searchParams.favorites === 'true') {
-      // Проверяем, есть ли избранные товары
-      if (favorites && favorites.length > 0) {
-        const favoriteIds = favorites.map((fav) => fav.id)
-        const filteredProducts = products.filter((product) => favoriteIds.includes(product.id))
-        setDisplayedProducts(filteredProducts)
-      } else {
-        // Если нет избранных, показываем пустой список
-        setDisplayedProducts([])
+    // This will now only handle initialization of favorites data
+    if (!isInitialized && searchParams.get('favorites') === 'true') {
+      try {
+        const { loadFromStorage } = useFavorites.getState()
+        loadFromStorage()
+        setTimeout(() => forceUpdate(), 10)
+        setIsInitialized(true)
+      } catch (error) {
+        console.error('Error loading favorites:', error)
       }
-    } else {
-      setDisplayedProducts(products)
     }
-  }, [searchParams.favorites, favorites, products])
+  }, [isInitialized, searchParams, forceUpdate])
 
-  // Фильтрация продуктов по избранным, если параметр favorites установлен
+  // Keep this effect to handle favorites initialization
   useEffect(() => {
     filterFavoriteProducts()
-  }, [searchParams.favorites, favorites, products, filterFavoriteProducts])
+  }, [filterFavoriteProducts])
 
-  // Дополнительная проверка на случай, если избранные не загрузились сразу
-  useEffect(() => {
-    if (searchParams.favorites === 'true') {
-      const timeoutId = setTimeout(() => {
-        filterFavoriteProducts()
-      }, 300)
+  const categoriesList = categories.map((category) => {
+    const categoryLabel =
+      typeof category.title === 'object'
+        ? category.title[currentLocale] || Object.values(category.title)[0]
+        : category.title || category.name || ''
 
-      return () => clearTimeout(timeoutId)
+    return {
+      id: category.id,
+      label: categoryLabel,
+      value: category.id,
     }
-  }, [searchParams.favorites, filterFavoriteProducts])
+  })
 
-  const categoriesList = categories.map((category) => ({
-    id: category.id,
-    label: typeof category.title === 'object' ? category.title[currentLocale] : category.title,
-    value: category.id,
-  }))
+  // Debug the categoriesList
+  useEffect(() => {
+    console.log('Processed categoriesList:', categoriesList)
+  }, [categoriesList])
 
   const productTypes = [
     { id: 'digital', label: t.filters.productType.digital, value: 'digital' },
@@ -99,6 +108,79 @@ export default function ProductsClient({
 
   const priceRange = { min: 0, max: 1000 }
 
+  // Function to fetch products based on current search params
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      // Create the query string from current search params
+      const queryString = searchParams.toString()
+
+      const apiUrl = `/api/v1/products?${queryString}&locale=${currentLocale}`
+      console.log('Fetching products from:', apiUrl)
+
+      // Fetch products from API
+      const response = await fetch(apiUrl)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('API Error:', response.status, errorText)
+        throw new Error(`API error ${response.status}: ${errorText}`)
+      }
+
+      const data = await response.json()
+      console.log('API response received:', data)
+
+      // Check if the response contains an error field
+      if (data.error) {
+        console.error('API returned error:', data.error, data.details)
+        throw new Error(data.error)
+      }
+
+      // Verify the response has the expected structure
+      if (!Array.isArray(data.docs)) {
+        console.error('API returned unexpected data structure:', data)
+        throw new Error('Invalid API response format')
+      }
+
+      // Filter favorites if needed
+      let filteredProducts = data.docs
+      if (searchParams.get('favorites') === 'true' && favorites && favorites.length > 0) {
+        const favoriteIds = favorites.map((fav) => fav.id)
+        filteredProducts = data.docs.filter((product) => favoriteIds.includes(product.id))
+      }
+
+      // Update state with new products
+      setDisplayProducts(filteredProducts)
+      setCurrentTotalPages(data.totalPages || 1)
+      setCurrentPageNum(data.page || 1)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      // Fall back to initial products on error
+      setDisplayProducts(initialProducts)
+      // Show some indication to user that we fell back to initial data
+      setCurrentTotalPages(initialTotalPages)
+      setCurrentPageNum(initialCurrentPage)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [
+    searchParams,
+    currentLocale,
+    favorites,
+    initialProducts,
+    initialTotalPages,
+    initialCurrentPage,
+  ])
+
+  // Listen for search params changes and fetch products
+  useEffect(() => {
+    // Always refetch on searchParams changes to ensure clearing filters works
+    fetchProducts()
+
+    // Log the current search params for debugging
+    console.log('Search params changed:', Object.fromEntries(searchParams.entries()))
+  }, [searchParams, fetchProducts])
+
   return (
     <div>
       <FilterBar
@@ -111,9 +193,9 @@ export default function ProductsClient({
         productTypes={productTypes}
         tags={tags}
         priceRange={priceRange}
-        defaultLayout={searchParams.layout || 'grid'}
+        defaultLayout={searchParams.get('layout') || 'grid'}
         locale={currentLocale}
-        showFavorites={searchParams.favorites === 'true'}
+        showFavorites={searchParams.get('favorites') === 'true'}
         labels={{
           categories: t.filters.categories,
           sort: t.filters.sort,
@@ -127,19 +209,26 @@ export default function ProductsClient({
           favorites: currentLocale === 'ru' ? 'Избранное' : 'Favorites',
         }}
       />
-      <ProductsGrid
-        products={displayedProducts}
-        layout={searchParams.layout || 'grid'}
-        locale={currentLocale}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        labels={{
-          prev: t.pagination.prev,
-          next: t.pagination.next,
-          page: t.pagination.page,
-          of: t.pagination.of,
-        }}
-      />
+
+      {isLoading ? (
+        <div className="flex justify-center my-12">
+          <LoadingIndicator size="lg" />
+        </div>
+      ) : (
+        <ProductsGrid
+          products={displayProducts}
+          layout={searchParams.get('layout') || 'grid'}
+          locale={currentLocale}
+          currentPage={currentPageNum}
+          totalPages={currentTotalPages}
+          labels={{
+            prev: t.pagination.prev,
+            next: t.pagination.next,
+            page: t.pagination.page,
+            of: t.pagination.of,
+          }}
+        />
+      )}
     </div>
   )
 }

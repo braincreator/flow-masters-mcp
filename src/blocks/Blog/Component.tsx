@@ -283,12 +283,6 @@ export function BlogBlock({
         />
       )}
 
-      {showSearch && !apiErrorOccurred && (
-        <div className="mb-8 max-w-md mx-auto">
-          <BlogSearch onSearch={handleSearch} initialQuery={searchQuery} />
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center">
         {showCategories && categories.length > 0 && (
           <div className="md:w-1/2">

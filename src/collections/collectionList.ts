@@ -8,6 +8,10 @@ import { Solutions } from './Solutions/index'
 import { Users } from './Users/index'
 import { Tags } from './Tags'
 import { Products } from './Products/index'
+import { Comments } from './Comments/index'
+import { Orders } from './Orders'
+import { PostMetrics } from './PostMetrics'
+
 
 const collections = [
   Categories,
@@ -15,11 +19,14 @@ const collections = [
   Testimonials,
   Pages,
   Posts,
+  Comments,
+  PostMetrics,
   Reviews,
   Solutions,
   Users,
   Tags,
   Products,
+  Orders,
 ]
 
 export default collections

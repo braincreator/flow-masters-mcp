@@ -8,12 +8,24 @@ export async function GET(request: NextRequest) {
 
     // Extract query parameters
     const locale = (searchParams.get('locale') as Locale) || DEFAULT_LOCALE
+    const categoryType = searchParams.get('type') // Get category type from query params
 
-    console.log(`Categories API: Fetching categories for locale ${locale}`)
+    console.log(
+      `Categories API: Fetching categories for locale ${locale}${categoryType ? ` and type ${categoryType}` : ''}`,
+    )
 
     try {
       const payload = await getPayloadClient()
       console.log('Categories API: Payload client initialized')
+
+      // Prepare where clause based on categoryType
+      const whereClause = categoryType
+        ? {
+            categoryType: {
+              equals: categoryType,
+            },
+          }
+        : {}
 
       // Fetch categories
       try {
@@ -21,6 +33,7 @@ export async function GET(request: NextRequest) {
           collection: 'categories',
           limit: 100, // Fetch up to 100 categories
           locale,
+          where: whereClause,
         })
         console.log(`Categories API: Found ${categories.docs.length} categories`)
 
@@ -28,23 +41,64 @@ export async function GET(request: NextRequest) {
         const categoriesWithCount = await Promise.all(
           categories.docs.map(async (category) => {
             try {
-              // Modified query to avoid using the 'published' field that's causing errors
-              // Instead, just count all posts associated with this category
-              const postsCount = await payload.find({
-                collection: 'posts',
-                where: {
-                  categories: {
-                    in: category.id,
+              // If it's a blog category, fetch post counts
+              if (!categoryType || categoryType === 'blog') {
+                const postsCount = await payload.find({
+                  collection: 'posts',
+                  where: {
+                    categories: {
+                      in: category.id,
+                    },
                   },
-                },
-                limit: 0, // We only need the count
-              })
+                  limit: 0, // We only need the count
+                })
 
+                return {
+                  id: category.id,
+                  title: category.title,
+                  slug: category.slug,
+                  count: postsCount.totalDocs,
+                  categoryType: category.categoryType,
+                  description: category.description,
+                  // Include type-specific fields conditionally
+                  ...(category.categoryType === 'product' && category.productCategoryDetails
+                    ? {
+                        featuredInNav: category.productCategoryDetails.featuredInNav,
+                        displayOrder: category.productCategoryDetails.displayOrder,
+                        icon: category.productCategoryDetails.icon,
+                      }
+                    : {}),
+                  ...(category.categoryType === 'blog' && category.blogCategoryDetails
+                    ? {
+                        showInSidebar: category.blogCategoryDetails.showInSidebar,
+                        color: category.blogCategoryDetails.color,
+                      }
+                    : {}),
+                }
+              }
+
+              // For product or general categories, don't fetch post counts
               return {
                 id: category.id,
                 title: category.title,
                 slug: category.slug,
-                count: postsCount.totalDocs,
+                count: 0,
+                categoryType: category.categoryType,
+                description: category.description,
+                // Include type-specific fields conditionally
+                ...(category.categoryType === 'product' && category.productCategoryDetails
+                  ? {
+                      featuredInNav: category.productCategoryDetails.featuredInNav,
+                      displayOrder: category.productCategoryDetails.displayOrder,
+                      icon: category.productCategoryDetails.icon,
+                    }
+                  : {}),
+                ...(category.categoryType === 'blog' && category.blogCategoryDetails
+                  ? {
+                      showInSidebar: category.blogCategoryDetails.showInSidebar,
+                      color: category.blogCategoryDetails.color,
+                    }
+                  : {}),
               }
             } catch (err) {
               console.error(
@@ -57,14 +111,28 @@ export async function GET(request: NextRequest) {
                 title: category.title,
                 slug: category.slug,
                 count: 0,
+                categoryType: category.categoryType,
+                description: category.description,
               }
             }
           }),
         )
 
-        // Sort categories by count (most posts first)
-        // We're removing the filter for zero counts to ensure categories show up
-        const sortedCategories = categoriesWithCount.sort((a, b) => b.count - a.count)
+        // Sort categories based on type
+        let sortedCategories = categoriesWithCount
+
+        if (!categoryType || categoryType === 'blog') {
+          // Sort blog categories by post count
+          sortedCategories = categoriesWithCount.sort((a, b) => b.count - a.count)
+        } else if (categoryType === 'product') {
+          // Sort product categories by display order if available
+          sortedCategories = categoriesWithCount.sort((a, b) => {
+            if (a.displayOrder !== undefined && b.displayOrder !== undefined) {
+              return a.displayOrder - b.displayOrder
+            }
+            return 0
+          })
+        }
 
         return NextResponse.json(sortedCategories)
       } catch (collectionError) {

@@ -1,47 +1,284 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { DEFAULT_LOCALE } from '@/constants'
+import { DEFAULT_LOCALE, type Locale } from '@/constants'
+
+interface ApiError {
+  message: string
+  details?: any
+}
+
+// Helper function to create a consistent API response even in error cases
+function createApiResponse(
+  success = true,
+  data: any = null,
+  error: ApiError | null = null,
+  status = 200,
+) {
+  if (success) {
+    return NextResponse.json(data, { status })
+  } else {
+    // Create a fallback response structure that matches what the client expects
+    return NextResponse.json(
+      {
+        docs: [],
+        totalDocs: 0,
+        limit: 12,
+        totalPages: 1,
+        page: 1,
+        pagingCounter: 1,
+        hasPrevPage: false,
+        hasNextPage: false,
+        prevPage: null,
+        nextPage: null,
+        error: error?.message || 'Unknown error',
+        details: error?.details || {},
+      },
+      { status },
+    )
+  }
+}
 
 export async function GET(request: Request) {
   try {
+    console.log('=== Products API Request ===')
+    console.log('URL:', request.url)
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const locale = searchParams.get('locale') || DEFAULT_LOCALE
+    const limit = parseInt(searchParams.get('limit') || '12')
+    const locale = (searchParams.get('locale') || DEFAULT_LOCALE) as Locale
     const search = searchParams.get('search') || ''
-    const categories = searchParams.get('categories')?.split(',') || []
-    const sort = searchParams.get('sort') || ''
-    const priceRange = searchParams.get('priceRange')
-      ? JSON.parse(searchParams.get('priceRange')!)
-      : { min: 0, max: 0 }
+    const category = searchParams.get('category') || ''
+    const productType = searchParams.get('productType') || ''
+    const tag = searchParams.get('tag') || ''
+    const sort = searchParams.get('sort') || 'newest'
+    const minPrice = searchParams.get('minPrice')
+      ? parseInt(searchParams.get('minPrice')!)
+      : undefined
+    const maxPrice = searchParams.get('maxPrice')
+      ? parseInt(searchParams.get('maxPrice')!)
+      : undefined
 
-    const payload = await getPayloadClient()
+    console.log('API Request params:', {
+      page,
+      limit,
+      locale,
+      search,
+      category,
+      productType,
+      tag,
+      sort,
+      minPrice,
+      maxPrice,
+    })
 
-    const where: any = {}
+    // Validate parameters
+    if (isNaN(page) || page < 1) {
+      console.error('Invalid page parameter:', searchParams.get('page'))
+      return createApiResponse(false, null, { message: 'Invalid page parameter' }, 400)
+    }
+
+    if (isNaN(limit) || limit < 1) {
+      console.error('Invalid limit parameter:', searchParams.get('limit'))
+      return createApiResponse(false, null, { message: 'Invalid limit parameter' }, 400)
+    }
+
+    if (minPrice !== undefined && isNaN(minPrice)) {
+      console.error('Invalid minPrice parameter:', searchParams.get('minPrice'))
+      return createApiResponse(false, null, { message: 'Invalid minPrice parameter' }, 400)
+    }
+
+    if (maxPrice !== undefined && isNaN(maxPrice)) {
+      console.error('Invalid maxPrice parameter:', searchParams.get('maxPrice'))
+      return createApiResponse(false, null, { message: 'Invalid maxPrice parameter' }, 400)
+    }
+
+    let payload
+    try {
+      payload = await getPayloadClient()
+
+      // Log the product collection structure to understand available fields
+      try {
+        const productCollection = await payload.collections.products.config
+        console.log(
+          'Product collection fields:',
+          productCollection.fields.map((field: any) => ({
+            name: field.name,
+            type: field.type,
+            required: field.required || false,
+          })),
+        )
+      } catch (err) {
+        console.log('Could not log product collection structure:', err)
+      }
+    } catch (payloadError: any) {
+      console.error('Failed to initialize Payload client:', payloadError)
+      return createApiResponse(
+        false,
+        null,
+        { message: 'Database connection failed', details: payloadError?.message },
+        500,
+      )
+    }
+
+    // Build the where query
+    const where: any = {
+      status: {
+        equals: 'published',
+      },
+    }
+
+    // Store price filtering parameters for client-side filtering
+    const priceFilters = {
+      minPrice,
+      maxPrice,
+      shouldFilter: minPrice !== undefined || maxPrice !== undefined,
+    }
+
+    // Add search filter
     if (search) {
-      where.title = { like: search }
-    }
-    if (categories.length > 0) {
-      where.category = { in: categories }
-    }
-    if (priceRange.min > 0 || priceRange.max > 0) {
-      where.price = {}
-      if (priceRange.min > 0) where.price.greater_than_equal = priceRange.min
-      if (priceRange.max > 0) where.price.less_than_equal = priceRange.max
+      where.or = [
+        {
+          title: {
+            contains: search,
+          },
+        },
+        {
+          description: {
+            contains: search,
+          },
+        },
+      ]
     }
 
-    const result = await payload.find({
+    // Add category filter
+    if (category && category !== 'all') {
+      where.category = {
+        equals: category,
+      }
+    }
+
+    // Add product type filter
+    if (productType && productType !== 'all') {
+      where.productType = {
+        equals: productType,
+      }
+    }
+
+    // Add tag filter
+    if (tag && tag !== 'all') {
+      where.tags = {
+        contains: tag,
+      }
+    }
+
+    // Note: We're removing price filtering from the database query
+    // Price filtering will be done client-side after fetching products
+
+    // Determine sort field and direction
+    let sortOption = '-createdAt' // Default sort: newest first
+    if (sort === 'price-asc') {
+      sortOption = 'pricing.finalPrice' // Price low to high
+    } else if (sort === 'price') {
+      sortOption = '-pricing.finalPrice' // Price high to low
+    }
+
+    console.log('Payload query:', {
       collection: 'products',
       where,
       page,
       limit,
       locale,
-      sort: sort || '-createdAt',
+      sort: sortOption,
     })
 
-    return NextResponse.json(result)
-  } catch (error) {
+    try {
+      // Check if collection exists
+      if (!payload.collections || !payload.collections.products) {
+        console.error('Products collection not found in Payload')
+        return createApiResponse(false, null, { message: 'Products collection not found' }, 500)
+      }
+
+      // Try a simplified query first to check structure
+      try {
+        const sampleProduct = await payload.find({
+          collection: 'products',
+          limit: 1,
+        })
+        console.log(
+          'Sample product structure:',
+          sampleProduct.docs && sampleProduct.docs.length > 0
+            ? Object.keys(sampleProduct.docs[0] as object)
+            : 'No products found',
+        )
+      } catch (err: any) {
+        console.log('Sample query failed:', err.message)
+      }
+
+      // Fetch products
+      const products = await payload.find({
+        collection: 'products',
+        where,
+        page,
+        limit,
+        locale,
+        sort: sortOption,
+      })
+
+      console.log(`Found ${products.docs?.length || 0} products, total: ${products.totalDocs || 0}`)
+
+      // Apply price filtering client-side if needed
+      if (priceFilters.shouldFilter && Array.isArray(products.docs)) {
+        console.log('Applying client-side price filtering:', priceFilters)
+
+        const filteredDocs = products.docs.filter((product) => {
+          // Get the price from the nested pricing structure
+          const productWithPrice = product as any
+          if (!productWithPrice || !productWithPrice.pricing) return false
+
+          // Use finalPrice if available, otherwise basePrice
+          const productPrice =
+            productWithPrice.pricing.finalPrice || productWithPrice.pricing.basePrice
+          if (typeof productPrice !== 'number') return false
+
+          const meetsMinPrice =
+            priceFilters.minPrice === undefined || productPrice >= priceFilters.minPrice
+
+          const meetsMaxPrice =
+            priceFilters.maxPrice === undefined || productPrice <= priceFilters.maxPrice
+
+          return meetsMinPrice && meetsMaxPrice
+        })
+
+        // Update the products object with filtered results
+        const filteredProducts = {
+          ...products,
+          docs: filteredDocs,
+          totalDocs: filteredDocs.length,
+          // We're not recalculating pagination here, which is a limitation
+        }
+
+        console.log(`After price filtering: ${filteredDocs.length} products remain`)
+        return createApiResponse(true, filteredProducts)
+      }
+
+      return createApiResponse(true, products)
+    } catch (payloadError: any) {
+      console.error('Payload query error:', payloadError)
+      return createApiResponse(
+        false,
+        null,
+        { message: 'Database query failed', details: payloadError?.message },
+        500,
+      )
+    }
+  } catch (error: any) {
     console.error('Error fetching products:', error)
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+    return createApiResponse(
+      false,
+      null,
+      { message: 'Failed to fetch products', details: error?.message },
+      500,
+    )
   }
 }

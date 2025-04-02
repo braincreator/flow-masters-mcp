@@ -21,6 +21,7 @@ export interface CMSLinkType extends Omit<LinkProps, 'href'> {
   exactMatch?: boolean
   prefetch?: boolean
   onClick?: () => void
+  newTab?: boolean
 }
 
 export const CMSLink: React.FC<CMSLinkType> = ({
@@ -39,27 +40,30 @@ export const CMSLink: React.FC<CMSLinkType> = ({
   exactMatch = false,
   prefetch = true,
   onClick,
+  newTab,
   ...props
 }) => {
   const pathname = usePathname()
-  
+
   const href = React.useMemo(() => {
     // Extract current locale from pathname
     const pathSegments = pathname.split('/').filter(Boolean)
-    const currentLocale = SUPPORTED_LOCALES.includes(pathSegments[0] as any) 
-      ? pathSegments[0] 
+    const currentLocale = SUPPORTED_LOCALES.includes(pathSegments[0] as any)
+      ? pathSegments[0]
       : DEFAULT_LOCALE
 
     if (type === 'reference' && reference?.value) {
       let path
       if (typeof reference.value === 'object') {
-        path = reference.relationTo === 'pages'
-          ? `/${reference.value.slug}`
-          : `/${reference.relationTo}/${reference.value.slug}`
+        path =
+          reference.relationTo === 'pages'
+            ? `/${reference.value.slug}`
+            : `/${reference.relationTo}/${reference.value.slug}`
       } else {
-        path = reference.relationTo === 'pages'
-          ? `/${reference.value}`
-          : `/${reference.relationTo}/${reference.value}`
+        path =
+          reference.relationTo === 'pages'
+            ? `/${reference.value}`
+            : `/${reference.relationTo}/${reference.value}`
       }
 
       // Special handling for posts collection - no locale prefix
@@ -84,9 +88,7 @@ export const CMSLink: React.FC<CMSLinkType> = ({
     return ''
   }, [type, reference, url, pathname])
 
-  const isActive = exactMatch 
-    ? pathname === href
-    : pathname.startsWith(href)
+  const isActive = exactMatch ? pathname === href : pathname.startsWith(href)
 
   const content = (
     <>
@@ -108,9 +110,9 @@ export const CMSLink: React.FC<CMSLinkType> = ({
       className={cn(
         disabled && 'opacity-50 pointer-events-none',
         isActive && activeClassName,
-        className
+        className,
       )}
-      external={url?.startsWith('http')}
+      external={newTab || url?.startsWith('http')}
       onClick={onClick}
       {...props}
     >

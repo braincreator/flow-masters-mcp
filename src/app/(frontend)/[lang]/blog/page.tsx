@@ -120,7 +120,7 @@ export default async function BlogPage(props: PageParams) {
     }
 
     if (search) {
-      query.or = [{ title: { like: search } }, { excerpt: { like: search } }]
+      query.or = [{ title: { like: search } }]
     }
 
     // Fetch posts based on filters
@@ -145,6 +145,11 @@ export default async function BlogPage(props: PageParams) {
     try {
       categories = await payload.find({
         collection: 'categories',
+        where: {
+          categoryType: {
+            equals: 'blog',
+          },
+        },
         limit: 100,
         locale: locale,
       })
@@ -269,6 +274,9 @@ export default async function BlogPage(props: PageParams) {
                   placeholder={t.searchPlaceholder}
                   preserveParams={true}
                   className="w-full sm:max-w-md"
+                  variant="product-style"
+                  showClearButton={true}
+                  size="default"
                 />
 
                 {hasActiveFilters && (
