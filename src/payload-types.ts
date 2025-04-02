@@ -1114,7 +1114,7 @@ export interface Order {
   id: string;
   orderNumber: string;
   customer: string | User;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'delivered' | 'cancelled';
   items: {
     product: string | Product;
     quantity: number;
@@ -1130,16 +1130,6 @@ export interface Order {
       amount: number;
       currency: string;
     };
-  };
-  /**
-   * Enter shipping tracking number once order is shipped
-   */
-  trackingNumber?: string | null;
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
   };
   updatedAt: string;
   createdAt: string;
@@ -1978,15 +1968,6 @@ export interface OrdersSelect<T extends boolean = true> {
               amount?: T;
               currency?: T;
             };
-      };
-  trackingNumber?: T;
-  shippingAddress?:
-    | T
-    | {
-        street?: T;
-        city?: T;
-        state?: T;
-        postalCode?: T;
       };
   updatedAt?: T;
   createdAt?: T;

@@ -6,7 +6,6 @@ import { populatePublishedAt } from '@/hooks/populatePublishedAt'
 import { slugField } from '@/fields/slug'
 import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
-import { validateCategory } from './hooks/beforeChange'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -23,7 +22,7 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     afterChange: [revalidatePage],
-    beforeChange: [populatePublishedAt, validateCategory],
+    beforeChange: [populatePublishedAt],
   },
   versions: {
     drafts: true,
@@ -41,6 +40,13 @@ export const Products: CollectionConfig = {
       relationTo: 'categories',
       hasMany: false,
       required: true,
+      filterOptions: ({ relationTo }) => {
+        return {
+          categoryType: {
+            equals: 'product',
+          },
+        }
+      },
       admin: {
         position: 'sidebar',
         description: 'Select a product category',
@@ -217,7 +223,7 @@ export const Products: CollectionConfig = {
         description: 'URL to download the digital product (only visible after purchase)',
         condition: (data) => data.productType === 'digital',
       },
-      validate: (value, { data }) => {
+      validate: ((value: string | undefined, { data }: { data: any }) => {
         const typedData = data as { productType?: string }
         const typedValue = value as string | undefined
 
@@ -225,7 +231,7 @@ export const Products: CollectionConfig = {
           return 'Download link is required for digital products'
         }
         return true
-      },
+      }) as any,
     },
     {
       name: 'subscriptionDetails',
@@ -268,7 +274,10 @@ export const Products: CollectionConfig = {
           },
         },
       ],
-      validate: (value, { data }) => {
+      validate: ((
+        value: { recurringPrice?: number; billingInterval?: string } | undefined,
+        { data }: { data: any },
+      ) => {
         const typedData = data as { productType?: string }
         if (typedData?.productType === 'subscription') {
           if (!value?.recurringPrice) {
@@ -279,7 +288,7 @@ export const Products: CollectionConfig = {
           }
         }
         return true
-      },
+      }) as any,
     },
     {
       name: 'accessDetails',

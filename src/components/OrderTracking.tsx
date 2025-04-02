@@ -12,13 +12,17 @@ interface OrderTrackingProps {
 const orderStatuses = {
   pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
   processing: { label: 'Processing', color: 'bg-blue-100 text-blue-800' },
-  shipped: { label: 'Shipped', color: 'bg-green-100 text-green-800' },
+  // Removed shipped status as we only have digital products
   delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800' },
 }
 
 export function OrderTracking({ orderId }: OrderTrackingProps) {
-  const { data: order, isLoading, error } = useQuery<Order>({
+  const {
+    data: order,
+    isLoading,
+    error,
+  } = useQuery<Order>({
     queryKey: ['order', orderId],
     queryFn: async () => {
       const response = await fetch(`/api/orders/${orderId}`)
@@ -32,11 +36,7 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
   }
 
   if (error || !order) {
-    return (
-      <div className="text-center py-8 text-red-600">
-        Failed to load order details
-      </div>
-    )
+    return <div className="text-center py-8 text-red-600">Failed to load order details</div>
   }
 
   const status = orderStatuses[order.status] || orderStatuses.pending
@@ -50,9 +50,7 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
             Placed on {new Date(order.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <span className={`px-3 py-1 rounded-full ${status.color}`}>
-          {status.label}
-        </span>
+        <span className={`px-3 py-1 rounded-full ${status.color}`}>{status.label}</span>
       </div>
 
       <div className="border-t border-gray-200 py-4">
@@ -62,13 +60,9 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
             <div key={item.id} className="flex justify-between">
               <div>
                 <p className="font-medium">{item.product.title}</p>
-                <p className="text-sm text-gray-600">
-                  Quantity: {item.quantity}
-                </p>
+                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
               </div>
-              <p className="font-medium">
-                {formatCurrency(item.price * item.quantity)}
-              </p>
+              <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           ))}
         </div>

@@ -147,13 +147,7 @@ export async function POST(req: Request) {
             },
             status: 'pending',
             paymentProvider: provider,
-            // Add required shipping address with placeholder data
-            shippingAddress: {
-              street: customer.address?.street || 'Not provided',
-              city: customer.address?.city || 'Not provided',
-              state: customer.address?.state || 'Not provided',
-              postalCode: customer.address?.postalCode || '00000',
-            },
+            // No shipping address needed for digital products
           },
         })
       } catch (orderError) {

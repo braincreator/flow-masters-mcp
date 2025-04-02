@@ -70,8 +70,7 @@ export const translations = {
       features: 'Key Features',
       inStock: 'In Stock',
       securePayment: 'Secure payment',
-      freeShipping: 'Free shipping on orders over $50',
-      instantDelivery: 'Instant digital delivery',
+      instantDelivery: 'Instant digital delivery'
       features: 'Features',
     },
     pagination: {
@@ -153,7 +152,6 @@ export const translations = {
       features: 'Основные характеристики',
       inStock: 'В наличии',
       securePayment: 'Безопасная оплата',
-      freeShipping: 'Бесплатная доставка при заказе от $50',
       instantDelivery: 'Мгновенная цифровая доставка',
       features: 'Функции',
     },

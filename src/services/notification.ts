@@ -167,7 +167,7 @@ Thank you for your business!
       case 'processing':
       case 'pending':
         return '⏳'
-      case 'shipped':
+        // Removed shipped case as we only have digital products
         return '📦'
       case 'cancelled':
         return '❌'

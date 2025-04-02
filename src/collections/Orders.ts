@@ -29,7 +29,6 @@ export const Orders: CollectionConfig = {
       options: [
         { label: 'Pending', value: 'pending' },
         { label: 'Processing', value: 'processing' },
-        { label: 'Shipped', value: 'shipped' },
         { label: 'Delivered', value: 'delivered' },
         { label: 'Cancelled', value: 'cancelled' },
       ],
@@ -119,39 +118,7 @@ export const Orders: CollectionConfig = {
         ],
       },
     },
-    {
-      name: 'trackingNumber',
-      type: 'text',
-      admin: {
-        description: 'Enter shipping tracking number once order is shipped',
-      },
-    },
-    {
-      name: 'shippingAddress',
-      type: 'group',
-      fields: [
-        {
-          name: 'street',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'city',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'state',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'postalCode',
-          type: 'text',
-          required: true,
-        },
-      ],
-    },
+    // No shipping fields needed for digital products
   ],
   hooks: {
     beforeChange: [

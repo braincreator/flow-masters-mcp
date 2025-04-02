@@ -105,6 +105,9 @@ export const seed = async ({
     technologyCategory,
     newsCategory,
     financeCategory,
+    designCategory,
+    softwareCategory,
+    engineeringCategory,
   ] = await Promise.all([
     payload.create({
       collection: 'users',
@@ -139,6 +142,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'Technology',
+        categoryType: 'product',
         breadcrumbs: [
           {
             label: 'Technology',
@@ -152,6 +156,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'News',
+        categoryType: 'blog',
         breadcrumbs: [
           {
             label: 'News',
@@ -165,6 +170,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'Finance',
+        categoryType: 'blog',
         breadcrumbs: [
           {
             label: 'Finance',
@@ -177,6 +183,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'Design',
+        categoryType: 'product',
         breadcrumbs: [
           {
             label: 'Design',
@@ -190,6 +197,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'Software',
+        categoryType: 'product',
         breadcrumbs: [
           {
             label: 'Software',
@@ -203,6 +211,7 @@ export const seed = async ({
       collection: 'categories',
       data: {
         title: 'Engineering',
+        categoryType: 'product',
         breadcrumbs: [
           {
             label: 'Engineering',
@@ -424,7 +433,6 @@ export const seed = async ({
 
   payload.logger.info('Seeded database successfully!')
 
-
   await payload.create({
     collection: 'settings',
     data: {
@@ -435,37 +443,32 @@ export const seed = async ({
         description: 'Your Business Process Automation Partner',
         contact: {
           email: 'contact@example.com',
-          phone: '+1 234 567 8900'
+          phone: '+1 234 567 8900',
         },
         social: {
           twitter: 'https://twitter.com/flowmasters',
-          linkedin: 'https://linkedin.com/company/flowmasters'
-        }
-      }
-    }
+          linkedin: 'https://linkedin.com/company/flowmasters',
+        },
+      },
+    },
   })
 
   payload.logger.info('— Seeding test products...')
 
-  await Promise.all(
-    testProducts.map(async (product) => {
-      await payload.create({
-        collection: 'products',
-        data: {
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          slug: product.slug,
-          status: 'published',
-          thumbnail: image1Doc.id, // Using existing image for demo
-          meta: {
-            title: product.title,
-            description: product.description,
-          },
-        },
-      })
+  for (const productData of testProducts({
+    technologyCategory,
+    softwareCategory,
+    designCategory,
+    engineeringCategory,
+  })) {
+    await payload.create({
+      collection: 'products',
+      data: productData,
+      context: {
+        disableRevalidate: true,
+      },
     })
-  )
+  }
 
   payload.logger.info('— Updating header navigation...')
 
@@ -478,7 +481,7 @@ export const seed = async ({
             type: 'custom',
             label: {
               en: 'Store',
-              ru: 'Магазин'
+              ru: 'Магазин',
             },
             url: '/store',
           },
@@ -488,7 +491,7 @@ export const seed = async ({
             type: 'custom',
             label: {
               en: 'Posts',
-              ru: 'Статьи'
+              ru: 'Статьи',
             },
             url: '/posts',
           },
@@ -498,7 +501,7 @@ export const seed = async ({
             type: 'reference',
             label: {
               en: 'Contact',
-              ru: 'Контакты'
+              ru: 'Контакты',
             },
             reference: {
               relationTo: 'pages',
@@ -509,6 +512,8 @@ export const seed = async ({
       ],
     },
   })
+
+  payload.logger.info(`— Done seeding database.`)
 }
 
 async function fetchFileByURL(url: string): Promise<File> {

@@ -101,81 +101,74 @@ export const ORDER_CONFIG: OrderConfig = {
   },
 } as const
 
-export const getProductConfig = (locale: SupportedLocale) => ({
-  types: {
-    digital: {
-      label: PRODUCT_TYPE_LABELS[locale].digital,
-      icon: 'digital',
-      features: ['instant-delivery', 'download', 'no-shipping'].map(
-        feature => ({
+export const getProductConfig = (locale: SupportedLocale) =>
+  ({
+    types: {
+      digital: {
+        label: PRODUCT_TYPE_LABELS[locale].digital,
+        icon: 'digital',
+        features: ['instant-delivery', 'download'].map((feature) => ({
           key: feature,
           label: PRODUCT_FEATURE_LABELS[locale][feature],
-        })
-      ),
-    },
-    subscription: {
-      label: PRODUCT_TYPE_LABELS[locale].subscription,
-      icon: 'subscription',
-      features: ['recurring-billing', 'access-control', 'updates'].map(
-        feature => ({
+        })),
+      },
+      subscription: {
+        label: PRODUCT_TYPE_LABELS[locale].subscription,
+        icon: 'subscription',
+        features: ['recurring-billing', 'access-control', 'updates'].map((feature) => ({
           key: feature,
           label: PRODUCT_FEATURE_LABELS[locale][feature],
-        })
-      ),
-    },
-    service: {
-      label: PRODUCT_TYPE_LABELS[locale].service,
-      icon: 'service',
-      features: ['booking', 'scheduling', 'custom-delivery'].map(
-        feature => ({
+        })),
+      },
+      service: {
+        label: PRODUCT_TYPE_LABELS[locale].service,
+        icon: 'service',
+        features: ['booking', 'scheduling'].map((feature) => ({
           key: feature,
           label: PRODUCT_FEATURE_LABELS[locale][feature],
-        })
-      ),
-    },
-    access: {
-      label: PRODUCT_TYPE_LABELS[locale].access,
-      icon: 'access',
-      features: ['instant-activation', 'feature-gating', 'access-control'].map(
-        feature => ({
+        })),
+      },
+      access: {
+        label: PRODUCT_TYPE_LABELS[locale].access,
+        icon: 'access',
+        features: ['instant-activation', 'feature-gating', 'access-control'].map((feature) => ({
           key: feature,
           label: PRODUCT_FEATURE_LABELS[locale][feature],
-        })
-      ),
+        })),
+      },
     },
-  },
-  statuses: {
-    draft: {
-      label: 'Draft',
-      color: 'gray',
+    statuses: {
+      draft: {
+        label: 'Draft',
+        color: 'gray',
+      },
+      active: {
+        label: 'Active',
+        color: 'green',
+      },
+      inactive: {
+        label: 'Inactive',
+        color: 'yellow',
+      },
+      archived: {
+        label: 'Archived',
+        color: 'red',
+      },
     },
-    active: {
-      label: 'Active',
-      color: 'green',
+    defaultType: 'digital',
+    defaultStatus: 'draft',
+    pricing: {
+      allowDecimal: true,
+      minPrice: 100,
+      maxPrice: 1000000,
+      defaultTaxRate: 0.2,
     },
-    inactive: {
-      label: 'Inactive',
-      color: 'yellow',
+    inventory: {
+      track: true,
+      lowStockThreshold: 5,
+      allowBackorder: false,
     },
-    archived: {
-      label: 'Archived',
-      color: 'red',
-    },
-  },
-  defaultType: 'digital',
-  defaultStatus: 'draft',
-  pricing: {
-    allowDecimal: true,
-    minPrice: 100,
-    maxPrice: 1000000,
-    defaultTaxRate: 0.20,
-  },
-  inventory: {
-    track: true,
-    lowStockThreshold: 5,
-    allowBackorder: false,
-  },
-}) as const
+  }) as const
 
 export const NOTIFICATION_CONFIG: NotificationConfig = {
   providers: {

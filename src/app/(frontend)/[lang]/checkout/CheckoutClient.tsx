@@ -48,14 +48,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Add shipping address fields
-  const [shippingAddress, setShippingAddress] = useState({
-    street: '',
-    city: '',
-    state: '',
-    postalCode: '',
-  })
-  const [useDefaultAddress, setUseDefaultAddress] = useState(true)
+  // No shipping address fields needed for digital products
 
   // Add state for selected crypto currency
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState('ETH')
@@ -148,25 +141,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       return
     }
 
-    // Check shipping address if not using default
-    if (!useDefaultAddress) {
-      if (!shippingAddress.street) {
-        setError(locale === 'ru' ? 'Укажите улицу и номер дома' : 'Please enter street address')
-        return
-      }
-      if (!shippingAddress.city) {
-        setError(locale === 'ru' ? 'Укажите город' : 'Please enter city')
-        return
-      }
-      if (!shippingAddress.state) {
-        setError(locale === 'ru' ? 'Укажите область/регион' : 'Please enter state/province')
-        return
-      }
-      if (!shippingAddress.postalCode) {
-        setError(locale === 'ru' ? 'Укажите почтовый индекс' : 'Please enter postal code')
-        return
-      }
-    }
+    // No shipping address validation needed for digital products
 
     // Check if a payment provider is selected
     if (!selectedProvider) {
@@ -199,14 +174,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         customer: {
           email,
           locale,
-          address: useDefaultAddress
-            ? undefined
-            : {
-                street: shippingAddress.street,
-                city: shippingAddress.city,
-                state: shippingAddress.state,
-                postalCode: shippingAddress.postalCode,
-              },
+          // No address needed for digital products
         },
         provider: provider,
         returnUrl: `${window.location.origin}/${locale}/payment/success`,
@@ -359,12 +327,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     </p>
                     <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
                   </div>
-                  <div key="shipping" className="flex justify-between">
-                    <p className="text-muted-foreground">
-                      {locale === 'ru' ? 'Доставка' : 'Shipping'}
-                    </p>
-                    <p>{locale === 'ru' ? 'Бесплатно' : 'Free'}</p>
-                  </div>
+                  {/* No shipping row needed for digital products */}
                   <div key="separator" className="border-t my-2" />
                   <div key="total" className="flex justify-between font-medium">
                     <p>{locale === 'ru' ? 'Итого' : 'Total'}</p>
@@ -410,100 +373,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                 {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
               </div>
 
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="use-default-address" className="text-base font-medium">
-                    {locale === 'ru' ? 'Адрес доставки' : 'Shipping Address'}
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="use-default-address"
-                      checked={useDefaultAddress}
-                      onChange={(e) => setUseDefaultAddress(e.target.checked)}
-                      className="rounded text-primary focus:ring-primary"
-                    />
-                    <Label
-                      htmlFor="use-default-address"
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {locale === 'ru' ? 'Использовать адрес по умолчанию' : 'Use default address'}
-                    </Label>
-                  </div>
-                </div>
-
-                {useDefaultAddress ? (
-                  <p className="text-sm text-muted-foreground">
-                    {locale === 'ru'
-                      ? 'Будет использоваться адрес по умолчанию'
-                      : 'The default address will be used'}
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="street">
-                        {locale === 'ru' ? 'Улица и номер дома' : 'Street Address'}
-                      </Label>
-                      <Input
-                        id="street"
-                        type="text"
-                        value={shippingAddress.street}
-                        onChange={(e) =>
-                          setShippingAddress({ ...shippingAddress, street: e.target.value })
-                        }
-                        placeholder={locale === 'ru' ? 'Ул. Пушкина, д. 10' : '123 Main St'}
-                        required={!useDefaultAddress}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label htmlFor="city">{locale === 'ru' ? 'Город' : 'City'}</Label>
-                        <Input
-                          id="city"
-                          type="text"
-                          value={shippingAddress.city}
-                          onChange={(e) =>
-                            setShippingAddress({ ...shippingAddress, city: e.target.value })
-                          }
-                          placeholder={locale === 'ru' ? 'Москва' : 'New York'}
-                          required={!useDefaultAddress}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="state">
-                          {locale === 'ru' ? 'Область/Регион' : 'State/Province'}
-                        </Label>
-                        <Input
-                          id="state"
-                          type="text"
-                          value={shippingAddress.state}
-                          onChange={(e) =>
-                            setShippingAddress({ ...shippingAddress, state: e.target.value })
-                          }
-                          placeholder={locale === 'ru' ? 'Московская обл.' : 'NY'}
-                          required={!useDefaultAddress}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="postalCode">
-                        {locale === 'ru' ? 'Почтовый индекс' : 'Postal Code'}
-                      </Label>
-                      <Input
-                        id="postalCode"
-                        type="text"
-                        value={shippingAddress.postalCode}
-                        onChange={(e) =>
-                          setShippingAddress({ ...shippingAddress, postalCode: e.target.value })
-                        }
-                        placeholder={locale === 'ru' ? '123456' : '10001'}
-                        required={!useDefaultAddress}
-                      />
-                    </div>
-                  </div>
-                )}
+              {/* Shipping address section removed - not needed for digital products */}
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  {locale === 'ru'
+                    ? 'Для цифровых продуктов адрес доставки не требуется'
+                    : 'No shipping address required for digital products'}
+                </p>
               </div>
             </div>
           </CardContent>
