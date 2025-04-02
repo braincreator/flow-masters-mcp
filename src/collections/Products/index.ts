@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import type { CollectionBeforeChangeHook, FieldHook } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { formatPreviewURL } from '@/utilities/formatPreviewURL'
 import { revalidatePage } from '@/utilities/revalidatePage'
@@ -6,12 +7,104 @@ import { populatePublishedAt } from '@/hooks/populatePublishedAt'
 import { slugField } from '@/fields/slug'
 import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
+import type { Product } from '@/payload-types'
+
+// Определяем тип для данных группы pricing, если он не сгенерирован
+type PricingGroup = Product['pricing'] // Используем сгенерированный тип, если есть
+// Если нет, можно определить вручную:
+// type PricingGroup = {
+//   basePrice?: number | null;
+//   discountPercentage?: number | null;
+//   compareAtPrice?: number | null;
+//   finalPrice?: number | null;
+//   locales?: any; // Уточни тип, если нужно
+// }
+
+// Заменяем хук CollectionBeforeChangeHook на FieldHook
+const pricingHook: FieldHook = ({ value, siblingData, originalDoc, operation }) => {
+  // value - это значение поля pricing
+  // Если value не определено, создаем пустой объект
+  if (!value) {
+    value = {};
+  }
+
+  // Получаем существующие данные из originalDoc если это обновление
+  const existingPricingData = (operation === 'update' && originalDoc?.pricing) 
+    ? originalDoc.pricing 
+    : {};
+
+  // Объединяем существующие данные с переданными (value)
+  const mergedData = {
+    ...existingPricingData,
+    ...value,
+  };
+
+  // Получаем и валидируем basePrice
+  let basePrice = 0;
+  if (value.basePrice === undefined || value.basePrice === null || isNaN(Number(value.basePrice))) {
+    // Если basePrice отсутствует или невалидно в текущем запросе, 
+    // используем существующее значение или 0
+    basePrice = (existingPricingData.basePrice !== undefined && existingPricingData.basePrice !== null)
+      ? Number(existingPricingData.basePrice)
+      : 0;
+  } else {
+    // Если basePrice передано, проверяем что это число >= 0
+    basePrice = Math.max(0, Number(value.basePrice));
+  }
+
+  // Получаем и валидируем discountPercentage
+  const discountPercentage = Math.max(0, Number(mergedData.discountPercentage) || 0);
+
+  // Определяем compareAtPrice
+  let compareAtPrice = mergedData.compareAtPrice;
+
+  // Рассчитываем finalPrice
+  let finalPrice: number;
+
+  if (basePrice > 0 && discountPercentage > 0) {
+    // Если есть basePrice и скидка, устанавливаем compareAtPrice = basePrice,
+    // если оно не задано вручную или пусто
+    if (compareAtPrice === null || compareAtPrice === undefined || 
+        (originalDoc?.pricing?.compareAtPrice === compareAtPrice)) {
+      compareAtPrice = basePrice;
+    }
+    finalPrice = basePrice * (1 - discountPercentage / 100);
+  } else {
+    // Если скидки нет, compareAtPrice имеет смысл только если задано вручную
+    // и отличается от basePrice
+    if (compareAtPrice === basePrice || compareAtPrice === undefined) {
+      compareAtPrice = null;
+    }
+    finalPrice = basePrice;
+  }
+
+  // Валидируем compareAtPrice - должно быть > finalPrice
+  if (compareAtPrice !== null && compareAtPrice !== undefined) {
+    compareAtPrice = Math.max(0, Number(compareAtPrice) || 0);
+    if (compareAtPrice <= finalPrice) {
+      compareAtPrice = null;
+    }
+  }
+
+  // Округляем finalPrice до 2 знаков после запятой
+  finalPrice = Math.round(finalPrice * 100) / 100;
+
+  // Возвращаем объект с обновленными данными
+  return {
+    ...value,
+    basePrice,
+    discountPercentage,
+    compareAtPrice,
+    finalPrice,
+    locales: mergedData.locales,
+  };
+}
 
 export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category.title', 'pricing.finalPrice', 'publishedAt', 'status'],
+    defaultColumns: ['title', 'productCategory.title', 'pricing.finalPrice', 'publishedAt', 'status'],
     preview: (doc, { locale }) => formatPreviewURL('products', doc, locale),
   },
   access: {
@@ -35,18 +128,11 @@ export const Products: CollectionConfig = {
       localized: true,
     },
     {
-      name: 'category',
+      name: 'productCategory',
       type: 'relationship',
-      relationTo: 'categories',
+      relationTo: 'productCategories',
       hasMany: false,
       required: true,
-      filterOptions: ({ relationTo }) => {
-        return {
-          categoryType: {
-            equals: 'product',
-          },
-        }
-      },
       admin: {
         position: 'sidebar',
         description: 'Select a product category',
@@ -55,6 +141,9 @@ export const Products: CollectionConfig = {
     {
       name: 'pricing',
       type: 'group',
+      hooks: {
+        beforeChange: [pricingHook],
+      },
       fields: [
         {
           name: 'basePrice',
@@ -80,18 +169,6 @@ export const Products: CollectionConfig = {
           admin: {
             description: 'Final price after discount (calculated automatically)',
             readOnly: true,
-          },
-          hooks: {
-            beforeChange: [
-              ({ siblingData }) => {
-                if (siblingData.basePrice) {
-                  const basePrice = siblingData.basePrice
-                  const discount = siblingData.discountPercentage || 0
-                  return basePrice * (1 - discount / 100)
-                }
-                return siblingData.basePrice
-              },
-            ],
           },
         },
         {
@@ -337,21 +414,15 @@ export const Products: CollectionConfig = {
         description: 'Automatically set based on order volume (15% above average)',
         position: 'sidebar',
       },
-      hooks: {
+      hooks: { 
         beforeChange: [
           async ({ req, data }) => {
-            // Cast to any to bypass the TypeScript error for this demonstration
-            // In a real app, you'd define proper types for the orders collection
             const allOrders = await (req.payload.find as any)({
               collection: 'orders',
               depth: 0,
             })
-
-            // Calculate average orders per product
-            const productOrders: Record<string, number> = {} // Map to store order count per product
+            const productOrders: Record<string, number> = {}
             let totalOrders = 0
-
-            // Type check and safely access order products
             if (allOrders?.docs && Array.isArray(allOrders.docs)) {
               allOrders.docs.forEach((order: any) => {
                 if (order?.products && Array.isArray(order.products)) {
@@ -364,11 +435,8 @@ export const Products: CollectionConfig = {
                 }
               })
             }
-
             const averageOrders = totalOrders / Math.max(1, Object.keys(productOrders).length)
             const thisProductOrders = data?.id ? productOrders[data.id] || 0 : 0
-
-            // Set isPopular if orders are 15% above average
             return thisProductOrders > averageOrders * 1.15
           },
         ],

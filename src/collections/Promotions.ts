@@ -129,9 +129,6 @@ export const Promotions: CollectionConfig = {
   timestamps: true,
   indexes: [
     {
-      fields: ['code'],
-    },
-    {
       fields: ['status', 'startDate', 'endDate'],
     },
   ],

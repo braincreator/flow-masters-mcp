@@ -1,4 +1,6 @@
+import React from 'react'
 import type { CollectionConfig } from 'payload'
+
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { slugField } from '@/fields/slug'
@@ -55,13 +57,6 @@ export const Authors: CollectionConfig = {
     {
       name: 'socialLinks',
       type: 'array',
-      admin: {
-        components: {
-          RowLabel: ({ data }) => {
-            return data?.platform || 'Social Link'
-          },
-        },
-      },
       fields: [
         {
           name: 'platform',

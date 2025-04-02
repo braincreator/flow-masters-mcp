@@ -31,7 +31,6 @@ interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
   sortOptions: Array<{ label: string; value: string }>
   productTypes: Array<{ label: string; value: string }>
-  tags: Array<{ label: string; value: string }>
   priceRange: { min: number; max: number }
   defaultLayout?: 'grid' | 'list'
   locale?: string
@@ -49,7 +48,6 @@ interface FilterBarProps {
     searchPlaceholder: string
     allCategories: string
     productTypes: string
-    tags: string
     priceRange: string
     layout: string
     favorites?: string
@@ -60,7 +58,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   categories,
   sortOptions,
   productTypes,
-  tags,
   priceRange,
   defaultLayout = 'grid',
   locale,
@@ -75,11 +72,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const [isSortOpen, setIsSortOpen] = React.useState(false)
 
   // Local state for filter values in the dialog
-  const [tempCategory, setTempCategory] = React.useState(searchParams.get('category') || 'all')
+  const [tempCategory, setTempCategory] = React.useState(searchParams.get('productCategory') || 'all')
   const [tempProductType, setTempProductType] = React.useState(
     searchParams.get('productType') || 'all',
   )
-  const [tempTag, setTempTag] = React.useState(searchParams.get('tag') || 'all')
   const [tempPriceRange, setTempPriceRange] = React.useState<[number, number]>([
     parseInt(searchParams.get('minPrice') || priceRange.min.toString()),
     parseInt(searchParams.get('maxPrice') || priceRange.max.toString()),
@@ -100,7 +96,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           search: labels?.search || 'Search',
           searchPlaceholder: labels?.searchPlaceholder || 'Search products...',
           productTypes: labels?.productTypes || 'Product Types',
-          tags: labels?.tags || 'Tags',
           priceRange: {
             label: labels?.priceRange || 'Price Range',
             min: 'Min',
@@ -140,9 +135,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   React.useEffect(() => {
     if (isFiltersOpen) {
       // Reset temp filters to current URL params when dialog opens
-      setTempCategory(searchParams.get('category') || 'all')
+      setTempCategory(searchParams.get('productCategory') || 'all')
       setTempProductType(searchParams.get('productType') || 'all')
-      setTempTag(searchParams.get('tag') || 'all')
 
       // Use database values for min/max prices if no URL params
       const urlMinPrice = searchParams.get('minPrice')
@@ -155,31 +149,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     }
   }, [isFiltersOpen, searchParams, priceRange])
 
-  const updateSearchParams = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set(key, value)
-    } else {
-      params.delete(key)
-    }
-    if (key !== 'layout') {
-      params.delete('page')
-    }
-    return `?${params.toString()}`
-  }
-
   const handleLayoutChange = (newLayout: 'grid' | 'list') => {
-    setLayout(newLayout)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('layout', newLayout)
+    // page не удаляем при смене layout
+    router.replace(`?${params.toString()}`, { scroll: false })
+    setLayout(newLayout) 
     setOpenDropdown(null)
-    const newUrl = updateSearchParams('layout', newLayout)
-    router.replace(newUrl, { scroll: false })
   }
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
-      router.replace(updateSearchParams('search', value), { scroll: false })
+      const params = new URLSearchParams(searchParams.toString())
+      if (value) {
+        params.set('search', value)
+      } else {
+        params.delete('search')
+      }
+      params.delete('page')
+      router.replace(`?${params.toString()}`, { scroll: false })
     }, 500),
-    [router, updateSearchParams],
+    [router, searchParams],
   )
 
   const handleSearch = (value: string) => {
@@ -187,19 +177,41 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   }
 
   const handleCategoryChange = (categoryValue: string) => {
-    router.replace(updateSearchParams('category', categoryValue), { scroll: false })
+    const params = new URLSearchParams(searchParams.toString())
+    // Удаляем старый ключ, если он был
+    params.delete('productCategory') 
+    // Удаляем ключ where, если он был (на всякий случай)
+    params.delete('where[productCategory][equals]') 
+
+    if (categoryValue && categoryValue !== 'all') {
+      // Устанавливаем новый ключ в формате where
+      params.set('where[productCategory][equals]', categoryValue)
+    } 
+    // Удаляем пагинацию при смене фильтра
+    params.delete('page')
+    router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   const handleSortChange = (sortValue: string) => {
-    router.replace(updateSearchParams('sort', sortValue), { scroll: false })
+    const params = new URLSearchParams(searchParams.toString())
+    if (sortValue) {
+      params.set('sort', sortValue)
+    } else {
+      params.delete('sort')
+    }
+    params.delete('page')
+    router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   const handleProductTypeChange = (typeValue: string) => {
-    router.replace(updateSearchParams('productType', typeValue), { scroll: false })
-  }
-
-  const handleTagChange = (tagValue: string) => {
-    router.replace(updateSearchParams('tag', tagValue), { scroll: false })
+    const params = new URLSearchParams(searchParams.toString())
+     if (typeValue && typeValue !== 'all') {
+      params.set('productType', typeValue)
+    } else {
+      params.delete('productType')
+    }
+    params.delete('page')
+    router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   const handlePriceRangeChange = (values: [number, number]) => {
@@ -207,6 +219,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     const params = new URLSearchParams(searchParams.toString())
     params.set('minPrice', values[0].toString())
     params.set('maxPrice', values[1].toString())
+    params.delete('page') // Сбрасываем страницу при изменении цены
     router.replace(`?${params.toString()}`, { scroll: false })
   }
 
@@ -217,10 +230,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   const handleDialogProductTypeChange = (value: string) => {
     setTempProductType(value)
-  }
-
-  const handleDialogTagChange = (value: string) => {
-    setTempTag(value)
   }
 
   const handleDialogPriceRangeChange = (values: [number, number]) => {
@@ -237,17 +246,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       : `${formattedNumber} ${currency.symbol}`
   }
 
-  const currentCategory = searchParams.get('category') || 'all'
+  const currentCategory = searchParams.get('productCategory') || 'all'
   const currentSort = searchParams.get('sort') || 'newest'
   const currentProductType = searchParams.get('productType') || 'all'
-  const currentTag = searchParams.get('tag') || 'all'
   const currentSearch = searchParams.get('search') || ''
 
   // Reset only specific filter
   const hasActiveFilters =
     currentCategory !== 'all' ||
     currentProductType !== 'all' ||
-    currentTag !== 'all' ||
     currentSearch ||
     appliedPriceRange[0] !== priceRange.min ||
     appliedPriceRange[1] !== priceRange.max
@@ -259,43 +266,34 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Apply all filters from dialog
   const onDialogApply = () => {
-    // Create a new URLSearchParams object
     const params = new URLSearchParams(searchParams.toString())
 
-    // Update all filter params from temporary state
-    if (tempCategory && tempCategory !== 'all') {
-      params.set('category', tempCategory)
-    } else {
-      params.delete('category')
-    }
+    // Удаляем старые/неправильные ключи перед установкой новых
+    params.delete('productCategory')
+    params.delete('where[productCategory][equals]')
+    params.delete('productType')
+    params.delete('minPrice')
+    params.delete('maxPrice')
 
+    // Update category filter using 'where' syntax
+    if (tempCategory && tempCategory !== 'all') {
+      params.set('where[productCategory][equals]', tempCategory)
+    } 
+
+    // Update other filters
     if (tempProductType && tempProductType !== 'all') {
       params.set('productType', tempProductType)
-    } else {
-      params.delete('productType')
-    }
-
-    if (tempTag && tempTag !== 'all') {
-      params.set('tag', tempTag)
-    } else {
-      params.delete('tag')
-    }
+    } 
 
     if (tempPriceRange[0] !== priceRange.min || tempPriceRange[1] !== priceRange.max) {
       params.set('minPrice', tempPriceRange[0].toString())
       params.set('maxPrice', tempPriceRange[1].toString())
-    } else {
-      params.delete('minPrice')
-      params.delete('maxPrice')
-    }
+    } 
 
     // Reset page when filters change
     params.delete('page')
 
-    // Close the dialog
     setIsFiltersOpen(false)
-
-    // Navigate to the URL with all filters applied
     router.replace(`?${params.toString()}`, { scroll: false })
   }
 
@@ -303,30 +301,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const resetDialogFilters = () => {
     setTempCategory('all')
     setTempProductType('all')
-    setTempTag('all')
     setTempPriceRange([priceRange.min, priceRange.max])
   }
 
   // Reset all applied filters
   const resetAllFilters = () => {
     const params = new URLSearchParams()
-
-    // Preserve layout and sort
     const layout = searchParams.get('layout')
     const sort = searchParams.get('sort')
-
     if (layout) params.set('layout', layout)
     if (sort) params.set('sort', sort)
-
-    // Add a timestamp parameter to ensure the URL changes and triggers a refresh
     params.set('_t', Date.now().toString())
-
     router.replace(`?${params.toString()}`, { scroll: false })
-
-    // Also reset dialog filters
     resetDialogFilters()
-
-    // Update local state to reflect changes
     setAppliedPriceRange([priceRange.min, priceRange.max])
   }
 
@@ -401,7 +388,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 [
                   currentCategory !== 'all',
                   currentProductType !== 'all',
-                  currentTag !== 'all',
                   appliedPriceRange[0] !== priceRange.min ||
                     appliedPriceRange[1] !== priceRange.max,
                 ].filter(Boolean).length
@@ -593,35 +579,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           )}
 
-          {currentTag !== 'all' && (
-            <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
-              <span className="mr-1">
-                {tags.find((t) => t.value === currentTag)?.label || currentTag}
-              </span>
-              <button
-                onClick={() => handleTagChange('all')}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="Clear tag filter"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-
           {/* Clear All Filters button - moved to be part of the filter chips */}
           <Button
             variant="outline"
@@ -695,28 +652,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <SelectItem key={type.value} value={type.value}>
                       {t.filters.productType[type.value as keyof typeof t.filters.productType] ||
                         type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tags */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold">{t.filters.tags}</h3>
-              <Select value={tempTag} onValueChange={handleDialogTagChange}>
-                <SelectTrigger className="select-trigger w-full h-10 focus:outline-none focus:border-accent">
-                  <SelectValue placeholder={t.filters.tags}>
-                    {tempTag === 'all'
-                      ? t.filters.tags
-                      : tags.find((t) => t.value === tempTag)?.label || tempTag}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="border border-border">
-                  <SelectItem value="all">{t.filters.tags}</SelectItem>
-                  {tags.map((tag) => (
-                    <SelectItem key={tag.value} value={tag.value}>
-                      {tag.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

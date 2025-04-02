@@ -48,9 +48,8 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '12')
     const locale = (searchParams.get('locale') || DEFAULT_LOCALE) as Locale
     const search = searchParams.get('search') || ''
-    const category = searchParams.get('category') || ''
+    const productCategory = searchParams.get('where[productCategory][equals]') || ''
     const productType = searchParams.get('productType') || ''
-    const tag = searchParams.get('tag') || ''
     const sort = searchParams.get('sort') || 'newest'
     const minPrice = searchParams.get('minPrice')
       ? parseInt(searchParams.get('minPrice')!)
@@ -64,9 +63,8 @@ export async function GET(request: Request) {
       limit,
       locale,
       search,
-      category,
+      productCategory,
       productType,
-      tag,
       sort,
       minPrice,
       maxPrice,
@@ -123,9 +121,9 @@ export async function GET(request: Request) {
 
     // Build the where query
     const where: any = {
-      status: {
-        equals: 'published',
-      },
+      // status: { // Временно убираем фильтр по статусу
+      //   equals: 'published',
+      // },
     }
 
     // Store price filtering parameters for client-side filtering
@@ -136,25 +134,25 @@ export async function GET(request: Request) {
     }
 
     // Add search filter
-    if (search) {
-      where.or = [
-        {
-          title: {
-            contains: search,
-          },
-        },
-        {
-          description: {
-            contains: search,
-          },
-        },
-      ]
-    }
+    // if (search) { // Временно убираем фильтр по поиску
+    //   where.or = [
+    //     {
+    //       title: {
+    //         contains: search,
+    //       },
+    //     },
+    //     {
+    //       description: {
+    //         contains: search,
+    //       },
+    //     },
+    //   ]
+    // }
 
-    // Add category filter
-    if (category && category !== 'all') {
-      where.category = {
-        equals: category,
+    // Add productCategory filter
+    if (productCategory && productCategory !== 'all') {
+      where.productCategory = {
+        equals: productCategory,
       }
     }
 
@@ -162,13 +160,6 @@ export async function GET(request: Request) {
     if (productType && productType !== 'all') {
       where.productType = {
         equals: productType,
-      }
-    }
-
-    // Add tag filter
-    if (tag && tag !== 'all') {
-      where.tags = {
-        contains: tag,
       }
     }
 

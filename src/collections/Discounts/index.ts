@@ -20,7 +20,6 @@ export const Discounts: CollectionConfig = {
       type: 'text',
       required: true,
       unique: true,
-      index: true,
       admin: {
         description: 'Promotional code (e.g. SUMMER2024)',
       },

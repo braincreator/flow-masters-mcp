@@ -109,14 +109,6 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
 
           <h1 className="product-title">{getProductTitle()}</h1>
 
-          {/* Free Delivery Badge */}
-          {hasFreeDelivery && (
-            <div className="flex items-center gap-2 text-sm text-success mt-2">
-              <Truck className="h-4 w-4" />
-              <span>{lang === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}</span>
-            </div>
-          )}
-
           {/* Instant Delivery for digital products */}
           {product.productType === 'digital' && (
             <div className="flex items-center gap-2 text-sm text-success mt-2">

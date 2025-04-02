@@ -5,95 +5,46 @@ import { DEFAULT_LOCALE, type Locale } from '@/constants'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-
-    // Extract query parameters
     const locale = (searchParams.get('locale') as Locale) || DEFAULT_LOCALE
-    const categoryType = searchParams.get('type') // Get category type from query params
 
-    console.log(
-      `Categories API: Fetching categories for locale ${locale}${categoryType ? ` and type ${categoryType}` : ''}`,
-    )
+    console.log(`Categories API: Fetching blog categories for locale ${locale}`)
 
     try {
       const payload = await getPayloadClient()
       console.log('Categories API: Payload client initialized')
 
-      // Prepare where clause based on categoryType
-      const whereClause = categoryType
-        ? {
-            categoryType: {
-              equals: categoryType,
-            },
-          }
-        : {}
-
       // Fetch categories
       try {
         const categories = await payload.find({
           collection: 'categories',
-          limit: 100, // Fetch up to 100 categories
+          limit: 100,
           locale,
-          where: whereClause,
         })
         console.log(`Categories API: Found ${categories.docs.length} categories`)
 
-        // Fetch post counts for each category (optional)
+        // Упрощаем маппинг: считаем посты для всех категорий (теперь это только категории блога)
         const categoriesWithCount = await Promise.all(
           categories.docs.map(async (category) => {
             try {
-              // If it's a blog category, fetch post counts
-              if (!categoryType || categoryType === 'blog') {
-                const postsCount = await payload.find({
-                  collection: 'posts',
-                  where: {
-                    categories: {
-                      in: category.id,
-                    },
+              const postsCount = await payload.find({
+                collection: 'posts',
+                where: {
+                  categories: {
+                    in: category.id,
                   },
-                  limit: 0, // We only need the count
-                })
+                },
+                limit: 0, // We only need the count
+              })
 
-                return {
-                  id: category.id,
-                  title: category.title,
-                  slug: category.slug,
-                  count: postsCount.totalDocs,
-                  categoryType: category.categoryType,
-                  description: category.description,
-                  // Include type-specific fields conditionally
-                  ...(category.categoryType === 'product' && category.productCategoryDetails
-                    ? {
-                        featuredInNav: category.productCategoryDetails.featuredInNav,
-                        displayOrder: category.productCategoryDetails.displayOrder,
-                        icon: category.productCategoryDetails.icon,
-                      }
-                    : {}),
-                  ...(category.categoryType === 'blog' && category.blogCategoryDetails
-                    ? {
-                        showInSidebar: category.blogCategoryDetails.showInSidebar,
-                        color: category.blogCategoryDetails.color,
-                      }
-                    : {}),
-                }
-              }
-
-              // For product or general categories, don't fetch post counts
               return {
                 id: category.id,
                 title: category.title,
                 slug: category.slug,
-                count: 0,
-                categoryType: category.categoryType,
+                count: postsCount.totalDocs,
                 description: category.description,
-                // Include type-specific fields conditionally
-                ...(category.categoryType === 'product' && category.productCategoryDetails
-                  ? {
-                      featuredInNav: category.productCategoryDetails.featuredInNav,
-                      displayOrder: category.productCategoryDetails.displayOrder,
-                      icon: category.productCategoryDetails.icon,
-                    }
-                  : {}),
-                ...(category.categoryType === 'blog' && category.blogCategoryDetails
+                // Убираем добавление полей productCategoryDetails
+                // Добавляем поля blogCategoryDetails для всех
+                ...(category.blogCategoryDetails
                   ? {
                       showInSidebar: category.blogCategoryDetails.showInSidebar,
                       color: category.blogCategoryDetails.color,
@@ -105,34 +56,19 @@ export async function GET(request: NextRequest) {
                 `Categories API: Error fetching post count for category ${category.id}:`,
                 err,
               )
-              // Return the category without count in case of error
               return {
                 id: category.id,
                 title: category.title,
                 slug: category.slug,
                 count: 0,
-                categoryType: category.categoryType,
                 description: category.description,
               }
             }
           }),
         )
 
-        // Sort categories based on type
-        let sortedCategories = categoriesWithCount
-
-        if (!categoryType || categoryType === 'blog') {
-          // Sort blog categories by post count
-          sortedCategories = categoriesWithCount.sort((a, b) => b.count - a.count)
-        } else if (categoryType === 'product') {
-          // Sort product categories by display order if available
-          sortedCategories = categoriesWithCount.sort((a, b) => {
-            if (a.displayOrder !== undefined && b.displayOrder !== undefined) {
-              return a.displayOrder - b.displayOrder
-            }
-            return 0
-          })
-        }
+        // Сортируем по количеству постов
+        const sortedCategories = categoriesWithCount.sort((a, b) => b.count - a.count)
 
         return NextResponse.json(sortedCategories)
       } catch (collectionError) {
@@ -157,3 +93,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+// POST handler removed

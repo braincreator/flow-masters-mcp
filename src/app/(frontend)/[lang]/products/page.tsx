@@ -95,7 +95,7 @@ export default async function StorePage({ params, searchParams }: Props) {
     }
 
     if (searchParamsResolved.category && searchParamsResolved.category !== 'all') {
-      where.category = { equals: searchParamsResolved.category }
+      where.productCategory = { equals: searchParamsResolved.category }
     }
 
     // Фильтрация по избранным товарам будет реализована на клиентской стороне
@@ -124,7 +124,7 @@ export default async function StorePage({ params, searchParams }: Props) {
     const currentPage = Math.max(1, parseInt(searchParamsResolved.page || '1'))
 
     try {
-      const [products, categories] = await Promise.all([
+      const [products, productCategories] = await Promise.all([
         payload.find({
           collection: 'products',
           where,
@@ -135,51 +135,35 @@ export default async function StorePage({ params, searchParams }: Props) {
           sort,
         }),
         payload.find({
-          collection: 'categories',
-          where: {
-            categoryType: {
-              equals: 'product',
-            },
-          },
+          collection: 'productCategories',
           locale: currentLocale,
           limit: 100,
+          depth: 0,
         }),
       ])
 
-      if (!products?.docs || !categories?.docs) {
-        console.error('Invalid response format from Payload')
+      if (!products?.docs || !productCategories?.docs) {
+        console.error('Invalid response format from Payload for products or productCategories')
         return notFound()
       }
 
-      // Serialize products to prevent non-serializable data issues
       const productDocs = products.docs.map((doc) => {
-        // First convert the document to a plain object
         const plainDoc = safeSerialize(doc)
-
         return {
           ...plainDoc,
           id: doc.id?.toString(),
           title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
           description: doc.description ? safeSerialize(doc.description) : null,
-          // Ensure category is properly serialized
-          category: typeof doc.category === 'string' ? doc.category : safeSerialize(doc.category),
+          productCategory: typeof doc.productCategory === 'string' ? doc.productCategory : safeSerialize(doc.productCategory),
         }
       })
 
-      // Serialize categories
-      const categoryDocs = categories.docs.map((doc) => {
+      const productCategoryDocs = productCategories.docs.map((doc) => {
         const plainDoc = safeSerialize(doc)
-
-        // Log a sample category to debug
-        if (categories.docs.length > 0 && doc === categories.docs[0]) {
-          console.log('Sample category structure:', JSON.stringify(plainDoc, null, 2))
-        }
-
         return {
           ...plainDoc,
           id: doc.id?.toString(),
-          title: doc.title, // Pass the original title
-          name: typeof doc.name === 'string' ? doc.name : doc.name?.[currentLocale] || '',
+          title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
         }
       })
 
@@ -194,7 +178,7 @@ export default async function StorePage({ params, searchParams }: Props) {
 
             <ProductsClient
               products={productDocs}
-              categories={categoryDocs}
+              categories={productCategoryDocs}
               currentLocale={currentLocale}
               searchParams={searchParamsResolved}
               totalPages={products.totalPages || 1}

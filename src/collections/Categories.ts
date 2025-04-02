@@ -14,7 +14,9 @@ export const Categories: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'categoryType'],
+    defaultColumns: ['title', 'slug', 'updatedAt'],
+    description: 'General or Blog categories.',
+    listSearchableFields: ['title'],
   },
   fields: [
     {
@@ -24,21 +26,6 @@ export const Categories: CollectionConfig = {
       required: true,
     },
     {
-      name: 'categoryType',
-      type: 'select',
-      options: [
-        { label: 'Product Category', value: 'product' },
-        { label: 'Blog Category', value: 'blog' },
-        { label: 'General', value: 'general' },
-      ],
-      defaultValue: 'general',
-      required: true,
-      admin: {
-        position: 'sidebar',
-        description: 'Determines what type of content this category is for',
-      },
-    },
-    {
       name: 'description',
       type: 'textarea',
       localized: true,
@@ -46,47 +33,10 @@ export const Categories: CollectionConfig = {
         description: 'A brief description of this category',
       },
     },
-    // Product-specific fields
-    {
-      name: 'productCategoryDetails',
-      type: 'group',
-      admin: {
-        condition: (data) => data?.categoryType === 'product',
-        description: 'Fields specific to product categories',
-      },
-      fields: [
-        {
-          name: 'featuredInNav',
-          type: 'checkbox',
-          defaultValue: false,
-          admin: {
-            description: 'Show this category in the main navigation',
-          },
-        },
-        {
-          name: 'displayOrder',
-          type: 'number',
-          min: 0,
-          admin: {
-            description: 'Order to display categories (lower numbers first)',
-          },
-        },
-        {
-          name: 'icon',
-          type: 'upload',
-          relationTo: 'media',
-          admin: {
-            description: 'Icon to represent this product category',
-          },
-        },
-      ],
-    },
-    // Blog-specific fields
     {
       name: 'blogCategoryDetails',
       type: 'group',
       admin: {
-        condition: (data) => data?.categoryType === 'blog',
         description: 'Fields specific to blog categories',
       },
       fields: [
@@ -109,12 +59,4 @@ export const Categories: CollectionConfig = {
     },
     ...slugField(),
   ],
-  hooks: {
-    beforeChange: [
-      // Ensure proper validation of type-specific fields
-      ({ data }) => {
-        return data
-      },
-    ],
-  },
 }

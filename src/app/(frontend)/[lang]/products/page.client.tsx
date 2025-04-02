@@ -100,12 +100,6 @@ export default function ProductsClient({
     { id: 'access', label: t.filters.productType.access, value: 'access' },
   ]
 
-  const tags = [
-    { id: 'new', label: 'New', value: 'new' },
-    { id: 'popular', label: 'Popular', value: 'popular' },
-    { id: 'featured', label: 'Featured', value: 'featured' },
-  ]
-
   const priceRange = { min: 0, max: 1000 }
 
   // Function to fetch products based on current search params
@@ -191,7 +185,6 @@ export default function ProductsClient({
           { label: t.sortOptions.priceHighToLow, value: 'price' },
         ]}
         productTypes={productTypes}
-        tags={tags}
         priceRange={priceRange}
         defaultLayout={searchParams.get('layout') || 'grid'}
         locale={currentLocale}
@@ -203,7 +196,6 @@ export default function ProductsClient({
           searchPlaceholder: t.filters.searchPlaceholder,
           allCategories: t.categories.all,
           productTypes: t.filters.productTypes,
-          tags: t.filters.tags,
           priceRange: t.filters.priceRange,
           layout: t.filters.layout,
           favorites: currentLocale === 'ru' ? 'Избранное' : 'Favorites',
