@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Payload CMS is a code first CMS with admin panel, using next.js, that have frontend and payload(backend)
+
+- We are using Payload CMS 3+ version, so please apply all features according to changes in payload v3
+- In Payload CMS v3 all params,searchParams etc, should be awaited
+- Please do not duplicate code, try to create reusable blocks and components and use them afterwards, modify if new features required to be added to base(reusable) block/component etc.
+
