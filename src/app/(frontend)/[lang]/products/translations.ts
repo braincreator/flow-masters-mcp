@@ -70,7 +70,7 @@ export const translations = {
       features: 'Key Features',
       inStock: 'In Stock',
       securePayment: 'Secure payment',
-      instantDelivery: 'Instant digital delivery'
+      instantDelivery: 'Instant digital delivery',
       features: 'Features',
     },
     pagination: {
