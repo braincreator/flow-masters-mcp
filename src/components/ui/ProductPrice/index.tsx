@@ -35,6 +35,17 @@ export function ProductPrice(props) {
   }
 
   const hasDiscount = compareAtPrice && price && compareAtPrice > price
+
+  // --- Debugging Logs Start ---
+  console.log('--- ProductPrice Debug ---')
+  console.log('Locale:', locale)
+  console.log('Product Pricing Prop:', product?.pricing)
+  console.log('Calculated Price:', price)
+  console.log('Determined Compare At Price:', compareAtPrice)
+  console.log('Has Discount:', hasDiscount)
+  console.log('--- End ProductPrice Debug ---')
+  // --- Debugging Logs End ---
+
   let discountPercentage = null
 
   if (product.pricing?.discountPercentage && product.pricing.discountPercentage > 0) {

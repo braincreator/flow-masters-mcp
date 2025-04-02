@@ -145,12 +145,14 @@ const getOriginalLocalePrice = (product: any, locale: string = 'en'): number => 
   }
 
   // Fallback to other pricing fields
-  if (typeof product.pricing.basePrice === 'number') {
-    return product.pricing.basePrice
-  }
-
+  // Prioritize finalPrice if it exists (calculated price after discount)
   if (typeof product.pricing.finalPrice === 'number') {
     return product.pricing.finalPrice
+  }
+
+  // Then fallback to basePrice
+  if (typeof product.pricing.basePrice === 'number') {
+    return product.pricing.basePrice
   }
 
   // Use the first available locale price as last resort

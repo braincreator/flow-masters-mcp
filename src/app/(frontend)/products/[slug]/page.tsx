@@ -1,25 +1,49 @@
-import { formatPriceAsync, getLocalePrice } from '@/utilities/formatPrice'
+import { ProductPrice } from '@/components/ui/ProductPrice'
+import { getProduct } from '@/app/(frontend)/[lang]/products/services/productService'
+import { useLocale } from 'next-intl'
 
-export default async function ProductPage({ params }) {
+export default async function ProductPage({ params }: { params: { slug: string } }) {
   const { locale } = useLocale()
-  const product = await getProduct(params.slug)
+  const productResult = await getProduct({ slug: params.slug, locale })
 
-  const price = getLocalePrice(product, locale)
-  const formattedPrice = await formatPriceAsync(price, locale)
+  // Handle case where product might not be found
+  if (!productResult || !productResult.item) {
+    // TODO: Implement a proper not found page or handling
+    return <div>Product not found</div>
+  }
+
+  const product = productResult.item
 
   return (
-    <div className="product-page">
-      <h1>{product.title?.[locale]}</h1>
-      <div className="product-price">
-        {formattedPrice}
-        {product.pricing?.basePrice &&
-          product.pricing?.[locale]?.amount !== product.pricing?.basePrice && (
-            <span className="original-price">
-              {await formatPriceAsync(product.pricing.basePrice, 'en')}
-            </span>
-          )}
+    <div className="product-page container mx-auto px-4 py-8">
+      {/* TODO: Replace with a proper ProductDetail component if available */}
+      <h1>{product.title}</h1>
+
+      <div className="price-section my-4">
+        <ProductPrice product={product} locale={locale} size="lg" showDiscountBadge={true} />
       </div>
-      {/* Rest of the component */}
+
+      {/* Display description - Assuming description is a RichText field */}
+      {product.description && (
+        <div className="description mt-4">{/* Render RichText here */}</div>
+      )}
+
+      {/* Add other product details as needed */}
+      {/* Example: Display features */}
+      {product.features && product.features.length > 0 && (
+        <div className="features mt-6">
+          <h2 className="text-xl font-semibold mb-2">Features</h2>
+          <ul>
+            {product.features.map((feature, index) => (
+              <li key={index}>
+                <strong>{feature.name}:</strong> {feature.description}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Add to cart button etc. */}
     </div>
   )
 }
