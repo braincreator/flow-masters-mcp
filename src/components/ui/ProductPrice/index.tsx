@@ -83,27 +83,37 @@ export function ProductPrice({
 
   const sizeClasses = {
     price: {
-      sm: 'text-base font-semibold',
-      md: 'text-xl font-bold',
-      lg: 'text-3xl font-bold',
+      sm: 'text-base font-semibold text-foreground',
+      md: 'text-xl font-bold text-foreground',
+      lg: 'text-3xl font-bold text-foreground tracking-tight',
     },
     compare: {
-      sm: 'text-xs text-muted-foreground line-through opacity-80',
-      md: 'text-sm text-muted-foreground line-through opacity-80',
-      lg: 'text-xl text-muted-foreground line-through opacity-80',
+      sm: 'text-xs text-muted-foreground/70 line-through opacity-80',
+      md: 'text-sm text-muted-foreground/70 line-through opacity-80',
+      lg: 'text-xl text-muted-foreground/70 line-through opacity-80',
     },
     discount: {
       sm: 'text-xs',
       md: 'text-sm',
       lg: 'text-base',
     },
+    container: {
+      sm: 'space-y-1',
+      md: 'space-y-1.5',
+      lg: 'space-y-2',
+    },
   }
 
   const variantClasses = {
     container: {
-      default: 'flex flex-wrap items-center gap-2',
-      card: 'flex flex-col items-end',
-      detail: 'flex flex-wrap items-center gap-3',
+      default: 'flex flex-wrap items-center gap-2 animate-fade-in-up',
+      card: 'flex flex-col items-end animate-fade-in',
+      detail: 'flex flex-wrap items-center gap-3 animate-fade-in-up',
+    },
+    priceBox: {
+      default: '',
+      card: hasDiscount ? 'discount-price-box' : '',
+      detail: hasDiscount ? 'discount-price-box-lg' : '',
     },
   }
 
@@ -111,16 +121,37 @@ export function ProductPrice({
     locale === 'ru' ? 'Доступны варианты оплаты' : 'Payment options available'
 
   return (
-    <div className={cn('space-y-2', className)}>
-      <div className={cn(variantClasses.container[variant])}>
-        <span className={cn(sizeClasses.price[size], priceClassName)}>
+    <div
+      className={cn(
+        'space-y-2 relative group',
+        sizeClasses.container[size],
+        variant === 'card' && 'price-card-container',
+        className,
+      )}
+    >
+      <div className={cn(variantClasses.container[variant], variantClasses.priceBox[variant])}>
+        <span
+          className={cn(
+            sizeClasses.price[size],
+            'transition-all duration-300 hover:opacity-90 price-highlight',
+            variant === 'detail' && 'hover:scale-[1.02] origin-left',
+            priceClassName,
+          )}
+        >
           {/* Форматируем УЖЕ КОНВЕРТИРОВАННУЮ цену */}
           {formatPrice(convertedFinalPrice, locale)}
         </span>
 
         {/* Используем конвертированную compareAtPrice */}
         {hasDiscount && convertedCompareAtPrice && (
-          <span className={cn(sizeClasses.compare[size], compareClassName)}>
+          <span
+            className={cn(
+              sizeClasses.compare[size],
+              'transition-all duration-300 opacity-70 hover:opacity-90',
+              variant === 'detail' && 'hover:scale-[1.02] origin-left',
+              compareClassName,
+            )}
+          >
             {formatPrice(convertedCompareAtPrice, locale)}
           </span>
         )}
@@ -128,13 +159,13 @@ export function ProductPrice({
         {showDiscountBadge && hasDiscount && discountPercentage && discountPercentage > 0 && (
           <DiscountBadge
             percentage={discountPercentage}
-            className={cn(sizeClasses.discount[size], discountClassName)}
+            className={cn(sizeClasses.discount[size], 'animate-badge-pulse', discountClassName)}
           />
         )}
       </div>
 
       {showPaymentOptions && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground/80 animate-fade-in transition-opacity hover:text-muted-foreground">
           {paymentOptionsText || defaultPaymentOptionsText}
         </div>
       )}

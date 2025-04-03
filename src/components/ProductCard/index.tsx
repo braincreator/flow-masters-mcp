@@ -174,21 +174,31 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         <div
           className={cn(
             'absolute top-2 left-2 flex gap-2',
-            layout === 'list'
-              ? 'hidden md:flex md:flex-row md:flex-wrap max-w-[120px]'
-              : 'flex-col',
+            layout === 'list' ? 'hidden' : 'flex-col',
           )}
         >
-          {isNew && <NewBadge locale={locale} />}
-          {isBestseller && <BestsellerBadge locale={locale} />}
-          {discountPercentage && <DiscountBadge percentage={discountPercentage} />}
+          {isNew && (
+            <NewBadge locale={locale} className={layout === 'grid' ? 'compact-badge' : undefined} />
+          )}
+          {isBestseller && (
+            <BestsellerBadge
+              locale={locale}
+              className={layout === 'grid' ? 'compact-badge' : undefined}
+            />
+          )}
+          {discountPercentage && (
+            <DiscountBadge
+              percentage={discountPercentage}
+              className={layout === 'grid' ? 'compact-badge' : undefined}
+            />
+          )}
         </div>
 
         {/* Price Badge - Only show in grid mode */}
         {price > 0 && layout === 'grid' && (
           <div
-            className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm 
-                        px-3 py-1 rounded-full border border-border
+            className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm 
+                        px-2 py-1 rounded-sm border border-border
                         dark:border-border/50 dark:hover:border-accent/30"
           >
             <ProductPrice
@@ -206,8 +216,21 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
       {layout === 'list' ? (
         <div className="flex flex-1 justify-between items-start h-full relative pl-2 pr-6 pb-[58px] w-full">
           {/* Left Column - Title and Description */}
-          <div className="flex flex-col flex-1 space-y-2 md:space-y-3 min-h-[96px] pt-9 min-w-0 pr-4">
+          <div className="flex flex-col flex-1 space-y-2 md:space-y-3 min-h-[96px] pt-1 min-w-0 pr-4">
             <div>
+              {/* Badges in list mode */}
+              <div className="flex flex-wrap gap-1.5 mb-1.5 animate-fade-in-up">
+                {layout === 'list' && isNew && (
+                  <NewBadge locale={locale} className="compact-badge" />
+                )}
+                {layout === 'list' && isBestseller && (
+                  <BestsellerBadge locale={locale} className="compact-badge" />
+                )}
+                {layout === 'list' && discountPercentage && (
+                  <DiscountBadge percentage={discountPercentage} className="compact-badge" />
+                )}
+              </div>
+
               {/* Title */}
               <Link
                 href={`/${locale}/products/${product.slug}`}
@@ -246,8 +269,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             </div>
           </div>
 
-          {/* Price - Moved to top left */}
-          <div className="absolute top-1 left-2 min-w-[100px] md:min-w-[120px]">
+          {/* Price - positioned at the right */}
+          <div className="absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 bg-background/80 backdrop-blur-sm p-1 rounded-sm">
             {/* Price */}
             {price > 0 && (
               <div>
@@ -256,7 +279,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                   locale={locale}
                   size="lg"
                   variant="default"
-                  showDiscountBadge={true}
+                  showDiscountBadge={layout !== 'list'}
                 />
               </div>
             )}

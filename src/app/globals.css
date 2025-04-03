@@ -31,6 +31,12 @@
     animation: badgePulse 2s ease-in-out infinite;
   }
 
+  .compact-badge {
+    @apply text-[10px] px-1.5 py-0.5 inline-flex items-center;
+    @apply font-medium rounded-sm;
+    @apply transition-all duration-200 hover:translate-y-[-1px];
+  }
+
   .product-card-hover {
     @apply relative overflow-hidden transition-all duration-200;
     @apply hover:shadow-md;
@@ -43,6 +49,36 @@
 
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+  }
+
+  .price-highlight {
+    @apply relative transition-all duration-300;
+    @apply after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0;
+    @apply after:bg-foreground/20 after:transition-all after:duration-300;
+    @apply hover:after:w-full;
+  }
+
+  .price-card-container {
+    @apply p-2 rounded-md transition-all duration-300;
+    @apply group-hover:bg-muted/50 group-hover:shadow-sm;
+  }
+
+  .discount-price-box {
+    @apply relative p-1.5 rounded;
+    @apply bg-gradient-to-tr from-muted/70 to-background;
+    @apply transition-all duration-300;
+    @apply hover:shadow-sm hover:from-muted/90;
+  }
+
+  .discount-price-box-lg {
+    @apply relative p-2 px-3 rounded-md;
+    @apply bg-gradient-to-tr from-muted/80 to-background;
+    @apply transition-all duration-300 shadow-sm;
+    @apply hover:shadow-md hover:from-muted/90;
   }
 }
 
@@ -70,6 +106,17 @@
     from {
       opacity: 0;
       transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
     }
     to {
       opacity: 1;
