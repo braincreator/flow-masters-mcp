@@ -9,6 +9,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
+import { convertPrice } from '@/utilities/formatPrice'
 
 interface ProductsClientProps {
   products: Product[]
@@ -82,7 +83,85 @@ export default function ProductsClient({
     { id: 'access', label: t.filters.productType.access, value: 'access' },
   ]
 
-  const priceRange = { min: 0, max: 1000 }
+  // Вычисляем реальный максимум цены из всех продуктов
+  // с учетом конвертации валют
+  const calculateMaxPrice = () => {
+    if (!initialProducts || initialProducts.length === 0) {
+      console.log('DEBUG: Нет продуктов, возвращаем 1000')
+      return 1000 // Значение по умолчанию, если продуктов нет
+    }
+
+    console.log('DEBUG: Количество продуктов для анализа:', initialProducts.length)
+
+    // Находим максимальную цену среди всех продуктов
+    let maxPrice = 0
+    initialProducts.forEach((product, index) => {
+      let productPrice = 0
+      console.log(`DEBUG: Анализ продукта #${index}:`, product.title || product.id)
+
+      // Сначала проверяем, есть ли локализованная цена для текущей локали
+      if (product.pricing?.locales?.[currentLocale]?.amount !== undefined) {
+        // Используем локализованную цену напрямую, без конвертации
+        productPrice = product.pricing.locales[currentLocale].amount
+        console.log(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
+      }
+      // Если нет локализованной цены, используем finalPrice/basePrice и конвертируем
+      else if (product.pricing) {
+        console.log(`DEBUG: Объект pricing:`, JSON.stringify(product.pricing))
+
+        // Используем finalPrice (если есть), или basePrice
+        if (typeof product.pricing.finalPrice === 'number') {
+          productPrice = product.pricing.finalPrice
+          console.log(`DEBUG: Используем finalPrice:`, productPrice)
+        } else if (typeof product.pricing.basePrice === 'number') {
+          productPrice = product.pricing.basePrice
+          console.log(`DEBUG: Используем basePrice:`, productPrice)
+        }
+
+        // Конвертируем если нужно и цена в базовой валюте
+        if (productPrice > 0 && currentLocale !== 'en') {
+          const originalPrice = productPrice
+          productPrice = convertPrice(productPrice, 'en', currentLocale)
+          console.log(
+            `DEBUG: Конвертация из 'en' в '${currentLocale}': ${originalPrice} -> ${productPrice}`,
+          )
+        }
+      }
+      // Для совместимости со старыми форматами цен
+      else if (typeof product.price === 'number') {
+        productPrice = product.price
+        console.log(`DEBUG: Используем простое поле price:`, productPrice)
+        // Конвертируем если нужно и цена в базовой валюте
+        if (productPrice > 0 && currentLocale !== 'en') {
+          const originalPrice = productPrice
+          productPrice = convertPrice(productPrice, 'en', currentLocale)
+          console.log(
+            `DEBUG: Конвертация из 'en' в '${currentLocale}': ${originalPrice} -> ${productPrice}`,
+          )
+        }
+      }
+
+      // Обновляем максимальную цену
+      if (productPrice > maxPrice) {
+        maxPrice = productPrice
+        console.log(`DEBUG: Новая максимальная цена:`, maxPrice)
+      }
+    })
+
+    console.log(`DEBUG: Максимальная цена до запаса и округления:`, maxPrice)
+
+    // Добавляем 20% запас, чтобы слайдер был немного шире, чем самый дорогой товар
+    maxPrice = Math.ceil(maxPrice * 1.2)
+    console.log(`DEBUG: После добавления 20% запаса:`, maxPrice)
+
+    // Округляем до ближайшей сотни для более "красивого" отображения
+    const roundedMaxPrice = Math.ceil(maxPrice / 100) * 100
+    console.log(`DEBUG: После округления до сотен:`, roundedMaxPrice)
+
+    return roundedMaxPrice
+  }
+
+  const priceRange = { min: 0, max: calculateMaxPrice() }
 
   // Function to fetch products based on current search params
   const fetchProducts = useCallback(async () => {

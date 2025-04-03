@@ -37,25 +37,15 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <html lang={lang} suppressHydrationWarning className="h-full">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link
-          rel="preload"
-          href="/fonts/geist-sans.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-      </head>
-      <body
+    <div lang={lang} className="h-full" suppressHydrationWarning>
+      <div
         className={cn(
           GeistSans.variable,
           GeistMono.variable,
           'flex flex-col min-h-full bg-background font-sans antialiased',
         )}
         style={{ '--header-height': '4rem' } as React.CSSProperties}
+        data-lang={lang}
       >
         <ThemeProvider lang={lang}>
           <I18nProvider lang={lang}>
@@ -67,7 +57,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
             <FloatingCartButtonWrapper locale={lang} />
           </I18nProvider>
         </ThemeProvider>
-      </body>
-    </html>
+      </div>
+    </div>
   )
 }

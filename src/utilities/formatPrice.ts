@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { GlobalSettings } from '@/types/payload-types'
 
 interface CurrencyFormat {
   minimumFractionDigits: number
@@ -10,8 +10,10 @@ interface LocaleCurrencySettings {
   format: CurrencyFormat
 }
 
+// Глобальные переменные теперь хранятся отдельно для сервера и клиента
 let localeSettingsCache: Record<string, LocaleCurrencySettings> | null = null
 let baseCurrencyCache: string | null = null
+let ratesCache: Record<string, number> | null = null
 
 // Default formats to use as fallback when payload client is not available
 export const DEFAULT_FORMATS: Record<string, LocaleCurrencySettings> = {
@@ -31,46 +33,172 @@ export const DEFAULT_FORMATS: Record<string, LocaleCurrencySettings> = {
   },
 }
 
-async function getSettings() {
+// Fallback exchange rates
+export const FALLBACK_RATES: Record<string, number> = {
+  USD_RUB: 90.0,
+  RUB_USD: 0.0111,
+  // Можно добавить другие пары по необходимости
+}
+
+// Для клиентского использования - НЕ использует серверный код
+async function getClientSettings() {
+  // В клиенте просто используем дефолтные настройки или кеш
   if (!localeSettingsCache) {
-    try {
-      // Check if we're running on the server, not the client
-      if (typeof window === 'undefined') {
-        // Use dynamic import to avoid SSR issues
-        const { getPayloadClient } = await import('@/utilities/payload')
-        const payload = await getPayloadClient()
-        const settings = await payload.findGlobal({
-          slug: 'settings',
-        })
+    localeSettingsCache = { ...DEFAULT_FORMATS }
+    baseCurrencyCache = 'USD'
+    ratesCache = { ...FALLBACK_RATES }
 
-        baseCurrencyCache = settings.currencies.baseCurrency
+    // Получаем настройки через API (только на клиенте)
+    if (typeof window !== 'undefined') {
+      try {
+        const response = await fetch('/api/currency-settings')
 
-        localeSettingsCache = settings.currencies.localeDefaults.reduce(
-          (acc, item) => ({
-            ...acc,
-            [item.locale]: {
-              currency: item.currency,
-              format: item.format,
-            },
-          }),
-          {},
-        )
-      } else {
-        // On client, just use defaults
-        console.warn('Running on client side, using default currency settings')
-        localeSettingsCache = DEFAULT_FORMATS
-        baseCurrencyCache = 'USD'
+        if (response.ok) {
+          const data = await response.json()
+
+          // Обновляем кеш
+          if (data.localeSettings) localeSettingsCache = data.localeSettings
+          if (data.baseCurrency) baseCurrencyCache = data.baseCurrency
+          if (data.rates) ratesCache = data.rates
+        }
+      } catch (err) {
+        console.warn('Error fetching currency settings from API, using defaults:', err)
       }
-    } catch (error) {
-      console.warn('Could not fetch currency settings from Payload, using defaults')
-      localeSettingsCache = DEFAULT_FORMATS
-      baseCurrencyCache = 'USD'
     }
   }
 
+  // Убеждаемся, что кеши инициализированы
+  if (!localeSettingsCache) localeSettingsCache = { ...DEFAULT_FORMATS }
+  if (!baseCurrencyCache) baseCurrencyCache = 'USD'
+  if (!ratesCache) ratesCache = { ...FALLBACK_RATES }
+
   return {
     localeSettings: localeSettingsCache,
-    baseCurrency: baseCurrencyCache,
+    baseCurrency: baseCurrencyCache || 'USD',
+    rates: ratesCache,
+  }
+}
+
+// Публичный API для обновления настроек на клиенте
+export const updateClientSettings = (settings: {
+  localeSettings?: Record<string, LocaleCurrencySettings>
+  baseCurrency?: string
+  rates?: Record<string, number>
+}) => {
+  if (settings.localeSettings) localeSettingsCache = settings.localeSettings
+  if (settings.baseCurrency) baseCurrencyCache = settings.baseCurrency
+  if (settings.rates) ratesCache = settings.rates
+}
+
+// Единая функция, которая вызывает либо клиентскую, либо серверную версию
+// Но не пытается импортировать серверный код на клиенте
+async function getSettings() {
+  // Проверяем, находимся ли мы на клиенте или сервере
+  if (typeof window !== 'undefined') {
+    // Клиент - только клиентский код
+    return getClientSettings()
+  } else {
+    // Сервер - можем безопасно выполнить серверный код
+    try {
+      console.log('formatPrice/getSettings: server-side execution')
+      // Динамический импорт на сервере
+      console.log('formatPrice/getSettings: importing getPayloadClient')
+      const { getPayloadClient } = await import('@/utilities/payload')
+
+      // Получаем Payload
+      console.log('formatPrice/getSettings: calling getPayloadClient')
+      const payload = await getPayloadClient()
+
+      // Получаем настройки валют
+      console.log('formatPrice/getSettings: fetching currency-settings')
+      const currencySettings = await payload.findGlobal({
+        slug: 'currency-settings',
+      })
+
+      // Получаем курсы обмена
+      console.log('formatPrice/getSettings: fetching exchange-rate-settings')
+      const exchangeRateSettings = await payload.findGlobal({
+        slug: 'exchange-rate-settings',
+      })
+
+      console.log(
+        'formatPrice/getSettings: settings received:',
+        'currencySettings:',
+        currencySettings ? 'ok' : 'null',
+        'exchangeRateSettings:',
+        exchangeRateSettings ? 'ok' : 'null',
+      )
+
+      // Инициализируем результат
+      const result = {
+        localeSettings: { ...DEFAULT_FORMATS },
+        baseCurrency: 'USD',
+        rates: { ...FALLBACK_RATES },
+      }
+
+      // Обрабатываем настройки валют
+      if (currencySettings) {
+        // Получаем базовую валюту
+        if (currencySettings.baseCurrency) {
+          result.baseCurrency = currencySettings.baseCurrency
+        }
+
+        // Обрабатываем настройки локализации
+        if (currencySettings.localeDefaults && Array.isArray(currencySettings.localeDefaults)) {
+          const newLocaleSettings: Record<string, LocaleCurrencySettings> = {}
+
+          currencySettings.localeDefaults.forEach((item: any) => {
+            if (item.locale && item.currency && item.format) {
+              newLocaleSettings[item.locale] = {
+                currency: item.currency,
+                format: {
+                  minimumFractionDigits:
+                    typeof item.format.decimalPlaces === 'string'
+                      ? parseInt(item.format.decimalPlaces, 10)
+                      : 2,
+                  maximumFractionDigits:
+                    typeof item.format.decimalPlaces === 'string'
+                      ? parseInt(item.format.decimalPlaces, 10)
+                      : 2,
+                },
+              }
+            }
+          })
+
+          if (Object.keys(newLocaleSettings).length > 0) {
+            result.localeSettings = newLocaleSettings
+          }
+        }
+      }
+
+      // Обрабатываем курсы валют
+      if (
+        exchangeRateSettings &&
+        exchangeRateSettings.rates &&
+        Array.isArray(exchangeRateSettings.rates)
+      ) {
+        exchangeRateSettings.rates.forEach((rate: any) => {
+          if (rate.fromCurrency && rate.toCurrency && typeof rate.rate === 'number') {
+            result.rates[`${rate.fromCurrency}_${rate.toCurrency}`] = rate.rate
+          }
+        })
+      }
+
+      // Также обновляем глобальный кеш на сервере
+      localeSettingsCache = result.localeSettings
+      baseCurrencyCache = result.baseCurrency
+      ratesCache = result.rates
+
+      return result
+    } catch (err) {
+      console.warn('Error fetching settings from Payload, using defaults:', err)
+      // Возвращаем дефолтные настройки
+      return {
+        localeSettings: DEFAULT_FORMATS,
+        baseCurrency: 'USD',
+        rates: FALLBACK_RATES,
+      }
+    }
   }
 }
 
@@ -88,8 +216,14 @@ export async function getBaseCurrency(): Promise<string> {
 export const formatPriceAsync = async (price: number, locale: string = 'en'): Promise<string> => {
   try {
     const { localeSettings } = await getSettings()
+    // Убеждаемся, что есть fallback формат
+    const fallbackFormat = DEFAULT_FORMATS.en!
     const settings =
-      localeSettings[locale] || localeSettings.en || DEFAULT_FORMATS[locale] || DEFAULT_FORMATS.en
+      localeSettings[locale] || localeSettings.en || DEFAULT_FORMATS[locale] || fallbackFormat
+
+    if (!settings) {
+      throw new Error(`No currency settings found for locale ${locale}`)
+    }
 
     return new Intl.NumberFormat(locale, {
       style: 'currency',
@@ -105,24 +239,28 @@ export const formatPriceAsync = async (price: number, locale: string = 'en'): Pr
 
 // Client-side sync version that can be used in components
 export const formatPrice = (price: number, locale: string = 'en'): string => {
-  const settings = localeSettingsCache?.[locale] || DEFAULT_FORMATS[locale] || DEFAULT_FORMATS.en
+  // Используем настройки из кеша (если он есть на клиенте) или дефолтные
+  // Убеждаемся, что есть fallback формат
+  const fallbackFormat = DEFAULT_FORMATS.en!
+  const settings = localeSettingsCache?.[locale] || DEFAULT_FORMATS[locale] || fallbackFormat
 
-  // Handle special formatting for different currencies
-  const minimumFractionDigits =
-    settings.currency === 'JPY' || settings.currency === 'RUB'
-      ? 0
-      : settings.format.minimumFractionDigits
+  if (!settings) {
+    // Если все типы настроек отсутствуют, используем дефолтный формат для USD
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price)
+  }
 
-  const maximumFractionDigits =
-    settings.currency === 'JPY' || settings.currency === 'RUB'
-      ? 0
-      : settings.format.maximumFractionDigits
-
+  // Больше не переопределяем minimum/maximumFractionDigits жестко для RUB/JPY,
+  // полагаемся на настройки в settings.format и стандартное поведение Intl.NumberFormat
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: settings.currency,
-    minimumFractionDigits,
-    maximumFractionDigits,
+    minimumFractionDigits: settings.format.minimumFractionDigits,
+    maximumFractionDigits: settings.format.maximumFractionDigits,
   }).format(price)
 }
 
@@ -188,6 +326,28 @@ export const getLocalePrice = (product: any, targetLocale: string = 'en'): numbe
   return getOriginalLocalePrice(product, targetLocale)
 }
 
+// Инвалидация кеша при обновлении настроек
+export const invalidateSettingsCache = () => {
+  localeSettingsCache = null
+  baseCurrencyCache = null
+  ratesCache = null
+}
+
+// Simple currency formatter for client components that don't need localization settings
+export const formatCurrency = (amount: number, locale: string = 'en'): string => {
+  const currency = locale === 'ru' ? 'RUB' : 'USD'
+  // Используем DEFAULT_FORMATS для определения дробной части
+  const format = DEFAULT_FORMATS[locale]?.format || DEFAULT_FORMATS.en!.format
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: format.minimumFractionDigits,
+    maximumFractionDigits: format.maximumFractionDigits,
+  }).format(amount)
+}
+
+// Функция конвертации с использованием кешированных курсов
 export const convertPrice = (amount: number, fromLocale: string, toLocale: string): number => {
   if (amount === 0 || fromLocale === toLocale) return amount
 
@@ -197,49 +357,8 @@ export const convertPrice = (amount: number, fromLocale: string, toLocale: strin
 
   if (fromCurrency === toCurrency) return amount
 
-  // Exchange rates as of a recent date - these should ideally come from an API
-  // These are approximate and should be updated regularly in production
-  const rates: Record<string, number> = {
-    // USD to other currencies
-    USD_EUR: 0.92,
-    USD_GBP: 0.79,
-    USD_JPY: 149.5,
-    USD_RUB: 91.5,
-    USD_CNY: 7.2,
-    USD_INR: 83.5,
-    USD_CAD: 1.37,
-    USD_AUD: 1.52,
-
-    // EUR to other currencies
-    EUR_USD: 1.09,
-    EUR_GBP: 0.86,
-    EUR_JPY: 162.8,
-    EUR_RUB: 99.6,
-    EUR_CNY: 7.84,
-    EUR_INR: 90.9,
-    EUR_CAD: 1.49,
-    EUR_AUD: 1.66,
-
-    // GBP to other currencies
-    GBP_USD: 1.27,
-    GBP_EUR: 1.16,
-    GBP_JPY: 188.9,
-    GBP_RUB: 115.8,
-    GBP_CNY: 9.11,
-    GBP_INR: 105.5,
-    GBP_CAD: 1.73,
-    GBP_AUD: 1.93,
-
-    // RUB to other currencies
-    RUB_USD: 0.0109,
-    RUB_EUR: 0.01,
-    RUB_GBP: 0.0086,
-    RUB_JPY: 1.63,
-    RUB_CNY: 0.079,
-    RUB_INR: 0.91,
-    RUB_CAD: 0.015,
-    RUB_AUD: 0.017,
-  }
+  // Используем кеш курсов или дефолтные значения
+  const rates = ratesCache || FALLBACK_RATES
 
   const rateKey = `${fromCurrency}_${toCurrency}`
   let rate = rates[rateKey]
@@ -277,24 +396,4 @@ export const convertPrice = (amount: number, fromLocale: string, toLocale: strin
     // Most currencies show 2 decimal places
     return Math.round(convertedAmount * 100) / 100
   }
-}
-
-// Инвалидация кеша при обновлении настроек
-export const invalidateSettingsCache = () => {
-  localeSettingsCache = null
-  baseCurrencyCache = null
-}
-
-// Simple currency formatter for client components that don't need localization settings
-export const formatCurrency = (amount: number, locale: string = 'en'): string => {
-  const currency = locale === 'ru' ? 'RUB' : 'USD'
-  const minimumFractionDigits = currency === 'RUB' ? 0 : 2
-  const maximumFractionDigits = currency === 'RUB' ? 0 : 2
-
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits,
-    maximumFractionDigits,
-  }).format(amount)
 }

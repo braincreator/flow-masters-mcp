@@ -243,12 +243,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                   <span>{locale === 'ru' ? 'Подписка' : 'Subscription'}</span>
                 </div>
               )}
-              {hasFreeDelivery && (
-                <div className="flex items-center text-xs text-success">
-                  <Shield className="h-3.5 w-3.5 mr-1" />
-                  <span>{locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -366,13 +360,6 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
               />
             </div>
           </div>
-
-          {/* Delivery Info */}
-          {hasFreeDelivery && (
-            <div className="text-xs text-success pt-1">
-              {locale === 'ru' ? 'Бесплатная доставка' : 'Free delivery'}
-            </div>
-          )}
         </div>
       )}
     </div>

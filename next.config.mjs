@@ -75,7 +75,14 @@ const nextConfig = {
     maxInactiveAge: 15 * 1000,
     pagesBufferLength: 2,
   },
-  transpilePackages: ['payload-admin', 'payload'],
+  transpilePackages: [
+    'payload-admin',
+    'payload',
+    '@aws-sdk/client-s3',
+    '@aws-sdk/lib-storage',
+    '@aws-sdk/s3-request-presigner',
+    '@payloadcms/storage-s3',
+  ],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -91,6 +98,17 @@ const nextConfig = {
         test: /\.(css|scss)$/,
         chunks: 'all',
         enforce: true,
+      }
+    }
+
+    // Правило для принудительного включения @aws-sdk/client-s3 в бандл
+    if (isServer) {
+      const aws = config.externals.find(
+        (external) =>
+          typeof external !== 'string' && external.indexOf && external.indexOf('@aws-sdk') > -1,
+      )
+      if (aws) {
+        config.externals = config.externals.filter((external) => external !== aws)
       }
     }
 

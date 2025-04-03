@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useAuth } from '@/hooks/useAuth'
+import { convertPrice } from '@/utilities/formatPrice'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
@@ -47,10 +48,10 @@ interface FilterBarProps {
   locale?: string
   showFavorites?: boolean
   currency?: {
-    code: string // USD, EUR, RUB, etc.
-    symbol: string // $, €, ₽, etc.
-    position: 'before' | 'after' // $ before number or after
-    rate?: number // conversion rate from base currency
+    code: string
+    symbol: string
+    position: 'before' | 'after'
+    rate?: number
   }
   labels?: {
     categories: string
@@ -111,12 +112,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           sort: labels?.sort || 'Sort',
           search: labels?.search || 'Search',
           searchPlaceholder: labels?.searchPlaceholder || 'Search products...',
-          productTypes: {
+          productType: {
             label: labels?.productTypes || 'Product Types',
             all: 'All Types',
-            digital: 'Digital',
-            physical: 'Physical',
+            digital: 'Digital Product',
+            subscription: 'Subscription',
+            service: 'Service',
+            access: 'Feature Access',
           },
+          productTypes: labels?.productTypes || 'Product Types',
+          tags: 'Tags',
+          filters: 'Filters',
+          clearAll: 'Clear all filters',
+          filtersDescription: 'Select filters for products',
+          apply: 'Apply',
           priceRange: {
             label: labels?.priceRange || 'Price Range',
             min: 'Min',
@@ -130,14 +139,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             grid: 'Grid',
             list: 'List',
           },
-          apply: 'Apply',
-          clearAll: 'Clear all',
           favorites: 'Favorites',
         },
         categories: {
           all: labels?.allCategories || 'All Categories',
         },
-        sortOptions: { newest: 'Newest' /* ... */ },
+        sortOptions: {
+          newest: 'Newest',
+          priceLowToHigh: 'Price: Low to High',
+          priceHighToLow: 'Price: High to Low',
+        },
         sharing: { linkCopied: 'Link copied!', share: 'Share' },
         product: {
           addToCart: 'Add to cart',
@@ -149,6 +160,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           specifications: 'Specifications',
           reviews: 'Reviews',
         },
+        pagination: {
+          prev: 'Previous',
+          next: 'Next',
+          page: 'Page',
+          of: 'of',
+        },
+        noResults: 'No products found',
       }
 
   const [layout, setLayout] = React.useState<'grid' | 'list'>(
@@ -252,9 +270,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   const handlePriceRangeChange = (values: [number, number]) => {
     setAppliedPriceRange(values)
+
+    // Конвертируем цены обратно в базовую валюту для фильтрации
+    // Это нужно, потому что в базе данных цены хранятся в базовой валюте (предположительно USD)
+    const baseLocale = 'en'
+    const baseValues: [number, number] =
+      locale !== baseLocale
+        ? [
+            convertPrice(values[0], locale || 'en', baseLocale),
+            convertPrice(values[1], locale || 'en', baseLocale),
+          ]
+        : values
+
     const params = new URLSearchParams(searchParams.toString())
-    params.set('minPrice', values[0].toString())
-    params.set('maxPrice', values[1].toString())
+    // Записываем базовые значения в URL-параметры для фильтрации
+    params.set('minPrice', baseValues[0].toString())
+    params.set('maxPrice', baseValues[1].toString())
     params.delete('page') // Сбрасываем страницу при изменении цены
     router.replace(`?${params.toString()}`, { scroll: false })
   }
@@ -270,16 +301,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   const handleDialogPriceRangeChange = (values: [number, number]) => {
     setTempPriceRange(values)
-  }
-
-  // Format price for display with appropriate currency
-  const formatPrice = (price: number) => {
-    const formattedNumber = Math.round(price * (currency.rate || 1)).toLocaleString(
-      locale || 'en-US',
-    )
-    return currency.position === 'before'
-      ? `${currency.symbol}${formattedNumber}`
-      : `${formattedNumber} ${currency.symbol}`
   }
 
   const currentCategory = searchParams.get('productCategory') || 'all'
@@ -321,9 +342,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       params.set('productType', tempProductType)
     }
 
+    // Конвертируем значения диапазона цен обратно в базовую валюту
     if (tempPriceRange[0] !== priceRange.min || tempPriceRange[1] !== priceRange.max) {
-      params.set('minPrice', tempPriceRange[0].toString())
-      params.set('maxPrice', tempPriceRange[1].toString())
+      const baseLocale = 'en'
+      const baseValues: [number, number] =
+        locale !== baseLocale
+          ? [
+              convertPrice(tempPriceRange[0], locale || 'en', baseLocale),
+              convertPrice(tempPriceRange[1], locale || 'en', baseLocale),
+            ]
+          : tempPriceRange
+
+      params.set('minPrice', baseValues[0].toString())
+      params.set('maxPrice', baseValues[1].toString())
     }
 
     // Reset page when filters change
@@ -366,8 +397,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Helper to safely access product type translations
   const getProductTypeTranslation = (key: string): string => {
-    if (typeof t.filters.productTypes === 'object' && t.filters.productTypes !== null) {
-      const translations = t.filters.productTypes as { [key: string]: string }
+    if (typeof t.filters.productType === 'object' && t.filters.productType !== null) {
+      const translations = t.filters.productType as { [key: string]: string }
       if (translations[key]) {
         return translations[key]
       }
@@ -378,14 +409,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Safe accessors
   const productTypesLabel =
-    (typeof t.filters.productTypes === 'object' && t.filters.productTypes?.label) || 'Product Type'
+    (typeof t.filters.productType === 'object' && t.filters.productType?.label) || 'Product Type'
   const productTypesAllLabel =
-    (typeof t.filters.productTypes === 'object' && t.filters.productTypes?.all) || 'All Types'
+    (typeof t.filters.productType === 'object' && t.filters.productType?.all) || 'All Types'
   const layoutGridLabel = (typeof t.filters.layout === 'object' && t.filters.layout?.grid) || 'Grid'
   const layoutListLabel = (typeof t.filters.layout === 'object' && t.filters.layout?.list) || 'List'
   const filtersButtonLabel = labels?.filtersTitle || t.filters.title || 'Filters'
 
   const isShowingFavorites = searchParams.get('favorites') === 'true'
+
+  // Локальная функция formatPrice для форматирования цены
+  const formatPrice = (price: number) => {
+    // Просто форматируем число без дополнительной конвертации
+    const formattedNumber = Math.round(price).toLocaleString(locale || 'en-US')
+
+    return currency.position === 'before'
+      ? `${currency.symbol}${formattedNumber}`
+      : `${formattedNumber} ${currency.symbol}`
+  }
 
   return (
     <div className="space-y-4 mb-8 border-b pb-6">
@@ -740,9 +781,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         )}
                         <input
                           type="text"
-                          value={Math.round(
-                            tempPriceRange[0] * (currency.rate || 1),
-                          ).toLocaleString(locale || 'en-US')}
+                          value={formatPrice(tempPriceRange[0])}
                           readOnly
                           className={cn(
                             'w-full h-9 rounded-md border border-border text-sm bg-muted/40',
@@ -772,9 +811,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         )}
                         <input
                           type="text"
-                          value={Math.round(
-                            tempPriceRange[1] * (currency.rate || 1),
-                          ).toLocaleString(locale || 'en-US')}
+                          value={formatPrice(tempPriceRange[1])}
                           readOnly
                           className={cn(
                             'w-full h-9 rounded-md border border-border text-sm bg-muted/40',

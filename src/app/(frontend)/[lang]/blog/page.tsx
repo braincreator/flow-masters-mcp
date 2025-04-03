@@ -145,11 +145,6 @@ export default async function BlogPage(props: PageParams) {
     try {
       categories = await payload.find({
         collection: 'categories',
-        where: {
-          categoryType: {
-            equals: 'blog',
-          },
-        },
         limit: 100,
         locale: locale,
       })
