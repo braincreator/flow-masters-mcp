@@ -198,7 +198,8 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {price > 0 && layout === 'grid' && (
           <div
             className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm 
-                        px-2 py-1 rounded-sm border border-border
+                        px-2 py-1 rounded-sm border border-border/60 
+                        shadow-sm hover:shadow-md transition-all duration-300
                         dark:border-border/50 dark:hover:border-accent/30"
           >
             <ProductPrice
@@ -270,7 +271,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
 
           {/* Price - positioned at the right */}
-          <div className="absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 bg-background/80 backdrop-blur-sm p-1 rounded-sm">
+          <div className="absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 
+                          bg-background/80 backdrop-blur-sm p-1 rounded-sm
+                          border border-border/60 shadow-sm hover:shadow-md 
+                          transition-all duration-300">
             {/* Price */}
             {price > 0 && (
               <div>

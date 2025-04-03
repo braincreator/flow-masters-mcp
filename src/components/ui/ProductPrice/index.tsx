@@ -133,7 +133,7 @@ export function ProductPrice({
         <span
           className={cn(
             sizeClasses.price[size],
-            'transition-all duration-300 hover:opacity-90 price-highlight',
+            'transition-all duration-300 hover:opacity-90 price-highlight price-shine',
             variant === 'detail' && 'hover:scale-[1.02] origin-left',
             priceClassName,
           )}

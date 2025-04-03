@@ -28,13 +28,12 @@
   }
 
   .animate-badge-pulse {
-    animation: badgePulse 2s ease-in-out infinite;
+    animation: badgePulse 2s infinite ease-in-out;
   }
 
   .compact-badge {
-    @apply text-[10px] px-1.5 py-0.5 inline-flex items-center;
-    @apply font-medium rounded-sm;
-    @apply transition-all duration-200 hover:translate-y-[-1px];
+    @apply text-[10px] md:text-xs py-0.5 px-1.5 whitespace-nowrap font-medium rounded-sm transition-all;
+    @apply hover:shadow-sm hover:scale-105 cursor-default;
   }
 
   .product-card-hover {
@@ -69,16 +68,43 @@
 
   .discount-price-box {
     @apply relative p-1.5 rounded;
-    @apply bg-gradient-to-tr from-muted/70 to-background;
+    @apply bg-gradient-to-tr from-accent/20 to-background;
+    @apply border border-border/40 shadow-sm backdrop-blur-sm;
     @apply transition-all duration-300;
-    @apply hover:shadow-sm hover:from-muted/90;
+    @apply hover:shadow hover:from-accent/30;
   }
 
   .discount-price-box-lg {
     @apply relative p-2 px-3 rounded-md;
-    @apply bg-gradient-to-tr from-muted/80 to-background;
+    @apply bg-gradient-to-tr from-accent/30 to-background;
+    @apply border border-border/40 backdrop-blur-sm;
     @apply transition-all duration-300 shadow-sm;
-    @apply hover:shadow-md hover:from-muted/90;
+    @apply hover:shadow-md hover:from-accent/40;
+  }
+
+  .price-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .price-shine::after {
+    content: "";
+    @apply absolute inset-0 w-full h-full;
+    background: linear-gradient(to right, 
+      transparent 0%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: shine 3s infinite;
+  }
+
+  @keyframes shine {
+    10% {
+      transform: translateX(-100%);
+    }
+    30%, 100% {
+      transform: translateX(100%);
+    }
   }
 }
 
