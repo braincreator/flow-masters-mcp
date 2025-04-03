@@ -10,9 +10,10 @@ import FloatingCartButtonWrapper from '@/components/FloatingCartButtonWrapper'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
-import CartInitializer from '@/components/CartInitializer'
-import FavoritesInitializer from '@/components/FavoritesInitializer'
 import DefaultPagination from '@/components/DefaultPagination'
+import { ThemeProvider } from '@/providers/Theme'
+import { I18nProvider } from '@/providers/I18n'
+import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 
 const locales = ['en', 'ru']
 
@@ -56,18 +57,16 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         )}
         style={{ '--header-height': '4rem' } as React.CSSProperties}
       >
-        <CartInitializer locale={lang}>
-          <FavoritesInitializer locale={lang}>
-            {/* Removing gradient background as requested */}
-
+        <ThemeProvider lang={lang}>
+          <I18nProvider lang={lang}>
             {isDraftMode && <AdminBar />}
             <Header locale={lang} />
             <main className="relative flex-grow pt-[var(--header-height)]">{children}</main>
             <div id="pagination-slot" className="container py-8"></div>
             <Footer locale={lang} />
             <FloatingCartButtonWrapper locale={lang} />
-          </FavoritesInitializer>
-        </CartInitializer>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -8,8 +8,6 @@ import type { Product as PayloadProduct } from '@/payload-types'
 import { formatPrice, getLocalePrice, convertPrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
 import { cn } from '@/utilities/ui'
-import { useState, useEffect } from 'react'
-import { useFavorites } from '@/hooks/useFavorites'
 import { useTranslations } from '@/hooks/useTranslations'
 import { toast } from 'sonner'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
@@ -46,15 +44,6 @@ interface ProductCardProps {
 export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
   const router = useRouter()
   const t = useTranslations(locale)
-  const { isFavorite } = useFavorites()
-  const [isFav, setIsFav] = useState(false)
-
-  useEffect(() => {
-    if (product?.id) {
-      const currentIsFavorite = isFavorite(product.id)
-      setIsFav(currentIsFavorite)
-    }
-  }, [product?.id, isFavorite])
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only navigate if the click was directly on the card and not on a button or link
@@ -295,13 +284,16 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             />
 
             <div className="flex gap-2 flex-shrink-0">
-              <FavoriteButton
-                product={product}
-                locale={locale}
-                showToast={true}
-                size="icon"
-                className="h-10 w-10 flex-shrink-0"
-              />
+              {product.id && (
+                <FavoriteButton
+                  productId={product.id}
+                  product={{ title: product.title }}
+                  locale={locale}
+                  showToast={true}
+                  size="icon"
+                  className="h-10 w-10 flex-shrink-0"
+                />
+              )}
 
               <ShareButton
                 product={product}
@@ -353,13 +345,16 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             />
 
             <div className="flex gap-2 flex-shrink-0">
-              <FavoriteButton
-                product={product}
-                locale={locale}
-                showToast={true}
-                size="icon"
-                className="h-[40px] w-[40px] flex-shrink-0"
-              />
+              {product.id && (
+                <FavoriteButton
+                  productId={product.id}
+                  product={{ title: product.title }}
+                  locale={locale}
+                  showToast={true}
+                  size="icon"
+                  className="h-[40px] w-[40px] flex-shrink-0"
+                />
+              )}
 
               <ShareButton
                 product={product}

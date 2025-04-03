@@ -109,13 +109,13 @@ export function ShareButton({
     }
   }
 
-  // Вывести в консоль информацию о шаринге для отладки
-  console.log('ShareButton data:', {
-    url: productUrl,
-    title: productTitle,
-    description: sharingDescription,
-    image: getProductImage(),
-  })
+  // // Вывести в консоль информацию о шаринге для отладки
+  // console.log('ShareButton data:', {
+  //   url: productUrl,
+  //   title: productTitle,
+  //   description: sharingDescription,
+  //   image: getProductImage(),
+  // })
 
   return (
     <SocialSharePopover

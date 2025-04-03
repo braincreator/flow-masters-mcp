@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utilities/ui'
 import { Locale } from '@/constants'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface FloatingCartButtonProps {
   locale: Locale
@@ -14,12 +15,12 @@ interface FloatingCartButtonProps {
 }
 
 export default function FloatingCartButton({ locale, className }: FloatingCartButtonProps) {
-  const { items, itemCount } = useCart()
+  const { items, itemCount, isLoading, error } = useCart(locale)
   const [visible, setVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
-  const [hasItems, setHasItems] = useState(false)
   const [animate, setAnimate] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const prevItemCountRef = useRef(itemCount)
 
   // Refs and state for manual drag
   const buttonRef = useRef<HTMLDivElement>(null)
@@ -64,18 +65,16 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY, visible])
 
-  // Check if there are items in cart and trigger animation when items are added
+  // Отслеживаем изменение itemCount для анимации
   useEffect(() => {
-    const newHasItems = items.length > 0
-
-    if (!hasItems && newHasItems) {
+    if (!isLoading && itemCount > prevItemCountRef.current) {
       // Item was just added
       setAnimate(true)
       setTimeout(() => setAnimate(false), 800)
     }
-
-    setHasItems(newHasItems)
-  }, [items, hasItems])
+    // Обновляем предыдущее значение после проверки
+    prevItemCountRef.current = itemCount
+  }, [itemCount, isLoading])
 
   // Reset wasDragged flag after some delay
   useEffect(() => {
@@ -220,8 +219,8 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
     }
   }
 
-  // Only show button when there are items in cart
-  if (!hasItems) return null
+  // Скрываем кнопку, если идет загрузка, есть ошибка или нет товаров
+  if (isLoading || error || itemCount <= 0) return null
 
   // Функция для проверки недавнего перетаскивания
   const wasRecentlyDragged = (e: React.MouseEvent) => {
@@ -274,7 +273,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
             )}
           >
             <Link
-              href={`/${locale}/checkout`}
+              href={`/${locale}/cart`}
               onClick={(e) => {
                 // Проверяем, было ли реальное перетаскивание
                 if (wasRecentlyDragged(e)) {
@@ -288,9 +287,35 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
             >
               <ShoppingCart className="w-6 h-6 text-accent-foreground" />
 
-              <span className="absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium shadow-sm border border-background bg-amber-500 text-black font-bold">
-                {itemCount}
-              </span>
+              <AnimatePresence>
+                {isHovered && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="ml-2 whitespace-nowrap overflow-hidden"
+                  >
+                    View Cart
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              {itemCount > 0 && (
+                <motion.span
+                  key={itemCount}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className={cn(
+                    'absolute -top-2 -right-2 bg-amber-500 text-black font-bold',
+                    'rounded-full min-w-5 h-5 flex items-center justify-center text-xs',
+                    'px-1 shadow-sm border border-background',
+                  )}
+                >
+                  {itemCount}
+                </motion.span>
+              )}
             </Link>
           </motion.div>
         </div>

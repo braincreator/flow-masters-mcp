@@ -1,124 +1,84 @@
-import { useState, useEffect } from 'react'
+import { useCallback } from 'react'
+import useSWR, { useSWRConfig } from 'swr'
+import { fetchPayloadAPI } from '@/utilities/api'
+import { User } from '@/payload-types'
 
-// Mock user data for development
-const MOCK_USER = {
-  id: 'user123',
-  email: 'user@example.com',
-  name: 'Test User',
-  roles: ['user'],
-}
+const USER_ME_KEY = '/users/me'
 
 export function useAuth() {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { cache, mutate } = useSWRConfig()
 
-  useEffect(() => {
-    async function loadUser() {
+  const {
+    data: user,
+    error: userError,
+    isLoading: isLoadingUser,
+    mutate: mutateUser,
+  } = useSWR<User | null>(
+    USER_ME_KEY,
+    async (endpoint: string) => {
       try {
-        setIsLoading(true)
-
-        // In a real app, this would be an API call to validate session
-        // For now, simulate a network request
-        setTimeout(() => {
-          // In development, return mock user data
-          if (process.env.NODE_ENV === 'development') {
-            setUser(MOCK_USER)
-            setIsLoading(false)
-            return
-          }
-
-          // In production, check if user is logged in
-          const storedUser = localStorage.getItem('user')
-          if (storedUser) {
-            try {
-              setUser(JSON.parse(storedUser))
-            } catch (e) {
-              console.error('Error parsing user data:', e)
-              setUser(null)
-            }
-          } else {
-            setUser(null)
-          }
-
-          setIsLoading(false)
-        }, 500)
-      } catch (error) {
-        console.error('Error loading user:', error)
-        setError(error instanceof Error ? error.message : 'An unknown error occurred')
-        setIsLoading(false)
+        const userData = await fetchPayloadAPI<User>(endpoint)
+        return userData
+      } catch (error: any) {
+        return null
       }
-    }
+    },
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      shouldRetryOnError: false,
+    },
+  )
 
-    loadUser()
-  }, [])
+  const login = useCallback(
+    async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+      try {
+        await fetchPayloadAPI<{ user: User; token: string }>('/users/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        })
 
-  const login = async (email: string, password: string) => {
+        await mutateUser()
+
+        return { success: true }
+      } catch (error: any) {
+        console.error('Login error:', error)
+        return { success: false, error: error.message || 'Login failed' }
+      }
+    },
+    [mutateUser],
+  )
+
+  const logout = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      setIsLoading(true)
+      await fetchPayloadAPI<{ message: string }>('/users/logout', {
+        method: 'POST',
+      })
 
-      // In a real app, this would be an API call to login
-      // For now, simulate a successful login
+      await mutateUser(null, false)
 
-      // In production, this would make an actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // })
+      const CART_KEY = '/api/cart'
+      const FAVORITES_KEY = '/api/favorites'
 
-      // const data = await response.json()
-      // if (!response.ok) throw new Error(data.error || 'Login failed')
-
-      // Save user data
-      const userData = {
-        id: 'user123',
-        email,
-        name: 'User',
-        roles: ['user'],
-      }
-
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
+      mutate((key) => typeof key === 'string' && key.startsWith(CART_KEY), undefined, {
+        revalidate: false,
+      })
+      mutate(FAVORITES_KEY, undefined, { revalidate: false })
 
       return { success: true }
-    } catch (error) {
-      console.error('Login error:', error)
-      setError(error instanceof Error ? error.message : 'Login failed')
-      return { success: false, error }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const logout = async () => {
-    try {
-      setIsLoading(true)
-
-      // In a real app, this would be an API call to logout
-      // For now, just clear local storage
-
-      // In production, this would make an actual API call
-      // await fetch('/api/auth/logout', { method: 'POST' })
-
-      localStorage.removeItem('user')
-      setUser(null)
-
-      return { success: true }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error)
-      return { success: false, error }
-    } finally {
-      setIsLoading(false)
+      return { success: false, error: error.message || 'Logout failed' }
     }
-  }
+  }, [mutateUser, mutate])
 
   return {
-    user,
-    isLoading,
-    error,
+    user: user ?? null,
+    isLoading: isLoadingUser,
+    error: userError,
     login,
     logout,
     isAuthenticated: !!user,
+    mutateUser,
   }
 }

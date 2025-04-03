@@ -20,6 +20,7 @@ import { Solutions } from './Solutions'
 import { Tags } from './Tags'
 import { Testimonials } from './Testimonials'
 import { Users } from './Users'
+import { UserFavorites } from './UserFavorites'
 
 const collections = [
   Analytics,
@@ -44,6 +45,7 @@ const collections = [
   Tags,
   Testimonials,
   Users,
+  UserFavorites,
 ]
 
 export default collections

@@ -15,6 +15,13 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import addProductsHandler from './endpoints/add-products'
 import validateDiscountHandler from './endpoints/validate-discount'
 import downloadProductHandler from './endpoints/download-product'
+import getFavoritesHandler from './endpoints/favorites/getFavoritesHandler'
+import toggleFavoriteHandler from './endpoints/favorites/toggleFavoriteHandler'
+import getCartHandler from './endpoints/cart/getCartHandler'
+import addItemHandler from './endpoints/cart/addItemHandler'
+import updateItemHandler from './endpoints/cart/updateItemHandler'
+import removeItemHandler from './endpoints/cart/removeItemHandler'
+import clearCartHandler from './endpoints/cart/clearCartHandler'
 
 // Import plugins
 import { plugins } from './plugins'
@@ -219,6 +226,41 @@ export default buildConfig({
       path: '/api/orders/:orderId/products/:productId/download',
       method: 'get',
       handler: downloadProductHandler,
+    },
+    {
+      path: '/favorites',
+      method: 'get',
+      handler: getFavoritesHandler,
+    },
+    {
+      path: '/favorites/toggle',
+      method: 'post',
+      handler: toggleFavoriteHandler,
+    },
+    {
+      path: '/cart',
+      method: 'get',
+      handler: getCartHandler,
+    },
+    {
+      path: '/cart/add',
+      method: 'post',
+      handler: addItemHandler,
+    },
+    {
+      path: '/cart/update',
+      method: 'patch',
+      handler: updateItemHandler,
+    },
+    {
+      path: '/cart/remove/:productId',
+      method: 'delete',
+      handler: removeItemHandler,
+    },
+    {
+      path: '/cart',
+      method: 'delete',
+      handler: clearCartHandler,
     },
   ],
 })

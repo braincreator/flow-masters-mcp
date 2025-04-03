@@ -89,6 +89,7 @@ export interface Config {
     tags: Tag;
     testimonials: Testimonial;
     users: User;
+    'user-favorites': UserFavorite;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -122,6 +123,7 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'user-favorites': UserFavoritesSelect<false> | UserFavoritesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1493,6 +1495,25 @@ export interface Testimonial {
   createdAt: string;
 }
 /**
+ * Manages user favorite products.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-favorites".
+ */
+export interface UserFavorite {
+  id: string;
+  /**
+   * The user these favorites belong to.
+   */
+  user: string | User;
+  /**
+   * List of favorite products for this user.
+   */
+  products?: (string | Product)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -1738,6 +1759,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'user-favorites';
+        value: string | UserFavorite;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2568,6 +2593,16 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-favorites_select".
+ */
+export interface UserFavoritesSelect<T extends boolean = true> {
+  user?: T;
+  products?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

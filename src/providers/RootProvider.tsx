@@ -6,7 +6,6 @@ import { HeaderThemeProvider } from '@/providers/HeaderTheme'
 import { DropdownProvider } from '@/providers/DropdownContext'
 import { I18nProvider } from '@/providers/I18n'
 import { Toaster } from 'sonner'
-import CartInitializer from '@/components/CartInitializer'
 import { PayloadAPIProvider } from '@/providers/payload'
 
 interface RootProviderProps {
@@ -21,10 +20,8 @@ export function RootProvider({ children, lang }: RootProviderProps) {
         <I18nProvider defaultLang={lang}>
           <HeaderThemeProvider>
             <PayloadAPIProvider>
-              <CartInitializer locale={lang as any}>
-                {children}
-                <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
-              </CartInitializer>
+              {children}
+              <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
             </PayloadAPIProvider>
           </HeaderThemeProvider>
         </I18nProvider>

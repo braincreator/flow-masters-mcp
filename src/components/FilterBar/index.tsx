@@ -3,7 +3,17 @@
 import React, { useCallback, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import debounce from 'lodash.debounce'
-import { GridIcon, ListIcon, SearchIcon, SlidersHorizontal, ChevronDown, X } from 'lucide-react'
+import {
+  GridIcon,
+  ListIcon,
+  SearchIcon,
+  SlidersHorizontal,
+  ChevronDown,
+  X,
+  LayoutGrid,
+  List,
+  Heart,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utilities/ui'
 import { useDropdown } from '@/providers/DropdownContext'
@@ -26,6 +36,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/useFavorites'
+import { useAuth } from '@/hooks/useAuth'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
@@ -51,6 +62,7 @@ interface FilterBarProps {
     priceRange: string
     layout: string
     favorites?: string
+    filtersTitle?: string
   }
 }
 
@@ -70,9 +82,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const { setOpenDropdown, openDropdown } = useDropdown()
   const [isFiltersOpen, setIsFiltersOpen] = React.useState(false)
   const [isSortOpen, setIsSortOpen] = React.useState(false)
+  const { user, isLoading: isLoadingAuth } = useAuth()
 
   // Local state for filter values in the dialog
-  const [tempCategory, setTempCategory] = React.useState(searchParams.get('productCategory') || 'all')
+  const [tempCategory, setTempCategory] = React.useState(
+    searchParams.get('productCategory') || 'all',
+  )
   const [tempProductType, setTempProductType] = React.useState(
     searchParams.get('productType') || 'all',
   )
@@ -86,16 +101,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     console.log('FilterBar categories prop:', categories)
   }, [categories])
 
-  // Use translations if locale is provided, otherwise use labels prop
+  // Возвращаем productTypes к карте строк в fallback
   const t = locale
     ? translations[locale as keyof typeof translations]
     : {
         filters: {
+          title: labels?.filtersTitle || 'Filters',
           categories: labels?.categories || 'Categories',
           sort: labels?.sort || 'Sort',
           search: labels?.search || 'Search',
           searchPlaceholder: labels?.searchPlaceholder || 'Search products...',
-          productTypes: labels?.productTypes || 'Product Types',
+          productTypes: {
+            label: labels?.productTypes || 'Product Types',
+            all: 'All Types',
+            digital: 'Digital',
+            physical: 'Physical',
+          },
           priceRange: {
             label: labels?.priceRange || 'Price Range',
             min: 'Min',
@@ -106,12 +127,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             reset: 'Reset',
           },
           layout: {
-            grid: labels?.layout?.grid || 'Grid',
-            list: labels?.layout?.list || 'List',
+            grid: 'Grid',
+            list: 'List',
           },
+          apply: 'Apply',
+          clearAll: 'Clear all',
+          favorites: 'Favorites',
         },
         categories: {
           all: labels?.allCategories || 'All Categories',
+        },
+        sortOptions: { newest: 'Newest' /* ... */ },
+        sharing: { linkCopied: 'Link copied!', share: 'Share' },
+        product: {
+          addToCart: 'Add to cart',
+          addedToCart: 'Added',
+          share: 'Share',
+          download: 'Download',
+          description: 'Description',
+          details: 'Details',
+          specifications: 'Specifications',
+          reviews: 'Reviews',
         },
       }
 
@@ -154,7 +190,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     params.set('layout', newLayout)
     // page не удаляем при смене layout
     router.replace(`?${params.toString()}`, { scroll: false })
-    setLayout(newLayout) 
+    setLayout(newLayout)
     setOpenDropdown(null)
   }
 
@@ -179,14 +215,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const handleCategoryChange = (categoryValue: string) => {
     const params = new URLSearchParams(searchParams.toString())
     // Удаляем старый ключ, если он был
-    params.delete('productCategory') 
+    params.delete('productCategory')
     // Удаляем ключ where, если он был (на всякий случай)
-    params.delete('where[productCategory][equals]') 
+    params.delete('where[productCategory][equals]')
 
     if (categoryValue && categoryValue !== 'all') {
       // Устанавливаем новый ключ в формате where
       params.set('where[productCategory][equals]', categoryValue)
-    } 
+    }
     // Удаляем пагинацию при смене фильтра
     params.delete('page')
     router.replace(`?${params.toString()}`, { scroll: false })
@@ -205,7 +241,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   const handleProductTypeChange = (typeValue: string) => {
     const params = new URLSearchParams(searchParams.toString())
-     if (typeValue && typeValue !== 'all') {
+    if (typeValue && typeValue !== 'all') {
       params.set('productType', typeValue)
     } else {
       params.delete('productType')
@@ -278,17 +314,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // Update category filter using 'where' syntax
     if (tempCategory && tempCategory !== 'all') {
       params.set('where[productCategory][equals]', tempCategory)
-    } 
+    }
 
     // Update other filters
     if (tempProductType && tempProductType !== 'all') {
       params.set('productType', tempProductType)
-    } 
+    }
 
     if (tempPriceRange[0] !== priceRange.min || tempPriceRange[1] !== priceRange.max) {
       params.set('minPrice', tempPriceRange[0].toString())
       params.set('maxPrice', tempPriceRange[1].toString())
-    } 
+    }
 
     // Reset page when filters change
     params.delete('page')
@@ -323,19 +359,33 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       params.delete('favorites')
     } else {
       params.set('favorites', 'true')
-
-      // Перед переходом на страницу с избранными товарами, принудительно загружаем их из локального хранилища
-      try {
-        const { loadFromStorage, forceUpdate } = useFavorites.getState()
-        loadFromStorage()
-        setTimeout(() => forceUpdate(), 10)
-      } catch (error) {
-        console.error('Error updating favorites:', error)
-      }
     }
     params.delete('page')
     router.replace(`?${params.toString()}`, { scroll: false })
   }
+
+  // Helper to safely access product type translations
+  const getProductTypeTranslation = (key: string): string => {
+    if (typeof t.filters.productTypes === 'object' && t.filters.productTypes !== null) {
+      const translations = t.filters.productTypes as { [key: string]: string }
+      if (translations[key]) {
+        return translations[key]
+      }
+    }
+    // Fallback logic if translation is not found or productTypes is not an object
+    return productTypes.find((typ) => typ.value === key)?.label || key
+  }
+
+  // Safe accessors
+  const productTypesLabel =
+    (typeof t.filters.productTypes === 'object' && t.filters.productTypes?.label) || 'Product Type'
+  const productTypesAllLabel =
+    (typeof t.filters.productTypes === 'object' && t.filters.productTypes?.all) || 'All Types'
+  const layoutGridLabel = (typeof t.filters.layout === 'object' && t.filters.layout?.grid) || 'Grid'
+  const layoutListLabel = (typeof t.filters.layout === 'object' && t.filters.layout?.list) || 'List'
+  const filtersButtonLabel = labels?.filtersTitle || t.filters.title || 'Filters'
+
+  const isShowingFavorites = searchParams.get('favorites') === 'true'
 
   return (
     <div className="space-y-4 mb-8 border-b pb-6">
@@ -353,26 +403,26 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           />
         </div>
 
-        {/* Favorites Toggle Button */}
-        <Button
-          variant={searchParams.get('favorites') === 'true' ? 'default' : 'outline'}
-          onClick={handleFavoritesToggle}
-          className="h-10 px-3 justify-center"
-        >
-          <svg
-            className={`mr-2 h-4 w-4 ${searchParams.get('favorites') === 'true' ? 'fill-white' : 'stroke-current fill-none'}`}
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+        {/* Favorites Toggle Button - Скрываем для неавторизованных */}
+        {!isLoadingAuth && !!user && (
+          <Button
+            variant={isShowingFavorites ? 'secondary' : 'outline'}
+            onClick={handleFavoritesToggle}
+            className={cn(
+              'h-10 px-3 justify-center hover:bg-accent hover:text-accent-foreground border border-border',
+              {
+                'bg-accent text-white hover:bg-accent/90': isShowingFavorites,
+              },
+            )}
           >
-            <path
-              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <Heart
+              className={cn('mr-2 h-4 w-4', {
+                'fill-red-500 text-red-500': isShowingFavorites,
+              })}
             />
-          </svg>
-          <span>{t.filters.favorites || labels?.favorites || 'Favorites'}</span>
-        </Button>
+            <span>{t.filters.favorites}</span>
+          </Button>
+        )}
 
         {/* Filters Button */}
         <Button
@@ -381,7 +431,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="h-10 px-3 justify-center bg-background hover:bg-accent hover:text-accent-foreground border border-border"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
-          <span>{t?.filters?.filters || 'Filters'}</span>
+          <span>{filtersButtonLabel}</span>
           {hasActiveFilters && (
             <span className="ml-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-white">
               {
@@ -446,14 +496,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           )}
         </div>
 
-        {/* Layout Toggle */}
+        {/* Layout Toggle - Возвращаем старый вид */}
         <div className="flex-none ml-auto flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
           <button
             type="button"
             onClick={() => handleLayoutChange('grid')}
+            aria-label={layoutGridLabel} // aria-label оставляем
             className={cn(
               'relative z-20',
-              'h-10 px-3 rounded-l-md',
+              'h-10 px-3',
               'flex items-center justify-center',
               'transition-all duration-200',
               'border-r border-border/30',
@@ -463,15 +514,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             )}
           >
             <GridIcon className="h-4 w-4 mr-1.5" />
-            <span className="text-xs sm:text-sm">{t.filters.layout.grid}</span>
+            <span className="text-xs sm:text-sm">{layoutGridLabel}</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleLayoutChange('list')}
+            aria-label={layoutListLabel} // aria-label оставляем
             className={cn(
               'relative z-20',
-              'h-10 px-3 rounded-r-md',
+              'h-10 px-3',
               'flex items-center justify-center',
               'transition-all duration-200',
               layout === 'list'
@@ -480,7 +532,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             )}
           >
             <ListIcon className="h-4 w-4 mr-1.5" />
-            <span className="text-xs sm:text-sm">{t.filters.layout.list}</span>
+            <span className="text-xs sm:text-sm">{layoutListLabel}</span>
           </button>
         </div>
       </div>
@@ -550,11 +602,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           {currentProductType !== 'all' && (
             <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
-              <span className="mr-1">
-                {t.filters.productType[currentProductType as keyof typeof t.filters.productType] ||
-                  productTypes.find((t) => t.value === currentProductType)?.label ||
-                  currentProductType}
-              </span>
+              <span className="mr-1">{getProductTypeTranslation(currentProductType)}</span>
               <button
                 onClick={() => handleProductTypeChange('all')}
                 className="text-muted-foreground hover:text-foreground"
@@ -587,7 +635,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             className="h-8 border border-muted-foreground/20 hover:bg-muted/50 text-muted-foreground hover:text-foreground text-xs ml-2"
           >
             <X className="h-3.5 w-3.5 mr-1.5" />
-            {t?.filters?.clearAll || 'Clear all filters'}
+            {t.filters.clearAll}
           </Button>
         </div>
       )}
@@ -596,13 +644,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <Dialog open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
         <DialogContent className="sm:max-w-[500px] p-0 border border-border">
           <DialogHeader className="p-4 pb-0">
-            <DialogTitle>{t?.filters?.filters || 'Filters'}</DialogTitle>
-            <DialogDescription>
-              {t?.filters?.filtersDescription || 'Select filters for products'}
-            </DialogDescription>
+            <DialogTitle>{filtersButtonLabel}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 p-4 max-h-[70vh] overflow-y-auto">
+          <div className="space-y-6 p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-accent scrollbar-track-background">
             {/* Categories */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">{t.filters.categories}</h3>
@@ -633,25 +678,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
             {/* Product Types */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">{t.filters.productType.label}</h3>
+              <h3 className="text-sm font-semibold">{productTypesLabel}</h3>
               <Select value={tempProductType} onValueChange={handleDialogProductTypeChange}>
                 <SelectTrigger className="select-trigger w-full h-10 focus:outline-none focus:border-accent">
-                  <SelectValue placeholder={t.filters.productType.all}>
+                  <SelectValue placeholder={productTypesAllLabel}>
                     {tempProductType === 'all'
-                      ? t.filters.productType.all
-                      : t.filters.productType[
-                          tempProductType as keyof typeof t.filters.productType
-                        ] ||
-                        productTypes.find((t) => t.value === tempProductType)?.label ||
-                        tempProductType}
+                      ? productTypesAllLabel
+                      : getProductTypeTranslation(tempProductType)}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="border border-border">
-                  <SelectItem value="all">{t.filters.productType.all}</SelectItem>
+                  <SelectItem value="all">{productTypesAllLabel}</SelectItem>
                   {productTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                      {t.filters.productType[type.value as keyof typeof t.filters.productType] ||
-                        type.label}
+                      {getProductTypeTranslation(type.value)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -754,7 +794,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                 <div className="px-4 py-3 border-t border-border bg-muted/20 flex items-center justify-between">
                   <span className="text-sm">
-                    {t.filters.priceRange.selected || t.filters?.selected || 'Selected'}:{' '}
+                    {t.filters.priceRange.selected}:{' '}
                     <span className="font-medium">
                       {formatPrice(tempPriceRange[0])} – {formatPrice(tempPriceRange[1])}
                     </span>
@@ -767,7 +807,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
                       onClick={() => handleDialogPriceRangeChange([priceRange.min, priceRange.max])}
                     >
-                      {t.filters.priceRange.reset || t.filters?.reset || 'Reset'}
+                      {t.filters.priceRange.reset}
                     </Button>
                   )}
                 </div>
@@ -781,10 +821,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={resetDialogFilters}
               className="mr-auto border border-border"
             >
-              {t?.filters?.clearAll || 'Clear all filters'}
+              {t.filters.clearAll}
             </Button>
             <Button onClick={onDialogApply} className="border border-accent/20">
-              {t?.filters?.apply || 'Apply'}
+              {t.filters.apply}
             </Button>
           </DialogFooter>
         </DialogContent>

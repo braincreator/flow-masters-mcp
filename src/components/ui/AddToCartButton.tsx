@@ -1,11 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, Download, Clock, Shield, Check } from 'lucide-react'
-import { useTranslations } from '@/hooks/useTranslations'
+import { ShoppingCart, Download, Clock, Shield, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCart } from '@/hooks/useCart'
 import { cn } from '@/utilities/ui'
+import { Locale } from '@/constants'
+import { Product } from '@/payload-types'
+import { useState, useMemo } from 'react'
 
 // Define localized texts for each supported locale
 const LOCALIZED_TEXTS = {
@@ -37,9 +39,9 @@ const LOCALIZED_TEXTS = {
 }
 
 interface AddToCartButtonProps {
-  product: any
-  locale: string
-  onClick?: (product: any) => void
+  product: Product
+  locale: Locale
+  onClick?: (product: Product) => void
   size?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
   disabled?: boolean
@@ -61,13 +63,19 @@ export function AddToCartButton({
   successMessage,
   removeMessage,
 }: AddToCartButtonProps) {
-  const t = useTranslations(locale)
-  const cart = useCart()
+  const { items, add, remove, isLoading: isCartLoading } = useCart(locale)
+  const [isProcessing, setIsProcessing] = useState(false)
 
-  // Get the appropriate localized texts, falling back to English if not supported
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
 
-  const getButtonConfig = (type: string) => {
+  const isInCartState = useMemo(() => {
+    if (isCartLoading || !items) return false
+    return items.some(
+      (item) => (typeof item.product === 'string' ? item.product : item.product?.id) === product.id,
+    )
+  }, [items, product.id, isCartLoading])
+
+  const getButtonConfig = (type: Product['productType']) => {
     switch (type) {
       case 'digital':
         return {
@@ -97,65 +105,76 @@ export function AddToCartButton({
     }
   }
 
+  const buttonConfig = getButtonConfig(product.productType)
+  const ButtonIcon = buttonConfig.icon
+
   const getProductTitle = () => {
-    if (!product?.title) return ''
+    if (!product?.title) return 'Product'
     return typeof product.title === 'object'
-      ? product.title[locale] || product.title.en || ''
+      ? product.title[locale] || product.title.en || 'Product'
       : product.title
   }
 
-  const buttonConfig = getButtonConfig(product.productType || 'physical')
-  const ButtonIcon = buttonConfig.icon
-
-  // Fix the isInCart function call
-  const isInCartState = cart.isInCart(product.id)
-
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
+    if (isCartLoading || isProcessing) return
+
+    setIsProcessing(true)
     const productName = getProductTitle()
 
-    if (isInCartState) {
-      cart.removeFromCart(product.id)
-      if (showToast) {
-        toast.success(removeMessage || texts.removedFromCart(productName))
+    try {
+      if (isInCartState) {
+        await remove(product.id)
+        if (showToast) {
+          toast.success(removeMessage || texts.removedFromCart(productName))
+        }
+      } else {
+        await add(product.id, 1)
+        if (showToast) {
+          toast.success(successMessage || texts.addedToCart(productName))
+        }
       }
-    } else {
-      cart.addToCart(product)
-      if (showToast) {
-        toast.success(successMessage || texts.addedToCart(productName))
+      if (onClick) {
+        onClick(product)
       }
-    }
-
-    if (onClick) {
-      onClick(product)
+    } catch (error) {
+      console.error('Error in AddToCartButton click handler:', error)
+    } finally {
+      setIsProcessing(false)
     }
   }
+
+  const currentButtonText = isInCartState ? texts.inCart : buttonConfig.text
+  const CurrentIcon = isInCartState ? Check : ButtonIcon
 
   return (
     <Button
       variant={isInCartState ? 'outline' : 'default'}
       size={size}
       className={cn(
-        'relative group whitespace-nowrap min-w-[120px]',
+        'relative group whitespace-nowrap min-w-[120px] transition-all',
         isInCartState && 'border-accent bg-accent/10 hover:bg-accent/20 text-accent font-medium',
+        (isProcessing || isCartLoading) && 'opacity-70 cursor-not-allowed',
         className,
       )}
       onClick={handleClick}
-      disabled={disabled}
+      disabled={disabled || isCartLoading || isProcessing}
       aria-label={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
       title={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
     >
       {children || (
         <>
-          {isInCartState ? (
-            <Check className="h-5 w-5 mr-2 text-accent flex-shrink-0" />
+          {isProcessing ? (
+            <Loader2 className="h-5 w-5 mr-2 flex-shrink-0 animate-spin" />
           ) : (
-            <ButtonIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+            <CurrentIcon
+              className={cn('h-5 w-5 mr-2 flex-shrink-0', isInCartState && 'text-accent')}
+            />
           )}
           <span className="text-sm sm:text-base overflow-hidden text-ellipsis">
-            {isInCartState ? texts.inCart : buttonConfig.text}
+            {currentButtonText}
           </span>
         </>
       )}

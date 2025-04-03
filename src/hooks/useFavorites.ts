@@ -1,215 +1,120 @@
 'use client'
 
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import type { Product } from '@/payload-types'
-import { Locale } from '@/constants'
+import useSWR from 'swr'
+import { mutate } from 'swr' // Импортируем глобальный mutate
+import { getFavorites, toggleFavorite } from '@/utilities/api' // Импортируем API функции
+import { useCallback } from 'react'
+import { toast } from '@/components/ui/use-toast' // Для уведомлений
 
-interface FavoritesStore {
-  favorites: Product[]
-  locale: Locale
-  addToFavorites: (product: Product) => void
-  removeFromFavorites: (productId: string) => void
+// Ключ для SWR - используем кастомный эндпоинт
+const FAVORITES_KEY = '/api/favorites'
+
+// Тип данных, возвращаемых хуком
+interface UseFavoritesReturn {
+  favoriteProductIds: Set<string> | undefined
+  isLoading: boolean
+  error: any
   isFavorite: (productId: string) => boolean
-  clearFavorites: () => void
-  setLocale: (locale: Locale) => void
-  count: number
-  // Ручное сохранение состояния
-  persistState: () => void
-  // Функция для принудительного обновления состояния после гидратации
-  forceUpdate: () => void
-  // Новая функция для загрузки состояния из localStorage
-  loadFromStorage: () => void
+  toggle: (productId: string) => Promise<void>
+  mutateFavorites: () => Promise<string[] | undefined> // Для ручного обновления
 }
 
-// Создаем адаптер хранилища с поддержкой отладки и обработкой ошибок
-const createCustomStorage = () => {
-  const storageKey = 'product-favorites'
+export const useFavorites = (): UseFavoritesReturn => {
+  // Используем SWR для получения списка ID избранных продуктов
+  // fetcher теперь - это наша API функция getFavorites
+  const {
+    data: favoriteIds,
+    error,
+    isLoading,
+    mutate: revalidate,
+  } = useSWR<string[]>(
+    FAVORITES_KEY, // Используем правильный ключ/эндпоинт
+    getFavorites, // Эта функция будет изменена для вызова FAVORITES_KEY
+    {
+      fallbackData: [], // Начальное значение - пустой массив
+      revalidateOnFocus: true, // Обновлять при фокусе окна
+      revalidateOnReconnect: true, // Обновлять при переподключении
+      // Можно добавить onError для глобальной обработки ошибок
+      onError: (err) => {
+        console.error('SWR Favorites Error:', err)
+        // Не показываем тост на ошибку загрузки, т.к. она может быть при отсутствии авторизации
+        // toast({ title: 'Error loading favorites', description: err.message, variant: 'destructive' })
+      },
+    },
+  )
+
+  // Преобразуем массив ID в Set для быстрого доступа O(1)
+  const favoriteProductIds = favoriteIds ? new Set(favoriteIds) : undefined
+
+  // Функция для проверки, находится ли товар в избранном
+  const isFavorite = useCallback(
+    (productId: string): boolean => {
+      return !!favoriteProductIds?.has(productId)
+    },
+    [favoriteProductIds],
+  )
+
+  // Функция для добавления/удаления товара из избранного
+  const toggle = useCallback(
+    async (productId: string) => {
+      if (!favoriteProductIds) {
+        toast({
+          title: 'Cannot update favorites',
+          description: 'Favorites data is not loaded yet.',
+          variant: 'warning',
+        })
+        return
+      }
+
+      const currentIsFavorite = favoriteProductIds.has(productId)
+      const optimisticNewState = new Set(favoriteProductIds)
+      if (currentIsFavorite) {
+        optimisticNewState.delete(productId)
+      } else {
+        optimisticNewState.add(productId)
+      }
+
+      // Оптимистичное обновление UI с помощью SWR mutate
+      // Первый аргумент - ключ, второй - новые данные (или функция обновления),
+      // Третий - опции (revalidate: false - не перезапрашивать сразу)
+      await mutate(FAVORITES_KEY, Array.from(optimisticNewState), {
+        optimisticData: Array.from(optimisticNewState),
+        rollbackOnError: true, // Автоматически откатывать при ошибке
+        populateCache: true, // Обновить кэш немедленно
+        revalidate: false, // Не делать запрос после мутации (мы сделаем его вручную если нужно)
+      })
+
+      try {
+        // Отправляем запрос на сервер
+        const result = await toggleFavorite(productId)
+        // Сервер возвращает { isFavorite: boolean }
+        // Можно добавить проверку, совпадает ли результат с оптимистичным обновлением
+
+        // Опционально: Показать сообщение об успехе
+        // toast({ title: currentIsFavorite ? 'Removed from favorites' : 'Added to favorites' })
+
+        // Можно триггернуть revalidation, если нужно быть 100% уверенным в данных,
+        // но обычно при успешном toggle это не требуется
+        // await revalidate()
+      } catch (err: any) {
+        console.error('Failed to toggle favorite:', err)
+        toast({
+          title: 'Failed to update favorites',
+          description: err.message || 'Please try again.',
+          variant: 'destructive',
+        })
+        // SWR автоматически откатит состояние благодаря rollbackOnError: true
+      }
+    },
+    [favoriteProductIds, revalidate],
+  )
 
   return {
-    getItem: (name: string): string => {
-      if (typeof window === 'undefined') return ''
-
-      try {
-        const item = localStorage.getItem(name)
-        return item || ''
-      } catch (error) {
-        console.error(`[Storage] Error getting ${name} from localStorage:`, error)
-        return ''
-      }
-    },
-
-    setItem: (name: string, value: string): void => {
-      if (typeof window === 'undefined') return
-
-      try {
-        localStorage.setItem(name, value)
-      } catch (error) {
-        console.error(`[Storage] Error setting ${name} in localStorage:`, error)
-      }
-    },
-
-    removeItem: (name: string): void => {
-      if (typeof window === 'undefined') return
-
-      try {
-        localStorage.removeItem(name)
-      } catch (error) {
-        console.error(`[Storage] Error removing ${name} from localStorage:`, error)
-      }
-    },
+    favoriteProductIds,
+    isLoading,
+    error,
+    isFavorite,
+    toggle,
+    mutateFavorites: revalidate, // Предоставляем функцию для ручной ревалидации
   }
 }
-
-// Функция для ручного сохранения состояния
-const manualPersist = (state: any) => {
-  if (typeof window === 'undefined') return
-
-  try {
-    const stateToStore = {
-      favorites: state.favorites,
-      locale: state.locale,
-    }
-
-    const storageContent = JSON.stringify({
-      state: stateToStore,
-      version: 1,
-    })
-
-    localStorage.setItem('product-favorites', storageContent)
-  } catch (error) {
-    console.error('[Favorites] Error manually persisting favorites state:', error)
-  }
-}
-
-// Первоначальная загрузка состояния из localStorage для SSR
-const getInitialState = (): { favorites: Product[]; locale: Locale } => {
-  if (typeof window === 'undefined') {
-    return { favorites: [], locale: 'en' }
-  }
-
-  try {
-    const storedData = localStorage.getItem('product-favorites')
-    if (storedData) {
-      const parsed = JSON.parse(storedData)
-      if (parsed.state) {
-        return {
-          favorites: Array.isArray(parsed.state.favorites) ? parsed.state.favorites : [],
-          locale: parsed.state.locale || 'en',
-        }
-      }
-    }
-  } catch (error) {
-    console.error('[Favorites] Error reading initial state:', error)
-  }
-
-  return { favorites: [], locale: 'en' }
-}
-
-const initialState = getInitialState()
-
-export const useFavorites = create<FavoritesStore>()(
-  persist(
-    (set, get) => ({
-      favorites: initialState.favorites,
-      locale: initialState.locale,
-
-      addToFavorites: (product) =>
-        set((state) => {
-          if (!product?.id) return state
-
-          // Check if product is already in favorites
-          if (state.favorites.some((favorite) => favorite.id === product.id)) {
-            return state
-          }
-
-          const newState = {
-            favorites: [...state.favorites, product],
-          }
-
-          // Ручное сохранение после обновления состояния
-          setTimeout(() => manualPersist({ ...get() }), 0)
-
-          return newState
-        }),
-
-      removeFromFavorites: (productId) =>
-        set((state) => {
-          const newState = {
-            favorites: state.favorites.filter((product) => product.id !== productId),
-          }
-
-          // Ручное сохранение после обновления состояния
-          setTimeout(() => manualPersist({ ...get() }), 0)
-
-          return newState
-        }),
-
-      isFavorite: (productId) => {
-        return get().favorites.some((product) => product.id === productId)
-      },
-
-      clearFavorites: () => {
-        set({ favorites: [] })
-
-        // Ручное сохранение после обновления состояния
-        setTimeout(() => manualPersist({ ...get() }), 0)
-      },
-
-      setLocale: (locale) => {
-        set({ locale })
-
-        // Ручное сохранение после обновления состояния
-        setTimeout(() => manualPersist({ ...get() }), 0)
-      },
-
-      get count() {
-        return get().favorites.length
-      },
-
-      // Функция для ручного сохранения состояния
-      persistState: () => {
-        manualPersist(get())
-      },
-
-      // Функция для принудительного обновления состояния после гидратации
-      forceUpdate: () => {
-        set((state) => {
-          // Создаем новую ссылку на массив, чтобы вызвать перерисовку компонентов
-          return { favorites: [...state.favorites] }
-        })
-      },
-
-      // Функция для загрузки состояния из localStorage
-      loadFromStorage: () => {
-        if (typeof window === 'undefined') return
-
-        try {
-          const storedData = localStorage.getItem('product-favorites')
-          if (storedData) {
-            const parsed = JSON.parse(storedData)
-            if (parsed.state) {
-              set({
-                favorites: Array.isArray(parsed.state.favorites) ? parsed.state.favorites : [],
-                locale: parsed.state.locale || get().locale,
-              })
-            }
-          }
-        } catch (error) {
-          console.error('[Favorites] Error loading from storage:', error)
-        }
-      },
-    }),
-    {
-      name: 'product-favorites',
-      storage: createJSONStorage(() => createCustomStorage()),
-      partialize: (state) => ({
-        favorites: state.favorites,
-        locale: state.locale,
-      }),
-      // Отключаем автоматическую гидратацию в Zustand, т.к. делаем это вручную
-      skipHydration: true,
-      version: 1, // Версия для будущих миграций
-    },
-  ),
-)

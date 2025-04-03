@@ -18,6 +18,7 @@ export const translations = {
       integration: 'Integration',
     },
     filters: {
+      title: 'Filters',
       categories: 'Categories',
       sort: 'Sort by',
       search: 'Search products',
@@ -100,6 +101,7 @@ export const translations = {
       integration: 'Интеграция',
     },
     filters: {
+      title: 'Фильтры',
       categories: 'Категории',
       sort: 'Сортировать по',
       search: 'Поиск продуктов',

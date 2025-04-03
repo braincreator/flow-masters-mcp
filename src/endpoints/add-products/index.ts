@@ -4,13 +4,17 @@ import { getProductService } from '@/services'
 /**
  * Handler for adding products and updating the header
  */
-const addProductsHandler = async (req: PayloadRequest, res: any) => {
+const addProductsHandler = async (req: PayloadRequest): Promise<Response> => {
+  const headers = { 'Content-Type': 'application/json' }
   try {
     if (req.method !== 'POST') {
-      return res.status(405).json({ 
-        success: false,
-        message: 'Method not allowed' 
-      })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Method not allowed',
+        }),
+        { status: 405, headers },
+      )
     }
 
     const productService = await getProductService()
@@ -18,17 +22,24 @@ const addProductsHandler = async (req: PayloadRequest, res: any) => {
 
     const product = await productService.create(requestBody)
 
-    return res.json({
-      success: true,
-      message: 'Product added successfully',
-      data: product
-    })
-  } catch (error) {
-    console.error('Error in addProductsHandler:', error)
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Internal server error'
-    })
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Product added successfully',
+        data: product,
+      }),
+      { status: 200, headers },
+    )
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+    req.payload.logger.error(`Error in addProductsHandler: ${message}`)
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: message,
+      }),
+      { status: 500, headers },
+    )
   }
 }
 

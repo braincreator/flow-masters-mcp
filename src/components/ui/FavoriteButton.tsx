@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/utilities/ui'
 import { type Locale } from '@/constants'
-import { useTranslations } from '@/hooks/useTranslations'
+import { useAuth } from '@/hooks/useAuth'
 
 // Define localized texts for each supported locale
 const LOCALIZED_TEXTS = {
@@ -18,6 +18,7 @@ const LOCALIZED_TEXTS = {
     ariaLabelRemove: 'Remove from favorites',
     buttonTextAdd: 'Add to favorites',
     buttonTextRemove: 'In favorites',
+    loginRequired: 'Please log in to manage favorites.',
   },
   ru: {
     addedToFavorites: (productName: string) => `${productName} добавлен в избранное`,
@@ -26,12 +27,14 @@ const LOCALIZED_TEXTS = {
     ariaLabelRemove: 'Удалить из избранного',
     buttonTextAdd: 'В избранное',
     buttonTextRemove: 'В избранном',
+    loginRequired: 'Пожалуйста, войдите, чтобы управлять избранным.',
   },
   // Add other languages here following the same pattern
 }
 
 export interface FavoriteButtonProps {
-  product: any
+  productId: string
+  product?: { title?: string | { [key: string]: string } }
   locale: Locale
   size?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
@@ -43,6 +46,7 @@ export interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({
+  productId,
   product,
   locale,
   size = 'default',
@@ -53,46 +57,54 @@ export function FavoriteButton({
   removeMessage,
   showToast = true,
 }: FavoriteButtonProps) {
-  const t = useTranslations(locale)
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
-  const [isFav, setIsFav] = useState(false)
+  const { isFavorite, toggle, isLoading: isLoadingFavorites, favoriteProductIds } = useFavorites()
+  const { user, isLoading: isLoadingAuth, isAuthenticated } = useAuth()
 
-  // Get the appropriate localized texts object, falling back to English if locale not supported
+  // Если пользователь не авторизован или происходит загрузка статуса авторизации, не показываем кнопку
+  if (isLoadingAuth || !isAuthenticated || !user) {
+    return null
+  }
+
+  const isCurrentlyFavorite = isFavorite(productId)
+
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
 
-  // Проверка избранного при монтировании и при изменении favorites
-  useEffect(() => {
-    if (product?.id) {
-      const currentIsFavorite = isFavorite(product.id)
-      setIsFav(currentIsFavorite)
-    }
-  }, [product?.id, isFavorite])
-
   const getProductTitle = () => {
-    if (!product?.title) return ''
+    if (!product?.title) return 'Product'
     return typeof product.title === 'object'
-      ? product.title[locale] || product.title.en || ''
+      ? product.title[locale] || product.title.en || 'Product'
       : product.title
   }
 
-  const handleFavoriteToggle = (e: React.MouseEvent) => {
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    const productName = getProductTitle()
+    // Двойная проверка авторизации перед выполнением действия
+    if (isLoadingAuth || !isAuthenticated || !user) {
+      toast.error(texts.loginRequired)
+      return
+    }
 
-    if (isFav) {
-      removeFromFavorites(product.id)
-      if (showToast) {
+    if (isLoadingFavorites || favoriteProductIds === undefined) {
+      toast.warning('Favorites are still loading...')
+      return
+    }
+
+    const productName = getProductTitle()
+    const currentState = isFavorite(productId)
+
+    console.log('[FavoriteButton] Toggling favorite for productId:', productId)
+
+    await toggle(productId)
+
+    if (showToast) {
+      if (currentState) {
         toast.success(removeMessage || texts.removedFromFavorites(productName))
-      }
-    } else {
-      addToFavorites(product)
-      if (showToast) {
+      } else {
         toast.success(successMessage || texts.addedToFavorites(productName))
       }
     }
-    setIsFav(!isFav)
   }
 
   return (
@@ -101,12 +113,20 @@ export function FavoriteButton({
       size={size}
       className={cn('p-0', className)}
       onClick={handleFavoriteToggle}
-      disabled={disabled}
-      aria-label={isFav ? texts.ariaLabelRemove : texts.ariaLabelAdd}
-      title={isFav ? texts.ariaLabelRemove : texts.ariaLabelAdd}
+      disabled={disabled || isLoadingFavorites || favoriteProductIds === undefined}
+      aria-label={isCurrentlyFavorite ? texts.ariaLabelRemove : texts.ariaLabelAdd}
+      title={isCurrentlyFavorite ? texts.ariaLabelRemove : texts.ariaLabelAdd}
     >
-      <Heart className={cn('h-5 w-5', isFav ? 'fill-red-500 text-red-500' : '', iconClassName)} />
-      <span className="sr-only">{isFav ? texts.buttonTextRemove : texts.buttonTextAdd}</span>
+      <Heart
+        className={cn(
+          'h-5 w-5',
+          isCurrentlyFavorite ? 'fill-red-500 text-red-500' : '',
+          iconClassName,
+        )}
+      />
+      <span className="sr-only">
+        {isCurrentlyFavorite ? texts.buttonTextRemove : texts.buttonTextAdd}
+      </span>
     </Button>
   )
 }

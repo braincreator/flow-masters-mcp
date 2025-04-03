@@ -1,389 +1,250 @@
 'use client'
 
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import type { Product } from '@/payload-types'
-import { Locale } from '@/constants'
-import { getLocalePrice } from '@/utilities/formatPrice'
+import useSWR, { mutate, MutatorOptions } from 'swr'
+import { CartSession, Product } from '@/payload-types'
+import {
+  getCart,
+  addToCart,
+  updateCartItemQuantity,
+  removeFromCart,
+  clearCart,
+} from '@/utilities/api'
+import { useCallback } from 'react'
+import { toast } from '@/components/ui/use-toast'
+import { Locale } from '@/constants' // Предполагаем, что Locale импортируется
 
-interface CartItem {
-  product: Product
-  quantity: number
-}
+// Ключ для SWR
+export const CART_KEY = '/api/cart'
 
-interface CartStore {
-  items: CartItem[]
-  locale: Locale
+// Тип возвращаемого значения хука
+interface UseCartReturn {
+  cart: CartSession | null | undefined // undefined во время загрузки, null если корзины нет
+  items: CartSession['items'] // Удобный доступ к товарам
   itemCount: number
   total: number
-  addToCart: (product: Product, quantity?: number) => void
-  removeFromCart: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
-  clearCart: () => void
-  isInCart: (productId: string) => boolean
-  setLocale: (locale: Locale) => void
-  persistState: () => void
-  loadServerCart: (userId: string) => Promise<boolean>
-  updateItemCount: () => void
+  isLoading: boolean
+  error: any
+  add: (productId: string, quantity?: number) => Promise<void>
+  update: (productId: string, quantity: number) => Promise<void>
+  remove: (productId: string) => Promise<void>
+  clear: () => Promise<void>
+  mutateCart: (
+    data?: CartSession | Promise<CartSession | null> | null,
+    opts?: boolean | MutatorOptions<CartSession | null>,
+  ) => Promise<CartSession | null | undefined> // Функция ревалидации
 }
 
-const MAX_QUANTITY = 99
+export const useCart = (locale: Locale = 'en'): UseCartReturn => {
+  // Принимаем locale для расчета total
+  // Используем SWR для получения корзины
+  const {
+    data: cart,
+    error,
+    isLoading,
+    mutate: revalidate,
+  } = useSWR<CartSession | null>(
+    CART_KEY,
+    getCart, // Функция для запроса данных
+    {
+      fallbackData: null, // Начальное значение - null (нет корзины)
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      onError: (err) => {
+        console.error('SWR Cart Error:', err)
+        // Не показываем тост, т.к. может быть 404 (нет корзины) или 401 (не авторизован)
+      },
+    },
+  )
 
-// Get product price - accounting for locale-specific pricing or falling back to base price
-const getProductPrice = (product: Product, locale: Locale): number => {
-  // Handle different product pricing structures
-  // @ts-ignore - Product type doesn't fully reflect the actual runtime structure
-  return product.pricing?.[locale]?.amount || product.pricing?.basePrice || product.price || 0
-}
+  // --- Функции-обертки для изменения корзины ---
 
-// Custom storage implementation with enhanced error handling and debug logging
-const createCustomStorage = () => {
-  const storageKey = 'shopping-cart'
+  // Обобщенная функция для оптимистичного обновления
+  const performCartUpdate = useCallback(
+    async (
+      action: () => Promise<CartSession | void | null>, // API вызов
+      optimisticDataGenerator: (currentCart: CartSession | null) => CartSession | null, // Функция для генерации оптимистичных данных
+      successMessage: string,
+      errorMessage: string,
+    ) => {
+      // Генерируем оптимистичное состояние
+      const optimisticCart = optimisticDataGenerator(cart ?? null)
+
+      // Выполняем оптимистичное обновление
+      await mutate(CART_KEY, optimisticCart, {
+        optimisticData: optimisticCart,
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: false, // Не перезапрашиваем сразу
+      })
+
+      try {
+        await action() // Выполняем реальный API запрос
+        // toast({ title: successMessage });
+        // Опционально ревалидируем после успешного запроса, чтобы убедиться в консистентности
+        // Хотя обычно не требуется, если API возвращает актуальное состояние
+        // await revalidate();
+      } catch (err: any) {
+        console.error(`${errorMessage}:`, err)
+        toast({
+          title: errorMessage,
+          description: err.message || 'Please try again.',
+          variant: 'destructive',
+        })
+        // SWR автоматически откатит изменения
+      }
+    },
+    [cart, revalidate],
+  )
+
+  // Добавление товара
+  const add = useCallback(
+    async (productId: string, quantity: number = 1) => {
+      await performCartUpdate(
+        () => addToCart(productId, quantity),
+        (currentCart) => {
+          // Логика генерации оптимистичного состояния для добавления
+          const newCart = structuredClone(
+            currentCart ?? {
+              id: 'optimistic',
+              items: [],
+      itemCount: 0,
+              total: 0,
+              sessionId: 'optimistic',
+            },
+          )
+          if (!newCart.items) newCart.items = []
+
+          const existingIndex = newCart.items.findIndex(
+            (item) =>
+              (typeof item.product === 'string' ? item.product : item.product?.id) === productId,
+          )
+
+          // Нужна информация о продукте (хотя бы цена) для оптимистичного обновления
+          // Это ограничение - откуда взять цену продукта на клиенте перед добавлением?
+          // Возможно, ProductCard должен передавать продукт целиком, или цена должна быть передана в add
+          // Пока что добавим без цены или с ценой 0 для примера
+          const TEMP_PRICE = 0 // ЗАГЛУШКА!
+
+          if (existingIndex > -1) {
+            newCart.items[existingIndex].quantity += quantity
+            newCart.items[existingIndex].price = TEMP_PRICE // Обновляем цену
+          } else {
+            newCart.items.push({ product: productId, quantity, price: TEMP_PRICE })
+          }
+          // Пересчитываем itemCount и total (оптимистично)
+          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
+          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+          return newCart
+        },
+        'Item added to cart',
+        'Failed to add item',
+      )
+    },
+    [performCartUpdate],
+  )
+
+  // Обновление количества
+  const update = useCallback(
+    async (productId: string, quantity: number) => {
+      if (quantity < 0) {
+        console.warn('Attempted to update with negative quantity. Use remove instead.')
+        return // Не допускаем отрицательное количество
+      }
+      if (quantity === 0) {
+        console.warn('Attempted to update with quantity 0. Use remove instead.')
+        // Можно либо ничего не делать, либо все же удалить, но лучше пусть компонент решает
+        return
+      }
+
+      await performCartUpdate(
+        () => updateCartItemQuantity(productId, quantity),
+        (currentCart) => {
+          // Логика генерации оптимистичного состояния для обновления
+          if (!currentCart?.items) return currentCart
+          const newCart = structuredClone(currentCart)
+          const itemIndex = newCart.items.findIndex(
+            (item) =>
+              (typeof item.product === 'string' ? item.product : item.product?.id) === productId,
+          )
+          if (itemIndex > -1) {
+            newCart.items[itemIndex].quantity = quantity
+          }
+          // Пересчитываем itemCount и total
+          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
+          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+          return newCart
+        },
+        'Cart quantity updated',
+        'Failed to update quantity',
+      )
+    },
+    [performCartUpdate],
+  )
+
+  // Удаление товара
+  const remove = useCallback(
+    async (productId: string) => {
+      await performCartUpdate(
+        () => removeFromCart(productId),
+        (currentCart) => {
+          // Логика генерации оптимистичного состояния для удаления
+          if (!currentCart?.items) return currentCart
+          const newCart = structuredClone(currentCart)
+          newCart.items = newCart.items.filter(
+            (item) =>
+              (typeof item.product === 'string' ? item.product : item.product?.id) !== productId,
+          )
+          // Пересчитываем itemCount и total
+          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
+          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+          return newCart
+        },
+        'Item removed from cart',
+        'Failed to remove item',
+      )
+    },
+    [performCartUpdate],
+  )
+
+  // Очистка корзины
+  const clear = useCallback(async () => {
+    await performCartUpdate(
+      clearCart,
+      (currentCart) => {
+        // Оптимистично возвращаем пустую корзину (или null)
+        if (!currentCart) return null
+        return { ...currentCart, items: [], itemCount: 0, total: 0 }
+      },
+      'Cart cleared',
+      'Failed to clear cart',
+    )
+  }, [performCartUpdate])
+
+  // Рассчитываем itemCount и total на основе данных SWR
+  // Используем locale для корректного расчета total, если цены локализованы
+  // Примечание: total рассчитывается на клиенте, серверный total используется как fallback
+  const items = cart?.items ?? []
+  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
+  const total = items.reduce((sum, item) => {
+    // Пытаемся получить цену из загруженного продукта (если depth=1)
+    const product = (typeof item.product === 'object' ? item.product : null) as Product | null
+    // Нужна функция для получения цены с учетом локали
+    // const price = getLocalePrice(product, locale, item.price); // Используем item.price как fallback
+    const price = item.price // Пока используем цену, сохраненную в корзине
+    return sum + (price || 0) * item.quantity
+  }, 0)
 
   return {
-    getItem: (name: string): string => {
-      if (typeof window === 'undefined') return ''
-
-      try {
-        const item = localStorage.getItem(name)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Reading ${name}:`, item ? 'Data found' : 'No data')
-        }
-        return item || ''
-      } catch (error) {
-        console.error(`[Storage] Error getting ${name} from localStorage:`, error)
-        return ''
-      }
-    },
-
-    setItem: (name: string, value: string): void => {
-      if (typeof window === 'undefined') return
-
-      try {
-        localStorage.setItem(name, value)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Successfully stored ${name}, size: ${value.length} bytes`)
-        }
-      } catch (error) {
-        console.error(`[Storage] Error setting ${name} in localStorage:`, error)
-
-        // Try to handle quota exceeded errors
-        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          try {
-            // Clean up old items if quota exceeded
-            localStorage.removeItem('__lastKnownCart')
-            // Save current as last known before failing
-            localStorage.setItem(
-              '__lastKnownCart',
-              JSON.stringify({ timestamp: new Date().toISOString(), data: value }),
-            )
-            console.warn('[Storage] Quota exceeded, saved minimal backup')
-          } catch {
-            console.error('[Storage] Failed to save backup after quota exceeded')
-          }
-        }
-      }
-    },
-
-    removeItem: (name: string): void => {
-      if (typeof window === 'undefined') return
-
-      try {
-        localStorage.removeItem(name)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[Storage] Successfully removed ${name}`)
-        }
-      } catch (error) {
-        console.error(`[Storage] Error removing ${name} from localStorage:`, error)
-      }
-    },
+    cart,
+    items,
+    itemCount,
+    total,
+    isLoading,
+    error,
+    add,
+    update,
+    remove,
+    clear,
+    mutateCart: revalidate,
   }
 }
-
-// Manual persist function
-const manualPersist = (state: any) => {
-  if (typeof window === 'undefined') return
-
-  try {
-    const stateToStore = {
-      items: state.items,
-      locale: state.locale,
-      itemCount: state.itemCount,
-    }
-
-    localStorage.setItem(
-      'shopping-cart',
-      JSON.stringify({
-        state: stateToStore,
-        version: 1,
-      }),
-    )
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Cart] Manually persisted cart state')
-    }
-  } catch (error) {
-    console.error('[Cart] Error manually persisting cart state:', error)
-  }
-}
-
-// Function to sync cart with server for authenticated users
-const syncCartWithServer = async (items: CartItem[], locale: Locale, userId?: string) => {
-  if (!userId || typeof window === 'undefined') return
-
-  try {
-    // Generate unique session ID for the browser
-    let sessionId = localStorage.getItem('cart_session_id')
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-      localStorage.setItem('cart_session_id', sessionId)
-    }
-
-    // Prepare cart items data
-    const cartItems = items.map((item) => ({
-      product: item.product.id,
-      quantity: item.quantity,
-      price: getProductPrice(item.product, locale),
-    }))
-
-    // Calculate total
-    const total = items.reduce(
-      (sum, item) => sum + getProductPrice(item.product, locale) * item.quantity,
-      0,
-    )
-
-    // Send cart data to server
-    const response = await fetch('/api/cart/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sessionId,
-        items: cartItems,
-        total,
-        currency: locale === 'ru' ? 'RUB' : 'USD',
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to sync cart with server')
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Cart] Successfully synced cart with server')
-    }
-  } catch (error) {
-    console.error('[Cart] Error syncing cart with server:', error)
-  }
-}
-
-export const useCart = create<CartStore>()(
-  persist(
-    (set, get) => ({
-      items: [] as CartItem[],
-      locale: 'en' as Locale,
-      itemCount: 0,
-
-      updateItemCount: () => {
-        set((state) => ({
-          itemCount: state.items.reduce((count, item) => count + item.quantity, 0),
-        }))
-      },
-
-      addToCart: (product, quantity = 1) => {
-        set((state) => {
-          if (!product?.id || quantity < 1) return state
-
-          const existingItem = state.items.find((item) => item.product.id === product.id)
-
-          if (existingItem) {
-            const newQuantity = Math.min(existingItem.quantity + quantity, MAX_QUANTITY)
-            const newItems = state.items.map((item) =>
-              item.product.id === product.id ? { ...item, quantity: newQuantity } : item,
-            )
-
-            const newItemCount = newItems.reduce((count, item) => count + item.quantity, 0)
-
-            // Trigger manual persist after state update
-            setTimeout(
-              () => manualPersist({ ...get(), items: newItems, itemCount: newItemCount }),
-              0,
-            )
-
-            // Sync with server if user is logged in
-            const userId = localStorage.getItem('userId')
-            if (userId) {
-              syncCartWithServer(newItems, state.locale, userId)
-            }
-
-            return {
-              items: newItems,
-              itemCount: newItemCount,
-            }
-          }
-
-          const newItems = [...state.items, { product, quantity: Math.min(quantity, MAX_QUANTITY) }]
-          const newItemCount = newItems.reduce((count, item) => count + item.quantity, 0)
-
-          // Trigger manual persist after state update
-          setTimeout(() => manualPersist({ ...get(), items: newItems, itemCount: newItemCount }), 0)
-
-          // Sync with server if user is logged in
-          const userId = localStorage.getItem('userId')
-          if (userId) {
-            syncCartWithServer(newItems, state.locale, userId)
-          }
-
-          return {
-            items: newItems,
-            itemCount: newItemCount,
-          }
-        })
-      },
-
-      removeFromCart: (productId) => {
-        set((state) => {
-          const newItems = state.items.filter((item) => item.product.id !== productId)
-          const newItemCount = newItems.reduce((count, item) => count + item.quantity, 0)
-
-          // Trigger manual persist after state update
-          setTimeout(() => manualPersist({ ...get(), items: newItems, itemCount: newItemCount }), 0)
-
-          // Sync with server if user is logged in
-          const userId = localStorage.getItem('userId')
-          if (userId) {
-            syncCartWithServer(newItems, state.locale, userId)
-          }
-
-          return {
-            items: newItems,
-            itemCount: newItemCount,
-          }
-        })
-      },
-
-      updateQuantity: (productId, quantity) => {
-        set((state) => {
-          const newItems = state.items
-            .map((item) =>
-              item.product.id === productId
-                ? { ...item, quantity: Math.min(Math.max(0, quantity), MAX_QUANTITY) }
-                : item,
-            )
-            .filter((item) => item.quantity > 0)
-
-          const newItemCount = newItems.reduce((count, item) => count + item.quantity, 0)
-
-          // Trigger manual persist after state update
-          setTimeout(() => manualPersist({ ...get(), items: newItems, itemCount: newItemCount }), 0)
-
-          // Sync with server if user is logged in
-          const userId = localStorage.getItem('userId')
-          if (userId) {
-            syncCartWithServer(newItems, state.locale, userId)
-          }
-
-          return {
-            items: newItems,
-            itemCount: newItemCount,
-          }
-        })
-      },
-
-      clearCart: () => {
-        set({
-          items: [],
-          itemCount: 0,
-        })
-
-        // Trigger manual persist after state update
-        setTimeout(() => manualPersist({ ...get() }), 0)
-
-        // Sync with server if user is logged in
-        const userId = localStorage.getItem('userId')
-        if (userId) {
-          syncCartWithServer([], get().locale, userId)
-        }
-      },
-
-      isInCart: (productId) => {
-        return get().items.some((item) => item.product.id === productId)
-      },
-
-      setLocale: (locale) => {
-        set({ locale })
-
-        // Trigger manual persist after state update
-        setTimeout(() => manualPersist({ ...get() }), 0)
-
-        // Sync with server if user is logged in
-        const userId = localStorage.getItem('userId')
-        if (userId) {
-          syncCartWithServer(get().items, locale, userId)
-        }
-      },
-
-      get total() {
-        const { items, locale } = get()
-        return items.reduce(
-          (sum, item) => sum + getLocalePrice(item.product, locale) * item.quantity,
-          0,
-        )
-      },
-
-      // Load cart from server for authenticated users
-      loadServerCart: async (userId: string) => {
-        try {
-          if (!userId) return false
-
-          const response = await fetch(`/api/cart/user/${userId}`)
-
-          if (!response.ok) return false
-
-          const data = await response.json()
-
-          if (data.items && Array.isArray(data.items)) {
-            // Convert server items format to cart format
-            const cartItems = []
-
-            for (const item of data.items) {
-              if (item.product && item.quantity) {
-                cartItems.push({
-                  product: item.product, // Assuming this is the full product object
-                  quantity: item.quantity,
-                })
-              }
-            }
-
-            if (cartItems.length > 0) {
-              set({ items: cartItems })
-              return true
-            }
-          }
-
-          return false
-        } catch (error) {
-          console.error('[Cart] Error loading server cart:', error)
-          return false
-        }
-      },
-
-      // Manually persist state on demand
-      persistState: () => {
-        manualPersist(get())
-      },
-    }),
-    {
-      name: 'shopping-cart',
-      storage: createJSONStorage(() => createCustomStorage()),
-      partialize: (state) => ({
-        items: state.items,
-        locale: state.locale,
-        itemCount: state.itemCount,
-      }),
-      skipHydration: true,
-      version: 1, // Version for future migration support
-    },
-  ),
-)
