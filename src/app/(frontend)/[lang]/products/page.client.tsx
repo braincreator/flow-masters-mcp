@@ -45,8 +45,7 @@ export default function ProductsClient({
   const [currentTotalPages, setCurrentTotalPages] = useState(initialTotalPages)
   const [currentPageNum, setCurrentPageNum] = useState(initialCurrentPage)
 
-  const { favorites, forceUpdate } = useFavorites()
-  const [isInitialized, setIsInitialized] = useState(false)
+  const { favoriteProductIds } = useFavorites()
 
   // Debug: Log categories to see their structure
   useEffect(() => {
@@ -54,26 +53,6 @@ export default function ProductsClient({
       console.log('Categories in client component:', categories)
     }
   }, [categories])
-
-  // Update this to only handle force update of favorites data
-  const filterFavoriteProducts = useCallback(() => {
-    // This will now only handle initialization of favorites data
-    if (!isInitialized && searchParams.get('favorites') === 'true') {
-      try {
-        const { loadFromStorage } = useFavorites.getState()
-        loadFromStorage()
-        setTimeout(() => forceUpdate(), 10)
-        setIsInitialized(true)
-      } catch (error) {
-        console.error('Error loading favorites:', error)
-      }
-    }
-  }, [isInitialized, searchParams, forceUpdate])
-
-  // Keep this effect to handle favorites initialization
-  useEffect(() => {
-    filterFavoriteProducts()
-  }, [filterFavoriteProducts])
 
   const categoriesList = categories.map((category) => {
     const categoryLabel =
@@ -136,11 +115,12 @@ export default function ProductsClient({
         throw new Error('Invalid API response format')
       }
 
-      // Filter favorites if needed
+      // Filter favorites if needed - читаем favoriteProductIds здесь
       let filteredProducts = data.docs
-      if (searchParams.get('favorites') === 'true' && favorites && favorites.length > 0) {
-        const favoriteIds = favorites.map((fav) => fav.id)
-        filteredProducts = data.docs.filter((product) => favoriteIds.includes(product.id))
+      // Получаем актуальный Set ID избранного прямо перед фильтрацией
+      const currentFavoriteIds = favoriteProductIds // Доступ к переменной из замыкания
+      if (searchParams.get('favorites') === 'true' && currentFavoriteIds) {
+        filteredProducts = data.docs.filter((product) => currentFavoriteIds.has(product.id))
       }
 
       // Update state with new products
@@ -158,12 +138,13 @@ export default function ProductsClient({
       setIsLoading(false)
     }
   }, [
-    searchParams,
-    currentLocale,
-    favorites,
-    initialProducts,
+    searchParams, // Зависит от параметров поиска
+    currentLocale, // Зависит от локали
+    // favoriteProductIds, // Убираем зависимость от favoriteProductIds
+    initialProducts, // Зависит от начальных продуктов (для отката при ошибке)
     initialTotalPages,
     initialCurrentPage,
+    // Мы можем получить favoriteProductIds внутри функции при необходимости фильтрации
   ])
 
   // Listen for search params changes and fetch products
