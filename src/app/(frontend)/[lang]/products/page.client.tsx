@@ -6,7 +6,7 @@ import { type Locale } from '@/constants'
 import type { Category, Product } from '@/payload-types'
 import { translations } from './translations'
 import { useFavorites } from '@/hooks/useFavorites'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
 
@@ -46,6 +46,9 @@ export default function ProductsClient({
   const [currentPageNum, setCurrentPageNum] = useState(initialCurrentPage)
 
   const { favoriteProductIds } = useFavorites()
+
+  // Реф для хранения предыдущих параметров (без layout)
+  const prevRelevantParamsRef = useRef<string>('')
 
   // Debug: Log categories to see their structure
   useEffect(() => {
@@ -138,22 +141,39 @@ export default function ProductsClient({
       setIsLoading(false)
     }
   }, [
-    searchParams, // Зависит от параметров поиска
-    currentLocale, // Зависит от локали
-    // favoriteProductIds, // Убираем зависимость от favoriteProductIds
-    initialProducts, // Зависит от начальных продуктов (для отката при ошибке)
+    searchParams, // Все еще нужен доступ к searchParams внутри
+    currentLocale,
+    initialProducts,
     initialTotalPages,
     initialCurrentPage,
-    // Мы можем получить favoriteProductIds внутри функции при необходимости фильтрации
+    favoriteProductIds, // Оставляем favoriteProductIds здесь, так как фильтрация происходит внутри
   ])
 
-  // Listen for search params changes and fetch products
+  // Listen for search params changes and fetch products conditionally
   useEffect(() => {
-    // Always refetch on searchParams changes to ensure clearing filters works
-    fetchProducts()
+    const currentParams = new URLSearchParams(searchParams.toString())
+    currentParams.delete('layout') // Удаляем layout для сравнения
+    const currentRelevantParamsString = currentParams.toString()
 
-    // Log the current search params for debugging
-    console.log('Search params changed:', Object.fromEntries(searchParams.entries()))
+    // Log для отладки сравнения параметров
+    console.log('Current relevant params:', currentRelevantParamsString)
+    console.log('Previous relevant params:', prevRelevantParamsRef.current)
+
+    // Вызываем fetchProducts только если релевантные параметры изменились
+    // или если это первая загрузка (prevRelevantParamsRef.current пуст)
+    if (currentRelevantParamsString !== prevRelevantParamsRef.current) {
+      console.log('Relevant params changed, fetching products...')
+      fetchProducts()
+      // Обновляем реф *после* вызова fetchProducts
+      prevRelevantParamsRef.current = currentRelevantParamsString
+    } else {
+      console.log('Relevant params did not change, skipping fetch.')
+    }
+
+    // Log the full current search params for debugging
+    console.log('Full search params changed:', Object.fromEntries(searchParams.entries()))
+    // Зависимости: fetchProducts все еще нужен, т.к. он используется внутри
+    // searchParams нужен, чтобы эффект срабатывал при их изменении
   }, [searchParams, fetchProducts])
 
   return (
