@@ -1,5 +1,6 @@
 import { cn } from '@/utilities/ui'
 import { type Locale } from '@/constants'
+import { TagIcon, SparklesIcon, FlameIcon } from 'lucide-react'
 
 interface DiscountBadgeProps {
   percentage: number
@@ -10,11 +11,15 @@ export function DiscountBadge({ percentage, className }: DiscountBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground',
+        'inline-flex items-center gap-0.5 rounded-md px-2 py-1 text-xs font-semibold',
+        'bg-gradient-to-r from-rose-600 to-red-500 text-white',
+        'shadow-sm shadow-red-600/20',
+        'animate-badge-pulse',
+        'transform transition-all duration-300 hover:scale-105',
         className,
       )}
     >
-      -{percentage}%
+      <TagIcon className="h-3 w-3" />-{percentage}%
     </span>
   )
 }
@@ -29,10 +34,14 @@ export function NewBadge({ locale, className }: NewBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white',
+        'inline-flex items-center gap-0.5 rounded-md px-2 py-1 text-xs font-semibold',
+        'bg-gradient-to-r from-blue-500 to-indigo-500 text-white',
+        'shadow-sm shadow-blue-500/20',
+        'transform transition-all duration-300 hover:scale-105',
         className,
       )}
     >
+      <SparklesIcon className="h-3 w-3" />
       {text}
     </span>
   )
@@ -48,10 +57,14 @@ export function BestsellerBadge({ locale, className }: BestsellerBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full bg-yellow-500 px-2 py-0.5 text-xs font-semibold text-black',
+        'inline-flex items-center gap-0.5 rounded-md px-2 py-1 text-xs font-semibold',
+        'bg-gradient-to-r from-amber-400 to-yellow-500 text-black',
+        'shadow-sm shadow-amber-500/20',
+        'transform transition-all duration-300 hover:scale-105',
         className,
       )}
     >
+      <FlameIcon className="h-3 w-3" />
       {text}
     </span>
   )

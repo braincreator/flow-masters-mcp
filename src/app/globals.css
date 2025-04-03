@@ -27,6 +27,10 @@
     animation: glow 2s ease-in-out infinite;
   }
 
+  .animate-badge-pulse {
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+
   .product-card-hover {
     @apply relative overflow-hidden transition-all duration-200;
     @apply hover:shadow-md;
@@ -49,6 +53,16 @@
     }
     50% {
       box-shadow: 0 0 20px 0 theme('colors.primary.DEFAULT / 10%');
+    }
+  }
+
+  @keyframes badgePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.02);
     }
   }
 

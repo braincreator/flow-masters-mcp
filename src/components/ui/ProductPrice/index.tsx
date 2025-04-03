@@ -88,9 +88,9 @@ export function ProductPrice({
       lg: 'text-3xl font-bold',
     },
     compare: {
-      sm: 'text-xs text-muted-foreground line-through',
-      md: 'text-sm text-muted-foreground line-through',
-      lg: 'text-xl text-muted-foreground line-through',
+      sm: 'text-xs text-muted-foreground line-through opacity-80',
+      md: 'text-sm text-muted-foreground line-through opacity-80',
+      lg: 'text-xl text-muted-foreground line-through opacity-80',
     },
     discount: {
       sm: 'text-xs',
