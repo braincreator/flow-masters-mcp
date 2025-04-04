@@ -148,3 +148,27 @@
     padding: 0 1rem;
   }
 }
+
+/* Стили для блока комментариев */
+.blog-comments {
+  max-width: 100%;
+}
+
+.blog-comments .comment-form-container {
+  max-width: 30rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.blog-comments .comments-list {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Адаптивные стили для комментариев */
+@media (max-width: 768px) {
+  .blog-comments .comment-form-container {
+    max-width: 100%;
+  }
+}

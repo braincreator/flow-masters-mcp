@@ -1,84 +1,69 @@
-import { useCallback } from 'react'
-import useSWR, { useSWRConfig } from 'swr'
-import { fetchPayloadAPI } from '@/utilities/api'
-import { User } from '@/payload-types'
+'use client'
 
-const USER_ME_KEY = '/users/me'
+import { useState, useEffect } from 'react'
 
-export function useAuth() {
-  const { cache, mutate } = useSWRConfig()
+interface User {
+  id: string
+  name: string
+  email: string
+  avatar?: string
+}
 
-  const {
-    data: user,
-    error: userError,
-    isLoading: isLoadingUser,
-    mutate: mutateUser,
-  } = useSWR<User | null>(
-    USER_ME_KEY,
-    async (endpoint: string) => {
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+}
+
+// Это заглушка для хука аутентификации
+// В реальном приложении здесь будет логика работы с сессией/JWT/cookies
+export function useAuth(): AuthState {
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+  })
+
+  useEffect(() => {
+    // Имитация проверки аутентификации
+    const checkAuth = async () => {
       try {
-        const userData = await fetchPayloadAPI<User>(endpoint)
-        return userData
-      } catch (error: any) {
-        return null
-      }
-    },
-    {
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-      shouldRetryOnError: false,
-    },
-  )
+        // В реальном приложении здесь будет запрос к API для проверки токена/сессии
+        // Например: const response = await fetch('/api/auth/me')
 
-  const login = useCallback(
-    async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-      try {
-        await fetchPayloadAPI<{ user: User; token: string }>('/users/login', {
-          method: 'POST',
-          body: JSON.stringify({ email, password }),
+        // Имитация задержки запроса
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Проверяем, есть ли в localStorage сохраненный пользователь
+        const storedUser = localStorage.getItem('current_user')
+
+        if (storedUser) {
+          const user = JSON.parse(storedUser)
+          setState({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          })
+        } else {
+          // Пользователь не авторизован
+          setState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          })
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error)
+        setState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
         })
-
-        await mutateUser()
-
-        return { success: true }
-      } catch (error: any) {
-        console.error('Login error:', error)
-        return { success: false, error: error.message || 'Login failed' }
       }
-    },
-    [mutateUser],
-  )
-
-  const logout = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    try {
-      await fetchPayloadAPI<{ message: string }>('/users/logout', {
-        method: 'POST',
-      })
-
-      await mutateUser(null, false)
-
-      const CART_KEY = '/api/cart'
-      const FAVORITES_KEY = '/api/favorites'
-
-      mutate((key) => typeof key === 'string' && key.startsWith(CART_KEY), undefined, {
-        revalidate: false,
-      })
-      mutate(FAVORITES_KEY, undefined, { revalidate: false })
-
-      return { success: true }
-    } catch (error: any) {
-      console.error('Logout error:', error)
-      return { success: false, error: error.message || 'Logout failed' }
     }
-  }, [mutateUser, mutate])
 
-  return {
-    user: user ?? null,
-    isLoading: isLoadingUser,
-    error: userError,
-    login,
-    logout,
-    isAuthenticated: !!user,
-    mutateUser,
-  }
+    checkAuth()
+  }, [])
+
+  return state
 }

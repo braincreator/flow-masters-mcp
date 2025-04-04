@@ -22,6 +22,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { isLexicalContent } from '@/utilities/lexicalParser'
 import { ErrorButtonWrapper } from '@/components/blog/ErrorButtonWrapper'
 import { BlogActionButtons } from '@/components/blog/BlogActionButtons'
+import { EnhancedBlogComments } from '@/components/blog/EnhancedBlogComments'
 
 // Импортируем стили
 import '@/components/blog/blog-page.css'
@@ -461,16 +462,6 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                   </div>
                 </ErrorBoundary>
 
-                {/* Tags & Sharing */}
-                <div className="mt-12 mb-16 flex flex-wrap gap-6 justify-between items-center border-t border-b border-border py-6 blog-tags-share">
-                  <BlogSocialShare
-                    url={`/${currentLocale}/blog/${post.slug}`}
-                    title={post.title}
-                    description={post.excerpt || ''}
-                    postId={post.id}
-                  />
-                </div>
-
                 {/* Author Bio - Full version */}
                 {post.author && (
                   <div className="mb-16 p-6 bg-muted/30 rounded-lg blog-author-bio">
@@ -496,7 +487,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
                 {/* Comments */}
                 <div id="comments" className="mb-16 blog-comments">
-                  <BlogComments postId={post.id} />
+                  <EnhancedBlogComments postId={post.id} locale={currentLocale} />
                 </div>
               </div>
             </div>
