@@ -269,6 +269,12 @@ export default function ProductsClient({
         defaultLayout={searchParams.get('layout') || 'grid'}
         locale={currentLocale}
         showFavorites={searchParams.get('favorites') === 'true'}
+        currency={{
+          code: currentLocale === 'ru' ? 'RUB' : 'USD',
+          symbol: currentLocale === 'ru' ? '₽' : '$',
+          position: currentLocale === 'ru' ? 'after' : 'before',
+          rate: 1,
+        }}
         labels={{
           categories: t.filters.categories,
           sort: t.filters.sort,

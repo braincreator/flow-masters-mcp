@@ -123,7 +123,7 @@ export function ProductPrice({
   return (
     <div
       className={cn(
-        'space-y-2 relative group',
+        'space-y-2 relative group ProductPrice',
         sizeClasses.container[size],
         variant === 'card' && 'price-card-container',
         className,
@@ -135,6 +135,14 @@ export function ProductPrice({
             sizeClasses.price[size],
             'transition-all duration-300 hover:opacity-90 price-highlight price-shine',
             variant === 'detail' && 'hover:scale-[1.02] origin-left',
+            variant === 'card' && 'price-float',
+            hasDiscount && variant === 'default' && 'price-pulse price-glow',
+            hasDiscount && variant === 'card' && 'price-attention price-blink',
+            !hasDiscount && variant === 'default' && 'price-flash',
+            hasDiscount && variant === 'card' && 'price-neon',
+            hasDiscount && size === 'lg' && 'price-bounce',
+            !hasDiscount && size === 'lg' && 'price-rainbow',
+            'discount-highlight',
             priceClassName,
           )}
         >
@@ -149,6 +157,7 @@ export function ProductPrice({
               sizeClasses.compare[size],
               'transition-all duration-300 opacity-70 hover:opacity-90',
               variant === 'detail' && 'hover:scale-[1.02] origin-left',
+              variant === 'detail' && 'price-vibrate',
               compareClassName,
             )}
           >

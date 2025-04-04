@@ -249,13 +249,14 @@ export const formatPrice = (price: number, locale: string = 'en'): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
     }).format(price)
   }
 
-  // Больше не переопределяем minimum/maximumFractionDigits жестко для RUB/JPY,
-  // полагаемся на настройки в settings.format и стандартное поведение Intl.NumberFormat
+  // Используем custom форматирование для рубля в русской локали
+  if (locale === 'ru' && settings.currency === 'RUB') {
+    return `${Math.round(price).toLocaleString('ru-RU')} ₽`
+  }
+
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: settings.currency,

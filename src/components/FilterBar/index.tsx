@@ -203,6 +203,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     }
   }, [isFiltersOpen, searchParams, priceRange])
 
+  // Обновляем appliedPriceRange при изменении URL параметров
+  React.useEffect(() => {
+    const urlMinPrice = searchParams.get('minPrice')
+    const urlMaxPrice = searchParams.get('maxPrice')
+
+    if (urlMinPrice || urlMaxPrice) {
+      setAppliedPriceRange([
+        urlMinPrice ? parseInt(urlMinPrice) : priceRange.min,
+        urlMaxPrice ? parseInt(urlMaxPrice) : priceRange.max,
+      ])
+    }
+  }, [searchParams, priceRange])
+
   const handleLayoutChange = (newLayout: 'grid' | 'list') => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('layout', newLayout)
@@ -420,7 +433,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Локальная функция formatPrice для форматирования цены
   const formatPrice = (price: number) => {
-    // Просто форматируем число без дополнительной конвертации
+    // Для русской локали используем рубль и специальное форматирование
+    if (locale === 'ru' && currency.code === 'RUB') {
+      const formattedNumber = Math.round(price).toLocaleString('ru-RU')
+      return `${formattedNumber} ₽`
+    }
+
+    // Для остальных валют используем стандартное форматирование
     const formattedNumber = Math.round(price).toLocaleString(locale || 'en-US')
 
     return currency.position === 'before'

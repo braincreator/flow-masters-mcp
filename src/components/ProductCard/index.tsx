@@ -197,10 +197,10 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
         {/* Price Badge - Only show in grid mode */}
         {price > 0 && layout === 'grid' && (
           <div
-            className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm 
-                        px-2 py-1 rounded-sm border border-border/60 
-                        shadow-sm hover:shadow-md transition-all duration-300
-                        dark:border-border/50 dark:hover:border-accent/30"
+            className={cn(
+              'absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-sm border border-border/60 shadow-sm hover:shadow-md transition-all duration-300 dark:border-border/50 dark:hover:border-accent/30 price-background-blink',
+              hasDiscount ? 'animate-glow-subtle price-bounce' : 'price-3d-rotate'
+            )}
           >
             <ProductPrice
               product={product}
@@ -208,6 +208,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
               size="sm"
               variant="card"
               showDiscountBadge={false}
+              priceClassName="simple-rainbow"
             />
           </div>
         )}
@@ -271,10 +272,12 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           </div>
 
           {/* Price - positioned at the right */}
-          <div className="absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 
-                          bg-background/80 backdrop-blur-sm p-1 rounded-sm
-                          border border-border/60 shadow-sm hover:shadow-md 
-                          transition-all duration-300">
+          <div
+            className={cn(
+              'absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 bg-background/80 backdrop-blur-sm p-1 rounded-sm border border-border/60 shadow-sm hover:shadow-md transition-all duration-300 price-rotate-border price-background-blink',
+              hasDiscount ? 'animate-glow-subtle discount-highlight' : 'price-3d-rotate'
+            )}
+          >
             {/* Price */}
             {price > 0 && (
               <div>
@@ -284,6 +287,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                   size="lg"
                   variant="default"
                   showDiscountBadge={layout !== 'list'}
+                  priceClassName="simple-rainbow"
                 />
               </div>
             )}
