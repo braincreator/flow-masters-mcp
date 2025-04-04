@@ -282,23 +282,29 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   }
 
   const handlePriceRangeChange = (values: [number, number]) => {
+    // Сохраняем выбранные значения в локальное состояние
     setAppliedPriceRange(values)
 
-    // Конвертируем цены обратно в базовую валюту для фильтрации
-    // Это нужно, потому что в базе данных цены хранятся в базовой валюте (предположительно USD)
-    const baseLocale = 'en'
-    const baseValues: [number, number] =
-      locale !== baseLocale
-        ? [
-            convertPrice(values[0], locale || 'en', baseLocale),
-            convertPrice(values[1], locale || 'en', baseLocale),
-          ]
-        : values
-
     const params = new URLSearchParams(searchParams.toString())
-    // Записываем базовые значения в URL-параметры для фильтрации
-    params.set('minPrice', baseValues[0].toString())
-    params.set('maxPrice', baseValues[1].toString())
+
+    // Если выбран весь диапазон, удаляем параметры из URL
+    if (values[0] <= priceRange.min && values[1] >= priceRange.max) {
+      params.delete('minPrice')
+      params.delete('maxPrice')
+    } else {
+      // Использую фиксированные значения, а не расчетные, чтобы избежать колебаний
+      // Конвертируем обратно в базовую валюту для сервера
+      const minPriceBase = currency.rate ? Math.floor(values[0] / currency.rate) : values[0]
+      const maxPriceBase = currency.rate ? Math.ceil(values[1] / currency.rate) : values[1]
+
+      console.log(
+        `Конвертация цен: ${values[0]} -> ${minPriceBase}, ${values[1]} -> ${maxPriceBase}`,
+      )
+
+      params.set('minPrice', minPriceBase.toString())
+      params.set('maxPrice', maxPriceBase.toString())
+    }
+
     params.delete('page') // Сбрасываем страницу при изменении цены
     router.replace(`?${params.toString()}`, { scroll: false })
   }
@@ -326,8 +332,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     currentCategory !== 'all' ||
     currentProductType !== 'all' ||
     currentSearch ||
-    appliedPriceRange[0] !== priceRange.min ||
-    appliedPriceRange[1] !== priceRange.max
+    appliedPriceRange[0] > priceRange.min ||
+    appliedPriceRange[1] < priceRange.max
 
   // Open filter dialog
   const openFiltersDialog = () => {
@@ -355,19 +361,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       params.set('productType', tempProductType)
     }
 
-    // Конвертируем значения диапазона цен обратно в базовую валюту
-    if (tempPriceRange[0] !== priceRange.min || tempPriceRange[1] !== priceRange.max) {
-      const baseLocale = 'en'
-      const baseValues: [number, number] =
-        locale !== baseLocale
-          ? [
-              convertPrice(tempPriceRange[0], locale || 'en', baseLocale),
-              convertPrice(tempPriceRange[1], locale || 'en', baseLocale),
-            ]
-          : tempPriceRange
+    // Сохраняем значения диапазона цен только если они реально ограничивают диапазон
+    if (tempPriceRange[0] > priceRange.min || tempPriceRange[1] < priceRange.max) {
+      // Использую фиксированные значения, а не расчетные, чтобы избежать колебаний
+      const minPriceBase = currency.rate
+        ? Math.floor(tempPriceRange[0] / currency.rate)
+        : tempPriceRange[0]
+      const maxPriceBase = currency.rate
+        ? Math.ceil(tempPriceRange[1] / currency.rate)
+        : tempPriceRange[1]
 
-      params.set('minPrice', baseValues[0].toString())
-      params.set('maxPrice', baseValues[1].toString())
+      console.log(
+        `Конвертация цен: ${tempPriceRange[0]} -> ${minPriceBase}, ${tempPriceRange[1]} -> ${maxPriceBase}`,
+      )
+
+      params.set('minPrice', minPriceBase.toString())
+      params.set('maxPrice', maxPriceBase.toString())
     }
 
     // Reset page when filters change
@@ -498,8 +507,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 [
                   currentCategory !== 'all',
                   currentProductType !== 'all',
-                  appliedPriceRange[0] !== priceRange.min ||
-                    appliedPriceRange[1] !== priceRange.max,
+                  appliedPriceRange[0] > priceRange.min || appliedPriceRange[1] < priceRange.max,
                 ].filter(Boolean).length
               }
             </span>
@@ -629,8 +637,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           )}
 
-          {/* Price Range Filter Chip - Always visible when price filter is applied */}
-          {(appliedPriceRange[0] !== priceRange.min || appliedPriceRange[1] !== priceRange.max) && (
+          {/* Price Range Filter Chip - Only visible when actual filtering is applied */}
+          {(appliedPriceRange[0] > priceRange.min || appliedPriceRange[1] < priceRange.max) && (
             <div className="inline-flex items-center bg-accent/10 px-3 py-1 rounded-full text-sm border border-accent/20">
               <span className="mr-1">
                 {t.filters.priceRange.label}: {formatPrice(appliedPriceRange[0])} -{' '}
@@ -855,8 +863,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       {formatPrice(tempPriceRange[0])} – {formatPrice(tempPriceRange[1])}
                     </span>
                   </span>
-                  {(tempPriceRange[0] !== priceRange.min ||
-                    tempPriceRange[1] !== priceRange.max) && (
+                  {(tempPriceRange[0] > priceRange.min || tempPriceRange[1] < priceRange.max) && (
                     <Button
                       variant="ghost"
                       size="sm"

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
+import { convertPrice } from '@/utilities/formatPrice'
 
 interface ApiError {
   message: string
@@ -232,13 +233,30 @@ export async function GET(request: Request) {
             productWithPrice.pricing.finalPrice || productWithPrice.pricing.basePrice
           if (typeof productPrice !== 'number') return false
 
+          // Конвертируем цену продукта для сравнения, если нужно
+          let comparePrice = productPrice
+          if (locale !== 'en') {
+            // Конвертируем из USD в локальную валюту
+            comparePrice = convertPrice(productPrice, 'en', locale)
+          }
+
+          // Логируем исходную цену и конвертированную
+          console.log(`Продукт: ${productWithPrice.title}`)
+          console.log(`- Цена в USD: ${productPrice}$`)
+          console.log(`- Цена в локальной валюте: ${comparePrice}`)
+          console.log(`- Фильтр: от ${priceFilters.minPrice || 0} до ${priceFilters.maxPrice || '∞'}`)
+
+          // Делаем сравнение
           const meetsMinPrice =
-            priceFilters.minPrice === undefined || productPrice >= priceFilters.minPrice
-
+            priceFilters.minPrice === undefined || comparePrice >= priceFilters.minPrice
           const meetsMaxPrice =
-            priceFilters.maxPrice === undefined || productPrice <= priceFilters.maxPrice
+            priceFilters.maxPrice === undefined || comparePrice <= priceFilters.maxPrice
 
-          return meetsMinPrice && meetsMaxPrice
+          const isMatching = meetsMinPrice && meetsMaxPrice
+          console.log(`- Результат: ${isMatching ? 'СООТВЕТСТВУЕТ' : 'НЕ СООТВЕТСТВУЕТ'} диапазону`)
+          console.log(`- Причина: мин=${meetsMinPrice ? 'ДА' : 'НЕТ'}, макс=${meetsMaxPrice ? 'ДА' : 'НЕТ'}`)
+
+          return isMatching
         })
 
         // Update the products object with filtered results
@@ -249,7 +267,7 @@ export async function GET(request: Request) {
           // We're not recalculating pagination here, which is a limitation
         }
 
-        console.log(`After price filtering: ${filteredDocs.length} products remain`)
+        console.log(`После фильтрации по цене: найдено ${filteredDocs.length} товаров из ${products.docs.length}`)
         return createApiResponse(true, filteredProducts)
       }
 
