@@ -76,7 +76,7 @@ export function BlogSearch({
     )
   } else if (variant === 'default') {
     inputClassName = cn(
-      'bg-background/50 backdrop-blur-sm border-2 border-border/50 hover:border-primary/30 focus:border-primary/50 transition-all duration-300 shadow-lg shadow-primary/5 hover:shadow-primary/10 rounded-2xl',
+      'rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200',
     )
   } else if (variant === 'minimal') {
     inputClassName = cn('border border-border rounded-lg')

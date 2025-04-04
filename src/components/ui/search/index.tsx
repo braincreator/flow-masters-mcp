@@ -46,16 +46,26 @@ export function Search({
   return (
     <div className={cn('relative w-full', className)}>
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon
+          className={cn(
+            'absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground',
+            size === 'sm' && 'h-3.5 w-3.5',
+            size === 'default' && 'h-4 w-4',
+            size === 'lg' && 'h-5 w-5',
+          )}
+        />
         <Input
-          type="text"
+          type="search"
           value={value}
           onChange={handleChange}
           placeholder={placeholder}
           className={cn(
-            'w-full pl-9 pr-9',
+            'w-full pl-9 pr-9 rounded-lg',
+            'border border-border focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200',
+            'placeholder:text-slate-400',
             size === 'sm' && 'h-8 text-sm',
-            size === 'lg' && 'h-12 text-lg',
+            size === 'default' && 'h-10 text-sm',
+            size === 'lg' && 'h-12 text-base',
             inputClassName,
           )}
         />
@@ -65,7 +75,13 @@ export function Search({
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Clear search"
           >
-            <X className="h-4 w-4" />
+            <X
+              className={cn(
+                size === 'sm' && 'h-3.5 w-3.5',
+                size === 'default' && 'h-4 w-4',
+                size === 'lg' && 'h-5 w-5',
+              )}
+            />
           </button>
         )}
       </div>

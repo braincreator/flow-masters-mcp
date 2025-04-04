@@ -468,7 +468,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             placeholder={t.filters.searchPlaceholder}
             defaultValue={currentSearch}
             onChange={(e) => handleSearch(e.target.value)}
-            className="input-base w-full h-10 pl-10 pr-4 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200"
+            className="input-base w-full h-10 pl-10 pr-4 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200 placeholder:text-slate-400"
           />
         </div>
 
