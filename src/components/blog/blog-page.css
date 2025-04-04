@@ -1,0 +1,144 @@
+/* Стили для страницы блога */
+
+.blog-page-container {
+  width: 100%;
+  max-width: 90rem; /* 1440px */
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.blog-article {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 90rem;
+  position: relative;
+}
+
+.blog-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.blog-hero-image {
+  width: 100%;
+  margin: 0 auto 2.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.blog-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  position: relative;
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .blog-content-wrapper {
+    display: flex;
+    justify-content: center;
+    max-width: 100%;
+    margin: 0 auto;
+    position: relative;
+    min-height: 100vh;
+  }
+
+  .blog-sidebar {
+    position: absolute;
+    top: 0;
+    width: 16rem;
+    height: 100%;
+    left: calc(50% - 30rem - 17rem);
+  }
+
+  .blog-sidebar > div {
+    position: sticky;
+    top: 6rem;
+  }
+
+  .blog-main-content {
+    width: 100%;
+    max-width: 60rem;
+    margin: 0 auto;
+    padding-left: 0;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .blog-sidebar {
+    left: calc(50% - 30rem - 17rem);
+  }
+}
+
+@media (min-width: 1440px) {
+  .blog-sidebar {
+    left: calc(50% - 30rem - 18rem);
+  }
+}
+
+@media (min-width: 1680px) {
+  .blog-sidebar {
+    left: calc(50% - 30rem - 20rem);
+  }
+}
+
+.blog-related-posts {
+  margin-top: 5rem;
+  text-align: center;
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.blog-related-posts-title {
+  margin-bottom: 2rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+/* Темная тема */
+:root.dark .blog-page-container {
+  color-scheme: dark;
+}
+
+/* Стили для дополнительных блоков */
+.blog-tags-share,
+.blog-author-bio,
+.blog-newsletter,
+.blog-comments {
+  max-width: 60rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Мобильные стили */
+@media (max-width: 1023px) {
+  .blog-content-wrapper {
+    display: flex;
+    flex-direction: column-reverse;
+    max-width: 100%;
+  }
+
+  .blog-sidebar {
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .blog-main-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .blog-article {
+    padding: 0 1rem;
+  }
+}

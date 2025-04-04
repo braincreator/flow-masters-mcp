@@ -4,9 +4,9 @@ import { Metadata } from 'next'
 import { SubscriptionResult } from './SubscriptionResult'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     lang: string
-  }
+  }>
   searchParams: {
     status?: string
     subscriptionId?: string
@@ -14,7 +14,8 @@ interface PageProps {
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: PageProps): Promise<Metadata> {
+  const params = await paramsPromise
   const t = await getTranslations({ locale: params.lang, namespace: 'Subscription' })
 
   return {
@@ -23,15 +24,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ResultPage({ params: { lang }, searchParams }: PageProps) {
-  unstable_setRequestLocale(lang)
+export default async function ResultPage({ params: paramsPromise, searchParams }: PageProps) {
+  const params = await paramsPromise
+  unstable_setRequestLocale(params.lang)
 
   const { status = 'unknown', subscriptionId, error } = searchParams
 
   return (
     <div className="container py-10">
       <SubscriptionResult
-        locale={lang}
+        locale={params.lang}
         status={status}
         subscriptionId={subscriptionId}
         error={error}

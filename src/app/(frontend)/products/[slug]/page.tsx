@@ -2,9 +2,21 @@ import { ProductPrice } from '@/components/ui/ProductPrice'
 import { getProduct } from '@/app/(frontend)/[lang]/products/services/productService'
 import { useLocale } from 'next-intl'
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+// Обновляю сигнатуру пропсов, чтобы указать, что params теперь Promise
+interface Props {
+  params: Promise<{
+    slug: string
+  }>
+  // Другие пропсы, если есть
+}
+
+export default async function ProductPage({ params: paramsPromise, ...otherProps }: Props) {
+  // Дожидаемся значения params
+  const params = await paramsPromise
+  const { slug } = params
+
   const { locale } = useLocale()
-  const productResult = await getProduct({ slug: params.slug, locale })
+  const productResult = await getProduct({ slug: slug, locale })
 
   // Handle case where product might not be found
   if (!productResult || !productResult.item) {
@@ -24,9 +36,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
       </div>
 
       {/* Display description - Assuming description is a RichText field */}
-      {product.description && (
-        <div className="description mt-4">{/* Render RichText here */}</div>
-      )}
+      {product.description && <div className="description mt-4">{/* Render RichText here */}</div>}
 
       {/* Add other product details as needed */}
       {/* Example: Display features */}

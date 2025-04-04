@@ -1,66 +1,124 @@
 'use client'
 
-import type { StaticImageData } from 'next/image'
-import { cn } from '@/utilities/ui'
+import React, { useState } from 'react'
 import NextImage from 'next/image'
-import React, { memo, useState } from 'react'
-import type { Props as MediaProps } from '../types'
-import type { Media } from '@/payload-types'
+import { cn } from '@/utilities/ui'
+import type { Props } from '../types'
 
-const ImageMedia = memo(function ImageMedia({
+// Функция для проверки валидности URL
+const isValidURL = (url: string): boolean => {
+  try {
+    if (!url) return false
+
+    // Проверка абсолютных URL
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      new URL(url)
+      return true
+    }
+
+    // Проверка относительных URL
+    if (url.startsWith('/')) {
+      return true
+    }
+
+    return false
+  } catch (e) {
+    return false
+  }
+}
+
+const ImageMedia: React.FC<Props> = ({
   resource,
   src,
-  alt,
-  width,
-  height,
-  priority = false,
+  alt = 'Image',
+  width = 800,
+  height = 600,
   fill = false,
-  sizes: sizeFromProps,
-  loading: loadingFromProps,
+  sizes,
+  priority = false,
   imgClassName,
-  onLoad,
-}: MediaProps) {
-  const [isLoaded, setIsLoaded] = useState(false)
+  className,
+  onClick,
+  quality = 80,
+  placeholder,
+  ...rest
+}) => {
+  const [error, setError] = useState(false)
 
-  // Handle resource prop (Payload media)
+  // Получаем URL изображения
   const imageSrc = (() => {
-    if (src) return src
+    if (src) return typeof src === 'string' ? src : src.src
     if (!resource) return null
     if (typeof resource === 'string') return resource
     if (typeof resource === 'object' && 'url' in resource) return resource.url
     return null
   })()
 
-  // Don't render anything if no valid source is found
-  if (!imageSrc) {
-    return null
+  // Получаем alt текст
+  const imageAlt =
+    alt ||
+    (typeof resource === 'object' &&
+    resource &&
+    'alt' in resource &&
+    typeof resource.alt === 'string'
+      ? resource.alt
+      : 'Image')
+
+  // Если URL невалидный или произошла ошибка загрузки, показываем заглушку
+  if (!imageSrc || !isValidURL(imageSrc) || error) {
+    if (process.env.NODE_ENV === 'development' && imageSrc) {
+      console.warn('Invalid image URL or loading error:', imageSrc)
+    }
+
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-center bg-muted/30 rounded border border-border',
+          imgClassName,
+        )}
+        style={{ width: fill ? '100%' : width, height: fill ? '100%' : height }}
+        onClick={onClick}
+      >
+        <span className="text-sm text-muted-foreground">Изображение недоступно</span>
+      </div>
+    )
   }
 
-  const imageAlt = alt || (typeof resource === 'object' && resource?.alt) || ''
-  const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
-  const sizes = sizeFromProps || '(max-width: 768px) 100vw, 50vw'
-
+  // Рендер через next/image
   return (
-    <picture>
-      <NextImage
-        alt={imageAlt}
-        className={cn(imgClassName, !isLoaded && 'blur-up')}
-        fill={fill}
-        height={!fill ? height : undefined}
-        loading={loading}
-        sizes={sizes}
-        src={imageSrc}
-        width={!fill ? width : undefined}
-        quality={80}
-        onLoadingComplete={() => {
-          setIsLoaded(true)
-          onLoad?.()
-        }}
-        placeholder="blur"
-        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRg..."
-      />
-    </picture>
+    <div className={cn('image-wrapper relative', className)}>
+      {fill ? (
+        <NextImage
+          className={cn('object-cover', imgClassName)}
+          src={imageSrc}
+          alt={imageAlt}
+          fill={true}
+          sizes={sizes || '100vw'}
+          priority={priority}
+          quality={quality}
+          placeholder={placeholder as any}
+          onClick={onClick}
+          onError={() => setError(true)}
+          {...rest}
+        />
+      ) : (
+        <NextImage
+          className={cn(imgClassName)}
+          src={imageSrc}
+          alt={imageAlt}
+          width={typeof width === 'string' ? parseInt(width) : width}
+          height={typeof height === 'string' ? parseInt(height) : height}
+          priority={priority}
+          quality={quality}
+          placeholder={placeholder as any}
+          onClick={onClick}
+          onError={() => setError(true)}
+          {...rest}
+        />
+      )}
+    </div>
   )
-})
+}
 
+export { ImageMedia }
 export default ImageMedia

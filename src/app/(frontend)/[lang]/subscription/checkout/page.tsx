@@ -3,16 +3,17 @@ import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 import SubscriptionCheckout from './SubscriptionCheckout'
 
-interface PageProps {
-  params: {
+interface Props {
+  params: Promise<{
     lang: string
-  }
+  }>
   searchParams: {
-    planId?: string
+    plan?: string
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: Props): Promise<Metadata> {
+  const params = await paramsPromise
   const t = await getTranslations({ locale: params.lang, namespace: 'Subscription' })
 
   return {
@@ -21,18 +22,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function CheckoutPage({ params: { lang }, searchParams }: PageProps) {
-  unstable_setRequestLocale(lang)
+export default async function CheckoutPage({ params: paramsPromise, searchParams }: Props) {
+  const params = await paramsPromise
+  unstable_setRequestLocale(params.lang)
 
-  const { planId } = searchParams
+  const { plan } = searchParams
 
-  if (!planId) {
+  if (!plan) {
     // Redirect to subscription plans page if no plan ID provided
     return (
       <div className="container py-10">
         <h1 className="text-3xl font-bold mb-6">No Plan Selected</h1>
         <p className="mb-4">Please select a subscription plan to continue.</p>
-        <a href={`/${lang}/account/subscriptions`} className="text-primary hover:underline">
+        <a href={`/${params.lang}/account/subscriptions`} className="text-primary hover:underline">
           Go to subscription plans
         </a>
       </div>
@@ -41,7 +43,7 @@ export default async function CheckoutPage({ params: { lang }, searchParams }: P
 
   return (
     <div className="container py-10">
-      <SubscriptionCheckout locale={lang} planId={planId} />
+      <SubscriptionCheckout locale={params.lang} planId={plan} />
     </div>
   )
 }

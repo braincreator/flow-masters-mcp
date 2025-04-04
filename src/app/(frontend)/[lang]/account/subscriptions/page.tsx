@@ -3,27 +3,29 @@ import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 import AccountSubscriptions from '../components/AccountSubscriptions'
 
-interface PageProps {
-  params: {
+interface Props {
+  params: Promise<{
     lang: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.lang, namespace: 'Account.subscriptions' })
+export async function generateMetadata({ params: paramsPromise }: Props): Promise<Metadata> {
+  const params = await paramsPromise
+  const t = await getTranslations({ locale: params.lang, namespace: 'Account' })
 
   return {
-    title: t('metadata.title'),
-    description: t('metadata.description'),
+    title: t('subscriptions.title'),
+    description: t('subscriptions.description'),
   }
 }
 
-export default async function SubscriptionsPage({ params: { lang } }: PageProps) {
-  unstable_setRequestLocale(lang)
+export default async function AccountSubscriptionsPage({ params: paramsPromise }: Props) {
+  const params = await paramsPromise
+  unstable_setRequestLocale(params.lang)
 
   return (
     <div className="container py-10">
-      <AccountSubscriptions locale={lang} />
+      <AccountSubscriptions locale={params.lang} />
     </div>
   )
 }

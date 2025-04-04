@@ -49,7 +49,7 @@ const texts = {
 
 // Get properly typed params
 type PageParams = {
-  params: { lang: string }
+  params: Promise<{ lang: string }>
   searchParams: {
     page?: string
     category?: string
@@ -59,11 +59,12 @@ type PageParams = {
 }
 
 export async function generateMetadata({
-  params,
+  params: paramsPromise,
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }>
 }): Promise<Metadata> {
-  const locale = ((await params).lang || DEFAULT_LOCALE) as Locale
+  const params = await paramsPromise
+  const locale = (params.lang || DEFAULT_LOCALE) as Locale
   const t = texts[locale]
 
   return {
@@ -273,9 +274,6 @@ export default async function BlogPage(props: PageParams) {
         <div className="container mx-auto px-4 py-12">
           {/* Hero section с заголовком и описанием */}
           <div className="relative mx-auto mb-12 text-center">
-            <div className="mb-2 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent">
-              {t.title}
-            </div>
             <h1 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t.title}</h1>
             <p className="mx-auto max-w-xl text-lg text-muted-foreground">{t.description}</p>
           </div>
@@ -362,7 +360,7 @@ export default async function BlogPage(props: PageParams) {
                         searchParams={{
                           ...(category ? { category } : {}),
                           ...(tag ? { tag } : {}),
-                          ...(search ? { search } : {})
+                          ...(search ? { search } : {}),
                         }}
                       />
                     </div>

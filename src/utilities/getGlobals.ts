@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { LRUCache } from 'lru-cache'
 import type { GlobalPayload } from 'payload/types'
-import { getPayloadClient } from './payload'
+import { getPayloadClient, retryOnSessionExpired } from './payload'
 
 // Strongly type the globals
 type GlobalSlug = 'header' | 'footer' | 'navigation'
@@ -35,12 +35,15 @@ async function getGlobal({ slug, depth = 1, locale }: GetGlobalOptions): Promise
   const payload = await getPayloadClient()
 
   try {
-    const global = await payload.findGlobal({
-      slug,
-      depth,
-      locale,
-      draft: false,
-    })
+    // Используем retryOnSessionExpired для устойчивости к ошибкам сессии MongoDB
+    const global = await retryOnSessionExpired(() =>
+      payload.findGlobal({
+        slug,
+        depth,
+        locale,
+        draft: false,
+      }),
+    )
 
     if (!global) {
       throw new Error(`Global not found: ${slug}`)

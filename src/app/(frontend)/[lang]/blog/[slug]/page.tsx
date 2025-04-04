@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient, retryOnSessionExpired } from '@/utilities/payload'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
@@ -17,13 +17,72 @@ import { PayloadAPIProvider } from '@/providers/payload'
 import { Newsletter } from '@/components/Newsletter'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Bookmark, BookmarkCheck, Eye, MessageCircle, Share2 } from 'lucide-react'
-import { formatBlogDate, calculateReadingTime } from '@/lib/blogHelpers'
+import { formatBlogDate, calculateReadingTime, trackPostView } from '@/lib/blogHelpers'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { isLexicalContent } from '@/utilities/lexicalParser'
+import { ErrorButtonWrapper } from '@/components/blog/ErrorButtonWrapper'
+
+// Импортируем стили
+import '@/components/blog/blog-page.css'
 
 interface Props {
   params: Promise<{
     lang: string
     slug: string
   }>
+}
+
+/**
+ * Глубокая диагностика структуры контента
+ */
+function analyzeContent(content: any, maxDepth = 3): string {
+  if (!content) return 'Контент отсутствует'
+
+  try {
+    const type = typeof content
+
+    if (type === 'string') {
+      try {
+        // Проверяем, может ли это быть JSON
+        const parsed = JSON.parse(content)
+        return `Строка (JSON): ${analyzeContent(parsed, maxDepth)}`
+      } catch {
+        // Не JSON, просто строка
+        return `Строка (${content.length} символов)`
+      }
+    }
+
+    if (type !== 'object') {
+      return `Примитивный тип: ${type}`
+    }
+
+    if (Array.isArray(content)) {
+      return `Массив с ${content.length} элементами`
+    }
+
+    // Анализ объекта
+    const keys = Object.keys(content)
+    let info = `Объект с ${keys.length} ключами: ${keys.join(', ')}`
+
+    if (maxDepth > 0) {
+      // Проверяем Lexical структуру
+      if (content.root && typeof content.root === 'object') {
+        info += `\nLexical root содержит ${content.root.children?.length || 0} дочерних элементов`
+
+        // Анализируем первые несколько дочерних элементов
+        if (content.root.children && content.root.children.length > 0) {
+          info += `\nПервые элементы: ${content.root.children
+            .slice(0, 3)
+            .map((c: any) => c.type + (c.children ? `(${c.children.length} детей)` : ''))
+            .join(', ')}`
+        }
+      }
+    }
+
+    return info
+  } catch (e) {
+    return `Ошибка анализа: ${e instanceof Error ? e.message : 'неизвестная ошибка'}`
+  }
 }
 
 export default async function BlogPostPage({ params: paramsPromise }: Props) {
@@ -33,61 +92,84 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
   try {
     const payload = await getPayloadClient()
 
-    // Fetch the post by slug
-    const posts = await payload.find({
-      collection: 'posts',
-      where: {
-        slug: { equals: slug },
-        _status: { equals: 'published' },
-      },
-      locale: currentLocale,
-      depth: 2, // Load relationships 2 levels deep
-      limit: 1,
-    })
+    // Подготовка контента блога с обработкой ошибок
+    let post
+    let relatedPosts
 
-    if (!posts?.docs || posts.docs.length === 0) {
-      return notFound()
-    }
-
-    const post = posts.docs[0]
-
-    // Track post view (metrics)
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-      const response = await fetch(`${serverUrl}/api/blog/metrics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          action: 'view',
+      // Fetch the post by slug с использованием retryOnSessionExpired
+      const posts = await retryOnSessionExpired(() =>
+        payload.find({
+          collection: 'posts',
+          where: {
+            slug: { equals: slug },
+            _status: { equals: 'published' },
+          },
+          locale: currentLocale,
+          depth: 2, // Load relationships 2 levels deep
+          limit: 1,
         }),
-      })
+      )
 
-      if (!response.ok) {
-        console.error('Failed to track post view:', await response.text())
+      if (!posts?.docs || posts.docs.length === 0) {
+        return notFound()
       }
+
+      post = posts.docs[0]
+
+      // Get related posts based on categories and tags с использованием retryOnSessionExpired
+      relatedPosts = await retryOnSessionExpired(() =>
+        payload.find({
+          collection: 'posts',
+          where: {
+            _status: { equals: 'published' },
+            id: { not_equals: post.id },
+            or: [
+              { 'categories.id': { in: post.categories?.map((cat) => cat.id) || [] } },
+              { 'tags.id': { in: post.tags?.map((tag) => tag.id) || [] } },
+            ],
+          },
+          locale: currentLocale,
+          depth: 1,
+          limit: 3,
+          sort: '-publishedAt',
+        }),
+      )
     } catch (error) {
-      console.error('Failed to track post view:', error)
+      console.error('Error loading blog post:', error)
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      })
+      throw error
     }
 
-    // Get related posts based on categories and tags
-    const relatedPosts = await payload.find({
-      collection: 'posts',
-      where: {
-        _status: { equals: 'published' },
-        id: { not_equals: post.id },
-        or: [
-          { 'categories.id': { in: post.categories?.map((cat) => cat.id) || [] } },
-          { 'tags.id': { in: post.tags?.map((tag) => tag.id) || [] } },
-        ],
-      },
-      locale: currentLocale,
-      depth: 1,
-      limit: 3,
-      sort: '-publishedAt',
-    })
+    // Подготовка контента
+    let processedContent = post.content
+
+    // Проверяем и структурируем контент если нужно
+    if (processedContent) {
+      // Убеждаемся что у контента есть необходимая структура для Lexical
+      if (typeof processedContent === 'string') {
+        try {
+          // Проверяем, является ли строка JSON
+          processedContent = JSON.parse(processedContent)
+        } catch (e) {
+          // Если не JSON, то оставляем как есть
+          console.log('[Blog] Контент не является JSON строкой')
+        }
+      }
+
+      // Логируем информацию о контенте в режиме разработки
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Blog] Тип контента:', typeof processedContent)
+        if (typeof processedContent === 'object') {
+          console.log('[Blog] Ключи контента:', Object.keys(processedContent))
+          console.log('[Blog] Анализ контента:', analyzeContent(processedContent))
+          console.log('[Blog] Является Lexical контентом:', isLexicalContent(processedContent))
+        }
+      }
+    }
 
     // Format the post data for components
     const formattedPostTags =
@@ -136,7 +218,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
         <div className="min-h-screen bg-background pb-20">
           {/* Back to blog link */}
-          <div className="container mx-auto px-4 pt-6">
+          <div className="blog-page-container pt-6">
             <Link
               href={`/${currentLocale}/blog`}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
@@ -146,9 +228,9 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
             </Link>
           </div>
 
-          <article className="container mx-auto px-4">
+          <article className="blog-article">
             {/* Post Header */}
-            <header className="max-w-4xl mx-auto mb-10 text-center">
+            <header className="blog-header">
               {formattedPostCategories.length > 0 && (
                 <div className="mb-4 flex justify-center gap-2 flex-wrap">
                   {formattedPostCategories.map((category) => (
@@ -208,33 +290,32 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
               {/* Action buttons */}
               <div className="flex items-center justify-center gap-4 mb-8">
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
                   <BookmarkCheck className="h-4 w-4" />
                   <span className="hidden sm:inline">Save</span>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
                   <Share2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Share</span>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
                   <MessageCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Comment</span>
                 </Button>
               </div>
             </header>
 
-            {/* Hero Image */}
+            {/* Hero Image with Parallax Effect */}
             {post.heroImage?.url && (
-              <div className="max-w-5xl mx-auto mb-12">
-                <div className="aspect-[2/1] md:aspect-[2.3/1] relative rounded-lg overflow-hidden shadow-lg">
-                  <Image
-                    src={post.heroImage.url}
-                    alt={post.heroImage.alt || post.title}
-                    fill
-                    className="object-cover"
-                    priority
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                  />
+              <div className="blog-hero-image mb-12 overflow-hidden">
+                <div
+                  className="blog-post-header-parallax"
+                  style={{
+                    backgroundImage: `url(${post.heroImage.url})`,
+                    backgroundPosition: 'center center',
+                  }}
+                >
+                  <div className="blog-post-header-overlay"></div>
                 </div>
                 {post.heroImage.alt && (
                   <p className="text-sm text-muted-foreground mt-2 text-center italic">
@@ -245,11 +326,14 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
             )}
 
             {/* Two column layout for content */}
-            <div className="flex flex-col lg:flex-row gap-10 max-w-7xl mx-auto">
+            <div className="blog-content-wrapper">
               {/* Table of Contents - Sidebar on desktop */}
-              <aside className="lg:w-64 xl:w-72 shrink-0 order-1 lg:order-0">
+              <aside className="blog-sidebar">
                 <div className="sticky top-24">
-                  <TableOfContents contentSelector="#post-content" />
+                  <TableOfContents
+                    contentSelector="#post-content"
+                    title={currentLocale === 'ru' ? 'Содержание' : 'Table of Contents'}
+                  />
 
                   {/* Post metadata sidebar section */}
                   <div className="mt-10 p-4 bg-muted/30 rounded-lg">
@@ -317,20 +401,41 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                 </div>
               </aside>
 
-              {/* Post Content - Main column */}
-              <div className="lg:flex-1 max-w-3xl mx-auto order-0 lg:order-1">
-                <div id="post-content">
-                  <PostContent
-                    content={post.content}
-                    postId={post.id}
-                    enableCodeHighlighting={true}
-                    enableLineNumbers={true}
-                    enhanceHeadings={true}
-                  />
-                </div>
+              {/* Main content */}
+              <div className="blog-main-content">
+                {/* Wrap post content in ErrorBoundary to prevent page crashes */}
+                <ErrorBoundary
+                  fallback={
+                    <div className="p-4 border border-red-300 rounded-lg mb-8 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900">
+                      <h3 className="text-lg font-bold mb-2">
+                        {currentLocale === 'ru' ? 'Ошибка отображения' : 'Display Error'}
+                      </h3>
+                      <p>
+                        {currentLocale === 'ru'
+                          ? 'К сожалению, возникла проблема при отображении содержимого статьи.'
+                          : 'Unfortunately, there was a problem displaying the content of the article.'}
+                      </p>
+                      <div className="mt-4">
+                        <ErrorButtonWrapper
+                          label={currentLocale === 'ru' ? 'Обновить страницу' : 'Reload page'}
+                        />
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="mx-0">
+                    <PostContent
+                      content={processedContent}
+                      postId={post.id}
+                      enableCodeHighlighting={true}
+                      enableLineNumbers={true}
+                      enhanceHeadings={true}
+                    />
+                  </div>
+                </ErrorBoundary>
 
                 {/* Tags & Sharing */}
-                <div className="mt-12 mb-16 flex flex-wrap gap-6 justify-between items-center border-t border-b border-border py-6">
+                <div className="mt-12 mb-16 flex flex-wrap gap-6 justify-between items-center border-t border-b border-border py-6 blog-tags-share">
                   {formattedPostTags.length > 0 && (
                     <div className="flex-1">
                       <h3 className="text-sm font-medium mb-2">
@@ -350,13 +455,13 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
                 {/* Author Bio - Full version */}
                 {post.author && (
-                  <div className="mb-16 p-6 bg-muted/30 rounded-lg">
+                  <div className="mb-16 p-6 bg-muted/30 rounded-lg blog-author-bio">
                     <BlogAuthorBio author={post.author} />
                   </div>
                 )}
 
                 {/* Newsletter Signup */}
-                <div className="mb-16">
+                <div className="mb-16 blog-newsletter">
                   <Newsletter
                     title={
                       currentLocale === 'ru'
@@ -372,7 +477,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                 </div>
 
                 {/* Comments */}
-                <div id="comments" className="mb-16">
+                <div id="comments" className="mb-16 blog-comments">
                   <h2 className="text-2xl font-bold mb-6">
                     {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
                   </h2>
@@ -383,8 +488,8 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
             {/* Related Posts */}
             {formattedRelatedPosts.length > 0 && (
-              <div className="max-w-5xl mx-auto mt-20">
-                <h2 className="text-2xl font-bold mb-8 text-center">
+              <div className="blog-related-posts">
+                <h2 className="blog-related-posts-title">
                   {currentLocale === 'ru' ? 'Похожие статьи' : 'Related Posts'}
                 </h2>
                 <BlogRelatedPosts posts={formattedRelatedPosts} />
@@ -395,15 +500,9 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
       </PayloadAPIProvider>
     )
   } catch (error) {
-    console.error('Error loading blog post:', error)
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      })
-    }
-    return notFound()
+    // Улучшенная обработка ошибок
+    console.error('Error generating blog post page:', error)
+    throw error
   }
 }
 

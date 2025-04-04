@@ -22,11 +22,18 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by ErrorBoundary:', error, errorInfo)
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error('Ошибка рендеринга компонента:', error)
+    console.error('Информация о компоненте:', errorInfo)
+    
+    // Здесь можно добавить отправку ошибки в сервис аналитики
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+      // Пример отправки в аналитику (закомментировано)
+      // reportError(error, errorInfo);
+    }
   }
 
-  render() {
+  override render(): ReactNode {
     if (this.state.hasError) {
       return this.props.fallback
     }

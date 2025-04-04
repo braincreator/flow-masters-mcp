@@ -1,25 +1,44 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
-import { highlightCodeBlocks } from '@/lib/highlightCode'
-import 'highlight.js/styles/github-dark.css'
-import { ClassValue, cn } from '@/lib/utils'
+import React, { useEffect } from 'react'
+import { cn } from '@/utilities/ui'
+import { BlurImage } from '@/components/blog/BlurImage'
+import Prism from 'prismjs'
 import RichText from '@/components/RichText'
-import { useInView } from 'react-intersection-observer'
-import { highlightCode } from '@/utilities/highlightCode'
+import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
+import {
+  extractTextFromLexical,
+  isLexicalContent,
+  normalizeLexicalContent,
+  convertPayloadDataToLexical,
+} from '@/utilities/lexicalParser'
+import SimpleLexicalRenderer from './SimpleLexicalRenderer'
+
+// Импортируем наши кастомные стили
+import './post-content.css'
+
+// Импортируем необходимые стили для подсветки кода
+import 'prismjs/components/prism-javascript'
+import 'prismjs/components/prism-typescript'
+import 'prismjs/components/prism-jsx'
+import 'prismjs/components/prism-tsx'
+import 'prismjs/components/prism-css'
+import 'prismjs/components/prism-scss'
+import 'prismjs/components/prism-json'
+import 'prismjs/components/prism-markdown'
+import 'prismjs/components/prism-bash'
+import 'prismjs/components/prism-python'
+import 'prismjs/plugins/line-numbers/prism-line-numbers'
 
 interface PostContentProps {
-  content: any // Rich text content from CMS
-  postId?: string // ID of the post for tracking metrics
-  className?: ClassValue
+  content: any
+  postId: string
+  className?: string
   enableCodeHighlighting?: boolean
   enableLineNumbers?: boolean
   enhanceHeadings?: boolean
 }
 
-/**
- * Component for rendering blog post content with enhancements
- */
 const PostContent: React.FC<PostContentProps> = ({
   content,
   postId,
@@ -28,202 +47,178 @@ const PostContent: React.FC<PostContentProps> = ({
   enableLineNumbers = true,
   enhanceHeadings = true,
 }) => {
-  const contentRef = useRef<HTMLDivElement>(null)
+  // Расширенная проверка и нормализация контента
+  let normalizedContent
 
-  // Process content once mounted
-  useEffect(() => {
-    if (!contentRef.current) return
-
-    // Apply code highlighting
-    if (enableCodeHighlighting) {
-      highlightCodeBlocks(contentRef.current, {
-        addCopyButton: true,
-        lineNumbers: enableLineNumbers,
-      })
+  try {
+    // Сначала проверяем, является ли контент данными Lexical
+    if (isLexicalContent(content)) {
+      normalizedContent = normalizeLexicalContent(content)
+    } else {
+      // Если нет, пробуем преобразовать данные из Payload CMS
+      normalizedContent = convertPayloadDataToLexical(content)
     }
+  } catch (error) {
+    console.error('Ошибка при нормализации контента:', error)
 
-    // Add IDs to headings for linking
-    if (enhanceHeadings && contentRef.current) {
-      const headings = contentRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      headings.forEach((heading) => {
-        if (!heading.id && heading.textContent) {
-          // Generate ID from heading text
-          const id = heading.textContent
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^\w-]+/g, '')
-
-          heading.id = id
-
-          // Add anchor link
-          const anchor = document.createElement('a')
-          anchor.href = `#${id}`
-          anchor.className = 'heading-anchor'
-          anchor.innerHTML = '<span>#</span>'
-          anchor.title = 'Direct link to heading'
-
-          heading.appendChild(anchor)
-        }
-      })
-    }
-  }, [content, enableCodeHighlighting, enableLineNumbers, enhanceHeadings])
-
-  // Track time spent reading by sections
-  const { ref: section1Ref, inView: section1InView } = useInView({
-    threshold: 0.5,
-    triggerOnce: true,
-  })
-
-  const { ref: section2Ref, inView: section2InView } = useInView({
-    threshold: 0.5,
-    triggerOnce: true,
-  })
-
-  // Track reading progress for analytics
-  useEffect(() => {
-    if (section1InView && postId) {
-      try {
-        // Analytics tracking for 25% read
-        fetch('/api/blog/metrics', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            postId,
-            action: 'progress',
-            progress: 25,
-          }),
-        })
-      } catch (error) {
-        console.error('Failed to track reading progress:', error)
-      }
-    }
-  }, [section1InView, postId])
-
-  useEffect(() => {
-    if (section2InView && postId) {
-      try {
-        // Analytics tracking for 75% read
-        fetch('/api/blog/metrics', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            postId,
-            action: 'progress',
-            progress: 75,
-          }),
-        })
-      } catch (error) {
-        console.error('Failed to track reading progress:', error)
-      }
-    }
-  }, [section2InView, postId])
-
-  // Set up tracking of complete read when user reaches the bottom
-  useEffect(() => {
-    if (!postId) return
-
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-
-      // If scrolled to 95% of the content
-      if (scrollPosition > documentHeight * 0.95) {
-        try {
-          // Analytics tracking for completed read
-          fetch('/api/blog/metrics', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              postId,
-              action: 'progress',
-              progress: 100,
-            }),
-          })
-          // Remove event listener after tracking completion once
-          window.removeEventListener('scroll', handleScroll)
-        } catch (error) {
-          console.error('Failed to track reading completion:', error)
-        }
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [postId])
-
-  // Render content based on its type
-  const renderContent = () => {
-    if (!content) return <div className="empty-content">No content available</div>
-
-    // If content is already HTML
+    // Крайний случай: оборачиваем простой текст в Lexical структуру
     if (typeof content === 'string') {
-      return <div dangerouslySetInnerHTML={{ __html: content }} />
+      normalizedContent = {
+        root: {
+          type: 'root',
+          children: [
+            {
+              type: 'paragraph',
+              children: [{ text: content, type: 'text' }],
+              direction: null,
+              format: '',
+              indent: 0,
+              version: 1,
+            },
+          ],
+          direction: null,
+          format: '',
+          indent: 0,
+          version: 1,
+        },
+      }
+    } else if (content && typeof content === 'object') {
+      try {
+        // Пытаемся преобразовать объект в строку JSON
+        const jsonString = JSON.stringify(content)
+        normalizedContent = {
+          root: {
+            type: 'root',
+            children: [
+              {
+                type: 'paragraph',
+                children: [{ text: jsonString, type: 'text' }],
+                direction: null,
+                format: '',
+                indent: 0,
+                version: 1,
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            version: 1,
+          },
+        }
+      } catch (e) {
+        // Если не удалось, используем пустой контент
+        normalizedContent = null
+      }
+    } else {
+      normalizedContent = null
     }
-
-    // If using Payload CMS rich text renderer component
-    if (typeof content === 'object' && content !== null) {
-      // This should be replaced with your CMS's rich text renderer
-      // For example, with Payload CMS:
-      // return <RichText data={content} />
-
-      // Fallback for demo purposes:
-      return <div>Please implement your CMS's rich text renderer here</div>
-    }
-
-    return <div className="error-content">Unsupported content format</div>
   }
 
-  return (
-    <>
-      <div
-        ref={contentRef}
-        className={cn(
-          'prose prose-lg dark:prose-invert max-w-none',
-          // Custom prose styling
-          'prose-headings:font-bold prose-headings:tracking-tight',
-          'prose-h1:text-3xl prose-h1:font-extrabold md:prose-h1:text-4xl',
-          'prose-h2:text-2xl prose-h2:font-bold md:prose-h2:text-3xl',
-          'prose-h3:text-xl prose-h3:font-bold md:prose-h3:text-2xl',
-          'prose-p:text-base md:prose-p:text-lg',
-          'prose-pre:bg-gray-800 prose-pre:rounded-lg prose-pre:border prose-pre:border-gray-700',
-          'prose-code:text-pink-500 prose-code:before:content-none prose-code:after:content-none',
-          'prose-img:rounded-lg prose-img:mx-auto',
-          'prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:font-medium prose-a:underline-offset-4',
-          // Custom blockquote styling
-          'prose-blockquote:border-l-4 prose-blockquote:border-gray-300 dark:prose-blockquote:border-gray-700',
-          'prose-blockquote:pl-6 prose-blockquote:italic',
-          // Custom list styling
-          'prose-li:marker:text-gray-500 dark:prose-li:marker:text-gray-400',
-          // Heading anchor styling
-          '[&_.heading-anchor]:ml-2 [&_.heading-anchor]:opacity-0 [&_.heading-anchor]:text-gray-400 hover:[&_.heading-anchor]:opacity-100',
-          // Pass in additional classes
-          className,
+  // Проверяем что контент существует и имеет правильный формат
+  const hasValidContent =
+    normalizedContent && normalizedContent.root && Array.isArray(normalizedContent.root.children)
+
+  // Если контент не предоставлен или некорректен, показываем сообщение об ошибке
+  if (!hasValidContent) {
+    console.error('Невалидный контент блога:', content)
+    return (
+      <div className="py-4 text-center text-muted-foreground">
+        <p>Контент не найден или имеет некорректный формат.</p>
+        {process.env.NODE_ENV === 'development' && (
+          <pre className="mt-4 text-xs p-4 bg-muted/30 rounded-md whitespace-pre-wrap overflow-auto">
+            {JSON.stringify(content, null, 2)}
+          </pre>
         )}
-      >
-        {renderContent()}
       </div>
+    )
+  }
 
-      {/* Invisible markers for tracking reading progress */}
-      <div
-        ref={section1Ref}
-        className="h-4 w-full opacity-0 absolute pointer-events-none"
-        style={{ top: '25%' }}
-        aria-hidden="true"
-      />
+  useEffect(() => {
+    // Активируем подсветку кода при монтировании компонента
+    if (enableCodeHighlighting && typeof window !== 'undefined') {
+      // Подсветка кода с небольшой задержкой для уверенности, что контент загружен
+      const timer = setTimeout(() => {
+        try {
+          Prism.highlightAll()
+        } catch (e) {
+          console.error('Ошибка при подсветке кода:', e)
+        }
+      }, 100)
 
-      <div
-        ref={section2Ref}
-        className="h-4 w-full opacity-0 absolute pointer-events-none"
-        style={{ top: '75%' }}
-        aria-hidden="true"
-      />
-    </>
+      return () => clearTimeout(timer)
+    }
+
+    // Добавляем анимированное подчеркивание для заголовков
+    if (enhanceHeadings) {
+      const contentElement = document.getElementById(`post-content-${postId}`)
+      if (contentElement) {
+        const headings = contentElement.querySelectorAll('h2, h3, h4, h5, h6')
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              // Анимируем заголовки при появлении их в области видимости
+              if (entry.isIntersecting) {
+                entry.target.classList.add('animated')
+                observer.unobserve(entry.target)
+              }
+            })
+          },
+          { threshold: 0.2 },
+        )
+
+        headings.forEach((heading) => {
+          // Добавляем ID для якорных ссылок, если его еще нет
+          if (!heading.id) {
+            const text = heading.textContent || ''
+            heading.id = text
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+              .replace(/[^\w-]/g, '')
+          }
+
+          // Добавляем якорную ссылку для заголовка
+          const anchor = document.createElement('a')
+          anchor.href = `#${heading.id}`
+          anchor.className = 'heading-anchor'
+          anchor.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          `
+          heading.appendChild(anchor)
+
+          // Начинаем отслеживать заголовок
+          observer.observe(heading)
+        })
+
+        // Очистка наблюдателя при размонтировании
+        return () => {
+          headings.forEach((heading) => observer.unobserve(heading))
+        }
+      }
+    }
+  }, [enableCodeHighlighting, enhanceHeadings, postId])
+
+  // Улучшаю отладочное логирование в режиме разработки
+  if (process.env.NODE_ENV === 'development') {
+    console.log('PostContent debug ----------------------')
+    console.log('Исходный контент:', content)
+    console.log('Нормализованный контент:', normalizedContent)
+    console.log('Тип контента:', typeof normalizedContent)
+    console.log('Это валидный Lexical контент:', isLexicalContent(normalizedContent))
+    console.log('PostContent debug end ----------------------')
+  }
+
+  // Используем SimpleLexicalRenderer для отображения контента
+  return (
+    <div
+      id={`post-content-${postId}`}
+      className={cn('blog-post-content w-full', enableLineNumbers && 'line-numbers', className)}
+    >
+      <SimpleLexicalRenderer content={normalizedContent} />
+    </div>
   )
 }
 

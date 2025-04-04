@@ -1,58 +1,90 @@
 'use client'
 
-import React from 'react'
-import { useReadingProgress } from '@/lib/blogHooks'
-import { cn } from '@/lib/utils'
+import React, { useEffect, useState } from 'react'
 
-export interface ReadingProgressBarProps {
-  className?: string
-  barClassName?: string
-  gradient?: boolean
-  height?: number
-  position?: 'top' | 'bottom'
-  showPercentage?: boolean
-}
+export const ReadingProgressBar: React.FC = () => {
+  const [readingProgress, setReadingProgress] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
 
-export function ReadingProgressBar({
-  className,
-  barClassName,
-  gradient = false,
-  height = 4,
-  position = 'top',
-  showPercentage = false,
-}: ReadingProgressBarProps) {
-  const progress = useReadingProgress()
+  useEffect(() => {
+    const updateReadingProgress = () => {
+      // Находим элемент статьи или используем весь документ
+      const article = document.querySelector('article') || document.body
 
-  // Format as percentage with no decimal places
-  const percentage = Math.round(progress)
+      if (!article) return
 
-  // Determine position styles
-  const positionStyles = position === 'top' ? { top: 0 } : { bottom: 0 }
+      // Вычисляем текущую позицию и общую высоту
+      const articleHeight = article.scrollHeight
+      const windowHeight = window.innerHeight
+      const currentPosition = window.scrollY
+
+      // Рассчитываем процент прочитанного
+      const totalHeight = articleHeight - windowHeight
+      const scrollPercentage = (currentPosition / totalHeight) * 100
+
+      // Обновляем состояние с ограничением от 0 до 100
+      setReadingProgress(Math.min(100, Math.max(0, scrollPercentage)))
+
+      // Показываем прогресс-бар только если прокрутили хотя бы немного
+      setIsVisible(currentPosition > 50)
+    }
+
+    // Добавляем слушатель события прокрутки
+    window.addEventListener('scroll', updateReadingProgress)
+
+    // Инициализируем при загрузке
+    updateReadingProgress()
+
+    // Очищаем слушатель при размонтировании компонента
+    return () => {
+      window.removeEventListener('scroll', updateReadingProgress)
+    }
+  }, [])
+
+  // Создаем кнопку для прокрутки вверх страницы
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
 
   return (
-    <div
-      className={cn(
-        'fixed left-0 right-0 z-50',
-        position === 'top' ? 'top-0' : 'bottom-0',
-        className,
-      )}
-      style={positionStyles}
-    >
+    <>
+      {/* Индикатор прогресса чтения */}
       <div
-        className={cn(
-          'bg-primary transition-all ease-out',
-          gradient ? 'bg-gradient-to-r from-primary to-secondary' : '',
-          barClassName,
-        )}
+        className="blog-reading-progress"
         style={{
-          height: `${height}px`,
-          width: `${percentage}%`,
+          width: `${readingProgress}%`,
+          opacity: isVisible ? 1 : 0,
+          transition: 'width 0.3s ease, opacity 0.3s ease',
         }}
+        role="progressbar"
+        aria-valuenow={readingProgress}
+        aria-valuemin={0}
+        aria-valuemax={100}
       />
 
-      {showPercentage && (
-        <div className="absolute right-2 top-1 text-xs font-medium">{percentage}%</div>
-      )}
-    </div>
+      {/* Кнопка "Наверх" */}
+      <button
+        onClick={scrollToTop}
+        className={`blog-back-to-top ${readingProgress > 20 ? 'visible' : ''}`}
+        aria-label="Прокрутить наверх"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+    </>
   )
 }

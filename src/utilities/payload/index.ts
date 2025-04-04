@@ -14,6 +14,41 @@ if (process.env.NODE_ENV !== 'production') {
   global.payloadClient = null
 }
 
+/**
+ * Обертка для повторного выполнения операций MongoDB при истечении сессии
+ * @param operation Функция с операцией MongoDB
+ * @param maxRetries Максимальное количество попыток
+ * @returns Результат операции
+ */
+export async function retryOnSessionExpired<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+): Promise<T> {
+  let lastError: any = null
+  let attempts = 0
+
+  while (attempts < maxRetries) {
+    try {
+      return await operation()
+    } catch (error: any) {
+      lastError = error
+      attempts++
+
+      // Повторяем только при ошибке истечения сессии
+      if (error?.name === 'MongoExpiredSessionError' && attempts < maxRetries) {
+        logger.warn(`MongoDB сессия истекла, повторная попытка ${attempts}/${maxRetries}`)
+        await new Promise((resolve) => setTimeout(resolve, 100 * attempts)) // Небольшая задержка
+        continue
+      }
+
+      // Для других ошибок или если закончились попытки, пробрасываем ошибку
+      throw error
+    }
+  }
+
+  throw lastError
+}
+
 export const getPayloadClient = async (): Promise<Payload> => {
   // Используем глобальную переменную для кеширования
   if (global.payloadClient) {

@@ -1,185 +1,207 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { extractHeadingsFromContent, extractHeadingsFromDOM } from '@/lib/blogHelpers'
+import React, { useEffect, useState, useRef } from 'react'
+import { cn } from '@/utilities/ui'
 
-export interface HeadingItem {
+interface TOCItem {
   id: string
   text: string
   level: number
 }
 
-export interface TableOfContentsProps {
-  content?: any // The MDX/content object
-  contentSelector?: string // CSS selector for the content container (e.g., '#post-content')
+interface TableOfContentsProps {
+  contentSelector: string
   className?: string
-  maxDepth?: number
-  minHeadings?: number
-  scrollOffset?: number
-  collapsible?: boolean
-  initiallyCollapsed?: boolean
   title?: string
+  maxDepth?: number
 }
 
-export function TableOfContents({
-  content,
+export const TableOfContents: React.FC<TableOfContentsProps> = ({
   contentSelector,
   className,
+  title = 'Содержание',
   maxDepth = 3,
-  minHeadings = 2,
-  scrollOffset = 100,
-  collapsible = true,
-  initiallyCollapsed = false,
-  title = 'Table of Contents',
-}: TableOfContentsProps) {
-  const [headings, setHeadings] = useState<HeadingItem[]>([])
+}) => {
+  const [headings, setHeadings] = useState<TOCItem[]>([])
   const [activeId, setActiveId] = useState<string>('')
-  const [isCollapsed, setIsCollapsed] = useState(initiallyCollapsed)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const indicatorRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
 
-  // Extract headings from either content object or DOM
+  // Получаем все заголовки из контента
   useEffect(() => {
-    if (content) {
-      // Extract from content object
-      const extractedHeadings = extractHeadingsFromContent(content).filter(
-        (heading) => heading.level <= maxDepth,
-      )
-      setHeadings(extractedHeadings)
-    } else if (contentSelector && typeof window !== 'undefined') {
-      // Extract from DOM using selector
-      const contentElement = document.querySelector(contentSelector)
-      if (contentElement) {
-        const extractedHeadings = extractHeadingsFromDOM(contentElement, maxDepth)
-        setHeadings(extractedHeadings)
+    const contentElement = document.querySelector(contentSelector)
+    if (!contentElement) return
+
+    // Находим все заголовки от h1 до h{maxDepth}
+    const headingElements = Array.from(
+      contentElement.querySelectorAll(`h1, h2, h3, h4, h5, h6`),
+    ).filter((el) => {
+      const level = parseInt(el.tagName.charAt(1))
+      return level <= maxDepth
+    })
+
+    // Обрабатываем заголовки
+    const items: TOCItem[] = headingElements.map((element) => {
+      // Добавляем id если его нет
+      if (!element.id) {
+        element.id =
+          element.textContent
+            ?.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '') || `heading-${Math.random().toString(36).substring(2, 9)}`
       }
 
-      // Set up mutation observer to update headings if content changes
-      const observer = new MutationObserver(() => {
-        const contentElement = document.querySelector(contentSelector)
-        if (contentElement) {
-          const extractedHeadings = extractHeadingsFromDOM(contentElement, maxDepth)
-          setHeadings(extractedHeadings)
-        }
-      })
-
-      const targetElement = document.querySelector(contentSelector)
-      if (targetElement) {
-        observer.observe(targetElement, { childList: true, subtree: true })
+      return {
+        id: element.id,
+        text: element.textContent || '',
+        level: parseInt(element.tagName.charAt(1)),
       }
+    })
 
-      return () => observer.disconnect()
-    }
-  }, [content, contentSelector, maxDepth])
+    setHeadings(items)
+  }, [contentSelector, maxDepth])
 
-  // Track active heading based on scroll position
+  // Следим за видимыми заголовками при прокрутке
   useEffect(() => {
     if (headings.length === 0) return
 
-    const headingElements = headings
-      .map((heading) => document.getElementById(heading.id))
-      .filter(Boolean) as HTMLElement[]
+    const observerOptions = {
+      rootMargin: '-70px 0px -30% 0px',
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+    }
 
-    const onScroll = () => {
-      const scrollY = window.scrollY
+    // Функция обработки пересечений
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      // Находим все видимые заголовки
+      const visibleHeadings = entries
+        .filter((entry) => entry.isIntersecting)
+        .map((entry) => entry.target.id)
 
-      // Find the heading that is currently in view
-      const currentHeading = headingElements
-        .filter((el) => el.offsetTop < scrollY + scrollOffset)
-        .pop()
-
-      if (currentHeading) {
-        setActiveId(currentHeading.id)
-      } else if (headingElements.length > 0) {
-        setActiveId(headingElements[0].id)
+      // Если есть видимые заголовки, устанавливаем активный
+      if (visibleHeadings.length > 0) {
+        // Берем первый видимый заголовок как активный
+        setActiveId(visibleHeadings[0])
       }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll() // Call once to set initial state
+    const observer = new IntersectionObserver(observerCallback, observerOptions)
 
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-    }
-  }, [headings, scrollOffset])
+    // Наблюдаем за всеми заголовками
+    headings.forEach((heading) => {
+      const element = document.getElementById(heading.id)
+      if (element) observer.observe(element)
+    })
 
-  // Don't render if there aren't enough headings
-  if (headings.length < minHeadings) {
-    return null
+    return () => observer.disconnect()
+  }, [headings])
+
+  // Обновляем положение индикатора при изменении активного заголовка
+  useEffect(() => {
+    if (!indicatorRef.current || !listRef.current || !activeId) return
+
+    const activeItem = listRef.current.querySelector(`[data-id="${activeId}"]`)
+    if (!activeItem) return
+
+    // Получаем позицию активного элемента относительно списка
+    const itemRect = activeItem.getBoundingClientRect()
+    const listRect = listRef.current.getBoundingClientRect()
+    const offsetTop = itemRect.top - listRect.top
+
+    // Обновляем положение и высоту индикатора
+    indicatorRef.current.style.top = `${offsetTop}px`
+    indicatorRef.current.style.height = `${itemRect.height}px`
+  }, [activeId])
+
+  // Если нет заголовков, ничего не выводим
+  if (headings.length === 0) return null
+
+  // Прокрутка к заголовку
+  const scrollToHeading = (id: string) => {
+    const element = document.getElementById(id)
+    if (!element) return
+
+    // Получаем положение элемента
+    const rect = element.getBoundingClientRect()
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+    const targetPosition = rect.top + scrollTop - 100 // Отступ сверху для удобства чтения
+
+    // Плавная прокрутка
+    window.scrollTo({
+      top: targetPosition,
+      behavior: 'smooth',
+    })
+
+    // Устанавливаем активный ID для мгновенного обновления UI
+    setActiveId(id)
   }
 
   return (
-    <div className={cn('bg-muted/50 rounded-lg p-4', className)}>
-      {/* Title and toggle button */}
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="text-sm font-medium">{title}</h4>
-
-        {collapsible && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-muted-foreground hover:text-foreground"
-            aria-expanded={!isCollapsed}
-            aria-label={isCollapsed ? 'Expand table of contents' : 'Collapse table of contents'}
+    <nav
+      className={cn(
+        'relative rounded-lg p-4 bg-muted/30',
+        isCollapsed ? 'max-h-14 overflow-hidden' : 'max-h-[70vh] overflow-y-auto',
+        className,
+      )}
+      aria-label="Содержание статьи"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-medium">{title}</h2>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="text-muted-foreground hover:text-foreground"
+          aria-label={isCollapsed ? 'Развернуть содержание' : 'Свернуть содержание'}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
           >
-            <svg
-              className={cn(
-                'h-4 w-4 transition-transform',
-                isCollapsed ? 'rotate-0' : 'rotate-180',
-              )}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            {isCollapsed ? (
               <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-        )}
+            ) : (
+              <polyline points="18 15 12 9 6 15"></polyline>
+            )}
+          </svg>
+        </button>
       </div>
 
-      {/* TOC List */}
-      {!isCollapsed && (
-        <nav>
-          <ul className="space-y-1 text-sm">
-            {headings.map((heading) => {
-              const isActive = activeId === heading.id
-              const indentLevel = heading.level - 1 // H1 has no indent
+      <div className="relative">
+        {/* Индикатор активного пункта */}
+        <div ref={indicatorRef} className="blog-toc-active-indicator" aria-hidden="true" />
 
-              return (
-                <li
-                  key={heading.id}
-                  className={cn(
-                    'transition-colors',
-                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  style={{ paddingLeft: `${indentLevel * 0.75}rem` }}
-                >
-                  <a
-                    href={`#${heading.id}`}
-                    className={cn('block py-1 hover:underline', isActive ? 'font-medium' : '')}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      const element = document.getElementById(heading.id)
-                      if (element) {
-                        const y =
-                          element.getBoundingClientRect().top + window.scrollY - scrollOffset
-                        window.scrollTo({ top: y, behavior: 'smooth' })
-                        // Update URL hash without causing a jump
-                        history.pushState(null, '', `#${heading.id}`)
-                        setActiveId(heading.id)
-                      }
-                    }}
-                  >
-                    {heading.text}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
-      )}
-    </div>
+        <ul
+          ref={listRef}
+          className="space-y-1 transition-all duration-300"
+          style={{ opacity: isCollapsed ? 0 : 1 }}
+        >
+          {headings.map((heading) => (
+            <li key={heading.id} style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}>
+              <a
+                href={`#${heading.id}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToHeading(heading.id)
+                }}
+                className={cn(
+                  'blog-toc-item block py-1 text-sm',
+                  activeId === heading.id ? 'active' : 'text-muted-foreground',
+                )}
+                data-id={heading.id}
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
   )
 }

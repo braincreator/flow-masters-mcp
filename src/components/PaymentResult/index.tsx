@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { PaymentResult as PaymentResultType } from '@/types/payment'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useToast } from '@/hooks/useToast'
 import { useSearchParams, useRouter } from 'next/navigation'

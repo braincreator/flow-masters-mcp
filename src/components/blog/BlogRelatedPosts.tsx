@@ -39,9 +39,9 @@ export function BlogRelatedPosts({ posts }: BlogRelatedPostsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {posts.map((post) => (
-        <Card key={post.id} className="overflow-hidden flex flex-col h-full">
+        <Card key={post.id} className="overflow-hidden flex flex-col h-full border border-muted/60">
           {post.heroImage?.url && (
             <div className="aspect-[16/9] relative w-full overflow-hidden">
               <Link href={`/${currentLocale}/blog/${post.slug}`}>

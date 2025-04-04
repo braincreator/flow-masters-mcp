@@ -159,7 +159,7 @@ export const BlocksExample: React.FC = () => {
         {
           value: '24/7',
           label: 'Support',
-          description: 'We're here to help',
+          description: 'We\'re here to help',
         }
       ],
       settings: {
