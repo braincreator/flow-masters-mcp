@@ -16,65 +16,141 @@ interface Tag {
 interface BlogTagCloudProps {
   tags: Tag[]
   activeTag?: string
-  className?: string
-  variant?: 'default' | 'compact'
+  type?: 'tags' | 'categories'
+  showCount?: boolean
+  sizeFactor?: boolean
+  limit?: number
   preserveParams?: boolean
+  className?: string
 }
 
 export function BlogTagCloud({
   tags,
   activeTag,
-  className,
-  variant = 'default',
+  type = 'tags',
+  showCount = false,
+  sizeFactor = false,
+  limit,
   preserveParams = false,
+  className,
 }: BlogTagCloudProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const segments = pathname.split('/')
   const currentLocale = segments.length > 1 ? segments[1] : 'en'
 
-  if (!tags || tags.length === 0) {
+  // Filter out any tags without a slug
+  const validTags = tags.filter((tag) => tag.slug && tag.title)
+
+  // Apply limit if provided
+  const displayTags = limit ? validTags.slice(0, limit) : validTags
+
+  // Get the base URL for the tag links
+  const getTagUrl = (tagSlug: string) => {
+    // Create new search params if we need to preserve existing ones
+    if (preserveParams) {
+      const params = new URLSearchParams(searchParams.toString())
+      const typeParam = type === 'tags' ? 'tag' : 'category'
+
+      // Set or clear the tag parameter
+      if (tagSlug === 'all') {
+        params.delete(typeParam)
+      } else {
+        params.set(typeParam, tagSlug)
+      }
+
+      return `/${currentLocale}/blog?${params.toString()}`
+    }
+
+    // Default behavior - navigate to dedicated tag/category page
+    if (tagSlug === 'all') {
+      return `/${currentLocale}/blog`
+    }
+
+    if (type === 'tags') {
+      return `/${currentLocale}/blog/tag/${tagSlug}`
+    }
+
+    return `/${currentLocale}/blog/category/${tagSlug}`
+  }
+
+  if (displayTags.length === 0) {
     return null
   }
 
-  const buildHref = (tagSlug: string) => {
-    const params = new URLSearchParams(preserveParams ? searchParams.toString() : '')
-
-    // If clicking on the active tag, remove the tag filter
-    if (activeTag === tagSlug) {
-      params.delete('tag')
-    } else {
-      params.set('tag', tagSlug)
-      // Reset to page 1 when changing tag
-      params.delete('page')
-    }
-
-    return `/${currentLocale}/blog${params.toString() ? `?${params.toString()}` : ''}`
+  // Find the maximum count to normalize sizes
+  let maxCount = 1
+  if (sizeFactor && showCount) {
+    maxCount = Math.max(...displayTags.map((tag) => tag.count || 1))
   }
 
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
-      {tags.map((tag) => {
+      {/* Include "All" option if activeTag is provided */}
+      {activeTag && (
+        <Link
+          href={getTagUrl('all')}
+          className={cn(
+            'blog-tag inline-flex items-center rounded-full px-3 py-1 text-sm transition-colors',
+            activeTag === 'all' || !activeTag
+              ? 'bg-accent text-accent-foreground font-medium'
+              : 'bg-muted hover:bg-accent/20 text-foreground',
+          )}
+        >
+          {currentLocale === 'ru' ? 'Все' : 'All'}
+        </Link>
+      )}
+
+      {displayTags.map((tag, index) => {
         const isActive = activeTag === tag.slug
+
+        // Calculate size factor if enabled (between 0.8 and 1.4)
+        const sizeStyle = {}
+        if (sizeFactor && showCount && tag.count) {
+          const sizeFactor = 0.8 + (tag.count / maxCount) * 0.6
+          Object.assign(sizeStyle, {
+            fontSize: `${sizeFactor}rem`,
+            padding: `${0.25 * sizeFactor}rem ${0.75 * sizeFactor}rem`,
+          })
+        }
+
         return (
-          <Badge
-            key={tag.id}
-            variant={isActive ? 'default' : 'outline'}
+          <Link
+            key={tag.slug || index}
+            href={getTagUrl(tag.slug || '')}
+            style={sizeStyle}
             className={cn(
-              'transition-colors hover:bg-primary/10',
-              isActive ? 'bg-primary/15 hover:bg-primary/15 text-primary border-primary/30' : '',
-              variant === 'compact' ? 'text-xs py-0 px-2' : '',
+              'blog-tag inline-flex items-center rounded-full px-3 py-1 text-sm transition-all',
+              isActive
+                ? 'bg-accent text-accent-foreground font-medium'
+                : 'bg-muted hover:bg-accent/20 text-foreground',
             )}
           >
-            <Link href={buildHref(tag.slug)} className="block px-1" scroll={false} prefetch={false}>
-              {tag.title}
-              {tag.count !== undefined && variant !== 'compact' && (
-                <span className="ml-1 text-xs opacity-70">({tag.count})</span>
-              )}
-            </Link>
-          </Badge>
+            <span>{tag.title}</span>
+            {showCount && tag.count !== undefined && (
+              <span
+                className={cn(
+                  'ml-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium',
+                  isActive ? 'bg-accent-foreground/20 text-accent-foreground' : 'bg-foreground/10',
+                )}
+              >
+                {tag.count}
+              </span>
+            )}
+          </Link>
         )
       })}
+
+      {/* "Show more" link if tags are limited */}
+      {limit && validTags.length > limit && (
+        <Link
+          href={`/${currentLocale}/blog/${type === 'tags' ? 'tags' : 'categories'}`}
+          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-sm text-accent hover:bg-accent/20"
+        >
+          {currentLocale === 'ru' ? 'Показать все' : 'Show all'}
+          <span className="ml-1.5">({validTags.length})</span>
+        </Link>
+      )}
     </div>
   )
 }

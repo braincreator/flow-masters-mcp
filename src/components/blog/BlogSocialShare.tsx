@@ -1,155 +1,134 @@
 'use client'
 
-import React from 'react'
-import { useSocialShare } from '@/lib/blogHooks'
-import { Facebook, Twitter, Linkedin, Mail, Link as LinkIcon, Share2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { toast } from '@/components/ui/use-toast'
+import React, { useState } from 'react'
+import { Share, Facebook, Twitter, Linkedin, Copy, Check, Mail } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface BlogSocialShareProps {
   url: string
   title: string
   description?: string
-  postId?: string
+  postId: string
 }
 
 export function BlogSocialShare({ url, title, description = '', postId }: BlogSocialShareProps) {
-  // Add base URL for absolute URLs if not provided
-  const fullUrl = url.startsWith('http')
-    ? url
-    : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com'}${url}`
+  const [isOpen, setIsOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  // Track sharing events if postId is provided
-  const { trackShare } = postId ? useSocialShare(postId) : { trackShare: () => {} }
+  // Формируем полный URL
+  const fullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${url}`
 
+  // Функция для кодирования URL и текста для шаринга
+  const encodedUrl = encodeURIComponent(fullUrl)
+  const encodedTitle = encodeURIComponent(title)
+  const encodedDescription = encodeURIComponent(description || '')
+
+  // Ссылки для шаринга
   const shareLinks = {
-    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullUrl)}`,
-    email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${description}\n\n${fullUrl}`)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    email: `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`,
   }
 
-  const handleShare = (platform: string) => {
-    window.open(shareLinks[platform as keyof typeof shareLinks], '_blank', 'noopener,noreferrer')
-    trackShare(platform)
-  }
-
+  // Функция для копирования ссылки
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(fullUrl).then(
-      () => {
-        toast({
-          title: 'Link copied!',
-          description: 'The link has been copied to your clipboard.',
-          duration: 3000,
-        })
-        trackShare('copy')
-      },
-      () => {
-        toast({
-          title: 'Failed to copy',
-          description: 'Could not copy the link to your clipboard.',
-          variant: 'destructive',
-          duration: 3000,
-        })
-      },
-    )
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  // Отслеживание аналитики шаринга
+  const trackShare = (platform: string) => {
+    // В реальном проекте здесь будет код аналитики
+    console.log(`Shared on ${platform}. Post ID: ${postId}`)
   }
 
   return (
-    <div className="flex items-center">
-      <span className="mr-2 text-sm font-medium">Share:</span>
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Share on Twitter"
-          onClick={() => handleShare('twitter')}
-          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <Twitter className="h-4 w-4" />
-        </Button>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        aria-label="Share this post"
+      >
+        <Share className="h-4 w-4" />
+        <span>Share</span>
+      </button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Share on Facebook"
-          onClick={() => handleShare('facebook')}
-          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <Facebook className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Share on LinkedIn"
-          onClick={() => handleShare('linkedin')}
-          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <Linkedin className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Share via Email"
-          onClick={() => handleShare('email')}
-          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <Mail className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Copy link"
-          onClick={copyToClipboard}
-          className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <LinkIcon className="h-4 w-4" />
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="More sharing options"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+      {isOpen && (
+        <div className="blog-fade-in visible absolute right-0 top-full mt-2 w-48 rounded-lg border border-border bg-card p-2 shadow-md z-10">
+          <div className="grid grid-cols-4 gap-2">
+            {/* Facebook */}
+            <a
+              href={shareLinks.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackShare('facebook')}
+              className="blog-tag flex flex-col items-center justify-center rounded-md p-2 transition-colors hover:bg-accent/10"
+              aria-label="Share on Facebook"
             >
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleShare('twitter')}>
-              <Twitter className="h-4 w-4 mr-2" />
-              <span>Twitter</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('facebook')}>
-              <Facebook className="h-4 w-4 mr-2" />
-              <span>Facebook</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('linkedin')}>
-              <Linkedin className="h-4 w-4 mr-2" />
-              <span>LinkedIn</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('email')}>
-              <Mail className="h-4 w-4 mr-2" />
-              <span>Email</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={copyToClipboard}>
-              <LinkIcon className="h-4 w-4 mr-2" />
-              <span>Copy link</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              <Facebook className="h-5 w-5 text-blue-600" />
+              <span className="mt-1 text-[10px]">Facebook</span>
+            </a>
+
+            {/* Twitter */}
+            <a
+              href={shareLinks.twitter}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackShare('twitter')}
+              className="blog-tag flex flex-col items-center justify-center rounded-md p-2 transition-colors hover:bg-accent/10"
+              aria-label="Share on Twitter"
+            >
+              <Twitter className="h-5 w-5 text-sky-500" />
+              <span className="mt-1 text-[10px]">Twitter</span>
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href={shareLinks.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackShare('linkedin')}
+              className="blog-tag flex flex-col items-center justify-center rounded-md p-2 transition-colors hover:bg-accent/10"
+              aria-label="Share on LinkedIn"
+            >
+              <Linkedin className="h-5 w-5 text-blue-700" />
+              <span className="mt-1 text-[10px]">LinkedIn</span>
+            </a>
+
+            {/* Email */}
+            <a
+              href={shareLinks.email}
+              onClick={() => trackShare('email')}
+              className="blog-tag flex flex-col items-center justify-center rounded-md p-2 transition-colors hover:bg-accent/10"
+              aria-label="Share via email"
+            >
+              <Mail className="h-5 w-5 text-emerald-600" />
+              <span className="mt-1 text-[10px]">Email</span>
+            </a>
+          </div>
+
+          {/* Copy link */}
+          <button
+            onClick={copyToClipboard}
+            className="blog-tag mt-2 flex w-full items-center justify-center rounded-md p-2 text-sm transition-colors hover:bg-accent/10"
+          >
+            {copied ? (
+              <>
+                <Check className="mr-2 h-4 w-4 text-green-500" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy link</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

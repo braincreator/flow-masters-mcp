@@ -10,7 +10,7 @@ import { Pagination } from '@/components/Pagination'
 import { Newsletter } from '@/components/Newsletter'
 import { Post, Category, Media } from '@/payload-types'
 import { BlogPost, BlogTag } from '@/types/blocks'
-import { Filter } from 'lucide-react'
+import { Filter, X, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -240,158 +240,183 @@ export default async function BlogPage(props: PageParams) {
       ? formattedCategories.find((cat) => cat.slug === category)
       : undefined
 
-    // Helper function to build filter URLs (preserving other params)
-    const buildFilterUrl = (params: { category?: string; tag?: string; search?: string }) => {
-      const urlParams = new URLSearchParams()
+    // Функция для генерации URL для удаления фильтра
+    const getClearFilterUrl = (filterType: string) => {
+      const params = new URLSearchParams()
 
-      if (params.category) urlParams.set('category', params.category)
-      if (params.tag) urlParams.set('tag', params.tag)
-      if (params.search) urlParams.set('search', params.search)
+      // Копируем все существующие параметры кроме того, который нужно удалить
+      if (category && filterType !== 'category') params.set('category', category)
+      if (tag && filterType !== 'tag') params.set('tag', tag)
+      if (search) params.set('search', search)
 
-      return `/${locale}/blog${urlParams.toString() ? `?${urlParams.toString()}` : ''}`
+      return `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
+    }
+
+    // URL для очистки всех фильтров
+    const clearAllFiltersUrl = `/${locale}/blog`
+
+    // URL для пагинации
+    const getPageUrl = (pageNum: number) => {
+      const params = new URLSearchParams()
+
+      if (category) params.set('category', category)
+      if (tag) params.set('tag', tag)
+      if (search) params.set('search', search)
+
+      params.set('page', pageNum.toString())
+
+      return `/${locale}/blog?${params.toString()}`
     }
 
     return (
-      <div className="container mx-auto py-10 px-4 md:px-6">
-        <div className="flex flex-col space-y-8">
-          <div className="flex flex-col space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight">{t.title}</h1>
-            <p className="text-lg text-muted-foreground max-w-3xl">{t.description}</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero section с заголовком и описанием */}
+          <div className="relative mx-auto mb-12 text-center">
+            <div className="mb-2 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent">
+              {t.title}
+            </div>
+            <h1 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t.title}</h1>
+            <p className="mx-auto max-w-xl text-lg text-muted-foreground">{t.description}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {/* Main content */}
-            <div className="md:col-span-2 space-y-8">
-              {/* Search and filters */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <BlogSearch
-                  initialQuery={search || ''}
-                  placeholder={t.searchPlaceholder}
-                  preserveParams={true}
-                  className="w-full sm:max-w-md"
-                  variant="product-style"
-                  showClearButton={true}
-                  size="default"
-                />
+          {/* Основной контент */}
+          <div className="lg:flex lg:gap-8">
+            {/* Основная колонка со статьями */}
+            <div className="blog-fade-in visible lg:w-2/3">
+              {/* Панель инструментов с фильтрами и поиском */}
+              <div className="mb-8 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div className="flex-1">
+                  <BlogSearch
+                    placeholder={t.searchPlaceholder}
+                    preserveParams={true}
+                    variant="default"
+                    size="default"
+                    className="w-full"
+                  />
+                </div>
 
                 {hasActiveFilters && (
-                  <div className="flex items-center gap-2 ml-auto">
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{t.activeFilters}:</span>
-
-                    {category && activeCategory && (
-                      <Badge
-                        variant="outline"
-                        className="bg-primary/10 border-primary/30 text-primary"
-                      >
-                        {activeCategory.title}
-                      </Badge>
-                    )}
-
-                    {tag && (
-                      <Badge
-                        variant="outline"
-                        className="bg-primary/10 border-primary/30 text-primary"
-                      >
-                        {formattedTags.find((t) => t.slug === tag)?.title || tag}
-                      </Badge>
-                    )}
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                      asChild
+                    <div className="flex flex-wrap gap-2">
+                      {category && activeCategory && (
+                        <Link
+                          href={getClearFilterUrl('category')}
+                          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+                        >
+                          {activeCategory.title}
+                          <X className="ml-1 h-3 w-3" />
+                        </Link>
+                      )}
+                      {tag && (
+                        <Link
+                          href={getClearFilterUrl('tag')}
+                          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+                        >
+                          {formattedTags.find((t) => t.slug === tag)?.title || tag}
+                          <X className="ml-1 h-3 w-3" />
+                        </Link>
+                      )}
+                    </div>
+                    <Link
+                      href={clearAllFiltersUrl}
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
                     >
-                      <Link href={`/${locale}/blog`} scroll={false}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
                         {t.clearFilters}
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </div>
 
-              {/* Categories (horizontal) */}
-              {formattedCategories.length > 0 && (
-                <div className="pt-2 pb-4 border-b">
-                  <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                    <Button
-                      variant={!category ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="whitespace-nowrap"
-                      asChild
-                    >
-                      <Link href={buildFilterUrl({ tag, search })} scroll={false}>
-                        {t.all}
-                      </Link>
-                    </Button>
-
-                    {formattedCategories.slice(0, 8).map((cat) => (
-                      <Button
-                        key={cat.id}
-                        variant={category === cat.slug ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="whitespace-nowrap"
-                        asChild
-                      >
-                        <Link
-                          href={buildFilterUrl({ category: cat.slug, tag, search })}
-                          scroll={false}
-                        >
-                          {cat.title}
-                        </Link>
-                      </Button>
+              {/* Раздел статей */}
+              {posts.docs.length > 0 ? (
+                <div className="blog-fade-in visible space-y-8">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {formattedPosts.map((post, index) => (
+                      <BlogPostCard
+                        key={post.id}
+                        post={post}
+                        locale={locale}
+                        layout="grid"
+                        imagePriority={index < 2}
+                        className="blog-fade-in visible"
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                      />
                     ))}
                   </div>
-                </div>
-              )}
 
-              {/* Results info */}
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">{posts.totalDocs}</span> {t.posts}
-                </p>
-              </div>
-
-              {/* Posts grid */}
-              {formattedPosts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {formattedPosts.map((post) => (
-                    <BlogPostCard key={post.id} post={post} />
-                  ))}
+                  {/* Пагинация */}
+                  {posts.totalPages > 1 && (
+                    <div className="mt-12 flex justify-center">
+                      <Pagination
+                        page={currentPage}
+                        totalPages={posts.totalPages}
+                        baseUrl={`/${locale}/blog`}
+                        searchParams={{
+                          ...(category ? { category } : {}),
+                          ...(tag ? { tag } : {}),
+                          ...(search ? { search } : {})
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="py-12 text-center border rounded-md bg-background">
-                  <h3 className="text-xl font-medium mb-2">{t.noPostsFound}</h3>
-                  <p className="text-muted-foreground">{t.tryChangingFilters}</p>
+                // Сообщение "ничего не найдено"
+                <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-muted/20 py-16 text-center">
+                  <div className="h-16 w-16 rounded-full bg-muted/50 p-4">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-medium">{t.noPostsFound}</h3>
+                  <p className="mt-2 max-w-md text-muted-foreground">{t.tryChangingFilters}</p>
+                  <Link href={clearAllFiltersUrl}>
+                    <Button className="mt-4">{t.clearFilters}</Button>
+                  </Link>
                 </div>
-              )}
-
-              {/* Pagination */}
-              {posts.totalPages > 1 && (
-                <Pagination
-                  page={currentPage}
-                  totalPages={posts.totalPages}
-                  baseUrl={`/${locale}/blog`}
-                  searchParams={Object.fromEntries(
-                    Object.entries(props.searchParams).filter(([key]) => key !== 'page'),
-                  )}
-                  scroll={false}
-                />
               )}
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-8">
-              {/* Tags */}
-              {formattedTags.length > 0 && (
-                <div className="rounded-lg border shadow-sm p-6 bg-card">
-                  <h3 className="font-medium text-lg mb-4">{t.tags}</h3>
-                  <BlogTagCloud tags={formattedTags} activeTag={tag} preserveParams={true} />
+            {/* Боковая колонка */}
+            <div className="blog-fade-in visible mt-12 lg:mt-0 lg:w-1/3">
+              {/* Категории */}
+              {formattedCategories.length > 0 && (
+                <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
+                  <h3 className="mb-4 text-lg font-medium">{t.categories}</h3>
+                  <BlogTagCloud
+                    tags={formattedCategories}
+                    activeTag={category}
+                    type="categories"
+                    showCount
+                    preserveParams={true}
+                  />
                 </div>
               )}
 
-              {/* Newsletter */}
-              <div className="rounded-lg border shadow-sm p-6 bg-card">
+              {/* Теги */}
+              {formattedTags.length > 0 && (
+                <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
+                  <h3 className="mb-4 text-lg font-medium">{t.tags}</h3>
+                  <BlogTagCloud
+                    tags={formattedTags}
+                    activeTag={tag}
+                    type="tags"
+                    showCount
+                    sizeFactor
+                    limit={20}
+                    preserveParams={true}
+                  />
+                </div>
+              )}
+
+              {/* Рассылка */}
+              <div className="rounded-xl border border-border p-6 shadow-sm bg-gradient-to-br from-card to-card/80">
                 <Newsletter
                   title={
                     locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'

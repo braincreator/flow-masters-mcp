@@ -33,6 +33,115 @@
   [class*="min-w-[100px]"] {
     animation: pricePulse 2s infinite ease-in-out;
   }
+  
+  /* ===== Анимации для блога ===== */
+  
+  /* Эффект наведения для карточек блога */
+  .blog-card {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                box-shadow 0.4s ease,
+                border-color 0.3s ease;
+  }
+  
+  .blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.07);
+    border-color: theme('colors.accent.DEFAULT / 30%');
+  }
+  
+  /* Плавное появление контента */
+  .blog-fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  
+  .blog-fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Эффект наведения для изображений блога */
+  .blog-image-container {
+    overflow: hidden;
+    border-radius: theme('borderRadius.lg');
+  }
+  
+  .blog-image {
+    transition: transform 0.6s ease;
+  }
+  
+  .blog-image-container:hover .blog-image {
+    transform: scale(1.05);
+  }
+  
+  /* Анимированный подчеркивающий эффект для заголовков */
+  .blog-title {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .blog-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: theme('colors.accent.DEFAULT');
+    transition: width 0.4s ease;
+  }
+  
+  .blog-title:hover::after {
+    width: 100%;
+  }
+  
+  /* Появление тегов с задержкой */
+  .blog-tag {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: blogTagAppear 0.5s forwards;
+  }
+  
+  .blog-tag:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  
+  .blog-tag:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  
+  .blog-tag:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+  
+  @keyframes blogTagAppear {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Анимация плавного перехода между страницами */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  
+  .page-transition-exit {
+    opacity: 1;
+  }
+  
+  .page-transition-exit-active {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 }
 
 @layer components {
