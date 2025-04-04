@@ -76,6 +76,7 @@ export interface Config {
     events: Event;
     integrations: Integration;
     media: Media;
+    'newsletter-subscribers': NewsletterSubscriber;
     orders: Order;
     'order-tracking': OrderTracking;
     pages: Page;
@@ -110,6 +111,7 @@ export interface Config {
     events: EventsSelect<false> | EventsSelect<true>;
     integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'order-tracking': OrderTrackingSelect<false> | OrderTrackingSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
@@ -851,6 +853,55 @@ export interface Integration {
   lastSync?: string | null;
   lastSyncStatus?: ('success' | 'error') | null;
   lastError?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers".
+ */
+export interface NewsletterSubscriber {
+  id: string;
+  /**
+   * Email адрес подписчика
+   */
+  email: string;
+  /**
+   * Имя подписчика (опционально)
+   */
+  name?: string | null;
+  /**
+   * Статус подписки
+   */
+  status?: ('active' | 'unsubscribed' | 'bounced') | null;
+  /**
+   * Уникальный токен для отписки
+   */
+  unsubscribeToken?: string | null;
+  /**
+   * Источник подписки (блог, главная страница и т.д.)
+   */
+  source?: string | null;
+  /**
+   * Предпочитаемый язык
+   */
+  locale?: ('ru' | 'en') | null;
+  /**
+   * Дата последней отправки рассылки
+   */
+  lastSent?: string | null;
+  /**
+   * Дополнительные данные о подписчике
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1709,6 +1760,10 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'newsletter-subscribers';
+        value: string | NewsletterSubscriber;
+      } | null)
+    | ({
         relationTo: 'orders';
         value: string | Order;
       } | null)
@@ -2113,6 +2168,22 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers_select".
+ */
+export interface NewsletterSubscribersSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  status?: T;
+  unsubscribeToken?: T;
+  source?: T;
+  locale?: T;
+  lastSent?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

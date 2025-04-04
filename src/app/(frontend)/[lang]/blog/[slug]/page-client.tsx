@@ -128,8 +128,8 @@ export function BlogPostPageClient({
 
           {/* Two column layout for content */}
           <div className="blog-content-wrapper">
-            {/* Table of Contents - Sidebar on desktop */}
-            <aside className="blog-sidebar">
+            {/* Левый сайдбар - содержание */}
+            <aside className="blog-sidebar-left">
               <div className="sticky top-24">
                 <TableOfContents
                   contentSelector="#post-content"
@@ -137,7 +137,7 @@ export function BlogPostPageClient({
                 />
 
                 {/* Post metadata sidebar section */}
-                <div className="mt-10 p-4 bg-muted/30 rounded-lg">
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg">
                   <h3 className="font-medium text-sm mb-3">
                     {currentLocale === 'ru' ? 'Детали статьи' : 'Post Details'}
                   </h3>
@@ -169,7 +169,7 @@ export function BlogPostPageClient({
 
                 {/* Categories */}
                 {formattedPostCategories.length > 0 && (
-                  <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                  <div className="mt-4 p-4 bg-muted/30 rounded-lg">
                     <h3 className="font-medium text-sm mb-3">
                       {currentLocale === 'ru' ? 'Категории' : 'Categories'}
                     </h3>
@@ -188,7 +188,7 @@ export function BlogPostPageClient({
                 )}
 
                 {/* Tags in sidebar */}
-                <div className="mt-6 p-4 bg-primary/10 rounded-lg">
+                <div className="mt-4 p-4 bg-primary/10 rounded-lg">
                   <h3 className="font-medium text-sm mb-3">
                     {currentLocale === 'ru' ? 'Теги' : 'Tags'}
                   </h3>
@@ -211,17 +211,9 @@ export function BlogPostPageClient({
                   )}
                 </div>
 
-                {/* Action buttons */}
-                <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-                  <h3 className="font-medium text-sm mb-3">
-                    {currentLocale === 'ru' ? 'Действия' : 'Actions'}
-                  </h3>
-                  <BlogActionButtons postId={post.id} postSlug={post.slug} locale={currentLocale} />
-                </div>
-
                 {/* Author mini-card for sidebar */}
                 {post.author && (
-                  <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                  <div className="mt-4 p-4 bg-muted/30 rounded-lg">
                     <h3 className="font-medium text-sm mb-3">
                       {currentLocale === 'ru' ? 'Автор' : 'Author'}
                     </h3>
@@ -251,54 +243,27 @@ export function BlogPostPageClient({
               </div>
             </aside>
 
-            {/* Main Content */}
-            <div className="blog-main-content" id="post-content">
+            {/* Main Content Area */}
+            <main className="blog-main-content">
               <ErrorBoundary
                 fallback={
-                  <div className="p-4 bg-destructive/10 rounded-lg">
-                    <h3 className="text-lg font-bold mb-2 text-destructive">
-                      {currentLocale === 'ru'
-                        ? 'Ошибка отображения контента'
-                        : 'Error rendering content'}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {currentLocale === 'ru'
-                        ? 'К сожалению, возникла проблема с отображением содержимого поста.'
-                        : 'There was an issue rendering the post content.'}
-                    </p>
-                    <div className="mt-4">
-                      <ErrorButtonWrapper text="тут" enText="here">
-                        <p className="text-sm">
-                          {currentLocale === 'ru'
-                            ? 'Попробуйте обновить страницу. Если проблема не устранена, пожалуйста, сообщите об этом администратору сайта.'
-                            : 'Try refreshing the page. If the issue persists, please report it to the site administrator.'}
-                        </p>
-                      </ErrorButtonWrapper>
-                    </div>
-                  </div>
+                  <ErrorButtonWrapper locale={currentLocale}>
+                    {currentLocale === 'ru'
+                      ? 'Произошла ошибка при загрузке содержимого'
+                      : 'There was an error loading the content'}
+                  </ErrorButtonWrapper>
                 }
               >
-                <div className="mx-0">
-                  <PostContent
-                    content={processedContent}
-                    postId={post.id}
-                    enableCodeHighlighting={true}
-                    enableLineNumbers={true}
-                    enhanceHeadings={true}
-                    debugMode={process.env.NODE_ENV === 'development'}
-                  />
+                <div className="blog-post-content" id="post-content">
+                  <PostContent content={processedContent} debugMode={true} />
                 </div>
               </ErrorBoundary>
 
-              {/* Author Bio - Full version */}
-              {post.author && (
-                <div className="mb-16 p-6 bg-muted/30 rounded-lg blog-author-bio">
-                  <BlogAuthorBio author={post.author} />
-                </div>
-              )}
+              {/* Author Bio */}
+              {post.author && <BlogAuthorBio author={post.author} />}
 
-              {/* Newsletter Signup */}
-              <div className="mb-16 blog-newsletter">
+              {/* Newsletter Section - только для мобильных */}
+              <div className="blog-newsletter-mobile">
                 <Newsletter
                   title={
                     currentLocale === 'ru'
@@ -307,27 +272,70 @@ export function BlogPostPageClient({
                   }
                   description={
                     currentLocale === 'ru'
-                      ? 'Получайте уведомления о новых статьях и эксклюзивный контент'
-                      : 'Get notified about new articles and exclusive content'
+                      ? 'Получайте лучшие статьи и новости прямо на почту'
+                      : 'Get the best articles and news delivered to your inbox'
                   }
+                  buttonText={currentLocale === 'ru' ? 'Подписаться' : 'Subscribe'}
+                  placeholderText={currentLocale === 'ru' ? 'Ваш email' : 'Your email'}
+                  storageKey="blog_newsletter_subscription"
+                  locale={currentLocale}
+                  source="blog_mobile"
                 />
               </div>
 
-              {/* Comments */}
-              <div id="comments" className="mb-16 blog-comments">
+              {/* Comments Section */}
+              <section id="comments" className="mt-16 blog-comments">
+                <h2 className="text-2xl font-bold mb-8 text-center">
+                  {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
+                </h2>
                 <EnhancedBlogComments postId={post.id} locale={currentLocale} />
+              </section>
+            </main>
+
+            {/* Правый сайдбар - действия */}
+            <aside className="blog-sidebar-right">
+              <div className="sticky top-24">
+                {/* Action buttons - перенесены в правый сайдбар */}
+                <div className="p-4 bg-primary/5 rounded-lg">
+                  <h3 className="font-medium text-sm mb-3">
+                    {currentLocale === 'ru' ? 'Действия' : 'Actions'}
+                  </h3>
+                  <BlogActionButtons postId={post.id} postSlug={post.slug} locale={currentLocale} />
+                </div>
+
+                {/* Newsletter в правом сайдбаре */}
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg newsletter-sidebar">
+                  <h3 className="font-medium text-sm mb-3">
+                    {currentLocale === 'ru' ? 'Подписка на обновления' : 'Subscribe to updates'}
+                  </h3>
+                  <Newsletter
+                    title={currentLocale === 'ru' ? 'Наша рассылка' : 'Our newsletter'}
+                    description={
+                      currentLocale === 'ru'
+                        ? 'Получайте новые статьи на почту'
+                        : 'Get new articles by email'
+                    }
+                    variant="compact"
+                    layout="stacked"
+                    buttonText={currentLocale === 'ru' ? 'Подписаться' : 'Subscribe'}
+                    placeholderText={currentLocale === 'ru' ? 'Ваш email' : 'Your email'}
+                    storageKey="blog_newsletter_subscription"
+                    locale={currentLocale}
+                    source="blog_sidebar"
+                  />
+                </div>
               </div>
-            </div>
+            </aside>
           </div>
 
           {/* Related Posts */}
           {formattedRelatedPosts.length > 0 && (
-            <div className="blog-related-posts">
+            <section className="blog-related-posts">
               <h2 className="blog-related-posts-title">
                 {currentLocale === 'ru' ? 'Похожие статьи' : 'Related Posts'}
               </h2>
-              <BlogRelatedPosts posts={formattedRelatedPosts} />
-            </div>
+              <BlogRelatedPosts posts={formattedRelatedPosts} locale={currentLocale} />
+            </section>
           )}
         </article>
       </div>

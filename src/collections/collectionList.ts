@@ -7,6 +7,7 @@ import { Discounts } from './Discounts'
 import { Events } from './Events'
 import { Integrations } from './Integrations'
 import { Media } from './Media'
+import { NewsletterSubscribers } from './newsletter-subscribers'
 import { Orders } from './Orders'
 import { OrderTracking } from './OrderTracking'
 import { Pages } from './Pages'
@@ -32,6 +33,7 @@ const collections = [
   Events,
   Integrations,
   Media,
+  NewsletterSubscribers,
   Orders,
   OrderTracking,
   Pages,
