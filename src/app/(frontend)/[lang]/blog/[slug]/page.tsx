@@ -21,6 +21,7 @@ import { formatBlogDate, calculateReadingTime, trackPostView } from '@/lib/blogH
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { isLexicalContent } from '@/utilities/lexicalParser'
 import { ErrorButtonWrapper } from '@/components/blog/ErrorButtonWrapper'
+import { BlogActionButtons } from '@/components/blog/BlogActionButtons'
 
 // Импортируем стили
 import '@/components/blog/blog-page.css'
@@ -231,20 +232,6 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
           <article className="blog-article">
             {/* Post Header */}
             <header className="blog-header">
-              {formattedPostCategories.length > 0 && (
-                <div className="mb-4 flex justify-center gap-2 flex-wrap">
-                  {formattedPostCategories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/${currentLocale}/blog?category=${category.slug}`}
-                      className="inline-block bg-muted/50 px-3 py-1 rounded-full text-xs font-medium text-primary hover:bg-muted transition-colors"
-                    >
-                      {category.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
                 {post.title}
               </h1>
@@ -286,22 +273,6 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                     <span>{readTime} min read</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center justify-center gap-4 mb-8">
-                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
-                  <BookmarkCheck className="h-4 w-4" />
-                  <span className="hidden sm:inline">Save</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
-                  <Share2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2 blog-social-button">
-                  <MessageCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Comment</span>
-                </Button>
               </div>
             </header>
 
@@ -364,6 +335,62 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                         <dd className="inline">{readTime} min</dd>
                       </div>
                     </dl>
+                  </div>
+
+                  {/* Categories */}
+                  {formattedPostCategories.length > 0 && (
+                    <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                      <h3 className="font-medium text-sm mb-3">
+                        {currentLocale === 'ru' ? 'Категории' : 'Categories'}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {formattedPostCategories.map((category) => (
+                          <Link
+                            key={category.id}
+                            href={`/${currentLocale}/blog?category=${category.slug}`}
+                            className="inline-block bg-muted px-3 py-1 rounded-full text-xs font-medium text-primary hover:bg-muted/80 transition-colors"
+                          >
+                            {category.title}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tags in sidebar */}
+                  <div className="mt-6 p-4 bg-primary/10 rounded-lg">
+                    <h3 className="font-medium text-sm mb-3">
+                      {currentLocale === 'ru' ? 'Теги' : 'Tags'}
+                    </h3>
+                    {formattedPostTags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {formattedPostTags.map((tag) => (
+                          <Link
+                            key={tag.id}
+                            href={`/${currentLocale}/blog?tag=${tag.slug}`}
+                            className="inline-block bg-muted/50 px-3 py-1 rounded-full text-xs font-medium text-primary hover:bg-muted transition-colors"
+                          >
+                            {tag.title}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        {currentLocale === 'ru' ? 'Теги не найдены' : 'No tags found'}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-medium text-sm mb-3">
+                      {currentLocale === 'ru' ? 'Действия' : 'Actions'}
+                    </h3>
+                    <BlogActionButtons
+                      postId={post.id}
+                      postSlug={post.slug}
+                      locale={currentLocale}
+                    />
                   </div>
 
                   {/* Author mini-card for sidebar */}
@@ -436,15 +463,6 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
                 {/* Tags & Sharing */}
                 <div className="mt-12 mb-16 flex flex-wrap gap-6 justify-between items-center border-t border-b border-border py-6 blog-tags-share">
-                  {formattedPostTags.length > 0 && (
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium mb-2">
-                        {currentLocale === 'ru' ? 'Теги' : 'Tags'}
-                      </h3>
-                      <BlogTagCloud tags={formattedPostTags} />
-                    </div>
-                  )}
-
                   <BlogSocialShare
                     url={`/${currentLocale}/blog/${post.slug}`}
                     title={post.title}
@@ -478,9 +496,6 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
                 {/* Comments */}
                 <div id="comments" className="mb-16 blog-comments">
-                  <h2 className="text-2xl font-bold mb-6">
-                    {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
-                  </h2>
                   <BlogComments postId={post.id} />
                 </div>
               </div>

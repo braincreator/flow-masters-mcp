@@ -56,9 +56,15 @@
     width: 16rem;
     height: 100%;
     left: calc(50% - 30rem - 17rem);
+    z-index: 10;
   }
 
   .blog-sidebar > div {
+    background-color: var(--background);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-right: 0.5rem;
     position: sticky;
     top: 6rem;
   }
