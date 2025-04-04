@@ -381,7 +381,7 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
       </Card>
 
       {/* Comments List */}
-      <div className="space-y-6 comments-list">
+      <div className="space-y-6 comments-list" id="comments-list">
         {loading && (
           <p className="text-center">
             {locale === 'ru' ? 'Загрузка комментариев...' : 'Loading comments...'}

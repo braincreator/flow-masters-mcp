@@ -165,7 +165,7 @@ const PostContent: React.FC<PostContentProps> = ({
       // Подсветка кода с небольшой задержкой для уверенности, что контент загружен
       const timer = setTimeout(() => {
         try {
-          Prism.highlightAll()
+      Prism.highlightAll()
         } catch (e) {
           console.error('Ошибка при подсветке кода:', e)
         }
@@ -229,7 +229,7 @@ const PostContent: React.FC<PostContentProps> = ({
 
   // Улучшаю отладочное логирование в режиме разработки
   if (process.env.NODE_ENV === 'development' || debugMode) {
-    console.log('PostContent debug ----------------------')
+      console.log('PostContent debug ----------------------')
     console.log('Исходный контент:', content)
     console.log('Нормализованный контент:', normalizedContent)
     console.log('Тип контента:', typeof normalizedContent)
@@ -245,9 +245,9 @@ const PostContent: React.FC<PostContentProps> = ({
   }
 
   // Используем SimpleLexicalRenderer для отображения контента
-  return (
-    <div
-      id={`post-content-${postId}`}
+    return (
+      <div
+        id={`post-content-${postId}`}
       className={cn('blog-post-content w-full', enableLineNumbers && 'line-numbers', className)}
     >
       <SimpleLexicalRenderer content={normalizedContent} />
@@ -267,9 +267,9 @@ const PostContent: React.FC<PostContentProps> = ({
             </details>
           </div>
         </div>
-      )}
-    </div>
-  )
+        )}
+      </div>
+    )
 }
 
 export default PostContent

@@ -2,8 +2,10 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { BookmarkCheck, Share2, MessageCircle } from 'lucide-react'
+import { BookmarkCheck, MessageCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { BlogShareButton } from './BlogShareButton'
 
 interface BlogActionButtonsProps {
   postId: string
@@ -21,30 +23,30 @@ export const BlogActionButtons: React.FC<BlogActionButtonsProps> = ({
   const handleSave = () => {
     // Здесь можно сохранить пост в localStorage или отправить запрос на сервер
     localStorage.setItem(`saved_post_${postId}`, 'true')
-    alert('Пост сохранен!')
-  }
-
-  const handleShare = () => {
-    // Используем Web Share API если доступно
-    if (navigator.share) {
-      navigator.share({
-        title: document.title,
-        url: window.location.href,
-      })
-    } else {
-      // Копируем ссылку в буфер обмена
-      navigator.clipboard.writeText(window.location.href)
-      alert('Ссылка скопирована в буфер обмена')
-    }
+    toast.success(locale === 'ru' ? 'Статья сохранена!' : 'Post saved!')
   }
 
   const handleComment = () => {
-    // Скролл к секции комментариев
-    const commentsSection = document.getElementById('comments')
-    if (commentsSection) {
-      commentsSection.scrollIntoView({ behavior: 'smooth' })
+    // Скролл к списку комментариев, а не к форме
+    const commentsList = document.getElementById('comments-list')
+    if (commentsList) {
+      commentsList.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      // Если список комментариев не найден, пробуем найти секцию комментариев
+      const commentsSection = document.getElementById('comments')
+      if (commentsSection) {
+        commentsSection.scrollIntoView({ behavior: 'smooth' })
+      }
     }
   }
+
+  // Получаем URL и заголовок для шаринга
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const postUrl = origin ? `${origin}/${locale}/blog/${postSlug}` : ''
+  const postTitle = typeof window !== 'undefined' ? document.title : ''
+
+  // Текст при копировании ссылки
+  const copyLinkMessage = locale === 'ru' ? 'Ссылка на статью скопирована!' : 'Article link copied!'
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -58,15 +60,13 @@ export const BlogActionButtons: React.FC<BlogActionButtonsProps> = ({
         <span>{locale === 'ru' ? 'Сохранить' : 'Save'}</span>
       </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-2 w-full justify-start"
-        onClick={handleShare}
-      >
-        <Share2 className="h-4 w-4" />
-        <span>{locale === 'ru' ? 'Поделиться' : 'Share'}</span>
-      </Button>
+      {/* Используем наш новый компонент BlogShareButton */}
+      <BlogShareButton
+        postUrl={postUrl}
+        postTitle={postTitle}
+        locale={locale}
+        successMessage={copyLinkMessage}
+      />
 
       <Button
         variant="outline"
