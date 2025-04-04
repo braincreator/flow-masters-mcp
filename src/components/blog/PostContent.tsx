@@ -37,6 +37,7 @@ interface PostContentProps {
   enableCodeHighlighting?: boolean
   enableLineNumbers?: boolean
   enhanceHeadings?: boolean
+  debugMode?: boolean
 }
 
 const PostContent: React.FC<PostContentProps> = ({
@@ -46,6 +47,7 @@ const PostContent: React.FC<PostContentProps> = ({
   enableCodeHighlighting = true,
   enableLineNumbers = true,
   enhanceHeadings = true,
+  debugMode = false,
 }) => {
   // Расширенная проверка и нормализация контента
   let normalizedContent
@@ -54,6 +56,30 @@ const PostContent: React.FC<PostContentProps> = ({
     // Сначала проверяем, является ли контент данными Lexical
     if (isLexicalContent(content)) {
       normalizedContent = normalizeLexicalContent(content)
+
+      // Проверка и обработка блоков в контенте
+      if (normalizedContent && normalizedContent.root && normalizedContent.root.children) {
+        // Диагностика блоков
+        const blocks = normalizedContent.root.children.filter((node: any) => node.type === 'block')
+
+        if (blocks.length > 0 && process.env.NODE_ENV === 'development') {
+          console.log(`[PostContent] Найдено ${blocks.length} блоков в контенте:`, blocks)
+
+          // Проверка конкретно на блоки баннеров
+          const bannerBlocks = blocks.filter(
+            (block: any) =>
+              (block.fields && block.fields.blockType === 'banner') ||
+              (block.data && block.data.blockType === 'banner'),
+          )
+
+          if (bannerBlocks.length > 0) {
+            console.log(
+              `[PostContent] Найдено ${bannerBlocks.length} блоков баннеров:`,
+              bannerBlocks,
+            )
+          }
+        }
+      }
     } else {
       // Если нет, пробуем преобразовать данные из Payload CMS
       normalizedContent = convertPayloadDataToLexical(content)
@@ -202,12 +228,19 @@ const PostContent: React.FC<PostContentProps> = ({
   }, [enableCodeHighlighting, enhanceHeadings, postId])
 
   // Улучшаю отладочное логирование в режиме разработки
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || debugMode) {
     console.log('PostContent debug ----------------------')
     console.log('Исходный контент:', content)
     console.log('Нормализованный контент:', normalizedContent)
     console.log('Тип контента:', typeof normalizedContent)
     console.log('Это валидный Lexical контент:', isLexicalContent(normalizedContent))
+
+    // Анализ блоков в контенте
+    if (normalizedContent && normalizedContent.root && normalizedContent.root.children) {
+      const blocks = normalizedContent.root.children.filter((node: any) => node.type === 'block')
+      console.log('Блоки в контенте:', blocks)
+    }
+
     console.log('PostContent debug end ----------------------')
   }
 
@@ -218,6 +251,23 @@ const PostContent: React.FC<PostContentProps> = ({
       className={cn('blog-post-content w-full', enableLineNumbers && 'line-numbers', className)}
     >
       <SimpleLexicalRenderer content={normalizedContent} />
+
+      {/* Отладочная информация */}
+      {debugMode && (
+        <div className="mt-10 p-4 bg-muted/50 rounded-lg">
+          <h3 className="text-lg font-bold mb-2">Отладочная информация</h3>
+          <div className="space-y-2">
+            <p>Тип контента: {typeof normalizedContent}</p>
+            <p>Валидный Lexical: {isLexicalContent(normalizedContent) ? 'Да' : 'Нет'}</p>
+            <details>
+              <summary className="cursor-pointer font-medium">Просмотреть контент</summary>
+              <pre className="mt-2 p-2 bg-muted text-xs overflow-auto max-h-80">
+                {JSON.stringify(normalizedContent, null, 2)}
+              </pre>
+            </details>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

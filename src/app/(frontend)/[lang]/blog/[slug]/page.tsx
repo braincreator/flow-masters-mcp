@@ -458,6 +458,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
                       enableCodeHighlighting={true}
                       enableLineNumbers={true}
                       enhanceHeadings={true}
+                      debugMode={process.env.NODE_ENV === 'development'}
                     />
                   </div>
                 </ErrorBoundary>

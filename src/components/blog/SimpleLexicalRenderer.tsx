@@ -287,7 +287,16 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
       const blockData = node.data || node.fields || {}
       const blockType = blockData.blockType || blockData.type
 
-      // Здесь можно добавить обработку различных типов блоков
+      // Общая отладка блоков
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Обработка блока:', {
+          type: node.type,
+          blockType,
+          data: blockData,
+        })
+      }
+
+      // Обработка mediaBlock
       if (blockType === 'mediaBlock' && blockData.media) {
         // Простая обработка медиа блока
         const mediaUrl =
@@ -309,6 +318,68 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
               </figcaption>
             )}
           </figure>
+        )
+      }
+
+      // Обработка блока banner
+      if (blockType === 'banner') {
+        // Отладочная информация для блока баннера
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Обработка баннера:', {
+            blockType,
+            blockData,
+            style: blockData.style,
+            content: blockData.content,
+          })
+        }
+
+        // Получаем стиль баннера и контент
+        const bannerStyle = blockData.style || 'info'
+
+        // Получаем содержимое баннера
+        let bannerContent
+        if (blockData.content) {
+          if (typeof blockData.content === 'string') {
+            bannerContent = blockData.content
+          } else if (blockData.content.root && blockData.content.root.children) {
+            // Рендерим содержимое как Lexical
+            bannerContent = blockData.content.root.children.map((child: any, i: number) => (
+              <React.Fragment key={i}>{renderNode(child)}</React.Fragment>
+            ))
+          } else {
+            // Попытка отобразить как простой текст, если структура не распознана
+            bannerContent = JSON.stringify(blockData.content)
+          }
+        } else if (blockData.children && Array.isArray(blockData.children)) {
+          // Альтернативная структура - содержимое в children
+          bannerContent = blockData.children.map((child: any, i: number) => (
+            <React.Fragment key={i}>{renderNode(child)}</React.Fragment>
+          ))
+        }
+
+        return (
+          <div className="mx-auto my-8 w-full">
+            <div
+              className={cn('border py-3 px-6 rounded flex items-center', {
+                'border-border bg-card': bannerStyle === 'info',
+                'border-error bg-error/30': bannerStyle === 'error',
+                'border-success bg-success/30': bannerStyle === 'success',
+                'border-warning bg-warning/30': bannerStyle === 'warning',
+              })}
+            >
+              {bannerContent || (
+                <p className="text-muted-foreground italic">Содержимое баннера не найдено</p>
+              )}
+            </div>
+            {process.env.NODE_ENV === 'development' && (
+              <details className="mt-1 text-xs text-muted-foreground">
+                <summary>Отладочная информация баннера</summary>
+                <pre className="p-2 bg-muted/30 rounded text-xs overflow-auto max-h-40">
+                  {JSON.stringify(blockData, null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
         )
       }
 
