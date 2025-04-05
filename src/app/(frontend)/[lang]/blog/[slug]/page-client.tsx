@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
@@ -128,17 +128,32 @@ export function BlogPostPageClient({
 
           {/* Two column layout for content */}
           <div className="blog-content-wrapper">
-            {/* Левый сайдбар - содержание */}
+            {/* Левый сайдбар - содержание и детали */}
             <aside className="blog-sidebar-left">
               <div className="sticky top-24">
+                {/* TableOfContents - содержание */}
                 <TableOfContents
                   contentSelector="#post-content"
                   title={currentLocale === 'ru' ? 'Содержание' : 'Table of Contents'}
                 />
 
                 {/* Post metadata sidebar section */}
-                <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                  <h3 className="font-medium text-sm mb-3">
+                <div className="mt-4 sidebar-card">
+                  <h3 className="font-medium text-sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
                     {currentLocale === 'ru' ? 'Детали статьи' : 'Post Details'}
                   </h3>
                   <dl className="text-sm space-y-2 text-muted-foreground">
@@ -169,8 +184,21 @@ export function BlogPostPageClient({
 
                 {/* Categories */}
                 {formattedPostCategories.length > 0 && (
-                  <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                    <h3 className="font-medium text-sm mb-3">
+                  <div className="mt-4 sidebar-card">
+                    <h3 className="font-medium text-sm">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+                      </svg>
                       {currentLocale === 'ru' ? 'Категории' : 'Categories'}
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -178,7 +206,7 @@ export function BlogPostPageClient({
                         <Link
                           key={category.id}
                           href={`/${currentLocale}/blog?category=${category.slug}`}
-                          className="inline-block bg-muted px-3 py-1 rounded-full text-xs font-medium text-primary hover:bg-muted/80 transition-colors"
+                          className="category-link"
                         >
                           {category.title}
                         </Link>
@@ -188,8 +216,22 @@ export function BlogPostPageClient({
                 )}
 
                 {/* Tags in sidebar */}
-                <div className="mt-4 p-4 bg-primary/10 rounded-lg">
-                  <h3 className="font-medium text-sm mb-3">
+                <div className="mt-4 sidebar-card">
+                  <h3 className="font-medium text-sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                      <path d="M7 7h.01"></path>
+                    </svg>
                     {currentLocale === 'ru' ? 'Теги' : 'Tags'}
                   </h3>
                   {formattedPostTags.length > 0 ? (
@@ -198,7 +240,7 @@ export function BlogPostPageClient({
                         <Link
                           key={tag.id}
                           href={`/${currentLocale}/blog?tag=${tag.slug}`}
-                          className="inline-block bg-muted/50 px-3 py-1 rounded-full text-xs font-medium text-primary hover:bg-muted transition-colors"
+                          className="tag-link"
                         >
                           {tag.title}
                         </Link>
@@ -213,21 +255,35 @@ export function BlogPostPageClient({
 
                 {/* Author mini-card for sidebar */}
                 {post.author && (
-                  <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                    <h3 className="font-medium text-sm mb-3">
+                  <div className="mt-4 sidebar-card">
+                    <h3 className="font-medium text-sm">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
                       {currentLocale === 'ru' ? 'Автор' : 'Author'}
                     </h3>
-                    <div className="flex items-center gap-3">
+                    <div className="author-info">
                       {post.author.avatar?.url ? (
                         <Image
                           src={post.author.avatar.url}
                           alt={post.author.name}
                           width={40}
                           height={40}
-                          className="rounded-full border-2 border-primary/20"
+                          className="author-avatar"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center author-avatar">
                           <span className="text-lg font-bold">{post.author.name.charAt(0)}</span>
                         </div>
                       )}
@@ -262,68 +318,74 @@ export function BlogPostPageClient({
               {/* Author Bio */}
               {post.author && <BlogAuthorBio author={post.author} />}
 
-              {/* Newsletter Section - только для мобильных */}
-              <div className="blog-newsletter-mobile">
-                <Newsletter
-                  title={
-                    currentLocale === 'ru'
-                      ? 'Подпишитесь на нашу рассылку'
-                      : 'Subscribe to our newsletter'
-                  }
-                  description={
-                    currentLocale === 'ru'
-                      ? 'Получайте лучшие статьи и новости прямо на почту'
-                      : 'Get the best articles and news delivered to your inbox'
-                  }
-                  buttonText={currentLocale === 'ru' ? 'Подписаться' : 'Subscribe'}
-                  placeholderText={currentLocale === 'ru' ? 'Ваш email' : 'Your email'}
-                  storageKey="blog_newsletter_subscription"
-                  locale={currentLocale}
-                  source="blog_mobile"
-                />
-              </div>
+              {/* Newsletter Section - только для мобильных и только для неподписанных пользователей */}
+              <NewsletterSection
+                locale={currentLocale}
+                storageKey="blog_newsletter_subscription"
+                source="blog_mobile"
+                className="blog-newsletter-mobile"
+                title={
+                  currentLocale === 'ru'
+                    ? 'Подпишитесь на нашу рассылку'
+                    : 'Subscribe to our newsletter'
+                }
+                description={
+                  currentLocale === 'ru'
+                    ? 'Получайте лучшие статьи и новости прямо на почту'
+                    : 'Get the best articles and news delivered to your inbox'
+                }
+              />
 
               {/* Comments Section */}
               <section id="comments" className="mt-16 blog-comments">
                 <h2 className="text-2xl font-bold mb-8 text-center">
                   {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
                 </h2>
-                <EnhancedBlogComments postId={post.id} locale={currentLocale} />
+                <div id="comments-list">
+                  <EnhancedBlogComments postId={post.id} locale={currentLocale} />
+                </div>
               </section>
             </main>
 
-            {/* Правый сайдбар - действия */}
+            {/* Правый сайдбар - действия и подписка */}
             <aside className="blog-sidebar-right">
               <div className="sticky top-24">
-                {/* Action buttons - перенесены в правый сайдбар */}
-                <div className="p-4 bg-primary/5 rounded-lg">
-                  <h3 className="font-medium text-sm mb-3">
+                {/* Action buttons */}
+                <div className="sidebar-card">
+                  <h3 className="font-medium text-sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m15 15 6 6m-6-6v4.8m0-4.8h4.8"></path>
+                      <path d="M9 19.8V15m0 0H4.2M9 15l-6 6"></path>
+                      <path d="M15 4.2V9m0 0h4.8M15 9l6-6"></path>
+                      <path d="M9 4.2V9m0 0H4.2M9 9 3 3"></path>
+                    </svg>
                     {currentLocale === 'ru' ? 'Действия' : 'Actions'}
                   </h3>
-                  <BlogActionButtons postId={post.id} postSlug={post.slug} locale={currentLocale} />
+                  <div className="action-buttons">
+                    <BlogActionButtons
+                      postId={post.id}
+                      postSlug={post.slug}
+                      locale={currentLocale}
+                    />
+                  </div>
                 </div>
 
-                {/* Newsletter в правом сайдбаре */}
-                <div className="mt-4 p-4 bg-muted/30 rounded-lg newsletter-sidebar">
-                  <h3 className="font-medium text-sm mb-3">
-                    {currentLocale === 'ru' ? 'Подписка на обновления' : 'Subscribe to updates'}
-                  </h3>
-                  <Newsletter
-                    title={currentLocale === 'ru' ? 'Наша рассылка' : 'Our newsletter'}
-                    description={
-                      currentLocale === 'ru'
-                        ? 'Получайте новые статьи на почту'
-                        : 'Get new articles by email'
-                    }
-                    variant="compact"
-                    layout="stacked"
-                    buttonText={currentLocale === 'ru' ? 'Подписаться' : 'Subscribe'}
-                    placeholderText={currentLocale === 'ru' ? 'Ваш email' : 'Your email'}
-                    storageKey="blog_newsletter_subscription"
-                    locale={currentLocale}
-                    source="blog_sidebar"
-                  />
-                </div>
+                {/* Newsletter в правом сайдбаре с проверкой подписки */}
+                <NewsletterSection
+                  locale={currentLocale}
+                  storageKey="blog_newsletter_subscription"
+                  source="blog_sidebar"
+                />
               </div>
             </aside>
           </div>
@@ -340,5 +402,112 @@ export function BlogPostPageClient({
         </article>
       </div>
     </>
+  )
+}
+
+/**
+ * Компонент-обертка для рендеринга блока подписки с проверкой, подписан ли пользователь
+ */
+function NewsletterSection({
+  locale,
+  storageKey,
+  source,
+  className = '',
+  title,
+  description,
+}: {
+  locale: string
+  storageKey: string
+  source: string
+  className?: string
+  title?: string
+  description?: string
+}) {
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+
+    // Проверяем, подписан ли пользователь
+    const subscriptionStatus = localStorage.getItem(storageKey)
+    if (subscriptionStatus) {
+      try {
+        const data = JSON.parse(subscriptionStatus)
+        if (data.subscribed) {
+          setIsSubscribed(true)
+        }
+      } catch (e) {
+        // Если данные повреждены, удаляем их
+        localStorage.removeItem(storageKey)
+      }
+    }
+  }, [storageKey])
+
+  // Не отображаем компонент до загрузки в браузере
+  if (!isClient) return null
+
+  // Не отображаем блок подписки, если пользователь уже подписан
+  if (isSubscribed) return null
+
+  // Для сайдбара используем компактный вариант
+  if (source === 'blog_sidebar') {
+    return (
+      <div className={`mt-4 sidebar-card ${className}`}>
+        <h3 className="font-medium text-sm">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect width="16" height="13" x="4" y="5" rx="2"></rect>
+            <path d="m4 8 8 5 8-5"></path>
+          </svg>
+          {locale === 'ru' ? 'Подписка на обновления' : 'Subscribe to updates'}
+        </h3>
+        <div className="newsletter-form">
+          <Newsletter
+            title={locale === 'ru' ? 'Наша рассылка' : 'Our newsletter'}
+            description={
+              locale === 'ru' ? 'Получайте новые статьи на почту' : 'Get new articles by email'
+            }
+            variant="compact"
+            layout="stacked"
+            buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
+            placeholderText={locale === 'ru' ? 'Ваш email' : 'Your email'}
+            storageKey={storageKey}
+            locale={locale}
+            source={source}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Для мобильного или других вариантов
+  return (
+    <div className={className}>
+      <Newsletter
+        title={
+          title ||
+          (locale === 'ru' ? 'Подпишитесь на нашу рассылку' : 'Subscribe to our newsletter')
+        }
+        description={
+          description ||
+          (locale === 'ru' ? 'Получайте новые статьи на почту' : 'Get new articles by email')
+        }
+        buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
+        placeholderText={locale === 'ru' ? 'Ваш email' : 'Your email'}
+        storageKey={storageKey}
+        locale={locale}
+        source={source}
+      />
+    </div>
   )
 }

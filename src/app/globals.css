@@ -12,7 +12,7 @@
     --muted-foreground: 240 3.8% 46.1%;
   }
 
-  [data-theme="dark"] {
+  [data-theme='dark'] {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --primary: 0 0% 98%;
@@ -20,67 +20,71 @@
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
   }
-  
+
   /* Глобальная анимация цен */
   .ProductPrice span:first-child {
     animation: priceRainbow 4s infinite linear;
-    text-shadow: 0 0 5px theme('colors.accent.DEFAULT / 80%'),
-                0 0 10px theme('colors.accent.DEFAULT / 60%'),
-                0 0 15px theme('colors.accent.DEFAULT / 40%');
+    text-shadow:
+      0 0 5px theme('colors.accent.DEFAULT / 80%'),
+      0 0 10px theme('colors.accent.DEFAULT / 60%'),
+      0 0 15px theme('colors.accent.DEFAULT / 40%');
   }
-  
+
   /* Пульсация блоков с ценой */
-  [class*="min-w-[100px]"] {
+  [class*='min-w-[100px]'] {
     animation: pricePulse 2s infinite ease-in-out;
   }
-  
+
   /* ===== Анимации для блога ===== */
-  
+
   /* Эффект наведения для карточек блога */
   .blog-card {
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                box-shadow 0.4s ease,
-                border-color 0.3s ease;
+    transition:
+      transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+      box-shadow 0.4s ease,
+      border-color 0.3s ease;
   }
-  
+
   .blog-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.07);
     border-color: theme('colors.accent.DEFAULT / 30%');
   }
-  
+
   /* Плавное появление контента */
   .blog-fade-in {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
   }
-  
+
   .blog-fade-in.visible {
     opacity: 1;
     transform: translateY(0);
   }
-  
+
   /* Эффект наведения для изображений блога */
   .blog-image-container {
     overflow: hidden;
     border-radius: theme('borderRadius.lg');
   }
-  
+
   .blog-image {
     transition: transform 0.6s ease;
   }
-  
+
   .blog-image-container:hover .blog-image {
     transform: scale(1.05);
   }
-  
+
   /* Анимированный подчеркивающий эффект для заголовков */
   .blog-title {
     position: relative;
     display: inline-block;
   }
-  
+
   .blog-title::after {
     content: '';
     position: absolute;
@@ -91,53 +95,55 @@
     background-color: theme('colors.accent.DEFAULT');
     transition: width 0.4s ease;
   }
-  
+
   .blog-title:hover::after {
     width: 100%;
   }
-  
+
   /* Появление тегов с задержкой */
   .blog-tag {
     opacity: 0;
     transform: translateY(10px);
     animation: blogTagAppear 0.5s forwards;
   }
-  
+
   .blog-tag:nth-child(2) {
     animation-delay: 0.1s;
   }
-  
+
   .blog-tag:nth-child(3) {
     animation-delay: 0.2s;
   }
-  
+
   .blog-tag:nth-child(4) {
     animation-delay: 0.3s;
   }
-  
+
   @keyframes blogTagAppear {
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  
+
   /* Анимация плавного перехода между страницами */
   .page-transition-enter {
     opacity: 0;
     transform: translateY(20px);
   }
-  
+
   .page-transition-enter-active {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 0.4s, transform 0.4s;
+    transition:
+      opacity 0.4s,
+      transform 0.4s;
   }
-  
+
   .page-transition-exit {
     opacity: 1;
   }
-  
+
   .page-transition-exit-active {
     opacity: 0;
     transition: opacity 0.2s;
@@ -207,13 +213,14 @@
   .price-shine {
     @apply relative overflow-hidden;
   }
-  
+
   .price-shine::after {
-    content: "";
+    content: '';
     @apply absolute inset-0 w-full h-full;
-    background: linear-gradient(to right, 
-      transparent 0%, 
-      rgba(255, 255, 255, 0.1) 50%, 
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
       transparent 100%
     );
     transform: translateX(-100%);
@@ -234,7 +241,7 @@
   }
 
   .price-rotate-border::before {
-    content: "";
+    content: '';
     @apply absolute -inset-[2px] rounded-md z-[-1];
     background: conic-gradient(
       from 0deg at 50% 50%,
@@ -260,7 +267,7 @@
   }
 
   .price-attention::after {
-    content: "";
+    content: '';
     @apply absolute left-0 bottom-0 h-[2px] w-full scale-x-0 origin-right;
     @apply bg-accent/60;
     animation: priceAttention 3s infinite;
@@ -271,21 +278,22 @@
     position: relative;
     animation: priceBlink 3s infinite;
   }
-  
+
   /* Анимация вспышки фона */
   .price-flash {
     position: relative;
   }
-  
+
   .price-flash::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 rounded-md -z-[1];
     background: theme('colors.accent.DEFAULT / 10%');
     animation: priceFlash 4s infinite;
   }
 
   @keyframes pricePulse {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
     }
     50% {
@@ -294,7 +302,8 @@
   }
 
   @keyframes priceFloat {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {
@@ -315,7 +324,8 @@
     10% {
       transform: translateX(-100%);
     }
-    30%, 100% {
+    30%,
+    100% {
       transform: translateX(100%);
     }
   }
@@ -325,16 +335,19 @@
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
     }
     100% {
-      text-shadow: 0 0 10px theme('colors.accent.DEFAULT / 80%'),
-                  0 0 15px theme('colors.accent.DEFAULT / 40%');
+      text-shadow:
+        0 0 10px theme('colors.accent.DEFAULT / 80%'),
+        0 0 15px theme('colors.accent.DEFAULT / 40%');
     }
   }
 
   @keyframes priceVibrate {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateX(0);
     }
-    98%, 99% {
+    98%,
+    99% {
       transform: translateX(-1px);
     }
     99.5% {
@@ -343,7 +356,8 @@
   }
 
   @keyframes priceAttention {
-    0%, 100% {
+    0%,
+    100% {
       transform: scaleX(0);
       opacity: 0.7;
     }
@@ -355,16 +369,18 @@
 
   /* Новые анимации */
   @keyframes priceBlink {
-    0%, 100% {
+    0%,
+    100% {
       color: inherit;
     }
     25% {
       color: theme('colors.accent.DEFAULT');
     }
   }
-  
+
   @keyframes priceFlash {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0;
     }
     50% {
@@ -381,9 +397,10 @@
 
   /* Эффект неонового свечения */
   .price-neon {
-    text-shadow: 0 0 5px theme('colors.accent.DEFAULT / 80%'),
-                0 0 10px theme('colors.accent.DEFAULT / 60%'),
-                0 0 15px theme('colors.accent.DEFAULT / 40%');
+    text-shadow:
+      0 0 5px theme('colors.accent.DEFAULT / 80%'),
+      0 0 10px theme('colors.accent.DEFAULT / 60%'),
+      0 0 15px theme('colors.accent.DEFAULT / 40%');
     animation: priceNeon 1.5s infinite alternate;
   }
 
@@ -393,11 +410,9 @@
   }
 
   .discount-highlight::before {
-    content: "";
+    content: '';
     @apply absolute -inset-1 rounded z-[-1];
-    background: radial-gradient(circle, 
-      theme('colors.accent.DEFAULT / 30%') 0%, 
-      transparent 70%);
+    background: radial-gradient(circle, theme('colors.accent.DEFAULT / 30%') 0%, transparent 70%);
     animation: discountHighlight 2s infinite alternate;
   }
 
@@ -418,18 +433,20 @@
   .price-background-blink {
     position: relative;
   }
-  
+
   .price-background-blink::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: -3px;
     border-radius: 4px;
-    background: linear-gradient(45deg, 
-      rgba(255, 0, 0, 0.5) 0%, 
-      rgba(255, 165, 0, 0.5) 25%, 
-      rgba(255, 255, 0, 0.5) 50%, 
-      rgba(0, 128, 0, 0.5) 75%, 
-      rgba(0, 0, 255, 0.5) 100%);
+    background: linear-gradient(
+      45deg,
+      rgba(255, 0, 0, 0.5) 0%,
+      rgba(255, 165, 0, 0.5) 25%,
+      rgba(255, 255, 0, 0.5) 50%,
+      rgba(0, 128, 0, 0.5) 75%,
+      rgba(0, 0, 255, 0.5) 100%
+    );
     z-index: -1;
     animation: rotateBorder 4s linear infinite;
     opacity: 0.6;
@@ -442,7 +459,8 @@
 
   /* Новые анимации */
   @keyframes price3DRotate {
-    0%, 100% {
+    0%,
+    100% {
       transform: rotateY(0deg);
     }
     50% {
@@ -463,25 +481,41 @@
   }
 
   @keyframes priceRainbow {
-    0% { color: #ff0000; }
-    16.6% { color: #ff8000; }
-    33.3% { color: #ffff00; }
-    50% { color: #00ff00; }
-    66.6% { color: #0000ff; }
-    83.3% { color: #8000ff; }
-    100% { color: #ff0000; }
+    0% {
+      color: #ff0000;
+    }
+    16.6% {
+      color: #ff8000;
+    }
+    33.3% {
+      color: #ffff00;
+    }
+    50% {
+      color: #00ff00;
+    }
+    66.6% {
+      color: #0000ff;
+    }
+    83.3% {
+      color: #8000ff;
+    }
+    100% {
+      color: #ff0000;
+    }
   }
 
   @keyframes priceNeon {
     from {
-      text-shadow: 0 0 5px theme('colors.accent.DEFAULT / 80%'),
-                  0 0 10px theme('colors.accent.DEFAULT / 60%'),
-                  0 0 15px theme('colors.accent.DEFAULT / 40%');
+      text-shadow:
+        0 0 5px theme('colors.accent.DEFAULT / 80%'),
+        0 0 10px theme('colors.accent.DEFAULT / 60%'),
+        0 0 15px theme('colors.accent.DEFAULT / 40%');
     }
     to {
-      text-shadow: 0 0 10px theme('colors.accent.DEFAULT / 90%'),
-                  0 0 20px theme('colors.accent.DEFAULT / 70%'),
-                  0 0 30px theme('colors.accent.DEFAULT / 50%');
+      text-shadow:
+        0 0 10px theme('colors.accent.DEFAULT / 90%'),
+        0 0 20px theme('colors.accent.DEFAULT / 70%'),
+        0 0 30px theme('colors.accent.DEFAULT / 50%');
     }
   }
 
@@ -497,15 +531,26 @@
   }
 
   @keyframes priceBounce {
-    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-    40% {transform: translateY(-8px);}
-    60% {transform: translateY(-4px);}
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-8px);
+    }
+    60% {
+      transform: translateY(-4px);
+    }
   }
 }
 
 @layer utilities {
   @keyframes glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 0 0 theme('colors.primary.DEFAULT / 0%');
     }
     50% {
@@ -514,7 +559,8 @@
   }
 
   @keyframes badgePulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {
@@ -555,19 +601,37 @@
 
 /* Общие анимации для компонентов блога */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 /* Стили для блога */
@@ -591,7 +655,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
 }
 
 .blog-post-content {
@@ -599,7 +663,7 @@
 }
 
 .blog-post-content h2 {
-  margin-top: 2.5rem;
+  margin-top: 0rem;
   margin-bottom: 1rem;
   font-weight: 700;
   font-size: 1.75rem;
@@ -630,7 +694,9 @@
 .blog-post-content img {
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .blog-post-content img:hover {
@@ -643,7 +709,7 @@
   padding-left: 1rem;
   font-style: italic;
   margin: 2rem 0;
-  background-color: hsl(var(--muted)/0.3);
+  background-color: hsl(var(--muted) / 0.3);
   padding: 1.5rem;
   border-radius: 0.5rem;
 }
@@ -659,7 +725,7 @@
   font-size: 0.9rem;
 }
 
-.blog-post-content ul, 
+.blog-post-content ul,
 .blog-post-content ol {
   margin-left: 1.5rem;
   margin-bottom: 1.5rem;
@@ -671,7 +737,9 @@
 
 /* Стили для карточек статей */
 .blog-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .blog-card:hover {
@@ -691,7 +759,9 @@
 .blog-fade-in {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .blog-fade-in.visible {
@@ -706,12 +776,16 @@
   width: 3px;
   background-color: hsl(var(--primary));
   border-radius: 1px;
-  transition: top 0.3s ease, height 0.3s ease;
+  transition:
+    top 0.3s ease,
+    height 0.3s ease;
 }
 
 /* Стили для заголовков в оглавлении */
 .blog-toc-item {
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
   padding-left: 1rem;
   margin-bottom: 0.5rem;
   position: relative;
@@ -753,7 +827,10 @@
   justify-content: center;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.3s ease;
 }
 
 .blog-back-to-top.visible {
@@ -762,13 +839,15 @@
 }
 
 .blog-back-to-top:hover {
-  background-color: hsl(var(--primary)/0.9);
+  background-color: hsl(var(--primary) / 0.9);
   transform: translateY(-5px);
 }
 
 /* Стили для анимированных социальных кнопок */
 .blog-social-button {
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
 }
 
 .blog-social-button:hover {
