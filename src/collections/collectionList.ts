@@ -22,6 +22,8 @@ import { Tags } from './Tags'
 import { Testimonials } from './Testimonials'
 import { Users } from './Users'
 import { UserFavorites } from './UserFavorites'
+import { EmailTemplates } from '@/payload/collections/EmailTemplates'
+import { SenderEmails } from '@/payload/collections/SenderEmails'
 
 const collections = [
   Analytics,
@@ -48,6 +50,8 @@ const collections = [
   Testimonials,
   Users,
   UserFavorites,
+  EmailTemplates,
+  SenderEmails,
 ]
 
 export default collections

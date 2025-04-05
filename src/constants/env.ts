@@ -5,6 +5,12 @@ export const ENV = {
   CRON_SECRET: process.env.CRON_SECRET || 'your-cron-secret',
   SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000',
   S3_BUCKET: 'flow-masters-bucket.s3.cloud.ru',
+  PAYLOAD_SMTP_HOST: process.env.PAYLOAD_SMTP_HOST || 'smtp.timeweb.ru',
+  PAYLOAD_SMTP_PORT: process.env.PAYLOAD_SMTP_PORT || '485',
+  PAYLOAD_SMTP_USER: process.env.PAYLOAD_SMTP_USER || 'admin@flow-masters.ru',
+  PAYLOAD_SMTP_PASSWORD: process.env.PAYLOAD_SMTP_PASSWORD || 'directus',
+  PAYLOAD_DEFAULT_SENDER_EMAIL: process.env.PAYLOAD_DEFAULT_SENDER_EMAIL || 'admin@flow-masters.ru',
+  PAYLOAD_DEFAULT_SENDER_NAME: process.env.PAYLOAD_DEFAULT_SENDER_NAME || 'Flow Masters',
 } as const
 
 export const IS_PRODUCTION = ENV.NODE_ENV === 'production'

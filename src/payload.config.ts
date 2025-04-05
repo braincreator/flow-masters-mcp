@@ -3,6 +3,7 @@ import type { PayloadRequest } from 'payload'
 
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import path from 'path'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
@@ -38,6 +39,7 @@ import { NotificationSettings } from './globals/NotificationSettings'
 import { CurrencySettings } from './globals/CurrencySettings'
 import { ExchangeRateSettings } from './globals/ExchangeRateSettings'
 import { WebhookSettings } from './globals/WebhookSettings'
+import { EmailSettings } from '@/payload/globals/EmailSettings'
 
 // Import collections
 import { Categories } from './collections/Categories'
@@ -193,7 +195,21 @@ export default buildConfig({
     CurrencySettings,
     ExchangeRateSettings,
     WebhookSettings,
+    EmailSettings,
   ],
+  email: nodemailerAdapter({
+    defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'no-reply@example.com',
+    defaultFromName: ENV.PAYLOAD_DEFAULT_SENDER_NAME || 'Payload App',
+    transportOptions: {
+      host: ENV.PAYLOAD_SMTP_HOST,
+      port: parseInt(ENV.PAYLOAD_SMTP_PORT || '587', 10),
+      secure: parseInt(ENV.PAYLOAD_SMTP_PORT || '587', 10) === 465,
+      auth: {
+        user: ENV.PAYLOAD_SMTP_USER,
+        pass: ENV.PAYLOAD_SMTP_PASSWORD,
+      },
+    },
+  }),
   plugins,
   sharp,
   typescript: {

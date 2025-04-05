@@ -91,6 +91,8 @@ export interface Config {
     testimonials: Testimonial;
     users: User;
     'user-favorites': UserFavorite;
+    'email-templates': EmailTemplate;
+    'sender-emails': SenderEmail;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -126,6 +128,8 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'user-favorites': UserFavoritesSelect<false> | UserFavoritesSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
+    'sender-emails': SenderEmailsSelect<false> | SenderEmailsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -146,6 +150,7 @@ export interface Config {
     'currency-settings': CurrencySetting;
     'exchange-rate-settings': ExchangeRateSetting;
     'webhook-settings': WebhookSetting;
+    'email-settings': EmailSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
@@ -155,6 +160,7 @@ export interface Config {
     'currency-settings': CurrencySettingsSelect<false> | CurrencySettingsSelect<true>;
     'exchange-rate-settings': ExchangeRateSettingsSelect<false> | ExchangeRateSettingsSelect<true>;
     'webhook-settings': WebhookSettingsSelect<false> | WebhookSettingsSelect<true>;
+    'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -1566,6 +1572,76 @@ export interface UserFavorite {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates".
+ */
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  /**
+   * Уникальный идентификатор для использования в коде (например, "welcome-email").
+   */
+  slug: string;
+  sender: string | SenderEmail;
+  subject: string;
+  /**
+   * Используйте {{placeholder}} для вставки динамических данных.
+   */
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sender-emails".
+ */
+export interface SenderEmail {
+  id: string;
+  /**
+   * Внутреннее название, например, "Поддержка" или "Без ответа".
+   */
+  name: string;
+  /**
+   * Имя, которое увидит получатель, например, "Flow Masters Support".
+   */
+  senderName: string;
+  emailAddress: string;
+  /**
+   * Подпись, которая будет добавлена к письмам, отправленным с этого адреса.
+   */
+  signature?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1818,6 +1894,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-favorites';
         value: string | UserFavorite;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: string | EmailTemplate;
+      } | null)
+    | ({
+        relationTo: 'sender-emails';
+        value: string | SenderEmail;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2672,6 +2756,31 @@ export interface UsersSelect<T extends boolean = true> {
 export interface UserFavoritesSelect<T extends boolean = true> {
   user?: T;
   products?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  sender?: T;
+  subject?: T;
+  body?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sender-emails_select".
+ */
+export interface SenderEmailsSelect<T extends boolean = true> {
+  name?: T;
+  senderName?: T;
+  emailAddress?: T;
+  signature?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3548,6 +3657,19 @@ export interface WebhookSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings".
+ */
+export interface EmailSetting {
+  id: string;
+  smtpHost: string;
+  smtpPort: number;
+  smtpUser: string;
+  smtpPassword: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -4084,6 +4206,19 @@ export interface WebhookSettingsSelect<T extends boolean = true> {
         attemptNumber?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings_select".
+ */
+export interface EmailSettingsSelect<T extends boolean = true> {
+  smtpHost?: T;
+  smtpPort?: T;
+  smtpUser?: T;
+  smtpPassword?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
