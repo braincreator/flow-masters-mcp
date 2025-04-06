@@ -10,7 +10,7 @@ import { Logo } from '@/components/Logo/Logo'
 import { Locale } from '@/constants'
 
 type FooterProps = {
-  data: PayloadGlobalResponse<Footer>,
+  data: PayloadGlobalResponse<Footer>
   locale: Locale
 }
 
@@ -23,28 +23,10 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
       <div className="container py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Logo Section */}
-          <div className="md:col-span-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <Link 
-                href={`/${locale}`} 
-                className="inline-block hover:text-warning transition-colors duration-300"
-              >
-                <Logo 
-                  className="h-8 w-auto" 
-                  size="thumbnail"
-                />
-              </Link>
-            </motion.div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {t.description}
-            </p>
-          </div>
+          {/* Removing the logo section */}
 
           {/* Main Navigation Section */}
-          <nav className="md:col-span-8">
+          <nav className="md:col-span-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FooterNav data={data} variant="main" />
             </div>
@@ -58,7 +40,7 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
           <p className="text-sm text-muted-foreground">
             {t.copyright.replace('{year}', currentYear.toString())}
           </p>
-          
+
           <FooterNav data={data} variant="bottom" />
         </div>
       </div>

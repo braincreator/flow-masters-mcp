@@ -71,16 +71,16 @@ function CommentRenderer({
   })
 
   return (
-    <div key={comment.id} className={`relative flex space-x-3 ${isReply ? 'mt-4' : 'mt-6'}`}>
+    <div key={comment.id} className={`relative flex space-x-2.5 ${isReply ? 'mt-4' : 'mt-6'}`}>
       {isReply && (
         <div
-          className="absolute left-[-14px] top-8 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-600 cursor-pointer hover:bg-primary"
+          className="absolute left-[-6px] top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-gray-700 cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-500"
           onClick={toggleCollapse}
           title={locale === 'ru' ? 'Свернуть/Развернуть ветку' : 'Collapse/Expand thread'}
         />
       )}
 
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 pt-0.5">
         <Avatar className="w-6 h-6">
           {comment.author.avatar ? (
             <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
@@ -90,27 +90,27 @@ function CommentRenderer({
         </Avatar>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 group rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800/50 p-1">
         <div
-          className="flex items-center gap-2 text-xs mb-1 cursor-pointer"
+          className="flex items-center gap-2 text-xs mb-0.5 cursor-pointer"
           onClick={toggleCollapse}
         >
-          <p className="font-medium text-foreground">{comment.author.name}</p>
+          <p className="font-semibold text-foreground hover:underline">{comment.author.name}</p>
           <span className="text-muted-foreground">·</span>
           <time className="text-muted-foreground hover:underline" dateTime={comment.createdAt}>
             {timeAgo}
           </time>
         </div>
 
-        <div className="text-sm text-foreground/90 mt-1 cursor-pointer" onClick={toggleCollapse}>
+        <div className="text-sm text-foreground mt-0.5 cursor-pointer" onClick={toggleCollapse}>
           <p>{comment.content}</p>
         </div>
 
-        <div className="mt-1 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="p-1 h-auto text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className="px-2.5 py-0.5 h-auto text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             onClick={(e) => {
               e.stopPropagation()
               onReplyClick(comment.id)
@@ -120,7 +120,7 @@ function CommentRenderer({
             {locale === 'ru' ? 'Ответить' : 'Reply'}
           </Button>
           {isCollapsed && hasReplies && (
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground italic">
               {(() => {
                 const replyCount = comment.replies!.length
                 return `(${locale === 'ru' ? `${replyCount} ответов скрыто` : `${replyCount} replies hidden`})`
@@ -130,7 +130,7 @@ function CommentRenderer({
         </div>
 
         {!isCollapsed && hasReplies && (
-          <div className="mt-3 pl-0">
+          <div className="mt-5 pl-0">
             {comment.replies!.map((reply) => (
               <CommentRenderer
                 key={reply.id}
@@ -497,7 +497,7 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
     React.createElement(CommentsUI),
     React.createElement(
       Card,
-      { className: 'p-6 mb-8 comment-form-container' },
+      { className: 'p-6 mt-8 comment-form-container' },
       React.createElement(
         'h4',
         { className: 'text-lg font-medium mb-4' },

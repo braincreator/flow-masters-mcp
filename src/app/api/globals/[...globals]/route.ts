@@ -56,9 +56,21 @@ async function handler(req: Request, context: { params: Promise<{ globals: strin
 
         console.log('Parsed body:', body)
 
+        // Extract data from _payload if it exists
+        let updateData = body
+        if (body && typeof body._payload === 'string') {
+          try {
+            updateData = JSON.parse(body._payload)
+            console.log('Extracted data from _payload:', updateData)
+          } catch (e) {
+            console.error('Error parsing _payload JSON:', e)
+            return NextResponse.json({ message: 'Invalid _payload format' }, { status: 400 })
+          }
+        }
+
         const updateDoc = await payload.updateGlobal({
           slug: slug as string,
-          data: body,
+          data: updateData, // Use the potentially extracted data
           depth,
           locale: locale as 'en' | 'ru' | undefined,
         })

@@ -27,6 +27,7 @@ import { SenderEmails } from './SenderEmails'
 import { SubscriptionPayments } from './subscription-payments'
 import { Subscriptions } from './subscriptions'
 import { SubscriptionPlans } from './subscription-plans'
+import { Messages } from './Messages'
 
 const collections = [
   Analytics,
@@ -58,6 +59,7 @@ const collections = [
   SubscriptionPayments,
   Subscriptions,
   SubscriptionPlans,
+  Messages,
 ]
 
 export default collections

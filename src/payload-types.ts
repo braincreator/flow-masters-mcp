@@ -96,6 +96,7 @@ export interface Config {
     'subscription-payments': SubscriptionPayment;
     subscriptions: Subscription;
     'subscription-plans': SubscriptionPlan;
+    messages: Message;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -136,6 +137,7 @@ export interface Config {
     'subscription-payments': SubscriptionPaymentsSelect<false> | SubscriptionPaymentsSelect<true>;
     subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
     'subscription-plans': SubscriptionPlansSelect<false> | SubscriptionPlansSelect<true>;
+    messages: MessagesSelect<false> | MessagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1822,6 +1824,22 @@ export interface SubscriptionPlan {
   createdAt: string;
 }
 /**
+ * Сообщения, отправленные через контактную форму или другие источники.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages".
+ */
+export interface Message {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  source?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -2095,6 +2113,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'subscription-plans';
         value: string | SubscriptionPlan;
+      } | null)
+    | ({
+        relationTo: 'messages';
+        value: string | Message;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -3038,6 +3060,19 @@ export interface SubscriptionPlansSelect<T extends boolean = true> {
   allowCancel?: T;
   isActive?: T;
   metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages_select".
+ */
+export interface MessagesSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  subject?: T;
+  message?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -33,6 +33,7 @@ const __dirname = path.dirname(__filename)
 // Import consolidated lists
 import globalsList from '@/globals'
 import collections from '@/collections/collectionList'
+// import { Messages } from './collections/Messages'
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
@@ -155,10 +156,10 @@ export default buildConfig({
     useTempFiles: true,
     tempFileDir: '/tmp',
   },
-  express: {
-    json: { limit: '5mb' },
-    urlencoded: { limit: '5mb', extended: true },
-  },
+  // express: {
+  //   json: { limit: '5mb' },
+  //   urlencoded: { limit: '5mb', extended: true },
+  // },
   endpoints: [
     {
       path: '/api/add-products',
