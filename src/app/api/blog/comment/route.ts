@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import getPayload from 'payload'
-import configPromise from '@/payload.config'
 import { getPayloadClient } from '@/utilities/payload'
 import { z } from 'zod'
+import type { Payload } from 'payload'
+import type { Comment } from '@/payload-types'
 
 type CommentRequest = {
   postId: string
   author: {
     name: string
     email: string
-    website?: string
   }
   content: string
   parentComment?: string
@@ -21,15 +20,44 @@ const commentSchema = z.object({
   author: z.object({
     name: z.string().min(1, 'Name is required'),
     email: z.string().email('Invalid email address'),
-    website: z.string().url('Invalid URL').optional(),
   }),
   content: z.string().min(5, 'Comment must be at least 5 characters'),
   parentComment: z.string().optional(),
 })
 
+// --- Рекурсивная функция для получения ответов ---
+async function fetchReplies(payload: Payload, commentId: string): Promise<Comment[]> {
+  const replies = await payload.find({
+    collection: 'comments',
+    where: {
+      parentComment: {
+        equals: commentId,
+      },
+    },
+    // Важно: Указываем глубину, чтобы подгрузить автора, если это необходимо в ответах
+    // Если автор не нужен, можно убрать или depth: 0
+    depth: 1,
+  })
+
+  const repliesWithNestedReplies = await Promise.all(
+    replies.docs.map(async (reply) => {
+      const nestedReplies = await fetchReplies(payload, reply.id) // Рекурсивный вызов
+      return {
+        ...reply,
+        replies: nestedReplies,
+      }
+    }),
+  )
+
+  return repliesWithNestedReplies
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { postId, author, content, parentComment } = (await req.json()) as CommentRequest
+    const { postId, author, content, parentComment } = (await req.json()) as Omit<
+      CommentRequest,
+      'author'
+    > & { author: { name: string; email: string } }
 
     // Validate required fields
     if (!postId || !author?.name || !author?.email || !content) {
@@ -48,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Initialize Payload
-    const payload = await getPayload({ config: configPromise })
+    const payload = await getPayloadClient()
 
     // Check if post exists
     try {
@@ -80,12 +108,11 @@ export async function POST(req: NextRequest) {
         author: {
           name: author.name,
           email: author.email,
-          website: author.website || '',
         },
         content,
         parentComment: parentComment || undefined,
         status: 'pending', // All comments are pending by default until approved
-        ip: req.ip || '',
+        // ip: req.ip || '', // Закомментируем временно, пока не разберемся с типом и получением IP
       },
     })
 
@@ -110,38 +137,34 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await getPayloadClient()
-    const comments = await payload.find({
+
+    // Загружаем комментарии верхнего уровня
+    const topLevelComments = await payload.find({
       collection: 'comments',
       where: {
         post: {
           equals: postId,
         },
         parentComment: {
-          equals: null,
+          equals: null, // Только верхний уровень
         },
       },
+      // Указываем глубину, чтобы подгрузить автора
+      depth: 1,
     })
 
-    // Fetch replies for each comment
-    const commentsWithReplies = await Promise.all(
-      comments.docs.map(async (comment) => {
-        const replies = await payload.find({
-          collection: 'comments',
-          where: {
-            parentComment: {
-              equals: comment.id,
-            },
-          },
-        })
-
+    // Используем рекурсивную функцию для загрузки всех вложенных ответов
+    const commentsWithNestedReplies = await Promise.all(
+      topLevelComments.docs.map(async (comment) => {
+        const replies = await fetchReplies(payload, comment.id)
         return {
           ...comment,
-          replies: replies.docs,
+          replies: replies,
         }
       }),
     )
 
-    return NextResponse.json(commentsWithReplies)
+    return NextResponse.json(commentsWithNestedReplies)
   } catch (error) {
     console.error('Error fetching comments:', error)
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 })

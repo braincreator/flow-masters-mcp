@@ -19,7 +19,7 @@ export const BannerBlock: React.FC<Props> = ({ className, content, style }) => {
           'border-warning bg-warning/30': style === 'warning',
         })}
       >
-        <p>{JSON.stringify(content)}</p>
+        <RichText content={content} />
       </div>
     </div>
   )

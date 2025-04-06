@@ -1,4 +1,4 @@
-import { GlobalConfig } from 'payload'
+import { GlobalConfig } from 'payload' // Assuming payload/types is correct now
 import { isAdmin } from '@/access/isAdmin'
 
 export const EmailSettings: GlobalConfig = {

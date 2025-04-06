@@ -59,7 +59,7 @@ exports.Header = {
             admin: {
                 initCollapsed: true,
                 components: {
-                    RowLabel: '@/Header/RowLabel#RowLabel',
+                    RowLabel: '@/globals/Header/RowLabel#RowLabel',
                 },
             },
         },

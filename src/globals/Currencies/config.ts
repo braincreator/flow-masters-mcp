@@ -1,5 +1,5 @@
-import type { GlobalConfig } from 'payload/types'
-import { deepMerge } from 'payload/utilities'
+import type { GlobalConfig } from 'payload'
+import deepMerge from 'src/utilities/deepMerge'
 import { isAdmin } from '@/access/isAdmin'
 
 type BeforeValidateHook = (args: { data: any }) => any

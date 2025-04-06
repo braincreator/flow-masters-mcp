@@ -1,4 +1,5 @@
-import { CollectionConfig } from 'payload/types'
+import { isAdmin } from '@/access/isAdmin'
+import { CollectionConfig } from 'payload'
 
 export const Comments: CollectionConfig = {
   slug: 'comments',
@@ -9,8 +10,8 @@ export const Comments: CollectionConfig = {
   access: {
     read: () => true, // Anyone can read comments
     create: () => true, // Anyone can create comments
-    update: ({ req: { user } }) => Boolean(user?.role === 'admin'),
-    delete: ({ req: { user } }) => Boolean(user?.role === 'admin'),
+    update: isAdmin,
+    delete: isAdmin,
   },
   fields: [
     {

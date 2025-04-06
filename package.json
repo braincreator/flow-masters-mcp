@@ -40,7 +40,7 @@
     "@formatjs/intl-localematcher": "^0.6.1",
     "@hookform/resolvers": "4.1.3",
     "@payloadcms/db-mongodb": "^3.32.0",
-    "@payloadcms/email-nodemailer": "^3.33.0",
+    "@payloadcms/email-nodemailer": "^3.32.0",
     "@payloadcms/live-preview-react": "^3.32.0",
     "@payloadcms/next": "^3.32.0",
     "@payloadcms/payload-cloud": "^3.32.0",

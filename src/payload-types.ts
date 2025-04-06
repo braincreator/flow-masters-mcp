@@ -93,6 +93,9 @@ export interface Config {
     'user-favorites': UserFavorite;
     'email-templates': EmailTemplate;
     'sender-emails': SenderEmail;
+    'subscription-payments': SubscriptionPayment;
+    subscriptions: Subscription;
+    'subscription-plans': SubscriptionPlan;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -130,6 +133,9 @@ export interface Config {
     'user-favorites': UserFavoritesSelect<false> | UserFavoritesSelect<true>;
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'sender-emails': SenderEmailsSelect<false> | SenderEmailsSelect<true>;
+    'subscription-payments': SubscriptionPaymentsSelect<false> | SubscriptionPaymentsSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+    'subscription-plans': SubscriptionPlansSelect<false> | SubscriptionPlansSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -145,22 +151,22 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'email-settings': EmailSetting;
     'payment-providers': PaymentProvider;
     'notification-settings': NotificationSetting;
     'currency-settings': CurrencySetting;
     'exchange-rate-settings': ExchangeRateSetting;
     'webhook-settings': WebhookSetting;
-    'email-settings': EmailSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
     'payment-providers': PaymentProvidersSelect<false> | PaymentProvidersSelect<true>;
     'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
     'currency-settings': CurrencySettingsSelect<false> | CurrencySettingsSelect<true>;
     'exchange-rate-settings': ExchangeRateSettingsSelect<false> | ExchangeRateSettingsSelect<true>;
     'webhook-settings': WebhookSettingsSelect<false> | WebhookSettingsSelect<true>;
-    'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -1642,6 +1648,181 @@ export interface SenderEmail {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-payments".
+ */
+export interface SubscriptionPayment {
+  id: string;
+  /**
+   * Подписка
+   */
+  subscriptionId: string | Subscription;
+  /**
+   * Сумма платежа
+   */
+  amount: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  status: 'successful' | 'failed' | 'refunded' | 'pending';
+  /**
+   * Дата платежа
+   */
+  paymentDate: string;
+  /**
+   * Метод платежа
+   */
+  paymentMethod?: string | null;
+  /**
+   * ID транзакции в платежной системе
+   */
+  transactionId?: string | null;
+  /**
+   * Причина ошибки (если статус failed)
+   */
+  failureReason?: string | null;
+  /**
+   * Полный ответ от платежной системы
+   */
+  rawResponse?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  /**
+   * ID пользователя
+   */
+  userId: string;
+  /**
+   * План подписки
+   */
+  planId: string | SubscriptionPlan;
+  status: 'active' | 'paused' | 'canceled' | 'expired' | 'failed' | 'pending';
+  paymentProvider: 'yoomoney' | 'robokassa' | 'stripe' | 'paypal';
+  /**
+   * Метод оплаты (например, card, wallet)
+   */
+  paymentMethod?: string | null;
+  /**
+   * Токен платежного метода для рекуррентных платежей
+   */
+  paymentToken?: string | null;
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  /**
+   * Сумма платежа
+   */
+  amount: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  /**
+   * Дата начала подписки
+   */
+  startDate: string;
+  /**
+   * Дата следующего платежа
+   */
+  nextPaymentDate: string;
+  /**
+   * Дата окончания подписки (если есть)
+   */
+  endDate?: string | null;
+  /**
+   * Дата отмены подписки (если отменена)
+   */
+  canceledAt?: string | null;
+  /**
+   * Дополнительные метаданные
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-plans".
+ */
+export interface SubscriptionPlan {
+  id: string;
+  /**
+   * Name of the subscription plan
+   */
+  name: string;
+  /**
+   * Description of the subscription plan
+   */
+  description?: string | null;
+  /**
+   * List of features included in this plan
+   */
+  features?:
+    | {
+        feature: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Price of the subscription
+   */
+  price: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  /**
+   * Billing period
+   */
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  /**
+   * Number of days in trial period (0 for no trial)
+   */
+  trialPeriodDays?: number | null;
+  /**
+   * Maximum number of months for subscription (0 for unlimited)
+   */
+  maxSubscriptionMonths?: number | null;
+  /**
+   * Whether the subscription auto-renews
+   */
+  autoRenew?: boolean | null;
+  /**
+   * Whether users can cancel the subscription
+   */
+  allowCancel?: boolean | null;
+  /**
+   * Whether this plan is active and available for purchase
+   */
+  isActive?: boolean | null;
+  /**
+   * Additional metadata for this plan
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1902,6 +2083,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sender-emails';
         value: string | SenderEmail;
+      } | null)
+    | ({
+        relationTo: 'subscription-payments';
+        value: string | SubscriptionPayment;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: string | Subscription;
+      } | null)
+    | ({
+        relationTo: 'subscription-plans';
+        value: string | SubscriptionPlan;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2786,6 +2979,70 @@ export interface SenderEmailsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-payments_select".
+ */
+export interface SubscriptionPaymentsSelect<T extends boolean = true> {
+  subscriptionId?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  paymentDate?: T;
+  paymentMethod?: T;
+  transactionId?: T;
+  failureReason?: T;
+  rawResponse?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  userId?: T;
+  planId?: T;
+  status?: T;
+  paymentProvider?: T;
+  paymentMethod?: T;
+  paymentToken?: T;
+  period?: T;
+  amount?: T;
+  currency?: T;
+  startDate?: T;
+  nextPaymentDate?: T;
+  endDate?: T;
+  canceledAt?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-plans_select".
+ */
+export interface SubscriptionPlansSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  features?:
+    | T
+    | {
+        feature?: T;
+        id?: T;
+      };
+  price?: T;
+  currency?: T;
+  period?: T;
+  trialPeriodDays?: T;
+  maxSubscriptionMonths?: T;
+  autoRenew?: T;
+  allowCancel?: T;
+  isActive?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects_select".
  */
 export interface RedirectsSelect<T extends boolean = true> {
@@ -3098,6 +3355,19 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings".
+ */
+export interface EmailSetting {
+  id: string;
+  smtpHost: string;
+  smtpPort: number;
+  smtpUser: string;
+  smtpPassword: string;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -3657,19 +3927,6 @@ export interface WebhookSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "email-settings".
- */
-export interface EmailSetting {
-  id: string;
-  smtpHost: string;
-  smtpPort: number;
-  smtpUser: string;
-  smtpPassword: string;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -3724,6 +3981,19 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings_select".
+ */
+export interface EmailSettingsSelect<T extends boolean = true> {
+  smtpHost?: T;
+  smtpPort?: T;
+  smtpUser?: T;
+  smtpPassword?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -4206,19 +4476,6 @@ export interface WebhookSettingsSelect<T extends boolean = true> {
         attemptNumber?: T;
         id?: T;
       };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "email-settings_select".
- */
-export interface EmailSettingsSelect<T extends boolean = true> {
-  smtpHost?: T;
-  smtpPort?: T;
-  smtpUser?: T;
-  smtpPassword?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -49,45 +49,17 @@ const PostContent: React.FC<PostContentProps> = ({
   enhanceHeadings = true,
   debugMode = false,
 }) => {
-  // Расширенная проверка и нормализация контента
   let normalizedContent
 
   try {
-    // Сначала проверяем, является ли контент данными Lexical
     if (isLexicalContent(content)) {
       normalizedContent = normalizeLexicalContent(content)
-
-      // Проверка и обработка блоков в контенте
-      if (normalizedContent && normalizedContent.root && normalizedContent.root.children) {
-        // Диагностика блоков
-        const blocks = normalizedContent.root.children.filter((node: any) => node.type === 'block')
-
-        if (blocks.length > 0 && process.env.NODE_ENV === 'development') {
-          console.log(`[PostContent] Найдено ${blocks.length} блоков в контенте:`, blocks)
-
-          // Проверка конкретно на блоки баннеров
-          const bannerBlocks = blocks.filter(
-            (block: any) =>
-              (block.fields && block.fields.blockType === 'banner') ||
-              (block.data && block.data.blockType === 'banner'),
-          )
-
-          if (bannerBlocks.length > 0) {
-            console.log(
-              `[PostContent] Найдено ${bannerBlocks.length} блоков баннеров:`,
-              bannerBlocks,
-            )
-          }
-        }
-      }
     } else {
-      // Если нет, пробуем преобразовать данные из Payload CMS
       normalizedContent = convertPayloadDataToLexical(content)
     }
   } catch (error) {
     console.error('Ошибка при нормализации контента:', error)
 
-    // Крайний случай: оборачиваем простой текст в Lexical структуру
     if (typeof content === 'string') {
       normalizedContent = {
         root: {
@@ -110,7 +82,6 @@ const PostContent: React.FC<PostContentProps> = ({
       }
     } else if (content && typeof content === 'object') {
       try {
-        // Пытаемся преобразовать объект в строку JSON
         const jsonString = JSON.stringify(content)
         normalizedContent = {
           root: {
@@ -132,7 +103,6 @@ const PostContent: React.FC<PostContentProps> = ({
           },
         }
       } catch (e) {
-        // Если не удалось, используем пустой контент
         normalizedContent = null
       }
     } else {
@@ -140,50 +110,37 @@ const PostContent: React.FC<PostContentProps> = ({
     }
   }
 
-  // Проверяем что контент существует и имеет правильный формат
   const hasValidContent =
     normalizedContent && normalizedContent.root && Array.isArray(normalizedContent.root.children)
 
-  // Если контент не предоставлен или некорректен, показываем сообщение об ошибке
   if (!hasValidContent) {
     console.error('Невалидный контент блога:', content)
     return (
       <div className="py-4 text-center text-muted-foreground">
         <p>Контент не найден или имеет некорректный формат.</p>
-        {process.env.NODE_ENV === 'development' && (
-          <pre className="mt-4 text-xs p-4 bg-muted/30 rounded-md whitespace-pre-wrap overflow-auto">
-            {JSON.stringify(content, null, 2)}
-          </pre>
-        )}
       </div>
     )
   }
 
   useEffect(() => {
-    // Активируем подсветку кода при монтировании компонента
     if (enableCodeHighlighting && typeof window !== 'undefined') {
-      // Подсветка кода с небольшой задержкой для уверенности, что контент загружен
       const timer = setTimeout(() => {
         try {
-      Prism.highlightAll()
+          Prism.highlightAll()
         } catch (e) {
           console.error('Ошибка при подсветке кода:', e)
         }
       }, 100)
-
       return () => clearTimeout(timer)
     }
 
-    // Добавляем анимированное подчеркивание для заголовков
     if (enhanceHeadings) {
       const contentElement = document.getElementById(`post-content-${postId}`)
       if (contentElement) {
         const headings = contentElement.querySelectorAll('h2, h3, h4, h5, h6')
-
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              // Анимируем заголовки при появлении их в области видимости
               if (entry.isIntersecting) {
                 entry.target.classList.add('animated')
                 observer.unobserve(entry.target)
@@ -192,9 +149,7 @@ const PostContent: React.FC<PostContentProps> = ({
           },
           { threshold: 0.2 },
         )
-
         headings.forEach((heading) => {
-          // Добавляем ID для якорных ссылок, если его еще нет
           if (!heading.id) {
             const text = heading.textContent || ''
             heading.id = text
@@ -202,8 +157,6 @@ const PostContent: React.FC<PostContentProps> = ({
               .replace(/\s+/g, '-')
               .replace(/[^\w-]/g, '')
           }
-
-          // Добавляем якорную ссылку для заголовка
           const anchor = document.createElement('a')
           anchor.href = `#${heading.id}`
           anchor.className = 'heading-anchor'
@@ -214,12 +167,8 @@ const PostContent: React.FC<PostContentProps> = ({
             </svg>
           `
           heading.appendChild(anchor)
-
-          // Начинаем отслеживать заголовок
           observer.observe(heading)
         })
-
-        // Очистка наблюдателя при размонтировании
         return () => {
           headings.forEach((heading) => observer.unobserve(heading))
         }
@@ -227,49 +176,14 @@ const PostContent: React.FC<PostContentProps> = ({
     }
   }, [enableCodeHighlighting, enhanceHeadings, postId])
 
-  // Улучшаю отладочное логирование в режиме разработки
-  if (process.env.NODE_ENV === 'development' || debugMode) {
-      console.log('PostContent debug ----------------------')
-    console.log('Исходный контент:', content)
-    console.log('Нормализованный контент:', normalizedContent)
-    console.log('Тип контента:', typeof normalizedContent)
-    console.log('Это валидный Lexical контент:', isLexicalContent(normalizedContent))
-
-    // Анализ блоков в контенте
-    if (normalizedContent && normalizedContent.root && normalizedContent.root.children) {
-      const blocks = normalizedContent.root.children.filter((node: any) => node.type === 'block')
-      console.log('Блоки в контенте:', blocks)
-    }
-
-    console.log('PostContent debug end ----------------------')
-  }
-
-  // Используем SimpleLexicalRenderer для отображения контента
-    return (
-      <div
-        id={`post-content-${postId}`}
-      className={cn('blog-post-content w-full', enableLineNumbers && 'line-numbers', className)}
+  return (
+    <div
+      id={`post-content-${postId}`}
+      className={cn('post-content-container', className, enableLineNumbers && 'line-numbers')}
     >
       <SimpleLexicalRenderer content={normalizedContent} />
-
-      {/* Отладочная информация */}
-      {debugMode && (
-        <div className="mt-10 p-4 bg-muted/50 rounded-lg">
-          <h3 className="text-lg font-bold mb-2">Отладочная информация</h3>
-          <div className="space-y-2">
-            <p>Тип контента: {typeof normalizedContent}</p>
-            <p>Валидный Lexical: {isLexicalContent(normalizedContent) ? 'Да' : 'Нет'}</p>
-            <details>
-              <summary className="cursor-pointer font-medium">Просмотреть контент</summary>
-              <pre className="mt-2 p-2 bg-muted text-xs overflow-auto max-h-80">
-                {JSON.stringify(normalizedContent, null, 2)}
-              </pre>
-            </details>
-          </div>
-        </div>
-        )}
-      </div>
-    )
+    </div>
+  )
 }
 
 export default PostContent

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { HeaderClient } from '@/Header/Component.client'
+import { HeaderClient } from '@/globals/Header/Component.client'
 import { FooterClient } from '@/Footer/Component.client'
 import { usePathname } from 'next/navigation'
 

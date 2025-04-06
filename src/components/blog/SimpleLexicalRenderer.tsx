@@ -20,7 +20,7 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
 
     // Обработка текстовых узлов
     if (node.type === 'text') {
-      let textContent = node.text || ''
+      const textContent = node.text || ''
 
       // Применяем стили в правильном порядке (вложенные стили)
       let styledText = <>{textContent}</>
@@ -42,7 +42,7 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
       // Извлекаем URL из разных возможных полей
       let url = '#'
       let isInternal = false
-      let rel = 'noopener noreferrer'
+      const rel = 'noopener noreferrer'
       let target = '_blank'
 
       // Приоритет: url > fields.url > fields.href
@@ -323,16 +323,6 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
 
       // Обработка блока banner
       if (blockType === 'banner') {
-        // Отладочная информация для блока баннера
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Обработка баннера:', {
-            blockType,
-            blockData,
-            style: blockData.style,
-            content: blockData.content,
-          })
-        }
-
         // Получаем стиль баннера и контент
         const bannerStyle = blockData.style || 'info'
 
@@ -371,14 +361,6 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
                 <p className="text-muted-foreground italic">Содержимое баннера не найдено</p>
               )}
             </div>
-            {process.env.NODE_ENV === 'development' && (
-              <details className="mt-1 text-xs text-muted-foreground">
-                <summary>Отладочная информация баннера</summary>
-                <pre className="p-2 bg-muted/30 rounded text-xs overflow-auto max-h-40">
-                  {JSON.stringify(blockData, null, 2)}
-                </pre>
-              </details>
-            )}
           </div>
         )
       }

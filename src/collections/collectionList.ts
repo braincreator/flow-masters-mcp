@@ -22,8 +22,11 @@ import { Tags } from './Tags'
 import { Testimonials } from './Testimonials'
 import { Users } from './Users'
 import { UserFavorites } from './UserFavorites'
-import { EmailTemplates } from '@/payload/collections/EmailTemplates'
-import { SenderEmails } from '@/payload/collections/SenderEmails'
+import { EmailTemplates } from './EmailTemplates'
+import { SenderEmails } from './SenderEmails'
+import { SubscriptionPayments } from './subscription-payments'
+import { Subscriptions } from './subscriptions'
+import { SubscriptionPlans } from './subscription-plans'
 
 const collections = [
   Analytics,
@@ -52,6 +55,9 @@ const collections = [
   UserFavorites,
   EmailTemplates,
   SenderEmails,
+  SubscriptionPayments,
+  Subscriptions,
+  SubscriptionPlans,
 ]
 
 export default collections

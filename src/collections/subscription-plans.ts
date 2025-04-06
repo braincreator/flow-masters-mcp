@@ -148,4 +148,4 @@ export const SubscriptionPlans: CollectionConfig = {
     },
   ],
   timestamps: true,
-} 
+}

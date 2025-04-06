@@ -1,19 +1,19 @@
 import { CollectionConfig } from 'payload'
-import { isAdmin } from '@/access/isAdmin' // Assuming access control
+import { isAdmin } from '@/access/isAdmin'
 
 export const EmailTemplates: CollectionConfig = {
   slug: 'email-templates',
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'subject', 'sender', 'updatedAt'],
-    group: 'Email', // Group with SenderEmails
+    group: 'Email',
   },
   labels: {
     singular: 'Email Шаблон',
     plural: 'Email Шаблоны',
   },
   access: {
-    read: () => true, // Or specific access
+    read: () => true,
     create: isAdmin,
     update: isAdmin,
     delete: isAdmin,
@@ -38,7 +38,6 @@ export const EmailTemplates: CollectionConfig = {
           'Уникальный идентификатор для использования в коде (например, "welcome-email").',
       },
     },
-    // Add relation to SenderEmails
     {
       name: 'sender',
       label: 'Отправитель (Адрес и Подпись)',
@@ -55,18 +54,17 @@ export const EmailTemplates: CollectionConfig = {
       label: 'Тема письма',
       type: 'text',
       required: true,
-      localized: true, // If you need multilingual templates
+      localized: true,
     },
     {
       name: 'body',
       label: 'Тело письма',
       type: 'richText',
       required: true,
-      localized: true, // If you need multilingual templates
+      localized: true,
       admin: {
         description: 'Используйте {{placeholder}} для вставки динамических данных.',
       },
     },
-    // Remove useDefaultSignature and signatureOverride fields
   ],
 }

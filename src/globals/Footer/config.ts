@@ -1,5 +1,5 @@
 import type { GlobalConfig } from 'payload'
-import { link } from '../fields/link'
+import { link } from '@/fields/link'
 import { revalidateFooter } from './hooks/revalidateFooter'
 
 export const Footer: GlobalConfig = {
@@ -20,14 +20,13 @@ export const Footer: GlobalConfig = {
       fields: [
         link({
           appearances: false,
-          localized: true,
         }),
       ],
       maxRows: 12,
       admin: {
         initCollapsed: true,
         components: {
-          RowLabel: '@/Footer/RowLabel#RowLabel',
+          RowLabel: '@/globals/Footer/RowLabel',
         },
       },
     },
@@ -39,14 +38,13 @@ export const Footer: GlobalConfig = {
       fields: [
         link({
           appearances: false,
-          localized: true,
         }),
       ],
       maxRows: 4,
       admin: {
         initCollapsed: true,
         components: {
-          RowLabel: '@/Footer/RowLabel#RowLabel',
+          RowLabel: '@/globals/Footer/RowLabel',
         },
       },
     },
@@ -54,7 +52,7 @@ export const Footer: GlobalConfig = {
   hooks: {
     beforeChange: [
       ({ data, req }) => {
-        let finalData = { ...data }
+        const finalData = { ...data }
 
         // Ensure arrays are initialized if undefined
         if (!Array.isArray(finalData.bottomNavItems)) {
@@ -64,9 +62,12 @@ export const Footer: GlobalConfig = {
           finalData.mainNavItems = []
         }
 
-        req.payload.logger.info('Footer beforeChange - final data:', JSON.stringify(finalData, null, 2))
+        req.payload.logger.info(
+          'Footer beforeChange - final data:',
+          JSON.stringify(finalData, null, 2),
+        )
         return finalData
-      }
+      },
     ],
     afterChange: [revalidateFooter],
   },

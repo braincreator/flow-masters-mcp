@@ -9,10 +9,9 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { getServerSideURL } from './utilities/getURL'
-import collections from './collections/collectionList'
 import { defaultLexical } from '@/fields/defaultLexical'
 
-// Import handlers
+// Handlers
 import addProductsHandler from './endpoints/add-products'
 import validateDiscountHandler from './endpoints/validate-discount'
 import downloadProductHandler from './endpoints/download-product'
@@ -24,54 +23,23 @@ import updateItemHandler from './endpoints/cart/updateItemHandler'
 import removeItemHandler from './endpoints/cart/removeItemHandler'
 import clearCartHandler from './endpoints/cart/clearCartHandler'
 
-// Import plugins
+// Plugins
 import { plugins } from './plugins'
 
-// Get the directory name properly in ESM
+// ESM __dirname fix
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Import globals
-import { Header } from './Header/config'
-import { Footer } from './Footer/config'
-import { PaymentProviders } from './globals/PaymentProviders/config'
-import { NotificationSettings } from './globals/NotificationSettings'
-import { CurrencySettings } from './globals/CurrencySettings'
-import { ExchangeRateSettings } from './globals/ExchangeRateSettings'
-import { WebhookSettings } from './globals/WebhookSettings'
-import { EmailSettings } from '@/payload/globals/EmailSettings'
+// Import consolidated lists
+import globalsList from '@/globals'
+import collections from '@/collections/collectionList'
 
-// Import collections
-import { Categories } from './collections/Categories'
-import { Media } from './collections/Media'
-import { Pages } from './collections/Pages'
-import { Posts } from './collections/Posts'
-import { Users } from './collections/Users'
-import { Solutions } from './collections/Solutions'
-import { Products } from './collections/Products'
-import { Orders } from './collections/Orders'
-import { Integrations } from './collections/Integrations'
-import { Events } from './collections/Events'
-
-// Import constants
+// Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
-import { DATABASE_CONFIG } from '@/constants/index'
+import { Users } from './collections/Users' // Needed for admin.user
+import MetricsDashboard from '@/components/admin/MetricsDashboard'
 
-// Use the collections array from collectionList.ts
-// const payloadCollections = [
-//   Categories,
-//   Media,
-//   Pages,
-//   Posts,
-//   Users,
-//   Solutions,
-//   Products,
-//   Orders,
-//   Integrations,
-//   Events,
-// ]
-
-// Add more robust connection options
+// Mongoose config (keep as is)
 const mongooseConfig = {
   url: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
   connectOptions: {
@@ -81,7 +49,7 @@ const mongooseConfig = {
     socketTimeoutMS: 10000,
     retryWrites: true,
     retryReads: true,
-    w: 'majority',
+    w: 'majority' as const,
     maxPoolSize: 10,
     minPoolSize: 1,
     // Remove deprecated options
@@ -96,31 +64,16 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     components: {
-      views: [
-        {
+      views: {
+        monitoring: {
           path: 'monitoring',
           Component: '@/components/admin/MetricsDashboard',
         },
-      ],
-    },
-    nav: [
-      {
-        type: 'group',
-        label: 'System',
-        items: [
-          {
-            type: 'view',
-            label: 'Monitoring',
-            path: 'monitoring',
-            icon: 'chart',
-          },
-        ],
       },
-    ],
+    },
     importMap: {
       baseDir: path.resolve(__dirname),
     },
-
     livePreview: {
       breakpoints: [
         {
@@ -155,20 +108,7 @@ export default buildConfig({
       //   },
       // },
     },
-    // nav: [
-    //   {
-    //     type: 'group',
-    //     label: 'System',
-    //     items: [
-    //       {
-    //         label: 'Monitoring',
-    //         path: '/admin/monitoring',
-    //       },
-    //     ],
-    //   },
-    // ],
   },
-  // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter(mongooseConfig),
   localization: {
@@ -185,18 +125,10 @@ export default buildConfig({
     defaultLocale: 'ru',
     fallback: true,
   },
-  collections: [...collections],
+
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [
-    Header,
-    Footer,
-    PaymentProviders,
-    NotificationSettings,
-    CurrencySettings,
-    ExchangeRateSettings,
-    WebhookSettings,
-    EmailSettings,
-  ],
+  collections: [...collections],
+  globals: [...globalsList],
   email: nodemailerAdapter({
     defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'no-reply@example.com',
     defaultFromName: ENV.PAYLOAD_DEFAULT_SENDER_NAME || 'Payload App',

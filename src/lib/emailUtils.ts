@@ -3,8 +3,8 @@ import { Payload } from 'payload/dist/payload'
 import { InitOptions } from 'payload/config'
 import nodemailer from 'nodemailer'
 import { RichTextContent } from 'payload/types' // Use the actual type if available
-import { SenderEmails } from '@/payload/collections/SenderEmails' // Import SenderEmails type
-import { EmailTemplates } from '@/payload/collections/EmailTemplates' // Import EmailTemplates type
+import { SenderEmails } from '@/collections/SenderEmails'
+import { EmailTemplates } from '@/collections/EmailTemplates'
 
 // Placeholder: Implement a robust RichText to HTML converter
 // Consider using @payloadcms/richtext-lexical renderer or a custom one.

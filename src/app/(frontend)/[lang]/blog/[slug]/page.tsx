@@ -9,6 +9,7 @@ import { PayloadAPIProvider } from '@/providers/payload'
 import { formatBlogDate, calculateReadingTime } from '@/lib/blogHelpers'
 import { isLexicalContent } from '@/utilities/lexicalParser'
 import { BlogPostPageClient } from './page-client'
+import type { Post, Category, Tag, Media, User } from '@/payload-types'
 
 // Импортируем стили
 import '@/components/blog/blog-page.css'
@@ -20,58 +21,14 @@ interface Props {
   }>
 }
 
-/**
- * Глубокая диагностика структуры контента
- */
-function analyzeContent(content: any, maxDepth = 3): string {
-  if (!content) return 'Контент отсутствует'
+// Helper function to check if a value is a populated object with an id
+const isPopulatedObject = <T extends { id: string }>(
+  value: string | T | null | undefined, // Allow null/undefined
+): value is T => typeof value === 'object' && value !== null && 'id' in value
 
-  try {
-    const type = typeof content
-
-    if (type === 'string') {
-      try {
-        // Проверяем, может ли это быть JSON
-        const parsed = JSON.parse(content)
-        return `Строка (JSON): ${analyzeContent(parsed, maxDepth)}`
-      } catch {
-        // Не JSON, просто строка
-        return `Строка (${content.length} символов)`
-      }
-    }
-
-    if (type !== 'object') {
-      return `Примитивный тип: ${type}`
-    }
-
-    if (Array.isArray(content)) {
-      return `Массив с ${content.length} элементами`
-    }
-
-    // Анализ объекта
-    const keys = Object.keys(content)
-    let info = `Объект с ${keys.length} ключами: ${keys.join(', ')}`
-
-    if (maxDepth > 0) {
-      // Проверяем Lexical структуру
-      if (content.root && typeof content.root === 'object') {
-        info += `\nLexical root содержит ${content.root.children?.length || 0} дочерних элементов`
-
-        // Анализируем первые несколько дочерних элементов
-        if (content.root.children && content.root.children.length > 0) {
-          info += `\nПервые элементы: ${content.root.children
-            .slice(0, 3)
-            .map((c: any) => c.type + (c.children ? `(${c.children.length} детей)` : ''))
-            .join(', ')}`
-        }
-      }
-    }
-
-    return info
-  } catch (e) {
-    return `Ошибка анализа: ${e instanceof Error ? e.message : 'неизвестная ошибка'}`
-  }
-}
+// Helper function to check if a value is a populated User object
+const isPopulatedUser = (value: string | User | null | undefined): value is User =>
+  typeof value === 'object' && value !== null && 'id' in value && 'name' in value
 
 export default async function BlogPostPage({ params: paramsPromise }: Props) {
   const { lang, slug } = await paramsPromise
@@ -80,12 +37,10 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
   try {
     const payload = await getPayloadClient()
 
-    // Подготовка контента блога с обработкой ошибок
-    let post
+    let post: Post | undefined
     let relatedPosts
 
     try {
-      // Fetch the post by slug с использованием retryOnSessionExpired
       const posts = await retryOnSessionExpired(() =>
         payload.find({
           collection: 'posts',
@@ -94,7 +49,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
             _status: { equals: 'published' },
           },
           locale: currentLocale,
-          depth: 2, // Load relationships 2 levels deep
+          depth: 2,
           limit: 1,
         }),
       )
@@ -103,18 +58,29 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
         return notFound()
       }
 
-      post = posts.docs[0]
+      post = posts.docs[0] as Post
 
-      // Get related posts based on categories and tags с использованием retryOnSessionExpired
+      if (!post) {
+        return notFound()
+      }
+
+      // Extract IDs after confirming post exists
+      const postId = post.id
+      const categoryIds =
+        post.categories?.map((cat) => (isPopulatedObject(cat) ? cat.id : cat)).filter(Boolean) || []
+      const tagIds =
+        post.tags?.map((tag) => (isPopulatedObject(tag) ? tag.id : tag)).filter(Boolean) || []
+
+      // Fetch related posts using extracted IDs
       relatedPosts = await retryOnSessionExpired(() =>
         payload.find({
           collection: 'posts',
           where: {
             _status: { equals: 'published' },
-            id: { not_equals: post.id },
+            id: { not_equals: postId }, // Use variable postId
             or: [
-              { 'categories.id': { in: post.categories?.map((cat: any) => cat.id) || [] } },
-              { 'tags.id': { in: post.tags?.map((tag: any) => tag.id) || [] } },
+              { 'categories.id': { in: categoryIds } }, // Use variable categoryIds
+              { 'tags.id': { in: tagIds } }, // Use variable tagIds
             ],
           },
           locale: currentLocale,
@@ -124,7 +90,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
         }),
       )
     } catch (error) {
-      console.error('Error loading blog post:', error)
+      console.error('Error loading blog post data:', error)
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
@@ -132,72 +98,88 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
       throw error
     }
 
-    // Подготовка контента
     let processedContent = post.content
 
-    // Проверяем и структурируем контент если нужно
     if (processedContent) {
-      // Убеждаемся что у контента есть необходимая структура для Lexical
       if (typeof processedContent === 'string') {
         try {
-          // Проверяем, является ли строка JSON
           processedContent = JSON.parse(processedContent)
         } catch (e) {
-          // Если не JSON, то оставляем как есть
           console.log('[Blog] Контент не является JSON строкой')
-        }
-      }
-
-      // Логируем информацию о контенте в режиме разработки
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Blog] Тип контента:', typeof processedContent)
-        if (typeof processedContent === 'object') {
-          console.log('[Blog] Ключи контента:', Object.keys(processedContent))
-          console.log('[Blog] Анализ контента:', analyzeContent(processedContent))
-          console.log('[Blog] Является Lexical контентом:', isLexicalContent(processedContent))
         }
       }
     }
 
-    // Format the post data for components
     const formattedPostTags =
-      post.tags?.map((tag: any) => ({
-        id: tag.id?.toString(),
-        title: tag.title,
-        slug: tag.slug,
-      })) || []
+      post.tags
+        ?.map((tag) => {
+          if (isPopulatedObject<Tag>(tag)) {
+            return {
+              id: tag.id,
+              title: tag.title,
+              slug: tag.slug || '',
+            }
+          }
+          return null
+        })
+        .filter(Boolean)
+        .map((tag) => tag!) || []
 
     const formattedPostCategories =
-      post.categories?.map((cat: any) => ({
-        id: cat.id?.toString(),
-        title: cat.title,
-        slug: cat.slug,
-      })) || []
-
-    // Format related posts for the component
-    const formattedRelatedPosts = relatedPosts.docs.map((post: any) => ({
-      id: post.id?.toString(),
-      title: post.title,
-      slug: post.slug,
-      excerpt: post.excerpt,
-      publishedAt: post.publishedAt,
-      heroImage: post.heroImage
-        ? {
-            url: post.heroImage.url,
-            alt: post.heroImage.alt || '',
+      post.categories
+        ?.map((cat) => {
+          if (isPopulatedObject<Category>(cat)) {
+            return {
+              id: cat.id,
+              title: cat.title,
+              slug: cat.slug || '',
+            }
           }
-        : undefined,
-      categories: post.categories?.map((cat: any) => ({
-        id: cat.id,
-        title: cat.title,
-        slug: cat.slug,
-      })),
-    }))
+          return null
+        })
+        .filter(Boolean)
+        .map((cat) => cat!) || []
+
+    const formattedRelatedPosts =
+      relatedPosts?.docs?.map((relatedPost: Post) => {
+        const heroImage = relatedPost.heroImage
+        let imageUrl = ''
+        let imageAlt = ''
+        if (isPopulatedObject<Media>(heroImage)) {
+          imageUrl = heroImage.url || ''
+          imageAlt = heroImage.alt || ''
+        }
+
+        return {
+          id: relatedPost.id?.toString(),
+          title: relatedPost.title,
+          slug: relatedPost.slug,
+          publishedAt: relatedPost.publishedAt,
+          heroImage: heroImage
+            ? {
+                url: imageUrl,
+                alt: imageAlt,
+              }
+            : undefined,
+          categories: relatedPost.categories
+            ?.map((cat) => {
+              if (isPopulatedObject<Category>(cat)) {
+                return {
+                  id: cat.id,
+                  title: cat.title,
+                  slug: cat.slug,
+                }
+              }
+              return null
+            })
+            .filter(Boolean)
+            .map((cat) => cat!),
+        }
+      }) || []
 
     const postDate = post.publishedAt ? new Date(post.publishedAt) : new Date()
 
-    // Get estimate reading time if not provided
-    const readTime = post.readTime || calculateReadingTime(JSON.stringify(post.content)) || 5
+    const readTime = calculateReadingTime(JSON.stringify(post.content)) || 5
 
     return (
       <PayloadAPIProvider>
@@ -214,8 +196,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
       </PayloadAPIProvider>
     )
   } catch (error) {
-    // Улучшенная обработка ошибок
-    console.error('Error generating blog post page:', error)
+    console.error('Error rendering blog post page:', error)
     throw error
   }
 }
@@ -231,7 +212,6 @@ export async function generateMetadata({
   try {
     const payload = await getPayloadClient()
 
-    // Fetch the post by slug for metadata
     const posts = await payload.find({
       collection: 'posts',
       where: {
@@ -239,7 +219,7 @@ export async function generateMetadata({
         _status: { equals: 'published' },
       },
       locale: currentLocale,
-      depth: 1,
+      depth: 1, // Depth 1 to get author, tags, categories populated
       limit: 1,
     })
 
@@ -249,31 +229,58 @@ export async function generateMetadata({
       }
     }
 
-    const post = posts.docs[0]
+    const post = posts.docs[0] as Post
+    if (!post) {
+      return {
+        title: 'Post Not Found',
+      }
+    }
+
+    const metaTitle = post.meta?.title || post.title || 'Blog Post'
+    const metaDescription = post.meta?.description || '' // Use meta description, fallback to empty
+    const metaImage =
+      post.meta?.image && isPopulatedObject<Media>(post.meta.image) ? post.meta.image.url || '' : ''
+
+    // Prepare authors and tags for OpenGraph
+    const authors = post.populatedAuthors?.map((author) => author?.name).filter(Boolean) as string[]
+
+    const tags = post.tags
+      ?.map((tag) => (isPopulatedObject<Tag>(tag) ? tag.title : null))
+      .filter(Boolean) as string[]
 
     return {
-      title: `${post.title} | Flow Masters Blog`,
-      description: post.excerpt || '',
-      openGraph: post.heroImage?.url
-        ? {
-            images: [{ url: post.heroImage.url, alt: post.heroImage.alt || post.title }],
-            type: 'article',
-            publishedTime: post.publishedAt,
-            authors: post.author ? [post.author.name] : undefined,
-            tags: post.tags?.map((tag) => tag.title),
-          }
-        : undefined,
+      title: metaTitle,
+      description: metaDescription,
+      openGraph: {
+        title: metaTitle,
+        description: metaDescription,
+        url: `/blog/${slug}`,
+        siteName: 'Flow Masters', // Replace with your site name if different
+        images: metaImage
+          ? [
+              {
+                url: metaImage,
+                // Add width/height if available from Media type
+              },
+            ]
+          : [],
+        type: 'article',
+        publishedTime: post.publishedAt || undefined, // Allow undefined
+        authors: authors?.length ? authors : undefined,
+        tags: tags?.length ? tags : undefined,
+      },
       twitter: {
         card: 'summary_large_image',
-        title: post.title,
-        description: post.excerpt || '',
-        images: post.heroImage?.url ? [post.heroImage.url] : undefined,
+        title: metaTitle,
+        description: metaDescription,
+        images: metaImage ? [metaImage] : undefined,
       },
     }
   } catch (error) {
-    console.error('Error generating metadata:', error)
+    console.error(`Error generating metadata for blog post ${slug}:`, error)
     return {
-      title: 'Blog Post | Flow Masters',
+      title: 'Error',
+      description: 'Failed to load post metadata',
     }
   }
 }
