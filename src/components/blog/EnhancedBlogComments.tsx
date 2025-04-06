@@ -397,8 +397,8 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
         title: locale === 'ru' ? 'Комментарий отправлен' : 'Comment submitted',
         description:
           locale === 'ru'
-            ? 'Ваш комментарий отправлен и ожидает модерации.'
-            : 'Your comment has been submitted and is awaiting moderation.',
+            ? 'Ваш комментарий успешно добавлен.'
+            : 'Your comment has been submitted successfully.',
       })
 
       resetGuestForm()

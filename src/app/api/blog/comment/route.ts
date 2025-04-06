@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
         },
         content,
         parentComment: parentComment || undefined,
-        status: 'pending', // All comments are pending by default until approved
+        status: 'approved', // Меняем статус на approved
         // ip: req.ip || '', // Закомментируем временно, пока не разберемся с типом и получением IP
       },
     })
