@@ -6,11 +6,11 @@ import { Comments } from './Comments'
 import { Discounts } from './Discounts'
 import { Events } from './Events'
 import { Integrations } from './Integrations'
-import { Media } from './Media'
+import { Media } from '@/collections/Media'
 import { NewsletterSubscribers } from './newsletter-subscribers'
 import { Orders } from './Orders'
 import { OrderTracking } from './OrderTracking'
-import { Pages } from './Pages'
+import { Pages } from '@/collections/Pages'
 import { Posts } from './Posts'
 import { PostMetrics } from './PostMetrics'
 import { Products } from './Products'
@@ -28,6 +28,8 @@ import { SubscriptionPayments } from './subscription-payments'
 import { Subscriptions } from './subscriptions'
 import { SubscriptionPlans } from './subscription-plans'
 import { Messages } from './Messages'
+import { BroadcastReports } from './BroadcastReports'
+import { Broadcasts } from './Broadcasts'
 
 const collections = [
   Analytics,
@@ -60,6 +62,8 @@ const collections = [
   Subscriptions,
   SubscriptionPlans,
   Messages,
+  BroadcastReports,
+  Broadcasts,
 ]
 
 export default collections

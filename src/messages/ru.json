@@ -114,4 +114,14 @@
       "backToSubscriptions": "Вернуться к подпискам"
     }
   }
+},
+"newsletterUnsubscribed": {
+  "title": "Вы успешно отписаны",
+  "getMessage": "Адрес {email} был успешно удален из нашей рассылки.",
+  "getMessageGeneric": "Вы успешно отписались от нашей рассылки.",
+  "noMoreEmails": "Вы больше не будете получать от нас письма с новостями и предложениями.",
+  "resubscribePrompt": "Если это была ошибка, вы можете подписаться снова в любой момент.",
+  "resubscribeLink": "Подписаться снова",
+  "goHome": "Вернуться на главную",
+  "unsubscribedEmailLabel": "Отписанный email:"
 } 

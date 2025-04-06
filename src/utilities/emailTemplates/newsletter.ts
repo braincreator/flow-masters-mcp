@@ -1,6 +1,6 @@
 export interface NewsletterEmailData {
   email: string
-  unsubscribeToken: string
+  unsubscribeToken?: string
   locale?: string
   title?: string
   content?: string

@@ -1,46 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
+import { sendUnsubscribeConfirmationEmail } from '@/utilities/emailService'
 
 /**
  * Обработчик GET-запроса для отписки от рассылки по токену
  * Используется в письмах для простой отписки по ссылке
  */
 export async function GET(request: NextRequest) {
-  // Получаем токен из URL
-  const searchParams = request.nextUrl.searchParams
+  const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
 
+  // Проверка наличия токена
   if (!token) {
-    return NextResponse.json({ error: 'Token is required' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing unsubscribe token' }, { status: 400 })
   }
 
+  console.log(`Unsubscribe attempt with token: ${token}`)
+
   try {
-    // Инициализируем Payload CMS
     const payload = await getPayloadClient()
 
     // Ищем подписчика по токену
-    const subscribers = await payload.find({
+    const { docs: subscribers } = await payload.find({
       collection: 'newsletter-subscribers',
       where: {
         unsubscribeToken: {
           equals: token,
         },
-        status: {
-          not_equals: 'unsubscribed',
-        },
       },
+      limit: 1,
     })
 
-    // Если подписчик не найден
-    if (subscribers.docs.length === 0) {
+    if (subscribers.length === 0) {
+      console.warn(`Unsubscribe failed: Token not found - ${token}`)
+      // Возвращаем успешный ответ, чтобы не раскрывать информацию о существовании токенов
+      // Но можно вернуть и 404, если это предпочтительнее
       return NextResponse.json(
-        { error: 'Subscriber not found or already unsubscribed' },
-        { status: 404 },
+        {
+          message:
+            'If a subscription exists for this token, it has been processed. Вы будете перенаправлены.',
+        },
+        { status: 200 },
+      )
+      // Альтернатива: return NextResponse.json({ error: 'Invalid or expired token' }, { status: 404 })
+    }
+
+    const subscriber = subscribers[0]
+
+    // Проверяем, не отписан ли уже
+    if (subscriber.status === 'unsubscribed') {
+      console.log(`Subscriber ${subscriber.email} already unsubscribed.`)
+      return NextResponse.json(
+        {
+          message: 'You are already unsubscribed. Вы будете перенаправлены.',
+        },
+        { status: 200 },
       )
     }
 
     // Обновляем статус подписчика
-    const subscriber = subscribers.docs[0]
     await payload.update({
       collection: 'newsletter-subscribers',
       id: subscriber.id,
@@ -49,19 +67,39 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Перенаправляем на страницу подтверждения отписки
-    const locale = subscriber.locale || 'ru'
-    return NextResponse.redirect(new URL(`/${locale}/unsubscribed`, request.url))
-  } catch (error) {
-    console.error('Error unsubscribing from newsletter:', error)
+    console.log(`Subscriber ${subscriber.email} unsubscribed successfully.`)
 
-    return NextResponse.json(
-      {
-        error: 'An error occurred while processing your unsubscription',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    // Отправляем подтверждение отписки (асинхронно)
+    sendUnsubscribeConfirmationEmail({
+      email: subscriber.email,
+      locale: subscriber.locale,
+    }).catch((err) => {
+      payload.logger.error(
+        `Failed to send unsubscribe confirmation to ${subscriber.email}: ${err.message}`,
+      )
+    })
+
+    // --- Выполняем редирект --- //
+    // Получаем локаль подписчика или используем дефолтную
+    const redirectLocale = subscriber.locale || 'ru'
+    const redirectPath = `/${redirectLocale}/newsletter-unsubscribed`
+
+    // Создаем URL для редиректа, сохраняя исходный хост/порт
+    const redirectUrl = new URL(redirectPath, request.url)
+
+    // Добавляем параметры для возможного использования на странице
+    redirectUrl.searchParams.set('email', subscriber.email)
+    // locale уже будет в пути, но можно добавить и в searchParams при необходимости
+    // redirectUrl.searchParams.set('locale', redirectLocale)
+
+    console.log(`Redirecting unsubscribed user to: ${redirectUrl.toString()}`)
+    return NextResponse.redirect(redirectUrl)
+    // -------------------------- //
+  } catch (error: any) {
+    console.error(`Error processing unsubscribe token ${token}:`, error)
+    // Используем payload.logger, если он доступен
+    // payload?.logger?.error(`Error processing unsubscribe token ${token}: ${error.message}`);
+    return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 })
   }
 }
 

@@ -9,8 +9,8 @@ export const EmailTemplates: CollectionConfig = {
     group: 'Email',
   },
   labels: {
-    singular: 'Email Шаблон',
-    plural: 'Email Шаблоны',
+    singular: 'Email Template',
+    plural: 'Email Templates',
   },
   access: {
     read: () => true,

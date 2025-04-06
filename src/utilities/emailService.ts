@@ -3,6 +3,17 @@
 import nodemailer from 'nodemailer'
 import { getPayloadClient } from './payload'
 import { generateNewsletterEmail, NewsletterEmailData } from './emailTemplates/newsletter'
+import { generateWelcomeEmail, WelcomeEmailData } from './emailTemplates/welcome'
+import {
+  generateUnsubscribeConfirmationEmail,
+  UnsubscribeConfirmationEmailData,
+} from './emailTemplates/unsubscribeConfirmation'
+import {
+  generateAdminNewSubscriberNotificationEmail,
+  AdminNewSubscriberNotificationEmailData,
+} from './emailTemplates/adminNewSubscriber'
+import { Payload } from 'payload'
+import { NewsletterSubscriber } from '@/payload-types'
 
 // Интерфейс для опций отправки письма
 interface SendEmailOptions {
@@ -17,6 +28,25 @@ interface SendEmailOptions {
  * (разработка или продакшн)
  */
 const createTransport = () => {
+  // Проверка наличия необходимых переменных окружения
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD)
+  ) {
+    console.error('SMTP configuration is missing for production environment!')
+    // Можно выбросить ошибку или вернуть специальное значение
+    // throw new Error('SMTP configuration is missing');
+  }
+  // Проверка Ethereal
+  if (process.env.NODE_ENV !== 'production') {
+    if (!process.env.ETHEREAL_USER || !process.env.ETHEREAL_PASSWORD) {
+      console.warn('Ethereal credentials missing for development, using default test account.')
+      // Установка значений по умолчанию, если они не заданы
+      process.env.ETHEREAL_USER = process.env.ETHEREAL_USER || 'maddison53@ethereal.email' // Пример Ethereal аккаунта
+      process.env.ETHEREAL_PASSWORD = process.env.ETHEREAL_PASSWORD || 'NPSsxSKARzXTmLjLPD' // Пароль к нему
+    }
+  }
+
   // В продакшне используем настоящий SMTP-сервер
   if (process.env.NODE_ENV === 'production') {
     return nodemailer.createTransport({
@@ -46,13 +76,25 @@ const createTransport = () => {
  * Отправляет email с заданными параметрами
  */
 export const sendEmail = async (options: SendEmailOptions): Promise<boolean> => {
+  // Возвращаем значение по умолчанию для EMAIL_FROM и проверяем его наличие
+  const fromAddress = options.from || process.env.EMAIL_FROM || 'info@flow-masters.ru'
+  const { to, subject, html } = options
+
   try {
-    const { to, subject, html, from = process.env.EMAIL_FROM || 'info@flow-masters.ru' } = options
+    if (!fromAddress) {
+      console.error(
+        "Email 'from' address is not configured (EMAIL_FROM environment variable) and no default provided.",
+      )
+      return false
+    }
 
     const transport = createTransport()
+    console.log(
+      `Attempting to send email. From: ${fromAddress}, To: ${to}, Subject: \"${subject}\"`,
+    ) // Логирование попытки отправки
 
     const info = await transport.sendMail({
-      from,
+      from: fromAddress, // Используем проверенный адрес
       to,
       subject,
       html,
@@ -60,60 +102,60 @@ export const sendEmail = async (options: SendEmailOptions): Promise<boolean> => 
 
     // В режиме разработки выводим URL для просмотра письма
     if (process.env.NODE_ENV !== 'production' && info.messageId) {
-      console.log(`Email sent: ${info.messageId}`)
       console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
     }
 
+    console.log(
+      `Email successfully sent. To: ${to}, Subject: \"${subject}\", Message ID: ${info.messageId}`,
+    ) // Логирование успеха
     return true
   } catch (error) {
-    console.error('Error sending email:', error)
+    console.error(
+      `Error sending email from ${fromAddress} to ${to} with subject \"${subject}\":`,
+      error,
+    )
     return false
   }
 }
 
 /**
- * Отправляет письмо рассылки подписчику
+ * Отправляет письмо рассылки подписчику (с использованием payload.logger)
  */
-export const sendNewsletterEmail = async (
+export const sendNewsletterEmailWithLogging = async (
+  payload: Payload,
   subscriberId: string,
   title: string,
   content: string,
-): Promise<boolean> => {
+): Promise<{ success: boolean; email?: string; error?: string }> => {
   try {
-    const payload = await getPayloadClient()
-
-    // Получаем информацию о подписчике
     const subscriber = await payload.findByID({
       collection: 'newsletter-subscribers',
       id: subscriberId,
     })
 
     if (!subscriber || subscriber.status !== 'active') {
-      console.error(`Cannot send newsletter to subscriber ${subscriberId}: not found or inactive`)
-      return false
+      const reason = !subscriber ? 'not found' : 'inactive'
+      payload.logger.warn(`Cannot send newsletter to subscriber ${subscriberId}: ${reason}`)
+      return { success: false, email: subscriber?.email, error: `Subscriber ${reason}` }
     }
 
-    // Формируем данные для шаблона
     const emailData: NewsletterEmailData = {
       email: subscriber.email,
-      unsubscribeToken: subscriber.unsubscribeToken,
+      unsubscribeToken: subscriber.unsubscribeToken ?? undefined,
       locale: subscriber.locale || 'ru',
       title,
       content,
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
     }
 
-    // Генерируем HTML письма
     const html = generateNewsletterEmail(emailData)
 
-    // Отправляем письмо
     const result = await sendEmail({
       to: subscriber.email,
-      subject: title,
+      subject: title, // Используем переданный title
       html,
     })
 
-    // Если письмо успешно отправлено, обновляем дату последней отправки
     if (result) {
       await payload.update({
         collection: 'newsletter-subscribers',
@@ -122,75 +164,232 @@ export const sendNewsletterEmail = async (
           lastSent: new Date().toISOString(),
         },
       })
+      payload.logger.info(`Newsletter email sent successfully to ${subscriber.email}`)
+      return { success: true, email: subscriber.email }
+    } else {
+      payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
+      return { success: false, email: subscriber.email, error: 'Send email function failed' }
+    }
+  } catch (error: any) {
+    payload.logger.error(
+      `Error sending newsletter email to subscriber ${subscriberId}: ${error.message}`,
+    )
+    return { success: false, error: error.message || 'Unknown error' }
+  }
+}
+
+interface SendToAllResult {
+  totalSubscribers: number
+  successfullySent: number
+  failedToSend: number
+  errors: Array<{ email?: string; error: string }>
+}
+
+/**
+ * Массовая отправка рассылки всем активным подписчикам с пагинацией.
+ * Предназначена для использования внутри фоновой задачи.
+ */
+export const sendNewsletterToAllPaginated = async (
+  payload: Payload,
+  title: string,
+  content: string,
+  locale?: string,
+): Promise<SendToAllResult> => {
+  payload.logger.info(
+    `Starting newsletter broadcast. Title: "${title}", Locale: ${locale || 'all'}`,
+  )
+
+  const results: SendToAllResult = {
+    totalSubscribers: 0,
+    successfullySent: 0,
+    failedToSend: 0,
+    errors: [],
+  }
+
+  let page = 1
+  const limit = 100 // Обрабатываем по 100 подписчиков за раз
+  let hasMore = true
+
+  while (hasMore) {
+    payload.logger.info(`Fetching page ${page} of subscribers...`)
+    try {
+      const where: any = {
+        status: {
+          equals: 'active',
+        },
+      }
+      if (locale) {
+        where.locale = {
+          equals: locale,
+        }
+      }
+
+      const subscribersPage = await payload.find({
+        collection: 'newsletter-subscribers',
+        where,
+        page,
+        limit,
+        depth: 0, // Нам не нужны связанные данные
+      })
+
+      if (page === 1) {
+        results.totalSubscribers = subscribersPage.totalDocs
+        payload.logger.info(`Total active subscribers found: ${results.totalSubscribers}`)
+      }
+
+      if (subscribersPage.docs.length === 0) {
+        payload.logger.info('No more subscribers found.')
+        hasMore = false
+        break
+      }
+
+      payload.logger.info(
+        `Processing ${subscribersPage.docs.length} subscribers from page ${page}...`,
+      )
+
+      for (const subscriber of subscribersPage.docs) {
+        const result = await sendNewsletterEmailWithLogging(payload, subscriber.id, title, content)
+
+        if (result.success) {
+          results.successfullySent++
+        } else {
+          results.failedToSend++
+          results.errors.push({ email: result.email, error: result.error || 'Unknown error' })
+        }
+        // Небольшая пауза, чтобы не перегружать SMTP сервер
+        await new Promise((resolve) => setTimeout(resolve, 150))
+      }
+
+      hasMore = subscribersPage.hasNextPage
+      page = subscribersPage.nextPage ?? page + 1
+
+      if (hasMore) {
+        payload.logger.info(`Moving to page ${page}...`)
+      }
+    } catch (error: any) {
+      payload.logger.error(
+        `Error fetching or processing subscribers on page ${page}: ${error.message}`,
+      )
+      results.errors.push({ error: `Failed to process page ${page}: ${error.message}` })
+      // Решаем прервать процесс при ошибке получения данных
+      hasMore = false
+    }
+  }
+
+  payload.logger.info(
+    `Newsletter broadcast finished. Total: ${results.totalSubscribers}, Sent: ${results.successfullySent}, Failed: ${results.failedToSend}`,
+  )
+  if (results.failedToSend > 0) {
+    payload.logger.warn(`Encountered ${results.failedToSend} errors during broadcast:`)
+    results.errors.forEach((err) => payload.logger.warn(`- ${err.email || '?'}: ${err.error}`))
+  }
+
+  return results
+}
+
+/**
+ * Отправляет приветственное письмо новому подписчику
+ */
+export const sendWelcomeEmail = async (
+  subscriberData: Pick<WelcomeEmailData, 'email' | 'name' | 'locale' | 'unsubscribeToken'>,
+): Promise<boolean> => {
+  try {
+    const { email, name, locale, unsubscribeToken } = subscriberData
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
+
+    const emailData: WelcomeEmailData = {
+      email,
+      name,
+      locale: locale || 'ru',
+      unsubscribeToken,
+      siteUrl,
     }
 
-    return result
+    const html = generateWelcomeEmail(emailData)
+    const subject =
+      locale === 'ru' ? 'Добро пожаловать в Flow Masters!' : 'Welcome to Flow Masters!'
+
+    return await sendEmail({
+      to: email,
+      subject,
+      html,
+    })
   } catch (error) {
-    console.error('Error sending newsletter email:', error)
+    console.error('Error sending welcome email:', error)
     return false
   }
 }
 
 /**
- * Массовая отправка рассылки всем активным подписчикам
+ * Отправляет письмо с подтверждением отписки
  */
-export const sendNewsletterToAll = async (
-  title: string,
-  content: string,
-  locale?: string,
-): Promise<{ total: number; sent: number; failed: number }> => {
+export const sendUnsubscribeConfirmationEmail = async (
+  subscriberData: Pick<UnsubscribeConfirmationEmailData, 'email' | 'locale'>,
+): Promise<boolean> => {
   try {
-    const payload = await getPayloadClient()
+    const { email, locale } = subscriberData
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
 
-    // Условия поиска подписчиков
-    const where: any = {
-      status: {
-        equals: 'active',
-      },
+    const emailData: UnsubscribeConfirmationEmailData = {
+      email,
+      locale: locale || 'ru',
+      siteUrl,
     }
 
-    // Если указана локаль, фильтруем по ней
-    if (locale) {
-      where.locale = {
-        equals: locale,
-      }
-    }
+    const html = generateUnsubscribeConfirmationEmail(emailData)
+    const subject =
+      locale === 'ru' ? 'Вы отписались от рассылки Flow Masters' : 'You have unsubscribed'
 
-    // Получаем всех активных подписчиков
-    const subscribers = await payload.find({
-      collection: 'newsletter-subscribers',
-      where,
-      limit: 1000, // Ограничиваем количество подписчиков для одной операции
+    return await sendEmail({
+      to: email,
+      subject,
+      html,
     })
-
-    let sent = 0
-    let failed = 0
-
-    // Отправляем рассылку каждому подписчику
-    for (const subscriber of subscribers.docs) {
-      const result = await sendNewsletterEmail(subscriber.id, title, content)
-
-      if (result) {
-        sent++
-      } else {
-        failed++
-      }
-
-      // Делаем паузу между отправками, чтобы не нагружать сервер
-      await new Promise((resolve) => setTimeout(resolve, 200))
-    }
-
-    return {
-      total: subscribers.docs.length,
-      sent,
-      failed,
-    }
   } catch (error) {
-    console.error('Error sending newsletter to all subscribers:', error)
-    return {
-      total: 0,
-      sent: 0,
-      failed: 0,
+    console.error('Error sending unsubscribe confirmation email:', error)
+    return false
+  }
+}
+
+/**
+ * Отправляет уведомление администратору о новом подписчике
+ */
+export const sendAdminNewSubscriberNotification = async (
+  subscriberData: Pick<
+    AdminNewSubscriberNotificationEmailData,
+    'newSubscriberEmail' | 'newSubscriberName'
+  >,
+): Promise<boolean> => {
+  // Сначала проверяем наличие email администратора
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM // Email админа
+  if (!adminEmail) {
+    console.warn(
+      'Admin email (ADMIN_EMAIL or EMAIL_FROM) not configured, skipping admin notification.',
+    )
+    return false // Возвращаем false, если email не найден
+  }
+
+  // Теперь основной блок try/catch для отправки
+  try {
+    const emailData: AdminNewSubscriberNotificationEmailData = {
+      ...subscriberData,
+      // Значения по умолчанию гарантируют передачу строк
+      adminPanelUrl: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000/admin',
+      siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
     }
+
+    const html = generateAdminNewSubscriberNotificationEmail(emailData)
+    const subject = 'Новый подписчик на Flow Masters'
+
+    // Вызываем sendEmail - она вернет true или false
+    return await sendEmail({
+      to: adminEmail, // Мы уверены, что это string после проверки выше
+      subject,
+      html,
+    })
+  } catch (error) {
+    // sendEmail уже логирует детали ошибки, здесь можно добавить общий контекст
+    console.error('Failed to execute sendAdminNewSubscriberNotification:', error)
+    return false // Возвращаем false в случае любой ошибки
   }
 }

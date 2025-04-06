@@ -1,7 +1,19 @@
-import { CollectionConfig } from 'payload'
+import { CollectionConfig, PayloadRequest } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrHasSiteAccess } from '@/access/isAdminOrHasSiteAccess'
 import { generateUniqueToken } from '@/utilities/generateUniqueToken'
+import { sendWelcomeEmail, sendAdminNewSubscriberNotification } from '@/utilities/emailService'
+
+// Тип для документа подписчика
+interface SubscriberDoc {
+  id: string
+  email: string
+  name?: string
+  status: 'active' | 'unsubscribed' | 'bounced'
+  unsubscribeToken: string
+  locale?: string
+  // ... другие поля
+}
 
 export const NewsletterSubscribers: CollectionConfig = {
   slug: 'newsletter-subscribers',
@@ -27,6 +39,46 @@ export const NewsletterSubscribers: CollectionConfig = {
           }
         }
         return data
+      },
+    ],
+    afterChange: [
+      async ({
+        doc,
+        operation,
+        req,
+      }: {
+        doc: SubscriberDoc
+        operation: 'create' | 'update'
+        req: PayloadRequest
+      }) => {
+        // Отправляем письма только при создании нового подписчика
+        if (operation === 'create' && doc.status === 'active') {
+          console.log(`New subscriber created: ${doc.email}. Sending notifications...`)
+
+          // Отправляем приветственное письмо подписчику
+          // Не блокируем ответ, выполняем асинхронно
+          sendWelcomeEmail({
+            email: doc.email,
+            name: doc.name,
+            locale: doc.locale,
+            unsubscribeToken: doc.unsubscribeToken,
+          }).catch((err) => {
+            req.payload.logger.error(`Failed to send welcome email to ${doc.email}: ${err.message}`)
+          })
+
+          // Отправляем уведомление администратору
+          // Не блокируем ответ, выполняем асинхронно
+          sendAdminNewSubscriberNotification({
+            newSubscriberEmail: doc.email,
+            newSubscriberName: doc.name,
+          }).catch((err) => {
+            // Логируем ошибку, но не прерываем процесс
+            req.payload.logger.error(
+              `Failed to send admin notification for new subscriber ${doc.email}: ${err.message}`,
+            )
+          })
+        }
+        return doc // Хук afterChange должен возвращать документ
       },
     ],
   },

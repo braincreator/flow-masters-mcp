@@ -9,8 +9,8 @@ export const SenderEmails: CollectionConfig = {
     group: 'Email', // Group with EmailTemplates
   },
   labels: {
-    singular: 'Адрес Отправителя',
-    plural: 'Адреса Отправителей',
+    singular: 'Sender Email',
+    plural: 'Sender Emails',
   },
   access: {
     read: () => true,
@@ -22,7 +22,7 @@ export const SenderEmails: CollectionConfig = {
   fields: [
     {
       name: 'name',
-      label: 'Название (для админки)',
+      label: 'Название',
       type: 'text',
       required: true,
       admin: {

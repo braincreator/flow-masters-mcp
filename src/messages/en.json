@@ -114,4 +114,14 @@
       "backToSubscriptions": "Back to Subscriptions"
     }
   }
+},
+"newsletterUnsubscribed": {
+  "title": "Successfully Unsubscribed",
+  "getMessage": "The address {email} has been successfully removed from our mailing list.",
+  "getMessageGeneric": "You have successfully unsubscribed from our newsletter.",
+  "noMoreEmails": "You will no longer receive news and offers from us.",
+  "resubscribePrompt": "If this was a mistake, you can subscribe again at any time.",
+  "resubscribeLink": "Subscribe again",
+  "goHome": "Go to Homepage",
+  "unsubscribedEmailLabel": "Unsubscribed email:"
 } 
