@@ -105,6 +105,8 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
+    'broadcast-reports': BroadcastReport;
+    broadcasts: Broadcast;
   };
   collectionsJoins: {};
   collectionsSelect: {
@@ -146,6 +148,8 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
+    broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
   };
   db: {
     defaultIDType: string;

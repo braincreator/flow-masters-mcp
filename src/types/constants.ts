@@ -20,6 +20,7 @@ export type CollectionSlug =
   | 'products'
   | 'orders'
   | 'solutions'
+  | 'broadcast-reports'
 
 // Global types
 export type GlobalSlug = 'header' | 'footer' | 'site-config'

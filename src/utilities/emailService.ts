@@ -178,11 +178,12 @@ export const sendNewsletterEmailWithLogging = async (
   }
 }
 
-interface SendToAllResult {
+// Интерфейс для результата массовой рассылки
+export interface SendToAllResult {
   totalSubscribers: number
   successfullySent: number
   failedToSend: number
-  errors: Array<{ email?: string; error: string }>
+  sendErrors: Array<{ email?: string; error: string }>
 }
 
 /**
@@ -203,7 +204,7 @@ export const sendNewsletterToAllPaginated = async (
     totalSubscribers: 0,
     successfullySent: 0,
     failedToSend: 0,
-    errors: [],
+    sendErrors: [],
   }
 
   let page = 1
@@ -254,7 +255,7 @@ export const sendNewsletterToAllPaginated = async (
           results.successfullySent++
         } else {
           results.failedToSend++
-          results.errors.push({ email: result.email, error: result.error || 'Unknown error' })
+          results.sendErrors.push({ email: result.email, error: result.error || 'Unknown error' })
         }
         // Небольшая пауза, чтобы не перегружать SMTP сервер
         await new Promise((resolve) => setTimeout(resolve, 150))
@@ -270,7 +271,7 @@ export const sendNewsletterToAllPaginated = async (
       payload.logger.error(
         `Error fetching or processing subscribers on page ${page}: ${error.message}`,
       )
-      results.errors.push({ error: `Failed to process page ${page}: ${error.message}` })
+      results.sendErrors.push({ error: `Failed to process page ${page}: ${error.message}` })
       // Решаем прервать процесс при ошибке получения данных
       hasMore = false
     }
@@ -281,7 +282,7 @@ export const sendNewsletterToAllPaginated = async (
   )
   if (results.failedToSend > 0) {
     payload.logger.warn(`Encountered ${results.failedToSend} errors during broadcast:`)
-    results.errors.forEach((err) => payload.logger.warn(`- ${err.email || '?'}: ${err.error}`))
+    results.sendErrors.forEach((err) => payload.logger.warn(`- ${err.email || '?'}: ${err.error}`))
   }
 
   return results

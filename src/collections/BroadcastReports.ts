@@ -81,7 +81,7 @@ export const BroadcastReports: CollectionConfig = {
       },
     },
     {
-      name: 'errors',
+      name: 'sendErrors',
       label: 'Ошибки Отправки',
       type: 'json', // Храним массив ошибок как JSON
       admin: {
@@ -91,4 +91,9 @@ export const BroadcastReports: CollectionConfig = {
     },
   ],
   timestamps: true, // Добавляем createdAt и updatedAt
+  mongoose: {
+    options: {
+      suppressReservedKeysWarning: true, // Подавляем предупреждение о зарезервированных ключах
+    },
+  },
 }

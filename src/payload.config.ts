@@ -42,7 +42,7 @@ import { Users } from './collections/Users' // Needed for admin.user
 import MetricsDashboard from '@/components/admin/MetricsDashboard'
 
 // Импортируем функцию отправки рассылки
-import { sendNewsletterToAllPaginated } from './utilities/emailService'
+import { sendNewsletterToAllPaginated, SendToAllResult } from './utilities/emailService'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
@@ -163,10 +163,11 @@ export default buildConfig({
         // @ts-ignore
         handler: async ({ job, payload }: { job: any; payload: BasePayload }) => {
           const { title, content, locale } = job.data as NewsletterBroadcastJobData
-          const jobID = job.id // Сохраняем ID задачи для отчета
-
+          const jobID = job.id // ID задачи из BullMQ для отслеживания
           payload.logger.info(`Job ${jobID}: Starting newsletter broadcast job...`)
-          let results: any // Используем any для типа результатов, т.к. он сложный
+
+          // Инициализируем переменную для результатов
+          let results: SendToAllResult | null = null
           let jobStatus: 'completed' | 'failed' = 'failed' // Статус по умолчанию - ошибка
 
           try {
@@ -185,7 +186,12 @@ export default buildConfig({
             // Оставляем jobStatus = 'failed'
             // Можно добавить детали ошибки в results, если sendNewsletterToAllPaginated не вернула их
             if (!results) {
-              results = { errors: [{ error: `Job execution failed: ${error.message}` }] }
+              results = {
+                totalSubscribers: 0,
+                successfullySent: 0,
+                failedToSend: 1,
+                sendErrors: [{ error: `Job execution failed: ${error.message}` }],
+              }
             }
             // Не перевыбрасываем ошибку здесь, чтобы сохранить отчет
           } finally {
@@ -202,7 +208,7 @@ export default buildConfig({
                   totalSubscribers: results?.totalSubscribers ?? 0,
                   successfullySent: results?.successfullySent ?? 0,
                   failedToSend: results?.failedToSend ?? 0,
-                  errors: results?.errors ?? [{ error: 'No results available' }],
+                  sendErrors: results?.sendErrors ?? [{ error: 'No results available' }],
                 },
               })
               payload.logger.info(`Job ${jobID}: Broadcast report saved successfully.`)
