@@ -97,6 +97,8 @@ export interface Config {
     subscriptions: Subscription;
     'subscription-plans': SubscriptionPlan;
     messages: Message;
+    'broadcast-reports': BroadcastReport;
+    broadcasts: Broadcast;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -105,8 +107,6 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
-    'broadcast-reports': BroadcastReport;
-    broadcasts: Broadcast;
   };
   collectionsJoins: {};
   collectionsSelect: {
@@ -140,6 +140,8 @@ export interface Config {
     subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
     'subscription-plans': SubscriptionPlansSelect<false> | SubscriptionPlansSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
+    'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
+    broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -148,8 +150,6 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
-    'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
-    broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
   };
   db: {
     defaultIDType: string;
@@ -180,6 +180,7 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      'newsletter-broadcast': TaskNewsletterBroadcast;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -1844,6 +1845,64 @@ export interface Message {
   createdAt: string;
 }
 /**
+ * Отчеты о результатах массовых рассылок новостей.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "broadcast-reports".
+ */
+export interface BroadcastReport {
+  id: string;
+  broadcastId: string;
+  status: 'completed' | 'failed';
+  title: string;
+  locale: string;
+  totalSubscribers: number;
+  successfullySent: number;
+  failedToSend: number;
+  errors: {
+    error: string;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Создание и запуск массовых рассылок новостей.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "broadcasts".
+ */
+export interface Broadcast {
+  id: string;
+  title: string;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Выберите язык для целевой аудитории или "Все" для отправки всем активным подписчикам.
+   */
+  locale?: ('' | 'ru' | 'en') | null;
+  status?: ('draft' | 'queued' | 'sent' | 'failed') | null;
+  /**
+   * Ссылка на детальный отчет после завершения задачи.
+   */
+  report?: (string | null) | BroadcastReport;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -1955,7 +2014,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'newsletter-broadcast' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -1988,7 +2047,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'newsletter-broadcast' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -2121,6 +2180,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'messages';
         value: string | Message;
+      } | null)
+    | ({
+        relationTo: 'broadcast-reports';
+        value: string | BroadcastReport;
+      } | null)
+    | ({
+        relationTo: 'broadcasts';
+        value: string | Broadcast;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -3077,6 +3144,40 @@ export interface MessagesSelect<T extends boolean = true> {
   subject?: T;
   message?: T;
   source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "broadcast-reports_select".
+ */
+export interface BroadcastReportsSelect<T extends boolean = true> {
+  broadcastId?: T;
+  status?: T;
+  title?: T;
+  locale?: T;
+  totalSubscribers?: T;
+  successfullySent?: T;
+  failedToSend?: T;
+  errors?:
+    | T
+    | {
+        error?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "broadcasts_select".
+ */
+export interface BroadcastsSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  locale?: T;
+  status?: T;
+  report?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4518,6 +4619,14 @@ export interface WebhookSettingsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskNewsletter-broadcast".
+ */
+export interface TaskNewsletterBroadcast {
+  input?: unknown;
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -1,4 +1,4 @@
-import type { Payload, BasePayload } from 'payload'
+import type { Payload, BasePayload, TaskHandler } from 'payload'
 import type { PayloadRequest } from 'payload'
 
 import { buildConfig } from 'payload'
@@ -40,9 +40,12 @@ import collections from '@/collections/collectionList'
 import { ENV } from '@/constants/env'
 import { Users } from './collections/Users' // Needed for admin.user
 import MetricsDashboard from '@/components/admin/MetricsDashboard'
+import { Broadcasts } from './collections/Broadcasts'
+import { BroadcastReports } from './collections/BroadcastReports'
+import { NewsletterBroadcastJobData, SendToAllResult, BroadcastReport } from './jobs/types'
 
-// Импортируем функцию отправки рассылки
-import { sendNewsletterToAllPaginated, SendToAllResult } from './utilities/emailService'
+// Импортируем EmailService
+import { EmailService } from './services/EmailService'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
@@ -63,12 +66,22 @@ const mongooseConfig = {
   },
 }
 
-// Типы для данных задачи
-interface NewsletterBroadcastJobData {
-  title: string
-  content: string
-  locale?: string
-}
+// Объявляем тип для нашего обработчика задач
+export type JobHandler = TaskHandler<any, any>
+
+// Типизированный TaskHandler должен соответствовать интерфейсу Payload
+export type NewsletterTaskHandler = (args: {
+  job: {
+    input: NewsletterBroadcastJobData
+  }
+  req: PayloadRequest
+}) => Promise<{
+  output: {
+    status: 'completed' | 'failed'
+    results: SendToAllResult
+    error?: string
+  }
+}>
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
@@ -156,87 +169,65 @@ export default buildConfig({
   }),
   // --- Добавляем конфигурацию фоновых задач --- //
   jobs: {
-    // Определяем сами задачи в свойстве tasks
     tasks: [
       {
-        name: 'newsletter-broadcast',
-        // @ts-ignore
-        handler: async ({ job, payload }: { job: any; payload: BasePayload }) => {
-          const { title, content, locale } = job.data as NewsletterBroadcastJobData
-          const jobID = job.id // ID задачи из BullMQ для отслеживания
-          payload.logger.info(`Job ${jobID}: Starting newsletter broadcast job...`)
-
-          // Инициализируем переменную для результатов
-          let results: SendToAllResult | null = null
-          let jobStatus: 'completed' | 'failed' = 'failed' // Статус по умолчанию - ошибка
+        slug: 'newsletter-broadcast',
+        handler: async (args) => {
+          const { job, req } = args
+          const payload = req.payload
+          let results = null
+          let status = 'failed'
 
           try {
-            const fullPayload = payload as Payload
+            // Используем приведение типов через any
+            const data = job.input as any as NewsletterBroadcastJobData
 
-            results = await sendNewsletterToAllPaginated(fullPayload, title, content, locale)
+            console.log('Starting newsletter broadcast job', {
+              broadcastId: data.broadcastId,
+            })
 
-            jobStatus = 'completed' // Если дошли сюда, задача завершена
-            payload.logger.info(
-              `Job ${jobID}: Newsletter broadcast job completed. Sent: ${results.successfullySent}, Failed: ${results.failedToSend}`,
+            // Создаем экземпляр EmailService и используем его для рассылки
+            const emailService = new EmailService(payload)
+
+            // Используем sendBroadcast, который сам получит настройки SMTP, если они не указаны
+            results = await emailService.sendBroadcast(data.title, data.content, data.locale)
+
+            status = 'completed'
+            console.log(
+              `Job ${data.broadcastId}: Newsletter broadcast job completed. Sent: ${results.successfullySent}, Failed: ${results.failedToSend}`,
             )
-          } catch (error: any) {
-            payload.logger.error(
-              `Job ${jobID}: Newsletter broadcast job failed during execution: ${error.message}`,
-            )
-            // Оставляем jobStatus = 'failed'
-            // Можно добавить детали ошибки в results, если sendNewsletterToAllPaginated не вернула их
-            if (!results) {
-              results = {
-                totalSubscribers: 0,
-                successfullySent: 0,
-                failedToSend: 1,
-                sendErrors: [{ error: `Job execution failed: ${error.message}` }],
-              }
+
+            return {
+              output: {
+                status,
+                results,
+              },
             }
-            // Не перевыбрасываем ошибку здесь, чтобы сохранить отчет
-          } finally {
-            // --- Сохранение отчета в коллекцию --- //
-            try {
-              // @ts-ignore // Игнорируем ошибки типизации до регенерации payload-types.ts
-              await payload.create({
-                collection: 'broadcast-reports', // Слаг нашей коллекции отчетов
-                data: {
-                  jobID: jobID,
-                  status: jobStatus,
-                  broadcastTitle: title,
-                  broadcastLocale: locale || 'all',
-                  totalSubscribers: results?.totalSubscribers ?? 0,
-                  successfullySent: results?.successfullySent ?? 0,
-                  failedToSend: results?.failedToSend ?? 0,
-                  sendErrors: results?.sendErrors ?? [{ error: 'No results available' }],
-                },
-              })
-              payload.logger.info(`Job ${jobID}: Broadcast report saved successfully.`)
-            } catch (reportError: any) {
-              payload.logger.error(
-                `Job ${jobID}: FATAL - Failed to save broadcast report: ${reportError.message}`,
-              )
-              // Если не удалось сохранить отчет, это критическая ошибка
-            }
-            // Если исходная задача упала, перевыбрасываем ошибку, чтобы BullMQ знал
-            if (jobStatus === 'failed') {
-              throw new Error(`Newsletter broadcast job ${jobID} failed.`)
+          } catch (error) {
+            console.error('Failed to process newsletter broadcast job', error)
+
+            return {
+              output: {
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+                results,
+              },
             }
           }
         },
-        // Добавляем настройки повторных попыток
-        maxRetries: 3, // Максимум 3 повторные попытки
-        backoff: {
-          delay: 60000, // Начальная задержка 1 минута
-          type: 'exponential', // Увеличивать задержку экспоненциально
+        retries: {
+          attempts: 3,
         },
-        // priority: 'medium',
       },
-      // Можно добавить другие задачи здесь
     ],
-    // Можно добавить общие настройки очереди здесь, если нужно
-    // adapter: ...,
-    // defaultQueueName: ...
+    autoRun: [
+      {
+        cron: '* * * * *',
+        limit: 10,
+        queue: 'default',
+      },
+    ],
+    shouldAutoRun: async () => true,
   },
   // -------------------------------------------- //
   plugins,

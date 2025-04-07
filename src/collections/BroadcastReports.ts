@@ -4,9 +4,9 @@ import { isAdmin } from '@/access/isAdmin'
 export const BroadcastReports: CollectionConfig = {
   slug: 'broadcast-reports',
   admin: {
-    useAsTitle: 'jobID', // Используем ID задачи как заголовок в админке
+    useAsTitle: 'title',
     description: 'Отчеты о результатах массовых рассылок новостей.',
-    defaultColumns: ['status', 'totalSubscribers', 'successfullySent', 'failedToSend', 'createdAt'],
+    defaultColumns: ['title', 'status', 'successfullySent', 'failedToSend', 'createdAt'],
     group: 'Администрирование', // Или "Рассылки"
     readOnly: true, // Записи создаются только програмно
   },
@@ -18,76 +18,55 @@ export const BroadcastReports: CollectionConfig = {
   },
   fields: [
     {
-      name: 'jobID',
+      name: 'broadcastId',
       type: 'text',
-      label: 'ID Задачи',
       required: true,
-      unique: true,
-      admin: {
-        readOnly: true,
-      },
     },
     {
       name: 'status',
-      label: 'Статус Задачи',
       type: 'select',
-      options: [
-        { label: 'Завершено', value: 'completed' },
-        { label: 'Ошибка', value: 'failed' },
-      ],
       required: true,
-      admin: {
-        readOnly: true,
-      },
+      options: [
+        { label: 'Completed', value: 'completed' },
+        { label: 'Failed', value: 'failed' },
+      ],
     },
     {
-      name: 'broadcastTitle',
-      label: 'Тема Рассылки',
+      name: 'title',
       type: 'text',
-      admin: {
-        readOnly: true,
-      },
+      required: true,
     },
     {
-      name: 'broadcastLocale',
-      label: 'Локаль Рассылки',
+      name: 'locale',
       type: 'text',
-      admin: {
-        readOnly: true,
-      },
+      required: true,
     },
     {
       name: 'totalSubscribers',
-      label: 'Всего Подписчиков',
       type: 'number',
-      admin: {
-        readOnly: true,
-      },
+      required: true,
     },
     {
       name: 'successfullySent',
-      label: 'Успешно Отправлено',
       type: 'number',
-      admin: {
-        readOnly: true,
-      },
+      required: true,
     },
     {
       name: 'failedToSend',
-      label: 'Не Отправлено',
       type: 'number',
-      admin: {
-        readOnly: true,
-      },
+      required: true,
     },
     {
-      name: 'sendErrors',
-      label: 'Ошибки Отправки',
-      type: 'json', // Храним массив ошибок как JSON
-      admin: {
-        readOnly: true,
-        description: 'Список email и причин ошибок при отправке.',
-      },
+      name: 'errors',
+      type: 'array',
+      required: true,
+      fields: [
+        {
+          name: 'error',
+          type: 'text',
+          required: true,
+        },
+      ],
     },
   ],
   timestamps: true, // Добавляем createdAt и updatedAt

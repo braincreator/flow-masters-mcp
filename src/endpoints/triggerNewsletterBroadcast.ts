@@ -1,4 +1,7 @@
-import { PayloadRequest, Response } from 'payload'
+import { PayloadRequest } from 'payload'
+import { Response } from 'express'
+import { EmailSetting } from '@/payload-types'
+import { EmailService } from '@/services/EmailService'
 
 // Ожидаемый формат тела запроса
 interface BroadcastRequestBody {
@@ -20,7 +23,7 @@ export default async function triggerNewsletterBroadcastHandler(
   }
 
   // 2. Проверка безопасности (API ключ/секрет из payload.secret)
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.split(' ')[1]
+  const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.split(' ')[1]
   const payloadSecret = req.payload.secret
 
   // Проверяем, сконфигурирован ли PAYLOAD_SECRET вообще
@@ -37,29 +40,41 @@ export default async function triggerNewsletterBroadcastHandler(
   }
 
   // 3. Валидация тела запроса
-  const { title, content, locale } = req.body as BroadcastRequestBody
+  const { title, content, locale } = req.body as unknown as BroadcastRequestBody
 
   if (!title || !content) {
     return res.status(400).json({ error: 'Missing required fields: title and content' })
   }
 
-  // 4. Постановка задачи в очередь
+  // 4. Запуск рассылки через задачу
   try {
     req.payload.logger.info(
       `Enqueueing newsletter broadcast job. Title: "${title}", Locale: ${locale || 'all'}`,
     )
 
-    await req.payload.enqueueJob({
-      jobName: 'newsletter-broadcast', // Имя задачи, определенное в payload.config.ts
-      data: {
+    // Создаем уникальный ID для рассылки
+    const broadcastId = `broadcast_${Date.now()}`
+
+    // Получаем EmailService
+    const emailService = new EmailService(req.payload)
+
+    // Ставим задачу в очередь
+    await req.payload.jobs.queue({
+      task: 'newsletter-broadcast',
+      input: {
+        broadcastId,
         title,
         content,
-        locale, // Передаем все необходимые данные в задачу
+        locale,
+        // SMTP настройки получаются внутри EmailService
       },
     })
 
     // 5. Успешный ответ
-    return res.status(202).json({ message: 'Newsletter broadcast job enqueued successfully.' })
+    return res.status(202).json({
+      message: 'Newsletter broadcast job enqueued successfully.',
+      broadcastId,
+    })
   } catch (error: any) {
     req.payload.logger.error(`Error enqueueing newsletter broadcast job: ${error.message}`)
     return res.status(500).json({ error: 'Failed to enqueue job' })

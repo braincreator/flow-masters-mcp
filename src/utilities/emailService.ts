@@ -23,6 +23,16 @@ interface SendEmailOptions {
   from?: string
 }
 
+interface EmailSettingsType {
+  smtp?: {
+    host: string
+    port: number
+    user: string
+    password: string
+    from?: string
+  }
+}
+
 /**
  * Создает транспорт для nodemailer в зависимости от окружения
  * (разработка или продакшн)
@@ -37,37 +47,14 @@ const createTransport = () => {
     // Можно выбросить ошибку или вернуть специальное значение
     // throw new Error('SMTP configuration is missing');
   }
-  // Проверка Ethereal
-  if (process.env.NODE_ENV !== 'production') {
-    if (!process.env.ETHEREAL_USER || !process.env.ETHEREAL_PASSWORD) {
-      console.warn('Ethereal credentials missing for development, using default test account.')
-      // Установка значений по умолчанию, если они не заданы
-      process.env.ETHEREAL_USER = process.env.ETHEREAL_USER || 'maddison53@ethereal.email' // Пример Ethereal аккаунта
-      process.env.ETHEREAL_PASSWORD = process.env.ETHEREAL_PASSWORD || 'NPSsxSKARzXTmLjLPD' // Пароль к нему
-    }
-  }
 
-  // В продакшне используем настоящий SMTP-сервер
-  if (process.env.NODE_ENV === 'production') {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    })
-  }
-
-  // В среде разработки используем тестовый аккаунт
   return nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.ETHEREAL_USER || 'ethereal.user@ethereal.email',
-      pass: process.env.ETHEREAL_PASSWORD || 'ethereal_pass',
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
     },
   })
 }
@@ -77,7 +64,7 @@ const createTransport = () => {
  */
 export const sendEmail = async (options: SendEmailOptions): Promise<boolean> => {
   // Возвращаем значение по умолчанию для EMAIL_FROM и проверяем его наличие
-  const fromAddress = options.from || process.env.EMAIL_FROM || 'info@flow-masters.ru'
+  const fromAddress = options.from || process.env.EMAIL_FROM || 'admin@flow-masters.ru'
   const { to, subject, html } = options
 
   try {
@@ -178,111 +165,88 @@ export const sendNewsletterEmailWithLogging = async (
   }
 }
 
-// Интерфейс для результата массовой рассылки
+// Функция для получения настроек email
+async function getEmailSettings(payload: Payload) {
+  const settings = (await payload.findGlobal({
+    slug: 'email-settings',
+  })) as EmailSettingsType
+
+  if (!settings?.smtp) {
+    throw new Error('SMTP settings not configured')
+  }
+
+  return {
+    host: settings.smtp.host,
+    port: settings.smtp.port,
+    secure: settings.smtp.port === 465,
+    auth: {
+      user: settings.smtp.user,
+      pass: settings.smtp.password,
+    },
+    from: settings.smtp.from || 'no-reply@flow-masters.ru',
+  }
+}
+
 export interface SendToAllResult {
   totalSubscribers: number
   successfullySent: number
   failedToSend: number
-  sendErrors: Array<{ email?: string; error: string }>
+  sendErrors: Array<{ error: string }>
 }
 
-/**
- * Массовая отправка рассылки всем активным подписчикам с пагинацией.
- * Предназначена для использования внутри фоновой задачи.
- */
-export const sendNewsletterToAllPaginated = async (
+export async function sendNewsletterToAllPaginated(
   payload: Payload,
   title: string,
   content: string,
   locale?: string,
-): Promise<SendToAllResult> => {
-  payload.logger.info(
-    `Starting newsletter broadcast. Title: "${title}", Locale: ${locale || 'all'}`,
-  )
+  customSmtpSettings?: {
+    host: string
+    port: number
+    secure: boolean
+    auth: {
+      user: string
+      pass: string
+    }
+    from?: string
+  },
+): Promise<SendToAllResult> {
+  // Используем переданные настройки SMTP или получаем из базы
+  const emailSettings = customSmtpSettings || (await getEmailSettings(payload))
+  const transporter = nodemailer.createTransport(emailSettings)
+
+  // Получаем всех подписчиков
+  const subscribers = await payload.find({
+    collection: 'newsletter-subscribers',
+    where: {
+      ...(locale ? { locale: { equals: locale } } : {}),
+      confirmed: { equals: true },
+    },
+  })
 
   const results: SendToAllResult = {
-    totalSubscribers: 0,
+    totalSubscribers: subscribers.docs.length,
     successfullySent: 0,
     failedToSend: 0,
     sendErrors: [],
   }
 
-  let page = 1
-  const limit = 100 // Обрабатываем по 100 подписчиков за раз
-  let hasMore = true
-
-  while (hasMore) {
-    payload.logger.info(`Fetching page ${page} of subscribers...`)
+  // Отправляем письма
+  for (const subscriber of subscribers.docs) {
     try {
-      const where: any = {
-        status: {
-          equals: 'active',
-        },
-      }
-      if (locale) {
-        where.locale = {
-          equals: locale,
-        }
-      }
-
-      const subscribersPage = await payload.find({
-        collection: 'newsletter-subscribers',
-        where,
-        page,
-        limit,
-        depth: 0, // Нам не нужны связанные данные
+      await transporter.sendMail({
+        from: emailSettings.from,
+        to: subscriber.email,
+        subject: title,
+        html: content,
       })
-
-      if (page === 1) {
-        results.totalSubscribers = subscribersPage.totalDocs
-        payload.logger.info(`Total active subscribers found: ${results.totalSubscribers}`)
-      }
-
-      if (subscribersPage.docs.length === 0) {
-        payload.logger.info('No more subscribers found.')
-        hasMore = false
-        break
-      }
-
-      payload.logger.info(
-        `Processing ${subscribersPage.docs.length} subscribers from page ${page}...`,
-      )
-
-      for (const subscriber of subscribersPage.docs) {
-        const result = await sendNewsletterEmailWithLogging(payload, subscriber.id, title, content)
-
-        if (result.success) {
-          results.successfullySent++
-        } else {
-          results.failedToSend++
-          results.sendErrors.push({ email: result.email, error: result.error || 'Unknown error' })
-        }
-        // Небольшая пауза, чтобы не перегружать SMTP сервер
-        await new Promise((resolve) => setTimeout(resolve, 150))
-      }
-
-      hasMore = subscribersPage.hasNextPage
-      page = subscribersPage.nextPage ?? page + 1
-
-      if (hasMore) {
-        payload.logger.info(`Moving to page ${page}...`)
-      }
+      results.successfullySent++
     } catch (error: any) {
-      payload.logger.error(
-        `Error fetching or processing subscribers on page ${page}: ${error.message}`,
-      )
-      results.sendErrors.push({ error: `Failed to process page ${page}: ${error.message}` })
-      // Решаем прервать процесс при ошибке получения данных
-      hasMore = false
+      results.failedToSend++
+      results.sendErrors.push({
+        error: `Failed to send to ${subscriber.email}: ${error.message}`,
+      })
+      payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
     }
-  }
-
-  payload.logger.info(
-    `Newsletter broadcast finished. Total: ${results.totalSubscribers}, Sent: ${results.successfullySent}, Failed: ${results.failedToSend}`,
-  )
-  if (results.failedToSend > 0) {
-    payload.logger.warn(`Encountered ${results.failedToSend} errors during broadcast:`)
-    results.sendErrors.forEach((err) => payload.logger.warn(`- ${err.email || '?'}: ${err.error}`))
   }
 
   return results

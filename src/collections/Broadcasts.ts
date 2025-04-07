@@ -45,9 +45,9 @@ export const Broadcasts: CollectionConfig = {
           req.payload.logger.info(`New broadcast created: "${doc.title}". Enqueueing job...`)
           try {
             // Ставим задачу в очередь
-            await req.payload.enqueueJob({
-              jobName: 'newsletter-broadcast',
-              data: {
+            await req.payload.jobs.queue({
+              task: 'newsletter-broadcast',
+              input: {
                 title: doc.title,
                 content: JSON.stringify(doc.content), // Передаем контент как строку JSON
                 locale: doc.locale,
