@@ -1,26 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
-import { NotificationService } from '@/services/notification'
+import { ServiceRegistry } from '@/services/service.registry'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // Initialize services
-    let payload
-    try {
-      payload = await getPayloadClient()
-    } catch (error) {
-      console.error('Failed to initialize Payload client in webhook handler:', error)
-      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
-    }
-
-    let paymentService
-    try {
-      paymentService = new PaymentService(payload)
-    } catch (error) {
-      console.error('Failed to initialize PaymentService in webhook handler:', error)
-      return NextResponse.json({ error: 'Payment service unavailable' }, { status: 503 })
-    }
+    const payload = await getPayloadClient()
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
+    const notificationService = serviceRegistry.getNotificationService()
 
     // Parse the webhook data
     let webhookData
@@ -87,7 +75,6 @@ export async function POST(req: Request) {
     // Send notification if payment is successful
     if (status === 'paid') {
       try {
-        const notificationService = new NotificationService()
         await notificationService.sendPaymentConfirmation({
           email: order.user?.email || order.user, // Handle both user reference and email string
           orderNumber: order.orderNumber,

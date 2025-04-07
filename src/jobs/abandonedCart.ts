@@ -1,5 +1,5 @@
 import { getPayloadClient } from '@/utilities/payload'
-import { NotificationService } from '@/services/notification.service'
+import { ServiceRegistry } from '@/services/service.registry'
 
 /**
  * Job that processes abandoned carts and sends reminder emails
@@ -8,6 +8,8 @@ export const processAbandonedCarts = async () => {
   try {
     console.log('Running abandoned cart job...')
     const payload = await getPayloadClient()
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const notificationService = serviceRegistry.getNotificationService()
 
     // Get global settings
     const settings = await payload.findGlobal({
@@ -20,7 +22,6 @@ export const processAbandonedCarts = async () => {
       return
     }
 
-    const notificationService = new NotificationService(payload)
     const delayHours = settings.notificationSettings.email.abandonedCartDelay || 24
 
     // Calculate the threshold time (now - delay hours)

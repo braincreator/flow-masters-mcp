@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { SubscriptionService } from '@/services/subscription'
+import { ServiceRegistry } from '@/services/service.registry'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
 
-export async function GET(
-  request: Request,
-  { params }: { params: { userId: string } }
-) {
+export async function GET(request: Request, { params }: { params: { userId: string } }) {
   try {
     // Verify auth and permissions
     const auth = await verifyAuth(request)
     if (!auth.success) {
       return auth.response
     }
-    
+
     // Only allow users to access their own subscriptions or admins to access any
     if (params.userId !== auth.user.id && !auth.user.isAdmin) {
       return errorResponse('Unauthorized: You can only view your own subscriptions', 403)
     }
-    
+
     const userId = params.userId
     const payload = await getPayloadClient()
-    
+
     try {
       // Find all subscriptions for this user
       const result = await payload.find({
@@ -34,9 +31,9 @@ export async function GET(
         },
         sort: '-createdAt', // Newest first
       })
-      
+
       // Transform data for frontend
-      const subscriptions = result.docs.map(subscription => ({
+      const subscriptions = result.docs.map((subscription) => ({
         id: subscription.id,
         userId: subscription.userId,
         planId: subscription.planId,
@@ -53,7 +50,7 @@ export async function GET(
         createdAt: subscription.createdAt,
         updatedAt: subscription.updatedAt,
       }))
-      
+
       return NextResponse.json({
         success: true,
         subscriptions,
@@ -61,7 +58,7 @@ export async function GET(
       })
     } catch (error) {
       console.error('Error fetching user subscriptions:', error)
-      
+
       // In development, return mock data
       if (process.env.NODE_ENV === 'development') {
         const mockSubscriptions = getMockSubscriptionsForUser(userId)
@@ -71,7 +68,7 @@ export async function GET(
           totalSubscriptions: mockSubscriptions.length,
         })
       }
-      
+
       throw error
     }
   } catch (error) {
@@ -83,14 +80,14 @@ export async function GET(
 // Mock data for development
 function getMockSubscriptionsForUser(userId: string) {
   const today = new Date()
-  
+
   // Helper to add days to date
   const addDays = (date: Date, days: number) => {
     const result = new Date(date)
     result.setDate(result.getDate() + days)
     return result
   }
-  
+
   return [
     {
       id: 'sub_123456',

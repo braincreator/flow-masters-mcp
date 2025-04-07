@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { SubscriptionService } from '@/services/subscription'
+import { ServiceRegistry } from '@/services/service.registry'
 import { UpdateSubscriptionParams } from '@/types/subscription'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
@@ -97,7 +97,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: 'Invalid request format' }, { status: 400 })
     }
 
-    const subscriptionService = new SubscriptionService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const subscriptionService = serviceRegistry.getSubscriptionService()
     const updatedSubscription = await subscriptionService.updateSubscription(id, updateData)
 
     if (!updatedSubscription) {

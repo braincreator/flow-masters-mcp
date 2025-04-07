@@ -11,7 +11,7 @@ import {
 import { CACHE_REVALIDATE_SECONDS, DEFAULT_LOCALE } from '../constants'
 import { LRUCache } from 'lru-cache'
 import { StorageService } from './storage.service'
-import { IntegrationService } from './integration.service'
+import { IntegrationService } from './IntegrationService'
 import { revalidateContent } from '../utilities/revalidation'
 
 // Import unstable_cache from next/cache

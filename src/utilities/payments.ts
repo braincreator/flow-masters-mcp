@@ -1,4 +1,7 @@
 import crypto from 'crypto'
+import { Payload } from 'payload'
+import { ServiceRegistry } from '@/services/service.registry'
+import { getPayloadClient } from './payload'
 
 interface YooMoneyConfig {
   shopId: string
@@ -15,15 +18,21 @@ interface RobokassaConfig {
 }
 
 interface YooMoneyNotification {
-  sha1_hash: string;
-  notification_type: string;
-  operation_id: string;
-  amount: string;
-  currency: string;
-  datetime: string;
-  sender: string;
-  codepro: string;
-  label: string;
+  sha1_hash: string
+  notification_type: string
+  operation_id: string
+  amount: string
+  currency: string
+  datetime: string
+  sender: string
+  codepro: string
+  label: string
+}
+
+// Создаем singleton инстанс сервиса асинхронно
+async function getServiceRegistry(): Promise<ServiceRegistry> {
+  const payload = await getPayloadClient()
+  return ServiceRegistry.getInstance(payload)
 }
 
 export class PaymentService {
@@ -41,13 +50,19 @@ export class PaymentService {
     returnUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/payment/robokassa/callback`,
   }
 
+  private payload: Payload
+
+  constructor(payload: Payload) {
+    this.payload = payload
+  }
+
   generateYooMoneyPaymentLink(orderId: string, amount: number, description: string) {
     const data = {
       receiver: this.yoomoneyConfig.shopId,
       'quickpay-form': 'shop',
       targets: `Order ${orderId}`,
       paymentType: 'AC',
-      sum: amount,
+      sum: amount.toString(),
       label: orderId,
       successURL: this.yoomoneyConfig.returnUrl,
     }
@@ -64,7 +79,7 @@ export class PaymentService {
     const signature = crypto
       .createHash('md5')
       .update(
-        `${this.robokassaConfig.merchantLogin}:${amount}:${orderId}:${this.robokassaConfig.password1}`
+        `${this.robokassaConfig.merchantLogin}:${amount}:${orderId}:${this.robokassaConfig.password1}`,
       )
       .digest('hex')
 
@@ -87,7 +102,17 @@ export class PaymentService {
     }
 
     const typedNotification = notification as YooMoneyNotification
-    const { sha1_hash, notification_type, operation_id, amount, currency, datetime, sender, codepro, label } = typedNotification
+    const {
+      sha1_hash,
+      notification_type,
+      operation_id,
+      amount,
+      currency,
+      datetime,
+      sender,
+      codepro,
+      label,
+    } = typedNotification
 
     if (!this.yoomoneyConfig.secretKey) {
       throw new Error('YooMoney secret key is not configured')
@@ -96,16 +121,29 @@ export class PaymentService {
     const hash = crypto
       .createHash('sha1')
       .update(
-        [notification_type, operation_id, amount, currency, datetime, sender, codepro, this.yoomoneyConfig.secretKey, label].join('&')
+        [
+          notification_type,
+          operation_id,
+          amount,
+          currency,
+          datetime,
+          sender,
+          codepro,
+          this.yoomoneyConfig.secretKey,
+          label,
+        ].join('&'),
       )
       .digest('hex')
 
     if (hash === sha1_hash) {
-      const integrationService = new IntegrationService(this.payload)
+      // Используем ServiceRegistry для получения IntegrationService
+      const serviceRegistry = ServiceRegistry.getInstance(this.payload)
+      const integrationService = serviceRegistry.getIntegrationService()
+
       try {
         await integrationService.processEvent('payment.received', {
           provider: 'yoomoney',
-          ...typedNotification
+          ...typedNotification,
         })
         return true
       } catch (error) {
@@ -129,15 +167,23 @@ export class PaymentService {
 
   private isValidNotification(notification: unknown): notification is YooMoneyNotification {
     if (!notification || typeof notification !== 'object') return false
-    
-    const required = ['sha1_hash', 'notification_type', 'operation_id', 'amount', 
-                     'currency', 'datetime', 'sender', 'codepro', 'label']
-    
-    return required.every(field => 
-      field in notification && 
-      typeof (notification as Record<string, unknown>)[field] === 'string'
+
+    const required = [
+      'sha1_hash',
+      'notification_type',
+      'operation_id',
+      'amount',
+      'currency',
+      'datetime',
+      'sender',
+      'codepro',
+      'label',
+    ]
+
+    return required.every(
+      (field) =>
+        field in notification &&
+        typeof (notification as Record<string, unknown>)[field] === 'string',
     )
   }
 }
-
-export const paymentService = new PaymentService()

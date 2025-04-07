@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { SubscriptionService } from '@/services/subscription'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Защищаем маршрут с помощью API ключа
 const validateApiKey = (req: NextRequest): boolean => {
@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
 
     console.log('Starting subscription payments processing...')
 
-    const subscriptionService = new SubscriptionService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const subscriptionService = serviceRegistry.getSubscriptionService()
     const results = await subscriptionService.processRecurringPayments()
 
     console.log('Subscription processing completed:', results)

@@ -10,17 +10,28 @@ interface ProductScore {
 }
 
 export class RecommendationService extends BaseService {
+  private static instance: RecommendationService | null = null
   private recommendationCache: LRUCache<string, Product[]>
 
-  constructor(payload: Payload) {
+  private constructor(payload: Payload) {
     super(payload)
     this.recommendationCache = new LRUCache({
       max: 100,
-      ttl: CACHE_REVALIDATE_SECONDS * 1000
+      ttl: CACHE_REVALIDATE_SECONDS * 1000,
     })
   }
 
-  private async calculateProductSimilarity(productId: string, otherProductId: string): Promise<number> {
+  public static getInstance(payload: Payload): RecommendationService {
+    if (!RecommendationService.instance) {
+      RecommendationService.instance = new RecommendationService(payload)
+    }
+    return RecommendationService.instance
+  }
+
+  private async calculateProductSimilarity(
+    productId: string,
+    otherProductId: string,
+  ): Promise<number> {
     const [product, otherProduct] = await Promise.all([
       this.payload.findByID({ collection: 'products', id: productId }),
       this.payload.findByID({ collection: 'products', id: otherProductId }),
@@ -43,9 +54,9 @@ export class RecommendationService extends BaseService {
     }
 
     // Tags overlap
-    const productTags = new Set(product.tags?.map(t => t.tag))
-    const otherTags = new Set(otherProduct.tags?.map(t => t.tag))
-    const commonTags = [...productTags].filter(tag => otherTags.has(tag))
+    const productTags = new Set(product.tags?.map((t) => t.tag))
+    const otherTags = new Set(otherProduct.tags?.map((t) => t.tag))
+    const commonTags = [...productTags].filter((tag) => otherTags.has(tag))
     score += commonTags.length * 0.1
 
     return score
@@ -68,21 +79,21 @@ export class RecommendationService extends BaseService {
       allProducts.docs.map(async (product) => ({
         productId: product.id,
         score: await this.calculateProductSimilarity(productId, product.id),
-      }))
+      })),
     )
 
     const recommendedIds = scores
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map(score => score.productId)
+      .map((score) => score.productId)
 
     const recommendations = await Promise.all(
-      recommendedIds.map(id => 
+      recommendedIds.map((id) =>
         this.payload.findByID({
           collection: 'products',
           id,
-        })
-      )
+        }),
+      ),
     )
 
     this.recommendationCache.set(cacheKey, recommendations)
@@ -98,15 +109,15 @@ export class RecommendationService extends BaseService {
       },
     })
 
-    const purchasedProducts = orders.docs.flatMap(order => order.products || [])
-    const purchasedCategories = new Set(purchasedProducts.map(p => p.category))
+    const purchasedProducts = orders.docs.flatMap((order) => order.products || [])
+    const purchasedCategories = new Set(purchasedProducts.map((p) => p.category))
 
     // Get products in similar categories
     const recommendations = await this.payload.find({
       collection: 'products',
       where: {
         category: { in: Array.from(purchasedCategories) },
-        id: { not_in: purchasedProducts.map(p => p.id) },
+        id: { not_in: purchasedProducts.map((p) => p.id) },
         status: { equals: 'published' },
       },
       limit,

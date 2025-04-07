@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { authenticated } from '@/access/authenticated'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const OrderTracking: CollectionConfig = {
   slug: 'order-tracking',
@@ -144,7 +145,8 @@ export const OrderTracking: CollectionConfig = {
     afterChange: [
       async ({ doc, operation, req }) => {
         if (operation === 'update') {
-          const notificationService = new NotificationService(req.payload)
+          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+          const notificationService = serviceRegistry.getNotificationService()
           await notificationService.sendDigitalOrderStatusUpdate(doc)
         }
       },

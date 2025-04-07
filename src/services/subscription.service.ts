@@ -7,24 +7,30 @@ import {
   CreateSubscriptionParams,
   UpdateSubscriptionParams,
 } from '@/types/subscription'
-import { PaymentService } from './payment'
-import { NotificationService } from './notification'
+import { ServiceRegistry } from './service.registry'
+import { BaseService } from './base.service'
+import { PaymentService } from './payment.service'
+import { NotificationService } from './notification.service'
 
-export class SubscriptionService {
-  private payload: Payload | null = null
-  private paymentService: PaymentService | null = null
-  private notificationService: NotificationService | null = null
+export class SubscriptionService extends BaseService {
+  private static instance: SubscriptionService | null = null
+  private paymentService: any | null = null
+  private notificationService: any | null = null
 
-  constructor(payload?: Payload) {
-    if (payload) {
-      this.init(payload)
-    }
+  private constructor(payload: Payload) {
+    super(payload)
+
+    // Инициализируем зависимые сервисы через ServiceRegistry
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    this.paymentService = serviceRegistry.getPaymentService()
+    this.notificationService = serviceRegistry.getNotificationService()
   }
 
-  init(payload: Payload) {
-    this.payload = payload
-    this.paymentService = new PaymentService(payload)
-    this.notificationService = new NotificationService()
+  public static getInstance(payload: Payload): SubscriptionService {
+    if (!SubscriptionService.instance) {
+      SubscriptionService.instance = new SubscriptionService(payload)
+    }
+    return SubscriptionService.instance
   }
 
   /**

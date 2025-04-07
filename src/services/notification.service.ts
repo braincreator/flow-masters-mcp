@@ -1,16 +1,24 @@
-import type { Payload } from 'payload'
-import { EmailService } from './EmailService'
-import { TelegramService } from './TelegramService'
+import { Payload } from 'payload'
+import { BaseService } from './base.service'
+import { EmailService } from './email.service'
+import { TelegramService } from './telegram.service'
 
-export class NotificationService {
-  private payload: Payload
-  private emailService: EmailService
-  private telegramService: TelegramService
+export class NotificationService extends BaseService {
+  private static instance: NotificationService | null = null
+  private emailService: EmailService | null = null
+  private telegramService: TelegramService | null = null
 
-  constructor(payload: Payload) {
-    this.payload = payload
-    this.emailService = new EmailService()
-    this.telegramService = new TelegramService()
+  private constructor(payload: Payload) {
+    super(payload)
+    this.emailService = EmailService.getInstance(payload)
+    this.telegramService = TelegramService.getInstance(payload)
+  }
+
+  public static getInstance(payload: Payload): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService(payload)
+    }
+    return NotificationService.instance
   }
 
   async sendPaymentConfirmation(orderData: {
