@@ -2,7 +2,7 @@ import { CollectionConfig, PayloadRequest } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrHasSiteAccess } from '@/access/isAdminOrHasSiteAccess'
 import { generateUniqueToken } from '@/utilities/generateUniqueToken'
-import { sendWelcomeEmail, sendAdminNewSubscriberNotification } from '@/utilities/emailService'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Тип для документа подписчика
 interface SubscriberDoc {
@@ -55,28 +55,42 @@ export const NewsletterSubscribers: CollectionConfig = {
         if (operation === 'create' && doc.status === 'active') {
           console.log(`New subscriber created: ${doc.email}. Sending notifications...`)
 
-          // Отправляем приветственное письмо подписчику
-          // Не блокируем ответ, выполняем асинхронно
-          sendWelcomeEmail({
-            email: doc.email,
-            name: doc.name,
-            locale: doc.locale,
-            unsubscribeToken: doc.unsubscribeToken,
-          }).catch((err) => {
-            req.payload.logger.error(`Failed to send welcome email to ${doc.email}: ${err.message}`)
-          })
+          try {
+            // Инициализируем ServiceRegistry и получаем EmailService
+            const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+            const emailService = serviceRegistry.getEmailService()
 
-          // Отправляем уведомление администратору
-          // Не блокируем ответ, выполняем асинхронно
-          sendAdminNewSubscriberNotification({
-            newSubscriberEmail: doc.email,
-            newSubscriberName: doc.name,
-          }).catch((err) => {
-            // Логируем ошибку, но не прерываем процесс
+            // Отправляем приветственное письмо подписчику
+            emailService
+              .sendWelcomeEmail({
+                email: doc.email,
+                name: doc.name,
+                locale: doc.locale,
+                unsubscribeToken: doc.unsubscribeToken,
+              })
+              .catch((err: Error) => {
+                req.payload.logger.error(
+                  `Failed to send welcome email to ${doc.email}: ${err.message}`,
+                )
+              })
+
+            // Отправляем уведомление администратору
+            emailService
+              .sendAdminNewSubscriberNotification({
+                newSubscriberEmail: doc.email,
+                newSubscriberName: doc.name,
+              })
+              .catch((err: Error) => {
+                // Логируем ошибку, но не прерываем процесс
+                req.payload.logger.error(
+                  `Failed to send admin notification for new subscriber ${doc.email}: ${err.message}`,
+                )
+              })
+          } catch (error: any) {
             req.payload.logger.error(
-              `Failed to send admin notification for new subscriber ${doc.email}: ${err.message}`,
+              `Error initializing services for email notifications: ${error.message}`,
             )
-          })
+          }
         }
         return doc // Хук afterChange должен возвращать документ
       },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { sendUnsubscribeConfirmationEmail } from '@/utilities/emailService'
+import { ServiceRegistry } from '@/services/service-registry'
 
 /**
  * Обработчик GET-запроса для отписки от рассылки по токену
@@ -70,14 +70,25 @@ export async function GET(request: NextRequest) {
     console.log(`Subscriber ${subscriber.email} unsubscribed successfully.`)
 
     // Отправляем подтверждение отписки (асинхронно)
-    sendUnsubscribeConfirmationEmail({
-      email: subscriber.email,
-      locale: subscriber.locale,
-    }).catch((err) => {
+    try {
+      const serviceRegistry = new ServiceRegistry(payload)
+      const emailService = serviceRegistry.getEmailService()
+
+      emailService
+        .sendUnsubscribeConfirmationEmail({
+          email: subscriber.email,
+          locale: subscriber.locale,
+        })
+        .catch((err) => {
+          payload.logger.error(
+            `Failed to send unsubscribe confirmation to ${subscriber.email}: ${err.message}`,
+          )
+        })
+    } catch (error: any) {
       payload.logger.error(
-        `Failed to send unsubscribe confirmation to ${subscriber.email}: ${err.message}`,
+        `Error initializing services for unsubscribe confirmation: ${error.message}`,
       )
-    })
+    }
 
     // --- Выполняем редирект --- //
     // Получаем локаль подписчика или используем дефолтную

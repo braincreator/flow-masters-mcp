@@ -3,7 +3,8 @@
 import { useState, useCallback } from 'react'
 import { PaymentProvider } from '@/types/constants'
 import { PAYMENT_CONFIG } from '@/constants/payment'
-import { paymentService } from '@/services/payment'
+import { getPayloadClient } from '@/utilities/payload'
+import { ServiceRegistry } from '@/services/service.registry'
 
 interface UsePaymentProps {
   orderId: string
@@ -35,6 +36,11 @@ export const usePayment = ({
       setError(null)
 
       try {
+        // Получаем PaymentService через ServiceRegistry
+        const payload = await getPayloadClient()
+        const serviceRegistry = ServiceRegistry.getInstance(payload)
+        const paymentService = serviceRegistry.getPaymentService()
+
         const paymentResult = await paymentService.createPayment(provider, {
           orderId,
           amount,

@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { isAdmin } from '@/access/isAdmin'
-import { IntegrationService } from '@/services/integration.service'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -20,19 +20,20 @@ export const Users: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, operation, req }) => {
-        if (operation === 'create') {
-          const integrationService = new IntegrationService(req.payload)
+      async ({ doc, req, operation }) => {
+        if (operation === 'create' || operation === 'update') {
+          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+          const integrationService = serviceRegistry.getIntegrationService()
           await integrationService.processEvent('user.registered', {
             id: doc.id,
             email: doc.email,
             name: doc.name,
             role: doc.role,
-            createdAt: doc.createdAt
+            createdAt: doc.createdAt,
           })
         }
-      }
-    ]
+      },
+    ],
   },
   fields: [
     {

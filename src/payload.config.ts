@@ -45,7 +45,8 @@ import { BroadcastReports } from './collections/BroadcastReports'
 import { NewsletterBroadcastJobData, SendToAllResult, BroadcastReport } from './jobs/types'
 
 // Импортируем EmailService
-import { EmailService } from './services/EmailService'
+import { EmailService } from './services/email.service'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
@@ -186,8 +187,9 @@ export default buildConfig({
               broadcastId: data.broadcastId,
             })
 
-            // Создаем экземпляр EmailService и используем его для рассылки
-            const emailService = new EmailService(payload)
+            // Создаем экземпляр ServiceRegistry и получаем EmailService
+            const serviceRegistry = ServiceRegistry.getInstance(payload)
+            const emailService = serviceRegistry.getEmailService()
 
             // Используем sendBroadcast, который сам получит настройки SMTP, если они не указаны
             results = await emailService.sendBroadcast(data.title, data.content, data.locale)

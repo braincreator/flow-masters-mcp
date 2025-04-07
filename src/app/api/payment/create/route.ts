@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
 import { PaymentProvider } from '@/types/payment'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
 
     let paymentService
     try {
-      paymentService = new PaymentService(payload)
+      const serviceRegistry = ServiceRegistry.getInstance(payload)
+      paymentService = serviceRegistry.getPaymentService()
     } catch (error) {
       console.error('Failed to initialize PaymentService:', error)
       return NextResponse.json({ error: 'Payment service unavailable' }, { status: 503 })

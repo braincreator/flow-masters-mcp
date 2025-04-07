@@ -1,7 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { anyone } from '../../access/authenticated'
 import { authenticated } from '../../access/authenticated'
-import { IntegrationService } from '../../services/IntegrationService'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Forms: CollectionConfig = {
   slug: 'forms',
@@ -18,18 +18,21 @@ export const Forms: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc, operation, req }) => {
-        // Only trigger for form submissions, not form configuration changes
-        if (doc.submissionData) {
-          const integrationService = new IntegrationService(req.payload)
-          await integrationService.processEvent('form.submitted', {
-            formId: doc.id,
-            formTitle: doc.title,
-            submission: doc.submissionData,
-            submittedAt: doc.createdAt
-          })
+        if (operation === 'create') {
+          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+          const integrationService = serviceRegistry.getIntegrationService()
+          // Only trigger for form submissions, not form configuration changes
+          if (doc.submissionData) {
+            await integrationService.processEvent('form.submitted', {
+              formId: doc.id,
+              formTitle: doc.title,
+              submission: doc.submissionData,
+              submittedAt: doc.createdAt,
+            })
+          }
         }
-      }
-    ]
+      },
+    ],
   },
   fields: [
     {

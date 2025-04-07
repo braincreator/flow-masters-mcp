@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { PaymentProvider, PaymentMethod, PaymentStatus } from '@/types/payment'
 import { BaseService } from './base.service'
 import { NotificationService } from './notification.service'
+import { ServiceRegistry } from './service.registry'
 
 interface PaymentCreateParams {
   orderId: string
@@ -34,6 +35,9 @@ export class PaymentService extends BaseService {
 
   private constructor(payload: Payload) {
     super(payload)
+    this.loadSettings().catch((err) =>
+      console.error('Failed to load settings during initialization:', err),
+    )
   }
 
   public static getInstance(payload: Payload): PaymentService {
@@ -43,13 +47,11 @@ export class PaymentService extends BaseService {
     return PaymentService.instance
   }
 
-  async getSettings() {
+  /**
+   * Загружает настройки асинхронно при инициализации
+   */
+  private async loadSettings(): Promise<void> {
     try {
-      // If settings already loaded, return them
-      if (this.settingsLoaded && this.settings) {
-        return this.settings
-      }
-
       // Try to get payment providers from global
       try {
         const paymentProviders = await this.payload.findGlobal({
@@ -60,7 +62,7 @@ export class PaymentService extends BaseService {
           console.log('Retrieved payment-providers global')
           this.settings = this.transformPaymentProviders(paymentProviders)
           this.settingsLoaded = true
-          return this.settings
+          return
         }
       } catch (error) {
         console.warn('Failed to retrieve payment-providers global:', error)
@@ -68,6 +70,7 @@ export class PaymentService extends BaseService {
 
       // Try fallback to settings global
       try {
+        // @ts-ignore: settings глобальный объект может существовать в системе
         const settings = await this.payload.findGlobal({
           slug: 'settings',
         })
@@ -75,24 +78,43 @@ export class PaymentService extends BaseService {
         if (settings) {
           this.settings = settings
           this.settingsLoaded = true
-          return this.settings
+          return
         }
       } catch (error) {
         console.warn('Failed to retrieve settings global:', error)
       }
 
-      // Return default settings if all attempts failed
-      return {
+      // Set default settings if all attempts failed
+      this.settings = {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
+        providersConfig: {},
       }
+      this.settingsLoaded = true
     } catch (error) {
-      console.error('Error in getSettings:', error)
+      console.error('Error in loadSettings:', error)
+      this.settings = {
+        providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
+        defaultProvider: 'robokassa',
+        providersConfig: {},
+      }
+      this.settingsLoaded = true
+    }
+  }
+
+  /**
+   * Получает настройки платежных систем
+   */
+  getSettings(): any {
+    if (!this.settingsLoaded) {
+      console.warn('Settings not loaded yet, returning default settings')
       return {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
+        providersConfig: {},
       }
     }
+    return this.settings
   }
 
   private transformPaymentProviders(paymentProviders: any) {
@@ -229,7 +251,7 @@ export class PaymentService extends BaseService {
     Array<{ id: PaymentProvider; name: string; enabled: boolean }>
   > {
     try {
-      const settings = await this.getSettings()
+      const settings = this.getSettings()
       const enabledProviders = settings?.providers?.filter((p) => p.enabled) || []
 
       if (enabledProviders.length === 0) {
@@ -251,7 +273,7 @@ export class PaymentService extends BaseService {
 
   async getDefaultProvider(): Promise<PaymentProvider> {
     try {
-      const settings = await this.getSettings()
+      const settings = this.getSettings()
       const defaultProvider = settings?.defaultProvider as PaymentProvider
 
       if (!defaultProvider) {
@@ -273,29 +295,27 @@ export class PaymentService extends BaseService {
     try {
       console.log('Creating payment with provider:', provider)
 
-      if (!provider || !provider.id) {
+      if (!provider) {
         return {
           success: false,
           error: 'Payment provider is missing or invalid',
         }
       }
 
-      const providerId = provider.id
-
-      // Based on provider ID, call the appropriate payment creation method
-      switch (providerId) {
+      // Based on provider type, call the appropriate payment creation method
+      switch (provider) {
         case 'yoomoney':
-          return await this.createYooMoneyPayment(params, provider)
+          return await this.createYooMoneyPayment(params)
         case 'robokassa':
-          return await this.createRobokassaPayment(params, provider)
+          return await this.createRobokassaPayment(params)
         case 'stripe':
-          return await this.createStripePayment(params, provider)
+          return await this.createStripePayment(params)
         case 'paypal':
-          return await this.createPayPalPayment(params, provider)
+          return await this.createPayPalPayment(params)
         case 'crypto':
-          return await this.createCryptoPayment(params, provider)
+          return await this.createCryptoPayment(params)
         default:
-          throw new Error(`Unsupported payment provider: ${providerId}`)
+          throw new Error(`Unsupported payment provider: ${provider}`)
       }
     } catch (error) {
       console.error('Payment creation error:', error)
@@ -343,42 +363,27 @@ export class PaymentService extends BaseService {
   }
 
   // Заглушки для методов, которые должны быть реализованы
-  private async createYooMoneyPayment(
-    params: PaymentCreateParams,
-    provider: any,
-  ): Promise<PaymentResult> {
+  private async createYooMoneyPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { success: false, error: 'Not implemented' }
   }
 
-  private async createRobokassaPayment(
-    params: PaymentCreateParams,
-    provider: any,
-  ): Promise<PaymentResult> {
+  private async createRobokassaPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { success: false, error: 'Not implemented' }
   }
 
-  private async createStripePayment(
-    params: PaymentCreateParams,
-    provider: any,
-  ): Promise<PaymentResult> {
+  private async createStripePayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { success: false, error: 'Not implemented' }
   }
 
-  private async createPayPalPayment(
-    params: PaymentCreateParams,
-    provider: any,
-  ): Promise<PaymentResult> {
+  private async createPayPalPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { success: false, error: 'Not implemented' }
   }
 
-  private async createCryptoPayment(
-    params: PaymentCreateParams,
-    provider: any,
-  ): Promise<PaymentResult> {
+  private async createCryptoPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { success: false, error: 'Not implemented' }
   }
@@ -833,7 +838,6 @@ export class PaymentService extends BaseService {
       // Если заказ оплачен, отправляем уведомление
       if (update.status === 'paid') {
         try {
-          const { ServiceRegistry } = require('./service.registry')
           const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           const notificationService = serviceRegistry.getNotificationService()
 
@@ -915,5 +919,33 @@ export class PaymentService extends BaseService {
     })
 
     return `${baseUrl}?${params.toString()}`
+  }
+
+  /**
+   * Генерирует ссылку на оплату в зависимости от выбранного провайдера
+   */
+  async generatePaymentLink(
+    orderId: string,
+    amount: number,
+    description: string,
+    provider: PaymentProvider,
+  ): Promise<string> {
+    switch (provider) {
+      case 'yoomoney':
+        return this.generateYooMoneyPaymentLink(orderId, amount, description)
+      case 'robokassa':
+        return this.generateRobokassaPaymentLink(orderId, amount, description)
+      case 'stripe':
+        // TODO: Implement Stripe payment link generation
+        throw new Error('Stripe payment links not implemented yet')
+      case 'paypal':
+        // TODO: Implement PayPal payment link generation
+        throw new Error('PayPal payment links not implemented yet')
+      case 'crypto':
+        // TODO: Implement Crypto payment link generation
+        throw new Error('Crypto payment links not implemented yet')
+      default:
+        throw new Error(`Unsupported payment provider: ${provider}`)
+    }
   }
 }

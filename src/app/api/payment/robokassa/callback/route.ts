@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
     }
 
     const payload = await getPayloadClient()
-    const paymentService = new PaymentService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
 
     // Verify payment signature
     if (!(await paymentService.verifyRobokassaPayment(invId, outSum, signatureValue))) {

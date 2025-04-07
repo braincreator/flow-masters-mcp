@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Default providers to use as fallback
 const DEFAULT_PROVIDERS = [
@@ -29,7 +29,8 @@ const DEV_ROBOKASSA_CREDENTIALS = {
 export async function GET() {
   try {
     const payload = await getPayloadClient()
-    const paymentService = new PaymentService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
 
     let settings = await paymentService.getSettings()
 

@@ -1,75 +1,61 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { paymentService } from '@/utilities/payments'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(req: Request) {
   try {
-    const { items, email, paymentMethod } = await req.json()
+    const requestData = await req.json()
+    const { products, customer, paymentMethod } = requestData
+
+    if (!products || products.length === 0) {
+      return NextResponse.json({ error: 'No products in cart' }, { status: 400 })
+    }
+
+    if (!customer || !customer.email) {
+      return NextResponse.json({ error: 'Customer information is required' }, { status: 400 })
+    }
+
+    if (!paymentMethod) {
+      return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
+    }
+
+    // Initialize payload client
     const payload = await getPayloadClient()
 
-    // Get products with quantities
-    const products = await payload.find({
-      collection: 'products',
-      where: {
-        id: {
-          in: items.map(item => item.id),
-        },
-      },
-    })
+    // Получаем PaymentService через ServiceRegistry
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
 
-    // Calculate total with quantities
-    const total = items.reduce((sum, item) => {
-      const product = products.docs.find(p => p.id === item.id)
-      return sum + (product?.price || 0) * item.quantity
-    }, 0)
-
-    // Create order with quantities
+    // Create order in database
     const order = await payload.create({
       collection: 'orders',
       data: {
-        orderNumber: `ORD-${Date.now()}`,
-        customer: email,
-        items: items.map(item => {
-          const product = products.docs.find(p => p.id === item.id)
-          return {
-            product: item.id,
-            quantity: item.quantity,
-            price: product?.price || 0,
-            subtotal: (product?.price || 0) * item.quantity
-          }
-        }),
-        total,
+        products: products.map((p) => ({ product: p.id, quantity: p.quantity })),
+        customer: customer.email,
+        total: products.reduce((sum, p) => sum + p.price * p.quantity, 0),
         status: 'pending',
-        createdAt: new Date().toISOString(),
+        paymentMethod,
       },
     })
 
-    // Generate payment link based on selected method
-    let paymentUrl
-    const description = `Order ${order.orderNumber}`
-
-    if (paymentMethod === 'yoomoney') {
-      paymentUrl = paymentService.generateYooMoneyPaymentLink(
-        order.id,
-        total,
-        description
-      )
-    } else if (paymentMethod === 'robokassa') {
-      paymentUrl = paymentService.generateRobokassaPaymentLink(
-        order.id,
-        total,
-        description
-      )
-    } else {
-      throw new Error('Invalid payment method')
-    }
+    // Generate payment link
+    const paymentLink = await paymentService.generatePaymentLink(
+      order.id,
+      order.total,
+      `Order #${order.id}`,
+      paymentMethod,
+    )
 
     return NextResponse.json({
-      paymentUrl,
-      orderId: order.id,
+      success: true,
+      order: order.id,
+      paymentLink,
     })
   } catch (error) {
     console.error('Checkout error:', error)
-    return NextResponse.json({ error: 'Checkout failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
+      { status: 500 },
+    )
   }
 }

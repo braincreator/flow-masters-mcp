@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(req: Request) {
   try {
     const notification = await req.json()
     const payload = await getPayloadClient()
-
-    const paymentService = new PaymentService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
 
     // Verify the payment notification
     if (!(await paymentService.verifyYooMoneyPayment(notification))) {

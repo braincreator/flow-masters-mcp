@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 import { verifyWebhookSignature } from '@/utilities/auth'
-import { IntegrationService } from '@/services/IntegrationService'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(req: Request) {
   try {
     // Verify webhook signature
     const signature = req.headers.get('x-webhook-signature')
     const body = await req.json()
-    
+
     if (!verifyWebhookSignature(signature, JSON.stringify(body))) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
     const payload = await getPayloadClient()
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const integrationService = serviceRegistry.getIntegrationService()
     const { type, data } = body
-    const integrationService = new IntegrationService(payload)
 
     // Handle different webhook types
     switch (type) {

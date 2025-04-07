@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { PaymentService } from '@/services/payment'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,6 +12,9 @@ export async function GET(req: NextRequest) {
       console.error('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
+
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const paymentService = serviceRegistry.getPaymentService()
 
     // Extract query parameters
     const url = new URL(req.url)
@@ -44,7 +47,6 @@ export async function GET(req: NextRequest) {
     // If order status is still pending or processing, try to check with payment provider
     if (paymentStatus === 'pending' || paymentStatus === 'processing') {
       try {
-        const paymentService = new PaymentService(payload)
         const provider = order.paymentProvider
 
         if (provider && paymentId) {

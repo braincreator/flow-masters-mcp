@@ -1,9 +1,10 @@
 import { Payload } from 'payload'
-import { ProductService } from '../services/product.service'
+import { ServiceRegistry } from '@/services/service.registry'
 import { CollectionHandlers, SupportedCollections } from '../types/api'
 
 export function createCollectionHandlers(payload: Payload) {
-  const productService = new ProductService(payload)
+  const serviceRegistry = ServiceRegistry.getInstance(payload)
+  const productService = serviceRegistry.getProductService()
 
   const handlers: CollectionHandlers = {
     products: {
@@ -19,8 +20,8 @@ export function createCollectionHandlers(payload: Payload) {
       },
       delete: async (id: string) => {
         return productService.deleteProduct(id)
-      }
-    }
+      },
+    },
   }
 
   return handlers

@@ -9,6 +9,7 @@ import { EmailService } from './email.service'
 import { TelegramService } from './telegram.service'
 import { PaymentService } from './payment.service'
 import { SubscriptionService } from './subscription.service'
+import { OrderService } from './order.service'
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry
@@ -50,6 +51,7 @@ export class ServiceRegistry {
     this.getProductService()
     this.getPriceService()
     this.getRecommendationService()
+    this.getOrderService()
   }
 
   getProductService(): ProductService {
@@ -128,6 +130,14 @@ export class ServiceRegistry {
     const key = 'subscription'
     if (!this.services.has(key)) {
       this.services.set(key, SubscriptionService.getInstance(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getOrderService(): OrderService {
+    const key = 'order'
+    if (!this.services.has(key)) {
+      this.services.set(key, OrderService.getInstance(this.payload))
     }
     return this.services.get(key)
   }
