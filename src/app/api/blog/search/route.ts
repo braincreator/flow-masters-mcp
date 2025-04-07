@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { payload } from '@/payload'
+import { getPayload } from '@payloadcms/next/utilities'
 
 export async function GET(req: NextRequest) {
+  const payload = await getPayload()
   try {
     // Get search query from URL
     const searchParams = req.nextUrl.searchParams

@@ -1,6 +1,6 @@
 import type { Payload, BasePayload, TaskHandler } from 'payload'
 import type { PayloadRequest } from 'payload'
-
+import { Response, NextFunction } from 'express'
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
@@ -44,9 +44,9 @@ import { Broadcasts } from './collections/Broadcasts'
 import { BroadcastReports } from './collections/BroadcastReports'
 import { NewsletterBroadcastJobData, SendToAllResult, BroadcastReport } from './jobs/types'
 
-// Импортируем EmailService
-import { EmailService } from './services/email.service'
 import { ServiceRegistry } from '@/services/service.registry'
+
+import { newsletterBroadcastJob, processScheduledSubscriptions } from './jobs'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
@@ -92,13 +92,10 @@ export default buildConfig({
     components: {
       views: {
         monitoring: {
-          path: 'monitoring',
-          Component: '@/components/admin/MetricsDashboard',
+          path: '/monitoring',
+          Component: MetricsDashboard,
         },
       },
-    },
-    importMap: {
-      baseDir: path.resolve(__dirname),
     },
     livePreview: {
       breakpoints: [
@@ -156,18 +153,19 @@ export default buildConfig({
   collections: [...collections],
   globals: [...globalsList],
   email: nodemailerAdapter({
-    defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'no-reply@example.com',
-    defaultFromName: ENV.PAYLOAD_DEFAULT_SENDER_NAME || 'Payload App',
+    defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'admin@flow-masters.ru',
+    defaultFromName: ENV.PAYLOAD_DEFAULT_SENDER_NAME || 'Flow Masters',
     transportOptions: {
       host: ENV.PAYLOAD_SMTP_HOST,
-      port: parseInt(ENV.PAYLOAD_SMTP_PORT || '587', 10),
-      secure: parseInt(ENV.PAYLOAD_SMTP_PORT || '587', 10) === 465,
+      port: parseInt(ENV.PAYLOAD_SMTP_PORT || '465', 10),
+      secure: parseInt(ENV.PAYLOAD_SMTP_PORT || '465', 10) === 465,
       auth: {
         user: ENV.PAYLOAD_SMTP_USER,
         pass: ENV.PAYLOAD_SMTP_PASSWORD,
       },
     },
   }),
+
   // --- Добавляем конфигурацию фоновых задач --- //
   jobs: {
     tasks: [
@@ -176,43 +174,48 @@ export default buildConfig({
         handler: async (args) => {
           const { job, req } = args
           const payload = req.payload
-          let results = null
-          let status = 'failed'
+          let results: SendToAllResult | null = null
+          let status: 'completed' | 'failed' = 'failed'
 
           try {
-            // Используем приведение типов через any
-            const data = job.input as any as NewsletterBroadcastJobData
+            const data = job.input as NewsletterBroadcastJobData
 
-            console.log('Starting newsletter broadcast job', {
-              broadcastId: data.broadcastId,
-            })
+            payload.logger.info(`Starting newsletter broadcast job: ${data.broadcastId}`)
 
-            // Создаем экземпляр ServiceRegistry и получаем EmailService
             const serviceRegistry = ServiceRegistry.getInstance(payload)
             const emailService = serviceRegistry.getEmailService()
 
-            // Используем sendBroadcast, который сам получит настройки SMTP, если они не указаны
             results = await emailService.sendBroadcast(data.title, data.content, data.locale)
 
             status = 'completed'
-            console.log(
-              `Job ${data.broadcastId}: Newsletter broadcast job completed. Sent: ${results.successfullySent}, Failed: ${results.failedToSend}`,
+            payload.logger.info(
+              `Job ${data.broadcastId}: Newsletter broadcast completed. Sent: ${results?.successfullySent}, Failed: ${results?.failedToSend}`,
             )
 
             return {
               output: {
                 status,
-                results,
+                results: results || {
+                  totalSubscribers: 0,
+                  successfullySent: 0,
+                  failedToSend: 0,
+                  sendErrors: [],
+                },
               },
             }
           } catch (error) {
-            console.error('Failed to process newsletter broadcast job', error)
+            payload.logger.error('Failed to process newsletter broadcast job', error)
 
             return {
               output: {
                 status: 'failed',
                 error: error instanceof Error ? error.message : 'Unknown error',
-                results,
+                results: results || {
+                  totalSubscribers: 0,
+                  successfullySent: 0,
+                  failedToSend: 0,
+                  sendErrors: [],
+                },
               },
             }
           }
@@ -305,5 +308,42 @@ export default buildConfig({
       method: 'post',
       handler: triggerNewsletterBroadcastHandler,
     },
+    {
+      path: '/email-templates/:id/preview',
+      method: 'get',
+      handler: async (req: PayloadRequest, res: Response, next: NextFunction) => {
+        const { id } = req.params
+        try {
+          const template = await req.payload.findByID({
+            collection: 'email-templates',
+            id: id,
+            depth: 0,
+          })
+
+          if (!template) {
+            return res.status(404).send('Template not found')
+          }
+
+          if (typeof template.html !== 'string') {
+            req.payload.logger.warn(`Template ${id} has no generated HTML content for preview.`)
+            return res.status(500).send('<p>Error: Template HTML not generated.</p>')
+          }
+
+          res.setHeader('Content-Type', 'text/html')
+          res.status(200).send(template.html)
+        } catch (error: any) {
+          req.payload.logger.error(`Preview endpoint error for ID ${id}: ${error.message}`, error)
+          res.status(500).send(`Error generating preview: ${error.message}`)
+        }
+      },
+    },
   ],
+  graphQL: {
+    schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
+  },
+  // Background jobs
+  // cron: {
+  //   '*/5 * * * *': processScheduledSubscriptions,
+  //   '0 9 * * 1': newsletterBroadcastJob,
+  // },
 })

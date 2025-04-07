@@ -13,14 +13,29 @@ const RootProvider = lazy(() =>
   })),
 )
 
-export default async function FrontendRootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
   const locale = await getCurrentLocale()
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <RootProvider lang={locale}>{children}</RootProvider>
-    </Suspense>
+    <html lang="en" className="h-full">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+          rel="preload"
+          href="/fonts/geist-sans.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body>
+        <Suspense fallback={<div>Loading...</div>}>
+          <RootProvider lang={locale}>{children}</RootProvider>
+        </Suspense>
+      </body>
+    </html>
   )
 }
 

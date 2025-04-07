@@ -1,6 +1,10 @@
 import crypto from 'crypto'
 import type { Payload } from 'payload'
-import { PaymentProvider, PaymentMethod, PaymentStatus } from '@/types/payment'
+import {
+  PaymentProvider as PaymentProviderType,
+  PaymentMethod,
+  PaymentStatus,
+} from '@/types/payment'
 import { BaseService } from './base.service'
 import { NotificationService } from './notification.service'
 import { ServiceRegistry } from './service.registry'
@@ -16,21 +20,47 @@ interface PaymentCreateParams {
   }
   currency: string
   locale: string
-  provider?: PaymentProvider
+  provider?: PaymentProviderType
   metadata?: Record<string, any>
   returnUrl?: string
 }
 
+interface ProcessPaymentParams {
+  amount: number
+  currency: string
+  provider: string
+  paymentMethod: string
+  paymentToken: string
+  metadata: Record<string, any>
+}
+
 interface PaymentResult {
-  success: boolean
-  paymentUrl?: string
-  paymentId?: string
+  status: 'successful' | 'failed' | 'pending'
+  paymentId: string
   error?: string
+}
+
+interface IPaymentProvider {
+  processPayment(params: Omit<ProcessPaymentParams, 'provider'>): Promise<PaymentResult>
+}
+
+type PaymentProviderKey = 'yoomoney' | 'robokassa' | 'stripe' | 'paypal' | 'crypto'
+
+interface PaymentProviders extends Record<PaymentProviderKey, IPaymentProvider> {}
+
+interface GlobalSettings {
+  providers: Array<{
+    id: PaymentProviderKey
+    name: string
+    enabled: boolean
+  }>
+  defaultProvider: PaymentProviderKey
+  providersConfig: Partial<Record<PaymentProviderKey, any>>
 }
 
 export class PaymentService extends BaseService {
   private static instance: PaymentService | null = null
-  private settings: any = null
+  private settings: GlobalSettings | null = null
   private settingsLoaded = false
 
   private constructor(payload: Payload) {
@@ -60,7 +90,7 @@ export class PaymentService extends BaseService {
 
         if (paymentProviders) {
           console.log('Retrieved payment-providers global')
-          this.settings = this.transformPaymentProviders(paymentProviders)
+          this.settings = this.transformPaymentProviders(paymentProviders) as GlobalSettings
           this.settingsLoaded = true
           return
         }
@@ -68,27 +98,18 @@ export class PaymentService extends BaseService {
         console.warn('Failed to retrieve payment-providers global:', error)
       }
 
-      // Try fallback to settings global
-      try {
-        // @ts-ignore: settings глобальный объект может существовать в системе
-        const settings = await this.payload.findGlobal({
-          slug: 'settings',
-        })
-
-        if (settings) {
-          this.settings = settings
-          this.settingsLoaded = true
-          return
-        }
-      } catch (error) {
-        console.warn('Failed to retrieve settings global:', error)
-      }
-
       // Set default settings if all attempts failed
       this.settings = {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
-        providersConfig: {},
+        providersConfig: {
+          robokassa: {
+            merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+            password1: process.env.ROBOKASSA_PASSWORD1 || '',
+            password2: process.env.ROBOKASSA_PASSWORD2 || '',
+            testMode: true,
+          },
+        },
       }
       this.settingsLoaded = true
     } catch (error) {
@@ -96,7 +117,14 @@ export class PaymentService extends BaseService {
       this.settings = {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
-        providersConfig: {},
+        providersConfig: {
+          robokassa: {
+            merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+            password1: process.env.ROBOKASSA_PASSWORD1 || '',
+            password2: process.env.ROBOKASSA_PASSWORD2 || '',
+            testMode: true,
+          },
+        },
       }
       this.settingsLoaded = true
     }
@@ -105,13 +133,20 @@ export class PaymentService extends BaseService {
   /**
    * Получает настройки платежных систем
    */
-  getSettings(): any {
-    if (!this.settingsLoaded) {
+  getSettings(): GlobalSettings {
+    if (!this.settingsLoaded || !this.settings) {
       console.warn('Settings not loaded yet, returning default settings')
       return {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
-        providersConfig: {},
+        providersConfig: {
+          robokassa: {
+            merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+            password1: process.env.ROBOKASSA_PASSWORD1 || '',
+            password2: process.env.ROBOKASSA_PASSWORD2 || '',
+            testMode: true,
+          },
+        },
       }
     }
     return this.settings
@@ -248,80 +283,79 @@ export class PaymentService extends BaseService {
   }
 
   async getEnabledProviders(): Promise<
-    Array<{ id: PaymentProvider; name: string; enabled: boolean }>
+    Array<{ id: PaymentProviderKey; name: string; enabled: boolean }>
   > {
     try {
       const settings = this.getSettings()
-      const enabledProviders = settings?.providers?.filter((p) => p.enabled) || []
-
-      if (enabledProviders.length === 0) {
-        return [
-          { id: 'yoomoney', name: 'YooMoney', enabled: true },
-          { id: 'robokassa', name: 'Robokassa', enabled: true },
-        ]
-      }
-
-      return enabledProviders
+      return settings.providers.filter((p) => p.enabled)
     } catch (error) {
-      console.error('Failed to get enabled providers:', error)
-      return [
-        { id: 'yoomoney', name: 'YooMoney', enabled: true },
-        { id: 'robokassa', name: 'Robokassa', enabled: true },
-      ]
+      console.error('Error getting enabled providers:', error)
+      return []
     }
   }
 
-  async getDefaultProvider(): Promise<PaymentProvider> {
+  async getDefaultProvider(): Promise<PaymentProviderKey> {
     try {
       const settings = this.getSettings()
-      const defaultProvider = settings?.defaultProvider as PaymentProvider
+      const defaultProvider = settings.defaultProvider
 
       if (!defaultProvider) {
-        const enabledProviders = await this.getEnabledProviders()
-        return enabledProviders[0]?.id || 'yoomoney'
+        throw new Error('Default payment provider not found')
       }
 
       return defaultProvider
     } catch (error) {
       console.error('Error getting default provider:', error)
-      return 'yoomoney' // Default fallback
+      return 'robokassa'
     }
   }
 
   async createPayment(
-    provider: PaymentProvider,
+    provider: PaymentProviderKey,
     params: PaymentCreateParams,
   ): Promise<PaymentResult> {
     try {
-      console.log('Creating payment with provider:', provider)
+      const paymentProvider = this.getPaymentProvider(provider)
+      const result = await paymentProvider.processPayment({
+        amount: params.amount,
+        currency: params.currency,
+        paymentMethod: params.provider ? String(params.provider) : 'card',
+        paymentToken: '',
+        metadata: params.metadata || {},
+      })
 
-      if (!provider) {
-        return {
-          success: false,
-          error: 'Payment provider is missing or invalid',
-        }
-      }
-
-      // Based on provider type, call the appropriate payment creation method
-      switch (provider) {
-        case 'yoomoney':
-          return await this.createYooMoneyPayment(params)
-        case 'robokassa':
-          return await this.createRobokassaPayment(params)
-        case 'stripe':
-          return await this.createStripePayment(params)
-        case 'paypal':
-          return await this.createPayPalPayment(params)
-        case 'crypto':
-          return await this.createCryptoPayment(params)
-        default:
-          throw new Error(`Unsupported payment provider: ${provider}`)
+      return {
+        status: result.status,
+        paymentId: result.paymentId,
+        error: result.error,
       }
     } catch (error) {
       console.error('Payment creation error:', error)
       return {
-        success: false,
+        status: 'failed',
+        paymentId: '',
         error: error instanceof Error ? error.message : 'Unknown error during payment creation',
+      }
+    }
+  }
+
+  async processPayment(params: ProcessPaymentParams): Promise<PaymentResult> {
+    try {
+      const { provider, ...paymentData } = params
+      const paymentProvider = this.getPaymentProvider(provider)
+
+      const result = await paymentProvider.processPayment(paymentData)
+
+      return {
+        status: result.status,
+        paymentId: result.paymentId,
+        error: result.error,
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        paymentId: '',
+        error: error instanceof Error ? error.message : 'Unknown error',
       }
     }
   }
@@ -333,7 +367,7 @@ export class PaymentService extends BaseService {
 
   // Check status of payment with provider
   async checkPaymentStatus(
-    provider: PaymentProvider,
+    provider: IPaymentProvider,
     paymentId: string,
   ): Promise<{
     status: string
@@ -365,27 +399,27 @@ export class PaymentService extends BaseService {
   // Заглушки для методов, которые должны быть реализованы
   private async createYooMoneyPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
-    return { success: false, error: 'Not implemented' }
+    return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
   private async createRobokassaPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
-    return { success: false, error: 'Not implemented' }
+    return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
   private async createStripePayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
-    return { success: false, error: 'Not implemented' }
+    return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
   private async createPayPalPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
-    return { success: false, error: 'Not implemented' }
+    return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
   private async createCryptoPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
-    return { success: false, error: 'Not implemented' }
+    return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
   private async checkYooMoneyPaymentStatus(
@@ -426,7 +460,7 @@ export class PaymentService extends BaseService {
   /**
    * Обнаруживает провайдера платежей из данных вебхука
    */
-  private detectProviderFromWebhook(webhookData: any): PaymentProvider | null {
+  private detectProviderFromWebhook(webhookData: any): IPaymentProvider | null {
     // Проверяем YooMoney
     if (
       webhookData?.notification_type === 'p2p-incoming' ||
@@ -928,7 +962,7 @@ export class PaymentService extends BaseService {
     orderId: string,
     amount: number,
     description: string,
-    provider: PaymentProvider,
+    provider: IPaymentProvider,
   ): Promise<string> {
     switch (provider) {
       case 'yoomoney':
@@ -947,5 +981,23 @@ export class PaymentService extends BaseService {
       default:
         throw new Error(`Unsupported payment provider: ${provider}`)
     }
+  }
+
+  private getPaymentProvider(provider: PaymentProviderKey): IPaymentProvider {
+    const defaultProvider: IPaymentProvider = {
+      processPayment: async (params) => {
+        return { status: 'failed' as const, paymentId: '', error: 'Not implemented' }
+      },
+    }
+
+    const providers = {
+      yoomoney: defaultProvider,
+      robokassa: defaultProvider,
+      stripe: defaultProvider,
+      paypal: defaultProvider,
+      crypto: defaultProvider,
+    } as const
+
+    return providers[provider]
   }
 }

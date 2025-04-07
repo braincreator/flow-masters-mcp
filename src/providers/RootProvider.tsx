@@ -7,6 +7,7 @@ import { DropdownProvider } from '@/providers/DropdownContext'
 import { I18nProvider } from '@/providers/I18n'
 import { Toaster } from 'sonner'
 import { PayloadAPIProvider } from '@/providers/payload'
+import { CurrencyProvider } from './CurrencyProvider'
 
 interface RootProviderProps {
   children: React.ReactNode
@@ -20,7 +21,7 @@ export function RootProvider({ children, lang }: RootProviderProps) {
         <I18nProvider defaultLang={lang}>
           <HeaderThemeProvider>
             <PayloadAPIProvider>
-              {children}
+              <CurrencyProvider>{children}</CurrencyProvider>
               <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
             </PayloadAPIProvider>
           </HeaderThemeProvider>

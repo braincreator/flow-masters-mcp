@@ -12,18 +12,36 @@ import { BaseService } from './base.service'
 import { PaymentService } from './payment.service'
 import { NotificationService } from './notification.service'
 
+interface PaymentResult {
+  status: 'successful' | 'failed' | 'pending'
+  paymentId: string
+  error?: string
+}
+
+interface ProcessPaymentParams {
+  amount: number
+  currency: string
+  provider: string
+  paymentMethod: string
+  paymentToken: string
+  metadata: Record<string, any>
+}
+
 export class SubscriptionService extends BaseService {
   private static instance: SubscriptionService | null = null
-  private paymentService: any | null = null
-  private notificationService: any | null = null
+  private paymentService: PaymentService | null = null
+  private notificationService: NotificationService | null = null
 
-  private constructor(payload: Payload) {
+  constructor(payload: Payload) {
     super(payload)
+  }
 
-    // Инициализируем зависимые сервисы через ServiceRegistry
-    const serviceRegistry = ServiceRegistry.getInstance(payload)
-    this.paymentService = serviceRegistry.getPaymentService()
-    this.notificationService = serviceRegistry.getNotificationService()
+  private initializeServices() {
+    if (!this.paymentService || !this.notificationService) {
+      const serviceRegistry = this.getServiceRegistry()
+      this.paymentService = serviceRegistry.getPaymentService()
+      this.notificationService = serviceRegistry.getNotificationService()
+    }
   }
 
   public static getInstance(payload: Payload): SubscriptionService {
@@ -137,39 +155,59 @@ export class SubscriptionService extends BaseService {
    * Создание новой подписки
    */
   async createSubscription(params: CreateSubscriptionParams): Promise<Subscription | null> {
-    if (!this.payload) {
-      throw new Error('Payload client не инициализирован')
+    this.initializeServices()
+    if (!this.payload || !this.paymentService) {
+      throw new Error('Сервисы не инициализированы')
     }
 
     try {
+      // Проверяем наличие активной подписки
+      const hasActive = await this.hasActiveSubscription(params.userId, params.planId)
+      if (hasActive) {
+        throw new Error('У пользователя уже есть активная подписка на этот план')
+      }
+
       // Получение плана подписки
       const plan = await this.getSubscriptionPlan(params.planId)
       if (!plan) {
         throw new Error(`План подписки ${params.planId} не найден`)
       }
 
+      // Проверяем поддерживаемый период
+      if (!['monthly', 'quarterly', 'yearly'].includes(plan.period)) {
+        throw new Error(`Неподдерживаемый период подписки: ${plan.period}`)
+      }
+
       // Рассчитываем дату следующего платежа
       const startDate = params.startDate ? new Date(params.startDate) : new Date()
       const nextPaymentDate = this.calculateNextPaymentDate(startDate, plan.period)
 
-      // Создание подписки в БД
+      // Создаем подписку в статусе pending
       const subscription = await this.payload.create({
         collection: 'subscriptions',
         data: {
           userId: params.userId,
           planId: params.planId,
           status: 'pending',
-          paymentProvider: params.paymentProvider,
+          paymentProvider: params.paymentProvider as 'yoomoney' | 'robokassa' | 'stripe' | 'paypal',
           paymentMethod: params.paymentMethod,
           paymentToken: params.paymentToken,
           period: plan.period,
           amount: plan.price,
-          currency: plan.currency,
+          currency: plan.currency as 'RUB' | 'USD' | 'EUR',
           startDate: startDate.toISOString(),
           nextPaymentDate: nextPaymentDate.toISOString(),
           metadata: params.metadata || {},
         },
       })
+
+      // Пытаемся провести первый платеж
+      const paymentResult = await this.processSubscriptionPayment(subscription.id)
+      if (!paymentResult) {
+        // Если платеж не прошел, обновляем статус на failed
+        await this.updateSubscription(subscription.id, { status: 'failed' })
+        throw new Error('Ошибка при проведении первого платежа')
+      }
 
       return subscription as unknown as Subscription
     } catch (error) {
@@ -329,100 +367,44 @@ export class SubscriptionService extends BaseService {
   }
 
   /**
-   * Обработка платежа по подписке
+   * Обработка платежа подписки
    */
-  async processSubscriptionPayment(subscriptionId: string): Promise<boolean> {
-    if (!this.payload || !this.paymentService) {
-      throw new Error('Сервисы не инициализированы')
-    }
-
+  private async processSubscriptionPayment(subscriptionId: string): Promise<boolean> {
     try {
-      const subscription = (await this.payload.findByID({
+      const subscription = await this.payload.findByID({
         collection: 'subscriptions',
         id: subscriptionId,
-      })) as unknown as Subscription
-
-      if (!subscription) {
-        throw new Error(`Подписка ${subscriptionId} не найдена`)
-      }
-
-      if (subscription.status !== 'active' && subscription.status !== 'pending') {
-        throw new Error(`Нельзя обработать платёж для подписки в статусе ${subscription.status}`)
-      }
-
-      // Получаем информацию о пользователе
-      const user = await this.payload.findByID({
-        collection: 'users',
-        id: subscription.userId,
       })
 
-      if (!user) {
-        throw new Error(`Пользователь ${subscription.userId} не найден`)
-      }
-
-      // Создаем платеж (здесь интеграция с PaymentService)
-      const paymentResult = await this.paymentService.createPayment(subscription.paymentProvider, {
-        orderId: `subscription_${subscription.id}_${Date.now()}`,
-        amount: subscription.amount,
-        description: `Оплата подписки ${subscription.id}`,
-        customer: {
-          email: user.email,
-          name: user.name || '',
-        },
-        currency: subscription.currency,
-        locale: 'ru', // Тут можно взять из настроек пользователя
-        metadata: {
-          subscriptionId: subscription.id,
-          isRecurring: true,
-        },
-      })
-
-      if (!paymentResult.success) {
-        // Записываем неудачный платеж в историю
-        await this.recordPaymentHistory({
-          subscriptionId: subscription.id,
-          amount: subscription.amount,
-          currency: subscription.currency,
-          status: 'failed',
-          paymentDate: new Date().toISOString(),
-          paymentMethod: subscription.paymentMethod || 'unknown',
-          failureReason: paymentResult.error,
-        })
-
-        // Обновляем статус подписки
-        await this.updateSubscription(subscription.id, {
-          status: 'failed',
-        })
-
+      if (!subscription || !this.paymentService) {
         return false
       }
 
-      // При успешной оплате
-      const nextPaymentDate = this.calculateNextPaymentDate(
-        new Date(subscription.nextPaymentDate),
-        subscription.period,
-      )
-
-      // Записываем платеж в историю
-      await this.recordPaymentHistory({
-        subscriptionId: subscription.id,
+      const paymentResult = await this.paymentService.processPayment({
         amount: subscription.amount,
         currency: subscription.currency,
-        status: 'pending', // Сначала pending, потом обновится по вебхуку
-        paymentDate: new Date().toISOString(),
-        paymentMethod: subscription.paymentMethod || 'unknown',
-        transactionId: paymentResult.paymentId,
+        provider: subscription.paymentProvider,
+        paymentMethod: subscription.paymentMethod,
+        paymentToken: subscription.paymentToken,
+        metadata: {
+          subscriptionId: subscription.id,
+          userId: subscription.userId,
+          planId: subscription.planId,
+        },
       })
 
-      // Обновляем подписку
-      await this.updateSubscription(subscription.id, {
-        status: 'active',
-        nextPaymentDate: nextPaymentDate.toISOString(),
-      })
+      if (paymentResult.status === 'successful') {
+        await this.updateSubscription(subscriptionId, {
+          status: 'active',
+          nextPaymentDate: new Date().toISOString(),
+        })
+        await this.recordPaymentHistory(subscription, paymentResult)
+        return true
+      }
 
-      return true
+      return false
     } catch (error) {
-      console.error(`Ошибка при обработке платежа подписки ${subscriptionId}:`, error)
+      console.error('Ошибка при обработке платежа:', error)
       return false
     }
   }
@@ -458,19 +440,23 @@ export class SubscriptionService extends BaseService {
   /**
    * Запись платежа в историю
    */
-  private async recordPaymentHistory(data: Omit<SubscriptionPaymentHistory, 'id'>): Promise<void> {
-    if (!this.payload) {
-      throw new Error('Payload client не инициализирован')
-    }
-
-    try {
-      await this.payload.create({
-        collection: 'subscription-payments',
-        data,
-      })
-    } catch (error) {
-      console.error('Ошибка при записи истории платежей:', error)
-    }
+  private async recordPaymentHistory(
+    subscription: any,
+    paymentResult: PaymentResult,
+  ): Promise<void> {
+    await this.payload.create({
+      collection: 'subscription-payments',
+      data: {
+        subscriptionId: subscription.id,
+        amount: subscription.amount,
+        currency: subscription.currency as 'RUB' | 'USD' | 'EUR',
+        status: paymentResult.status,
+        paymentDate: new Date().toISOString(),
+        paymentMethod: subscription.paymentMethod,
+        transactionId: paymentResult.paymentId,
+        error: paymentResult.error,
+      },
+    })
   }
 
   /**
@@ -480,6 +466,7 @@ export class SubscriptionService extends BaseService {
     subscription: Subscription,
     status: SubscriptionStatus,
   ): Promise<void> {
+    this.initializeServices()
     if (!this.payload || !this.notificationService) {
       return
     }
@@ -524,7 +511,7 @@ export class SubscriptionService extends BaseService {
           break
       }
 
-      await this.notificationService.sendOrderStatusUpdate({
+      await this.notificationService.sendDigitalOrderStatusUpdate({
         email: user.email,
         orderNumber: `Sub-${subscription.id.substring(0, 8)}`,
         status,
@@ -620,27 +607,29 @@ export class SubscriptionService extends BaseService {
   /**
    * Расчет даты следующего платежа
    */
-  private calculateNextPaymentDate(currentDate: Date, period: string): Date {
-    const nextDate = new Date(currentDate)
-
+  private calculateNextPaymentDate(startDate: Date, period: string): Date {
+    const date = new Date(startDate)
     switch (period) {
-      case 'daily':
-        nextDate.setDate(nextDate.getDate() + 1)
-        break
-      case 'weekly':
-        nextDate.setDate(nextDate.getDate() + 7)
-        break
       case 'monthly':
-        nextDate.setMonth(nextDate.getMonth() + 1)
+        date.setMonth(date.getMonth() + 1)
         break
       case 'quarterly':
-        nextDate.setMonth(nextDate.getMonth() + 3)
+        date.setMonth(date.getMonth() + 3)
         break
-      case 'annual':
-        nextDate.setFullYear(nextDate.getFullYear() + 1)
+      case 'yearly':
+        date.setFullYear(date.getFullYear() + 1)
         break
+      default:
+        throw new Error(`Неподдерживаемый период подписки: ${period}`)
     }
+    return date
+  }
 
-    return nextDate
+  /**
+   * Проверяет наличие активных подписок у пользователя
+   */
+  private async hasActiveSubscription(userId: string, planId: string): Promise<boolean> {
+    const activeSubscriptions = await this.getUserActiveSubscriptions(userId)
+    return activeSubscriptions.some((sub) => sub.planId === planId)
   }
 }

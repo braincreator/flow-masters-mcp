@@ -1,7 +1,7 @@
 import { PayloadRequest } from 'payload'
 import { Response } from 'express'
 import { EmailSetting } from '@/payload-types'
-import { ServiceRegistry } from '@/services/service-registry'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Ожидаемый формат тела запроса
 interface BroadcastRequestBody {
@@ -56,7 +56,7 @@ export default async function triggerNewsletterBroadcastHandler(
     const broadcastId = `broadcast_${Date.now()}`
 
     // Инициализируем ServiceRegistry и получаем EmailService
-    const serviceRegistry = new ServiceRegistry(req.payload)
+    const serviceRegistry = ServiceRegistry.getInstance(req.payload)
     const emailService = serviceRegistry.getEmailService()
 
     // Ставим задачу в очередь

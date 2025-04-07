@@ -32,7 +32,7 @@ export class PriceService extends BaseService {
   }
 
   async init() {
-    const settings = await payload.findGlobal({
+    const settings = await this.payload.findGlobal({
       slug: 'settings',
     })
 

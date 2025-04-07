@@ -95,10 +95,19 @@ export class EmailService extends BaseService {
    */
   async getEmailSettings() {
     try {
-      const settings = (await this.payload.findGlobal({
+      const emailSettings = await this.payload.findGlobal({
         slug: 'email-settings',
-      })) as EmailSettingsType
-
+      })
+      const settings = {
+        smtp: {
+          host: emailSettings?.smtpHost,
+          port: emailSettings?.smtpPort,
+          user: emailSettings?.smtpUser,
+          password: emailSettings?.smtpPassword,
+        },
+        from: 'Flow Masters',
+      } as EmailSettingsType
+      console.log('settings', settings)
       if (!settings?.smtp) {
         throw new Error('SMTP settings not configured')
       }
@@ -111,7 +120,7 @@ export class EmailService extends BaseService {
           user: settings.smtp.user,
           pass: settings.smtp.password,
         },
-        from: settings.smtp.from || 'no-reply@flow-masters.ru',
+        from: settings.smtp.from || 'admin@flow-masters.ru',
       }
     } catch (error) {
       console.error('Failed to get email settings:', error)
@@ -242,66 +251,82 @@ export class EmailService extends BaseService {
       from?: string
     },
   ): Promise<SendToAllResult> {
-    // Используем переданные настройки SMTP или получаем из базы
-    const emailSettings = customSmtpSettings || (await this.getEmailSettings())
-    const transporter = this.createTransport(emailSettings)
+    try {
+      // Используем переданные настройки SMTP или получаем из базы
+      const emailSettings = customSmtpSettings || (await this.getEmailSettings())
 
-    // Получаем всех подписчиков
-    const subscribers = await this.payload.find({
-      collection: 'newsletter-subscribers',
-      where: {
-        ...(locale ? { locale: { equals: locale } } : {}),
-        confirmed: { equals: true },
-      },
-    })
-
-    const results: SendToAllResult = {
-      totalSubscribers: subscribers.docs.length,
-      successfullySent: 0,
-      failedToSend: 0,
-      sendErrors: [],
-    }
-
-    // Отправляем письма
-    for (const subscriber of subscribers.docs) {
-      try {
-        const emailData: NewsletterEmailData = {
-          email: subscriber.email,
-          unsubscribeToken: subscriber.unsubscribeToken ?? undefined,
-          locale: subscriber.locale || 'ru',
-          title,
-          content,
-          siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
-        }
-
-        const html = generateNewsletterEmail(emailData)
-
-        await transporter.sendMail({
-          from: emailSettings?.from || process.env.EMAIL_FROM || 'admin@flow-masters.ru',
-          to: subscriber.email,
-          subject: title,
-          html,
-        })
-
-        await this.payload.update({
-          collection: 'newsletter-subscribers',
-          id: subscriber.id,
-          data: {
-            lastSent: new Date().toISOString(),
-          },
-        })
-
-        results.successfullySent++
-      } catch (error: any) {
-        results.failedToSend++
-        results.sendErrors.push({
-          error: `Failed to send to ${subscriber.email}: ${error.message}`,
-        })
-        this.payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
+      if (!emailSettings) {
+        throw new Error('SMTP settings not configured')
       }
-    }
 
-    return results
+      const transporter = this.createTransport(emailSettings)
+
+      // Получаем всех подписчиков
+      const subscribers = await this.payload.find({
+        collection: 'newsletter-subscribers',
+        where: {
+          and: [
+            {
+              status: {
+                equals: 'active',
+              },
+            },
+            ...(locale ? [{ locale: { equals: locale } }] : []),
+          ],
+        },
+      })
+
+      const results: SendToAllResult = {
+        totalSubscribers: subscribers.docs.length,
+        successfullySent: 0,
+        failedToSend: 0,
+        sendErrors: [],
+      }
+
+      // Отправляем письма
+      for (const subscriber of subscribers.docs) {
+        try {
+          const emailData: NewsletterEmailData = {
+            email: subscriber.email,
+            unsubscribeToken: subscriber.unsubscribeToken ?? undefined,
+            locale: subscriber.locale || 'ru',
+            title,
+            content,
+            siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
+          }
+
+          const html = generateNewsletterEmail(emailData)
+
+          await transporter.sendMail({
+            from: emailSettings?.from || process.env.EMAIL_FROM || 'admin@flow-masters.ru',
+            to: subscriber.email,
+            subject: title,
+            html,
+          })
+
+          await this.payload.update({
+            collection: 'newsletter-subscribers',
+            id: subscriber.id,
+            data: {
+              lastSent: new Date().toISOString(),
+            },
+          })
+
+          results.successfullySent++
+        } catch (error: any) {
+          results.failedToSend++
+          results.sendErrors.push({
+            error: `Failed to send to ${subscriber.email}: ${error.message}`,
+          })
+          this.payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
+        }
+      }
+
+      return results
+    } catch (error: any) {
+      this.payload.logger.error(`Failed to process newsletter broadcast: ${error.message}`)
+      throw error
+    }
   }
 
   /**
@@ -379,11 +404,13 @@ export class EmailService extends BaseService {
   ): Promise<boolean> {
     try {
       const adminEmail = process.env.ADMIN_EMAIL || 'admin@flow-masters.ru'
+      const adminPanelUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000/admin'
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
 
       const emailData: AdminNewSubscriberNotificationEmailData = {
         ...subscriberData,
-        adminEmail,
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
+        adminPanelUrl,
+        siteUrl,
       }
 
       const html = generateAdminNewSubscriberNotificationEmail(emailData)

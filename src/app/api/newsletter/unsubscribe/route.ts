@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { ServiceRegistry } from '@/services/service-registry'
+import { ServiceRegistry } from '@/services/service.registry'
 
 /**
  * Обработчик GET-запроса для отписки от рассылки по токену
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     // Отправляем подтверждение отписки (асинхронно)
     try {
-      const serviceRegistry = new ServiceRegistry(payload)
+      const serviceRegistry = ServiceRegistry.getInstance(payload)
       const emailService = serviceRegistry.getEmailService()
 
       emailService
