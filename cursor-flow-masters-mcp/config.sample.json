@@ -1,0 +1,10 @@
+{
+  "port": 3030,
+  "host": "localhost",
+  "apiConfig": {
+    "apiUrl": "https://flow-masters-api.example.com",
+    "apiKey": "your-api-key-here",
+    "autoUpdate": true,
+    "updateCheckInterval": 60
+  }
+}

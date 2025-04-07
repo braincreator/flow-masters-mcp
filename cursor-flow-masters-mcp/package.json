@@ -1,0 +1,51 @@
+{
+  "name": "cursor-flow-masters-mcp",
+  "version": "1.0.0",
+  "description": "MCP сервер для интеграции с Flow Masters API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "cursor-flow-masters-mcp": "./dist/index.js",
+    "flow-masters-mcp-install": "./bin/install-to-cursor.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc --watch",
+    "check-update": "node dist/checkUpdate.js",
+    "prepublishOnly": "npm run build",
+    "postinstall": "node bin/install-to-cursor.js"
+  },
+  "keywords": [
+    "cursor",
+    "mcp",
+    "flow-masters",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "semver": "^7.6.0",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@types/semver": "^7.5.8",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/cursor-flow-masters-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/cursor-flow-masters-mcp/issues"
+  },
+  "homepage": "https://github.com/yourusername/cursor-flow-masters-mcp#readme"
+}
