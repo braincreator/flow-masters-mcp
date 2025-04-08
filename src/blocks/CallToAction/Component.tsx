@@ -4,23 +4,22 @@ import RichText from '@/components/RichText'
 import { Action } from '@/components/Action'
 import { SerializedEditorState } from '@payloadcms/richtext-lexical'
 
-type CallToActionStyle = 'default' | 'centered'
-type CallToActionBackground = 'none' | 'light' | 'dark'
+type CallToActionStyle = 'default' | 'centered' | 'split'
+type CallToActionBackground = 'none' | 'light' | 'dark' | 'primary'
 
 export interface CallToActionBlockProps {
-  richText?: SerializedEditorState
+  content?: SerializedEditorState
   actions?: {
-    link: {
-      type?: 'reference' | 'custom'
-      label: string
-      reference?: {
-        relationTo: 'pages' | 'posts'
-        value: string
-      }
-      url?: string
-      newTab?: boolean
-      appearance?: 'default' | 'outline'
+    actionType: 'link' | 'button'
+    label: string
+    type?: 'reference' | 'custom'
+    reference?: {
+      relationTo: 'pages' | 'posts'
+      value: string | { slug: string }
     }
+    url?: string
+    appearance?: 'default' | 'outline'
+    newTab?: boolean
   }[]
   style?: CallToActionStyle
   background?: CallToActionBackground
@@ -28,7 +27,7 @@ export interface CallToActionBlockProps {
 }
 
 export const CallToActionBlock: React.FC<CallToActionBlockProps> = ({
-  richText,
+  content,
   actions,
   style = 'default',
   background = 'none',
@@ -37,26 +36,41 @@ export const CallToActionBlock: React.FC<CallToActionBlockProps> = ({
   return (
     <div
       className={cn(
-        'py-10',
+        'py-12',
         {
-          'text-center': style === 'centered',
-          'bg-gray-50 dark:bg-gray-900': background === 'light',
-          'bg-gray-900 dark:bg-gray-800 text-white': background === 'dark',
+          'bg-background': background === 'none',
+          'bg-muted': background === 'light',
+          'bg-secondary/90 text-secondary-foreground': background === 'dark',
+          'bg-primary text-primary-foreground': background === 'primary',
         },
         className,
       )}
     >
-      <div className="container">
-        <div className="max-w-2xl mx-auto">
-          {richText && <RichText data={richText} />}
+      <div
+        className={cn('container', {
+          'text-center': style === 'centered',
+          'grid grid-cols-2 gap-8 items-center': style === 'split',
+        })}
+      >
+        <div className={cn({ 'max-w-2xl mx-auto': style === 'centered' })}>
+          {content && <RichText data={content} />}
           {Array.isArray(actions) && actions.length > 0 && (
-            <ul className={cn('mt-6 flex gap-4', style === 'centered' && 'justify-center')}>
+            <div
+              className={cn('mt-8 flex gap-4', {
+                'justify-center': style === 'centered',
+                'flex-col sm:flex-row': style === 'default',
+              })}
+            >
               {actions.map((action, i) => (
-                <li key={i}>
-                  <Action {...action} />
-                </li>
+                <Action
+                  key={i}
+                  {...action}
+                  className={cn({
+                    'w-full sm:w-auto': style === 'default',
+                  })}
+                />
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>

@@ -34,14 +34,28 @@ export async function retryOnSessionExpired<T>(
       lastError = error
       attempts++
 
-      // Повторяем только при ошибке истечения сессии
-      if (error?.name === 'MongoExpiredSessionError' && attempts < maxRetries) {
-        logger.warn(`MongoDB сессия истекла, повторная попытка ${attempts}/${maxRetries}`)
-        await new Promise((resolve) => setTimeout(resolve, 100 * attempts)) // Небольшая задержка
+      // Повторяем только при ошибке истечения сессии или потери соединения
+      if (
+        (error?.name === 'MongoExpiredSessionError' || error?.name === 'MongoNotConnectedError') &&
+        attempts < maxRetries
+      ) {
+        logger.warn(`MongoDB ошибка соединения, повторная попытка ${attempts}/${maxRetries}`)
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempts)) // Увеличенная задержка
+
+        // Пробуем переподключиться если соединение потеряно
+        if (error?.name === 'MongoNotConnectedError') {
+          try {
+            if (global.payloadClient) {
+              await global.payloadClient.disconnect()
+              global.payloadClient = null
+            }
+          } catch (disconnectError) {
+            logger.error('Ошибка при отключении:', disconnectError)
+          }
+        }
         continue
       }
 
-      // Для других ошибок или если закончились попытки, пробрасываем ошибку
       throw error
     }
   }
@@ -50,12 +64,24 @@ export async function retryOnSessionExpired<T>(
 }
 
 export const getPayloadClient = async (): Promise<Payload> => {
-  // Используем глобальную переменную для кеширования
-  if (global.payloadClient) {
-    return global.payloadClient
-  }
-
   try {
+    // Проверяем существующее соединение
+    if (global.payloadClient) {
+      try {
+        // Проверяем живо ли соединение
+        await global.payloadClient.db.connection.db.admin().ping()
+        return global.payloadClient
+      } catch (error) {
+        logger.warn('Соединение потеряно, переподключаемся...')
+        try {
+          await global.payloadClient.disconnect()
+        } catch (disconnectError) {
+          logger.error('Ошибка при отключении:', disconnectError)
+        }
+        global.payloadClient = null
+      }
+    }
+
     const payload = await getPayload({
       config,
       initOptions: {
@@ -63,17 +89,13 @@ export const getPayloadClient = async (): Promise<Payload> => {
         secret: process.env.PAYLOAD_SECRET || '',
         mongoURL: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
         onInit: (initPayload) => {
-          // Инициализация после успешного запуска
           logger.info('Payload initialized successfully')
-          // Инициализация сервисного реестра
           ServiceRegistry.getInstance(initPayload)
         },
       },
     })
 
-    // Помещаем в глобальную переменную вместо локальной
     global.payloadClient = payload
-
     return payload
   } catch (error) {
     logger.error('Error initializing Payload client:', error)

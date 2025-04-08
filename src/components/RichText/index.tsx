@@ -73,9 +73,18 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = () => ({
     },
     code: ({ node }) => <CodeBlock {...node.fields} />,
     cta: ({ node }) => {
-      const { richText, actions: rawActions, ...rest } = node.fields
-      const actions = rawActions || []
-      return <CallToActionBlock content={richText} actions={actions} {...rest} />
+      const { content, actions: rawActions, ...rest } = node.fields
+      const actions =
+        rawActions?.map((action) => ({
+          actionType: action.type || 'button',
+          label: action.label,
+          type: action.type,
+          reference: action.reference,
+          url: action.url,
+          appearance: action.appearance,
+          newTab: action.newTab,
+        })) || []
+      return <CallToActionBlock content={content} actions={actions} {...rest} />
     },
   },
 })

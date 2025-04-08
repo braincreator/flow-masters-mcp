@@ -1111,9 +1111,19 @@ export interface CallToActionBlock {
  * via the `definition` "ContentBlock".
  */
 export interface ContentBlock {
+  /**
+   * Если указан, будет отображаться над колонками
+   */
+  heading?: string | null;
+  /**
+   * Если указан, будет отображаться под заголовком
+   */
+  subheading?: string | null;
   columns?:
     | {
         size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
+        verticalAlignment?: ('top' | 'center' | 'bottom') | null;
+        horizontalAlignment?: ('left' | 'center' | 'right') | null;
         richText?: {
           root: {
             type: string;
@@ -1154,6 +1164,16 @@ export interface ContentBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Дополнительные настройки для блока
+   */
+  settings?: {
+    backgroundColor?: ('transparent' | 'light' | 'dark' | 'accent') | null;
+    textAlignment?: ('left' | 'center' | 'right') | null;
+    paddingTop?: ('none' | 'small' | 'medium' | 'large') | null;
+    paddingBottom?: ('none' | 'small' | 'medium' | 'large') | null;
+    containerWidth?: ('default' | 'narrow' | 'wide' | 'full') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
@@ -2716,10 +2736,14 @@ export interface CallToActionBlockSelect<T extends boolean = true> {
  * via the `definition` "ContentBlock_select".
  */
 export interface ContentBlockSelect<T extends boolean = true> {
+  heading?: T;
+  subheading?: T;
   columns?:
     | T
     | {
         size?: T;
+        verticalAlignment?: T;
+        horizontalAlignment?: T;
         richText?: T;
         enableActions?: T;
         actions?:
@@ -2736,6 +2760,15 @@ export interface ContentBlockSelect<T extends boolean = true> {
               id?: T;
             };
         id?: T;
+      };
+  settings?:
+    | T
+    | {
+        backgroundColor?: T;
+        textAlignment?: T;
+        paddingTop?: T;
+        paddingBottom?: T;
+        containerWidth?: T;
       };
   id?: T;
   blockName?: T;

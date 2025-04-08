@@ -50,20 +50,15 @@ import { newsletterBroadcastJob, processScheduledSubscriptions } from './jobs'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
-  url: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
+  url: ENV.DATABASE_URI,
   connectOptions: {
     directConnection: true,
-    serverSelectionTimeoutMS: 10000,
-    connectTimeoutMS: 10000,
-    socketTimeoutMS: 10000,
-    retryWrites: true,
-    retryReads: true,
-    w: 'majority' as const,
+    serverSelectionTimeoutMS: 20000,
     maxPoolSize: 10,
-    minPoolSize: 1,
-    // Remove deprecated options
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true,
+    minPoolSize: 5,
+    socketTimeoutMS: 30000,
+    connectTimeoutMS: 30000,
+    family: 4,
   },
 }
 

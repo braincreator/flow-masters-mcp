@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
   TooltipPortal,
 } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utilities/ui'
 import { Facebook, Twitter, Linkedin, Link2, Share2 } from 'lucide-react'
 
 export interface ShareButtonsProps {
