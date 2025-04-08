@@ -57,7 +57,7 @@ export const BroadcastReports: CollectionConfig = {
       required: true,
     },
     {
-      name: 'errors',
+      name: 'errorsList',
       type: 'array',
       required: true,
       fields: [

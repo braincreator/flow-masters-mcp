@@ -1,4 +1,4 @@
-import { unstable_setRequestLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 import { SubscriptionResult } from './SubscriptionResult'
@@ -26,7 +26,7 @@ export async function generateMetadata({ params: paramsPromise }: PageProps): Pr
 
 export default async function ResultPage({ params: paramsPromise, searchParams }: PageProps) {
   const params = await paramsPromise
-  unstable_setRequestLocale(params.lang)
+  setRequestLocale(params.lang)
 
   const { status = 'unknown', subscriptionId, error } = searchParams
 

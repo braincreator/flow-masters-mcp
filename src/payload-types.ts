@@ -1859,7 +1859,7 @@ export interface BroadcastReport {
   totalSubscribers: number;
   successfullySent: number;
   failedToSend: number;
-  errors: {
+  errorsList: {
     error: string;
     id?: string | null;
   }[];
@@ -3159,7 +3159,7 @@ export interface BroadcastReportsSelect<T extends boolean = true> {
   totalSubscribers?: T;
   successfullySent?: T;
   failedToSend?: T;
-  errors?:
+  errorsList?:
     | T
     | {
         error?: T;

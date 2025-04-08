@@ -133,6 +133,56 @@ type AuthResult = {
  * @param request The request object
  * @returns Object with auth status, user and error response
  */
+/**
+ * Verify API key from request headers
+ * @param request The request object
+ * @returns NextResponse or null if valid
+ */
+export async function verifyApiKey(request: Request): Promise<NextResponse | null> {
+  const apiKey = request.headers.get('x-api-key')
+
+  if (!apiKey) {
+    return errorResponse('Missing API key', 401)
+  }
+
+  if (apiKey !== process.env.PAYLOAD_SECRET) {
+    return errorResponse('Invalid API key', 401)
+  }
+
+  return null
+}
+
+/**
+ * Verify webhook signature
+ * @param request The request object
+ * @returns NextResponse or null if valid
+ */
+export async function verifyWebhookSignature(request: Request): Promise<NextResponse | null> {
+  const signature = request.headers.get('x-webhook-signature')
+
+  if (!signature) {
+    return errorResponse('Missing webhook signature', 401)
+  }
+
+  try {
+    const clonedRequest = request.clone()
+    const body = await clonedRequest.text()
+    const hmac = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET || '')
+    const computedSignature = hmac.update(body).digest('hex')
+
+    const isValid = signature === computedSignature
+
+    if (!isValid) {
+      return errorResponse('Invalid webhook signature', 401)
+    }
+
+    return null
+  } catch (error) {
+    console.error('Webhook signature verification error:', error)
+    return errorResponse('Failed to verify webhook signature', 500)
+  }
+}
+
 export async function verifyAuth(request: Request): Promise<AuthResult> {
   try {
     const payload = await getPayloadClient()

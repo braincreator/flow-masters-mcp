@@ -24,6 +24,9 @@ const serverFunction: ServerFunctionClient = async function (args) {
   })
 }
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function Layout({ children }: Args) {
   return (
     <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>

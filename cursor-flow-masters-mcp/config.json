@@ -1,0 +1,16 @@
+{
+  "port": 3030,
+  "host": "0.0.0.0",
+  "apiConfig": {
+    "apiUrl": "http://payload:3000",
+    "apiKey": "your-api-key-here",
+    "autoUpdate": true,
+    "updateCheckInterval": 60
+  },
+  "llmConfig": {
+    "modelContextEnabled": true,
+    "allowedModels": ["*"],
+    "maxTokens": 8192,
+    "contextWindow": 4096
+  }
+}

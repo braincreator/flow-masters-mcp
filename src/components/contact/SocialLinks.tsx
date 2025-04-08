@@ -1,7 +1,12 @@
 import React from 'react'
 import { Github, Linkedin, Send } from 'lucide-react' // Пример иконок, добавьте нужные
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip/index'
 
 interface SocialLinksProps {
   links: {

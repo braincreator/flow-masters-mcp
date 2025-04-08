@@ -1,4 +1,4 @@
-import { unstable_setRequestLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 import AccountSubscriptions from '../components/AccountSubscriptions'
@@ -21,7 +21,7 @@ export async function generateMetadata({ params: paramsPromise }: Props): Promis
 
 export default async function AccountSubscriptionsPage({ params: paramsPromise }: Props) {
   const params = await paramsPromise
-  unstable_setRequestLocale(params.lang)
+  setRequestLocale(params.lang)
 
   return (
     <div className="container py-10">

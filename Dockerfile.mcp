@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
+
+# Copy the server file
+COPY ./flow-masters-mcp/server.js ./server.js
+
+# Expose the port
+EXPOSE 3030
+
+# Add metadata
+LABEL description="Flow Masters Model Context Protocol (MCP) server for LLM integration"
+LABEL version="1.0.0"
+
+# Command to run the application
+CMD ["node", "server.js"]

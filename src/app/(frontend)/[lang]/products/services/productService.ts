@@ -105,3 +105,37 @@ export async function getAllCategories(locale: Locale) {
 
   return categories
 }
+
+interface GetProductParams {
+  slug: string
+  locale: Locale
+}
+
+export async function getProduct({ slug, locale }: GetProductParams) {
+  const payload = await getPayload({ config: configPromise })
+
+  try {
+    const product = await payload.find({
+      collection: 'products',
+      where: {
+        slug: {
+          equals: slug,
+        },
+        status: {
+          equals: 'published',
+        },
+      },
+      locale,
+      limit: 1,
+    })
+
+    if (product.docs.length === 0) {
+      return { item: null }
+    }
+
+    return { item: product.docs[0] }
+  } catch (error) {
+    console.error('Error fetching product:', error)
+    return { item: null, error }
+  }
+}

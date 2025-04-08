@@ -61,7 +61,7 @@ export async function fetchExchangeRates(): Promise<Record<string, number>> {
 }
 
 // --- API Base URL ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_PAYLOAD_URL || ''
+const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 // Helper for making authenticated requests
 export async function fetchPayloadAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

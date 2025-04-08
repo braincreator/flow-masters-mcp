@@ -60,24 +60,22 @@ const nextConfig = {
     ],
   },
   output: 'standalone',
+  distDir: '.next',
+  assetPrefix: '',
   poweredByHeader: false,
   compress: true,
+  reactStrictMode: true,
 
   experimental: {
-    optimizeServerReact: true,
-    serverMinification: true,
     optimizeCss: true,
     serverActions: {
-      bodySizeLimit: '5mb',
+      allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002'],
     },
   },
-  onDemandEntries: {
-    maxInactiveAge: 15 * 1000,
-    pagesBufferLength: 2,
-  },
+  serverExternalPackages: ['mongoose'],
+
   transpilePackages: [
     'payload-admin',
-    'payload',
     '@aws-sdk/client-s3',
     '@aws-sdk/lib-storage',
     '@aws-sdk/s3-request-presigner',

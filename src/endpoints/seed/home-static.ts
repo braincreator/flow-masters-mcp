@@ -57,20 +57,18 @@ export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
     },
     links: [
       {
-        link: {
-          type: 'custom',
-          appearance: 'default',
-          label: 'Get Started',
-          url: '/contact',
-        },
+        actionType: 'link',
+        type: 'custom',
+        appearance: 'default',
+        label: 'Get Started',
+        url: '/contact',
       },
       {
-        link: {
-          type: 'custom',
-          appearance: 'outline',
-          label: 'View Solutions',
-          url: '/solutions',
-        },
+        actionType: 'link',
+        type: 'custom',
+        appearance: 'outline',
+        label: 'View Solutions',
+        url: '/solutions',
       },
     ],
   },
@@ -159,8 +157,8 @@ export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
       ],
     },
     {
-      blockType: 'callToAction',
-      richText: {
+      blockType: 'cta',
+      content: {
         root: {
           children: [
             {
@@ -183,14 +181,13 @@ export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
           version: 1,
         },
       },
-      links: [
+      actions: [
         {
-          link: {
-            type: 'custom',
-            appearance: 'default',
-            label: 'Schedule a Demo',
-            url: '/contact',
-          },
+          actionType: 'link',
+          type: 'custom',
+          appearance: 'default',
+          label: 'Schedule a Demo',
+          url: '/contact',
         },
       ],
     },
