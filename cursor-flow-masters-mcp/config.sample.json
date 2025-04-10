@@ -1,10 +1,22 @@
 {
   "port": 3030,
-  "host": "localhost",
+  "host": "0.0.0.0",
   "apiConfig": {
-    "apiUrl": "https://flow-masters-api.example.com",
+    "apiUrl": "http://payload:3000",
     "apiKey": "your-api-key-here",
     "autoUpdate": true,
-    "updateCheckInterval": 60
+    "updateCheckInterval": 60,
+    "basePath": "/api",
+    "apiVersion": "v1"
+  },
+  "llm": {
+    "modelContextEnabled": true,
+    "allowedModels": ["*"],
+    "maxTokens": 8192,
+    "contextWindow": 4096,
+    "caching": {
+      "enabled": true,
+      "ttl": 3600
+    }
   }
 }

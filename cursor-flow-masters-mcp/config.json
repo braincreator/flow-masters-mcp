@@ -5,12 +5,18 @@
     "apiUrl": "http://payload:3000",
     "apiKey": "your-api-key-here",
     "autoUpdate": true,
-    "updateCheckInterval": 60
+    "updateCheckInterval": 60,
+    "basePath": "/api",
+    "apiVersion": "v1"
   },
-  "llmConfig": {
+  "llm": {
     "modelContextEnabled": true,
     "allowedModels": ["*"],
     "maxTokens": 8192,
-    "contextWindow": 4096
+    "contextWindow": 4096,
+    "caching": {
+      "enabled": true,
+      "ttl": 3600
+    }
   }
 }
