@@ -1,55 +1,29 @@
-import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
-import { verifyApiKey } from '@/utilities/auth'
 
-export async function POST(req: Request) {
-  try {
-    // Verify API key
-    const apiKey = req.headers.get('x-api-key')
-    if (!verifyApiKey(apiKey)) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
-    }
+import { NextResponse } from 'next/server';
 
-    const payload = await getPayloadClient()
-    const body = await req.json()
-    const { action, collection, data } = body
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
 
-    // Handle different actions
-    switch (action) {
-      case 'create':
-        const created = await payload.create({
-          collection,
-          data,
-        })
-        return NextResponse.json(created)
+export function GET(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/integrations${url.pathname.replace('/api/integrations', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-      case 'update':
-        const updated = await payload.update({
-          collection,
-          where: data.where,
-          data: data.update,
-        })
-        return NextResponse.json(updated)
+export function POST(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/integrations${url.pathname.replace('/api/integrations', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-      case 'delete':
-        const deleted = await payload.delete({
-          collection,
-          where: data.where,
-        })
-        return NextResponse.json(deleted)
+export function PUT(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/integrations${url.pathname.replace('/api/integrations', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-      case 'find':
-        const found = await payload.find({
-          collection,
-          where: data.where,
-        })
-        return NextResponse.json(found)
-
-      default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
-    }
-  } catch (error) {
-    console.error('Integration error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+export function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/integrations${url.pathname.replace('/api/integrations', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }

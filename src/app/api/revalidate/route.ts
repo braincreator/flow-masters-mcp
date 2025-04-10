@@ -1,28 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from '@/utilities/revalidation'
 
-export async function POST(request: NextRequest) {
-  // Check for secret to confirm this is a valid request
-  const secret = request.nextUrl.searchParams.get('secret')
-  if (secret !== process.env.REVALIDATION_TOKEN) {
-    return NextResponse.json({ message: 'Invalid token' }, { status: 401 })
-  }
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
 
-  try {
-    const path = request.nextUrl.searchParams.get('path')
-    const type = request.nextUrl.searchParams.get('type')
+export function GET(request: Request) {
+  const url = new URL(request.url)
+  const newUrl = `${url.origin}/api/v1/revalidate${url.pathname.replace('/api/revalidate', '')}${url.search}`
+  return NextResponse.redirect(newUrl)
+}
 
-    if (!path || !type) {
-      return NextResponse.json({ message: 'Missing path or type' }, { status: 400 })
-    }
+export function POST(request: Request) {
+  const url = new URL(request.url)
+  const newUrl = `${url.origin}/api/v1/revalidate${url.pathname.replace('/api/revalidate', '')}${url.search}`
+  return NextResponse.redirect(newUrl)
+}
 
-    // Revalidate the page
-    await revalidatePath(path, { type: type as 'page' | 'layout' })
+export function PUT(request: Request) {
+  const url = new URL(request.url)
+  const newUrl = `${url.origin}/api/v1/revalidate${url.pathname.replace('/api/revalidate', '')}${url.search}`
+  return NextResponse.redirect(newUrl)
+}
 
-    return NextResponse.json({ revalidated: true, now: Date.now() })
-  } catch (err) {
-    return NextResponse.json({ message: 'Error revalidating' }, { status: 500 })
-  }
+export function DELETE(request: Request) {
+  const url = new URL(request.url)
+  const newUrl = `${url.origin}/api/v1/revalidate${url.pathname.replace('/api/revalidate', '')}${url.search}`
+  return NextResponse.redirect(newUrl)
 }
 
 export async function OPTIONS() {

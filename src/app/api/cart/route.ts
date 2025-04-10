@@ -1,125 +1,29 @@
-import { NextRequest } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
-import { cookies } from 'next/headers'
 
-// GET /api/cart - получение корзины
-export async function GET(req: NextRequest) {
-  try {
-    // Получаем экземпляр Payload
-    const payload = await getPayloadClient()
+import { NextResponse } from 'next/server';
 
-    // Определяем, авторизован ли пользователь
-    let user = null
-    try {
-      // Безопасно пытаемся получить пользователя
-      const userReq = { headers: { authorization: req.headers.get('authorization') } }
-      const userRes = await payload.verify(userReq)
-      user = userRes?.user
-    } catch (error) {
-      // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
-    }
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
 
-    // Определяем, какую корзину искать
-    let where = {}
-
-    if (user) {
-      // Для авторизованного пользователя ищем по user ID
-      where = { user: { equals: user.id }, convertedToOrder: { not_equals: true } }
-    } else {
-      // Для анонимного пользователя ищем по sessionId из cookie
-      const cookieStore = await cookies()
-      const sessionCookie = cookieStore.get('payload-cart-session')
-      const sessionId = sessionCookie?.value
-
-      // Если нет cookie сессии, возвращаем пустую корзину
-      if (!sessionId) {
-        return Response.json(null, { status: 200 })
-      }
-
-      where = { sessionId: { equals: sessionId }, convertedToOrder: { not_equals: true } }
-    }
-
-    // Ищем существующую сессию корзины
-    const result = await payload.find({
-      collection: 'cart-sessions',
-      where,
-      limit: 1,
-      sort: '-updatedAt',
-      depth: 1,
-    })
-
-    if (result.docs.length === 0) {
-      return Response.json(null, { status: 200 })
-    }
-
-    // Возвращаем найденную корзину
-    return Response.json(result.docs[0], { status: 200 })
-  } catch (error) {
-    console.error('Error fetching cart:', error)
-    return Response.json({ message: 'Failed to retrieve cart' }, { status: 500 })
-  }
+export function GET(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cart${url.pathname.replace('/api/cart', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }
 
-// DELETE /api/cart - очистка корзины
-export async function DELETE(req: NextRequest) {
-  try {
-    // Получаем экземпляр Payload
-    const payload = await getPayloadClient()
+export function POST(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cart${url.pathname.replace('/api/cart', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    // Определяем, авторизован ли пользователь
-    let user = null
-    try {
-      // Безопасно пытаемся получить пользователя
-      const userReq = { headers: { authorization: req.headers.get('authorization') } }
-      const userRes = await payload.verify(userReq)
-      user = userRes?.user
-    } catch (error) {
-      // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
-    }
+export function PUT(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cart${url.pathname.replace('/api/cart', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    // Определяем, какую корзину искать
-    let where = {}
-
-    if (user) {
-      // Для авторизованного пользователя ищем по user ID
-      where = { user: { equals: user.id }, convertedToOrder: { not_equals: true } }
-    } else {
-      // Для анонимного пользователя ищем по sessionId из cookie
-      const cookieStore = cookies()
-      const sessionCookie = cookieStore.get('payload-cart-session')
-      const sessionId = sessionCookie?.value
-
-      // Если нет cookie сессии, нечего очищать
-      if (!sessionId) {
-        return Response.json({ success: true }, { status: 200 })
-      }
-
-      where = { sessionId: { equals: sessionId }, convertedToOrder: { not_equals: true } }
-    }
-
-    // Ищем существующую сессию корзины
-    const result = await payload.find({
-      collection: 'cart-sessions',
-      where,
-      limit: 1,
-    })
-
-    if (result.docs.length === 0) {
-      return Response.json({ success: true }, { status: 200 })
-    }
-
-    // Обновляем корзину, очищая items
-    await payload.update({
-      collection: 'cart-sessions',
-      id: result.docs[0].id,
-      data: {
-        items: [],
-      },
-    })
-
-    return Response.json({ success: true }, { status: 200 })
-  } catch (error) {
-    console.error('Error clearing cart:', error)
-    return Response.json({ message: 'Failed to clear cart' }, { status: 500 })
-  }
+export function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cart${url.pathname.replace('/api/cart', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }

@@ -1,55 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
-import { ServiceRegistry } from '@/services/service.registry'
 
-// Защищаем маршрут с помощью API ключа
-const validateApiKey = (req: NextRequest): boolean => {
-  const apiKey = req.headers.get('x-api-key')
-  const validApiKey = process.env.CRON_API_KEY
+import { NextResponse } from 'next/server';
 
-  if (!validApiKey) {
-    console.warn('CRON_API_KEY not configured in environment variables')
-    return false
-  }
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
 
-  return apiKey === validApiKey
+export function GET(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cron/process-subscriptions${url.pathname.replace('/api/cron/process-subscriptions', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }
 
-export async function POST(req: NextRequest) {
-  // Проверяем API ключ
-  if (!validateApiKey(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export function POST(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cron/process-subscriptions${url.pathname.replace('/api/cron/process-subscriptions', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-  try {
-    // Инициализация сервисов
-    let payload
-    try {
-      payload = await getPayloadClient()
-    } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
-      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
-    }
+export function PUT(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cron/process-subscriptions${url.pathname.replace('/api/cron/process-subscriptions', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    console.log('Starting subscription payments processing...')
-
-    const serviceRegistry = ServiceRegistry.getInstance(payload)
-    const subscriptionService = serviceRegistry.getSubscriptionService()
-    const results = await subscriptionService.processRecurringPayments()
-
-    console.log('Subscription processing completed:', results)
-
-    return NextResponse.json({
-      success: true,
-      processed: results,
-    })
-  } catch (error) {
-    console.error('Error processing subscription payments:', error)
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
-  }
+export function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/cron/process-subscriptions${url.pathname.replace('/api/cron/process-subscriptions', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }

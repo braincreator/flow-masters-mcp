@@ -1,24 +1,29 @@
-import { NextResponse } from 'next/server'
 
-// List of all category types used in the system
-const CATEGORY_TYPES = [
-  {
-    id: 'product',
-    label: 'Product Category',
-    description: 'Categories for products in the store',
-  },
-  {
-    id: 'blog',
-    label: 'Blog Category',
-    description: 'Categories for blog posts and articles',
-  },
-  {
-    id: 'general',
-    label: 'General Category',
-    description: 'General purpose categories used across the site',
-  },
-]
+import { NextResponse } from 'next/server';
 
-export async function GET() {
-  return NextResponse.json(CATEGORY_TYPES)
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
+
+export function GET(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/category-types${url.pathname.replace('/api/category-types', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
+
+export function POST(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/category-types${url.pathname.replace('/api/category-types', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
+
+export function PUT(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/category-types${url.pathname.replace('/api/category-types', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
+
+export function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/category-types${url.pathname.replace('/api/category-types', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }

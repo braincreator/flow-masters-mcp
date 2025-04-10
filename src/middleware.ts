@@ -4,7 +4,7 @@ import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 import { metricsCollector } from '@/utilities/payload/metrics'
 
 // Move constants outside
-const SKIP_PATHS = ['/admin', '/api', '/_next', '/next/preview']
+const SKIP_PATHS = ['/admin', '/_next', '/next/preview']
 const STATIC_FILE_REGEX = /\.[^/]+$/
 
 export function middleware(request: NextRequest) {
@@ -18,6 +18,16 @@ export function middleware(request: NextRequest) {
 
   try {
     metricsCollector.recordRequest()
+
+    // Обрабатываем запросы к API без указания версии
+    if (pathname.startsWith('/api/') && !pathname.match(/\/api\/(v\d+|admin|docs)/)) {
+      // Редирект на v1 по умолчанию
+      const newUrl = new URL(request.url)
+      newUrl.pathname = pathname.replace('/api/', '/api/v1/')
+
+      metricsCollector.recordOperationDuration(Date.now() - startTime)
+      return NextResponse.redirect(newUrl)
+    }
 
     // Early return for static and system paths
     if (SKIP_PATHS.some((path) => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {

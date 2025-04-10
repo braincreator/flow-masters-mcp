@@ -1,61 +1,29 @@
-import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
-import { ServiceRegistry } from '@/services/service.registry'
 
-export async function POST(req: Request) {
-  try {
-    const requestData = await req.json()
-    const { products, customer, paymentMethod } = requestData
+import { NextResponse } from 'next/server';
 
-    if (!products || products.length === 0) {
-      return NextResponse.json({ error: 'No products in cart' }, { status: 400 })
-    }
+// Этот файл автоматически создан скриптом миграции API
+// Редирект со старого API пути на новый v1 путь
 
-    if (!customer || !customer.email) {
-      return NextResponse.json({ error: 'Customer information is required' }, { status: 400 })
-    }
+export function GET(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/checkout${url.pathname.replace('/api/checkout', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    if (!paymentMethod) {
-      return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
-    }
+export function POST(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/checkout${url.pathname.replace('/api/checkout', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    // Initialize payload client
-    const payload = await getPayloadClient()
+export function PUT(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/checkout${url.pathname.replace('/api/checkout', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
+}
 
-    // Получаем PaymentService через ServiceRegistry
-    const serviceRegistry = ServiceRegistry.getInstance(payload)
-    const paymentService = serviceRegistry.getPaymentService()
-
-    // Create order in database
-    const order = await payload.create({
-      collection: 'orders',
-      data: {
-        products: products.map((p) => ({ product: p.id, quantity: p.quantity })),
-        customer: customer.email,
-        total: products.reduce((sum, p) => sum + p.price * p.quantity, 0),
-        status: 'pending',
-        paymentMethod,
-      },
-    })
-
-    // Generate payment link
-    const paymentLink = await paymentService.generatePaymentLink(
-      order.id,
-      order.total,
-      `Order #${order.id}`,
-      paymentMethod,
-    )
-
-    return NextResponse.json({
-      success: true,
-      order: order.id,
-      paymentLink,
-    })
-  } catch (error) {
-    console.error('Checkout error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
-      { status: 500 },
-    )
-  }
+export function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const newUrl = `${url.origin}/api/v1/checkout${url.pathname.replace('/api/checkout', '')}${url.search}`;
+  return NextResponse.redirect(newUrl);
 }

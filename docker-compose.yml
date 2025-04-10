@@ -76,15 +76,29 @@ services:
       - HOST=0.0.0.0
       - API_URL=http://payload:3000
       - API_KEY=your-api-key-here
+      - AUTO_UPDATE=true
+      - UPDATE_CHECK_INTERVAL=60
+      - API_BASE_PATH=/api
+      - API_VERSION=v1
+      - MODEL_CONTEXT_ENABLED=true
+      - ALLOWED_MODELS=*
+      - MAX_TOKENS=8192
+      - CONTEXT_WINDOW=4096
+      - CACHE_ENABLED=true
+      - CACHE_TTL=3600
+    volumes:
+      - mcp_data:/app/data
     networks:
       - app-network
     restart: always
-    # Model Context Protocol server for LLM integration with Flow Masters API
+    # Улучшенная версия MCP сервера для интеграции с LLM и Flow Masters API
 
 volumes:
   mongodb_data:
     driver: local
   node_modules:
+    driver: local
+  mcp_data:
     driver: local
 
 networks:
