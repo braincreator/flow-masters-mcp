@@ -1,3 +1,4 @@
+"use client"
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
@@ -9,6 +10,13 @@ import { Pagination } from '@/components/Pagination'
 import { PageHeading } from '@/components/PageHeading'
 import { usePayloadAPI } from '@/providers/payload'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
+import { GridContainer } from '@/components/GridContainer'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Media } from '@/components/Media'
+import { cn } from '@/utilities/ui'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Search, Grid2X2, List, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Post {
   id: string
@@ -62,6 +70,7 @@ interface BlogBlockProps {
   initialTags?: Tag[]
   title?: string
   description?: string
+  settings?: any
 }
 
 // Fallback data in case API fails
@@ -75,9 +84,29 @@ const FALLBACK_POSTS: Post[] = [
   },
 ]
 
-export function BlogBlock({
+const variants = {
+  grid: {
+    container: 'grid gap-8',
+    cols: {
+      2: 'md:grid-cols-2',
+      3: 'md:grid-cols-3',
+    },
+    item: 'flex flex-col bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow duration-200',
+  },
+  list: {
+    container: 'space-y-8',
+    item: 'flex flex-col md:flex-row gap-8 bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow duration-200',
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+}
+
+export function Blog({
   layout = 'grid',
-  postsPerPage = 9,
+  postsPerPage = 6,
   showFeaturedPost = true,
   showSearch = true,
   showCategories = true,
@@ -91,6 +120,7 @@ export function BlogBlock({
   initialTags,
   title,
   description,
+  settings,
 }: BlogBlockProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -106,6 +136,10 @@ export function BlogBlock({
   )
   const [error, setError] = useState<string | null>(null)
   const [apiErrorOccurred, setApiErrorOccurred] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(layout)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   // Track if we need to fetch data from API
   const shouldFetchFromAPI = useRef<boolean>(!initialPosts || !initialCategories || !initialTags)
@@ -119,10 +153,10 @@ export function BlogBlock({
   const currentLocale = (segments.length > 1 ? segments[1] : 'en') as Locale
 
   // Get current page from query params
-  const currentPage = searchParams.get('page')
+  const currentPageFromParams = searchParams.get('page')
     ? parseInt(searchParams.get('page') as string, 10)
     : 1
-  const searchQuery = searchParams.get('search') || ''
+  const searchQueryFromParams = searchParams.get('search') || ''
   const categorySlug = searchParams.get('category') || ''
   const tagSlug = searchParams.get('tag') || ''
 
@@ -262,95 +296,211 @@ export function BlogBlock({
     router.push(`${pathname}?${params.toString()}`)
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {apiErrorOccurred && (
-        <div className="mb-4 p-4 bg-yellow-100 text-yellow-800 rounded-md">
-          <p>
-            <strong>Note:</strong> We're currently experiencing some technical issues with our blog
-            API. Some features might be limited. Our team is working to resolve this as soon as
-            possible.
-          </p>
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory =
+      !selectedCategory || post.categories?.some((cat) => cat.id === selectedCategory)
+    return matchesSearch && matchesCategory
+  })
+
+  const totalPagesFromFiltered = Math.ceil(filteredPosts.length / postsPerPage)
+  const currentPosts = filteredPosts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage,
+  )
+
+  const handleCategoryChange = useCallback(
+    (categoryId: string) => {
+      setSelectedCategory(categoryId === selectedCategory ? null : categoryId)
+      setCurrentPage(1)
+    },
+    [selectedCategory],
+  )
+
+  const renderPost = (post) => (
+    <motion.article
+      key={post.id}
+      className={viewMode === 'grid' ? variants.grid.item : variants.list.item}
+      variants={itemVariants}
+    >
+      {post.heroImage && (
+        <div
+          className={cn(
+            'relative',
+            viewMode === 'grid' ? 'aspect-video' : 'md:w-1/3 aspect-video md:aspect-auto',
+          )}
+        >
+          <Media
+            resource={post.heroImage}
+            className="object-cover"
+            fill
+            sizes={
+              viewMode === 'grid'
+                ? '(max-width: 768px) 100vw, 33vw'
+                : '(max-width: 768px) 100vw, 50vw'
+            }
+          />
         </div>
       )}
 
-      {(title || description) && (
-        <PageHeading
-          title={title || (currentLocale === 'ru' ? 'Блог' : 'Blog')}
-          description={description}
-          center
-          className="mb-8"
-        />
-      )}
+      <div className="flex-1 p-6 space-y-4">
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold line-clamp-2">{post.title}</h3>
+          {post.excerpt && <p className="text-muted-foreground line-clamp-3">{post.excerpt}</p>}
+        </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center">
-        {showCategories && categories.length > 0 && (
-          <div className="md:w-1/2">
-            <h3 className="text-lg font-medium mb-2">Categories</h3>
-            <BlogTagCloud tags={categories} type="categories" showCount sizeFactor />
-          </div>
-        )}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {post.publishedAt && (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              {new Date(post.publishedAt).toLocaleDateString()}
+            </div>
+          )}
+          {post.readTime && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {post.readTime} min read
+            </div>
+          )}
+        </div>
 
-        {showTags && tags.length > 0 && (
-          <div className="md:w-1/2">
-            <h3 className="text-lg font-medium mb-2">Tags</h3>
-            <BlogTagCloud tags={tags} type="tags" showCount sizeFactor limit={20} />
+        {post.categories && post.categories.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {post.categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryChange(category.id)}
+                className={cn(
+                  'text-xs px-2 py-1 rounded-full',
+                  selectedCategory === category.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80',
+                )}
+              >
+                {category.title}
+              </button>
+            ))}
           </div>
         )}
       </div>
+    </motion.article>
+  )
 
-      {loading ? (
-        <div className="py-12 text-center">
-          <div
-            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]"
-            role="status"
+  return (
+    <GridContainer settings={settings}>
+      <div className="space-y-12">
+        {(title || description) && (
+          <motion.div
+            className="text-center max-w-3xl mx-auto space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-      ) : (
-        <>
-          {showFeaturedPost && posts.length > 0 && (
-            <div className="mb-12">
-              <BlogPostCard post={posts[0]} variant="featured" />
-            </div>
-          )}
+            {title && <h2 className="text-3xl font-bold tracking-tight">{title}</h2>}
+            {description && <p className="text-lg text-muted-foreground">{description}</p>}
+          </motion.div>
+        )}
 
-          {posts.length > 0 ? (
-            <div
-              className={`grid ${
-                layout === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-              } gap-6`}
-            >
-              {posts.slice(showFeaturedPost ? 1 : 0).map((post) => (
-                <BlogPostCard
-                  key={post.id}
-                  post={post}
-                  variant={layout === 'grid' ? 'default' : 'minimal'}
+        <div className="space-y-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            {showSearch && (
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                  className="pl-9"
                 />
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid2X2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {showCategories && initialCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {initialCategories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  className={cn(
+                    'px-4 py-2 rounded-full',
+                    selectedCategory === category.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80',
+                  )}
+                >
+                  {category.title}
+                  {category.count && <span className="ml-2 text-xs">{category.count}</span>}
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="py-12 text-center text-muted-foreground">
-              No posts found. Try adjusting your search or filters.
-            </div>
           )}
 
-          {showPagination && !apiErrorOccurred && totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
-              <Pagination
-                page={currentPage}
-                totalPages={totalPages}
-                onPageChange={(page) => {
-                  const params = new URLSearchParams(searchParams.toString())
-                  params.set('page', page.toString())
-                  router.push(`${pathname}?${params.toString()}`)
-                }}
-              />
+          <div
+            className={cn(
+              viewMode === 'grid' ? variants.grid.container : variants.list.container,
+              viewMode === 'grid' && variants.grid.cols[2],
+            )}
+          >
+            <AnimatePresence mode="wait">{currentPosts.map(renderPost)}</AnimatePresence>
+          </div>
+
+          {totalPagesFromFiltered > 1 && (
+            <div className="flex justify-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: totalPagesFromFiltered }, (_, i) => (
+                <Button
+                  key={i + 1}
+                  variant={currentPage === i + 1 ? 'default' : 'outline'}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={currentPage === totalPagesFromFiltered}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           )}
-        </>
-      )}
-    </div>
+        </div>
+      </div>
+    </GridContainer>
   )
 }
+
+export const BlogBlock = Blog
+export default Blog

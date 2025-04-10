@@ -1,6 +1,7 @@
+"use client"
 import React from 'react'
 import Image from 'next/image'
-import { BlogPostBlock as BlogPostBlockType } from '@/types/blocks'
+import type { BlogPostBlock as BlogPostBlockType } from '@/types/blocks'
 import { GridContainer } from '@/components/shared/GridContainer'
 import { AuthorCard } from '@/components/blog/AuthorCard'
 import { ReadingProgressBar } from '@/components/blog/ReadingProgressBar'
@@ -12,7 +13,7 @@ import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { formatDate, calculateReadingTime } from '@/lib/blogHelpers'
 import { cn } from '@/lib/utils'
 
-export default function BlogPostBlock({
+export function BlogPost({
   post,
   relatedPosts,
   showTableOfContents = true,
@@ -172,3 +173,6 @@ export default function BlogPostBlock({
     </>
   )
 }
+
+export const BlogPostBlock = BlogPost
+export default BlogPost

@@ -1,170 +1,95 @@
+'use client'
+
 import React from 'react'
-import RichText from '@/components/RichText'
-import { Action } from '@/components/Action'
-import { cn } from '@/utilities/ui'
+import type { ContentBlock as ContentBlockType } from '@/types/blocks'
+import { GridContainer } from '@/components/GridContainer'
+import { RichText } from '@/components/RichText'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 
-type ContentBlockSettings = {
-  backgroundColor?: 'transparent' | 'light' | 'dark' | 'accent'
-  textAlignment?: 'left' | 'center' | 'right'
-  paddingTop?: 'none' | 'small' | 'medium' | 'large'
-  paddingBottom?: 'none' | 'small' | 'medium' | 'large'
-  containerWidth?: 'default' | 'narrow' | 'wide' | 'full'
+type ContentStyle = 'default' | 'narrow' | 'wide'
+
+const contentStyles: Record<ContentStyle, string> = {
+  default: 'max-w-4xl',
+  narrow: 'max-w-2xl',
+  wide: 'max-w-6xl',
 }
 
-type ContentAction = {
-  actionType: 'link' | 'button'
-  label: string
-  type?: 'reference' | 'custom'
-  reference?: {
-    relationTo: 'pages' | 'posts'
-    value: string | { slug: string }
-  }
-  url?: string
-  appearance?: 'default' | 'outline'
-  newTab?: boolean
+interface ContentProps extends ContentBlockType {
+  className?: string
+  style?: ContentStyle
 }
 
-type ContentColumn = {
-  size?: 'full' | 'half' | 'oneThird' | 'twoThirds'
-  richText?: SerializedEditorState
-  enableActions?: boolean
-  actions?: ContentAction[]
-  verticalAlignment?: 'top' | 'center' | 'bottom'
-  horizontalAlignment?: 'left' | 'center' | 'right'
+const columnSizeClasses = {
+  full: 'col-span-12',
+  half: 'col-span-12 md:col-span-6',
+  oneThird: 'col-span-12 md:col-span-4',
+  twoThirds: 'col-span-12 md:col-span-8',
 }
 
-interface ContentBlockProps {
-  heading?: string
-  subheading?: string
-  columns: ContentColumn[]
-  settings?: ContentBlockSettings
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 },
 }
 
-const ContentBlock: React.FC<ContentBlockProps> = ({ heading, subheading, columns, settings }) => {
-  if (!columns || !Array.isArray(columns)) {
-    console.warn('ContentBlock: columns is not an array or is undefined', columns)
-    return null
-  }
-
-  // Настройки по умолчанию
-  const {
-    backgroundColor = 'transparent',
-    textAlignment = 'left',
-    paddingTop = 'medium',
-    paddingBottom = 'medium',
-    containerWidth = 'default',
-  } = settings || {}
-
-  // Классы для фона
-  const backgroundClasses = {
-    'bg-transparent': backgroundColor === 'transparent',
-    'bg-muted': backgroundColor === 'light',
-    'bg-secondary text-secondary-foreground': backgroundColor === 'dark',
-    'bg-primary text-primary-foreground': backgroundColor === 'accent',
-  }
-
-  // Классы для отступов
-  const paddingClasses = {
-    'pt-0': paddingTop === 'none',
-    'pt-4': paddingTop === 'small',
-    'pt-8': paddingTop === 'medium',
-    'pt-16': paddingTop === 'large',
-    'pb-0': paddingBottom === 'none',
-    'pb-4': paddingBottom === 'small',
-    'pb-8': paddingBottom === 'medium',
-    'pb-16': paddingBottom === 'large',
-  }
-
-  // Классы для ширины контейнера
-  const containerClasses = {
-    container: containerWidth === 'default',
-    'container max-w-3xl': containerWidth === 'narrow',
-    'container max-w-7xl': containerWidth === 'wide',
-    'w-full px-4': containerWidth === 'full',
-  }
-
+export const Content: React.FC<ContentProps> = ({
+  columns,
+  settings,
+  className,
+  style = 'default',
+}) => {
   return (
-    <section className={cn('my-16', backgroundClasses, paddingClasses)}>
-      <div className={cn('mx-auto', containerClasses)}>
-        {/* Заголовок и подзаголовок */}
-        {(heading || subheading) && (
-          <div style={{ textAlign: textAlignment }} className="mb-8">
-            {heading && <h2 className="text-3xl font-bold mb-2">{heading}</h2>}
-            {subheading && <p className="text-xl text-muted-foreground">{subheading}</p>}
-          </div>
+    <GridContainer settings={settings}>
+      <div
+        className={cn(
+          'w-full mx-auto my-8 animate-in fade-in duration-500 slide-in-from-bottom-4',
+          contentStyles[style],
+          className,
         )}
-
-        {/* Колонки с контентом */}
-        <div className="grid grid-cols-12 gap-y-8 gap-x-8">
-          {columns.map((col, index) => {
-            if (!col) {
-              console.warn('ContentBlock: column is undefined at index', index)
-              return null
-            }
-
-            const {
-              enableActions,
-              actions,
-              richText,
-              size = 'full',
-              verticalAlignment,
-              horizontalAlignment,
-            } = col
-
-            return (
-              <div
-                className={cn('col-span-12', {
-                  'md:col-span-4 lg:col-span-4': size === 'oneThird',
-                  'md:col-span-6': size === 'half',
-                  'md:col-span-8': size === 'twoThirds',
-                  'md:col-span-12': size === 'full',
-                })}
-                key={index}
-              >
-                <div
-                  className={cn('h-full flex flex-col', {
-                    'justify-start': verticalAlignment === 'top' || !verticalAlignment,
-                    'justify-center': verticalAlignment === 'center',
-                    'justify-end': verticalAlignment === 'bottom',
-                    'items-start': horizontalAlignment === 'left' || !horizontalAlignment,
-                    'items-center': horizontalAlignment === 'center',
-                    'items-end': horizontalAlignment === 'right',
-                  })}
-                >
-                  {richText && (
-                    <div
-                      className={cn('prose dark:prose-invert', {
-                        'w-full': horizontalAlignment === 'center',
-                        'text-left': horizontalAlignment === 'left' || !horizontalAlignment,
-                        'text-center': horizontalAlignment === 'center',
-                        'text-right': horizontalAlignment === 'right',
-                      })}
-                    >
-                      <RichText data={richText} />
-                    </div>
-                  )}
-                  {enableActions && actions && actions.length > 0 && (
-                    <div
-                      className={cn('mt-6 flex flex-wrap gap-4', {
-                        'justify-start': horizontalAlignment === 'left' || !horizontalAlignment,
-                        'justify-center': horizontalAlignment === 'center',
-                        'justify-end': horizontalAlignment === 'right',
-                      })}
-                    >
-                      {actions.map((action, i) => (
-                        <Action key={i} {...action} />
-                      ))}
-                    </div>
-                  )}
+      >
+        <div className="grid grid-cols-12 gap-8">
+          {columns.map((column, index) => (
+            <motion.div
+              key={index}
+              className={cn(columnSizeClasses[column.size || 'full'], 'space-y-6')}
+              {...fadeInUp}
+              transition={{ delay: index * 0.2 }}
+            >
+              {column.richText && (
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <RichText data={column.richText as SerializedEditorState} />
                 </div>
-              </div>
-            )
-          })}
+              )}
+
+              {column.enableActions && column.actions && column.actions.length > 0 && (
+                <motion.div
+                  className="flex flex-wrap gap-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2 + 0.3 }}
+                >
+                  {column.actions.map((action, actionIndex) => (
+                    <Button
+                      key={actionIndex}
+                      variant={action.style === 'secondary' ? 'secondary' : 'default'}
+                      size="lg"
+                      href={action.href}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
         </div>
       </div>
-    </section>
+    </GridContainer>
   )
 }
 
-export { ContentBlock }
+export const ContentBlock = Content
+export default Content

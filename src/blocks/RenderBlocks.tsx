@@ -3,20 +3,25 @@ import dynamic from 'next/dynamic'
 
 // Основные блоки
 const ContentBlock = dynamic(() => import('./Content/Component').then((mod) => mod.ContentBlock))
-const CallToActionBlock = dynamic(() => import('./CallToAction/Component').then((mod) => mod.CallToActionBlock))
+const CallToActionBlock = dynamic(() =>
+  import('./CallToAction/Component').then((mod) => mod.CallToActionBlock),
+)
+const CTABlock = dynamic(() => import('./CTA/Component').then((mod) => mod.CTABlock))
 const HeroBlock = dynamic(() => import('./Hero/Component').then((mod) => mod.HeroBlock))
 const BlogBlock = dynamic(() => import('./Blog/Component').then((mod) => mod.BlogBlock))
 
 // Медиа и контент блоки
 const MediaBlock = dynamic(() => import('./MediaBlock/Component').then((mod) => mod.MediaBlock))
 const CodeBlock = dynamic(() => import('./Code/Component').then((mod) => mod.CodeBlock))
-const VideoBlock = dynamic(() => import('./Video/Component').then((mod) => mod.VideoBlock))
+const Video = dynamic(() => import('./Video/Component').then((mod) => mod.Video))
 const AudioBlock = dynamic(() => import('./Audio/Component').then((mod) => mod.AudioBlock))
 
 // Информационные блоки
 const BannerBlock = dynamic(() => import('./Banner/Component').then((mod) => mod.BannerBlock))
 const FaqBlock = dynamic(() => import('./FAQ/Component').then((mod) => mod.FaqBlock))
-const TestimonialBlock = dynamic(() => import('./Testimonial/Component').then((mod) => mod.TestimonialBlock))
+const TestimonialBlock = dynamic(() =>
+  import('./Testimonial/Component').then((mod) => mod.TestimonialBlock),
+)
 const BlockquoteBlock = dynamic(() =>
   import('./Blockquote/Component').then((mod) => mod.BlockquoteBlock),
 )
@@ -51,9 +56,9 @@ const GalleryBlock = dynamic(() => import('./Gallery/Component').then((mod) => m
 const CarouselBlock = dynamic(() => import('./Carousel/Component').then((mod) => mod.CarouselBlock))
 
 // Блоки для блога
-const BlogPostBlock = dynamic(() => import('./BlogPost/Component'))
+const BlogPostBlock = dynamic(() => import('./BlogPost/Component').then((mod) => mod.BlogPostBlock))
 const RelatedPostsBlock = dynamic(() =>
-  import('./RelatedPosts/Component').then((mod) => mod.RelatedPosts),
+  import('./RelatedPosts/Component').then((mod) => mod.RelatedPostsBlock),
 )
 const TableOfContentsBlock = dynamic(() =>
   import('./TableOfContents/Component').then((mod) => mod.TableOfContentsBlock),
@@ -70,8 +75,12 @@ const SocialShareBlock = dynamic(() =>
 )
 
 // Блоки для продуктов
-const ProductsListBlock = dynamic(() => import('./ProductsList/Component').then((mod) => mod.ProductsListBlock))
-const ProductsFilterBlock = dynamic(() => import('./ProductsFilter/Component').then((mod) => mod.ProductsFilter))
+const ProductsListBlock = dynamic(() =>
+  import('./ProductsList/Component').then((mod) => mod.ProductsListBlock),
+)
+const ProductsFilterBlock = dynamic(() =>
+  import('./ProductsFilter/Component').then((mod) => mod.ProductsFilterBlock),
+)
 const PricingTableBlock = dynamic(() =>
   import('./PricingTable/Component').then((mod) => mod.PricingTableBlock),
 )
@@ -80,14 +89,15 @@ const PricingTableBlock = dynamic(() =>
 const blockComponents = {
   // Основные блоки
   content: ContentBlock,
-  cta: CallToActionBlock,
+  callToAction: CallToActionBlock,
+  cta: CTABlock,
   hero: HeroBlock,
   blog: BlogBlock,
 
   // Медиа и контент блоки
   media: MediaBlock,
   code: CodeBlock,
-  video: VideoBlock,
+  video: Video,
   audio: AudioBlock,
 
   // Информационные блоки

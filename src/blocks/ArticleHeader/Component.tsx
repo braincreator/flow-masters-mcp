@@ -3,9 +3,9 @@ import Image from 'next/image'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { GridContainer } from '@/components/GridContainer'
-import { ArticleHeaderBlock } from '@/types/blocks'
+import type { ArticleHeaderBlock as ArticleHeaderBlockType } from '@/types/blocks'
 
-export const ArticleHeaderBlock: React.FC<ArticleHeaderBlock> = ({
+export const ArticleHeader: React.FC<ArticleHeaderBlockType> = ({
   title,
   subtitle,
   authorInfo,
@@ -93,3 +93,6 @@ export const ArticleHeaderBlock: React.FC<ArticleHeaderBlock> = ({
     </GridContainer>
   )
 }
+
+export const ArticleHeaderBlock = ArticleHeader
+export default ArticleHeader

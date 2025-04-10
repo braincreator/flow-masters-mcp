@@ -1,30 +1,21 @@
-import React from 'react';
+import React from 'react'
 
-import Image from 'next/image';
+import Image from 'next/image'
 
-export type TestimonialBlock = {
-  testimonials: {
-    author: string;
-    authorTitle?: string;
-    quote: string;
-    avatar?: {
-      url: string;
-    };
-  }[];
-};
-
-interface TestimonialProps {
-  testimonials: {
-    author: string;
-    authorTitle?: string;
-    quote: string;
-    avatar?: {
-      url: string;
-    };
-  }[];
+export type TestimonialItem = {
+  author: string
+  authorTitle?: string
+  quote: string
+  avatar?: {
+    url: string
+  }
 }
 
-export const TestimonialComponent: React.FC<TestimonialProps> = ({ testimonials }) => {
+export type TestimonialBlock = {
+  testimonials: TestimonialItem[]
+}
+
+export const Testimonial: React.FC<TestimonialBlock> = ({ testimonials }) => {
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
@@ -57,5 +48,7 @@ export const TestimonialComponent: React.FC<TestimonialProps> = ({ testimonials 
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
+
+export const TestimonialBlock = Testimonial

@@ -144,6 +144,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
             />
 
             <FavoriteButton
+              productId={product.id}
               product={product}
               locale={lang}
               size="icon"

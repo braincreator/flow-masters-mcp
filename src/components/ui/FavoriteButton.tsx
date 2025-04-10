@@ -60,11 +60,6 @@ export function FavoriteButton({
   const { isFavorite, toggle, isLoading: isLoadingFavorites, favoriteProductIds } = useFavorites()
   const { user, isLoading: isLoadingAuth, isAuthenticated } = useAuth()
 
-  // Если пользователь не авторизован или происходит загрузка статуса авторизации, не показываем кнопку
-  if (isLoadingAuth || !isAuthenticated || !user) {
-    return null
-  }
-
   const isCurrentlyFavorite = isFavorite(productId)
 
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
@@ -79,12 +74,6 @@ export function FavoriteButton({
   const handleFavoriteToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
-    // Двойная проверка авторизации перед выполнением действия
-    if (isLoadingAuth || !isAuthenticated || !user) {
-      toast.error(texts.loginRequired)
-      return
-    }
 
     if (isLoadingFavorites || favoriteProductIds === undefined) {
       toast.warning('Favorites are still loading...')
@@ -111,7 +100,10 @@ export function FavoriteButton({
     <Button
       variant="outline"
       size={size}
-      className={cn('p-0', className)}
+      className={cn(
+        'p-0 h-[40px] w-[40px]',
+        className,
+      )}
       onClick={handleFavoriteToggle}
       disabled={disabled || isLoadingFavorites || favoriteProductIds === undefined}
       aria-label={isCurrentlyFavorite ? texts.ariaLabelRemove : texts.ariaLabelAdd}

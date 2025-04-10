@@ -1,110 +1,63 @@
+"use client"
 'use client'
 
-import React, { useRef, useState, useEffect } from 'react'
-import Image from 'next/image'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
-import { GridContainer } from '@/components/GridContainer'
-import { AudioBlock } from '@/types/blocks'
-import { cn } from '@/lib/utils'
+import React, { useRef, useState } from 'react'
+import { cn } from '@/utilities/ui'
+import { Play, Pause, SkipBack, SkipForward, Download } from 'lucide-react'
+import type { AudioBlock as AudioBlockType } from '@/types/blocks'
 
-export const AudioBlock: React.FC<AudioBlock> = ({
-  audioUrl,
+type AudioBlockProps = AudioBlockType
+
+export const Audio: React.FC<AudioBlockProps> = ({
+  audioFile,
   title,
-  artwork,
-  showControls = true,
-  autoplay = false,
-  settings,
+  artist,
+  description,
+  showWaveform = true,
+  autoPlay = false,
+  loop = false,
+  downloadable = false,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
-  const [isMuted, setIsMuted] = useState(false)
-
-  useEffect(() => {
-    // Set up audio element event listeners
-    const audioElement = audioRef.current
-    if (!audioElement) return
-
-    const setAudioData = () => {
-      setDuration(audioElement.duration)
-    }
-
-    const setAudioTime = () => {
-      setCurrentTime(audioElement.currentTime)
-    }
-
-    const handlePlayState = () => {
-      setIsPlaying(!audioElement.paused)
-    }
-
-    // Add event listeners
-    audioElement.addEventListener('loadedmetadata', setAudioData)
-    audioElement.addEventListener('timeupdate', setAudioTime)
-    audioElement.addEventListener('play', handlePlayState)
-    audioElement.addEventListener('pause', handlePlayState)
-
-    // Handle autoplay
-    if (autoplay) {
-      try {
-        audioElement.play().catch(() => {
-          // Autoplay was prevented by browser
-          console.log('Autoplay was prevented by the browser')
-        })
-      } catch (error) {
-        console.error('Autoplay error', error)
-      }
-    }
-
-    // Cleanup event listeners
-    return () => {
-      audioElement.removeEventListener('loadedmetadata', setAudioData)
-      audioElement.removeEventListener('timeupdate', setAudioTime)
-      audioElement.removeEventListener('play', handlePlayState)
-      audioElement.removeEventListener('pause', handlePlayState)
-    }
-  }, [audioRef, autoplay])
+  const [duration, setDuration] = useState(0)
 
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
       } else {
-        audioRef.current.play().catch((error) => {
-          console.error('Error playing audio', error)
-        })
+        audioRef.current.play()
       }
-    }
-  }
-
-  const skipForward = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime += 10 // Skip 10 seconds forward
+      setIsPlaying(!isPlaying)
     }
   }
 
   const skipBackward = () => {
     if (audioRef.current) {
-      audioRef.current.currentTime -= 10 // Skip 10 seconds backward
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10)
     }
   }
 
-  const toggleMute = () => {
+  const skipForward = () => {
     if (audioRef.current) {
-      audioRef.current.muted = !audioRef.current.muted
-      setIsMuted(!isMuted)
+      audioRef.current.currentTime = Math.min(duration, audioRef.current.currentTime + 10)
     }
   }
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(e.target.value)
+  const handleTimeUpdate = () => {
     if (audioRef.current) {
-      audioRef.current.currentTime = newTime
-      setCurrentTime(newTime)
+      setCurrentTime(audioRef.current.currentTime)
     }
   }
 
-  // Format time in MM:SS
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration)
+    }
+  }
+
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
     const seconds = Math.floor(time % 60)
@@ -112,95 +65,87 @@ export const AudioBlock: React.FC<AudioBlock> = ({
   }
 
   return (
-    <GridContainer settings={settings}>
-      <div className="w-full max-w-4xl mx-auto my-8 bg-card rounded-lg border p-4">
-        <div className="flex items-center gap-4">
-          {/* Artwork */}
-          {artwork?.url && (
-            <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-md overflow-hidden flex-shrink-0">
-              <Image
-                src={artwork.url}
-                alt={title || 'Audio artwork'}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
+    <div className="my-8 w-full max-w-3xl mx-auto bg-card rounded-lg p-4 shadow-sm">
+      <div className="flex flex-col space-y-4">
+        {/* Заголовок и исполнитель */}
+        <div className="flex flex-col">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {artist && <p className="text-sm text-muted-foreground">{artist}</p>}
+        </div>
 
-          {/* Audio player */}
-          <div className="flex-1">
-            {title && <h3 className="font-medium mb-2">{title}</h3>}
+        {/* Аудио плеер */}
+        <div className="space-y-4">
+          <audio
+            ref={audioRef}
+            src={audioFile.url}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            autoPlay={autoPlay}
+            loop={loop}
+            className="hidden"
+          />
 
-            <audio
-              ref={audioRef}
-              src={audioUrl}
-              preload="metadata"
-              controls={showControls && !isPlaying}
-              className={cn('w-full', showControls && !isPlaying ? 'block' : 'hidden')}
+          {/* Прогресс бар */}
+          <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="absolute h-full bg-primary transition-all"
+              style={{ width: `${(currentTime / duration) * 100}%` }}
             />
+          </div>
 
-            {(!showControls || isPlaying) && (
-              <div className="flex flex-col gap-2">
-                {/* Progress bar */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-10">
-                    {formatTime(currentTime)}
-                  </span>
+          {/* Контролы */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={skipBackward}
+                className="p-2 hover:bg-muted rounded-full transition-colors"
+                aria-label="Skip backward 10 seconds"
+              >
+                <SkipBack className="h-5 w-5" />
+              </button>
 
-                  <input
-                    type="range"
-                    min={0}
-                    max={duration || 0}
-                    value={currentTime}
-                    step={0.1}
-                    onChange={handleSeek}
-                    className="flex-1 h-2 rounded-full bg-muted appearance-none cursor-pointer"
-                  />
+              <button
+                onClick={togglePlay}
+                className="p-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+              </button>
 
-                  <span className="text-xs text-muted-foreground w-10">
-                    {formatTime(duration - currentTime)}
-                  </span>
-                </div>
+              <button
+                onClick={skipForward}
+                className="p-2 hover:bg-muted rounded-full transition-colors"
+                aria-label="Skip forward 10 seconds"
+              >
+                <SkipForward className="h-5 w-5" />
+              </button>
+            </div>
 
-                {/* Controls */}
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={skipBackward}
-                    aria-label="Skip backward 10 seconds"
-                  >
-                    <SkipBack size={20} />
-                  </button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
 
-                  <button
-                    className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center hover:bg-primary/90 transition-colors"
-                    onClick={togglePlay}
-                    aria-label={isPlaying ? 'Pause' : 'Play'}
-                  >
-                    {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                  </button>
-
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={skipForward}
-                    aria-label="Skip forward 10 seconds"
-                  >
-                    <SkipForward size={20} />
-                  </button>
-
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors ml-4"
-                    onClick={toggleMute}
-                    aria-label={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                  </button>
-                </div>
-              </div>
-            )}
+              {downloadable && (
+                <a
+                  href={audioFile.url}
+                  download={audioFile.filename}
+                  className="p-2 hover:bg-muted rounded-full transition-colors"
+                  aria-label="Download audio"
+                >
+                  <Download className="h-5 w-5" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Описание */}
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
-    </GridContainer>
+    </div>
   )
 }
+
+export const AudioBlock = Audio
+export default Audio

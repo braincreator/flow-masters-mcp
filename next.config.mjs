@@ -69,9 +69,17 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002'],
+      allowedOrigins: [
+        'flow-masters.ru',
+        'n8n.flow-masters.ru',
+        'localhost:3000',
+        'localhost:3030',
+        'localhost:3001',
+        'localhost:3002',
+      ],
     },
   },
+  turbopack: true,
   serverExternalPackages: ['mongoose'],
 
   transpilePackages: [
@@ -80,6 +88,11 @@ const nextConfig = {
     '@aws-sdk/lib-storage',
     '@aws-sdk/s3-request-presigner',
     '@payloadcms/storage-s3',
+    '@aws-sdk/client-cognito-identity',
+    '@aws-sdk/credential-provider-cognito-identity',
+    '@aws-sdk/types',
+    '@aws-sdk/util-utf8-browser',
+    '@aws-sdk/smithy-client',
   ],
   typescript: {
     ignoreBuildErrors: true,

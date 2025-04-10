@@ -65,7 +65,10 @@ export interface Config {
   auth: {
     users: UserAuthOperations;
   };
-  blocks: {};
+  blocks: {
+    accordion: Accordion;
+    video: Video;
+  };
   collections: {
     analytics: Analytics;
     authors: Author;
@@ -206,6 +209,248 @@ export interface UserAuthOperations {
   unlock: {
     email: string;
     password: string;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accordion".
+ */
+export interface Accordion {
+  blockName?: string | null;
+  /**
+   * Добавьте элементы аккордеона
+   */
+  items: {
+    /**
+     * Заголовок элемента
+     */
+    label: string;
+    /**
+     * Содержимое элемента
+     */
+    content: {
+      root: {
+        type: string;
+        children: {
+          type: string;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    };
+    /**
+     * Вложенные элементы (опционально)
+     */
+    items?:
+      | {
+          label: string;
+          content: {
+            root: {
+              type: string;
+              children: {
+                type: string;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          };
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  /**
+   * Выберите стиль отображения
+   */
+  style?: ('default' | 'separated' | 'boxed') | null;
+  /**
+   * Выберите размер
+   */
+  size?: ('sm' | 'md' | 'lg') | null;
+  /**
+   * Выберите вариант отображения
+   */
+  variant?: ('default' | 'separated' | 'boxed') | null;
+  /**
+   * Разрешить открытие нескольких элементов одновременно
+   */
+  allowMultiple?: boolean | null;
+  /**
+   * Индексы элементов, открытых по умолчанию (начиная с 0)
+   */
+  defaultOpen?:
+    | {
+        /**
+         * Индекс элемента
+         */
+        index: number;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockType: 'accordion';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "video".
+ */
+export interface Video {
+  blockName?: string | null;
+  /**
+   * Выберите тип видео
+   */
+  videoType: 'youtube' | 'vimeo' | 'rutube' | 'vk' | 'mp4';
+  /**
+   * ID видео (для YouTube, Vimeo, RuTube, VK)
+   */
+  videoId?: string | null;
+  /**
+   * URL видео (опционально)
+   */
+  videoUrl?: string | null;
+  /**
+   * Загрузите MP4 файл
+   */
+  videoFile?: (string | null) | Media;
+  /**
+   * Превью изображение для видео
+   */
+  poster?: (string | null) | Media;
+  /**
+   * Соотношение сторон видео
+   */
+  aspectRatio?: ('16/9' | '4/3' | '1/1' | '9/16') | null;
+  /**
+   * Автоматическое воспроизведение
+   */
+  autoPlay?: boolean | null;
+  /**
+   * Без звука по умолчанию
+   */
+  muted?: boolean | null;
+  /**
+   * Зациклить воспроизведение
+   */
+  loop?: boolean | null;
+  /**
+   * Показывать элементы управления
+   */
+  controls?: boolean | null;
+  /**
+   * Подпись к видео
+   */
+  caption?: string | null;
+  /**
+   * Стиль отображения
+   */
+  style?: ('default' | 'shadow' | 'bordered') | null;
+  /**
+   * Размер блока
+   */
+  size?: ('sm' | 'md' | 'lg') | null;
+  id?: string | null;
+  blockType: 'video';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: string;
+  alt?: string | null;
+  caption?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    square?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    small?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    medium?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    large?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    xlarge?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
   };
 }
 /**
@@ -390,98 +635,6 @@ export interface ProductCategory {
   slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: string;
-  alt?: string | null;
-  caption?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    square?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    small?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    medium?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    large?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    xlarge?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    og?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1023,26 +1176,71 @@ export interface Page {
     media?: (string | null) | Media;
   };
   layout: (
-    | CallToActionBlock
     | ContentBlock
+    | CallToActionBlock
+    | HeroBlock
     | MediaBlock
-    | ArchiveBlock
-    | FormBlock
+    | CodeBlock
     | {
-        layout?: ('grid' | 'list') | null;
-        postsPerPage?: number | null;
-        showFeaturedPost?: boolean | null;
-        showSearch?: boolean | null;
-        showCategories?: boolean | null;
-        showTags?: boolean | null;
-        showPagination?: boolean | null;
-        categoryID?: (string | null) | Category;
-        tagID?: (string | null) | Tag;
-        authorID?: (string | null) | User;
-        id?: string | null;
         blockName?: string | null;
-        blockType: 'blog';
+        /**
+         * Выберите тип видео
+         */
+        videoType: 'youtube' | 'vimeo' | 'rutube' | 'vk' | 'mp4';
+        /**
+         * ID видео (для YouTube, Vimeo, RuTube, VK)
+         */
+        videoId?: string | null;
+        /**
+         * URL видео (опционально)
+         */
+        videoUrl?: string | null;
+        /**
+         * Загрузите MP4 файл
+         */
+        videoFile?: (string | null) | Media;
+        /**
+         * Превью изображение для видео
+         */
+        poster?: (string | null) | Media;
+        /**
+         * Соотношение сторон видео
+         */
+        aspectRatio?: ('16/9' | '4/3' | '1/1' | '9/16') | null;
+        /**
+         * Автоматическое воспроизведение
+         */
+        autoPlay?: boolean | null;
+        /**
+         * Без звука по умолчанию
+         */
+        muted?: boolean | null;
+        /**
+         * Зациклить воспроизведение
+         */
+        loop?: boolean | null;
+        /**
+         * Показывать элементы управления
+         */
+        controls?: boolean | null;
+        /**
+         * Подпись к видео
+         */
+        caption?: string | null;
+        /**
+         * Стиль отображения
+         */
+        style?: ('default' | 'shadow' | 'bordered') | null;
+        /**
+         * Размер блока
+         */
+        size?: ('sm' | 'md' | 'lg') | null;
+        id?: string | null;
+        blockType: 'video';
       }
+    | AudioBlock
+    | BannerBlock
+    | FormBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1058,53 +1256,6 @@ export interface Page {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock".
- */
-export interface CallToActionBlock {
-  richText?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  actions?:
-    | {
-        actionType: 'link' | 'button';
-        label: string;
-        type?: ('reference' | 'custom') | null;
-        reference?:
-          | ({
-              relationTo: 'pages';
-              value: string | Page;
-            } | null)
-          | ({
-              relationTo: 'posts';
-              value: string | Post;
-            } | null);
-        url?: string | null;
-        appearance?: ('default' | 'primary' | 'secondary' | 'outline' | 'ghost') | null;
-        newTab?: boolean | null;
-        icon?: ('none' | 'arrow-right' | 'external-link' | 'download') | null;
-        id?: string | null;
-      }[]
-    | null;
-  style?: ('default' | 'centered' | 'split') | null;
-  background?: ('none' | 'light' | 'dark' | 'primary') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'cta';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1180,20 +1331,10 @@ export interface ContentBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "MediaBlock".
+ * via the `definition` "CallToActionBlock".
  */
-export interface MediaBlock {
-  media: string | Media;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'mediaBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock".
- */
-export interface ArchiveBlock {
-  introContent?: {
+export interface CallToActionBlock {
+  richText?: {
     root: {
       type: string;
       children: {
@@ -1208,19 +1349,150 @@ export interface ArchiveBlock {
     };
     [k: string]: unknown;
   } | null;
-  populateBy?: ('collection' | 'selection') | null;
-  relationTo?: 'posts' | null;
-  categories?: (string | Category)[] | null;
-  limit?: number | null;
-  selectedDocs?:
+  actions?:
     | {
-        relationTo: 'posts';
-        value: string | Post;
+        actionType: 'link' | 'button';
+        label: string;
+        type?: ('reference' | 'custom') | null;
+        reference?:
+          | ({
+              relationTo: 'pages';
+              value: string | Page;
+            } | null)
+          | ({
+              relationTo: 'posts';
+              value: string | Post;
+            } | null);
+        url?: string | null;
+        appearance?: ('default' | 'primary' | 'secondary' | 'outline' | 'ghost') | null;
+        newTab?: boolean | null;
+        icon?: ('none' | 'arrow-right' | 'external-link' | 'download') | null;
+        id?: string | null;
+      }[]
+    | null;
+  style?: ('default' | 'centered' | 'split') | null;
+  background?: ('none' | 'light' | 'dark' | 'primary') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cta';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  title: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  media: string | Media;
+  actions?:
+    | {
+        actionType?: string | null;
+        label: string;
+        type: 'reference' | 'custom';
+        reference?:
+          | ({
+              relationTo: 'pages';
+              value: string | Page;
+            } | null)
+          | ({
+              relationTo: 'posts';
+              value: string | Post;
+            } | null);
+        url?: string | null;
+        appearance?: ('default' | 'outline') | null;
+        newTab?: boolean | null;
+        id?: string | null;
       }[]
     | null;
   id?: string | null;
   blockName?: string | null;
-  blockType: 'archive';
+  blockType: 'hero';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaBlock".
+ */
+export interface MediaBlock {
+  media: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'mediaBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CodeBlock".
+ */
+export interface CodeBlock {
+  language?: ('typescript' | 'javascript' | 'css') | null;
+  code: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'code';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AudioBlock".
+ */
+export interface AudioBlock {
+  /**
+   * Поддерживаемые форматы: MP3, WAV, OGG
+   */
+  audioFile: string | Media;
+  title: string;
+  artist?: string | null;
+  description?: string | null;
+  /**
+   * Показывать визуализацию аудио в виде волны
+   */
+  showWaveform?: boolean | null;
+  autoPlay?: boolean | null;
+  loop?: boolean | null;
+  /**
+   * Разрешить скачивание аудио файла
+   */
+  downloadable?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'audio';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BannerBlock".
+ */
+export interface BannerBlock {
+  style: 'info' | 'warning' | 'error' | 'success';
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'banner';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2671,27 +2943,33 @@ export interface PagesSelect<T extends boolean = true> {
   layout?:
     | T
     | {
-        cta?: T | CallToActionBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
+        cta?: T | CallToActionBlockSelect<T>;
+        hero?: T | HeroBlockSelect<T>;
         mediaBlock?: T | MediaBlockSelect<T>;
-        archive?: T | ArchiveBlockSelect<T>;
-        formBlock?: T | FormBlockSelect<T>;
-        blog?:
+        code?: T | CodeBlockSelect<T>;
+        video?:
           | T
           | {
-              layout?: T;
-              postsPerPage?: T;
-              showFeaturedPost?: T;
-              showSearch?: T;
-              showCategories?: T;
-              showTags?: T;
-              showPagination?: T;
-              categoryID?: T;
-              tagID?: T;
-              authorID?: T;
-              id?: T;
               blockName?: T;
+              videoType?: T;
+              videoId?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              poster?: T;
+              aspectRatio?: T;
+              autoPlay?: T;
+              muted?: T;
+              loop?: T;
+              controls?: T;
+              caption?: T;
+              style?: T;
+              size?: T;
+              id?: T;
             };
+        audio?: T | AudioBlockSelect<T>;
+        banner?: T | BannerBlockSelect<T>;
+        formBlock?: T | FormBlockSelect<T>;
       };
   meta?:
     | T
@@ -2706,30 +2984,6 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock_select".
- */
-export interface CallToActionBlockSelect<T extends boolean = true> {
-  richText?: T;
-  actions?:
-    | T
-    | {
-        actionType?: T;
-        label?: T;
-        type?: T;
-        reference?: T;
-        url?: T;
-        appearance?: T;
-        newTab?: T;
-        icon?: T;
-        id?: T;
-      };
-  style?: T;
-  background?: T;
-  id?: T;
-  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2775,6 +3029,53 @@ export interface ContentBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToActionBlock_select".
+ */
+export interface CallToActionBlockSelect<T extends boolean = true> {
+  richText?: T;
+  actions?:
+    | T
+    | {
+        actionType?: T;
+        label?: T;
+        type?: T;
+        reference?: T;
+        url?: T;
+        appearance?: T;
+        newTab?: T;
+        icon?: T;
+        id?: T;
+      };
+  style?: T;
+  background?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock_select".
+ */
+export interface HeroBlockSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  media?: T;
+  actions?:
+    | T
+    | {
+        actionType?: T;
+        label?: T;
+        type?: T;
+        reference?: T;
+        url?: T;
+        appearance?: T;
+        newTab?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "MediaBlock_select".
  */
 export interface MediaBlockSelect<T extends boolean = true> {
@@ -2784,15 +3085,37 @@ export interface MediaBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock_select".
+ * via the `definition` "CodeBlock_select".
  */
-export interface ArchiveBlockSelect<T extends boolean = true> {
-  introContent?: T;
-  populateBy?: T;
-  relationTo?: T;
-  categories?: T;
-  limit?: T;
-  selectedDocs?: T;
+export interface CodeBlockSelect<T extends boolean = true> {
+  language?: T;
+  code?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AudioBlock_select".
+ */
+export interface AudioBlockSelect<T extends boolean = true> {
+  audioFile?: T;
+  title?: T;
+  artist?: T;
+  description?: T;
+  showWaveform?: T;
+  autoPlay?: T;
+  loop?: T;
+  downloadable?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BannerBlock_select".
+ */
+export interface BannerBlockSelect<T extends boolean = true> {
+  style?: T;
+  content?: T;
   id?: T;
   blockName?: T;
 }
@@ -4682,42 +5005,6 @@ export interface TaskSchedulePublish {
     user?: (string | null) | User;
   };
   output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "BannerBlock".
- */
-export interface BannerBlock {
-  style: 'info' | 'warning' | 'error' | 'success';
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'banner';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CodeBlock".
- */
-export interface CodeBlock {
-  language?: ('typescript' | 'javascript' | 'css') | null;
-  code: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'code';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -1,88 +1,82 @@
+"use client"
 'use client'
 
 import React, { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { GridContainer } from '@/components/GridContainer'
-import { TableOfContentsBlock } from '@/types/blocks'
+import type { TableOfContentsBlock as TableOfContentsBlockType } from '@/types/blocks'
 
-type Heading = {
+type HeadingLevel = 1 | 2 | 3 | 4
+
+interface Heading {
   id: string
   text: string
-  level: number
+  level: HeadingLevel
 }
 
-export const TableOfContentsBlock: React.FC<TableOfContentsBlock> = ({
+interface TableOfContentsProps extends TableOfContentsBlockType {
+  className?: string
+}
+
+export const TableOfContents: React.FC<TableOfContentsProps> = ({
   title = 'Table of Contents',
   autoGenerate = true,
   items = [],
   sticky = false,
   settings,
+  className,
 }) => {
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeId, setActiveId] = useState<string>('')
 
-  // Auto-generate TOC from article headings if enabled
   useEffect(() => {
     if (!autoGenerate) return
 
-    // Find all h2, h3, h4 elements in the article content
     const article = document.querySelector('article')
-    if (!article) return
+    if (!article) {
+      console.warn('TableOfContents: No article element found')
+      return
+    }
 
-    const headingElements = article.querySelectorAll('h2, h3, h4')
-    const extractedHeadings: Heading[] = []
-
-    headingElements.forEach((el) => {
-      // Skip headings without id
-      if (!el.id) return
-
-      // Extract heading info
-      extractedHeadings.push({
+    const headingElements = article.querySelectorAll<HTMLHeadingElement>('h2, h3, h4')
+    const extractedHeadings: Heading[] = Array.from(headingElements)
+      .filter((el) => el.id && el.textContent)
+      .map((el) => ({
         id: el.id,
         text: el.textContent || '',
-        level: parseInt(el.tagName.charAt(1)),
-      })
-    })
+        level: parseInt(el.tagName.charAt(1)) as HeadingLevel,
+      }))
 
     setHeadings(extractedHeadings)
   }, [autoGenerate])
 
-  // Track active heading on scroll
   useEffect(() => {
     if (!autoGenerate || headings.length === 0) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id)
-          }
-        })
-      },
-      { rootMargin: '0px 0px -80% 0px' },
-    )
-
-    // Observe all headings
-    headings.forEach((heading) => {
-      const element = document.getElementById(heading.id)
-      if (element) observer.observe(element)
-    })
-
-    return () => {
-      headings.forEach((heading) => {
-        const element = document.getElementById(heading.id)
-        if (element) observer.unobserve(element)
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveId(entry.target.id)
+        }
       })
     }
+
+    const observer = new IntersectionObserver(observerCallback, {
+      rootMargin: '0px 0px -80% 0px',
+    })
+
+    const elements = headings.map((heading) => document.getElementById(heading.id)).filter(Boolean)
+    elements.forEach((element) => element && observer.observe(element))
+
+    return () => observer.disconnect()
   }, [headings, autoGenerate])
 
-  // Use manual items or auto-generated headings
   const tocItems = autoGenerate
     ? headings
     : items.map((item) => ({
         id: item.anchor,
         text: item.title,
-        level: item.level,
+        level: item.level as HeadingLevel,
       }))
 
   if (tocItems.length === 0) return null
@@ -93,12 +87,18 @@ export const TableOfContentsBlock: React.FC<TableOfContentsBlock> = ({
         className={cn(
           'w-full max-w-xs mx-auto my-8 p-4 border rounded-lg bg-card',
           sticky && 'lg:sticky lg:top-24',
+          className,
         )}
         aria-label="Table of contents"
+        role="navigation"
       >
-        {title && <h2 className="text-lg font-medium mb-4">{title}</h2>}
+        {title && (
+          <h2 className="text-lg font-medium mb-4" id="toc-title">
+            {title}
+          </h2>
+        )}
 
-        <ul className="space-y-2">
+        <ul className="space-y-2" aria-labelledby="toc-title">
           {tocItems.map((item) => (
             <li
               key={item.id}
@@ -129,3 +129,5 @@ export const TableOfContentsBlock: React.FC<TableOfContentsBlock> = ({
     </GridContainer>
   )
 }
+
+export default TableOfContents

@@ -1,5 +1,4 @@
-import type { Payload, BasePayload, TaskHandler } from 'payload'
-import type { PayloadRequest } from 'payload'
+import type { Payload, PayloadRequest, PayloadComponent } from 'payload'
 import { Response, NextFunction } from 'express'
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
@@ -34,7 +33,6 @@ const __dirname = path.dirname(__filename)
 // Import consolidated lists
 import globalsList from '@/globals'
 import collections from '@/collections/collectionList'
-// import { Messages } from './collections/Messages'
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
@@ -42,11 +40,12 @@ import { Users } from './collections/Users' // Needed for admin.user
 import MetricsDashboard from '@/components/admin/MetricsDashboard'
 import { Broadcasts } from './collections/Broadcasts'
 import { BroadcastReports } from './collections/BroadcastReports'
-import { NewsletterBroadcastJobData, SendToAllResult, BroadcastReport } from './jobs/types'
+import { NewsletterBroadcastJobData, SendToAllResult } from './jobs/types'
 
 import { ServiceRegistry } from '@/services/service.registry'
 
-import { newsletterBroadcastJob, processScheduledSubscriptions } from './jobs'
+// Import blocks from central index
+import { availableBlocks } from './blocks'
 
 // Mongoose config (keep as is)
 const mongooseConfig = {
@@ -54,7 +53,7 @@ const mongooseConfig = {
   connectOptions: {
     directConnection: true,
     serverSelectionTimeoutMS: 20000,
-    maxPoolSize: 10,
+    maxPoolSize: 30,
     minPoolSize: 5,
     socketTimeoutMS: 30000,
     connectTimeoutMS: 30000,
@@ -62,22 +61,8 @@ const mongooseConfig = {
   },
 }
 
-// Объявляем тип для нашего обработчика задач
-export type JobHandler = TaskHandler<any, any>
-
-// Типизированный TaskHandler должен соответствовать интерфейсу Payload
-export type NewsletterTaskHandler = (args: {
-  job: {
-    input: NewsletterBroadcastJobData
-  }
-  req: PayloadRequest
-}) => Promise<{
-  output: {
-    status: 'completed' | 'failed'
-    results: SendToAllResult
-    error?: string
-  }
-}>
+// Объявляем тип для MetricsDashboard компонента
+const Dashboard = MetricsDashboard as unknown as PayloadComponent
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
@@ -88,7 +73,7 @@ export default buildConfig({
       views: {
         monitoring: {
           path: '/monitoring',
-          Component: MetricsDashboard,
+          Component: Dashboard,
         },
       },
     },
@@ -113,18 +98,6 @@ export default buildConfig({
           height: 900,
         },
       ],
-      // Add visual editor configuration
-      // visualEditor: {
-      //   enabled: true,
-      //   toolbarOptions: {
-      //     enabled: true,
-      //     placement: 'top',
-      //   },
-      //   blockControls: {
-      //     enabled: true,
-      //     position: 'left',
-      //   },
-      // },
     },
   },
   editor: defaultLexical,
@@ -173,7 +146,8 @@ export default buildConfig({
           let status: 'completed' | 'failed' = 'failed'
 
           try {
-            const data = job.input as NewsletterBroadcastJobData
+            // Безопасное приведение типов
+            const data = job.input as unknown as NewsletterBroadcastJobData
 
             payload.logger.info(`Starting newsletter broadcast job: ${data.broadcastId}`)
 
@@ -243,10 +217,6 @@ export default buildConfig({
     useTempFiles: true,
     tempFileDir: '/tmp',
   },
-  // express: {
-  //   json: { limit: '5mb' },
-  //   urlencoded: { limit: '5mb', extended: true },
-  // },
   endpoints: [
     {
       path: '/api/add-products',
@@ -306,10 +276,10 @@ export default buildConfig({
     {
       path: '/email-templates/:id/preview',
       method: 'get',
-      handler: async (req: PayloadRequest, res: Response, next: NextFunction) => {
+      handler: async (req: PayloadRequest & { params: any }, res: Response, next: NextFunction) => {
         const { id } = req.params
         try {
-          const template = await req.payload.findByID({
+          const template: any = await req.payload.findByID({
             collection: 'email-templates',
             id: id,
             depth: 0,
@@ -336,9 +306,5 @@ export default buildConfig({
   graphQL: {
     schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
   },
-  // Background jobs
-  // cron: {
-  //   '*/5 * * * *': processScheduledSubscriptions,
-  //   '0 9 * * 1': newsletterBroadcastJob,
-  // },
+  blocks: availableBlocks,
 })

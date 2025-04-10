@@ -3,10 +3,13 @@
 import useSWR from 'swr'
 import { mutate } from 'swr' // Импортируем глобальный mutate
 import { getFavorites, toggleFavorite } from '@/utilities/api' // Импортируем API функции
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast' // Для уведомлений
+import { useAuth } from '@/hooks/useAuth'
 
-// Ключ для SWR - используем кастомный эндпоинт
+// Ключ для localStorage
+const LOCAL_FAVORITES_KEY = 'local_favorites'
+// Ключ для SWR
 const FAVORITES_KEY = '/api/favorites'
 
 // Тип данных, возвращаемых хуком
@@ -20,6 +23,25 @@ interface UseFavoritesReturn {
 }
 
 export const useFavorites = (): UseFavoritesReturn => {
+  const { user, isLoading: isLoadingAuth, isAuthenticated } = useAuth()
+
+  // Функция для получения избранного с учетом локального хранилища
+  const fetchFavorites = async () => {
+    // Если пользователь авторизован, получаем избранное с сервера
+    if (isAuthenticated && user) {
+      return getFavorites()
+    }
+
+    // Для неавторизованных пользователей используем localStorage
+    try {
+      const localFavorites = localStorage.getItem(LOCAL_FAVORITES_KEY)
+      return localFavorites ? JSON.parse(localFavorites) : []
+    } catch (error) {
+      console.error('Failed to load favorites from localStorage:', error)
+      return []
+    }
+  }
+
   // Используем SWR для получения списка ID избранных продуктов
   // fetcher теперь - это наша API функция getFavorites
   const {
@@ -29,7 +51,7 @@ export const useFavorites = (): UseFavoritesReturn => {
     mutate: revalidate,
   } = useSWR<string[]>(
     FAVORITES_KEY, // Используем правильный ключ/эндпоинт
-    getFavorites, // Эта функция будет изменена для вызова FAVORITES_KEY
+    fetchFavorites, // Эта функция будет изменена для вызова FAVORITES_KEY
     {
       fallbackData: [], // Начальное значение - пустой массив
       revalidateOnFocus: true, // Обновлять при фокусе окна
@@ -42,6 +64,17 @@ export const useFavorites = (): UseFavoritesReturn => {
       },
     },
   )
+
+  // Синхронизация с localStorage при изменении избранного
+  useEffect(() => {
+    if (!isAuthenticated && favoriteIds) {
+      try {
+        localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(favoriteIds))
+      } catch (error) {
+        console.error('Failed to save favorites to localStorage:', error)
+      }
+    }
+  }, [favoriteIds, isAuthenticated])
 
   // Преобразуем массив ID в Set для быстрого доступа O(1)
   const favoriteProductIds = favoriteIds ? new Set(favoriteIds) : undefined
@@ -68,34 +101,29 @@ export const useFavorites = (): UseFavoritesReturn => {
 
       const currentIsFavorite = favoriteProductIds.has(productId)
       const optimisticNewState = new Set(favoriteProductIds)
+
       if (currentIsFavorite) {
         optimisticNewState.delete(productId)
       } else {
         optimisticNewState.add(productId)
       }
 
-      // Оптимистичное обновление UI с помощью SWR mutate
-      // Первый аргумент - ключ, второй - новые данные (или функция обновления),
-      // Третий - опции (revalidate: false - не перезапрашивать сразу)
+      // Оптимистичное обновление UI
       await mutate(FAVORITES_KEY, Array.from(optimisticNewState), {
         optimisticData: Array.from(optimisticNewState),
-        rollbackOnError: true, // Автоматически откатывать при ошибке
-        populateCache: true, // Обновить кэш немедленно
-        revalidate: false, // Не делать запрос после мутации (мы сделаем его вручную если нужно)
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: false,
       })
 
       try {
-        // Отправляем запрос на сервер
-        const result = await toggleFavorite(productId)
-        // Сервер возвращает { isFavorite: boolean }
-        // Можно добавить проверку, совпадает ли результат с оптимистичным обновлением
-
-        // Опционально: Показать сообщение об успехе
-        // toast({ title: currentIsFavorite ? 'Removed from favorites' : 'Added to favorites' })
-
-        // Можно триггернуть revalidation, если нужно быть 100% уверенным в данных,
-        // но обычно при успешном toggle это не требуется
-        // await revalidate()
+        // Если пользователь авторизован, отправляем запрос на сервер
+        if (isAuthenticated && user) {
+          await toggleFavorite(productId)
+        } else {
+          // Для неавторизованных пользователей сохраняем в localStorage
+          localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(Array.from(optimisticNewState)))
+        }
       } catch (err: any) {
         console.error('Failed to toggle favorite:', err)
         toast({
@@ -103,10 +131,9 @@ export const useFavorites = (): UseFavoritesReturn => {
           description: err.message || 'Please try again.',
           variant: 'destructive',
         })
-        // SWR автоматически откатит состояние благодаря rollbackOnError: true
       }
     },
-    [favoriteProductIds, revalidate],
+    [favoriteProductIds, isAuthenticated, user, revalidate],
   )
 
   return {

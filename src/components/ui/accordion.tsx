@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { ChevronDown } from 'lucide-react'
 
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 
 const Accordion = AccordionPrimitive.Root
 
@@ -34,7 +34,7 @@ const AccordionTrigger = React.forwardRef<
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ))
-AccordionTrigger.displayName = 'AccordionTrigger'
+AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
 
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
@@ -51,6 +51,6 @@ const AccordionContent = React.forwardRef<
     <div className="pb-4 pt-0">{children}</div>
   </AccordionPrimitive.Content>
 ))
-AccordionContent.displayName = 'AccordionContent'
+AccordionContent.displayName = AccordionPrimitive.Content.displayName
 
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }

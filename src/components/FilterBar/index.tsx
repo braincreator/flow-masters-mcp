@@ -472,26 +472,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           />
         </div>
 
-        {/* Favorites Toggle Button - Скрываем для неавторизованных */}
-        {!isLoadingAuth && !!user && (
-          <Button
-            variant={isShowingFavorites ? 'secondary' : 'outline'}
-            onClick={handleFavoritesToggle}
-            className={cn(
-              'h-10 px-3 justify-center hover:bg-accent hover:text-accent-foreground border border-border',
-              {
-                'bg-accent text-white hover:bg-accent/90': isShowingFavorites,
-              },
-            )}
-          >
-            <Heart
-              className={cn('mr-2 h-4 w-4', {
-                'fill-red-500 text-red-500': isShowingFavorites,
-              })}
-            />
-            <span>{t.filters.favorites}</span>
-          </Button>
-        )}
+        {/* Favorites Toggle Button */}
+        <Button
+          variant={isShowingFavorites ? 'secondary' : 'outline'}
+          onClick={handleFavoritesToggle}
+          className={cn(
+            'h-10 px-3 justify-center hover:bg-accent hover:text-accent-foreground border border-border',
+            {
+              'bg-accent text-white hover:bg-accent/90': isShowingFavorites,
+            },
+          )}
+        >
+          <Heart
+            className={cn('mr-2 h-4 w-4', {
+              'fill-red-500 text-red-500': isShowingFavorites,
+            })}
+          />
+          <span>{t.filters.favorites}</span>
+        </Button>
 
         {/* Filters Button */}
         <Button

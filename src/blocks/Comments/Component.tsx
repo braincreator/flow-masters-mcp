@@ -1,6 +1,6 @@
 import React from 'react'
 import { GridContainer } from '@/components/GridContainer'
-import { CommentsBlock } from '@/types/blocks'
+import type { CommentsBlock as CommentsBlockType } from '@/types/blocks'
 import { MessageCircle, ThumbsUp, Flag } from 'lucide-react'
 
 // Mock comments for demonstration
@@ -51,7 +51,7 @@ const mockComments = [
   },
 ]
 
-export const CommentsBlock: React.FC<CommentsBlock> = ({
+export const Comments: React.FC<CommentsBlockType> = ({
   title = 'Comments',
   provider = 'native',
   showCount = true,
@@ -178,3 +178,6 @@ export const CommentsBlock: React.FC<CommentsBlock> = ({
     </GridContainer>
   )
 }
+
+export const CommentsBlock = Comments
+export default Comments

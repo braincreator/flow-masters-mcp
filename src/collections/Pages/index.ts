@@ -21,6 +21,7 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
+import { availableBlocks } from '@/blocks'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -96,7 +97,7 @@ export const Pages: CollectionConfig = {
             {
               name: 'layout',
               type: 'blocks',
-              blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock, BlogBlock],
+              blocks: availableBlocks,
               required: true,
               localized: true,
               admin: {

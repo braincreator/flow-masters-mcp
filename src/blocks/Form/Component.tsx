@@ -1,3 +1,4 @@
+"use client"
 'use client'
 import type { FormFieldBlock, Form as FormType } from '@payloadcms/plugin-form-builder/types'
 

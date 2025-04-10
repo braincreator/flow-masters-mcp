@@ -151,11 +151,11 @@ export function AddToCartButton({
 
   return (
     <Button
-      variant={isInCartState ? 'outline' : 'default'}
+      variant={isInCartState ? 'outline' : 'accent'}
       size={size}
       className={cn(
-        'relative group whitespace-nowrap min-w-[120px] transition-all',
-        isInCartState && 'border-accent bg-accent/10 hover:bg-accent/20 text-accent font-medium',
+        'relative group whitespace-nowrap min-w-[120px] h-[40px] transition-all',
+        isInCartState && 'border-accent text-accent font-medium',
         (isProcessing || isCartLoading) && 'opacity-70 cursor-not-allowed',
         className,
       )}
@@ -170,7 +170,10 @@ export function AddToCartButton({
             <Loader2 className="h-5 w-5 mr-2 flex-shrink-0 animate-spin" />
           ) : (
             <CurrentIcon
-              className={cn('h-5 w-5 mr-2 flex-shrink-0', isInCartState && 'text-accent')}
+              className={cn(
+                'h-5 w-5 mr-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-110',
+                isInCartState && 'text-accent',
+              )}
             />
           )}
           <span className="text-sm sm:text-base overflow-hidden text-ellipsis">

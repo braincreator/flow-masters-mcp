@@ -72,11 +72,23 @@
 }
 
 .add-to-cart-button {
-  @apply w-full relative overflow-hidden
+  @apply w-full h-[40px] relative overflow-hidden
          transition-all duration-300 ease-out
-         hover:transform hover:scale-[1.02]
-         active:scale-[0.98]
-         dark:hover:bg-accent dark:hover:text-accent-foreground dark:hover:border-accent;
+         shadow-sm border-accent/30
+         hover:transform hover:scale-[1.03] 
+         hover:shadow-md hover:shadow-accent/20
+         hover:border-accent
+         active:scale-[0.98];
+}
+
+.add-to-cart-button::before {
+  @apply content-[''] absolute inset-0 
+         bg-gradient-to-r from-accent/10 to-accent/5
+         opacity-0 transition-opacity duration-300;
+}
+
+.add-to-cart-button:hover::before {
+  @apply opacity-100;
 }
 
 /* Dark mode overrides */

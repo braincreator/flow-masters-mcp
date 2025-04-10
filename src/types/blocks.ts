@@ -1,5 +1,7 @@
 import { Locale } from '@/constants'
 import { BlockSettings, Media } from '@/components/shared/GridContainer'
+import { Media as MediaType } from './payload-types'
+import { BlockSettings as BlockSettingsType } from './settings'
 
 // Base block type
 export interface BlockBase {
@@ -27,16 +29,18 @@ export interface RichTextContent {
 }
 
 // Hero block
+export type HeroAction = {
+  label: string
+  href: string
+}
+
 export interface HeroBlock extends BlockBase {
   blockType: 'hero'
-  heading: string
-  subheading?: string
-  content?: string
-  primaryAction?: Action
-  secondaryAction?: Action
-  media?: Media
-  layout?: 'left' | 'right' | 'center' | 'fullWidth'
-  settings?: BlockSettings
+  richText?: any
+  media?: MediaType
+  actions?: HeroAction[]
+  settings?: BlockSettingsType
+  layout?: 'default' | 'contentRight'
 }
 
 // Content block with columns
@@ -68,6 +72,9 @@ export interface FeatureGridBlock extends BlockBase {
 }
 
 // Media block (image, video, etc.)
+export type MediaLayout = 'full' | 'contained' | 'split'
+export type MediaRatio = 'square' | 'video' | 'wide' | 'ultra'
+
 export interface MediaBlock extends BlockBase {
   blockType: 'media'
   media: Media
@@ -76,21 +83,30 @@ export interface MediaBlock extends BlockBase {
 }
 
 // Testimonial block
-export interface TestimonialBlock extends BlockBase {
-  blockType: 'testimonial'
-  heading?: string
-  subheading?: string
-  description?: string
-  testimonials: {
-    quote: string
-    author?: string
-    role?: string
-    company?: string
-    avatar?: Media
-    rating?: number
-  }[]
-  layout?: 'grid' | 'slider' | 'list'
+export type TestimonialsLayout = 'grid' | 'carousel' | 'featured'
+export type TestimonialStyle = 'card' | 'minimal' | 'quote'
+
+export interface TestimonialItem {
+  author: string
+  role?: string
+  company?: string
+  avatar?: {
+    url: string
+    alt?: string
+  }
+  content: string
+  rating?: 1 | 2 | 3 | 4 | 5
+}
+
+export interface TestimonialsBlock {
+  blockType: 'testimonials'
+  blockName?: string
   settings?: BlockSettings
+  heading?: string
+  description?: string
+  items: TestimonialItem[]
+  layout?: TestimonialsLayout
+  style?: TestimonialStyle
 }
 
 // Call to action block
@@ -260,16 +276,26 @@ export interface CarouselBlock extends BlockBase {
 }
 
 // Video block
-export interface VideoBlock extends BlockBase {
+export type VideoType = 'youtube' | 'vimeo' | 'rutube' | 'vk' | 'file' | 'url'
+export type AspectRatio = '16/9' | '4/3' | '1/1' | '9/16'
+export type VideoStyle = 'default' | 'elevated' | 'bordered'
+export type VideoSize = 'full' | 'medium' | 'small'
+
+export interface Video extends Block {
   blockType: 'video'
-  videoUrl: string
-  videoType?: 'youtube' | 'vimeo' | 'custom'
-  thumbnailUrl?: string
-  autoplay?: boolean
+  videoType: VideoType
+  videoId?: string
+  videoUrl?: string
+  videoFile?: Media
+  poster?: Media
+  aspectRatio?: AspectRatio
+  autoPlay?: boolean
   muted?: boolean
   loop?: boolean
+  controls?: boolean
   caption?: string
-  settings?: BlockSettings
+  style?: VideoStyle
+  size?: VideoSize
 }
 
 // Countdown Timer block
@@ -308,26 +334,33 @@ export interface TeamMembersBlock extends BlockBase {
 }
 
 // Image Gallery block
+export type GalleryLayout = 'grid' | 'masonry' | 'carousel'
+export type GalleryColumns = 2 | 3 | 4
+
+export interface GalleryItem {
+  url: string
+  alt?: string
+  caption?: string
+  width?: number
+  height?: number
+}
+
 export interface GalleryBlock extends BlockBase {
   blockType: 'gallery'
-  heading?: string
-  images: Media[]
-  layout?: 'grid' | 'masonry'
-  columns?: 2 | 3 | 4 | 5
-  lightbox?: boolean
+  blockName?: string
   settings?: BlockSettings
+  items: GalleryItem[]
+  layout?: GalleryLayout
+  columns?: GalleryColumns
+  spacing?: 'sm' | 'md' | 'lg'
 }
 
 // Newsletter Signup block
 export interface NewsletterBlock extends BlockBase {
   blockType: 'newsletter'
-  heading: string
-  subheading?: string
+  heading?: string
   description?: string
-  formPlaceholder?: string
-  submitText?: string
-  successMessage?: string
-  layout?: 'inline' | 'stacked' | 'card'
+  buttonText?: string
   settings?: BlockSettings
 }
 
@@ -441,10 +474,14 @@ export interface CommentsBlock extends BlockBase {
 export interface FeaturesBlock extends BlockBase {
   blockType: 'features'
   heading?: string
-  subheading?: string
-  description?: string
-  features: Feature[]
-  layout?: 'grid' | 'list' | 'cards'
+  description?: any
+  layout?: 'grid' | 'list'
+  columns?: 2 | 3 | 4
+  features: Array<{
+    title: string
+    description?: any
+    icon?: keyof typeof import('@/components/ui/icons').Icons
+  }>
   settings?: BlockSettings
 }
 
@@ -602,7 +639,7 @@ export type Block =
   | CodeBlock
   | BannerBlock
   | CarouselBlock
-  | VideoBlock
+  | Video
   | CountdownBlock
   | TeamMembersBlock
   | GalleryBlock
@@ -618,3 +655,36 @@ export type Block =
   | FeaturesBlock
   | BlogBlock
   | BlogPostBlock
+
+export interface Video {
+  blockType: 'video'
+  blockName?: string
+  video: Media | null
+}
+
+export interface AccordionItem {
+  id?: string
+  label: string
+  content: any // RichTextContent type
+  items?: AccordionItem[]
+}
+
+export interface AccordionBlock extends Block {
+  blockType: 'accordion'
+  items: AccordionItem[]
+  style?: 'default' | 'bordered' | 'minimal'
+  size?: 'sm' | 'md' | 'lg'
+  variant?: 'default' | 'separated' | 'boxed'
+  allowMultiple?: boolean
+  defaultOpen?: number[]
+}
+
+export type BlockAnimation = 'fade-in' | 'slide-in' | 'scale-in' | 'none'
+
+export interface BaseBlockSettings {
+  size?: BlockSize
+  style?: BlockStyle
+  background?: BlockBackground
+  animation?: BlockAnimation
+  className?: string
+}

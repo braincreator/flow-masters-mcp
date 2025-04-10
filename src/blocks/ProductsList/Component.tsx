@@ -1,3 +1,4 @@
+"use client"
 'use client'
 
 import React from 'react'
@@ -100,7 +101,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({
       {isLoading ? (
         <div className="flex justify-center my-12">
           <LoadingIndicator size="lg" />
-        </div>
+      </div>
       ) : (
         <ProductsGrid
           products={displayProducts}

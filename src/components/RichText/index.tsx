@@ -97,7 +97,7 @@ type Props = {
 /**
  * Компонент RichText для отображения Lexical контента
  */
-export default function RichText({ data, className }: Props) {
+export const RichText = ({ data, className }: Props) => {
   if (!data) return null
 
   return (
@@ -108,3 +108,5 @@ export default function RichText({ data, className }: Props) {
     />
   )
 }
+
+export default RichText
