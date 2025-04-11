@@ -1,5 +1,6 @@
 import { BackButton } from '../../components/BackButton'
 import { usePathname } from 'next/navigation'
+import CookieConsentBanner from '@/components/CookieConsentBanner/CookieConsentBanner'
 
 export default function LangLayout({ children, params: { lang } }) {
   const pathname = usePathname()
@@ -17,6 +18,7 @@ export default function LangLayout({ children, params: { lang } }) {
         {children}
       </main>
       <Footer />
+      <CookieConsentBanner />
     </div>
   )
 }

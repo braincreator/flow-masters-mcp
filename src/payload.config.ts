@@ -1,4 +1,4 @@
-import type { Payload, PayloadRequest, PayloadComponent } from 'payload'
+import type { Payload, PayloadRequest, PayloadComponent, TaskHandlerArgs } from 'payload'
 import { Response, NextFunction } from 'express'
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
@@ -63,6 +63,12 @@ const mongooseConfig = {
 
 // Объявляем тип для MetricsDashboard компонента
 const Dashboard = MetricsDashboard as unknown as PayloadComponent
+
+// --- Определяем интерфейс для входных данных задачи --- //
+interface RecalculateSegmentsInput {
+  userId: string
+}
+// ----------------------------------------------------- //
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
@@ -193,6 +199,72 @@ export default buildConfig({
           attempts: 3,
         },
       },
+      {
+        slug: 'recalculate-user-segments',
+        // Используем any как временное решение для типа input
+        handler: async (args: TaskHandlerArgs<any>) => {
+          const { job, req } = args
+          const payload = req.payload
+          // Используем приведение типа для доступа к input
+          const inputData = job.input as RecalculateSegmentsInput
+          const userId = inputData.userId
+
+          if (!userId) {
+            payload.logger.error('Recalculate segments job: userId is missing in input.')
+            return { output: { status: 'failed', error: 'Missing userId' } }
+          }
+
+          payload.logger.info(`Starting segment recalculation for user: ${userId}`)
+
+          try {
+            // ... (Логика получения пользователя и сегментов)
+
+            // --- ЗАГЛУШКА ---
+            const matchingSegmentIds: string[] = []
+            payload.logger.warn(
+              `Segment recalculation logic for user ${userId} is not implemented yet.`,
+            )
+            // ----------------
+
+            // 5. Обновить пользователя
+            // Оставляем @ts-expect-error до регенерации типов
+            // @ts-expect-error Property 'segments' does not exist on type 'User' until types are regenerated.
+            await payload.update({
+              collection: 'users',
+              id: userId,
+              data: {
+                segments: matchingSegmentIds,
+              },
+              overrideAccess: true,
+              req,
+            })
+
+            payload.logger.info(`Successfully recalculated segments for user: ${userId}`)
+
+            return {
+              output: {
+                status: 'completed',
+                matchingSegments: matchingSegmentIds, // Возвращаем результат
+              },
+            }
+          } catch (error) {
+            payload.logger.error(`Failed to recalculate segments for user ${userId}`, error)
+            return {
+              output: {
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              },
+            }
+          }
+        },
+        retries: {
+          attempts: 3,
+          // Убираем нестандартное поле `delay`
+          // Можно добавить backoff: true, если нужно экспоненциальное увеличение задержки
+          // backoff: true,
+        },
+      },
+      // --- КОНЕЦ НОВОЙ ЗАДАЧИ ---
     ],
     autoRun: [
       {

@@ -60,6 +60,23 @@ export const Users: CollectionConfig = {
         update: ({ req: { user } }) => Boolean(user?.role === 'admin'),
       },
     },
+    {
+      name: 'segments',
+      label: 'Сегменты пользователя (автоматически)',
+      type: 'relationship',
+      relationTo: 'user-segments',
+      hasMany: true,
+      access: {
+        create: () => false,
+        update: () => false,
+      },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description:
+          'Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.',
+      },
+    },
   ],
   timestamps: true,
 }

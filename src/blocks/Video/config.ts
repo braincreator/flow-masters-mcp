@@ -141,5 +141,3 @@ export const Video: Block = {
     },
   ],
 }
-
-export default Video

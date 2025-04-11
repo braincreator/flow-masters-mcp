@@ -81,4 +81,4 @@ export const Newsletter: Block = {
       },
     },
   ],
-} 
+}

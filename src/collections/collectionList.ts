@@ -30,6 +30,14 @@ import { SubscriptionPlans } from './subscription-plans'
 import { Messages } from './Messages'
 import { BroadcastReports } from './BroadcastReports'
 import { Broadcasts } from './Broadcasts'
+import { Achievements } from './Achievements'
+import { Projects } from './Projects'
+import { Popups } from './Popups'
+import { UserSegments } from './UserSegments'
+import { Courses } from './Courses'
+import { Modules } from './Modules'
+import { Resources } from './Resources'
+import { ForumCategories } from './ForumCategories'
 
 const collections = [
   Analytics,
@@ -37,6 +45,7 @@ const collections = [
   CartSessions,
   Categories,
   Comments,
+  Courses,
   Discounts,
   Events,
   Integrations,
@@ -64,6 +73,13 @@ const collections = [
   Messages,
   BroadcastReports,
   Broadcasts,
+  Achievements,
+  Projects,
+  Popups,
+  UserSegments,
+  Modules,
+  Resources,
+  ForumCategories,
 ]
 
 export default collections
