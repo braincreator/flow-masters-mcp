@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import RichText from '@/components/RichText'
 import { useInView } from 'react-intersection-observer'
 import { highlightCode } from '@/utilities/highlightCode'
@@ -32,7 +32,7 @@ export function PostContent({ content, postId }: PostContentProps) {
     if (section1InView) {
       try {
         // Analytics tracking for 25% read
-        fetch('/api/blog/metrics', {
+        fetch('/api/v1/blog/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export function PostContent({ content, postId }: PostContentProps) {
     if (section2InView) {
       try {
         // Analytics tracking for 75% read
-        fetch('/api/blog/metrics', {
+        fetch('/api/v1/blog/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export function PostContent({ content, postId }: PostContentProps) {
       if (scrollPosition > documentHeight * 0.95) {
         try {
           // Analytics tracking for completed read
-          fetch('/api/blog/metrics', {
+          fetch('/api/v1/blog/metrics', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -108,6 +108,31 @@ export function PostContent({ content, postId }: PostContentProps) {
   const contentHeight = contentElement?.clientHeight || 0
   const section1Position = contentHeight * 0.25
   const section2Position = contentHeight * 0.75
+
+  const trackLinkClick = (url: string) => {
+    console.log('Track link click:', url)
+    fetch('/api/v1/blog/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  const trackShare = (platform: string) => {
+    console.log('Track share:', platform)
+    fetch('/api/v1/blog/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  const trackScrollDepth = useCallback(() => {
+    // ... logic ...
+    console.log(`Track scroll depth: ${depth}%`)
+    fetch('/api/v1/blog/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }, [])
 
   if (!content) {
     return (

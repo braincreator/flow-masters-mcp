@@ -68,7 +68,7 @@ export function CommentForm({
     setErrorMessage('')
 
     try {
-      const response = await fetch('/api/blog/comment', {
+      const response = await fetch('/api/v1/blog/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

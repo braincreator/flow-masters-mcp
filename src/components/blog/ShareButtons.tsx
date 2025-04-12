@@ -45,7 +45,7 @@ export function ShareButtons({
     if (!trackShares || !postId) return
 
     try {
-      await fetch('/api/blog/share', {
+      await fetch('/api/v1/blog/share', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

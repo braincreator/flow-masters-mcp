@@ -45,7 +45,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
       try {
         setLoading(true)
 
-        const response = await fetch(`/api/subscription/user/${userId}`)
+        const response = await fetch(`/api/v1/subscription/user/${userId}`)
 
         if (!response.ok) {
           throw new Error('Не удалось загрузить подписки пользователя')
@@ -59,7 +59,9 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
             data.subscriptions.map(async (subscription: Subscription) => {
               try {
                 // Это может быть уже relationTo в Payload, но для демонстрации делаем отдельный запрос
-                const planResponse = await fetch(`/api/subscription/plans/${subscription.planId}`)
+                const planResponse = await fetch(
+                  `/api/v1/subscription/plans/${subscription.planId}`,
+                )
                 if (planResponse.ok) {
                   const planData = await planResponse.json()
                   return {
@@ -186,15 +188,15 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
 
       switch (actionType) {
         case 'cancel':
-          endpoint = `/api/subscription/${selectedSubscription.id}?immediate=false`
+          endpoint = `/api/v1/subscription/${selectedSubscription.id}?immediate=${false}`
           method = 'DELETE'
           break
         case 'pause':
-          endpoint = `/api/subscription/${selectedSubscription.id}/pause`
+          endpoint = `/api/v1/subscription/${selectedSubscription.id}/pause`
           method = 'POST'
           break
         case 'resume':
-          endpoint = `/api/subscription/${selectedSubscription.id}/resume`
+          endpoint = `/api/v1/subscription/${selectedSubscription.id}/resume`
           method = 'POST'
           break
       }

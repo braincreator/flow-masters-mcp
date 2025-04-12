@@ -4,10 +4,11 @@ import { getPayload } from 'payload'
 
 export const dynamic = 'force-dynamic'
 
-async function handler(req: Request, context: { params: Promise<{ globals: string[] }> }) {
+// Use { params: { slug: string } } for context type matching the directory structure
+async function handler(req: Request, context: { params: Promise<{ slug: string }> }) {
   try {
-    const { globals } = await context.params
-    const slug = globals[0]
+    // Directly get slug from params
+    const { slug } = await context.params
     const url = new URL(req.url)
     const depth = parseInt(url.searchParams.get('depth') || '1')
     const locale = url.searchParams.get('locale') || 'en'
@@ -38,7 +39,7 @@ async function handler(req: Request, context: { params: Promise<{ globals: strin
           } else {
             // For JSON content type
             const text = await req.text()
-            console.log('Received raw body:', text)
+            console.log('Received raw body:', text) // Keep log for debugging updates
             body = text ? JSON.parse(text) : {}
           }
         } catch (e) {
@@ -54,9 +55,9 @@ async function handler(req: Request, context: { params: Promise<{ globals: strin
           )
         }
 
-        console.log('Parsed body:', body)
+        console.log('Parsed body:', body) // Keep log for debugging updates
 
-        // Extract data from _payload if it exists
+        // Extract data from _payload if it exists (This might be specific to certain forms/setups)
         let updateData = body
         if (body && typeof body._payload === 'string') {
           try {
@@ -78,25 +79,33 @@ async function handler(req: Request, context: { params: Promise<{ globals: strin
       }
 
       case 'OPTIONS':
+        // Standard OPTIONS response
         return new NextResponse(null, {
-          status: 200,
+          status: 200, // Use 200 OK or 204 No Content
           headers: {
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Reflect actual methods
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Be specific or allow common ones
+            'Access-Control-Allow-Origin': '*', // Or specify your frontend origin for better security
           },
         })
 
       default:
-        return new NextResponse(null, { status: 405 })
+        // Method Not Allowed
+        return new NextResponse(null, { status: 405, headers: { Allow: 'GET, POST, OPTIONS' } })
     }
   } catch (error: any) {
-    console.error('Globals handler error:', error)
+    // Log the detailed error on the server
+    console.error(
+      `Globals handler error for slug '${context.params ? (await context.params).slug : 'unknown'}':`,
+      error,
+    )
+    // Return a generic error message to the client
     return NextResponse.json(
       {
-        message: 'Error processing request',
-        error: error.message,
-        stack: error.stack,
+        message: 'Error processing request', // Keep generic for security
+        // Optionally include error details in non-production environments
+        // error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        // stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 },
     )

@@ -205,23 +205,16 @@ export function useBlogSearch(options: BlogSearchHookOptions = {}) {
   // Debounced search function
   const searchPosts = useCallback(
     async (searchQuery: string) => {
-      if (!searchQuery || searchQuery.length < 2) {
+      if (!searchQuery || searchQuery.trim().length < 2) {
         setResults([])
+        setIsLoading(false)
         return
       }
-
       setIsLoading(true)
       setError(null)
-
       try {
-        // This would typically be an API call to search endpoint
-        // For example, a search API to Payload CMS
-        const response = await fetch(`/api/blog/search?q=${encodeURIComponent(searchQuery)}`)
-
-        if (!response.ok) {
-          throw new Error('Search failed')
-        }
-
+        const response = await fetch(`/api/v1/blog/search?q=${encodeURIComponent(searchQuery)}`)
+        if (!response.ok) throw new Error('Failed to fetch search results')
         const data = await response.json()
         setResults(data.docs || [])
 

@@ -45,15 +45,12 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
 
   // Fetch plan details
   useEffect(() => {
-    async function fetchPlan() {
+    const fetchPlan = async () => {
+      if (!planId) return
+      setIsLoading(true)
       try {
-        setIsLoading(true)
-        const response = await fetch(`/api/subscription/plans/${planId}`)
-
-        if (!response.ok) {
-          throw new Error(t('errors.planFetchFailed'))
-        }
-
+        const response = await fetch(`/api/v1/subscription/plans/${planId}`)
+        if (!response.ok) throw new Error('Plan not found')
         const data = await response.json()
 
         if (data.success && data.plan) {
@@ -79,7 +76,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
       setIsProcessing(true)
       setError(null)
 
-      const response = await fetch('/api/subscription/create', {
+      const response = await fetch('/api/v1/subscription/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

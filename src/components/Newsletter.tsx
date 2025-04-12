@@ -53,18 +53,22 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     successTitle:
       successTitle || (locale === 'ru' ? 'Спасибо за подписку!' : 'Thank you for subscribing!'),
     successMessage:
-      successMessage || (locale === 'ru'
+      successMessage ||
+      (locale === 'ru'
         ? 'Мы отправили письмо с подтверждением на '
         : "We've sent a confirmation email to "),
-    networkError: locale === 'ru'
-      ? 'Ошибка сети при подписке. Пожалуйста, попробуйте позже.'
-      : 'Network error during subscription. Please try again later.',
-    serverError: locale === 'ru'
-      ? 'Ошибка сервера при подписке. Пожалуйста, попробуйте позже.'
-      : 'Server error during subscription. Please try again later.',
-    alreadySubscribed: locale === 'ru'
-      ? 'Этот email уже подписан на нашу рассылку.'
-      : 'This email is already subscribed to our newsletter.'
+    networkError:
+      locale === 'ru'
+        ? 'Ошибка сети при подписке. Пожалуйста, попробуйте позже.'
+        : 'Network error during subscription. Please try again later.',
+    serverError:
+      locale === 'ru'
+        ? 'Ошибка сервера при подписке. Пожалуйста, попробуйте позже.'
+        : 'Server error during subscription. Please try again later.',
+    alreadySubscribed:
+      locale === 'ru'
+        ? 'Этот email уже подписан на нашу рассылку.'
+        : 'This email is already subscribed to our newsletter.',
   }
 
   useEffect(() => {
@@ -87,7 +91,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError(messages.error)
       return
@@ -96,7 +100,9 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/newsletter/subscribe', {
+      setLoading(true)
+      setError(null)
+      const response = await fetch('/api/v1/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,35 +124,26 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       }
 
       const data = await response.json()
-      
+
       if (data.alreadySubscribed) {
         toast.info(messages.alreadySubscribed)
       }
 
       localStorage.setItem(
         storageKey,
-        JSON.stringify({ 
-          subscribed: true, 
+        JSON.stringify({
+          subscribed: true,
           email,
-          date: new Date().toISOString()
-        })
+          date: new Date().toISOString(),
+        }),
       )
 
       setIsSubmitted(true)
       setIsSubscribed(true)
-
     } catch (error) {
       console.error('Newsletter subscription error:', error)
-      setError(
-        error instanceof Error 
-          ? error.message 
-          : messages.networkError
-      )
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : messages.networkError
-      )
+      setError(error instanceof Error ? error.message : messages.networkError)
+      toast.error(error instanceof Error ? error.message : messages.networkError)
     } finally {
       setIsSubmitting(false)
     }
@@ -219,10 +216,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
             )}
             disabled={isSubmitting}
           >
-            {isSubmitting 
-              ? (locale === 'ru' ? 'Подписка...' : 'Subscribing...') 
-              : buttonText
-            }
+            {isSubmitting ? (locale === 'ru' ? 'Подписка...' : 'Subscribing...') : buttonText}
           </button>
         </form>
       ) : (

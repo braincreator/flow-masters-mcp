@@ -219,7 +219,7 @@ export async function trackPostView(postId: string): Promise<void> {
 
   try {
     // Send a request to track the view
-    await fetch('/api/blog/metrics', {
+    await fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -249,5 +249,21 @@ export function formatBlogDate(date: string | Date, locale: string = 'en'): stri
   } catch (error) {
     console.error('Error formatting date:', error)
     return dateObj.toLocaleDateString()
+  }
+}
+
+// Helper function to send metrics to the backend
+export const sendMetric = async (type: string, postId: string) => {
+  try {
+    await fetch('/api/v1/blog/metrics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postId,
+        action: type,
+      }),
+    })
+  } catch (error) {
+    console.error('Failed to send metric:', error)
   }
 }

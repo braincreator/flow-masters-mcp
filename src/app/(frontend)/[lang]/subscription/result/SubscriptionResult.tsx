@@ -35,17 +35,12 @@ export function SubscriptionResult({
 
   // Fetch subscription details if ID is provided
   useEffect(() => {
-    async function fetchSubscription() {
+    const fetchSubscriptionDetails = async () => {
       if (!subscriptionId) return
-
+      setLoading(true)
       try {
-        setLoading(true)
-        const response = await fetch(`/api/subscription/${subscriptionId}`)
-
-        if (!response.ok) {
-          throw new Error(t('errors.subscriptionFetchFailed'))
-        }
-
+        const response = await fetch(`/api/v1/subscription/${subscriptionId}`)
+        if (!response.ok) throw new Error('Subscription not found')
         const data = await response.json()
 
         if (data.success) {
@@ -61,7 +56,7 @@ export function SubscriptionResult({
       }
     }
 
-    fetchSubscription()
+    fetchSubscriptionDetails()
   }, [subscriptionId, t])
 
   // Redirect to subscriptions page after delay

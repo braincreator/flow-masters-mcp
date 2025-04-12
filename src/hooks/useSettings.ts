@@ -43,7 +43,7 @@ export function useSettings(): UseSettingsResult {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/globals/settings?depth=2`, {
+      const response = await fetch(`/api/v1/globals/settings?depth=2`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

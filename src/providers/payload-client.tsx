@@ -56,7 +56,7 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
       if (tagSlug) params.set('tag', tagSlug)
       if (authorId) params.set('author', authorId)
 
-      const url = `/api/posts?${params.toString()}`
+      const url = `/api/v1/posts?${params.toString()}`
       console.log(`Client: Sending request to ${url}`)
 
       // Make the API request
@@ -87,10 +87,9 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
 
     try {
       console.log(`Client: Fetching categories for locale ${locale}`)
-      const params = new URLSearchParams()
-      params.set('locale', locale)
+      const params = new URLSearchParams({ limit: '100' })
 
-      const url = `/api/categories?${params.toString()}`
+      const url = `/api/v1/categories?${params.toString()}`
       console.log(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)
@@ -120,10 +119,9 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
 
     try {
       console.log(`Client: Fetching tags for locale ${locale}`)
-      const params = new URLSearchParams()
-      params.set('locale', locale)
+      const params = new URLSearchParams({ limit: '100' })
 
-      const url = `/api/tags?${params.toString()}`
+      const url = `/api/v1/tags?${params.toString()}`
       console.log(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)

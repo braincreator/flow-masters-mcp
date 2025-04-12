@@ -27,7 +27,7 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       console.log('CurrencyProvider: fetching rates from API...')
       // Получаем настройки через API-вызов
-      const response = await fetch('/api/currency-settings')
+      const response = await fetch('/api/v1/currency-settings')
 
       console.log('CurrencyProvider: API response status:', response.status)
 

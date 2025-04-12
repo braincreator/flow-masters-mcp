@@ -353,7 +353,7 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
   const fetchComments = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/blog/comment?postId=${postId}`)
+      const response = await fetch(`/api/v1/blog/comment?postId=${postId}`)
       if (!response.ok) {
         throw new Error('Failed to fetch comments')
       }
@@ -374,7 +374,7 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
 
   const submitGuestComment = async (data: Omit<CommentFormData, 'website'>) => {
     try {
-      const response = await fetch('/api/blog/comment', {
+      const response = await fetch('/api/v1/blog/comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -415,7 +415,7 @@ export function EnhancedBlogComments({ postId, locale = 'en' }: EnhancedBlogComm
 
   const submitAuthComment = async (data: AuthenticatedCommentFormData) => {
     try {
-      const response = await fetch('/api/blog/comment', {
+      const response = await fetch('/api/v1/blog/comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

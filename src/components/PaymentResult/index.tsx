@@ -112,7 +112,7 @@ export default function PaymentResult({
 
   async function fetchOrderDetails(orderId: string) {
     try {
-      const res = await fetch(`/api/order/${orderId}`)
+      const res = await fetch(`/api/v1/order/${orderId}`)
       if (!res.ok) {
         console.error('Failed to fetch order details:', res.statusText)
         return
@@ -136,7 +136,7 @@ export default function PaymentResult({
   async function verifyPayment(orderId: string, paymentId: string | null) {
     try {
       const res = await fetch(
-        `/api/payment/verify?orderId=${orderId}${paymentId ? `&paymentId=${paymentId}` : ''}`,
+        `/api/v1/payment/verify?orderId=${orderId}${paymentId ? `&paymentId=${paymentId}` : ''}`,
       )
 
       if (!res.ok) {

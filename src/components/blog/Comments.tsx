@@ -48,7 +48,7 @@ export function Comments({
     const fetchComments = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/blog/comment?postId=${postId}`)
+        const response = await fetch(`/api/v1/blog/comment?postId=${postId}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch comments')

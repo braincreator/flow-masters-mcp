@@ -14,20 +14,20 @@ export function Checkout() {
     try {
       setError(null)
       setLoading(true)
-      
+
       if (cart.length === 0) {
         throw new Error('Cart is empty')
       }
 
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/v1/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cart.map(item => ({
+          items: cart.map((item) => ({
             id: item.id,
-            quantity: item.quantity
+            quantity: item.quantity,
           })),
           email: 'customer@example.com', // Replace with actual user email
           paymentMethod,
@@ -53,7 +53,7 @@ export function Checkout() {
     <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
         <h2 className="text-2xl font-bold mb-4">Checkout</h2>
-        
+
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Select Payment Method</h3>
           <div className="space-y-2">
@@ -80,11 +80,7 @@ export function Checkout() {
           </div>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
         <button
           onClick={handleCheckout}

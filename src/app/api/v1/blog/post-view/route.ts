@@ -6,28 +6,30 @@ interface PostViewRequest {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    // Получаем данные запроса
-    const body = (await req.json()) as PostViewRequest
-    console.log('[Post View API] Received request for slug:', body.slug)
+  let postId: string | number | undefined
+  let postSlug: string | undefined
 
-    if (!body.slug) {
+  try {
+    const body = (await req.json()) as PostViewRequest
+    postSlug = body.slug // Store slug for error logging
+    console.log('[Post View API] Received request for slug:', postSlug)
+
+    if (!postSlug) {
       console.error('[Post View API] Missing slug in request')
       return NextResponse.json({ error: 'Post slug is required' }, { status: 400 })
     }
 
-    // Инициализируем Payload клиент
     const payload = await getPayloadClient()
     console.log('[Post View API] Payload client initialized')
 
-    // Находим пост по slug
     const posts = await payload.find({
       collection: 'posts',
       where: {
-        slug: { equals: body.slug },
+        slug: { equals: postSlug },
         _status: { equals: 'published' },
       },
       limit: 1,
+      depth: 0, // We only need the ID and title
     })
 
     console.log(
@@ -35,23 +37,22 @@ export async function POST(req: NextRequest) {
       posts.docs.length > 0 ? 'found' : 'not found',
     )
 
-    if (!posts.docs.length) {
-      console.error('[Post View API] Post not found:', body.slug)
+    if (!posts.docs.length || !posts.docs[0].id) {
+      console.error('[Post View API] Post not found or missing ID for slug:', postSlug)
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
     const post = posts.docs[0]
-    const postId = post.id
+    postId = post.id // Store postId for error logging
     console.log('[Post View API] Found post ID:', postId)
 
-    // Ищем существующие метрики для этого поста
     const metricsResult = await payload.find({
       collection: 'post-metrics',
       where: {
-        post: {
-          equals: postId,
-        },
+        post: { equals: postId },
       },
+      limit: 1,
+      depth: 0, // We only need the ID and views count
     })
 
     const now = new Date().toISOString()
@@ -60,31 +61,33 @@ export async function POST(req: NextRequest) {
       metricsResult.docs.length > 0 ? 'yes' : 'no',
     )
 
-    if (metricsResult.docs.length > 0) {
-      // Обновляем существующие метрики
+    if (metricsResult.docs.length > 0 && metricsResult.docs[0].id) {
       const metrics = metricsResult.docs[0]
+      const metricsId = metrics.id
 
-      // Увеличиваем счетчик просмотров
       await payload.update({
         collection: 'post-metrics',
-        id: metrics.id,
+        id: metricsId, // Use the existing metrics ID
         data: {
+          views: (Number(metrics.views) || 0) + 1, // Ensure views is treated as number
           lastUpdated: now,
-          views: (metrics.views || 0) + 1,
         },
       })
 
-      console.log('[Post View API] Updated view count for post:', post.title)
+      console.log('[Post View API] Updated view count for post ID:', postId)
       return NextResponse.json({ success: true, message: 'View count updated' })
     } else {
-      // Создаем новые метрики
+      // Check if post title exists, provide fallback
+      const postTitle = post.title || 'Untitled Post'
+
       await payload.create({
         collection: 'post-metrics',
         data: {
-          title: post.title || 'Untitled Post',
-          post: postId,
-          lastUpdated: now,
+          post: postId, // Link to the post using ID
+          title: postTitle, // Use fetched or fallback title
           views: 1,
+          lastUpdated: now,
+          // Optional: Initialize other fields if they exist in your collection
           shareCount: 0,
           likes: 0,
           completedReads: 0,
@@ -93,11 +96,14 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      console.log('[Post View API] Created new metrics for post:', post.title)
+      console.log('[Post View API] Created new metrics for post ID:', postId)
       return NextResponse.json({ success: true, message: 'Metrics created with view' })
     }
   } catch (error) {
-    console.error('[Post View API] Error tracking post view:', error)
+    console.error(
+      `[Post View API] Error tracking post view for slug '${postSlug || 'unknown'}' (Post ID: ${postId || 'unknown'}):`,
+      error,
+    )
     return NextResponse.json(
       {
         error: 'Error tracking post view',

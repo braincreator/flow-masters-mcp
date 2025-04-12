@@ -37,14 +37,11 @@ export default function SubscriptionPlans({
   const [processingPlanId, setProcessingPlanId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchPlans() {
+    const fetchPlans = async () => {
+      setLoading(true)
       try {
-        const response = await fetch('/api/subscription/plans')
-
-        if (!response.ok) {
-          throw new Error('Не удалось загрузить планы подписок')
-        }
-
+        const response = await fetch('/api/v1/subscription/plans')
+        if (!response.ok) throw new Error('Failed to fetch plans')
         const data = await response.json()
 
         if (data.success && data.plans) {

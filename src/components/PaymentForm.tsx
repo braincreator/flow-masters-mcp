@@ -40,9 +40,8 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
     const fetchProviders = async () => {
       try {
         setIsLoadingProviders(true)
-        const response = await fetch('/api/payment/providers')
-        if (!response.ok) throw new Error('Failed to load payment providers')
-
+        const response = await fetch('/api/v1/payment/providers')
+        if (!response.ok) throw new Error('Failed to fetch payment providers')
         const data = await response.json()
         setProviders(data.providers || [])
 
@@ -85,7 +84,7 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
         throw new Error(locale === 'ru' ? 'Корзина пуста' : 'Your cart is empty')
       }
 
-      const response = await fetch('/api/payment/create', {
+      const response = await fetch('/api/v1/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

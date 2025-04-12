@@ -33,7 +33,8 @@ export function ContactForm() {
 
   const onSubmit: SubmitHandler<ContactFormData> = async (data) => {
     try {
-      const response = await fetch('/api/contact', {
+      setIsSubmitting(true)
+      const response = await fetch('/api/v1/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,6 +60,8 @@ export function ContactForm() {
         description: error instanceof Error ? error.message : 'Произошла ошибка при отправке.',
         variant: 'destructive',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

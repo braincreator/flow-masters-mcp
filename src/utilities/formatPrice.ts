@@ -51,7 +51,7 @@ async function getClientSettings() {
     // Получаем настройки через API (только на клиенте)
     if (typeof window !== 'undefined') {
       try {
-        const response = await fetch('/api/currency-settings')
+        const response = await fetch('/api/v1/currency-settings')
 
         if (response.ok) {
           const data = await response.json()

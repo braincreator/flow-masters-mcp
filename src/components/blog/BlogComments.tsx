@@ -52,7 +52,7 @@ export function BlogComments({ postId }: BlogCommentsProps) {
     const fetchComments = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/blog/comment?postId=${postId}`)
+        const response = await fetch(`/api/v1/blog/comment?postId=${postId}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch comments')
@@ -73,8 +73,9 @@ export function BlogComments({ postId }: BlogCommentsProps) {
 
   // Submit a comment
   const submitComment = async (data: CommentFormData) => {
+    setSubmitting(true)
     try {
-      const response = await fetch('/api/blog/comment', {
+      const response = await fetch('/api/v1/blog/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,6 +110,8 @@ export function BlogComments({ postId }: BlogCommentsProps) {
         description: err instanceof Error ? err.message : 'Failed to submit comment',
         variant: 'destructive',
       })
+    } finally {
+      setSubmitting(false)
     }
   }
 

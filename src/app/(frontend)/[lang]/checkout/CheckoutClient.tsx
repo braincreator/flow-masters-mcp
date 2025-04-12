@@ -55,20 +55,14 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
   useEffect(() => {
     // Fetch available payment providers
-    const fetchPaymentProviders = async () => {
+    const fetchProviders = async () => {
       setIsLoadingProviders(true)
       try {
-        const response = await fetch('/api/payment/providers')
-        let providersData = []
-        let defaultProviderId = null
-
-        if (response.ok) {
-          const data = await response.json()
-          providersData = data.providers || []
-          defaultProviderId = data.defaultProvider
-        } else {
-          console.error('Failed to fetch payment providers from API, using defaults')
-        }
+        const response = await fetch('/api/v1/payment/providers')
+        if (!response.ok) throw new Error('Failed to fetch payment providers')
+        const data = await response.json()
+        let providersData = data.providers || []
+        let defaultProviderId = data.defaultProvider
 
         // Only use providers that exist and are enabled
         providersData = providersData.filter((provider) => provider && provider.enabled !== false)
@@ -107,7 +101,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
     }
 
-    fetchPaymentProviders()
+    fetchProviders()
   }, [])
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +177,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         }),
       }
 
-      const response = await fetch('/api/payment/create', {
+      const response = await fetch('/api/v1/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
