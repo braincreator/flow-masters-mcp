@@ -20,7 +20,11 @@ export const CTA: React.FC<CTAProps> = ({
   size = 'md',
 }) => {
   const sizeVariant = blockSizeStyles[size]
-  const styleVariant = blockStyleVariants[style]
+  const styleVariant = blockStyleVariants[style] || blockStyleVariants.default
+
+  if (!blockStyleVariants[style]) {
+    console.warn(`[CTA Block] Invalid style '${style}' provided. Falling back to default style.`)
+  }
 
   return (
     <BaseBlock settings={settings}>
