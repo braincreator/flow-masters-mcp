@@ -68,7 +68,7 @@ interface Post {
     title: string
     slug: string
   }[]
-  readTime?: number
+  readingTime?: number
 }
 
 interface BlogPostCardProps {
@@ -80,6 +80,7 @@ interface BlogPostCardProps {
   showAuthor?: boolean
   showDate?: boolean
   className?: string
+  style?: React.CSSProperties
 }
 
 export function BlogPostCard({
@@ -91,6 +92,7 @@ export function BlogPostCard({
   showAuthor = true,
   showDate = true,
   className,
+  style,
 }: BlogPostCardProps) {
   const t = locale === 'ru' ? translations.ru : translations.en
   const postContent = post?.content ?? null
@@ -108,6 +110,7 @@ export function BlogPostCard({
         layout === 'grid' ? 'h-full' : 'flex-row gap-4',
         className,
       )}
+      style={style}
     >
       {/* Image */}
       {post.heroImage?.url && (
@@ -158,11 +161,11 @@ export function BlogPostCard({
             </div>
           )}
 
-          {post.readTime && (
+          {post.readingTime && (
             <div className="flex items-center">
               <Clock className="mr-1 h-3.5 w-3.5" />
               <span>
-                {post.readTime} {t.readTimeUnit}
+                {post.readingTime} {t.readTimeUnit}
               </span>
             </div>
           )}

@@ -179,7 +179,8 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
 
     const postDate = post.publishedAt ? new Date(post.publishedAt) : new Date()
 
-    const readTime = calculateReadingTime(JSON.stringify(post.content)) || 5
+    // Используем сохраненное значение readingTime вместо расчета на лету
+    const readTime = post.readingTime || calculateReadingTime(JSON.stringify(post.content)) || 5
 
     return (
       <PayloadAPIProvider>

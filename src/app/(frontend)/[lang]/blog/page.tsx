@@ -232,7 +232,7 @@ export default async function BlogPage(props: PageParams) {
             slug: cat.slug || '',
           }
         }),
-        readTime: 5, // Default reading time
+        readingTime: post.readingTime || 5, // Используем поле readingTime с запасным значением 5 мин
       }
     })
 

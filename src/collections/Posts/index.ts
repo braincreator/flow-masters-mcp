@@ -9,14 +9,15 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
+import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
-import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
+import { calculateReadingTime, updateReadingTime } from '../../utilities/calculateReadingTime'
 
 import {
   MetaDescriptionField,
@@ -32,7 +33,7 @@ export const Posts: CollectionConfig<'posts'> = {
   access: {
     create: authenticated,
     delete: authenticated,
-    read: authenticatedOrPublished,
+    read: anyone,
     update: authenticated,
   },
   // This config controls what's populated by default when a post is referenced
@@ -131,13 +132,6 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
-              filterOptions: {
-                where: {
-                  categoryType: {
-                    equals: 'blog',
-                  },
-                },
-              },
             },
             {
               name: 'tags',
@@ -189,16 +183,6 @@ export const Posts: CollectionConfig<'posts'> = {
         },
         position: 'sidebar',
       },
-      hooks: {
-        beforeChange: [
-          ({ siblingData, value }) => {
-            if (siblingData._status === 'published' && !value) {
-              return new Date()
-            }
-            return value
-          },
-        ],
-      },
     },
     {
       name: 'authors',
@@ -233,9 +217,37 @@ export const Posts: CollectionConfig<'posts'> = {
         },
       ],
     },
+    {
+      name: 'readingTime',
+      label: 'Reading Time (minutes)',
+      type: 'number',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Estimated reading time in minutes, calculated automatically.',
+      },
+    },
     ...slugField(),
   ],
   hooks: {
+    beforeChange: [
+      ({ data, req, operation, originalDoc }) => {
+        if (
+          operation === 'update' &&
+          data._status === 'published' &&
+          originalDoc?._status !== 'published'
+        ) {
+          if (!data.publishedAt) {
+            data.publishedAt = new Date()
+          }
+        } else if (operation === 'create' && data._status === 'published' && !data.publishedAt) {
+          data.publishedAt = new Date()
+        }
+
+        return data
+      },
+      updateReadingTime,
+    ],
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],

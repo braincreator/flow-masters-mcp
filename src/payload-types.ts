@@ -1634,6 +1634,10 @@ export interface Post {
         name?: string | null;
       }[]
     | null;
+  /**
+   * Estimated reading time in minutes, calculated automatically.
+   */
+  readingTime?: number | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -15417,6 +15421,7 @@ export interface PostsSelect<T extends boolean = true> {
         id?: T;
         name?: T;
       };
+  readingTime?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;

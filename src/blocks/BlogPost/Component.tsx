@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React from 'react'
 import Image from 'next/image'
 import type { BlogPostBlock as BlogPostBlockType } from '@/types/blocks'
@@ -27,9 +27,7 @@ export function BlogPost({
   showReadingProgress = true,
   settings,
 }: BlogPostBlockType) {
-  const [estimatedReadingTime] = React.useState(() => {
-    return post?.content ? calculateReadingTime(post.content) : 0
-  })
+  const readingTime = post?.readingTime ?? (post?.content ? calculateReadingTime(post.content) : 0)
 
   if (!post) {
     return null
@@ -71,7 +69,7 @@ export function BlogPost({
               )}
 
               {/* Reading time */}
-              {showReadingTime && <div>{estimatedReadingTime} min read</div>}
+              {showReadingTime && <div>{readingTime} min read</div>}
             </div>
           </header>
 
