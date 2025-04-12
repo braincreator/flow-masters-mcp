@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { availableBlocks } from '@/blocks' // Импортируем availableBlocks
+// Re-import availableBlocks
+import { availableBlocks } from '../../blocks'
 
 export const Popups: CollectionConfig = {
   slug: 'popups',
@@ -45,7 +46,7 @@ export const Popups: CollectionConfig = {
       type: 'blocks',
       label: 'Содержимое Попапа',
       minRows: 1,
-      // Используем импортированный массив
+      // Re-add explicit blocks list
       blocks: availableBlocks,
       required: true,
     },

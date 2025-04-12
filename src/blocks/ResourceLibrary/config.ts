@@ -360,12 +360,12 @@ export const ResourceLibrary: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Resource Collection Slug',
           required: true,
           admin: {
-            description: 'Название коллекции с ресурсами',
+            description: 'Введите слаг коллекции, из которой нужно брать ресурсы.',
           },
         },
         {

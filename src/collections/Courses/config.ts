@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { slugField } from '@/fields/slug'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { availableBlocks } from '@/blocks'
+import { availableBlocks } from '../../blocks'
 
 export const Courses: CollectionConfig = {
   slug: 'courses',

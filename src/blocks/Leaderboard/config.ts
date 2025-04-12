@@ -104,11 +104,13 @@ export const Leaderboard: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
+          label: 'Leaderboard Collection Slug',
           type: 'text',
-          label: 'Название коллекции',
           required: true,
-          defaultValue: 'leaderboardEntries',
+          admin: {
+            description: 'Введите слаг коллекции, содержащей данные для лидерборда.',
+          },
         },
         {
           name: 'userRelationField',

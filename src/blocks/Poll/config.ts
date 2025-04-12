@@ -126,6 +126,27 @@ export const Poll: Block = {
       ],
     },
     {
+      name: 'submissionCollection',
+      type: 'text',
+      label: 'Submission Collection Slug',
+      required: true,
+      admin: {
+        condition: (_, { submitAction }) => submitAction === 'saveToCollection',
+        description: 'Введите слаг коллекции, в которую будут сохраняться голоса.',
+      },
+    },
+    {
+      name: 'targetCollection',
+      label: 'Result Display Collection Slug',
+      type: 'text',
+      required: true,
+      admin: {
+        condition: (_, { submitAction }) => submitAction === 'saveToCollection',
+        description:
+          '(Опционально) Введите слаг коллекции для отображения агрегированных результатов.',
+      },
+    },
+    {
       name: 'collectionSettings',
       type: 'group',
       label: 'Настройки коллекции',
@@ -133,16 +154,6 @@ export const Poll: Block = {
         condition: (data, siblingData) => siblingData?.submissionTarget === 'collection',
       },
       fields: [
-        {
-          name: 'collection',
-          type: 'text',
-          label: 'Название коллекции',
-          required: true,
-          defaultValue: 'pollSubmissions',
-          admin: {
-            description: 'Коллекция для сохранения результатов опросов',
-          },
-        },
         {
           name: 'associateWithUser',
           type: 'checkbox',

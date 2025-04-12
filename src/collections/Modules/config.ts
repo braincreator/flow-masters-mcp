@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { slugField } from '@/fields/slug'
-import { availableBlocks } from '@/blocks'
+import { availableBlocks } from '../../blocks'
 
 export const Modules: CollectionConfig = {
   slug: 'modules',

@@ -21,7 +21,7 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
-import { availableBlocks } from '@/blocks'
+import { availableBlocks } from '../../blocks'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',

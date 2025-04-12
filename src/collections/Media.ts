@@ -36,7 +36,6 @@ export const Media: CollectionConfig = {
   upload: {
     disableLocalStorage: true,
     adminThumbnail: ({ doc }) => {
-      
       // Ensure we're using the correct thumbnail URL
       if (doc?.sizes?.thumbnail?.url) {
         return doc.sizes.thumbnail.url

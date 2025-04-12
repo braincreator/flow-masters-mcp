@@ -111,24 +111,20 @@ export const LeadMagnetOffer: Block = {
       ],
     },
     {
-      name: 'collectionSettings',
+      name: 'submissionSettings',
       type: 'group',
-      label: 'Настройки коллекции',
-      admin: {
-        condition: (data, siblingData) => siblingData?.submissionTarget === 'collection',
-      },
+      label: 'Submission Settings',
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Submission Collection Slug',
           required: true,
-          defaultValue: 'leads',
           admin: {
-            description: 'Коллекция для сохранения лидов',
+            description:
+              "Введите слаг коллекции, в которую будут сохраняться данные формы (например, 'leads').",
           },
         },
-        // Можно добавить маппинг полей, если нужно
       ],
     },
     {

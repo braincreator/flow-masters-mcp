@@ -1,85 +1,113 @@
-import { Analytics } from './Analytics'
-import { Authors } from './Authors'
-import { CartSessions } from './CartSessions'
-import { Categories } from './Categories'
-import { Comments } from './Comments'
-import { Discounts } from './Discounts'
-import { Events } from './Events'
-import { Integrations } from './Integrations'
-import { Media } from '@/collections/Media'
-import { NewsletterSubscribers } from './newsletter-subscribers'
-import { Orders } from './Orders'
-import { OrderTracking } from './OrderTracking'
-import { Pages } from '@/collections/Pages'
+// import { Analytics } from './Analytics'
+import { Pages } from './Pages'
+import { Media } from './Media'
+import { Users } from './Users'
+import { Categories } from './Categories' // General categories, maybe split later?
+import { Tags } from './Tags' // General tags
+
+// Blog
 import { Posts } from './Posts'
 import { PostMetrics } from './PostMetrics'
+import { Authors } from './Authors' // Could be related to Users
+import { Comments } from './Comments'
+
+// Store / E-commerce
 import { Products } from './Products'
 import { ProductCategories } from './ProductCategories'
+import { Orders } from './Orders'
+import { OrderTracking } from './OrderTracking'
+import { CartSessions } from './CartSessions'
+import { Discounts } from './Discounts'
 import { Promotions } from './Promotions'
 import { Reviews } from './Reviews'
-import { Solutions } from './Solutions'
-import { Tags } from './Tags'
-import { Testimonials } from './Testimonials'
-import { Users } from './Users'
-import { UserFavorites } from './UserFavorites'
-import { EmailTemplates } from './EmailTemplates'
-import { SenderEmails } from './SenderEmails'
-import { SubscriptionPayments } from './subscription-payments'
-import { Subscriptions } from './subscriptions'
-import { SubscriptionPlans } from './subscription-plans'
-import { Messages } from './Messages'
-import { BroadcastReports } from './BroadcastReports'
-import { Broadcasts } from './Broadcasts'
-import { Achievements } from './Achievements'
-import { Projects } from './Projects'
-import { Popups } from './Popups'
-import { UserSegments } from './UserSegments'
+
+// Courses / LMS
 import { Courses } from './Courses'
 import { Modules } from './Modules'
-import { Resources } from './Resources'
+import { Resources } from './Resources' // Learning resources?
+import { Achievements } from './Achievements'
+
+// Community / Forum
 import { ForumCategories } from './ForumCategories'
+import { Messages } from './Messages' // Assuming this is forum/user messages
+
+// Marketing / Communication
+import { NewsletterSubscribers } from './newsletter-subscribers'
+import { EmailTemplates } from './EmailTemplates'
+import { SenderEmails } from './SenderEmails'
+import { Broadcasts } from './Broadcasts'
+import { BroadcastReports } from './BroadcastReports'
+import { Popups } from './Popups'
+import { UserSegments } from './UserSegments'
+import { Testimonials } from './Testimonials'
+
+// User Specific
+import { UserFavorites } from './UserFavorites'
+import { SubscriptionPlans } from './subscription-plans'
+import { Subscriptions } from './subscriptions'
+import { SubscriptionPayments } from './subscription-payments'
+
+// Integrations / Settings / Other
+import { Integrations } from './Integrations'
+import { Projects } from './Projects' // User projects? Or internal?
+import { Solutions } from './Solutions' // Needs clarification
+import { Events } from './Events' // Needs clarification
 
 const collections = [
-  Analytics,
-  Authors,
-  CartSessions,
-  Categories,
-  Comments,
-  Courses,
-  Discounts,
-  Events,
-  Integrations,
-  Media,
-  NewsletterSubscribers,
-  Orders,
-  OrderTracking,
+  // Core / Site
   Pages,
+  Media,
+  Users,
+  Categories,
+  Tags,
+
+  // Blog
   Posts,
   PostMetrics,
+  Authors,
+  Comments,
+
+  // Store / E-commerce
   Products,
   ProductCategories,
+  Orders,
+  OrderTracking,
+  CartSessions,
+  Discounts,
   Promotions,
   Reviews,
-  Solutions,
-  Tags,
-  Testimonials,
-  Users,
-  UserFavorites,
-  EmailTemplates,
-  SenderEmails,
-  SubscriptionPayments,
-  Subscriptions,
-  SubscriptionPlans,
-  Messages,
-  BroadcastReports,
-  Broadcasts,
-  Achievements,
-  Projects,
-  Popups,
-  UserSegments,
+
+  // Courses / LMS
+  Courses,
   Modules,
   Resources,
+  Achievements,
+
+  // Community / Forum
   ForumCategories,
+  Messages,
+
+  // Marketing / Communication
+  NewsletterSubscribers,
+  EmailTemplates,
+  SenderEmails,
+  Broadcasts,
+  BroadcastReports,
+  Popups,
+  UserSegments,
+  Testimonials,
+
+  // User Specific
+  UserFavorites,
+  SubscriptionPlans,
+  Subscriptions,
+  SubscriptionPayments,
+
+  // Integrations / Settings / Other
+  Integrations,
+  Projects,
+  Solutions,
+  Events,
 ]
 
 export default collections

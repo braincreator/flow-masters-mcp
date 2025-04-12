@@ -13,7 +13,7 @@ const BlogBlock = dynamic(() => import('./Blog/Component').then((mod) => mod.Blo
 // Медиа и контент блоки
 const MediaBlock = dynamic(() => import('./MediaBlock/Component').then((mod) => mod.MediaBlock))
 const CodeBlock = dynamic(() => import('./Code/Component').then((mod) => mod.CodeBlock))
-const Video = dynamic(() => import('./Video/Component').then((mod) => mod.Video))
+const Video = dynamic(() => import('./Video/Component').then((mod) => mod.VideoComponent))
 const AudioBlock = dynamic(() => import('./Audio/Component').then((mod) => mod.AudioBlock))
 
 // Информационные блоки
@@ -27,12 +27,9 @@ const BlockquoteBlock = dynamic(() =>
 )
 
 // Структурные блоки
-const TabsBlock = dynamic(() => import('./Tabs/Component').then((mod) => mod.TabsBlock))
+const TabsBlock = dynamic(() => import('./Tabs/Component').then((mod) => mod.TabsComponent))
 const TimelineBlock = dynamic(() => import('./Timeline/Component').then((mod) => mod.TimelineBlock))
 const DividerBlock = dynamic(() => import('./Divider/Component').then((mod) => mod.DividerBlock))
-const ContainerBlock = dynamic(() =>
-  import('./Container/Component').then((mod) => mod.ContainerBlock),
-)
 
 // Функциональные блоки
 const FormBlock = dynamic(() => import('./Form/Component').then((mod) => mod.FormBlock))
@@ -47,8 +44,8 @@ const CountdownBlock = dynamic(() =>
 const FeatureGridBlock = dynamic(() =>
   import('./FeatureGrid/Component').then((mod) => mod.FeatureGridBlock),
 )
-const FeaturesBlock = dynamic(() => import('./Features/Component').then((mod) => mod.FeaturesBlock))
-const StatsBlock = dynamic(() => import('./Stats/Component').then((mod) => mod.StatsBlock))
+const FeaturesBlock = dynamic(() => import('./Features/Component').then((mod) => mod.Features))
+const StatsBlock = dynamic(() => import('./Stats/Component').then((mod) => mod.Stats))
 const TeamMembersBlock = dynamic(() =>
   import('./TeamMembers/Component').then((mod) => mod.TeamMembersBlock),
 )
@@ -61,7 +58,7 @@ const RelatedPostsBlock = dynamic(() =>
   import('./RelatedPosts/Component').then((mod) => mod.RelatedPostsBlock),
 )
 const TableOfContentsBlock = dynamic(() =>
-  import('./TableOfContents/Component').then((mod) => mod.TableOfContentsBlock),
+  import('./TableOfContents/Component').then((mod) => mod.TableOfContents),
 )
 const ArticleHeaderBlock = dynamic(() =>
   import('./ArticleHeader/Component').then((mod) => mod.ArticleHeaderBlock),
@@ -76,10 +73,10 @@ const SocialShareBlock = dynamic(() =>
 
 // Блоки для продуктов
 const ProductsListBlock = dynamic(() =>
-  import('./ProductsList/Component').then((mod) => mod.ProductsListBlock),
+  import('./ProductsList/Component').then((mod) => mod.ProductsList),
 )
 const ProductsFilterBlock = dynamic(() =>
-  import('./ProductsFilter/Component').then((mod) => mod.ProductsFilterBlock),
+  import('./ProductsFilter/Component').then((mod) => mod.ProductsFilter),
 )
 const PricingTableBlock = dynamic(() =>
   import('./PricingTable/Component').then((mod) => mod.PricingTableBlock),
@@ -110,7 +107,6 @@ const blockComponents = {
   tabs: TabsBlock,
   timeline: TimelineBlock,
   divider: DividerBlock,
-  container: ContainerBlock,
 
   // Функциональные блоки
   form: FormBlock,
@@ -173,7 +169,7 @@ export const RenderBlocks: React.FC<Props> = ({ blocks = [] }) => {
         }
 
         try {
-          return <Block key={i} {...block} />
+          return <Block key={i} {...(block as any)} />
         } catch (error) {
           console.error(`Error rendering block of type '${blockType}':`, error)
           return (

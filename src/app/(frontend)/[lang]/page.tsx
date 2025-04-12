@@ -56,7 +56,7 @@ export default async function LangHome({ params: paramsPromise }: Props) {
       {draft && <LivePreviewListener />}
 
       <RenderHero {...hero} />
-      <RenderBlocks blocks={layout} />
+      <RenderBlocks blocks={layout || []} />
     </article>
   )
 }

@@ -40,7 +40,7 @@ export default async function Page() {
       {draft && <LivePreviewListener />}
 
       <RenderHero {...hero} />
-      <RenderBlocks blocks={layout} />
+      <RenderBlocks blocks={layout || []} />
     </article>
   )
 }

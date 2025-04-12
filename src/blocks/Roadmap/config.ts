@@ -173,15 +173,14 @@ export const Roadmap: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Roadmap Item Collection Slug',
           required: true,
           admin: {
-            description: 'Название коллекции с элементами дорожной карты',
+            description: 'Введите слаг коллекции, из которой нужно брать элементы дорожной карты.',
           },
         },
-        // ... Поля для лимита, сортировки, фильтров и маппинга полей
         {
           name: 'limit',
           type: 'number',
@@ -229,7 +228,6 @@ export const Roadmap: Block = {
               label: 'Поле: Дата окончания',
               defaultValue: 'endDate',
             },
-            // ... другие поля для маппинга
           ],
         },
       ],
@@ -248,7 +246,6 @@ export const Roadmap: Block = {
           label: 'URL API',
           required: true,
         },
-        // ... Настройки API (ключ, метод, маппинг ответа)
       ],
     },
     {
@@ -329,7 +326,7 @@ export const Roadmap: Block = {
           },
           fields: [
             {
-              name: 'value', // Например, статус 'planned' или категория 'UI'
+              name: 'value',
               type: 'text',
               label: 'Значение (статус/категория)',
               required: true,

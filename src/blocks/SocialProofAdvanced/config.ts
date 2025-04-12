@@ -21,30 +21,11 @@ export const SocialProofAdvanced: Block = {
       label: 'Элементы социального доказательства',
       minRows: 1,
       blocks: [
-        // Можно использовать существующие блоки или создать новые специфичные
-        {
-          slug: 'testimonialsRef', // Ссылка на блок Testimonials
-          fields: [
-            {
-              name: 'relation',
-              type: 'relationship',
-              relationTo: 'testimonials', // Предполагается наличие коллекции testimonials
-              label: 'Выберите отзывы',
-              hasMany: true,
-            },
-            {
-              name: 'layout',
-              type: 'select',
-              label: 'Макет отображения отзывов',
-              defaultValue: 'carousel',
-              options: [
-                { label: 'Карусель', value: 'carousel' },
-                { label: 'Сетка', value: 'grid' },
-                { label: 'Список', value: 'list' },
-              ],
-            },
-          ],
-        },
+        // Временно оставляем только один блок для теста
+        // {
+        //   slug: 'testimonialsRef',
+        //   fields: [ /* ... */ ],
+        // },
         {
           slug: 'logos',
           labels: {
@@ -104,113 +85,16 @@ export const SocialProofAdvanced: Block = {
             },
           ],
         },
-        {
-          slug: 'statsCounter',
-          labels: {
-            singular: 'Счетчик',
-            plural: 'Счетчики',
-          },
-          fields: [
-            {
-              name: 'title',
-              type: 'text',
-              label: 'Заголовок секции счетчиков (опционально)',
-            },
-            {
-              name: 'items',
-              type: 'array',
-              label: 'Показатели',
-              minRows: 1,
-              fields: [
-                {
-                  name: 'value',
-                  type: 'text',
-                  label: 'Значение (например, 1000+, 95%)',
-                  required: true,
-                },
-                {
-                  name: 'label',
-                  type: 'text',
-                  label: 'Описание показателя',
-                  required: true,
-                  admin: {
-                    description: 'Например: Довольных студентов, Завершенных проектов',
-                  },
-                },
-                {
-                  name: 'icon',
-                  type: 'text',
-                  label: 'Иконка (опционально)',
-                },
-              ],
-            },
-            {
-              name: 'layout',
-              type: 'select',
-              label: 'Макет отображения счетчиков',
-              defaultValue: 'grid',
-              options: [
-                { label: 'Сетка', value: 'grid' },
-                { label: 'В ряд', value: 'row' },
-              ],
-            },
-            {
-              name: 'columns',
-              type: 'select',
-              label: 'Количество колонок (для сетки)',
-              defaultValue: '3',
-              options: ['1', '2', '3', '4'],
-              admin: {
-                condition: (data, siblingData) => siblingData?.layout === 'grid',
-              },
-            },
-            {
-              name: 'animate',
-              type: 'checkbox',
-              label: 'Анимировать счетчики при появлении',
-              defaultValue: true,
-            },
-          ],
-        },
-        {
-          slug: 'mediaMentions',
-          labels: {
-            singular: 'Упоминание в СМИ',
-            plural: 'Упоминания в СМИ',
-          },
-          fields: [
-            {
-              name: 'title',
-              type: 'text',
-              label: 'Заголовок секции (опционально)',
-            },
-            {
-              name: 'items',
-              type: 'array',
-              label: 'Логотипы СМИ',
-              minRows: 1,
-              fields: [
-                {
-                  name: 'logo',
-                  type: 'upload',
-                  relationTo: 'media',
-                  required: true,
-                  label: 'Логотип СМИ',
-                },
-                {
-                  name: 'name',
-                  type: 'text',
-                  label: 'Название СМИ',
-                },
-                {
-                  name: 'url',
-                  type: 'text',
-                  label: 'Ссылка на публикацию (опционально)',
-                },
-              ],
-            },
-          ],
-        },
+        // {
+        //   slug: 'statsCounter',
+        //   labels: { /* ... */ },
+        //   fields: [ /* ... */ ],
+        // },
+        // {
+        //   slug: 'mediaMentions',
+        //   labels: { /* ... */ },
+        //   fields: [ /* ... */ ],
+        // },
       ],
     },
     {

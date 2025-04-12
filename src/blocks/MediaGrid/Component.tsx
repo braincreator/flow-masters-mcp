@@ -1,4 +1,4 @@
-"use client"
+'use client'
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
@@ -57,11 +57,13 @@ export const MediaGrid: React.FC<MediaGridBlock> = ({
   const [selectedFilter, setSelectedFilter] = useState('all')
 
   const filteredItems = useMemo(() => {
+    if (!Array.isArray(items)) return []
     if (selectedFilter === 'all') return items
     return items.filter((item) => item.media.type === selectedFilter)
   }, [items, selectedFilter])
 
   const handlePrevious = () => {
+    if (!Array.isArray(items) || filteredItems.length === 0) return
     setSelectedIndex((current) => {
       if (current === null) return null
       return current === 0 ? filteredItems.length - 1 : current - 1
@@ -69,6 +71,7 @@ export const MediaGrid: React.FC<MediaGridBlock> = ({
   }
 
   const handleNext = () => {
+    if (!Array.isArray(items) || filteredItems.length === 0) return
     setSelectedIndex((current) => {
       if (current === null) return null
       return current === filteredItems.length - 1 ? 0 : current + 1

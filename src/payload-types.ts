@@ -141,46 +141,45 @@ export interface Config {
     reportEmbed: ReportEmbedBlock;
   };
   collections: {
-    analytics: Analytics;
-    authors: Author;
-    'cart-sessions': CartSession;
-    categories: Category;
-    comments: Comments;
-    courses: Course;
-    discounts: Discount;
-    events: Event;
-    integrations: Integration;
-    media: Media;
-    'newsletter-subscribers': NewsletterSubscriber;
-    orders: Order;
-    'order-tracking': OrderTracking;
     pages: Page;
+    media: Media;
+    users: User;
+    categories: Category;
+    tags: Tag;
     posts: Post;
     'post-metrics': PostMetric;
+    authors: Author;
+    comments: Comments;
     products: Product;
     productCategories: ProductCategory;
+    orders: Order;
+    'order-tracking': OrderTracking;
+    'cart-sessions': CartSession;
+    discounts: Discount;
     promotions: Promotion;
     reviews: Review;
-    solutions: Solution;
-    tags: Tag;
-    testimonials: Testimonials;
-    users: User;
-    'user-favorites': UserFavorite;
-    'email-templates': EmailTemplate;
-    'sender-emails': SenderEmail;
-    'subscription-payments': SubscriptionPayment;
-    subscriptions: Subscription;
-    'subscription-plans': SubscriptionPlan;
-    messages: Message;
-    'broadcast-reports': BroadcastReport;
-    broadcasts: Broadcast;
-    achievements: Achievement;
-    projects: Project;
-    popups: Popup;
-    'user-segments': UserSegment;
+    courses: Course;
     modules: Module;
     resources: Resource;
+    achievements: Achievement;
     'forum-categories': ForumCategory;
+    messages: Message;
+    'newsletter-subscribers': NewsletterSubscriber;
+    'email-templates': EmailTemplate;
+    'sender-emails': SenderEmail;
+    broadcasts: Broadcast;
+    'broadcast-reports': BroadcastReport;
+    popups: Popup;
+    'user-segments': UserSegment;
+    testimonials: Testimonials;
+    'user-favorites': UserFavorite;
+    'subscription-plans': SubscriptionPlan;
+    subscriptions: Subscription;
+    'subscription-payments': SubscriptionPayment;
+    integrations: Integration;
+    projects: Project;
+    solutions: Solution;
+    events: Event;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -192,46 +191,45 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    analytics: AnalyticsSelect<false> | AnalyticsSelect<true>;
-    authors: AuthorsSelect<false> | AuthorsSelect<true>;
-    'cart-sessions': CartSessionsSelect<false> | CartSessionsSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    comments: CommentsSelect<false> | CommentsSelect<true>;
-    courses: CoursesSelect<false> | CoursesSelect<true>;
-    discounts: DiscountsSelect<false> | DiscountsSelect<true>;
-    events: EventsSelect<false> | EventsSelect<true>;
-    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
-    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
-    orders: OrdersSelect<false> | OrdersSelect<true>;
-    'order-tracking': OrderTrackingSelect<false> | OrderTrackingSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
+    authors: AuthorsSelect<false> | AuthorsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     productCategories: ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    'order-tracking': OrderTrackingSelect<false> | OrderTrackingSelect<true>;
+    'cart-sessions': CartSessionsSelect<false> | CartSessionsSelect<true>;
+    discounts: DiscountsSelect<false> | DiscountsSelect<true>;
     promotions: PromotionsSelect<false> | PromotionsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
-    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
-    tags: TagsSelect<false> | TagsSelect<true>;
-    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
-    'user-favorites': UserFavoritesSelect<false> | UserFavoritesSelect<true>;
-    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
-    'sender-emails': SenderEmailsSelect<false> | SenderEmailsSelect<true>;
-    'subscription-payments': SubscriptionPaymentsSelect<false> | SubscriptionPaymentsSelect<true>;
-    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
-    'subscription-plans': SubscriptionPlansSelect<false> | SubscriptionPlansSelect<true>;
-    messages: MessagesSelect<false> | MessagesSelect<true>;
-    'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
-    broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
-    achievements: AchievementsSelect<false> | AchievementsSelect<true>;
-    projects: ProjectsSelect<false> | ProjectsSelect<true>;
-    popups: PopupsSelect<false> | PopupsSelect<true>;
-    'user-segments': UserSegmentsSelect<false> | UserSegmentsSelect<true>;
+    courses: CoursesSelect<false> | CoursesSelect<true>;
     modules: ModulesSelect<false> | ModulesSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
+    achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     'forum-categories': ForumCategoriesSelect<false> | ForumCategoriesSelect<true>;
+    messages: MessagesSelect<false> | MessagesSelect<true>;
+    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
+    'sender-emails': SenderEmailsSelect<false> | SenderEmailsSelect<true>;
+    broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
+    'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
+    popups: PopupsSelect<false> | PopupsSelect<true>;
+    'user-segments': UserSegmentsSelect<false> | UserSegmentsSelect<true>;
+    testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    'user-favorites': UserFavoritesSelect<false> | UserFavoritesSelect<true>;
+    'subscription-plans': SubscriptionPlansSelect<false> | SubscriptionPlansSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+    'subscription-payments': SubscriptionPaymentsSelect<false> | SubscriptionPaymentsSelect<true>;
+    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    solutions: SolutionsSelect<false> | SolutionsSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -2255,9 +2253,9 @@ export interface VideoLessonsBlock {
     | null;
   collectionSettings?: {
     /**
-     * Название коллекции с видео-уроками
+     * Введите слаг коллекции, из которой нужно брать видео-уроки.
      */
-    collection: string;
+    targetCollection: string;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -3860,9 +3858,9 @@ export interface RoadmapBlock {
     | null;
   collectionSettings?: {
     /**
-     * Название коллекции с элементами дорожной карты
+     * Введите слаг коллекции, из которой нужно брать элементы дорожной карты.
      */
-    collection: string;
+    targetCollection: string;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -4066,139 +4064,27 @@ export interface SocialProofAdvancedBlock {
   heading?: string | null;
   subheading?: string | null;
   elements?:
-    | (
-        | {
-            relation?: (string | Testimonials)[] | null;
-            layout?: ('carousel' | 'grid' | 'list') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'testimonialsRef';
-          }
-        | {
-            title?: string | null;
-            items?:
-              | {
-                  logo: string | Media;
-                  name?: string | null;
-                  url?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            layout?: ('grid' | 'carousel') | null;
-            columns?: ('2' | '3' | '4' | '5' | '6') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'logos';
-          }
-        | {
-            title?: string | null;
-            items?:
-              | {
-                  value: string;
-                  /**
-                   * Например: Довольных студентов, Завершенных проектов
-                   */
-                  label: string;
-                  icon?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            layout?: ('grid' | 'row') | null;
-            columns?: ('1' | '2' | '3' | '4') | null;
-            animate?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'statsCounter';
-          }
-        | {
-            title?: string | null;
-            items?:
-              | {
-                  logo: string | Media;
-                  name?: string | null;
-                  url?: string | null;
-                  id?: string | null;
-                }[]
-              | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'mediaMentions';
-          }
-      )[]
+    | {
+        title?: string | null;
+        items?:
+          | {
+              logo: string | Media;
+              name?: string | null;
+              url?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        layout?: ('grid' | 'carousel') | null;
+        columns?: ('2' | '3' | '4' | '5' | '6') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'logos';
+      }[]
     | null;
   backgroundColor?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'socialProofAdvanced';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "testimonials".
- */
-export interface Testimonials {
-  blockName?: string | null;
-  /**
-   * Заголовок блока
-   */
-  heading?: string | null;
-  /**
-   * Описание блока (опционально)
-   */
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Список отзывов
-   */
-  items: {
-    /**
-     * Имя автора отзыва
-     */
-    author: string;
-    /**
-     * Должность или роль автора (опционально)
-     */
-    role?: string | null;
-    /**
-     * Название компании автора (опционально)
-     */
-    company?: string | null;
-    /**
-     * Фото автора (опционально)
-     */
-    avatar?: (string | null) | Media;
-    /**
-     * Текст отзыва
-     */
-    content: string;
-    /**
-     * Рейтинг (опционально)
-     */
-    rating?: (1 | 2 | 3 | 4 | 5) | null;
-    id?: string | null;
-  }[];
-  /**
-   * Стиль отображения отзывов
-   */
-  layout?: ('grid' | 'carousel' | 'featured') | null;
-  /**
-   * Стиль отображения
-   */
-  style?: ('card' | 'minimal' | 'quote') | null;
-  id?: string | null;
-  blockType: 'testimonials';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -5402,9 +5288,9 @@ export interface CertificatesBlock {
     | null;
   collectionSettings?: {
     /**
-     * Название коллекции с сертификатами
+     * Введите слаг коллекции, из которой нужно брать сертификаты.
      */
-    collection: string;
+    targetCollection: string;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -5617,9 +5503,9 @@ export interface ResourceLibraryBlock {
     | null;
   collectionSettings?: {
     /**
-     * Название коллекции с ресурсами
+     * Введите слаг коллекции, из которой нужно брать ресурсы.
      */
-    collection: string;
+    targetCollection: string;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -5787,9 +5673,9 @@ export interface AiToolsBlock {
     | null;
   collectionSettings?: {
     /**
-     * Название коллекции с ИИ-инструментами
+     * Введите слаг коллекции, из которой нужно брать инструменты (например, 'ai-tools-collection').
      */
-    collection: string;
+    targetCollection: string;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -5882,7 +5768,10 @@ export interface LeaderboardBlock {
     filter?: string | null;
   };
   leaderboardCollectionSettings?: {
-    collection: string;
+    /**
+     * Введите слаг коллекции, содержащей данные для лидерборда.
+     */
+    targetCollection: string;
     userRelationField: string;
     scoreField: string;
     periodField?: string | null;
@@ -8075,9 +7964,9 @@ export interface FeedbackBlock {
   submissionTarget?: ('collection' | 'email' | 'api' | 'none') | null;
   collectionSettings?: {
     /**
-     * Коллекция для сохранения отзывов
+     * Введите слаг коллекции, в которую будут сохраняться отзывы.
      */
-    collection: string;
+    targetCollection: string;
     mapFields?:
       | {
           formField: string;
@@ -8197,11 +8086,15 @@ export interface PollBlock {
     steps?: number | null;
   };
   submissionTarget?: ('collection' | 'api' | 'none') | null;
+  /**
+   * Введите слаг коллекции, в которую будут сохраняться голоса.
+   */
+  submissionCollection?: string | null;
+  /**
+   * (Опционально) Введите слаг коллекции для отображения агрегированных результатов.
+   */
+  targetCollection?: string | null;
   collectionSettings?: {
-    /**
-     * Коллекция для сохранения результатов опросов
-     */
-    collection: string;
     associateWithUser?: boolean | null;
     trackIndividualVotes?: boolean | null;
   };
@@ -8404,11 +8297,11 @@ export interface LeadMagnetOfferBlock {
     | null;
   submitButtonLabel: string;
   submissionTarget?: ('collection' | 'email' | 'api') | null;
-  collectionSettings?: {
+  submissionSettings: {
     /**
-     * Коллекция для сохранения лидов
+     * Введите слаг коллекции, в которую будут сохраняться данные формы (например, 'leads').
      */
-    collection: string;
+    targetCollection: string;
   };
   emailSettings?: {
     recipientEmail: string;
@@ -8668,7 +8561,7 @@ export interface CalendarBlock {
     /**
      * Название коллекции с событиями
      */
-    collection?: string | null;
+    targetCollection?: string | null;
     limit?: number | null;
     sortField?: string | null;
     sortDirection?: ('asc' | 'desc') | null;
@@ -9556,6 +9449,75 @@ export interface TeamMembers {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "testimonials".
+ */
+export interface Testimonials {
+  blockName?: string | null;
+  /**
+   * Заголовок блока
+   */
+  heading?: string | null;
+  /**
+   * Описание блока (опционально)
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Список отзывов
+   */
+  items: {
+    /**
+     * Имя автора отзыва
+     */
+    author: string;
+    /**
+     * Должность или роль автора (опционально)
+     */
+    role?: string | null;
+    /**
+     * Название компании автора (опционально)
+     */
+    company?: string | null;
+    /**
+     * Фото автора (опционально)
+     */
+    avatar?: (string | null) | Media;
+    /**
+     * Текст отзыва
+     */
+    content: string;
+    /**
+     * Рейтинг (опционально)
+     */
+    rating?: (1 | 2 | 3 | 4 | 5) | null;
+    id?: string | null;
+  }[];
+  /**
+   * Стиль отображения отзывов
+   */
+  layout?: ('grid' | 'carousel' | 'featured') | null;
+  /**
+   * Стиль отображения
+   */
+  style?: ('card' | 'minimal' | 'quote') | null;
+  id?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "productsList".
  */
 export interface ProductsList {
@@ -9927,31 +9889,67 @@ export interface SocialShare {
   blockType: 'socialShare';
 }
 /**
- * Product analytics and metrics
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "analytics".
+ * via the `definition` "post-metrics".
  */
-export interface Analytics {
+export interface PostMetric {
   id: string;
-  type: 'product_view' | 'purchase' | 'cart_add' | 'download';
-  productId: string | Product;
-  userId?: (string | null) | User;
-  orderId?: (string | null) | Order;
-  revenue?: number | null;
   /**
-   * Additional event metadata
+   * Automatically generated from post title
    */
-  metadata?:
+  title: string;
+  post: string | Post;
+  views?: number | null;
+  uniqueVisitors?: number | null;
+  /**
+   * Record of individual share events
+   */
+  shares?:
     | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
+        platform: string;
+        date: string;
+        id?: string | null;
+      }[]
     | null;
-  timestamp: string;
+  shareCount?: number | null;
+  likes?: number | null;
+  /**
+   * Reading progress tracking events
+   */
+  readingProgress?:
+    | {
+        progress: number;
+        date: string;
+        id?: string | null;
+      }[]
+    | null;
+  completedReads?: number | null;
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors".
+ */
+export interface Author {
+  id: string;
+  name: string;
+  avatar?: (string | null) | Media;
+  bio?: string | null;
+  role?: string | null;
+  company?: string | null;
+  email?: string | null;
+  website?: string | null;
+  socialLinks?:
+    | {
+        platform: 'twitter' | 'linkedin' | 'github' | 'instagram' | 'facebook' | 'youtube' | 'other';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -9985,26 +9983,49 @@ export interface Order {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors".
+ * via the `definition` "order-tracking".
  */
-export interface Author {
+export interface OrderTracking {
   id: string;
-  name: string;
-  avatar?: (string | null) | Media;
-  bio?: string | null;
-  role?: string | null;
-  company?: string | null;
-  email?: string | null;
-  website?: string | null;
-  socialLinks?:
+  orderId: string | Order;
+  status:
+    | 'placed'
+    | 'payment_processing'
+    | 'payment_confirmed'
+    | 'ready_for_download'
+    | 'completed'
+    | 'cancelled'
+    | 'refunded';
+  downloadLinks?:
     | {
-        platform: 'twitter' | 'linkedin' | 'github' | 'instagram' | 'facebook' | 'youtube' | 'other';
-        url: string;
+        productId: string | Product;
+        link: string;
+        expiresAt?: string | null;
+        downloads?: number | null;
+        maxDownloads?: number | null;
         id?: string | null;
       }[]
     | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
+  statusHistory?:
+    | {
+        status:
+          | 'placed'
+          | 'payment_processing'
+          | 'payment_confirmed'
+          | 'ready_for_download'
+          | 'completed'
+          | 'cancelled'
+          | 'refunded';
+        timestamp: string;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When access to digital products expires
+   */
+  accessExpiresAt?: string | null;
+  lastUpdated?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -10120,206 +10141,6 @@ export interface Discount {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "integrations".
- */
-export interface Integration {
-  id: string;
-  name: string;
-  description?: string | null;
-  type: 'webhook' | 'email' | 'crm' | 'custom';
-  status: 'active' | 'inactive';
-  webhookUrl?: string | null;
-  /**
-   * API key for authentication
-   */
-  apiKey?: string | null;
-  triggers: {
-    event: 'order.created' | 'order.updated' | 'payment.received' | 'user.registered' | 'form.submitted';
-    conditions?:
-      | {
-          field: string;
-          operator: 'eq' | 'ne' | 'gt' | 'lt' | 'contains';
-          value: string;
-          id?: string | null;
-        }[]
-      | null;
-    id?: string | null;
-  }[];
-  actions: {
-    type: 'http' | 'email';
-    config?: {
-      url?: string | null;
-      method?: ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') | null;
-      headers?:
-        | {
-            [k: string]: unknown;
-          }
-        | unknown[]
-        | string
-        | number
-        | boolean
-        | null;
-      body?:
-        | {
-            [k: string]: unknown;
-          }
-        | unknown[]
-        | string
-        | number
-        | boolean
-        | null;
-      to?: string | null;
-      from?: string | null;
-      subject?: string | null;
-      emailBody?: string | null;
-    };
-    id?: string | null;
-  }[];
-  lastSync?: string | null;
-  lastSyncStatus?: ('success' | 'error') | null;
-  lastError?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "newsletter-subscribers".
- */
-export interface NewsletterSubscriber {
-  id: string;
-  /**
-   * Email адрес подписчика
-   */
-  email: string;
-  /**
-   * Имя подписчика (опционально)
-   */
-  name?: string | null;
-  /**
-   * Статус подписки
-   */
-  status?: ('active' | 'unsubscribed' | 'bounced') | null;
-  /**
-   * Уникальный токен для отписки
-   */
-  unsubscribeToken?: string | null;
-  /**
-   * Источник подписки (блог, главная страница и т.д.)
-   */
-  source?: string | null;
-  /**
-   * Предпочитаемый язык
-   */
-  locale?: ('ru' | 'en') | null;
-  /**
-   * Дата последней отправки рассылки
-   */
-  lastSent?: string | null;
-  /**
-   * Дополнительные данные о подписчике
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "order-tracking".
- */
-export interface OrderTracking {
-  id: string;
-  orderId: string | Order;
-  status:
-    | 'placed'
-    | 'payment_processing'
-    | 'payment_confirmed'
-    | 'ready_for_download'
-    | 'completed'
-    | 'cancelled'
-    | 'refunded';
-  downloadLinks?:
-    | {
-        productId: string | Product;
-        link: string;
-        expiresAt?: string | null;
-        downloads?: number | null;
-        maxDownloads?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  statusHistory?:
-    | {
-        status:
-          | 'placed'
-          | 'payment_processing'
-          | 'payment_confirmed'
-          | 'ready_for_download'
-          | 'completed'
-          | 'cancelled'
-          | 'refunded';
-        timestamp: string;
-        note?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * When access to digital products expires
-   */
-  accessExpiresAt?: string | null;
-  lastUpdated?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "post-metrics".
- */
-export interface PostMetric {
-  id: string;
-  /**
-   * Automatically generated from post title
-   */
-  title: string;
-  post: string | Post;
-  views?: number | null;
-  uniqueVisitors?: number | null;
-  /**
-   * Record of individual share events
-   */
-  shares?:
-    | {
-        platform: string;
-        date: string;
-        id?: string | null;
-      }[]
-    | null;
-  shareCount?: number | null;
-  likes?: number | null;
-  /**
-   * Reading progress tracking events
-   */
-  readingProgress?:
-    | {
-        progress: number;
-        date: string;
-        id?: string | null;
-      }[]
-    | null;
-  completedReads?: number | null;
-  lastUpdated?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Manage promotion codes and discounts
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -10429,21 +10250,67 @@ export interface Solution {
   createdAt: string;
 }
 /**
- * Manages user favorite products.
+ * Сообщения, отправленные через контактную форму или другие источники.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-favorites".
+ * via the `definition` "messages".
  */
-export interface UserFavorite {
+export interface Message {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  source?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers".
+ */
+export interface NewsletterSubscriber {
   id: string;
   /**
-   * The user these favorites belong to.
+   * Email адрес подписчика
    */
-  user: string | User;
+  email: string;
   /**
-   * List of favorite products for this user.
+   * Имя подписчика (опционально)
    */
-  products?: (string | Product)[] | null;
+  name?: string | null;
+  /**
+   * Статус подписки
+   */
+  status?: ('active' | 'unsubscribed' | 'bounced') | null;
+  /**
+   * Уникальный токен для отписки
+   */
+  unsubscribeToken?: string | null;
+  /**
+   * Источник подписки (блог, главная страница и т.д.)
+   */
+  source?: string | null;
+  /**
+   * Предпочитаемый язык
+   */
+  locale?: ('ru' | 'en') | null;
+  /**
+   * Дата последней отправки рассылки
+   */
+  lastSent?: string | null;
+  /**
+   * Дополнительные данные о подписчике
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -10518,219 +10385,6 @@ export interface SenderEmail {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscription-payments".
- */
-export interface SubscriptionPayment {
-  id: string;
-  /**
-   * Подписка
-   */
-  subscriptionId: string | Subscription;
-  /**
-   * Сумма платежа
-   */
-  amount: number;
-  currency: 'RUB' | 'USD' | 'EUR';
-  status: 'successful' | 'failed' | 'refunded' | 'pending';
-  /**
-   * Дата платежа
-   */
-  paymentDate: string;
-  /**
-   * Метод платежа
-   */
-  paymentMethod?: string | null;
-  /**
-   * ID транзакции в платежной системе
-   */
-  transactionId?: string | null;
-  /**
-   * Причина ошибки (если статус failed)
-   */
-  failureReason?: string | null;
-  /**
-   * Полный ответ от платежной системы
-   */
-  rawResponse?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscriptions".
- */
-export interface Subscription {
-  id: string;
-  /**
-   * ID пользователя
-   */
-  userId: string;
-  /**
-   * План подписки
-   */
-  planId: string | SubscriptionPlan;
-  status: 'active' | 'paused' | 'canceled' | 'expired' | 'failed' | 'pending';
-  paymentProvider: 'yoomoney' | 'robokassa' | 'stripe' | 'paypal';
-  /**
-   * Метод оплаты (например, card, wallet)
-   */
-  paymentMethod?: string | null;
-  /**
-   * Токен платежного метода для рекуррентных платежей
-   */
-  paymentToken?: string | null;
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
-  /**
-   * Сумма платежа
-   */
-  amount: number;
-  currency: 'RUB' | 'USD' | 'EUR';
-  /**
-   * Дата начала подписки
-   */
-  startDate: string;
-  /**
-   * Дата следующего платежа
-   */
-  nextPaymentDate: string;
-  /**
-   * Дата окончания подписки (если есть)
-   */
-  endDate?: string | null;
-  /**
-   * Дата отмены подписки (если отменена)
-   */
-  canceledAt?: string | null;
-  /**
-   * Дополнительные метаданные
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscription-plans".
- */
-export interface SubscriptionPlan {
-  id: string;
-  /**
-   * Name of the subscription plan
-   */
-  name: string;
-  /**
-   * Description of the subscription plan
-   */
-  description?: string | null;
-  /**
-   * List of features included in this plan
-   */
-  features?:
-    | {
-        feature: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Price of the subscription
-   */
-  price: number;
-  currency: 'RUB' | 'USD' | 'EUR';
-  /**
-   * Billing period
-   */
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
-  /**
-   * Number of days in trial period (0 for no trial)
-   */
-  trialPeriodDays?: number | null;
-  /**
-   * Maximum number of months for subscription (0 for unlimited)
-   */
-  maxSubscriptionMonths?: number | null;
-  /**
-   * Whether the subscription auto-renews
-   */
-  autoRenew?: boolean | null;
-  /**
-   * Whether users can cancel the subscription
-   */
-  allowCancel?: boolean | null;
-  /**
-   * Whether this plan is active and available for purchase
-   */
-  isActive?: boolean | null;
-  /**
-   * Additional metadata for this plan
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Сообщения, отправленные через контактную форму или другие источники.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "messages".
- */
-export interface Message {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  source?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Отчеты о результатах массовых рассылок новостей.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "broadcast-reports".
- */
-export interface BroadcastReport {
-  id: string;
-  broadcastId: string;
-  status: 'completed' | 'failed';
-  title: string;
-  locale: string;
-  totalSubscribers: number;
-  successfullySent: number;
-  failedToSend: number;
-  errorsList: {
-    error: string;
-    id?: string | null;
-  }[];
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Создание и запуск массовых рассылок новостей.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -10763,6 +10417,28 @@ export interface Broadcast {
    * Ссылка на детальный отчет после завершения задачи.
    */
   report?: (string | null) | BroadcastReport;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Отчеты о результатах массовых рассылок новостей.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "broadcast-reports".
+ */
+export interface BroadcastReport {
+  id: string;
+  broadcastId: string;
+  status: 'completed' | 'failed';
+  title: string;
+  locale: string;
+  totalSubscribers: number;
+  successfullySent: number;
+  failedToSend: number;
+  errorsList: {
+    error: string;
+    id?: string | null;
+  }[];
   updatedAt: string;
   createdAt: string;
 }
@@ -11944,6 +11620,263 @@ export interface Popup {
   createdAt: string;
 }
 /**
+ * Manages user favorite products.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-favorites".
+ */
+export interface UserFavorite {
+  id: string;
+  /**
+   * The user these favorites belong to.
+   */
+  user: string | User;
+  /**
+   * List of favorite products for this user.
+   */
+  products?: (string | Product)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-plans".
+ */
+export interface SubscriptionPlan {
+  id: string;
+  /**
+   * Name of the subscription plan
+   */
+  name: string;
+  /**
+   * Description of the subscription plan
+   */
+  description?: string | null;
+  /**
+   * List of features included in this plan
+   */
+  features?:
+    | {
+        feature: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Price of the subscription
+   */
+  price: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  /**
+   * Billing period
+   */
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  /**
+   * Number of days in trial period (0 for no trial)
+   */
+  trialPeriodDays?: number | null;
+  /**
+   * Maximum number of months for subscription (0 for unlimited)
+   */
+  maxSubscriptionMonths?: number | null;
+  /**
+   * Whether the subscription auto-renews
+   */
+  autoRenew?: boolean | null;
+  /**
+   * Whether users can cancel the subscription
+   */
+  allowCancel?: boolean | null;
+  /**
+   * Whether this plan is active and available for purchase
+   */
+  isActive?: boolean | null;
+  /**
+   * Additional metadata for this plan
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  /**
+   * ID пользователя
+   */
+  userId: string;
+  /**
+   * План подписки
+   */
+  planId: string | SubscriptionPlan;
+  status: 'active' | 'paused' | 'canceled' | 'expired' | 'failed' | 'pending';
+  paymentProvider: 'yoomoney' | 'robokassa' | 'stripe' | 'paypal';
+  /**
+   * Метод оплаты (например, card, wallet)
+   */
+  paymentMethod?: string | null;
+  /**
+   * Токен платежного метода для рекуррентных платежей
+   */
+  paymentToken?: string | null;
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  /**
+   * Сумма платежа
+   */
+  amount: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  /**
+   * Дата начала подписки
+   */
+  startDate: string;
+  /**
+   * Дата следующего платежа
+   */
+  nextPaymentDate: string;
+  /**
+   * Дата окончания подписки (если есть)
+   */
+  endDate?: string | null;
+  /**
+   * Дата отмены подписки (если отменена)
+   */
+  canceledAt?: string | null;
+  /**
+   * Дополнительные метаданные
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-payments".
+ */
+export interface SubscriptionPayment {
+  id: string;
+  /**
+   * Подписка
+   */
+  subscriptionId: string | Subscription;
+  /**
+   * Сумма платежа
+   */
+  amount: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  status: 'successful' | 'failed' | 'refunded' | 'pending';
+  /**
+   * Дата платежа
+   */
+  paymentDate: string;
+  /**
+   * Метод платежа
+   */
+  paymentMethod?: string | null;
+  /**
+   * ID транзакции в платежной системе
+   */
+  transactionId?: string | null;
+  /**
+   * Причина ошибки (если статус failed)
+   */
+  failureReason?: string | null;
+  /**
+   * Полный ответ от платежной системы
+   */
+  rawResponse?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: string;
+  name: string;
+  description?: string | null;
+  type: 'webhook' | 'email' | 'crm' | 'custom';
+  status: 'active' | 'inactive';
+  webhookUrl?: string | null;
+  /**
+   * API key for authentication
+   */
+  apiKey?: string | null;
+  triggers: {
+    event: 'order.created' | 'order.updated' | 'payment.received' | 'user.registered' | 'form.submitted';
+    conditions?:
+      | {
+          field: string;
+          operator: 'eq' | 'ne' | 'gt' | 'lt' | 'contains';
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  actions: {
+    type: 'http' | 'email';
+    config?: {
+      url?: string | null;
+      method?: ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') | null;
+      headers?:
+        | {
+            [k: string]: unknown;
+          }
+        | unknown[]
+        | string
+        | number
+        | boolean
+        | null;
+      body?:
+        | {
+            [k: string]: unknown;
+          }
+        | unknown[]
+        | string
+        | number
+        | boolean
+        | null;
+      to?: string | null;
+      from?: string | null;
+      subject?: string | null;
+      emailBody?: string | null;
+    };
+    id?: string | null;
+  }[];
+  lastSync?: string | null;
+  lastSyncStatus?: ('success' | 'error') | null;
+  lastError?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -12103,60 +12036,24 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'analytics';
-        value: string | Analytics;
-      } | null)
-    | ({
-        relationTo: 'authors';
-        value: string | Author;
-      } | null)
-    | ({
-        relationTo: 'cart-sessions';
-        value: string | CartSession;
-      } | null)
-    | ({
-        relationTo: 'categories';
-        value: string | Category;
-      } | null)
-    | ({
-        relationTo: 'comments';
-        value: string | Comments;
-      } | null)
-    | ({
-        relationTo: 'courses';
-        value: string | Course;
-      } | null)
-    | ({
-        relationTo: 'discounts';
-        value: string | Discount;
-      } | null)
-    | ({
-        relationTo: 'events';
-        value: string | Event;
-      } | null)
-    | ({
-        relationTo: 'integrations';
-        value: string | Integration;
+        relationTo: 'pages';
+        value: string | Page;
       } | null)
     | ({
         relationTo: 'media';
         value: string | Media;
       } | null)
     | ({
-        relationTo: 'newsletter-subscribers';
-        value: string | NewsletterSubscriber;
+        relationTo: 'users';
+        value: string | User;
       } | null)
     | ({
-        relationTo: 'orders';
-        value: string | Order;
+        relationTo: 'categories';
+        value: string | Category;
       } | null)
     | ({
-        relationTo: 'order-tracking';
-        value: string | OrderTracking;
-      } | null)
-    | ({
-        relationTo: 'pages';
-        value: string | Page;
+        relationTo: 'tags';
+        value: string | Tag;
       } | null)
     | ({
         relationTo: 'posts';
@@ -12167,12 +12064,36 @@ export interface PayloadLockedDocument {
         value: string | PostMetric;
       } | null)
     | ({
+        relationTo: 'authors';
+        value: string | Author;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: string | Comments;
+      } | null)
+    | ({
         relationTo: 'products';
         value: string | Product;
       } | null)
     | ({
         relationTo: 'productCategories';
         value: string | ProductCategory;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'order-tracking';
+        value: string | OrderTracking;
+      } | null)
+    | ({
+        relationTo: 'cart-sessions';
+        value: string | CartSession;
+      } | null)
+    | ({
+        relationTo: 'discounts';
+        value: string | Discount;
       } | null)
     | ({
         relationTo: 'promotions';
@@ -12183,72 +12104,8 @@ export interface PayloadLockedDocument {
         value: string | Review;
       } | null)
     | ({
-        relationTo: 'solutions';
-        value: string | Solution;
-      } | null)
-    | ({
-        relationTo: 'tags';
-        value: string | Tag;
-      } | null)
-    | ({
-        relationTo: 'testimonials';
-        value: string | Testimonials;
-      } | null)
-    | ({
-        relationTo: 'users';
-        value: string | User;
-      } | null)
-    | ({
-        relationTo: 'user-favorites';
-        value: string | UserFavorite;
-      } | null)
-    | ({
-        relationTo: 'email-templates';
-        value: string | EmailTemplate;
-      } | null)
-    | ({
-        relationTo: 'sender-emails';
-        value: string | SenderEmail;
-      } | null)
-    | ({
-        relationTo: 'subscription-payments';
-        value: string | SubscriptionPayment;
-      } | null)
-    | ({
-        relationTo: 'subscriptions';
-        value: string | Subscription;
-      } | null)
-    | ({
-        relationTo: 'subscription-plans';
-        value: string | SubscriptionPlan;
-      } | null)
-    | ({
-        relationTo: 'messages';
-        value: string | Message;
-      } | null)
-    | ({
-        relationTo: 'broadcast-reports';
-        value: string | BroadcastReport;
-      } | null)
-    | ({
-        relationTo: 'broadcasts';
-        value: string | Broadcast;
-      } | null)
-    | ({
-        relationTo: 'achievements';
-        value: string | Achievement;
-      } | null)
-    | ({
-        relationTo: 'projects';
-        value: string | Project;
-      } | null)
-    | ({
-        relationTo: 'popups';
-        value: string | Popup;
-      } | null)
-    | ({
-        relationTo: 'user-segments';
-        value: string | UserSegment;
+        relationTo: 'courses';
+        value: string | Course;
       } | null)
     | ({
         relationTo: 'modules';
@@ -12259,8 +12116,80 @@ export interface PayloadLockedDocument {
         value: string | Resource;
       } | null)
     | ({
+        relationTo: 'achievements';
+        value: string | Achievement;
+      } | null)
+    | ({
         relationTo: 'forum-categories';
         value: string | ForumCategory;
+      } | null)
+    | ({
+        relationTo: 'messages';
+        value: string | Message;
+      } | null)
+    | ({
+        relationTo: 'newsletter-subscribers';
+        value: string | NewsletterSubscriber;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: string | EmailTemplate;
+      } | null)
+    | ({
+        relationTo: 'sender-emails';
+        value: string | SenderEmail;
+      } | null)
+    | ({
+        relationTo: 'broadcasts';
+        value: string | Broadcast;
+      } | null)
+    | ({
+        relationTo: 'broadcast-reports';
+        value: string | BroadcastReport;
+      } | null)
+    | ({
+        relationTo: 'popups';
+        value: string | Popup;
+      } | null)
+    | ({
+        relationTo: 'user-segments';
+        value: string | UserSegment;
+      } | null)
+    | ({
+        relationTo: 'testimonials';
+        value: string | Testimonials;
+      } | null)
+    | ({
+        relationTo: 'user-favorites';
+        value: string | UserFavorite;
+      } | null)
+    | ({
+        relationTo: 'subscription-plans';
+        value: string | SubscriptionPlan;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: string | Subscription;
+      } | null)
+    | ({
+        relationTo: 'subscription-payments';
+        value: string | SubscriptionPayment;
+      } | null)
+    | ({
+        relationTo: 'integrations';
+        value: string | Integration;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: string | Project;
+      } | null)
+    | ({
+        relationTo: 'solutions';
+        value: string | Solution;
+      } | null)
+    | ({
+        relationTo: 'events';
+        value: string | Event;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -12326,131 +12255,32 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "analytics_select".
+ * via the `definition` "pages_select".
  */
-export interface AnalyticsSelect<T extends boolean = true> {
-  type?: T;
-  productId?: T;
-  userId?: T;
-  orderId?: T;
-  revenue?: T;
-  metadata?: T;
-  timestamp?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors_select".
- */
-export interface AuthorsSelect<T extends boolean = true> {
-  name?: T;
-  avatar?: T;
-  bio?: T;
-  role?: T;
-  company?: T;
-  email?: T;
-  website?: T;
-  socialLinks?:
-    | T
-    | {
-        platform?: T;
-        url?: T;
-        id?: T;
-      };
-  slug?: T;
-  slugLock?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cart-sessions_select".
- */
-export interface CartSessionsSelect<T extends boolean = true> {
-  user?: T;
-  sessionId?: T;
-  items?:
-    | T
-    | {
-        product?: T;
-        quantity?: T;
-        price?: T;
-        id?: T;
-      };
-  itemCount?: T;
-  total?: T;
-  currency?: T;
-  reminderSent?: T;
-  reminderSentAt?: T;
-  convertedToOrder?: T;
-  convertedToOrderId?: T;
-  expiresAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
- */
-export interface CategoriesSelect<T extends boolean = true> {
+export interface PagesSelect<T extends boolean = true> {
   title?: T;
-  description?: T;
-  blogCategoryDetails?:
+  hero?:
     | T
     | {
-        showInSidebar?: T;
-        color?: T;
+        type?: T;
+        richText?: T;
+        links?:
+          | T
+          | {
+              link?:
+                | T
+                | {
+                    type?: T;
+                    newTab?: T;
+                    reference?: T;
+                    url?: T;
+                    label?: T;
+                    appearance?: T;
+                  };
+              id?: T;
+            };
+        media?: T;
       };
-  slug?: T;
-  slugLock?: T;
-  parent?: T;
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T;
-        url?: T;
-        label?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "comments_select".
- */
-export interface CommentsSelect<T extends boolean = true> {
-  content?: T;
-  author?:
-    | T
-    | {
-        name?: T;
-        email?: T;
-        website?: T;
-      };
-  post?: T;
-  likes?: T;
-  parentComment?: T;
-  status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "courses_select".
- */
-export interface CoursesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  slugLock?: T;
-  status?: T;
-  author?: T;
-  featuredImage?: T;
-  excerpt?: T;
-  difficulty?: T;
-  estimatedDuration?: T;
-  tags?: T;
   layout?:
     | T
     | {
@@ -12902,6 +12732,16 @@ export interface CoursesSelect<T extends boolean = true> {
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
       };
+  meta?:
+    | T
+    | {
+        title?: T;
+        image?: T;
+        description?: T;
+      };
+  publishedAt?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -13169,7 +13009,7 @@ export interface VideoLessonsBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -13407,7 +13247,7 @@ export interface RoadmapBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -13563,14 +13403,6 @@ export interface SocialProofAdvancedBlockSelect<T extends boolean = true> {
   elements?:
     | T
     | {
-        testimonialsRef?:
-          | T
-          | {
-              relation?: T;
-              layout?: T;
-              id?: T;
-              blockName?: T;
-            };
         logos?:
           | T
           | {
@@ -13585,39 +13417,6 @@ export interface SocialProofAdvancedBlockSelect<T extends boolean = true> {
                   };
               layout?: T;
               columns?: T;
-              id?: T;
-              blockName?: T;
-            };
-        statsCounter?:
-          | T
-          | {
-              title?: T;
-              items?:
-                | T
-                | {
-                    value?: T;
-                    label?: T;
-                    icon?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              animate?: T;
-              id?: T;
-              blockName?: T;
-            };
-        mediaMentions?:
-          | T
-          | {
-              title?: T;
-              items?:
-                | T
-                | {
-                    logo?: T;
-                    name?: T;
-                    url?: T;
-                    id?: T;
-                  };
               id?: T;
               blockName?: T;
             };
@@ -14325,7 +14124,7 @@ export interface CertificatesBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -14463,7 +14262,7 @@ export interface ResourceLibraryBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -14588,7 +14387,7 @@ export interface AiToolsBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -14661,7 +14460,7 @@ export interface LeaderboardBlockSelect<T extends boolean = true> {
   leaderboardCollectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         userRelationField?: T;
         scoreField?: T;
         periodField?: T;
@@ -15010,7 +14809,7 @@ export interface FeedbackBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         mapFields?:
           | T
           | {
@@ -15083,10 +14882,11 @@ export interface PollBlockSelect<T extends boolean = true> {
         steps?: T;
       };
   submissionTarget?: T;
+  submissionCollection?: T;
+  targetCollection?: T;
   collectionSettings?:
     | T
     | {
-        collection?: T;
         associateWithUser?: T;
         trackIndividualVotes?: T;
       };
@@ -15195,10 +14995,10 @@ export interface LeadMagnetOfferBlockSelect<T extends boolean = true> {
       };
   submitButtonLabel?: T;
   submissionTarget?: T;
-  collectionSettings?:
+  submissionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
       };
   emailSettings?:
     | T
@@ -15346,7 +15146,7 @@ export interface CalendarBlockSelect<T extends boolean = true> {
   collectionSettings?:
     | T
     | {
-        collection?: T;
+        targetCollection?: T;
         limit?: T;
         sortField?: T;
         sortDirection?: T;
@@ -15443,89 +15243,6 @@ export interface ReportEmbedBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "discounts_select".
- */
-export interface DiscountsSelect<T extends boolean = true> {
-  code?: T;
-  type?: T;
-  value?: T;
-  currency?: T;
-  minOrderAmount?: T;
-  maxDiscount?: T;
-  startDate?: T;
-  endDate?: T;
-  maxUsage?: T;
-  maxUsagePerUser?: T;
-  usageCount?: T;
-  status?: T;
-  applicableProducts?: T;
-  excludedProducts?: T;
-  applicableCategories?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "events_select".
- */
-export interface EventsSelect<T extends boolean = true> {
-  type?: T;
-  data?: T;
-  timestamp?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "integrations_select".
- */
-export interface IntegrationsSelect<T extends boolean = true> {
-  name?: T;
-  description?: T;
-  type?: T;
-  status?: T;
-  webhookUrl?: T;
-  apiKey?: T;
-  triggers?:
-    | T
-    | {
-        event?: T;
-        conditions?:
-          | T
-          | {
-              field?: T;
-              operator?: T;
-              value?: T;
-              id?: T;
-            };
-        id?: T;
-      };
-  actions?:
-    | T
-    | {
-        type?: T;
-        config?:
-          | T
-          | {
-              url?: T;
-              method?: T;
-              headers?: T;
-              body?: T;
-              to?: T;
-              from?: T;
-              subject?: T;
-              emailBody?: T;
-            };
-        id?: T;
-      };
-  lastSync?: T;
-  lastSyncStatus?: T;
-  lastError?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -15619,17 +15336,257 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "newsletter-subscribers_select".
+ * via the `definition` "users_select".
  */
-export interface NewsletterSubscribersSelect<T extends boolean = true> {
-  email?: T;
+export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
+  segments?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  blogCategoryDetails?:
+    | T
+    | {
+        showInSidebar?: T;
+        color?: T;
+      };
+  slug?: T;
+  slugLock?: T;
+  parent?: T;
+  breadcrumbs?:
+    | T
+    | {
+        doc?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  heroImage?: T;
+  content?: T;
+  relatedPosts?: T;
+  categories?: T;
+  tags?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        image?: T;
+        description?: T;
+      };
+  publishedAt?: T;
+  authors?: T;
+  populatedAuthors?:
+    | T
+    | {
+        id?: T;
+        name?: T;
+      };
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "post-metrics_select".
+ */
+export interface PostMetricsSelect<T extends boolean = true> {
+  title?: T;
+  post?: T;
+  views?: T;
+  uniqueVisitors?: T;
+  shares?:
+    | T
+    | {
+        platform?: T;
+        date?: T;
+        id?: T;
+      };
+  shareCount?: T;
+  likes?: T;
+  readingProgress?:
+    | T
+    | {
+        progress?: T;
+        date?: T;
+        id?: T;
+      };
+  completedReads?: T;
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors_select".
+ */
+export interface AuthorsSelect<T extends boolean = true> {
+  name?: T;
+  avatar?: T;
+  bio?: T;
+  role?: T;
+  company?: T;
+  email?: T;
+  website?: T;
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  author?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        website?: T;
+      };
+  post?: T;
+  likes?: T;
+  parentComment?: T;
   status?: T;
-  unsubscribeToken?: T;
-  source?: T;
-  locale?: T;
-  lastSent?: T;
-  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  productCategory?: T;
+  pricing?:
+    | T
+    | {
+        basePrice?: T;
+        discountPercentage?: T;
+        finalPrice?: T;
+        compareAtPrice?: T;
+        locales?:
+          | T
+          | {
+              en?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+              ru?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+            };
+      };
+  description?: T;
+  shortDescription?: T;
+  features?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        id?: T;
+      };
+  thumbnail?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        id?: T;
+      };
+  productType?: T;
+  downloadLink?: T;
+  subscriptionDetails?:
+    | T
+    | {
+        recurringPrice?: T;
+        billingInterval?: T;
+        trialDays?: T;
+      };
+  accessDetails?:
+    | T
+    | {
+        features?: T;
+        validityPeriod?: T;
+      };
+  isFeatured?: T;
+  isPopular?: T;
+  relatedProducts?: T;
+  status?: T;
+  publishedAt?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "productCategories_select".
+ */
+export interface ProductCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -15700,32 +15657,103 @@ export interface OrderTrackingSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
+ * via the `definition` "cart-sessions_select".
  */
-export interface PagesSelect<T extends boolean = true> {
-  title?: T;
-  hero?:
+export interface CartSessionsSelect<T extends boolean = true> {
+  user?: T;
+  sessionId?: T;
+  items?:
     | T
     | {
-        type?: T;
-        richText?: T;
-        links?:
-          | T
-          | {
-              link?:
-                | T
-                | {
-                    type?: T;
-                    newTab?: T;
-                    reference?: T;
-                    url?: T;
-                    label?: T;
-                    appearance?: T;
-                  };
-              id?: T;
-            };
-        media?: T;
+        product?: T;
+        quantity?: T;
+        price?: T;
+        id?: T;
       };
+  itemCount?: T;
+  total?: T;
+  currency?: T;
+  reminderSent?: T;
+  reminderSentAt?: T;
+  convertedToOrder?: T;
+  convertedToOrderId?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discounts_select".
+ */
+export interface DiscountsSelect<T extends boolean = true> {
+  code?: T;
+  type?: T;
+  value?: T;
+  currency?: T;
+  minOrderAmount?: T;
+  maxDiscount?: T;
+  startDate?: T;
+  endDate?: T;
+  maxUsage?: T;
+  maxUsagePerUser?: T;
+  usageCount?: T;
+  status?: T;
+  applicableProducts?: T;
+  excludedProducts?: T;
+  applicableCategories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotions_select".
+ */
+export interface PromotionsSelect<T extends boolean = true> {
+  code?: T;
+  type?: T;
+  value?: T;
+  minPurchase?: T;
+  maxDiscount?: T;
+  startDate?: T;
+  endDate?: T;
+  usageLimit?: T;
+  userLimit?: T;
+  status?: T;
+  usageCount?: T;
+  products?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  clientName?: T;
+  companyName?: T;
+  rating?: T;
+  reviewText?: T;
+  clientPhoto?: T;
+  project?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses_select".
+ */
+export interface CoursesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  slugLock?: T;
+  status?: T;
+  author?: T;
+  featuredImage?: T;
+  excerpt?: T;
+  difficulty?: T;
+  estimatedDuration?: T;
+  tags?: T;
   layout?:
     | T
     | {
@@ -16177,289 +16205,545 @@ export interface PagesSelect<T extends boolean = true> {
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
       };
-  meta?:
-    | T
-    | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
+ * via the `definition` "modules_select".
  */
-export interface PostsSelect<T extends boolean = true> {
+export interface ModulesSelect<T extends boolean = true> {
   title?: T;
-  heroImage?: T;
-  content?: T;
-  relatedPosts?: T;
-  categories?: T;
-  tags?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  authors?: T;
-  populatedAuthors?:
-    | T
-    | {
-        id?: T;
-        name?: T;
-      };
   slug?: T;
   slugLock?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "post-metrics_select".
- */
-export interface PostMetricsSelect<T extends boolean = true> {
-  title?: T;
-  post?: T;
-  views?: T;
-  uniqueVisitors?: T;
-  shares?:
+  status?: T;
+  course?: T;
+  layout?:
     | T
     | {
-        platform?: T;
-        date?: T;
-        id?: T;
-      };
-  shareCount?: T;
-  likes?: T;
-  readingProgress?:
-    | T
-    | {
-        progress?: T;
-        date?: T;
-        id?: T;
-      };
-  completedReads?: T;
-  lastUpdated?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products_select".
- */
-export interface ProductsSelect<T extends boolean = true> {
-  title?: T;
-  productCategory?: T;
-  pricing?:
-    | T
-    | {
-        basePrice?: T;
-        discountPercentage?: T;
-        finalPrice?: T;
-        compareAtPrice?: T;
-        locales?:
+        content?: T | ContentBlockSelect<T>;
+        cta?: T | CallToActionBlockSelect<T>;
+        urgencyCTA?: T | UrgencyCTABlockSelect<T>;
+        hero?: T | HeroBlockSelect<T>;
+        features?:
           | T
           | {
-              en?:
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              features?:
                 | T
                 | {
-                    amount?: T;
-                    currency?: T;
+                    title?: T;
+                    description?: T;
+                    icon?: T;
+                    id?: T;
                   };
-              ru?:
-                | T
-                | {
-                    amount?: T;
-                    currency?: T;
-                  };
+              layout?: T;
+              columns?: T;
+              id?: T;
             };
+        divider?:
+          | T
+          | {
+              blockName?: T;
+              style?: T;
+              width?: T;
+              spacing?: T;
+              id?: T;
+            };
+        steps?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              steps?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    icon?: T;
+                    media?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              showNumbers?: T;
+              showLines?: T;
+              id?: T;
+            };
+        accordion?:
+          | T
+          | {
+              blockName?: T;
+              items?:
+                | T
+                | {
+                    label?: T;
+                    content?: T;
+                    items?:
+                      | T
+                      | {
+                          label?: T;
+                          content?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              style?: T;
+              size?: T;
+              variant?: T;
+              allowMultiple?: T;
+              defaultOpen?:
+                | T
+                | {
+                    index?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        card?: T | CardBlockSelect<T>;
+        mediaBlock?: T | MediaBlockSelect<T>;
+        code?: T | CodeBlockSelect<T>;
+        video?:
+          | T
+          | {
+              blockName?: T;
+              videoType?: T;
+              videoId?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              poster?: T;
+              aspectRatio?: T;
+              autoPlay?: T;
+              muted?: T;
+              loop?: T;
+              controls?: T;
+              caption?: T;
+              style?: T;
+              size?: T;
+              id?: T;
+            };
+        audio?: T | AudioBlockSelect<T>;
+        carousel?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              subheading?: T;
+              description?: T;
+              items?:
+                | T
+                | {
+                    media?: T;
+                    heading?: T;
+                    caption?: T;
+                    content?: T;
+                    actions?:
+                      | T
+                      | {
+                          label?: T;
+                          url?: T;
+                          style?: T;
+                          newTab?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              autoplay?: T;
+              interval?: T;
+              showControls?: T;
+              showIndicators?: T;
+              id?: T;
+            };
+        gallery?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    media?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              columns?: T;
+              spacing?: T;
+              id?: T;
+            };
+        videoLessons?: T | VideoLessonsBlockSelect<T>;
+        banner?: T | BannerBlockSelect<T>;
+        faq?: T | FAQBlockSelect<T>;
+        courseFAQ?: T | CourseFAQBlockSelect<T>;
+        pricingTable?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              plans?:
+                | T
+                | {
+                    name?: T;
+                    price?: T;
+                    interval?: T;
+                    description?: T;
+                    features?:
+                      | T
+                      | {
+                          text?: T;
+                          included?: T;
+                          id?: T;
+                        };
+                    isPopular?: T;
+                    actions?:
+                      | T
+                      | {
+                          label?: T;
+                          url?: T;
+                          style?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              layout?: T;
+              id?: T;
+            };
+        coursePricingComparison?: T | CoursePricingComparisonBlockSelect<T>;
+        stats?: T | StatsBlockSelect<T>;
+        tabs?: T | TabsBlockSelect<T>;
+        timeline?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              items?:
+                | T
+                | {
+                    title?: T;
+                    date?: T;
+                    description?: T;
+                    media?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              showDates?: T;
+              showLines?: T;
+              id?: T;
+            };
+        tableOfContents?:
+          | T
+          | {
+              blockName?: T;
+              title?: T;
+              autoGenerate?: T;
+              items?:
+                | T
+                | {
+                    title?: T;
+                    anchor?: T;
+                    level?: T;
+                    id?: T;
+                  };
+              sticky?: T;
+              showNumbers?: T;
+              maxDepth?: T;
+              id?: T;
+            };
+        roadmap?: T | RoadmapBlockSelect<T>;
+        benefitsOutcomes?: T | BenefitsOutcomesBlockSelect<T>;
+        targetAudience?: T | TargetAudienceBlockSelect<T>;
+        guarantee?: T | GuaranteeBlockSelect<T>;
+        socialProofAdvanced?: T | SocialProofAdvancedBlockSelect<T>;
+        teamMembers?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              members?:
+                | T
+                | {
+                    name?: T;
+                    role?: T;
+                    bio?: T;
+                    avatar?: T;
+                    social?:
+                      | T
+                      | {
+                          twitter?: T;
+                          linkedin?: T;
+                          github?: T;
+                          website?: T;
+                        };
+                    id?: T;
+                  };
+              layout?: T;
+              columns?: T;
+              id?: T;
+            };
+        testimonials?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              items?:
+                | T
+                | {
+                    author?: T;
+                    role?: T;
+                    company?: T;
+                    avatar?: T;
+                    content?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              style?: T;
+              id?: T;
+            };
+        instructorProfile?: T | InstructorProfileBlockSelect<T>;
+        header?: T | HeaderBlockSelect<T>;
+        footer?: T | FooterBlockSelect<T>;
+        services?: T | ServicesBlockSelect<T>;
+        caseStudies?: T | CaseStudiesBlockSelect<T>;
+        techStack?: T | TechStackBlockSelect<T>;
+        plansComparison?: T | PlansComparisonBlockSelect<T>;
+        course?: T | CourseBlockSelect<T>;
+        curriculum?: T | CurriculumBlockSelect<T>;
+        userProgress?: T | UserProgressBlockSelect<T>;
+        certificates?: T | CertificatesBlockSelect<T>;
+        resourceLibrary?: T | ResourceLibraryBlockSelect<T>;
+        aiTools?: T | AiToolsBlockSelect<T>;
+        leaderboard?: T | LeaderboardBlockSelect<T>;
+        courseOverview?: T | CourseOverviewBlockSelect<T>;
+        quizAssessment?: T | QuizAssessmentBlockSelect<T>;
+        assignments?: T | AssignmentsBlockSelect<T>;
+        achievementsBlock?: T | AchievementsBlockTypeSelect<T>;
+        projectShowcase?: T | ProjectShowcaseBlockSelect<T>;
+        funnelStep?: T | FunnelStepBlockSelect<T>;
+        recommendations?: T | RecommendationsBlockSelect<T>;
+        popupTriggerConfig?: T | PopupTriggerConfigBlockSelect<T>;
+        productsFilter?: T | ProductsFilterBlockSelect<T>;
+        productsList?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              products?: T;
+              enableDynamicSource?: T;
+              source?: T;
+              limit?: T;
+              enableFiltering?: T;
+              layout?: T;
+              columns?: T;
+              id?: T;
+            };
+        formBlock?: T | FormBlockSelect<T>;
+        newsletter?:
+          | T
+          | {
+              blockName?: T;
+              heading?: T;
+              description?: T;
+              buttonText?: T;
+              layout?: T;
+              image?: T;
+              placeholder?: T;
+              successMessage?: T;
+              id?: T;
+            };
+        feedback?: T | FeedbackBlockSelect<T>;
+        poll?: T | PollBlockSelect<T>;
+        aiAssistant?: T | AiAssistantBlockSelect<T>;
+        leadMagnetOffer?: T | LeadMagnetOfferBlockSelect<T>;
+        discussionForum?: T | DiscussionForumBlockSelect<T>;
+        articleHeader?:
+          | T
+          | {
+              blockName?: T;
+              title?: T;
+              subtitle?: T;
+              description?: T;
+              coverImage?: T;
+              publishDate?: T;
+              author?:
+                | T
+                | {
+                    name?: T;
+                    avatar?: T;
+                    role?: T;
+                  };
+              categories?:
+                | T
+                | {
+                    category?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              id?: T;
+            };
+        authorBio?:
+          | T
+          | {
+              blockName?: T;
+              author?:
+                | T
+                | {
+                    name?: T;
+                    avatar?: T;
+                    bio?: T;
+                    role?: T;
+                    company?: T;
+                    socialLinks?:
+                      | T
+                      | {
+                          platform?: T;
+                          url?: T;
+                          id?: T;
+                        };
+                  };
+              layout?: T;
+              id?: T;
+            };
+        blockquote?:
+          | T
+          | {
+              blockName?: T;
+              quote?: T;
+              author?: T;
+              source?: T;
+              avatar?: T;
+              style?: T;
+              align?: T;
+              id?: T;
+            };
+        comments?:
+          | T
+          | {
+              blockName?: T;
+              title?: T;
+              provider?: T;
+              disqusShortname?: T;
+              facebookAppId?: T;
+              showCount?: T;
+              commentsPerPage?: T;
+              allowReplies?: T;
+              requireAuth?: T;
+              moderationEnabled?: T;
+              id?: T;
+            };
+        relatedPosts?:
+          | T
+          | {
+              blockName?: T;
+              title?: T;
+              selectionMethod?: T;
+              posts?: T;
+              maxPosts?: T;
+              criteria?: T;
+              layout?: T;
+              showFeaturedImage?: T;
+              showExcerpt?: T;
+              showDate?: T;
+              showAuthor?: T;
+              id?: T;
+            };
+        socialShare?:
+          | T
+          | {
+              blockName?: T;
+              title?: T;
+              platforms?: T;
+              layout?: T;
+              showShareCount?: T;
+              id?: T;
+            };
+        interactiveDemo?: T | InteractiveDemoBlockSelect<T>;
+        calendar?: T | CalendarBlockSelect<T>;
+        eventTracker?: T | EventTrackerBlockSelect<T>;
+        reportEmbed?: T | ReportEmbedBlockSelect<T>;
       };
-  description?: T;
-  shortDescription?: T;
-  features?:
-    | T
-    | {
-        name?: T;
-        description?: T;
-        id?: T;
-      };
-  thumbnail?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        alt?: T;
-        id?: T;
-      };
-  productType?: T;
-  downloadLink?: T;
-  subscriptionDetails?:
-    | T
-    | {
-        recurringPrice?: T;
-        billingInterval?: T;
-        trialDays?: T;
-      };
-  accessDetails?:
-    | T
-    | {
-        features?: T;
-        validityPeriod?: T;
-      };
-  isFeatured?: T;
-  isPopular?: T;
-  relatedProducts?: T;
-  status?: T;
-  publishedAt?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "productCategories_select".
+ * via the `definition` "resources_select".
  */
-export interface ProductCategoriesSelect<T extends boolean = true> {
+export interface ResourcesSelect<T extends boolean = true> {
   title?: T;
-  description?: T;
   slug?: T;
   slugLock?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "promotions_select".
- */
-export interface PromotionsSelect<T extends boolean = true> {
-  code?: T;
-  type?: T;
-  value?: T;
-  minPurchase?: T;
-  maxDiscount?: T;
-  startDate?: T;
-  endDate?: T;
-  usageLimit?: T;
-  userLimit?: T;
-  status?: T;
-  usageCount?: T;
-  products?: T;
-  categories?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews_select".
- */
-export interface ReviewsSelect<T extends boolean = true> {
-  clientName?: T;
-  companyName?: T;
-  rating?: T;
-  reviewText?: T;
-  clientPhoto?: T;
-  project?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "solutions_select".
- */
-export interface SolutionsSelect<T extends boolean = true> {
-  name?: T;
+  resourceType?: T;
   description?: T;
-  featuredImage?: T;
-  tags?:
-    | T
-    | {
-        tag?: T;
-        id?: T;
-      };
-  toolsUsed?:
-    | T
-    | {
-        tool?: T;
-        id?: T;
-      };
-  pricing?:
-    | T
-    | {
-        basePrice?: T;
-        discountPercentage?: T;
-        finalPrice?: T;
-      };
+  url?: T;
+  file?: T;
+  videoEmbedUrl?: T;
+  content?: T;
+  tags?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tags_select".
+ * via the `definition` "achievements_select".
  */
-export interface TagsSelect<T extends boolean = true> {
+export interface AchievementsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  icon?: T;
+  rarity?: T;
+  pointsAwarded?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forum-categories_select".
+ */
+export interface ForumCategoriesSelect<T extends boolean = true> {
+  name?: T;
   slug?: T;
   slugLock?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "testimonials_select".
+ * via the `definition` "messages_select".
  */
-export interface TestimonialsSelect<T extends boolean = true> {
-  author?: T;
-  authorTitle?: T;
-  quote?: T;
-  avatar?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
- */
-export interface UsersSelect<T extends boolean = true> {
+export interface MessagesSelect<T extends boolean = true> {
   name?: T;
-  role?: T;
-  segments?: T;
-  updatedAt?: T;
-  createdAt?: T;
   email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
+  subject?: T;
+  message?: T;
+  source?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-favorites_select".
+ * via the `definition` "newsletter-subscribers_select".
  */
-export interface UserFavoritesSelect<T extends boolean = true> {
-  user?: T;
-  products?: T;
+export interface NewsletterSubscribersSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  status?: T;
+  unsubscribeToken?: T;
+  source?: T;
+  locale?: T;
+  lastSent?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -16490,78 +16774,14 @@ export interface SenderEmailsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscription-payments_select".
+ * via the `definition` "broadcasts_select".
  */
-export interface SubscriptionPaymentsSelect<T extends boolean = true> {
-  subscriptionId?: T;
-  amount?: T;
-  currency?: T;
+export interface BroadcastsSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  locale?: T;
   status?: T;
-  paymentDate?: T;
-  paymentMethod?: T;
-  transactionId?: T;
-  failureReason?: T;
-  rawResponse?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscriptions_select".
- */
-export interface SubscriptionsSelect<T extends boolean = true> {
-  userId?: T;
-  planId?: T;
-  status?: T;
-  paymentProvider?: T;
-  paymentMethod?: T;
-  paymentToken?: T;
-  period?: T;
-  amount?: T;
-  currency?: T;
-  startDate?: T;
-  nextPaymentDate?: T;
-  endDate?: T;
-  canceledAt?: T;
-  metadata?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscription-plans_select".
- */
-export interface SubscriptionPlansSelect<T extends boolean = true> {
-  name?: T;
-  description?: T;
-  features?:
-    | T
-    | {
-        feature?: T;
-        id?: T;
-      };
-  price?: T;
-  currency?: T;
-  period?: T;
-  trialPeriodDays?: T;
-  maxSubscriptionMonths?: T;
-  autoRenew?: T;
-  allowCancel?: T;
-  isActive?: T;
-  metadata?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "messages_select".
- */
-export interface MessagesSelect<T extends boolean = true> {
-  name?: T;
-  email?: T;
-  subject?: T;
-  message?: T;
-  source?: T;
+  report?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -16585,56 +16805,6 @@ export interface BroadcastReportsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "broadcasts_select".
- */
-export interface BroadcastsSelect<T extends boolean = true> {
-  title?: T;
-  content?: T;
-  locale?: T;
-  status?: T;
-  report?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "achievements_select".
- */
-export interface AchievementsSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  icon?: T;
-  rarity?: T;
-  pointsAwarded?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "projects_select".
- */
-export interface ProjectsSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  author?: T;
-  projectUrl?: T;
-  status?: T;
-  featuredImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        caption?: T;
-        id?: T;
-      };
-  tags?: T;
-  relatedCourse?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -17124,497 +17294,201 @@ export interface UserSegmentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "modules_select".
+ * via the `definition` "testimonials_select".
  */
-export interface ModulesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  slugLock?: T;
-  status?: T;
-  course?: T;
-  layout?:
+export interface TestimonialsSelect<T extends boolean = true> {
+  author?: T;
+  authorTitle?: T;
+  quote?: T;
+  avatar?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-favorites_select".
+ */
+export interface UserFavoritesSelect<T extends boolean = true> {
+  user?: T;
+  products?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-plans_select".
+ */
+export interface SubscriptionPlansSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  features?:
     | T
     | {
-        content?: T | ContentBlockSelect<T>;
-        cta?: T | CallToActionBlockSelect<T>;
-        urgencyCTA?: T | UrgencyCTABlockSelect<T>;
-        hero?: T | HeroBlockSelect<T>;
-        features?:
+        feature?: T;
+        id?: T;
+      };
+  price?: T;
+  currency?: T;
+  period?: T;
+  trialPeriodDays?: T;
+  maxSubscriptionMonths?: T;
+  autoRenew?: T;
+  allowCancel?: T;
+  isActive?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  userId?: T;
+  planId?: T;
+  status?: T;
+  paymentProvider?: T;
+  paymentMethod?: T;
+  paymentToken?: T;
+  period?: T;
+  amount?: T;
+  currency?: T;
+  startDate?: T;
+  nextPaymentDate?: T;
+  endDate?: T;
+  canceledAt?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-payments_select".
+ */
+export interface SubscriptionPaymentsSelect<T extends boolean = true> {
+  subscriptionId?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  paymentDate?: T;
+  paymentMethod?: T;
+  transactionId?: T;
+  failureReason?: T;
+  rawResponse?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations_select".
+ */
+export interface IntegrationsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  type?: T;
+  status?: T;
+  webhookUrl?: T;
+  apiKey?: T;
+  triggers?:
+    | T
+    | {
+        event?: T;
+        conditions?:
           | T
           | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              features?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    icon?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
+              field?: T;
+              operator?: T;
+              value?: T;
               id?: T;
             };
-        divider?:
+        id?: T;
+      };
+  actions?:
+    | T
+    | {
+        type?: T;
+        config?:
           | T
           | {
-              blockName?: T;
-              style?: T;
-              width?: T;
-              spacing?: T;
-              id?: T;
+              url?: T;
+              method?: T;
+              headers?: T;
+              body?: T;
+              to?: T;
+              from?: T;
+              subject?: T;
+              emailBody?: T;
             };
-        steps?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              steps?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    icon?: T;
-                    media?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              showNumbers?: T;
-              showLines?: T;
-              id?: T;
-            };
-        accordion?:
-          | T
-          | {
-              blockName?: T;
-              items?:
-                | T
-                | {
-                    label?: T;
-                    content?: T;
-                    items?:
-                      | T
-                      | {
-                          label?: T;
-                          content?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              style?: T;
-              size?: T;
-              variant?: T;
-              allowMultiple?: T;
-              defaultOpen?:
-                | T
-                | {
-                    index?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        card?: T | CardBlockSelect<T>;
-        mediaBlock?: T | MediaBlockSelect<T>;
-        code?: T | CodeBlockSelect<T>;
-        video?:
-          | T
-          | {
-              blockName?: T;
-              videoType?: T;
-              videoId?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              poster?: T;
-              aspectRatio?: T;
-              autoPlay?: T;
-              muted?: T;
-              loop?: T;
-              controls?: T;
-              caption?: T;
-              style?: T;
-              size?: T;
-              id?: T;
-            };
-        audio?: T | AudioBlockSelect<T>;
-        carousel?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              subheading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    media?: T;
-                    heading?: T;
-                    caption?: T;
-                    content?: T;
-                    actions?:
-                      | T
-                      | {
-                          label?: T;
-                          url?: T;
-                          style?: T;
-                          newTab?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              autoplay?: T;
-              interval?: T;
-              showControls?: T;
-              showIndicators?: T;
-              id?: T;
-            };
-        gallery?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              items?:
-                | T
-                | {
-                    media?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              spacing?: T;
-              id?: T;
-            };
-        videoLessons?: T | VideoLessonsBlockSelect<T>;
-        banner?: T | BannerBlockSelect<T>;
-        faq?: T | FAQBlockSelect<T>;
-        courseFAQ?: T | CourseFAQBlockSelect<T>;
-        pricingTable?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              plans?:
-                | T
-                | {
-                    name?: T;
-                    price?: T;
-                    interval?: T;
-                    description?: T;
-                    features?:
-                      | T
-                      | {
-                          text?: T;
-                          included?: T;
-                          id?: T;
-                        };
-                    isPopular?: T;
-                    actions?:
-                      | T
-                      | {
-                          label?: T;
-                          url?: T;
-                          style?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              layout?: T;
-              id?: T;
-            };
-        coursePricingComparison?: T | CoursePricingComparisonBlockSelect<T>;
-        stats?: T | StatsBlockSelect<T>;
-        tabs?: T | TabsBlockSelect<T>;
-        timeline?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    title?: T;
-                    date?: T;
-                    description?: T;
-                    media?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              showDates?: T;
-              showLines?: T;
-              id?: T;
-            };
-        tableOfContents?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              autoGenerate?: T;
-              items?:
-                | T
-                | {
-                    title?: T;
-                    anchor?: T;
-                    level?: T;
-                    id?: T;
-                  };
-              sticky?: T;
-              showNumbers?: T;
-              maxDepth?: T;
-              id?: T;
-            };
-        roadmap?: T | RoadmapBlockSelect<T>;
-        benefitsOutcomes?: T | BenefitsOutcomesBlockSelect<T>;
-        targetAudience?: T | TargetAudienceBlockSelect<T>;
-        guarantee?: T | GuaranteeBlockSelect<T>;
-        socialProofAdvanced?: T | SocialProofAdvancedBlockSelect<T>;
-        teamMembers?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              members?:
-                | T
-                | {
-                    name?: T;
-                    role?: T;
-                    bio?: T;
-                    avatar?: T;
-                    social?:
-                      | T
-                      | {
-                          twitter?: T;
-                          linkedin?: T;
-                          github?: T;
-                          website?: T;
-                        };
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              id?: T;
-            };
-        testimonials?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    author?: T;
-                    role?: T;
-                    company?: T;
-                    avatar?: T;
-                    content?: T;
-                    rating?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              style?: T;
-              id?: T;
-            };
-        instructorProfile?: T | InstructorProfileBlockSelect<T>;
-        header?: T | HeaderBlockSelect<T>;
-        footer?: T | FooterBlockSelect<T>;
-        services?: T | ServicesBlockSelect<T>;
-        caseStudies?: T | CaseStudiesBlockSelect<T>;
-        techStack?: T | TechStackBlockSelect<T>;
-        plansComparison?: T | PlansComparisonBlockSelect<T>;
-        course?: T | CourseBlockSelect<T>;
-        curriculum?: T | CurriculumBlockSelect<T>;
-        userProgress?: T | UserProgressBlockSelect<T>;
-        certificates?: T | CertificatesBlockSelect<T>;
-        resourceLibrary?: T | ResourceLibraryBlockSelect<T>;
-        aiTools?: T | AiToolsBlockSelect<T>;
-        leaderboard?: T | LeaderboardBlockSelect<T>;
-        courseOverview?: T | CourseOverviewBlockSelect<T>;
-        quizAssessment?: T | QuizAssessmentBlockSelect<T>;
-        assignments?: T | AssignmentsBlockSelect<T>;
-        achievementsBlock?: T | AchievementsBlockTypeSelect<T>;
-        projectShowcase?: T | ProjectShowcaseBlockSelect<T>;
-        funnelStep?: T | FunnelStepBlockSelect<T>;
-        recommendations?: T | RecommendationsBlockSelect<T>;
-        popupTriggerConfig?: T | PopupTriggerConfigBlockSelect<T>;
-        productsFilter?: T | ProductsFilterBlockSelect<T>;
-        productsList?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              products?: T;
-              enableDynamicSource?: T;
-              source?: T;
-              limit?: T;
-              enableFiltering?: T;
-              layout?: T;
-              columns?: T;
-              id?: T;
-            };
-        formBlock?: T | FormBlockSelect<T>;
-        newsletter?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              buttonText?: T;
-              layout?: T;
-              image?: T;
-              placeholder?: T;
-              successMessage?: T;
-              id?: T;
-            };
-        feedback?: T | FeedbackBlockSelect<T>;
-        poll?: T | PollBlockSelect<T>;
-        aiAssistant?: T | AiAssistantBlockSelect<T>;
-        leadMagnetOffer?: T | LeadMagnetOfferBlockSelect<T>;
-        discussionForum?: T | DiscussionForumBlockSelect<T>;
-        articleHeader?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              subtitle?: T;
-              description?: T;
-              coverImage?: T;
-              publishDate?: T;
-              author?:
-                | T
-                | {
-                    name?: T;
-                    avatar?: T;
-                    role?: T;
-                  };
-              categories?:
-                | T
-                | {
-                    category?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              id?: T;
-            };
-        authorBio?:
-          | T
-          | {
-              blockName?: T;
-              author?:
-                | T
-                | {
-                    name?: T;
-                    avatar?: T;
-                    bio?: T;
-                    role?: T;
-                    company?: T;
-                    socialLinks?:
-                      | T
-                      | {
-                          platform?: T;
-                          url?: T;
-                          id?: T;
-                        };
-                  };
-              layout?: T;
-              id?: T;
-            };
-        blockquote?:
-          | T
-          | {
-              blockName?: T;
-              quote?: T;
-              author?: T;
-              source?: T;
-              avatar?: T;
-              style?: T;
-              align?: T;
-              id?: T;
-            };
-        comments?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              provider?: T;
-              disqusShortname?: T;
-              facebookAppId?: T;
-              showCount?: T;
-              commentsPerPage?: T;
-              allowReplies?: T;
-              requireAuth?: T;
-              moderationEnabled?: T;
-              id?: T;
-            };
-        relatedPosts?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              selectionMethod?: T;
-              posts?: T;
-              maxPosts?: T;
-              criteria?: T;
-              layout?: T;
-              showFeaturedImage?: T;
-              showExcerpt?: T;
-              showDate?: T;
-              showAuthor?: T;
-              id?: T;
-            };
-        socialShare?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              platforms?: T;
-              layout?: T;
-              showShareCount?: T;
-              id?: T;
-            };
-        interactiveDemo?: T | InteractiveDemoBlockSelect<T>;
-        calendar?: T | CalendarBlockSelect<T>;
-        eventTracker?: T | EventTrackerBlockSelect<T>;
-        reportEmbed?: T | ReportEmbedBlockSelect<T>;
+        id?: T;
+      };
+  lastSync?: T;
+  lastSyncStatus?: T;
+  lastError?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  author?: T;
+  projectUrl?: T;
+  status?: T;
+  featuredImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  tags?: T;
+  relatedCourse?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions_select".
+ */
+export interface SolutionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  featuredImage?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  toolsUsed?:
+    | T
+    | {
+        tool?: T;
+        id?: T;
+      };
+  pricing?:
+    | T
+    | {
+        basePrice?: T;
+        discountPercentage?: T;
+        finalPrice?: T;
       };
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "resources_select".
+ * via the `definition` "events_select".
  */
-export interface ResourcesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  slugLock?: T;
-  resourceType?: T;
-  description?: T;
-  url?: T;
-  file?: T;
-  videoEmbedUrl?: T;
-  content?: T;
-  tags?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "forum-categories_select".
- */
-export interface ForumCategoriesSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  slugLock?: T;
-  description?: T;
+export interface EventsSelect<T extends boolean = true> {
+  type?: T;
+  data?: T;
+  timestamp?: T;
   updatedAt?: T;
   createdAt?: T;
 }

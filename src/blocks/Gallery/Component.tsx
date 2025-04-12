@@ -1,4 +1,4 @@
-"use client"
+'use client'
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
@@ -50,19 +50,21 @@ export const Gallery: React.FC<GalleryProps> = ({
   const sizeVariant = blockSizeStyles[size]
   const styleVariant = blockStyleVariants[style]
 
+  const itemCount = items?.length || 0
+
   const handlePrevious = useCallback(() => {
-    if (isAnimating) return
+    if (isAnimating || !items || itemCount === 0) return
     setIsAnimating(true)
-    setActiveIndex((current) => (current === 0 ? items.length - 1 : current - 1))
+    setActiveIndex((current) => (current === 0 ? itemCount - 1 : current - 1))
     setTimeout(() => setIsAnimating(false), 300)
-  }, [isAnimating, items.length])
+  }, [isAnimating, items, itemCount])
 
   const handleNext = useCallback(() => {
-    if (isAnimating) return
+    if (isAnimating || !items || itemCount === 0) return
     setIsAnimating(true)
-    setActiveIndex((current) => (current === items.length - 1 ? 0 : current + 1))
+    setActiveIndex((current) => (current === itemCount - 1 ? 0 : current + 1))
     setTimeout(() => setIsAnimating(false), 300)
-  }, [isAnimating, items.length])
+  }, [isAnimating, items, itemCount])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

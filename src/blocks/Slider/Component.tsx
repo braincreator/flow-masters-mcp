@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { GridContainer } from '@/components/GridContainer'
 import { Button } from '@/components/ui/button'
@@ -77,43 +77,44 @@ export const Slider: React.FC<SliderProps> = ({
       <div className={cn('w-full relative', className)}>
         <div {...handlers} className="overflow-hidden" ref={emblaRef}>
           <div className="flex touch-pan-y">
-            {slides.map((slide, index) => (
-              <div
-                key={index}
-                className={cn(
-                  'flex-[0_0_100%] min-w-0',
-                  'animate-in fade-in duration-1000',
-                  style === 'cards' && 'px-4',
-                )}
-              >
+            {Array.isArray(slides) &&
+              slides.map((slide, index) => (
                 <div
+                  key={index}
                   className={cn(
-                    'relative aspect-video overflow-hidden rounded-lg',
-                    style === 'cards' && 'shadow-lg',
+                    'flex-[0_0_100%] min-w-0',
+                    'animate-in fade-in duration-1000',
+                    style === 'cards' && 'px-4',
                   )}
                 >
-                  {slide.type === 'image' && (
-                    <img
-                      src={slide.url}
-                      alt={slide.alt || ''}
-                      className="w-full h-full object-cover"
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                    />
-                  )}
-                  {slide.type === 'video' && (
-                    <video
-                      src={slide.url}
-                      controls
-                      playsInline
-                      className="w-full h-full object-cover"
-                      poster={slide.poster}
-                    >
-                      <track kind="captions" />
-                    </video>
-                  )}
+                  <div
+                    className={cn(
+                      'relative aspect-video overflow-hidden rounded-lg',
+                      style === 'cards' && 'shadow-lg',
+                    )}
+                  >
+                    {slide.type === 'image' && (
+                      <img
+                        src={slide.url}
+                        alt={slide.alt || ''}
+                        className="w-full h-full object-cover"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                      />
+                    )}
+                    {slide.type === 'video' && (
+                      <video
+                        src={slide.url}
+                        controls
+                        playsInline
+                        className="w-full h-full object-cover"
+                        poster={slide.poster}
+                      >
+                        <track kind="captions" />
+                      </video>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
@@ -140,18 +141,19 @@ export const Slider: React.FC<SliderProps> = ({
 
         {showDots && (
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                className={cn(
-                  'w-2 h-2 rounded-full transition-all',
-                  currentSlide === index
-                    ? 'bg-primary scale-125'
-                    : 'bg-primary/20 hover:bg-primary/40',
-                )}
-                onClick={() => scrollTo(index)}
-              />
-            ))}
+            {Array.isArray(slides) &&
+              slides.map((_, index) => (
+                <button
+                  key={index}
+                  className={cn(
+                    'w-2 h-2 rounded-full transition-all',
+                    currentSlide === index
+                      ? 'bg-primary scale-125'
+                      : 'bg-primary/20 hover:bg-primary/40',
+                  )}
+                  onClick={() => scrollTo(index)}
+                />
+              ))}
           </div>
         )}
       </div>

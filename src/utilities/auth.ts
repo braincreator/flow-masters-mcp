@@ -4,6 +4,10 @@ import { getPayloadClient } from './payload'
 import { errorResponse } from './api'
 import { cookies } from 'next/headers'
 
+// Import Payload type if needed for casting
+import type { Payload } from 'payload/types'
+import type { ApiKey } from '@/payload-types' // Import generated type for ApiKey
+
 type AuthType = 'api' | 'webhook' | 'cron' | 'user'
 
 interface AuthResult {
@@ -15,7 +19,7 @@ interface AuthResult {
 export async function authenticate(req: Request, type: AuthType): Promise<AuthResult> {
   switch (type) {
     case 'api':
-      return authenticateApiRequest(req)
+      return await authenticateApiRequest(req)
     case 'webhook':
       return authenticateWebhook(req)
     case 'cron':
@@ -27,17 +31,39 @@ export async function authenticate(req: Request, type: AuthType): Promise<AuthRe
   }
 }
 
-function authenticateApiRequest(req: Request): AuthResult {
+// Modified to check ApiKeys collection and use Authorization header
+async function authenticateApiRequest(req: Request): Promise<AuthResult> {
   try {
-    const apiKey = req.headers.get('x-api-key')
-    if (!apiKey) {
-      return { isAuthenticated: false, error: 'Missing API key' }
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return {
+        isAuthenticated: false,
+        error: 'Missing or invalid Authorization header (Bearer token expected)',
+      }
     }
+    const providedKey = authHeader.substring(7)
+
+    const payload = await getPayloadClient() // Use existing client getter
+
+    const apiKeyQuery = await payload.find({
+      collection: 'apiKeys',
+      where: {
+        key: { equals: providedKey },
+        isEnabled: { equals: true },
+      },
+      limit: 1,
+      depth: 0,
+    })
+
+    const isValid = apiKeyQuery.docs.length > 0
+
     return {
-      isAuthenticated: apiKey === process.env.PAYLOAD_SECRET,
-      error: apiKey === process.env.PAYLOAD_SECRET ? undefined : 'Invalid API key',
+      isAuthenticated: isValid,
+      error: isValid ? undefined : 'Invalid or disabled API key',
+      // Optionally return key info: user: isValid ? apiKeyQuery.docs[0] : undefined
     }
   } catch (error) {
+    console.error('API Key Authentication Error:', error)
     return {
       isAuthenticated: false,
       error: 'Failed to verify API key',
@@ -122,34 +148,36 @@ export async function withAuth(
   return handler(req)
 }
 
-type AuthResult = {
-  success: boolean
-  user: any | null
-  response: NextResponse | null
-}
-
-/**
- * Verify authentication and permissions
- * @param request The request object
- * @returns Object with auth status, user and error response
- */
-/**
- * Verify API key from request headers
- * @param request The request object
- * @returns NextResponse or null if valid
- */
+// Modified verifyApiKey to check ApiKeys collection and use Authorization header
 export async function verifyApiKey(request: Request): Promise<NextResponse | null> {
-  const apiKey = request.headers.get('x-api-key')
-
-  if (!apiKey) {
-    return errorResponse('Missing API key', 401)
+  const authHeader = request.headers.get('Authorization')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return errorResponse('Missing or invalid Authorization header (Bearer token expected)', 401)
   }
+  const providedKey = authHeader.substring(7)
 
-  if (apiKey !== process.env.PAYLOAD_SECRET) {
-    return errorResponse('Invalid API key', 401)
+  try {
+    const payload = await getPayloadClient()
+    const apiKeyQuery = await payload.find({
+      collection: 'apiKeys',
+      where: {
+        key: { equals: providedKey },
+        isEnabled: { equals: true },
+      },
+      limit: 1,
+      depth: 0,
+    })
+
+    if (apiKeyQuery.docs.length === 0) {
+      return errorResponse('Invalid or disabled API key', 403) // Use 403 Forbidden for invalid keys
+    }
+
+    // Key is valid
+    return null // Indicate success
+  } catch (error) {
+    console.error('verifyApiKey Error:', error)
+    return errorResponse('Failed to verify API key', 500)
   }
-
-  return null
 }
 
 /**
@@ -199,26 +227,23 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
     } catch (error) {
       console.error('Error fetching user:', error)
       return {
-        success: false,
-        user: null,
-        response: errorResponse('Not authenticated', 401),
+        isAuthenticated: false,
+        error: 'Not authenticated',
       }
     }
 
     if (!user) {
       return {
-        success: false,
-        user: null,
-        response: errorResponse('Not authenticated', 401),
+        isAuthenticated: false,
+        error: 'Not authenticated',
       }
     }
 
     // Check if user exists and is verified
     if (!user.id || user.banned) {
       return {
-        success: false,
-        user: null,
-        response: errorResponse('Forbidden: User is banned or invalid', 403),
+        isAuthenticated: false,
+        error: 'Forbidden: User is banned or invalid',
       }
     }
 
@@ -241,16 +266,14 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
     }
 
     return {
-      success: true,
+      isAuthenticated: true,
       user,
-      response: null,
     }
   } catch (error) {
     console.error('Auth verification error:', error)
     return {
-      success: false,
-      user: null,
-      response: errorResponse('Authorization error', 500),
+      isAuthenticated: false,
+      error: 'Authorization error',
     }
   }
 }

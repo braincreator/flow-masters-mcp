@@ -62,7 +62,7 @@ export const Calendar: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
           label: 'Название коллекции',
           admin: {

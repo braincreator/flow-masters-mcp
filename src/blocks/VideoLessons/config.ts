@@ -312,12 +312,12 @@ export const VideoLessons: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Lesson Collection Slug',
           required: true,
           admin: {
-            description: 'Название коллекции с видео-уроками',
+            description: 'Введите слаг коллекции, из которой нужно брать видео-уроки.',
           },
         },
         {

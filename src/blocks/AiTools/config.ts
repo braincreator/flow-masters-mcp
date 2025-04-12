@@ -231,12 +231,13 @@ export const AiTools: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Tool Collection Slug',
           required: true,
           admin: {
-            description: 'Название коллекции с ИИ-инструментами',
+            description:
+              "Введите слаг коллекции, из которой нужно брать инструменты (например, 'ai-tools-collection').",
           },
         },
         {

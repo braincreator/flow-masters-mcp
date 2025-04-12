@@ -25,69 +25,72 @@ const pricingHook: FieldHook = ({ value, siblingData, originalDoc, operation }) 
   // value - это значение поля pricing
   // Если value не определено, создаем пустой объект
   if (!value) {
-    value = {};
+    value = {}
   }
 
   // Получаем существующие данные из originalDoc если это обновление
-  const existingPricingData = (operation === 'update' && originalDoc?.pricing) 
-    ? originalDoc.pricing 
-    : {};
+  const existingPricingData =
+    operation === 'update' && originalDoc?.pricing ? originalDoc.pricing : {}
 
   // Объединяем существующие данные с переданными (value)
   const mergedData = {
     ...existingPricingData,
     ...value,
-  };
+  }
 
   // Получаем и валидируем basePrice
-  let basePrice = 0;
+  let basePrice = 0
   if (value.basePrice === undefined || value.basePrice === null || isNaN(Number(value.basePrice))) {
-    // Если basePrice отсутствует или невалидно в текущем запросе, 
+    // Если basePrice отсутствует или невалидно в текущем запросе,
     // используем существующее значение или 0
-    basePrice = (existingPricingData.basePrice !== undefined && existingPricingData.basePrice !== null)
-      ? Number(existingPricingData.basePrice)
-      : 0;
+    basePrice =
+      existingPricingData.basePrice !== undefined && existingPricingData.basePrice !== null
+        ? Number(existingPricingData.basePrice)
+        : 0
   } else {
     // Если basePrice передано, проверяем что это число >= 0
-    basePrice = Math.max(0, Number(value.basePrice));
+    basePrice = Math.max(0, Number(value.basePrice))
   }
 
   // Получаем и валидируем discountPercentage
-  const discountPercentage = Math.max(0, Number(mergedData.discountPercentage) || 0);
+  const discountPercentage = Math.max(0, Number(mergedData.discountPercentage) || 0)
 
   // Определяем compareAtPrice
-  let compareAtPrice = mergedData.compareAtPrice;
+  let compareAtPrice = mergedData.compareAtPrice
 
   // Рассчитываем finalPrice
-  let finalPrice: number;
+  let finalPrice: number
 
   if (basePrice > 0 && discountPercentage > 0) {
     // Если есть basePrice и скидка, устанавливаем compareAtPrice = basePrice,
     // если оно не задано вручную или пусто
-    if (compareAtPrice === null || compareAtPrice === undefined || 
-        (originalDoc?.pricing?.compareAtPrice === compareAtPrice)) {
-      compareAtPrice = basePrice;
+    if (
+      compareAtPrice === null ||
+      compareAtPrice === undefined ||
+      originalDoc?.pricing?.compareAtPrice === compareAtPrice
+    ) {
+      compareAtPrice = basePrice
     }
-    finalPrice = basePrice * (1 - discountPercentage / 100);
+    finalPrice = basePrice * (1 - discountPercentage / 100)
   } else {
     // Если скидки нет, compareAtPrice имеет смысл только если задано вручную
     // и отличается от basePrice
     if (compareAtPrice === basePrice || compareAtPrice === undefined) {
-      compareAtPrice = null;
+      compareAtPrice = null
     }
-    finalPrice = basePrice;
+    finalPrice = basePrice
   }
 
   // Валидируем compareAtPrice - должно быть > finalPrice
   if (compareAtPrice !== null && compareAtPrice !== undefined) {
-    compareAtPrice = Math.max(0, Number(compareAtPrice) || 0);
+    compareAtPrice = Math.max(0, Number(compareAtPrice) || 0)
     if (compareAtPrice <= finalPrice) {
-      compareAtPrice = null;
+      compareAtPrice = null
     }
   }
 
   // Округляем finalPrice до 2 знаков после запятой
-  finalPrice = Math.round(finalPrice * 100) / 100;
+  finalPrice = Math.round(finalPrice * 100) / 100
 
   // Возвращаем объект с обновленными данными
   return {
@@ -97,14 +100,20 @@ const pricingHook: FieldHook = ({ value, siblingData, originalDoc, operation }) 
     compareAtPrice,
     finalPrice,
     locales: mergedData.locales,
-  };
+  }
 }
 
 export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'productCategory.title', 'pricing.finalPrice', 'publishedAt', 'status'],
+    defaultColumns: [
+      'title',
+      'productCategory.title',
+      'pricing.finalPrice',
+      'publishedAt',
+      'status',
+    ],
     preview: (doc, { locale }) => formatPreviewURL('products', doc, locale),
   },
   access: {
@@ -414,7 +423,7 @@ export const Products: CollectionConfig = {
         description: 'Automatically set based on order volume (15% above average)',
         position: 'sidebar',
       },
-      hooks: { 
+      hooks: {
         beforeChange: [
           async ({ req, data }) => {
             const allOrders = await (req.payload.find as any)({

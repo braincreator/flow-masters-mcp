@@ -199,12 +199,12 @@ export const Certificates: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Certificate Collection Slug',
           required: true,
           admin: {
-            description: 'Название коллекции с сертификатами',
+            description: 'Введите слаг коллекции, из которой нужно брать сертификаты.',
           },
         },
         {

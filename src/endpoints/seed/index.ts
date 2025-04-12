@@ -10,6 +10,9 @@ import { post1 } from './post-1'
 import { post2 } from './post-2'
 import { post3 } from './post-3'
 import { testProducts } from './test-products'
+import { SeedOptions } from './types'
+import { createPages } from './pages'
+import { createGlobal } from './globals'
 
 const collections: CollectionSlug[] = [
   'categories',
@@ -26,13 +29,9 @@ const globals: GlobalSlug[] = ['header', 'footer']
 // i.e. running `yarn seed` locally instead of using the admin UI within an active app
 // The app is not running to revalidate the pages and so the API routes are not available
 // These error messages can be ignored: `Error hitting revalidate route for...`
-export const seed = async ({
-  payload,
-  req,
-}: {
-  payload: Payload
-  req: PayloadRequest
-}): Promise<void> => {
+export const seed = async (options: SeedOptions): Promise<void> => {
+  const { payload, config, req, static: staticSeed } = options
+
   payload.logger.info('Seeding database...')
 
   // we need to clear the media directory before seeding
@@ -362,11 +361,6 @@ export const seed = async ({
         seo: {
           defaultMetaTitle: 'Flow Masters - Business Process Automation',
           defaultMetaDescription: 'Transform your business with AI-powered automation solutions.',
-        },
-        analytics: {
-          googleAnalyticsId: '',
-          googleTagManagerId: '',
-          metaPixelId: '',
         },
         features: {
           blog: {

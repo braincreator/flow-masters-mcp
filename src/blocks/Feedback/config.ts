@@ -179,13 +179,12 @@ export const Feedback: Block = {
       },
       fields: [
         {
-          name: 'collection',
+          name: 'targetCollection',
           type: 'text',
-          label: 'Название коллекции',
+          label: 'Feedback Collection Slug',
           required: true,
-          defaultValue: 'feedbackSubmissions',
           admin: {
-            description: 'Коллекция для сохранения отзывов',
+            description: 'Введите слаг коллекции, в которую будут сохраняться отзывы.',
           },
         },
         {

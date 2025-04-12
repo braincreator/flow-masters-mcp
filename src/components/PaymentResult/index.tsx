@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { PaymentResult as PaymentResultType } from '@/types/payment'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
-import { useAnalytics } from '@/hooks/useAnalytics'
 import { useToast } from '@/hooks/useToast'
 import { useSearchParams, useRouter } from 'next/navigation'
 import styles from './PaymentResult.module.css'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CheckCircle, XCircle } from 'lucide-react'
 
 interface PaymentResultProps {
   lang?: string
@@ -56,12 +58,13 @@ export default function PaymentResult({
 }: PaymentResultProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { trackEvent } = useAnalytics()
   const { showToast } = useToast()
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<'success' | 'error' | 'processing'>('processing')
   const [orderNumber, setOrderNumber] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [totalAmount, setTotalAmount] = useState<number | null>(null)
 
   useEffect(() => {
     async function checkPaymentStatus() {
@@ -118,6 +121,12 @@ export default function PaymentResult({
       const data = await res.json()
       if (data.order?.orderNumber) {
         setOrderNumber(data.order.orderNumber)
+      }
+      if (data.sessionId) {
+        setSessionId(data.sessionId)
+      }
+      if (data.totalAmount) {
+        setTotalAmount(data.totalAmount)
       }
     } catch (error) {
       console.error('Error fetching order details:', error)
@@ -176,6 +185,14 @@ export default function PaymentResult({
       if (redirectTimer) clearTimeout(redirectTimer)
     }
   }, [status, router, lang])
+
+  useEffect(() => {
+    if (status === 'success' && sessionId) {
+      console.log('Payment successful for session:', sessionId)
+    } else if (status === 'error' && sessionId) {
+      console.log('Payment error for session:', sessionId)
+    }
+  }, [status, sessionId])
 
   if (loading) {
     return (

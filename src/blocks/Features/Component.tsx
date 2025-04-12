@@ -83,37 +83,38 @@ export const Features: React.FC<FeaturesProps> = ({
         )}
 
         <div className={cn(layoutStyles[layout])}>
-          {features.map((feature, index) => {
-            const Icon = feature.icon ? Icons[feature.icon] : null
+          {Array.isArray(features) &&
+            features.map((feature, index) => {
+              const Icon = feature.icon ? Icons[feature.icon] : null
 
-            return (
-              <motion.div
-                key={index}
-                className={cn(
-                  'group relative p-6 rounded-lg border bg-card transition-all duration-300 hover:shadow-lg',
-                  sizeStyles[size],
-                  layout === 'carousel' &&
-                    'snap-center flex-shrink-0 w-[calc(100vw-2rem)] md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]',
-                  'animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both',
-                  { 'delay-150': index === 1, 'delay-300': index === 2 },
-                )}
-              >
-                {Icon && (
-                  <div className="mb-4 text-primary transition-transform group-hover:scale-110">
-                    <Icon className={variants[layout].icon} />
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">{feature.title}</h3>
-                  {feature.description && (
-                    <div className="text-muted-foreground">
-                      <RichText data={feature.description as SerializedEditorState} />
+              return (
+                <motion.div
+                  key={index}
+                  className={cn(
+                    'group relative p-6 rounded-lg border bg-card transition-all duration-300 hover:shadow-lg',
+                    sizeStyles[size],
+                    layout === 'carousel' &&
+                      'snap-center flex-shrink-0 w-[calc(100vw-2rem)] md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]',
+                    'animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both',
+                    { 'delay-150': index === 1, 'delay-300': index === 2 },
+                  )}
+                >
+                  {Icon && (
+                    <div className="mb-4 text-primary transition-transform group-hover:scale-110">
+                      <Icon className={variants[layout].icon} />
                     </div>
                   )}
-                </div>
-              </motion.div>
-            )
-          })}
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">{feature.title}</h3>
+                    {feature.description && (
+                      <div className="text-muted-foreground">
+                        <RichText data={feature.description as SerializedEditorState} />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )
+            })}
         </div>
       </div>
     </GridContainer>

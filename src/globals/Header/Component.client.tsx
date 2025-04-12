@@ -178,9 +178,14 @@ export function HeaderClient({ data: initialData, locale }: HeaderClientProps) {
 
   useEffect(() => {
     const loadData = async () => {
-      const newData = await fetchGlobal('header', 1, currentLocale)
-      if (newData) {
-        setData(newData)
+      try {
+        const newData = await fetchGlobal('header', 1, currentLocale)
+        if (newData) {
+          setData(newData)
+        }
+      } catch (error) {
+        console.error('Error fetching header data:', error)
+        // Можно добавить логику для отображения ошибки пользователю, если необходимо
       }
     }
     loadData()
