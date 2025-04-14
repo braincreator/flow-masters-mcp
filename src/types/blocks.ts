@@ -455,7 +455,20 @@ export interface AudioBlock extends BlockBase {
 export interface SocialShareBlock extends BlockBase {
   blockType: 'socialShare'
   title?: string
-  platforms: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[]
+  platforms: (
+    | 'x'
+    | 'facebook'
+    | 'linkedin'
+    | 'pinterest'
+    | 'vk'
+    | 'instagram'
+    | 'threads'
+    | 'tenchat'
+    | 'whatsapp'
+    | 'telegram'
+    | 'email'
+    | 'copy'
+  )[]
   layout?: 'horizontal' | 'vertical'
   showShareCount?: boolean
   settings?: BlockSettings

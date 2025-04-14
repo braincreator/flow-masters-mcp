@@ -1560,13 +1560,28 @@ export interface Page {
         /**
          * Выберите платформы для шеринга
          */
-        platforms?: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[] | null;
+        platforms?:
+          | (
+              | 'x'
+              | 'facebook'
+              | 'linkedin'
+              | 'pinterest'
+              | 'vk'
+              | 'instagram'
+              | 'threads'
+              | 'tenchat'
+              | 'whatsapp'
+              | 'telegram'
+              | 'email'
+              | 'copy'
+            )[]
+          | null;
         /**
          * Выберите расположение кнопок
          */
         layout?: ('horizontal' | 'vertical') | null;
         /**
-         * Показывать количество шерингов
+         * Показывать количество шерингов (если поддерживается)
          */
         showShareCount?: boolean | null;
         id?: string | null;
@@ -1615,6 +1630,10 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  /**
+   * Automatically calculated based on content length.
+   */
+  readingTime?: number | null;
   relatedPosts?: (string | Post)[] | null;
   categories?: (string | Category)[] | null;
   tags?: (string | Tag)[] | null;
@@ -3560,13 +3579,28 @@ export interface Course {
         /**
          * Выберите платформы для шеринга
          */
-        platforms?: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[] | null;
+        platforms?:
+          | (
+              | 'x'
+              | 'facebook'
+              | 'linkedin'
+              | 'pinterest'
+              | 'vk'
+              | 'instagram'
+              | 'threads'
+              | 'tenchat'
+              | 'whatsapp'
+              | 'telegram'
+              | 'email'
+              | 'copy'
+            )[]
+          | null;
         /**
          * Выберите расположение кнопок
          */
         layout?: ('horizontal' | 'vertical') | null;
         /**
-         * Показывать количество шерингов
+         * Показывать количество шерингов (если поддерживается)
          */
         showShareCount?: boolean | null;
         id?: string | null;
@@ -7155,13 +7189,28 @@ export interface Module {
         /**
          * Выберите платформы для шеринга
          */
-        platforms?: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[] | null;
+        platforms?:
+          | (
+              | 'x'
+              | 'facebook'
+              | 'linkedin'
+              | 'pinterest'
+              | 'vk'
+              | 'instagram'
+              | 'threads'
+              | 'tenchat'
+              | 'whatsapp'
+              | 'telegram'
+              | 'email'
+              | 'copy'
+            )[]
+          | null;
         /**
          * Выберите расположение кнопок
          */
         layout?: ('horizontal' | 'vertical') | null;
         /**
-         * Показывать количество шерингов
+         * Показывать количество шерингов (если поддерживается)
          */
         showShareCount?: boolean | null;
         id?: string | null;
@@ -9876,13 +9925,28 @@ export interface SocialShare {
   /**
    * Выберите платформы для шеринга
    */
-  platforms?: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[] | null;
+  platforms?:
+    | (
+        | 'x'
+        | 'facebook'
+        | 'linkedin'
+        | 'pinterest'
+        | 'vk'
+        | 'instagram'
+        | 'threads'
+        | 'tenchat'
+        | 'whatsapp'
+        | 'telegram'
+        | 'email'
+        | 'copy'
+      )[]
+    | null;
   /**
    * Выберите расположение кнопок
    */
   layout?: ('horizontal' | 'vertical') | null;
   /**
-   * Показывать количество шерингов
+   * Показывать количество шерингов (если поддерживается)
    */
   showShareCount?: boolean | null;
   id?: string | null;
@@ -11599,13 +11663,28 @@ export interface Popup {
         /**
          * Выберите платформы для шеринга
          */
-        platforms?: ('twitter' | 'facebook' | 'linkedin' | 'reddit' | 'email' | 'copy')[] | null;
+        platforms?:
+          | (
+              | 'x'
+              | 'facebook'
+              | 'linkedin'
+              | 'pinterest'
+              | 'vk'
+              | 'instagram'
+              | 'threads'
+              | 'tenchat'
+              | 'whatsapp'
+              | 'telegram'
+              | 'email'
+              | 'copy'
+            )[]
+          | null;
         /**
          * Выберите расположение кнопок
          */
         layout?: ('horizontal' | 'vertical') | null;
         /**
-         * Показывать количество шерингов
+         * Показывать количество шерингов (если поддерживается)
          */
         showShareCount?: boolean | null;
         id?: string | null;
@@ -15399,6 +15478,7 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
+  readingTime?: T;
   relatedPosts?: T;
   categories?: T;
   tags?: T;

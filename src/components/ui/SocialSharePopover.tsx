@@ -1,10 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { Facebook, Twitter, Mail, Link2, Copy, Share2, X, MessageCircle } from 'lucide-react'
+import {
+  Facebook,
+  Mail,
+  Link2,
+  Copy,
+  Share2,
+  X as XIcon,
+  MessageCircle,
+  Send,
+  Vk,
+  Instagram,
+  AtSign,
+  Briefcase,
+  X as CloseIcon,
+} from 'lucide-react'
+import { SiFacebook, SiX, SiVk, SiInstagram, SiThreads, SiPinterest } from 'react-icons/si'
+import { TenChatIcon } from '@/components/icons/TenChatIcon'
 import { shareContent, type SharingPlatform } from '@/utilities/share'
 import { useTranslations } from '@/hooks/useTranslations'
 import { cn } from '@/utilities/ui'
@@ -19,9 +35,13 @@ const LOCALIZED_TEXTS = {
     shareDescription: (productName: string) => `Check out this product: ${productName}`,
     linkCopiedWithProduct: (productName: string) => `Link to ${productName} copied!`,
     facebook: 'Share on Facebook',
-    twitter: 'Share on Twitter',
+    x: 'Share on X',
     email: 'Share via Email',
     whatsapp: 'Share on WhatsApp',
+    vk: 'Share on VK',
+    instagram: 'Share on Instagram',
+    threads: 'Share on Threads',
+    tenchat: 'Share on TenChat',
   },
   ru: {
     share: 'Поделиться',
@@ -31,9 +51,13 @@ const LOCALIZED_TEXTS = {
     shareDescription: (productName: string) => `Посмотрите этот товар: ${productName}`,
     linkCopiedWithProduct: (productName: string) => `Ссылка на ${productName} скопирована!`,
     facebook: 'Поделиться в Facebook',
-    twitter: 'Поделиться в Twitter',
+    x: 'Поделиться в X',
     email: 'Отправить по Email',
     whatsapp: 'Поделиться в WhatsApp',
+    vk: 'Поделиться в VK',
+    instagram: 'Поделиться в Instagram',
+    threads: 'Поделиться в Threads',
+    tenchat: 'Поделиться в TenChat',
   },
   // Add other languages here following the same pattern
 }
@@ -47,6 +71,7 @@ interface SocialSharePopoverProps {
   triggerClassName?: string
   contentClassName?: string
   onLinkCopied?: () => void
+  platforms?: SharingPlatform[]
 }
 
 export function SocialSharePopover({
@@ -58,6 +83,17 @@ export function SocialSharePopover({
   triggerClassName = '',
   contentClassName = '',
   onLinkCopied,
+  platforms = [
+    'facebook',
+    'x',
+    'email',
+    'whatsapp',
+    'vk',
+    'instagram',
+    'threads',
+    'tenchat',
+    'copy',
+  ],
 }: SocialSharePopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
   const t = useTranslations(lang)
@@ -105,6 +141,21 @@ export function SocialSharePopover({
     e.stopPropagation()
   }
 
+  // Map platforms to icons, labels, and colors
+  const platformConfig: Partial<
+    Record<SharingPlatform, { icon: React.ReactNode; label: string; color?: string }>
+  > = {
+    facebook: { icon: <SiFacebook />, label: texts.facebook, color: 'text-blue-600' },
+    x: { icon: <SiX />, label: texts.x, color: 'text-black' },
+    email: { icon: <Mail />, label: texts.email, color: 'text-red-500' },
+    whatsapp: { icon: <MessageCircle />, label: texts.whatsapp, color: 'text-green-500' },
+    vk: { icon: <SiVk />, label: texts.vk, color: 'text-blue-500' },
+    instagram: { icon: <SiInstagram />, label: texts.instagram, color: 'text-pink-600' },
+    threads: { icon: <SiThreads />, label: texts.threads, color: 'text-gray-800' },
+    tenchat: { icon: <TenChatIcon />, label: texts.tenchat, color: '#272e43' },
+    copy: { icon: <Copy className="h-4 w-4 mr-2" />, label: texts.copyLink },
+  }
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -121,7 +172,7 @@ export function SocialSharePopover({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={`w-64 p-2 ${contentClassName}`}
+        className={`w-auto p-2 ${contentClassName}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-2">
@@ -137,81 +188,78 @@ export function SocialSharePopover({
               }}
               aria-label={texts.close}
             >
-              <X className="h-4 w-4" />
+              <CloseIcon className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleShare('facebook')
-              }}
-              aria-label={texts.facebook}
-              title={texts.facebook}
-            >
-              <Facebook className="h-5 w-5 text-blue-600" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleShare('twitter')
-              }}
-              aria-label={texts.twitter}
-              title={texts.twitter}
-            >
-              <Twitter className="h-5 w-5 text-sky-500" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleShare('email')
-              }}
-              aria-label={texts.email}
-              title={texts.email}
-            >
-              <Mail className="h-5 w-5 text-red-500" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleShare('whatsapp')
-              }}
-              aria-label={texts.whatsapp}
-              title={texts.whatsapp}
-            >
-              <MessageCircle className="h-5 w-5 text-green-500" />
-            </Button>
-          </div>
-
-          <Button
-            variant="secondary"
-            className="mt-2 w-full"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleShare('copy')
-            }}
-            aria-label={texts.copyLink}
-            title={texts.copyLink}
+          <div
+            className={cn(
+              'grid gap-2',
+              platforms.filter((p) => p !== 'copy').length <= 4
+                ? 'grid-cols-4'
+                : platforms.filter((p) => p !== 'copy').length <= 8
+                  ? 'grid-cols-4'
+                  : 'grid-cols-5',
+            )}
           >
-            <Copy className="h-4 w-4 mr-2" />
-            {texts.copyLink}
-          </Button>
+            {platforms
+              .filter((p) => p !== 'copy')
+              .map((platform) => {
+                const config = platformConfig[platform]
+                if (!config) {
+                  console.warn(`Missing config for platform: ${platform}`)
+                  return null
+                }
+
+                return (
+                  <Button
+                    key={platform}
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleShare(platform)
+                    }}
+                    aria-label={config.label}
+                    title={config.label}
+                    style={
+                      platform === 'tenchat'
+                        ? {
+                            /* Add inline styles if needed */
+                          }
+                        : {}
+                    }
+                  >
+                    {React.cloneElement(config.icon as React.ReactElement, {
+                      className: cn(
+                        'h-5 w-5',
+                        config.color && !config.color.startsWith('#') ? config.color : '',
+                      ),
+                      style: {
+                        fill: config.color?.startsWith('#') ? config.color : undefined,
+                      },
+                    })}
+                  </Button>
+                )
+              })}
+          </div>
+
+          {platforms.includes('copy') && (
+            <Button
+              variant="secondary"
+              className="mt-2 w-full"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleShare('copy')
+              }}
+              aria-label={texts.copyLink}
+              title={texts.copyLink}
+            >
+              {platformConfig.copy?.icon}
+              {texts.copyLink}
+            </Button>
+          )}
         </div>
       </PopoverContent>
     </Popover>

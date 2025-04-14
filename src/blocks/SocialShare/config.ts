@@ -24,11 +24,11 @@ export const SocialShare: Block = {
       name: 'platforms',
       type: 'select',
       hasMany: true,
-      defaultValue: ['twitter', 'facebook', 'linkedin', 'email', 'copy'],
+      defaultValue: ['x', 'facebook', 'vk', 'telegram', 'whatsapp', 'email', 'copy'],
       options: [
         {
-          label: 'Twitter',
-          value: 'twitter',
+          label: 'X (Twitter)',
+          value: 'x',
         },
         {
           label: 'Facebook',
@@ -39,8 +39,32 @@ export const SocialShare: Block = {
           value: 'linkedin',
         },
         {
-          label: 'Reddit',
-          value: 'reddit',
+          label: 'Pinterest',
+          value: 'pinterest',
+        },
+        {
+          label: 'VK',
+          value: 'vk',
+        },
+        {
+          label: 'Instagram',
+          value: 'instagram',
+        },
+        {
+          label: 'Threads',
+          value: 'threads',
+        },
+        {
+          label: 'TenChat',
+          value: 'tenchat',
+        },
+        {
+          label: 'WhatsApp',
+          value: 'whatsapp',
+        },
+        {
+          label: 'Telegram',
+          value: 'telegram',
         },
         {
           label: 'Email',
@@ -78,7 +102,7 @@ export const SocialShare: Block = {
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        description: 'Показывать количество шерингов',
+        description: 'Показывать количество шерингов (если поддерживается)',
       },
     },
   ],

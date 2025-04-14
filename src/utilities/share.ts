@@ -3,11 +3,15 @@
  */
 export type SharingPlatform =
   | 'facebook'
-  | 'twitter'
+  | 'x'
   | 'pinterest'
   | 'email'
   | 'whatsapp'
   | 'telegram'
+  | 'vk'
+  | 'instagram'
+  | 'threads'
+  | 'tenchat'
   | 'copy'
 
 interface ShareOptions {
@@ -48,9 +52,9 @@ export const shareContent = async (
           `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(description || title)}${hashtag}`,
         )
         break
-      case 'twitter':
+      case 'x':
         window.open(
-          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+          `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
         )
         break
       case 'pinterest':
@@ -69,6 +73,26 @@ export const shareContent = async (
       case 'telegram':
         window.open(
           `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+        )
+        break
+      case 'vk':
+        window.open(
+          `https://vk.com/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&image=${encodeURIComponent(image)}`,
+        )
+        break
+      case 'instagram':
+        window.open(`https://www.instagram.com/`)
+        console.warn(
+          'Direct sharing to Instagram is limited. User needs to manually create a post.',
+        )
+        break
+      case 'threads':
+        window.open(`https://threads.net/intent/post?text=${encodeURIComponent(`${title} ${url}`)}`)
+        break
+      case 'tenchat':
+        window.open(`https://tenchat.ru/`)
+        console.warn(
+          'Direct sharing to TenChat via URL is not supported. User needs to manually share.',
         )
         break
       case 'copy':

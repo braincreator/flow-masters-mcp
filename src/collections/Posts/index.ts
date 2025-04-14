@@ -17,6 +17,7 @@ import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
+import { populateReadingTime } from './hooks/populateReadingTime'
 
 import {
   MetaDescriptionField,
@@ -42,6 +43,7 @@ export const Posts: CollectionConfig<'posts'> = {
     title: true,
     slug: true,
     categories: true,
+    readingTime: true,
     meta: {
       image: true,
       description: true,
@@ -101,6 +103,17 @@ export const Posts: CollectionConfig<'posts'> = {
               }),
               label: false,
               required: true,
+            },
+            {
+              name: 'readingTime',
+              label: 'Reading Time (minutes)',
+              type: 'number',
+              admin: {
+                readOnly: true,
+                position: 'sidebar',
+                description: 'Automatically calculated based on content length.',
+                condition: (data) => data.readingTime,
+              },
             },
           ],
           label: 'Content',
@@ -236,6 +249,7 @@ export const Posts: CollectionConfig<'posts'> = {
     ...slugField(),
   ],
   hooks: {
+    beforeChange: [populateReadingTime],
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],

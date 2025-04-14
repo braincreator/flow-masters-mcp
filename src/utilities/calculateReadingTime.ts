@@ -1,41 +1,26 @@
+import serializeSlateToText from './slateToText'
+import { type Node } from 'slate'
 import { CollectionBeforeChangeHook } from 'payload/types'
 
 // Средняя скорость чтения (слов в минуту)
 const WORDS_PER_MINUTE = 200
 
-// Рекурсивная функция для извлечения текста из узлов Lexical
-function extractTextFromNode(node: any): string {
-  let text = ''
-  if (node.type === 'text') {
-    text += node.text || ''
-  } else if (node.children && Array.isArray(node.children)) {
-    node.children.forEach((childNode: any) => {
-      text += extractTextFromNode(childNode)
-    })
-  }
-  // Добавляем пробел после каждого узла уровня блока для разделения слов
-  if (['paragraph', 'heading', 'listitem', 'quote', 'code'].includes(node.type)) {
-    text += ' '
-  }
-  return text
-}
-
 // Функция для расчета времени чтения
-export function calculateReadingTime(lexicalContent: any): number {
-  if (!lexicalContent?.root?.children) {
+export const calculateReadingTime = (content: Node[] | undefined | null): number => {
+  if (!content) {
     return 0
   }
 
-  const fullText = extractTextFromNode(lexicalContent.root).trim()
-  // Разделяем по пробелам и непустым строкам, считаем слова
-  const wordCount = fullText.split(/\s+/).filter(Boolean).length
+  const text = serializeSlateToText(content)
+  // Remove extra whitespace and count words
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length
 
   if (wordCount === 0) {
     return 0
   }
 
-  const readingTime = Math.ceil(wordCount / WORDS_PER_MINUTE)
-  return readingTime
+  const minutes = wordCount / WORDS_PER_MINUTE
+  return Math.max(1, Math.ceil(minutes)) // Return reading time in minutes, at least 1 minute
 }
 
 // Хук для обновления времени чтения перед сохранением поста
@@ -53,4 +38,3 @@ export const updateReadingTime: CollectionBeforeChangeHook = ({ data, req, opera
   // В остальных случаях возвращаем исходные данные
   return data
 }
-
