@@ -119,7 +119,9 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
           {post.readTime && (
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{post.readTime} min read</span>
+              <span>
+                {post.readTime} {currentLocale === 'ru' ? 'мин чтения' : 'min read'}
+              </span>
             </div>
           )}
         </div>

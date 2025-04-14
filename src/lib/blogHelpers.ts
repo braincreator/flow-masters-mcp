@@ -235,7 +235,7 @@ export async function trackPostView(postId: string): Promise<void> {
 }
 
 /**
- * Formats a date for display in blog posts
+ * Formats a date for display in blog posts, now including time
  */
 export function formatBlogDate(date: string | Date, locale: string = 'en'): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
@@ -245,10 +245,14 @@ export function formatBlogDate(date: string | Date, locale: string = 'en'): stri
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      hour: '2-digit', // Add hour
+      minute: '2-digit', // Add minute
+      hour12: false, // Use 24-hour format if preferred
     }).format(dateObj)
   } catch (error) {
     console.error('Error formatting date:', error)
-    return dateObj.toLocaleDateString()
+    // Fallback to a simpler format in case of error
+    return dateObj.toLocaleDateString(locale)
   }
 }
 

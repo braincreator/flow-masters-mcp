@@ -69,7 +69,11 @@ export function BlogPost({
               )}
 
               {/* Reading time */}
-              {showReadingTime && <div>{readingTime} min read</div>}
+              {showReadingTime && (
+                <div>
+                  {readingTime} {post.locale === 'ru' ? 'мин чтения' : 'min read'}
+                </div>
+              )}
             </div>
           </header>
 

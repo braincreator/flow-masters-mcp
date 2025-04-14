@@ -4,9 +4,10 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { format } from 'date-fns'
-import { Calendar, Clock, User as UserIcon } from 'lucide-react'
+import { Calendar, Clock, User as UserIcon, Tag } from 'lucide-react'
 import { cn } from '@/utilities/ui'
+import { formatBlogDate } from '@/lib/blogHelpers'
+import { Badge } from '@/components/ui/badge'
 
 // Добавим недостающие переводы
 const translations = {
@@ -40,13 +41,10 @@ function getExcerpt(content: any, maxLength = 160): string {
   return text.substring(0, maxLength).trim() + '...'
 }
 
-// Форматирование даты
-function formatDate(date: Date, locale = 'en'): string {
-  try {
-    return format(date, 'MMM d, yyyy')
-  } catch (e) {
-    return ''
-  }
+interface TagType {
+  id: string
+  title: string
+  slug: string
 }
 
 interface Post {
@@ -68,6 +66,7 @@ interface Post {
     title: string
     slug: string
   }[]
+  tags?: TagType[]
   readingTime?: number
 }
 
@@ -79,6 +78,7 @@ interface BlogPostCardProps {
   showExcerpt?: boolean
   showAuthor?: boolean
   showDate?: boolean
+  showTags?: boolean
   className?: string
   style?: React.CSSProperties
 }
@@ -91,6 +91,7 @@ export function BlogPostCard({
   showExcerpt = true,
   showAuthor = true,
   showDate = true,
+  showTags = true,
   className,
   style,
 }: BlogPostCardProps) {
@@ -100,7 +101,7 @@ export function BlogPostCard({
 
   if (!post) return null
 
-  const formattedDate = (post.publishedAt && formatDate(new Date(post.publishedAt), locale)) || ''
+  const formattedDate = (post.publishedAt && formatBlogDate(post.publishedAt, locale)) || ''
   const postLink = `/${locale}/blog/${post.slug}`
 
   return (
@@ -157,7 +158,11 @@ export function BlogPostCard({
           {showDate && formattedDate && (
             <div className="flex items-center">
               <Calendar className="mr-1 h-3.5 w-3.5" />
-              <time dateTime={post.publishedAt || ''}>{formattedDate}</time>
+              <time
+                dateTime={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
+              >
+                {formattedDate}
+              </time>
             </div>
           )}
 
@@ -170,6 +175,23 @@ export function BlogPostCard({
             </div>
           )}
         </div>
+
+        {/* Tags */}
+        {showTags && post.tags && post.tags.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {post.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag.id} variant="secondary" className="font-normal text-xs">
+                <Link
+                  href={`/${locale}/blog?tag=${tag.slug}`}
+                  className="hover:underline"
+                  title={`View posts tagged with ${tag.title}`}
+                >
+                  <Tag className="mr-1 h-3 w-3" /> {tag.title}
+                </Link>
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {/* Excerpt */}
         {showExcerpt && displayExcerpt && (

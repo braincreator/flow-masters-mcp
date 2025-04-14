@@ -1,4 +1,4 @@
-"use client"
+'use client'
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
@@ -361,7 +361,7 @@ export function Blog({
           {post.readTime && (
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              {post.readTime} min read
+              {post.readTime} {settings?.locale === 'ru' ? 'мин чтения' : 'min read'}
             </div>
           )}
         </div>

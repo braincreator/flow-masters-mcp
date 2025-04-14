@@ -7,7 +7,7 @@ import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { Pagination } from '@/components/Pagination'
-import { Newsletter } from '@/components/Newsletter'
+import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
 import { Post, Category, Media } from '@/payload-types'
 import { BlogPost, BlogTag } from '@/types/blocks'
 import { Filter, X, Search } from 'lucide-react'
@@ -413,21 +413,8 @@ export default async function BlogPage(props: PageParams) {
                 </div>
               )}
 
-              {/* Рассылка */}
-              <div className="rounded-xl border border-border p-6 shadow-sm bg-gradient-to-br from-card to-card/80">
-                <Newsletter
-                  title={
-                    locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'
-                  }
-                  description={
-                    locale === 'ru'
-                      ? 'Получайте наши новости и статьи на почту'
-                      : 'Stay updated with our latest news and articles'
-                  }
-                  buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
-                  placeholderText={locale === 'ru' ? 'Ваш email' : 'Enter your email'}
-                />
-              </div>
+              {/* Рассылка - рендерится на клиенте с проверкой подписки */}
+              <NewsletterWrapper locale={locale} storageKey="blog_newsletter_subscription" />
             </div>
           </div>
         </div>

@@ -70,7 +70,9 @@ export const ArticleHeader: React.FC<ArticleHeaderBlockType> = ({
               {readTime && (
                 <>
                   <span className="mx-2">•</span>
-                  <span>{readTime} min read</span>
+                  <span>
+                    {readTime} {settings?.locale === 'ru' ? 'мин чтения' : 'min read'}
+                  </span>
                 </>
               )}
             </div>

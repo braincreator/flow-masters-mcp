@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
@@ -15,7 +15,8 @@ import { Comments } from '@/components/blog/Comments'
 import { ScrollToTopButton } from '@/components/blog/ScrollToTopButton'
 import { BlogAuthorBio } from '@/components/blog/BlogAuthorBio'
 import { BlogRelatedPosts } from '@/components/blog/BlogRelatedPosts'
-import { Newsletter } from '@/components/Newsletter'
+import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
+
 import { formatBlogDate } from '@/lib/blogHelpers'
 
 // Импортируем стили
@@ -100,7 +101,9 @@ export function BlogPostPageClient({
 
                 <div className="flex items-center gap-1">
                   <Eye className="h-4 w-4" />
-                  <span>{readTime} min read</span>
+                  <span>
+                    {readTime} {currentLocale === 'ru' ? 'мин чтения' : 'min read'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -177,7 +180,9 @@ export function BlogPostPageClient({
                       <dt className="inline font-medium mr-1">
                         {currentLocale === 'ru' ? 'Время чтения:' : 'Read time:'}
                       </dt>
-                      <dd className="inline">{readTime} min</dd>
+                      <dd className="inline">
+                        {readTime} {currentLocale === 'ru' ? 'мин' : 'min'}
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -319,21 +324,10 @@ export function BlogPostPageClient({
               {post.author && <BlogAuthorBio author={post.author} />}
 
               {/* Newsletter Section - только для мобильных и только для неподписанных пользователей */}
-              <NewsletterSection
+              <NewsletterWrapper
                 locale={currentLocale}
                 storageKey="blog_newsletter_subscription"
-                source="blog_mobile"
                 className="blog-newsletter-mobile"
-                title={
-                  currentLocale === 'ru'
-                    ? 'Подпишитесь на нашу рассылку'
-                    : 'Subscribe to our newsletter'
-                }
-                description={
-                  currentLocale === 'ru'
-                    ? 'Получайте лучшие статьи и новости прямо на почту'
-                    : 'Get the best articles and news delivered to your inbox'
-                }
               />
 
               {/* Comments Section */}
@@ -381,10 +375,10 @@ export function BlogPostPageClient({
                 </div>
 
                 {/* Newsletter в правом сайдбаре с проверкой подписки */}
-                <NewsletterSection
+                <NewsletterWrapper
                   locale={currentLocale}
                   storageKey="blog_newsletter_subscription"
-                  source="blog_sidebar"
+                  className="sidebar-newsletter"
                 />
               </div>
             </aside>
@@ -402,112 +396,5 @@ export function BlogPostPageClient({
         </article>
       </div>
     </>
-  )
-}
-
-/**
- * Компонент-обертка для рендеринга блока подписки с проверкой, подписан ли пользователь
- */
-function NewsletterSection({
-  locale,
-  storageKey,
-  source,
-  className = '',
-  title,
-  description,
-}: {
-  locale: string
-  storageKey: string
-  source: string
-  className?: string
-  title?: string
-  description?: string
-}) {
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-
-    // Проверяем, подписан ли пользователь
-    const subscriptionStatus = localStorage.getItem(storageKey)
-    if (subscriptionStatus) {
-      try {
-        const data = JSON.parse(subscriptionStatus)
-        if (data.subscribed) {
-          setIsSubscribed(true)
-        }
-      } catch (e) {
-        // Если данные повреждены, удаляем их
-        localStorage.removeItem(storageKey)
-      }
-    }
-  }, [storageKey])
-
-  // Не отображаем компонент до загрузки в браузере
-  if (!isClient) return null
-
-  // Не отображаем блок подписки, если пользователь уже подписан
-  if (isSubscribed) return null
-
-  // Для сайдбара используем компактный вариант
-  if (source === 'blog_sidebar') {
-    return (
-      <div className={`mt-4 sidebar-card ${className}`}>
-        <h3 className="font-medium text-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect width="16" height="13" x="4" y="5" rx="2"></rect>
-            <path d="m4 8 8 5 8-5"></path>
-          </svg>
-          {locale === 'ru' ? 'Подписка на обновления' : 'Subscribe to updates'}
-        </h3>
-        <div className="newsletter-form">
-          <Newsletter
-            title={locale === 'ru' ? 'Наша рассылка' : 'Our newsletter'}
-            description={
-              locale === 'ru' ? 'Получайте новые статьи на почту' : 'Get new articles by email'
-            }
-            variant="compact"
-            layout="stacked"
-            buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
-            placeholderText={locale === 'ru' ? 'Ваш email' : 'Your email'}
-            storageKey={storageKey}
-            locale={locale}
-            source={source}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  // Для мобильного или других вариантов
-  return (
-    <div className={className}>
-      <Newsletter
-        title={
-          title ||
-          (locale === 'ru' ? 'Подпишитесь на нашу рассылку' : 'Subscribe to our newsletter')
-        }
-        description={
-          description ||
-          (locale === 'ru' ? 'Получайте новые статьи на почту' : 'Get new articles by email')
-        }
-        buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
-        placeholderText={locale === 'ru' ? 'Ваш email' : 'Your email'}
-        storageKey={storageKey}
-        locale={locale}
-        source={source}
-      />
-    </div>
   )
 }

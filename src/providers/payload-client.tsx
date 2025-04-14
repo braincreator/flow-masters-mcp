@@ -44,12 +44,15 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      console.log(`Client: Fetching posts for locale ${locale}, page ${page}, limit ${limit}`)
+      console.log(
+        `Client: Fetching posts for locale ${locale}, page ${page}, limit ${limit}, depth 2`,
+      )
       // Construct API query params
       const params = new URLSearchParams()
       params.set('locale', locale)
       params.set('page', page.toString())
       params.set('limit', limit.toString())
+      params.set('depth', '2')
 
       if (searchQuery) params.set('search', searchQuery)
       if (categorySlug) params.set('category', categorySlug)
