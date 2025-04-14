@@ -11,7 +11,7 @@ import PostContent from '@/components/blog/PostContent'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { ErrorButtonWrapper } from '@/components/blog/ErrorButtonWrapper'
 import { BlogActionButtons } from '@/components/blog/BlogActionButtons'
-import { EnhancedBlogComments } from '@/components/blog/EnhancedBlogComments'
+import { Comments } from '@/components/blog/Comments'
 import { ScrollToTopButton } from '@/components/blog/ScrollToTopButton'
 import { BlogAuthorBio } from '@/components/blog/BlogAuthorBio'
 import { BlogRelatedPosts } from '@/components/blog/BlogRelatedPosts'
@@ -342,7 +342,7 @@ export function BlogPostPageClient({
                   {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
                 </h2>
                 <div id="comments-list">
-                  <EnhancedBlogComments postId={post.id} locale={currentLocale} />
+                  <Comments postId={post.id} locale={currentLocale as 'en' | 'ru'} />
                 </div>
               </section>
             </main>

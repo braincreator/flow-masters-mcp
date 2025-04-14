@@ -33,11 +33,17 @@ async function fetchReplies(payload: Payload, commentId: string): Promise<Commen
       parentComment: {
         equals: commentId,
       },
+      // Временно убираем фильтрацию по статусу для отладки
+      // status: {
+      //   equals: 'approved', // Только одобренные комментарии
+      // },
     },
     // Важно: Указываем глубину, чтобы подгрузить автора, если это необходимо в ответах
     // Если автор не нужен, можно убрать или depth: 0
     depth: 1,
   })
+
+  console.log(`Replies for comment ${commentId}:`, replies.docs.length)
 
   const repliesWithNestedReplies = await Promise.all(
     replies.docs.map(async (reply) => {
@@ -136,6 +142,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
+    console.log(`Fetching comments for post: ${postId}`)
+
     const payload = await getPayloadClient()
 
     // Загружаем комментарии верхнего уровня
@@ -148,10 +156,19 @@ export async function GET(req: NextRequest) {
         parentComment: {
           equals: null, // Только верхний уровень
         },
+        // Временно убираем фильтрацию по статусу для отладки
+        // status: {
+        //   equals: 'approved', // Только одобренные комментарии
+        // },
       },
       // Указываем глубину, чтобы подгрузить автора
       depth: 1,
     })
+
+    console.log(`Found ${topLevelComments.docs.length} top level comments`)
+    if (topLevelComments.docs.length > 0) {
+      console.log('First comment status:', topLevelComments.docs[0].status)
+    }
 
     // Используем рекурсивную функцию для загрузки всех вложенных ответов
     const commentsWithNestedReplies = await Promise.all(
@@ -164,7 +181,17 @@ export async function GET(req: NextRequest) {
       }),
     )
 
-    return NextResponse.json(commentsWithNestedReplies)
+    console.log(
+      'Final comments structure (first item):',
+      commentsWithNestedReplies.length > 0
+        ? JSON.stringify(commentsWithNestedReplies[0], null, 2).substring(0, 500) + '...'
+        : 'No comments',
+    )
+
+    // Возвращаем в формате, совместимом с компонентом Comments
+    return NextResponse.json({
+      comments: commentsWithNestedReplies,
+    })
   } catch (error) {
     console.error('Error fetching comments:', error)
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 })

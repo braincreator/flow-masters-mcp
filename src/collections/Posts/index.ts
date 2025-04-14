@@ -17,7 +17,6 @@ import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
-import { calculateReadingTime, updateReadingTime } from '../../utilities/calculateReadingTime'
 
 import {
   MetaDescriptionField,
@@ -132,6 +131,13 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
+              filterOptions: {
+                where: {
+                  categoryType: {
+                    equals: 'blog',
+                  },
+                },
+              },
             },
             {
               name: 'tags',
@@ -183,6 +189,16 @@ export const Posts: CollectionConfig<'posts'> = {
         },
         position: 'sidebar',
       },
+      hooks: {
+        beforeChange: [
+          ({ siblingData, value }) => {
+            if (siblingData._status === 'published' && !value) {
+              return new Date()
+            }
+            return value
+          },
+        ],
+      },
     },
     {
       name: 'authors',
@@ -217,37 +233,9 @@ export const Posts: CollectionConfig<'posts'> = {
         },
       ],
     },
-    {
-      name: 'readingTime',
-      label: 'Reading Time (minutes)',
-      type: 'number',
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-        description: 'Estimated reading time in minutes, calculated automatically.',
-      },
-    },
     ...slugField(),
   ],
   hooks: {
-    beforeChange: [
-      ({ data, req, operation, originalDoc }) => {
-        if (
-          operation === 'update' &&
-          data._status === 'published' &&
-          originalDoc?._status !== 'published'
-        ) {
-          if (!data.publishedAt) {
-            data.publishedAt = new Date()
-          }
-        } else if (operation === 'create' && data._status === 'published' && !data.publishedAt) {
-          data.publishedAt = new Date()
-        }
-
-        return data
-      },
-      updateReadingTime,
-    ],
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],

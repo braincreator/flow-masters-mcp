@@ -6,12 +6,53 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatDate } from '@/lib/blogHelpers'
 import { cn } from '@/lib/utils'
-import { ThumbsUp, MessageSquare, Flag } from 'lucide-react'
+import { ThumbsUp, MessageSquare, Flag, CornerUpLeft } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { ru } from 'date-fns/locale'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/hooks/useAuth'
+
+// Переводы для компонента комментариев
+const translations = {
+  en: {
+    comments: 'Comments',
+    allComments: 'All Comments',
+    loading: 'Loading comments...',
+    noComments: 'No comments yet. Be the first to comment!',
+    error: 'Error loading comments',
+    reply: 'Reply',
+    cancel: 'Cancel',
+    like: 'Like',
+    report: 'Report',
+    commentCount: (count: number) => `${count} ${count === 1 ? 'comment' : 'comments'}`,
+    hiddenReplies: (count: number) => `${count} replies hidden`,
+    asGuest: 'As Guest',
+    asUser: 'As User',
+  },
+  ru: {
+    comments: 'Комментарии',
+    allComments: 'Все комментарии',
+    loading: 'Загрузка комментариев...',
+    noComments: 'Пока нет комментариев. Будьте первым!',
+    error: 'Ошибка при загрузке комментариев',
+    reply: 'Ответить',
+    cancel: 'Отмена',
+    like: 'Нравится',
+    report: 'Пожаловаться',
+    commentCount: (count: number) =>
+      `${count} ${count === 1 ? 'комментарий' : count < 5 ? 'комментария' : 'комментариев'}`,
+    hiddenReplies: (count: number) =>
+      `${count} ${count === 1 ? 'ответ скрыт' : count < 5 ? 'ответа скрыто' : 'ответов скрыто'}`,
+    asGuest: 'Как гость',
+    asUser: 'Как пользователь',
+  },
+}
 
 export interface Author {
   name: string
   email?: string
   website?: string
+  avatar?: string
 }
 
 export interface CommentType {
@@ -29,21 +70,246 @@ export interface CommentsProps {
   allowReplies?: boolean
   allowVoting?: boolean
   allowReporting?: boolean
+  locale?: 'en' | 'ru'
+}
+
+/**
+ * Компонент для отображения отдельного комментария и его ответов
+ */
+interface CommentItemProps {
+  comment: CommentType
+  level?: number
+  postId: string
+  replyToId: string | null
+  locale: 'en' | 'ru'
+  allowReplies?: boolean
+  allowVoting?: boolean
+  allowReporting?: boolean
+  onReplyClick: (id: string) => void
+  onCancelReply: () => void
+  onSuccess: () => void
+}
+
+function CommentItem({
+  comment,
+  level = 0,
+  postId,
+  replyToId,
+  locale,
+  allowReplies = true,
+  allowVoting = false,
+  allowReporting = false,
+  onReplyClick,
+  onCancelReply,
+  onSuccess,
+}: CommentItemProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const t = locale === 'ru' ? translations.ru : translations.en
+
+  // Генерируем инициалы для аватара
+  const initials = comment.author.name
+    ?.split(' ')
+    .map((name) => name[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
+  // Форматируем дату
+  const formattedDate = formatDate(comment.createdAt)
+
+  // Относительное время для человекочитаемого формата (например, "2 часа назад")
+  const timeAgo = formatDistanceToNow(new Date(comment.createdAt), {
+    addSuffix: true,
+    locale: locale === 'ru' ? ru : undefined,
+  })
+
+  // Определяем максимальную вложенность
+  const maxNestingLevel = 3
+  const indentLevel = Math.min(level, maxNestingLevel)
+  const hasReplies = comment.replies && comment.replies.length > 0
+
+  // Меньший отступ для мобильных и глубокой вложенности
+  const nestedOffset = level > 2 ? 'ml-1.5' : level > 1 ? 'ml-2 md:ml-3' : 'ml-3 md:ml-4'
+
+  return (
+    <div
+      key={comment.id}
+      className={cn(
+        'py-3 md:py-4 border-border relative',
+        level > 0 ? `mt-2 ${nestedOffset} pl-2 md:pl-3 border-l` : 'px-3 md:px-4',
+        level >= maxNestingLevel ? 'ml-1.5' : '',
+      )}
+      id={`comment-${comment.id}`}
+    >
+      {level > 0 && (
+        <div
+          className="absolute left-[-1px] top-0 bottom-0 w-[1px] bg-border hover:bg-primary/20 cursor-pointer transition-colors"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          title={locale === 'ru' ? 'Свернуть/Развернуть' : 'Collapse/Expand'}
+        />
+      )}
+
+      <div className="flex gap-2.5">
+        {/* Avatar */}
+        <Avatar className="h-7 w-7 md:h-8 md:w-8 border border-border shrink-0">
+          {comment.author.avatar ? (
+            <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
+          ) : (
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+              {initials}
+            </AvatarFallback>
+          )}
+        </Avatar>
+
+        <div className="flex-1 space-y-1.5">
+          {/* Comment header */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="font-medium text-sm">{comment.author.name}</div>
+            <div className="text-xs text-muted-foreground" title={formattedDate}>
+              {timeAgo}
+            </div>
+          </div>
+
+          {/* Comment content */}
+          <div className="text-sm leading-relaxed break-words">{comment.content}</div>
+
+          {/* Comment actions */}
+          <div className="flex items-center flex-wrap gap-2 mt-2">
+            {allowVoting && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs rounded-md hover:bg-muted"
+              >
+                <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
+                <span>{t.like}</span>
+              </Button>
+            )}
+
+            {allowReplies && (
+              <Button
+                variant={replyToId === comment.id ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-7 px-2 text-xs rounded-md"
+                onClick={() => onReplyClick(comment.id)}
+              >
+                <CornerUpLeft className="h-3.5 w-3.5 mr-1.5" />
+                <span>{replyToId === comment.id ? t.cancel : t.reply}</span>
+              </Button>
+            )}
+
+            {allowReporting && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 rounded-md hover:bg-muted ml-auto"
+                title={t.report}
+              >
+                <Flag className="h-3.5 w-3.5" />
+                <span className="sr-only">{t.report}</span>
+              </Button>
+            )}
+
+            {isCollapsed && hasReplies && (
+              <div className="text-xs text-muted-foreground italic">
+                {t.hiddenReplies(comment.replies!.length)}
+              </div>
+            )}
+          </div>
+
+          {/* Reply form */}
+          {replyToId === comment.id && (
+            <div className="mt-3">
+              <CommentForm
+                postId={postId}
+                parentCommentId={comment.id}
+                onSuccess={() => {
+                  onSuccess()
+                  onCancelReply()
+                }}
+                onCancel={onCancelReply}
+                locale={locale}
+              />
+            </div>
+          )}
+
+          {/* Nested replies */}
+          {!isCollapsed && hasReplies && (
+            <div className="mt-3 space-y-2">
+              {comment.replies!.map((reply) => (
+                <CommentItem
+                  key={reply.id}
+                  comment={reply}
+                  level={level + 1}
+                  postId={postId}
+                  replyToId={replyToId}
+                  locale={locale}
+                  allowReplies={allowReplies}
+                  allowVoting={allowVoting}
+                  allowReporting={allowReporting}
+                  onReplyClick={onReplyClick}
+                  onCancelReply={onCancelReply}
+                  onSuccess={onSuccess}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function Comments({
   postId,
   className,
   allowReplies = true,
-  allowVoting = true,
-  allowReporting = true,
+  allowVoting = false,
+  allowReporting = false,
+  locale = 'en',
 }: CommentsProps) {
   const [comments, setComments] = useState<CommentType[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [replyToId, setReplyToId] = useState<string | null>(null)
 
-  // Fetch comments
+  // Получаем пользователя из контекста аутентификации
+  const { user } = useAuth?.() || { user: null }
+
+  // Получаем переводы
+  const t = locale === 'ru' ? translations.ru : translations.en
+
+  // Функция для адаптации формата данных Payload к формату компонента CommentType
+  const adaptCommentData = (comment: any): CommentType => {
+    // Проверяем структуру данных и применяем соответствующее преобразование
+    return {
+      id: comment.id || '',
+      author: {
+        name: comment.author?.name || 'Anonymous',
+        email: comment.author?.email,
+        website: comment.author?.website,
+        avatar: comment.author?.avatar,
+      },
+      content: comment.content || '',
+      createdAt: comment.createdAt || new Date().toISOString(),
+      parentId: comment.parentComment || undefined,
+      replies: Array.isArray(comment.replies) ? comment.replies.map(adaptCommentData) : [],
+    }
+  }
+
+  // Адаптируем структуру данных API к формату компонента
+  const adaptApiResponse = (data: any): CommentType[] => {
+    if (Array.isArray(data)) {
+      return data.map(adaptCommentData)
+    } else if (data.comments && Array.isArray(data.comments)) {
+      return data.comments.map(adaptCommentData)
+    } else if (data.docs && Array.isArray(data.docs)) {
+      return data.docs.map(adaptCommentData)
+    }
+    return []
+  }
+
+  // Загрузка комментариев
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -55,7 +321,12 @@ export function Comments({
         }
 
         const data = await response.json()
-        setComments(data.comments || [])
+        console.log('Received comments data:', data)
+
+        // Адаптируем данные к требуемому формату
+        const adaptedComments = adaptApiResponse(data)
+        console.log('Adapted comments:', adaptedComments)
+        setComments(adaptedComments)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error loading comments')
         console.error('Error fetching comments:', err)
@@ -67,129 +338,81 @@ export function Comments({
     fetchComments()
   }, [postId])
 
-  const renderComment = (comment: CommentType, level = 0) => {
-    // Generate initials for avatar fallback
-    const initials = comment.author.name
-      ?.split(' ')
-      .map((name) => name[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-
-    // Format date
-    const formattedDate = formatDate(comment.createdAt)
-
-    // Determine indentation
-    const maxNestingLevel = 3
-    const indentLevel = Math.min(level, maxNestingLevel)
-
-    return (
-      <div
-        key={comment.id}
-        className={cn(
-          'py-4',
-          level > 0 ? 'ml-4 pl-4 border-l' : '',
-          level >= maxNestingLevel ? 'ml-0' : '',
-        )}
-        id={`comment-${comment.id}`}
-      >
-        <div className="flex gap-3">
-          {/* Avatar */}
-          <Avatar className="h-10 w-10 border">
-            <AvatarImage alt={comment.author.name} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 space-y-1.5">
-            {/* Comment header */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="font-medium">{comment.author.name}</div>
-              <div className="text-xs text-muted-foreground">{formattedDate}</div>
-            </div>
-
-            {/* Comment content */}
-            <div className="text-sm">{comment.content}</div>
-
-            {/* Comment actions */}
-            <div className="flex items-center gap-4 mt-2">
-              {allowVoting && (
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
-                  <ThumbsUp className="h-3.5 w-3.5" />
-                  <span>Like</span>
-                </Button>
-              )}
-
-              {allowReplies && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs gap-1"
-                  onClick={() => setReplyToId(replyToId === comment.id ? null : comment.id)}
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  <span>{replyToId === comment.id ? 'Cancel' : 'Reply'}</span>
-                </Button>
-              )}
-
-              {allowReporting && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs gap-1 ml-auto text-muted-foreground"
-                  title="Report comment"
-                >
-                  <Flag className="h-3.5 w-3.5" />
-                  <span className="sr-only">Report</span>
-                </Button>
-              )}
-            </div>
-
-            {/* Reply form */}
-            {replyToId === comment.id && (
-              <div className="mt-4">
-                <CommentForm
-                  postId={postId}
-                  parentCommentId={comment.id}
-                  onSuccess={() => setReplyToId(null)}
-                  onCancel={() => setReplyToId(null)}
-                />
-              </div>
-            )}
-
-            {/* Nested replies */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {comment.replies.map((reply) => renderComment(reply, level + 1))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )
+  // Обработчик успешного добавления комментария
+  const handleCommentSuccess = () => {
+    // Перезагружаем комментарии после успешного добавления
+    fetch(`/api/v1/blog/comment?postId=${postId}`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to refresh comments')
+        return response.json()
+      })
+      .then((data) => {
+        console.log('Refreshed comments data:', data)
+        const adaptedComments = adaptApiResponse(data)
+        setComments(adaptedComments)
+      })
+      .catch((err) => {
+        console.error('Error refreshing comments:', err)
+      })
   }
 
   return (
     <div className={cn('space-y-6', className)}>
-      <h2 className="text-2xl font-bold tracking-tight">Comments</h2>
+      {/* Заголовок и счетчик */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold tracking-tight">{t.comments}</h2>
+        <div className="text-xs text-muted-foreground">{t.commentCount(comments.length)}</div>
+      </div>
 
       {/* Comment form */}
-      <CommentForm postId={postId} />
+      {user ? (
+        <CommentForm postId={postId} onSuccess={handleCommentSuccess} user={user} locale={locale} />
+      ) : (
+        <Tabs defaultValue="guest" className="w-full">
+          <TabsList className="mb-3">
+            <TabsTrigger value="guest">{t.asGuest}</TabsTrigger>
+            {/* В будущем здесь может быть вкладка для авторизации */}
+            {/*<TabsTrigger value="user">{t.asUser}</TabsTrigger>*/}
+          </TabsList>
+          <TabsContent value="guest" className="mt-0">
+            <CommentForm postId={postId} onSuccess={handleCommentSuccess} locale={locale} />
+          </TabsContent>
+        </Tabs>
+      )}
 
       {/* Comments list */}
-      <div className="space-y-1">
+      <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-8">
-            <div className="spinner h-6 w-6 mx-auto animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground mt-2">Loading comments...</p>
+          <div className="text-center py-6 rounded-lg border border-border bg-card">
+            <div className="spinner h-5 w-5 mx-auto animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground mt-2">{t.loading}</p>
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">{error}</div>
+          <div className="text-center py-4 text-sm text-destructive bg-destructive/5 rounded-lg border border-destructive/10 p-4">
+            {error}
+          </div>
         ) : comments.length === 0 ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            No comments yet. Be the first to comment!
+          <div className="text-center py-8 text-sm text-muted-foreground bg-muted rounded-lg">
+            {t.noComments}
           </div>
         ) : (
-          <div className="divide-y">{comments.map((comment) => renderComment(comment))}</div>
+          <div className="divide-y divide-border rounded-lg border border-border overflow-hidden bg-card">
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                postId={postId}
+                replyToId={replyToId}
+                locale={locale}
+                allowReplies={allowReplies}
+                allowVoting={allowVoting}
+                allowReporting={allowReporting}
+                onReplyClick={setReplyToId}
+                onCancelReply={() => setReplyToId(null)}
+                onSuccess={handleCommentSuccess}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -53,3 +53,4 @@ export const updateReadingTime: CollectionBeforeChangeHook = ({ data, req, opera
   // В остальных случаях возвращаем исходные данные
   return data
 }
+
