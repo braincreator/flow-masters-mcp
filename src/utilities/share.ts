@@ -4,6 +4,7 @@
 export type SharingPlatform =
   | 'facebook'
   | 'x'
+  | 'linkedin'
   | 'pinterest'
   | 'email'
   | 'whatsapp'
@@ -55,6 +56,11 @@ export const shareContent = async (
       case 'x':
         window.open(
           `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+        )
+        break
+      case 'linkedin':
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
         )
         break
       case 'pinterest':

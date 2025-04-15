@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Share, MessageCircle, ArrowUp, Share2, X, Send, Mail } from 'lucide-react'
+import { MessageCircle, ArrowUp, Copy, X, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/utilities/ui'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { SiFacebook, SiX, SiVk, SiInstagram, SiThreads, SiPinterest } from 'react-icons/si'
-import { TenChatIcon } from '@/components/icons/TenChatIcon'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { SocialShareButtons } from '@/components/shared/SocialShareButtons'
 import { shareContent, type SharingPlatform } from '@/utilities/share'
 
 // Локализованные тексты
@@ -140,103 +139,30 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
               </Button>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {/* Facebook */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('facebook')}
-                aria-label={texts.shareOn('Facebook')}
-                title={texts.shareOn('Facebook')}
-              >
-                <SiFacebook className="h-5 w-5 text-blue-600" />
-              </Button>
-
-              {/* X (Twitter) */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('x')}
-                aria-label={texts.shareOn('X')}
-                title={texts.shareOn('X')}
-              >
-                <SiX className="h-5 w-5" />
-              </Button>
-
-              {/* VK */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('vk')}
-                aria-label={texts.shareOn('VK')}
-                title={texts.shareOn('VK')}
-              >
-                <SiVk className="h-5 w-5 text-blue-500" />
-              </Button>
-
-              {/* Telegram */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('telegram')}
-                aria-label={texts.shareOn('Telegram')}
-                title={texts.shareOn('Telegram')}
-              >
-                <Send className="h-5 w-5 text-blue-400" />
-              </Button>
-
-              {/* WhatsApp */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('whatsapp')}
-                aria-label={texts.shareOn('WhatsApp')}
-                title={texts.shareOn('WhatsApp')}
-              >
-                <MessageCircle className="h-5 w-5 text-green-500" />
-              </Button>
-
-              {/* Email */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('email')}
-                aria-label={texts.shareVia('Email')}
-                title={texts.shareVia('Email')}
-              >
-                <Mail className="h-5 w-5 text-red-500" />
-              </Button>
-
-              {/* Instagram */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('instagram')}
-                aria-label={texts.shareOn('Instagram')}
-                title={texts.shareOn('Instagram')}
-              >
-                <SiInstagram className="h-5 w-5 text-pink-600" />
-              </Button>
-
-              {/* Threads */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={() => handleShare('threads')}
-                aria-label={texts.shareOn('Threads')}
-                title={texts.shareOn('Threads')}
-              >
-                <SiThreads className="h-5 w-5" />
-              </Button>
-            </div>
+            {/* Используем универсальный компонент для шаринга */}
+            <SocialShareButtons
+              url={window.location.href}
+              title={document.title}
+              description={document.title}
+              displayMode="grid"
+              platforms={[
+                'facebook',
+                'x',
+                'linkedin',
+                'vk',
+                'telegram',
+                'whatsapp',
+                'email',
+                'instagram',
+                'threads',
+              ]}
+              locale={locale}
+              variant="outline"
+              size="icon"
+              iconOnly={true}
+              buttonClassName="h-10 w-10"
+              onShare={handleShare}
+            />
 
             <Button
               variant="secondary"
