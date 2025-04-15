@@ -4,10 +4,10 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Calendar, Clock, User as UserIcon, Tag } from 'lucide-react'
+import { Calendar, Clock, User as UserIcon } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 import { formatBlogDate } from '@/lib/blogHelpers'
-import { Badge } from '@/components/ui/badge'
+import { BlogTag } from '@/components/blog/BlogTag'
 
 // Добавим недостающие переводы
 const translations = {
@@ -178,18 +178,13 @@ export function BlogPostCard({
 
         {/* Tags */}
         {showTags && post.tags && post.tags.length > 0 && (
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
             {post.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag.id} variant="secondary" className="font-normal text-xs">
-                <Link
-                  href={`/${locale}/blog?tag=${tag.slug}`}
-                  className="hover:underline"
-                  title={`View posts tagged with ${tag.title}`}
-                >
-                  <Tag className="mr-1 h-3 w-3" /> {tag.title}
-                </Link>
-              </Badge>
+              <BlogTag key={tag.id} tag={tag} locale={locale} showIcon={false} size="sm" />
             ))}
+            {post.tags.length > 3 && (
+              <span className="text-[10px] text-muted-foreground">+{post.tags.length - 3}</span>
+            )}
           </div>
         )}
 

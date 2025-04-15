@@ -232,6 +232,22 @@ export default async function BlogPage(props: PageParams) {
             slug: cat.slug || '',
           }
         }),
+        // Добавляем теги для отображения на карточках
+        tags: post.tags?.map((tag) => {
+          if (typeof tag === 'string') {
+            // Попробуем найти тег в списке всех тегов
+            const foundTag = formattedTags.find((t) => t.id === tag)
+            if (foundTag) {
+              return foundTag
+            }
+            return { id: tag, title: '', slug: '' }
+          }
+          return {
+            id: tag.id,
+            title: tag.title,
+            slug: tag.slug || '',
+          }
+        }),
         readingTime: post.readingTime || 5, // Используем поле readingTime с запасным значением 5 мин
       }
     })

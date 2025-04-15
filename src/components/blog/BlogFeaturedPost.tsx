@@ -7,7 +7,8 @@ import { usePathname } from 'next/navigation'
 import { formatDate } from '@/lib/blogHelpers'
 import { BadgeCheck, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utilities/ui'
+import { BlogTag } from '@/components/blog/BlogTag'
 
 interface Post {
   id: string
@@ -25,6 +26,11 @@ interface Post {
     avatar?: string
   }
   categories?: {
+    id: string
+    title: string
+    slug: string
+  }[]
+  tags?: {
     id: string
     title: string
     slug: string
@@ -124,10 +130,21 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
               </span>
             </div>
           )}
+
+          {/* Теги */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
+              {post.tags.map((tag) => (
+                <BlogTag key={tag.id} tag={tag} locale={currentLocale} showIcon={true} size="md" />
+              ))}
+            </div>
+          )}
         </div>
 
         <Button asChild className="w-full sm:w-auto" size="lg">
-          <Link href={`/${currentLocale}/blog/${post.slug}`}>Read Article</Link>
+          <Link href={`/${currentLocale}/blog/${post.slug}`}>
+            {currentLocale === 'ru' ? 'Читать статью' : 'Read Article'}
+          </Link>
         </Button>
       </div>
     </div>
