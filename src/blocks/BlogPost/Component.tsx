@@ -101,7 +101,9 @@ export function BlogPost({
                 {/* Share buttons */}
                 {showShareButtons && (
                   <div className="space-y-3">
-                    <h4 className="text-sm font-medium">Share</h4>
+                    <h4 className="text-sm font-medium">
+                      {post.locale === 'ru' ? 'Поделиться' : 'Share'}
+                    </h4>
                     <ShareButtons
                       title={post.title}
                       url={`/blog/${post.slug}`}
@@ -110,6 +112,7 @@ export function BlogPost({
                       variant="ghost"
                       trackShares
                       postId={post.id}
+                      locale={post.locale}
                     />
                   </div>
                 )}
@@ -136,13 +139,16 @@ export function BlogPost({
               {/* Share buttons (mobile) */}
               {showShareButtons && (
                 <div className="mt-8 lg:hidden">
-                  <h4 className="text-sm font-medium mb-3">Share this post</h4>
+                  <h4 className="text-sm font-medium mb-3">
+                    {post.locale === 'ru' ? 'Поделиться статьей' : 'Share this post'}
+                  </h4>
                   <ShareButtons
                     title={post.title}
                     url={`/blog/${post.slug}`}
                     description={post.excerpt}
                     trackShares
                     postId={post.id}
+                    locale={post.locale}
                   />
                 </div>
               )}
@@ -151,7 +157,7 @@ export function BlogPost({
               {showAuthor && post.author && (
                 <div className="mt-12 pt-8 border-t">
                   <h4 className="text-sm font-medium uppercase tracking-wider mb-4">
-                    About the author
+                    {post.locale === 'ru' ? 'Об авторе' : 'About the author'}
                   </h4>
                   <AuthorCard author={post.author} variant="expanded" showBio showSocial />
                 </div>

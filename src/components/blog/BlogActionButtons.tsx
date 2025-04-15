@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Share, MessageCircle, ArrowUp, Share2, X } from 'lucide-react'
+import { Copy, Share, MessageCircle, ArrowUp, Share2, X, Send, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/utilities/ui'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { Facebook, Twitter, Mail, Link2 } from 'lucide-react'
+import { SiFacebook, SiX, SiVk, SiInstagram, SiThreads, SiPinterest } from 'react-icons/si'
+import { TenChatIcon } from '@/components/icons/TenChatIcon'
 import { shareContent, type SharingPlatform } from '@/utilities/share'
 
 // Локализованные тексты
@@ -19,10 +20,8 @@ const LOCALIZED_TEXTS = {
     comment: 'Comment',
     backToTop: 'Back to top',
     close: 'Close',
-    shareOnFacebook: 'Share on Facebook',
-    shareOnTwitter: 'Share on Twitter',
-    shareViaEmail: 'Share via Email',
-    shareOnWhatsApp: 'Share on WhatsApp',
+    shareOn: (platform: string) => `Share on ${platform}`,
+    shareVia: (platform: string) => `Share via ${platform}`,
   },
   ru: {
     share: 'Поделиться',
@@ -31,10 +30,8 @@ const LOCALIZED_TEXTS = {
     comment: 'Комментировать',
     backToTop: 'Наверх',
     close: 'Закрыть',
-    shareOnFacebook: 'Поделиться в Facebook',
-    shareOnTwitter: 'Поделиться в Twitter',
-    shareViaEmail: 'Отправить по Email',
-    shareOnWhatsApp: 'Поделиться в WhatsApp',
+    shareOn: (platform: string) => `Поделиться в ${platform}`,
+    shareVia: (platform: string) => `Отправить через ${platform}`,
   },
 }
 
@@ -144,48 +141,100 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
             </div>
 
             <div className="grid grid-cols-4 gap-2">
+              {/* Facebook */}
               <Button
                 variant="outline"
                 size="icon"
                 className="h-10 w-10"
                 onClick={() => handleShare('facebook')}
-                aria-label={texts.shareOnFacebook}
-                title={texts.shareOnFacebook}
+                aria-label={texts.shareOn('Facebook')}
+                title={texts.shareOn('Facebook')}
               >
-                <Facebook className="h-5 w-5 text-blue-600" />
+                <SiFacebook className="h-5 w-5 text-blue-600" />
               </Button>
 
+              {/* X (Twitter) */}
               <Button
                 variant="outline"
                 size="icon"
                 className="h-10 w-10"
-                onClick={() => handleShare('twitter')}
-                aria-label={texts.shareOnTwitter}
-                title={texts.shareOnTwitter}
+                onClick={() => handleShare('x')}
+                aria-label={texts.shareOn('X')}
+                title={texts.shareOn('X')}
               >
-                <Twitter className="h-5 w-5 text-sky-500" />
+                <SiX className="h-5 w-5" />
               </Button>
 
+              {/* VK */}
               <Button
                 variant="outline"
                 size="icon"
                 className="h-10 w-10"
-                onClick={() => handleShare('email')}
-                aria-label={texts.shareViaEmail}
-                title={texts.shareViaEmail}
+                onClick={() => handleShare('vk')}
+                aria-label={texts.shareOn('VK')}
+                title={texts.shareOn('VK')}
               >
-                <Mail className="h-5 w-5 text-red-500" />
+                <SiVk className="h-5 w-5 text-blue-500" />
               </Button>
 
+              {/* Telegram */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => handleShare('telegram')}
+                aria-label={texts.shareOn('Telegram')}
+                title={texts.shareOn('Telegram')}
+              >
+                <Send className="h-5 w-5 text-blue-400" />
+              </Button>
+
+              {/* WhatsApp */}
               <Button
                 variant="outline"
                 size="icon"
                 className="h-10 w-10"
                 onClick={() => handleShare('whatsapp')}
-                aria-label={texts.shareOnWhatsApp}
-                title={texts.shareOnWhatsApp}
+                aria-label={texts.shareOn('WhatsApp')}
+                title={texts.shareOn('WhatsApp')}
               >
                 <MessageCircle className="h-5 w-5 text-green-500" />
+              </Button>
+
+              {/* Email */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => handleShare('email')}
+                aria-label={texts.shareVia('Email')}
+                title={texts.shareVia('Email')}
+              >
+                <Mail className="h-5 w-5 text-red-500" />
+              </Button>
+
+              {/* Instagram */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => handleShare('instagram')}
+                aria-label={texts.shareOn('Instagram')}
+                title={texts.shareOn('Instagram')}
+              >
+                <SiInstagram className="h-5 w-5 text-pink-600" />
+              </Button>
+
+              {/* Threads */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => handleShare('threads')}
+                aria-label={texts.shareOn('Threads')}
+                title={texts.shareOn('Threads')}
+              >
+                <SiThreads className="h-5 w-5" />
               </Button>
             </div>
 
