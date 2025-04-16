@@ -7,8 +7,8 @@ import { toast } from 'sonner'
 import { cn } from '@/utilities/ui'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { SocialShareButtons } from '@/components/shared/SocialShareButtons'
-import { shareContent, type SharingPlatform } from '@/utilities/share'
+import { UniversalShareButton } from '@/components/shared/UniversalShareButton'
+import type { SharingPlatform } from '@/utilities/share'
 
 // Локализованные тексты
 const LOCALIZED_TEXTS = {
@@ -140,11 +140,12 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
             </div>
 
             {/* Используем универсальный компонент для шаринга */}
-            <SocialShareButtons
+            <UniversalShareButton
               url={window.location.href}
               title={document.title}
               description={document.title}
               displayMode="grid"
+              gridColumns={4}
               platforms={[
                 'facebook',
                 'x',
@@ -161,7 +162,7 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
               size="icon"
               iconOnly={true}
               buttonClassName="h-10 w-10"
-              onShare={handleShare}
+              onShareComplete={() => setIsShareOpen(false)}
             />
 
             <Button

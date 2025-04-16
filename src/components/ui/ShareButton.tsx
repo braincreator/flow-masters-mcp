@@ -50,9 +50,8 @@ export function ShareButton({
   // Get localized texts with fallback to English
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
 
-  // Generate absolute product URL for sharing - важно для работы OpenGraph
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const productUrl = origin ? `${origin}/${locale}/products/${product.slug}` : ''
+  // Generate product URL for sharing
+  const productUrl = `/${locale}/products/${product.slug}`
 
   // Get the product title in the correct locale
   const getTitle = () => {
@@ -88,16 +87,15 @@ export function ShareButton({
       imageUrl = getImageUrl(product.thumbnail)
     }
 
-    // Обязательно возвращаем абсолютный URL для изображения
-    if (imageUrl && !imageUrl.startsWith('http') && origin) {
-      imageUrl = `${origin}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`
-    }
-
     return imageUrl
   }
 
   // Determine the sharing description
   const sharingDescription = description || texts.shareDescription(productTitle || '')
+
+  // Generate absolute product URL for sharing - важно для работы OpenGraph
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const fullProductUrl = origin ? `${origin}${productUrl}` : ''
 
   // Handler for when link is copied
   const handleLinkCopied = () => {
@@ -109,23 +107,29 @@ export function ShareButton({
     }
   }
 
-  // // Вывести в консоль информацию о шаринге для отладки
-  // console.log('ShareButton data:', {
-  //   url: productUrl,
-  //   title: productTitle,
-  //   description: sharingDescription,
-  //   image: getProductImage(),
-  // })
-
   return (
     <SocialSharePopover
-      url={productUrl}
+      url={fullProductUrl}
       title={productTitle}
       description={sharingDescription}
       image={getProductImage()}
       lang={locale}
       triggerClassName={cn('relative group', className)}
       onLinkCopied={handleLinkCopied}
+      gridColumns={4}
+      platforms={[
+        'facebook',
+        'x',
+        'linkedin',
+        'vk',
+        'telegram',
+        'whatsapp',
+        'email',
+        'instagram',
+        'threads',
+        'tenchat',
+        'copy',
+      ]}
     />
   )
 }

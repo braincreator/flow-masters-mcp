@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import { cn } from '@/utilities/ui'
-import { SocialShareButtons } from '@/components/shared/SocialShareButtons'
+import { UniversalShareButton } from '@/components/shared/UniversalShareButton'
 import type { SharingPlatform } from '@/utilities/share'
 
 export interface ShareButtonsProps {
@@ -32,28 +31,8 @@ export function ShareButtons({
   postId,
   locale = 'en',
 }: ShareButtonsProps) {
-  // Track shares
-  const trackShare = async (platform: SharingPlatform) => {
-    if (!trackShares || !postId) return
-
-    try {
-      await fetch('/api/v1/blog/share', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId,
-          platform,
-        }),
-      })
-    } catch (error) {
-      console.error('Failed to track share:', error)
-    }
-  }
-
   return (
-    <SocialShareButtons
+    <UniversalShareButton
       url={url}
       title={title}
       description={description}
@@ -63,7 +42,10 @@ export function ShareButtons({
       iconOnly={iconOnly}
       platforms={platforms}
       locale={locale}
-      onShare={trackShare}
+      trackShares={trackShares}
+      postId={postId}
+      displayMode="inline"
+      gridColumns={4}
     />
   )
 }

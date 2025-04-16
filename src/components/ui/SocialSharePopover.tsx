@@ -72,6 +72,7 @@ interface SocialSharePopoverProps {
   contentClassName?: string
   onLinkCopied?: () => void
   platforms?: SharingPlatform[]
+  gridColumns?: 3 | 4 | 5
 }
 
 export function SocialSharePopover({
@@ -94,6 +95,7 @@ export function SocialSharePopover({
     'tenchat',
     'copy',
   ],
+  gridColumns = 4,
 }: SocialSharePopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
   const t = useTranslations(lang)
@@ -192,16 +194,7 @@ export function SocialSharePopover({
             </Button>
           </div>
 
-          <div
-            className={cn(
-              'grid gap-2',
-              platforms.filter((p) => p !== 'copy').length <= 4
-                ? 'grid-cols-4'
-                : platforms.filter((p) => p !== 'copy').length <= 8
-                  ? 'grid-cols-4'
-                  : 'grid-cols-5',
-            )}
-          >
+          <div className={cn('grid gap-2', `grid-cols-${gridColumns}`)}>
             {platforms
               .filter((p) => p !== 'copy')
               .map((platform) => {
