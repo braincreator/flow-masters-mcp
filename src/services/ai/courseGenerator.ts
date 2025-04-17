@@ -30,6 +30,9 @@ export interface CourseGenerationParams {
   industrySpecific?: string
   includeResources?: boolean
   includeAssignments?: boolean
+  price?: number
+  audienceType?: string
+  keyThemes?: string[]
 }
 
 /**
@@ -37,6 +40,8 @@ export interface CourseGenerationParams {
  */
 export async function generateCourseStructure(params: CourseGenerationParams): Promise<any> {
   try {
+    const validationErrors: string[] = []
+
     const provider = params.provider || 'openai'
     const apiKey = params.apiKey || process.env.OPENAI_API_KEY
     if (!apiKey) {
@@ -173,14 +178,152 @@ export async function generateCourseStructure(params: CourseGenerationParams): P
       .filter(Boolean)
       .join('')
 
-    const systemPrompt = `Ты - эксперт по созданию образовательных курсов.
-Твоя задача - создать структуру курса по теме "${params.topic}" на ${params.language === 'ru' ? 'русском' : 'английском'} языке.
-Курс должен содержать ${moduleCount} модулей, каждый с примерно ${lessonCount} уроками.
-${params.difficultyLevel ? `Уровень сложности: ${params.difficultyLevel}` : ''}
-${params.targetAudience ? `Целевая аудитория: ${params.targetAudience}` : ''}
-${params.includeQuizzes ? 'Включи тесты и задания для проверки знаний.' : ''}
-${params.includeLanding ? 'Также создай лендинг для продажи этого курса.' : ''}
-${params.includeFunnel ? 'Также создай email-воронку для продвижения этого курса.' : ''}
+    const systemPrompt = `Ты - Chief Learning Officer премиум-образовательной платформы. Создай курс уровня MasterClass с маркетинговой инфраструктурой Enterprise-уровня.
+
+# Педагогический дизайн (Educational Design):
+1. Методологическая основа:
+• Модель обучения: Bloom's Taxonomy (Revised) + Kirkpatrick's Four Levels
+• Формат: Adaptive Learning Paths с AI-трекингом прогресса
+• Контент-микс на модуль (9 типов):
+  - Видео-лекции (HDR, 4K, multi-angle)
+  - Кейс-лаборатории (Real-World Simulations)
+  - Экспертные AMA-сессии
+  - Интерактивные чеклисты с автоматической проверкой
+  - Шаблоны документов с AI-аналитикой
+  - Peer Review задания с калибровкой оценок
+  - Живые мастермайнды (Live Event Framework)
+  - VR-симуляции рабочих сценариев
+  - Мини-проекты с портфолио-выходом
+
+2. Система оценивания:
+• Диагностика: Pre-Assessment + Gap Analysis
+• Формирующее оценивание: AI-powered Feedback Loop
+• Итоговый экзамен: Proctored Exam + Практический кейс
+• Predictive Analytics: Оценка карьерного потенциала
+
+# Маркетинговая архитектура (Growth Engine):
+1. Лендинг-конструктор (Landing Page Architect):
+• Hero-блоки премиум-класса:
+  [LS-ULTRA] 3D-конфигуратор программы
+  [LS-HYPER] AR-превью результатов
+  [LS-NEURO] Neuro-оптимизированный заголовок
+
+• USP-формулировки:
+  - Data-Driven: "87% выпускников повышают доход в 3x за 6 мес (internal data)"
+  - Outcome-Based: "Гарантированный переход на позицию Senior Level"
+  - FOMO-механика: "Доступ только для топ 5% специалистов"
+
+2. Продающая воронка (Revenue Funnel):
+• Многоуровневая архитектура:
+  1. AI-Powered Lead Scoring
+  2. Personalized Nurture Sequence (7 touchpoints)
+  3. Executive Webinar с live демо-решением
+  4. VIP-стратегическая сессия
+  5. Ценностно-ориентированное предложение
+  6. Dynamic Upsell Engine
+  7. Alumni Success Program
+
+• Персонализация:
+  - Интеграция с CRM/Marketing Automation
+  - Predictive Lead Routing
+  - Real-Time Offer Customization
+
+3. Нейромаркетинг (Neuro-Marketing Triggers):
+• Принципы:
+  - Визуальный приоритет (F-паттерн)
+  - Эмоциональный якорь (Peak-End Rule)
+  - Когнитивная легкость (Cognitive Fluency)
+• Механики:
+  - Scarcity 2.0: Динамическое ограничение мест
+  - Social Proof 2.0: Видео-отзывы с верифицированными результатами
+  - Authority Stack: Партнерские сертификаты
+
+# Система контроля качества (QMS):
+1. Международные стандарты:
+• Аккредитация: AACSB, EQUIS, AMBA
+• Соответствие: ISO 21001, QAA Benchmark
+• Сертификация: Coursera Level5, Udemy Pro
+
+2. Технические требования:
+• Производительность: <2s TTI, 100k RPS
+• Безопасность: GDPR, CCPA, ISO 27001
+• Доступность: WCAG 2.1 AAA, ADA Compliance
+
+3. Контент-аудит:
+• Стилистика: AP Style + Academic Tone
+• Визуал: Brand Guidelines + Motion Design
+• Интерактивность: 85+ баллов Lighthouse
+
+Генерируй контент уровня Fortune 500 Corporate Academy. Форматы нового поколения:
+• Nano-Learning: 5-7 минутные микро-модули
+• AI-Coaching: Персональный цифровой наставник
+• Metaverse Classrooms: Immersive Learning Experience
+• Blockchain Certification: NFT-сертификаты с верификацией
+
+# Форматы контента:
+- Bite-sized learning: модули ≤30 мин
+- Gamification: бейджи/рейтинги
+- AI-персонализация
+- Interactive storytelling
+
+# Основные требования к курсу:
+1. Глубина проработки:
+- Использовать модель обучения Bloom's Taxonomy для структурирования целей
+- Внедрить 7 типов контента на модуль: видео, кейсы, чеклисты, шаблоны, интервью, интерактивные симуляции, peer-review задания
+- Реализовать прогрессивную сложность: Basic → Advanced → Expert уровни в каждом модуле
+
+2. Методология подачи:
+- Применить подход 70/20/10 (70% практики, 20% обратной связи, 10% теории)
+- Встроить микрообучение с уроками до 15 минут
+- Добавить ветвление сценариев обучения по результатам тестов
+
+3. Маркетинговая инфраструктура:
+// Лендинг-пейдж //
+▸ Применить многослойную структуру AIDA:
+[Attention] - Заголовок с цифрами и power words ("Освойте ${params.topic} за 21 день: 92% выпускников увеличили доход на 200%+")
+[Interest] - 3 ключевые боли аудитории + агентация
+[Desire] - USP в формате "Как [${params.topic}] поможет [конкретный результат] за [срок]"
+[Action] - CTA с двойным отрицанием ("Не упустите шанс изменить карьеру - начать сейчас")
+
+▸ Обязательные секции:
+- Social Proof: 5+ видео-отзывов с транскриптами, логотипы компаний клиентов
+- Risk Reversal: 365-дневная гарантия возврата + бонусная консультация
+- Scarcity Elements: ограничение по количеству участников/времени
+- Value Stack: визуализация ценности пакета (стоимость материалов ≥ $XXXX)
+
+// Продающая воронка //
+▸ 7-этапная последовательность:
+1. Lead Magnet (чек-лист/диагностика с мгновенной персонализацией)
+2. 5-дневная nurture-серия писем с кейс-стори
+3. Вебинар с deep-dive анализом индустрии
+4. Ограниченное предложение с таймером
+5. Страница оплаты с 3-step upsell
+6. Onboarding последовательность с gamification
+7. Алгоритм удержания через еженедельные мастермайнды
+
+4. Психологические триггеры:
+- Эффект IKEA: интерактивная сборка программы
+- Теория потерь: "Что вы теряете, откладывая обучение"
+- Социальное доказательство: кейсы выпускников с метриками
+- Авторитет: экспертная коллаборация с лидерами индустрии
+
+5. Система контроля качества:
+▸ Для каждого элемента курса:
+- Проверка на соответствие SMART-целям
+- А/В тестирование 3 вариантов заголовков
+- SEO-оптимизация: плотность ключевых слов 1.5-2.5%
+- Accessibility: соответствие WCAG 2.1 AA стандарту
+
+Генерируй контент уровня топовых платформ (Coursera, Udemy, MasterClass). Используй форматы:
+- Bite-sized learning: модули ≤30 мин
+- Gamification: бейджи, прогресс-бары, рейтинги
+- AI-персонализация: адаптивные траектории обучения
+- Interactive storytelling: сценарии с ветвлением
+
+Структурируй ответ в JSON с детализацией до уровня подпунктов. Для маркетинг-элементов предусмотри:
+- 3 варианта заголовков
+- 2 сценария CTA
+- Вариации для разных каналов (соцсети, email, PPC)
 
 ${styleInstructions}
 ${focusInstructions}
@@ -313,6 +456,56 @@ ${additionalInstructions}
     const content = response.choices[0]?.message?.content
     if (!content) {
       throw new Error('Не удалось получить ответ от OpenAI')
+    }
+
+    // Валидация адаптации воронки
+    const funnelRules = [
+      {
+        condition: (course: CourseGenerationParams) =>
+          (course.moduleCount || 0) > 5 && (course.lessonCount || 0) > 15,
+        required: 'FS-1',
+      },
+      {
+        condition: (course: CourseGenerationParams) => (course.price || 0) > 500,
+        required: 'FS-2',
+      },
+      {
+        condition: (course: CourseGenerationParams) => course.audienceType === 'B2B',
+        required: 'FS-3',
+      },
+    ]
+
+    funnelRules.forEach(({ condition, required }) => {
+      if (condition(params) && !content.includes(required)) {
+        validationErrors.push(`Требуется воронка ${required} для текущих параметров курса`)
+      }
+    })
+
+    // Проверка интеграции контента
+    const requiredCourseTerms = [
+      params.topic,
+      ...(params.keyThemes || []),
+      params.targetAudience,
+    ].filter(Boolean)
+
+    requiredCourseTerms.forEach((term) => {
+      if (term && !content.toLowerCase().includes(term.toLowerCase())) {
+        validationErrors.push(`Отсутствует ключевой термин курса "${term}" в контенте`)
+      }
+    })
+
+    // Чекер 3: SEO-параметры
+    const keywordDensity =
+      (content.match(new RegExp(params.topic, 'gi')) || []).length /
+      (content.split(' ').length || 1)
+    if (keywordDensity < 0.015 || keywordDensity > 0.025) {
+      validationErrors.push(
+        `Плотность ключевых слов (${(keywordDensity * 100).toFixed(2)}%) вне диапазона 1.5-2.5%`,
+      )
+    }
+
+    if (validationErrors.length > 0) {
+      throw new Error(`Ошибки валидации контента:\n${validationErrors.join('\n')}`)
     }
 
     return JSON.parse(content)
