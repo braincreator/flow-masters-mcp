@@ -104,10 +104,21 @@ export default function CourseCreatorPage() {
         throw new Error('Неверный формат JSON. Пожалуйста, проверьте данные курса.')
       }
 
-      // Добавляем опции
-      const requestData = {
-        ...parsedData,
-        language: options.language,
+      // Проверяем структуру данных и корректируем при необходимости
+      let requestData = {}
+
+      // Если данные уже содержат поле course, используем их как есть
+      if (parsedData.course) {
+        requestData = {
+          ...parsedData,
+          language: options.language,
+        }
+      } else {
+        // Иначе предполагаем, что весь объект - это данные курса
+        requestData = {
+          course: parsedData,
+          language: options.language,
+        }
       }
 
       // Если не включать лендинг или воронку, удаляем их из запроса
@@ -187,9 +198,15 @@ export default function CourseCreatorPage() {
         throw new Error('Неверный формат JSON. Пожалуйста, проверьте данные курса.')
       }
 
-      // Применяем опции
-      const previewData = {
-        ...parsedData,
+      // Проверяем структуру данных и корректируем при необходимости
+      let previewData
+
+      // Если данные уже содержат поле course, используем их как есть
+      if (parsedData.course) {
+        previewData = { ...parsedData }
+      } else {
+        // Иначе предполагаем, что весь объект - это данные курса
+        previewData = { course: parsedData }
       }
 
       // Если не включать лендинг или воронку, удаляем их из предпросмотра
