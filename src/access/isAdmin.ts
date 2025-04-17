@@ -17,3 +17,15 @@ export const checkIsAdmin = (user: any) => {
   // Check for role property which is used in the Users collection
   return Boolean(user?.role === 'admin')
 }
+
+export const isAdminOrEditor: Access = ({ req: { user } }) => {
+  if (!user) return false
+
+  const typedUser = user as User
+
+  return checkIsAdminOrEditor(typedUser)
+}
+
+export const checkIsAdminOrEditor = (user: any) => {
+  return Boolean(user?.role === 'admin' || user?.role === 'editor')
+}

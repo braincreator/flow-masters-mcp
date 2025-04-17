@@ -1,9 +1,11 @@
-// import { Analytics } from './Analytics'
 import { Pages } from './Pages'
 import { Media } from './Media'
 import { Users } from './Users'
 import { Categories } from './Categories' // General categories, maybe split later?
 import { Tags } from './Tags' // General tags
+
+// Analytics
+import CourseAnalytics from './CourseAnalytics'
 
 // Blog
 import { Posts } from './Posts'
@@ -26,6 +28,8 @@ import { Courses } from './Courses'
 import { Modules } from './Modules'
 import { Resources } from './Resources' // Learning resources?
 import { Achievements } from './Achievements'
+import Templates from './Templates'
+import AutomationJobs from './AutomationJobs'
 
 // Community / Forum
 import { ForumCategories } from './ForumCategories'
@@ -61,6 +65,9 @@ const collections = [
   Categories,
   Tags,
 
+  // Analytics
+  CourseAnalytics,
+
   // Blog
   Posts,
   PostMetrics,
@@ -82,6 +89,10 @@ const collections = [
   Modules,
   Resources,
   Achievements,
+  Templates,
+
+  // Automation
+  AutomationJobs,
 
   // Community / Forum
   ForumCategories,

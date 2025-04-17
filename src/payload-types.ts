@@ -146,6 +146,7 @@ export interface Config {
     users: User;
     categories: Category;
     tags: Tag;
+    'course-analytics': CourseAnalytic;
     posts: Post;
     'post-metrics': PostMetric;
     authors: Author;
@@ -162,6 +163,8 @@ export interface Config {
     modules: Module;
     resources: Resource;
     achievements: Achievement;
+    templates: Template;
+    'automation-jobs': AutomationJob;
     'forum-categories': ForumCategory;
     messages: Message;
     'newsletter-subscribers': NewsletterSubscriber;
@@ -196,6 +199,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
+    'course-analytics': CourseAnalyticsSelect<false> | CourseAnalyticsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
@@ -212,6 +216,8 @@ export interface Config {
     modules: ModulesSelect<false> | ModulesSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
+    templates: TemplatesSelect<false> | TemplatesSelect<true>;
+    'automation-jobs': AutomationJobsSelect<false> | AutomationJobsSelect<true>;
     'forum-categories': ForumCategoriesSelect<false> | ForumCategoriesSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
     'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
@@ -9954,6 +9960,71 @@ export interface SocialShare {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-analytics".
+ */
+export interface CourseAnalytic {
+  id: string;
+  course?: (string | null) | Course;
+  courseTitle: string;
+  views: number;
+  enrollments: number;
+  completions: number;
+  /**
+   * Процент пользователей, завершивших курс от общего числа записавшихся
+   */
+  completionRate: number;
+  averageRating: number;
+  totalRevenue: number;
+  moduleCompletionRates?:
+    | {
+        moduleId: string;
+        moduleTitle: string;
+        completionRate: number;
+        id?: string | null;
+      }[]
+    | null;
+  lessonCompletionRates?:
+    | {
+        lessonId: string;
+        lessonTitle: string;
+        moduleTitle: string;
+        completionRate: number;
+        /**
+         * Среднее время, проведенное на уроке (в минутах)
+         */
+        averageTimeSpent: number;
+        id?: string | null;
+      }[]
+    | null;
+  conversionRates: {
+    /**
+     * Процент посетителей лендинга, записавшихся на курс
+     */
+    landingToEnrollment: number;
+    /**
+     * Процент записавшихся, начавших обучение
+     */
+    enrollmentToStart: number;
+    /**
+     * Процент начавших обучение, завершивших курс
+     */
+    startToCompletion: number;
+  };
+  timeDistribution?:
+    | {
+        date: string;
+        views: number;
+        enrollments: number;
+        completions: number;
+        revenue: number;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "post-metrics".
  */
 export interface PostMetric {
@@ -10310,6 +10381,128 @@ export interface Solution {
     discountPercentage?: number | null;
     finalPrice?: number | null;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "templates".
+ */
+export interface Template {
+  id: string;
+  name: string;
+  description?: string | null;
+  type: 'course' | 'landing' | 'funnel' | 'full';
+  content:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  thumbnail?: (string | null) | Media;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  isPublic?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-jobs".
+ */
+export interface AutomationJob {
+  id: string;
+  name: string;
+  description?: string | null;
+  status: 'active' | 'paused' | 'completed' | 'error';
+  jobType: 'create_course' | 'update_course' | 'create_landing' | 'create_funnel' | 'full_package';
+  triggerType: 'schedule' | 'event' | 'manual';
+  schedule?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'custom';
+    time?: string | null;
+    dayOfWeek?: ('1' | '2' | '3' | '4' | '5' | '6' | '0') | null;
+    dayOfMonth?: number | null;
+    /**
+     * Например: 0 0 * * *
+     */
+    cronExpression?: string | null;
+  };
+  eventTrigger?: {
+    eventType: 'user_created' | 'course_enrollment' | 'course_completion' | 'new_comment' | 'new_order';
+    conditions?:
+      | {
+          field: string;
+          operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'greater_than' | 'less_than';
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Параметры для генерации курса с помощью AI
+   */
+  aiGenerationParams: {
+    topic: string;
+    targetAudience?: string | null;
+    difficultyLevel?: ('beginner' | 'intermediate' | 'advanced') | null;
+    includeQuizzes?: boolean | null;
+    includeLanding?: boolean | null;
+    includeFunnel?: boolean | null;
+    language?: ('ru' | 'en') | null;
+    moduleCount?: number | null;
+    lessonCount?: number | null;
+    model?: ('gpt-4-turbo' | 'gpt-4o' | 'gpt-3.5-turbo') | null;
+    temperature?: number | null;
+    style?: ('professional' | 'academic' | 'conversational') | null;
+    focus?: ('balanced' | 'theory' | 'practice') | null;
+    industrySpecific?: string | null;
+    includeResources?: boolean | null;
+    includeAssignments?: boolean | null;
+  };
+  /**
+   * Выберите шаблон для создания курса
+   */
+  templateId?: (string | null) | Template;
+  /**
+   * Выберите курс для обновления (только для типа "Обновление курса")
+   */
+  courseId?: (string | null) | Course;
+  lastRun?: string | null;
+  nextRun?: string | null;
+  runCount?: number | null;
+  lastResult?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  logs?:
+    | {
+        timestamp?: string | null;
+        message?: string | null;
+        level?: ('info' | 'warning' | 'error' | 'success') | null;
+        details?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12135,6 +12328,10 @@ export interface PayloadLockedDocument {
         value: string | Tag;
       } | null)
     | ({
+        relationTo: 'course-analytics';
+        value: string | CourseAnalytic;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: string | Post;
       } | null)
@@ -12197,6 +12394,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'achievements';
         value: string | Achievement;
+      } | null)
+    | ({
+        relationTo: 'templates';
+        value: string | Template;
+      } | null)
+    | ({
+        relationTo: 'automation-jobs';
+        value: string | AutomationJob;
       } | null)
     | ({
         relationTo: 'forum-categories';
@@ -15472,6 +15677,57 @@ export interface TagsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-analytics_select".
+ */
+export interface CourseAnalyticsSelect<T extends boolean = true> {
+  course?: T;
+  courseTitle?: T;
+  views?: T;
+  enrollments?: T;
+  completions?: T;
+  completionRate?: T;
+  averageRating?: T;
+  totalRevenue?: T;
+  moduleCompletionRates?:
+    | T
+    | {
+        moduleId?: T;
+        moduleTitle?: T;
+        completionRate?: T;
+        id?: T;
+      };
+  lessonCompletionRates?:
+    | T
+    | {
+        lessonId?: T;
+        lessonTitle?: T;
+        moduleTitle?: T;
+        completionRate?: T;
+        averageTimeSpent?: T;
+        id?: T;
+      };
+  conversionRates?:
+    | T
+    | {
+        landingToEnrollment?: T;
+        enrollmentToStart?: T;
+        startToCompletion?: T;
+      };
+  timeDistribution?:
+    | T
+    | {
+        date?: T;
+        views?: T;
+        enrollments?: T;
+        completions?: T;
+        revenue?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -16783,6 +17039,96 @@ export interface AchievementsSelect<T extends boolean = true> {
   icon?: T;
   rarity?: T;
   pointsAwarded?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "templates_select".
+ */
+export interface TemplatesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  type?: T;
+  content?: T;
+  thumbnail?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  isPublic?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-jobs_select".
+ */
+export interface AutomationJobsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  status?: T;
+  jobType?: T;
+  triggerType?: T;
+  schedule?:
+    | T
+    | {
+        frequency?: T;
+        time?: T;
+        dayOfWeek?: T;
+        dayOfMonth?: T;
+        cronExpression?: T;
+      };
+  eventTrigger?:
+    | T
+    | {
+        eventType?: T;
+        conditions?:
+          | T
+          | {
+              field?: T;
+              operator?: T;
+              value?: T;
+              id?: T;
+            };
+      };
+  aiGenerationParams?:
+    | T
+    | {
+        topic?: T;
+        targetAudience?: T;
+        difficultyLevel?: T;
+        includeQuizzes?: T;
+        includeLanding?: T;
+        includeFunnel?: T;
+        language?: T;
+        moduleCount?: T;
+        lessonCount?: T;
+        model?: T;
+        temperature?: T;
+        style?: T;
+        focus?: T;
+        industrySpecific?: T;
+        includeResources?: T;
+        includeAssignments?: T;
+      };
+  templateId?: T;
+  courseId?: T;
+  lastRun?: T;
+  nextRun?: T;
+  runCount?: T;
+  lastResult?: T;
+  logs?:
+    | T
+    | {
+        timestamp?: T;
+        message?: T;
+        level?: T;
+        details?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
