@@ -2,9 +2,43 @@ import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 // We'll use OpenAI client for DeepSeek as they have compatible APIs
 
-interface AIProvider {
+export interface AIProvider {
   generate(prompt: string, model: string, temperature: number): Promise<string>
 }
+
+// Доступные CMS-блоки из системы (обновлено согласно текущей реализации)
+const CMS_BLOCKS = {
+  landing: {
+    hero: ['DynamicVideoHero', 'InteractiveCalculatorHero', 'GradientTextHero'],
+    features: ['ThreeColumnFeatures', 'ComparisonTable', 'ProgressBarsGrid'],
+    testimonials: ['VideoTestimonialsSlider', 'LogoCloud', 'CaseStudyCards'],
+    cta: ['CountdownTimerCTA', 'QuizLeadGen', 'ConsultationBooking']
+  },
+  course: {
+    content: [
+      'VideoLectureBlock',
+      'InteractiveSimulation',
+      'PeerReviewAssignment',
+      'LiveWorkshopEmbed',
+      'ResourceLibrary'
+    ],
+    pricing: [
+      'TieredPricingTable',
+      'MoneyBackGuarantee',
+      'BonusPackages',
+      'PaymentPlanCalculator'
+    ]
+  },
+  funnel: {
+    steps: [
+      'LeadMagnetForm',
+      'NurtureEmailSequence',
+      'WebinarRegistration',
+      'UpsellSequencer',
+      'AlumniPortal'
+    ]
+  }
+};
 
 // No need for a separate DeepSeek interface as we'll use OpenAI client
 

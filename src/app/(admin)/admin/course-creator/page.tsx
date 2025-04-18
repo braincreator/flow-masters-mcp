@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import '@/app/globals.css'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -60,6 +62,7 @@ interface CourseOptions {
 }
 
 export default function CourseCreatorPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('input')
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -68,6 +71,14 @@ export default function CourseCreatorPage() {
   const [courseData, setCourseData] = useState('')
   const [result, setResult] = useState<Record<string, any> | null>(null)
   const [previewData, setPreviewData] = useState<Record<string, any> | null>(null)
+  const [templateForm, setTemplateForm] = useState({
+    name: '',
+    type: 'course' as 'course' | 'landing' | 'funnel' | 'full',
+    description: '',
+    content: courseData
+  })
+  const [templateLoading, setTemplateLoading] = useState(false)
+  const [templateError, setTemplateError] = useState<string | null>(null)
   const [options, setOptions] = useState<CourseOptions>({
     includeLanding: true,
     includeFunnel: true,
@@ -105,7 +116,16 @@ export default function CourseCreatorPage() {
       }
 
       // Проверяем структуру данных и корректируем при необходимости
-      let requestData = {}
+      let requestData: {
+        course: any
+        language: string
+        landing?: any
+        funnel?: any
+        [key: string]: any
+      } = {
+        course: parsedData.course ? parsedData : { course: parsedData },
+        language: options.language
+      }
 
       // Если данные уже содержат поле course, используем их как есть
       if (parsedData.course) {
@@ -498,6 +518,435 @@ export default function CourseCreatorPage() {
 
                 <TabsContent value="templates">
                   <Card className="shadow-lg border-none">
+                    <CardHeader className="bg-gray-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2">
+                        <File className="h-5 w-5" />
+                        <span>Шаблоны</span>
+                      </CardTitle>
+                      <CardDescription>
+                        Выберите существующий шаблон или создайте новый
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="space-y-6">
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h3 className="font-medium mb-4">Создать новый шаблон</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="template-name">Название шаблона</Label>
+                              <Input
+                                id="template-name"
+                                placeholder="Мой шаблон"
+                                value={templateForm.name}
+                                onChange={(e) => setTemplateForm({
+                                  ...templateForm,
+                                  name: e.target.value
+                                })}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="template-type">Тип шаблона</Label>
+                              <Select
+                                value={templateForm.type}
+                                onValueChange={(value) => setTemplateForm({
+                                  ...templateForm,
+                                  type: value as 'course' | 'landing' | 'funnel' | 'full'
+                                })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Выберите тип" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="course">Курс</SelectItem>
+                                  <SelectItem value="landing">Лендинг</SelectItem>
+                                  <SelectItem value="funnel">Воронка</SelectItem>
+                                  <SelectItem value="full">Полный комплект</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <Label htmlFor="template-description">Описание</Label>
+                            <Textarea
+                              id="template-description"
+                              placeholder="Описание шаблона..."
+                              rows={2}
+                              value={templateForm.description}
+                              onChange={(e) => setTemplateForm({
+                                ...templateForm,
+                                description: e.target.value
+                              })}
+                            />
+                          </div>
+                          <div className="mt-4">
+                            <Button
+                              className="w-full"
+                              disabled={templateLoading}
+                              onClick={async () => {
+                                try {
+                                  setTemplateLoading(true);
+                                  setTemplateError(null);
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                      name: templateForm.name,
+                                      type: templateForm.type,
+                                      description: templateForm.description,
+                                      content: courseData,
+                                    }),
+                                  });
+
+                                  const data = await response.json();
+                                  
+                                  if (!response.ok) {
+                                    throw new Error(
+                                      data.message || 'Ошибка при создании шаблона'
+                                    );
+                                  }
+
+                                  toast.success('Шаблон успешно создан!');
+                                  router.refresh();
+                                } catch (err: unknown) {
+                                  let errorMessage = 'Неизвестная ошибка';
+                                  if (err instanceof Error) {
+                                    errorMessage = err.message;
+                                  } else if (typeof err === 'string') {
+                                    errorMessage = err;
+                                  }
+                                  setTemplateError(errorMessage);
+                                  toast.error(errorMessage);
+                                } finally {
+                                  setTemplateLoading(false);
+                                }
+                                try {
+                                  setTemplateLoading(true);
+                                  setTemplateError(null);
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData,
+                                    }),
+                                  });
+
+                                  if (!response.ok) {
+                                    const errorData = await response.json().catch(() => ({}));
+                                    throw new Error(
+                                      errorData.message || 'Failed to create template'
+                                    );
+                                  }
+
+                                  await response.json();
+                                  toast.success('Template created successfully!');
+                                  router.refresh();
+                                } catch (error: unknown) {
+                                  const message = error instanceof Error
+                                    ? error.message
+                                    : 'An unknown error occurred';
+                                  setTemplateError(message);
+                                  toast.error(message);
+                                } finally {
+                                  setTemplateLoading(false);
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    const errorData = await response.json()
+                                    throw new Error(errorData.message || 'Ошибка при создании шаблона')
+                                  }
+
+                                  const result = await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err instanceof Error ? err : new Error('Неизвестная ошибка')
+                                  setTemplateError(error.message)
+                                  toast.error(error.message)
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  const result = await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err as Error
+                                  setTemplateError(error.message)
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err as Error
+                                  setTemplateError(error.message)
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err as Error
+                                  setTemplateError(error.message)
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err as Error
+                                  setTemplateError(error.message)
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  const result = await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  const error = err as Error
+                                  setTemplateError(error.message)
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                              }}
+                            >
+                              {templateLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Создать шаблон'
+                              )}
+                            </Button>
+                            {templateError && (
+                              <p className="mt-2 text-sm text-red-500">{templateError}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <TemplateSelector onSelectTemplate={(content) => setCourseData(content)} />
+                      </div>
+                    </CardContent>
+                    <CardHeader className="bg-gray-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2">
+                        <File className="h-5 w-5" />
+                        <span>Шаблоны</span>
+                      </CardTitle>
+                      <CardDescription>
+                        Выберите существующий шаблон или создайте новый
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="space-y-6">
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h3 className="font-medium mb-4">Создать новый шаблон</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="template-name">Название шаблона</Label>
+                              <Input
+                                id="template-name"
+                                placeholder="Мой шаблон"
+                                value={templateForm.name}
+                                onChange={(e) => setTemplateForm({
+                                  ...templateForm,
+                                  name: e.target.value
+                                })}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="template-type">Тип шаблона</Label>
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Выберите тип" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="course">Курс</SelectItem>
+                                  <SelectItem value="landing">Лендинг</SelectItem>
+                                  <SelectItem value="funnel">Воронка</SelectItem>
+                                  <SelectItem value="full">Полный комплект</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <Label htmlFor="template-description">Описание</Label>
+                            <Textarea
+                              id="template-description"
+                              placeholder="Описание шаблона..."
+                              rows={2}
+                            />
+                          </div>
+                          <div className="mt-4">
+                            <Button
+                              className="w-full"
+                              disabled={templateLoading}
+                              onClick={async () => {
+                                try {
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+                                  
+                                  const response = await fetch('/api/v1/templates', {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      ...templateForm,
+                                      content: courseData
+                                    })
+                                  })
+
+                                  if (!response.ok) {
+                                    throw new Error('Ошибка при создании шаблона')
+                                  }
+
+                                  const result = await response.json()
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
+                                } catch (err) {
+                                  setTemplateError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+                                  toast.error('Ошибка при создании шаблона')
+                                } finally {
+                                  setTemplateLoading(false)
+                                }
+                              }}
+                            >
+                              {templateLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Создать шаблон'
+                              )}
+                            </Button>
+                            {templateError && (
+                              <p className="mt-2 text-sm text-red-500">{templateError}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <TemplateSelector onSelectTemplate={(content) => setCourseData(content)} />
+                      </div>
+                    </CardContent>
                     <CardHeader className="bg-gray-50 rounded-t-lg">
                       <CardTitle className="flex items-center gap-2">
                         <File className="h-5 w-5 text-blue-600" />
