@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,7 +21,9 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Loader2, AlertCircle, CheckCircle2, Sparkles, Eye, Code } from 'lucide-react'
+import { Loader2, AlertCircle, CheckCircle2, Sparkles, Eye, Code, Key, Trash2 } from 'lucide-react'
+import { useAIProviders } from '@/hooks/useAIProviders'
+import { AIProvider } from '@/services/ai/providerService'
 
 interface AIGeneratorProps {
   onGeneratedContent: (content: string) => void
@@ -42,10 +44,40 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
   const [language, setLanguage] = useState<string>('ru')
   const [moduleCount, setModuleCount] = useState<number>(3)
   const [lessonCount, setLessonCount] = useState<number>(3)
-  const [provider, setProvider] = useState<'openai' | 'google' | 'deepseek'>('openai')
-  const [model, setModel] = useState<string>('gpt-4-turbo')
-  const [apiKey, setApiKey] = useState<string>('')
-  const [apiKeySource, setApiKeySource] = useState<'manual' | 'env'>('env')
+  // Используем хук для работы с провайдерами и моделями
+  const {
+    providers,
+    selectedProvider,
+    setSelectedProvider,
+    models,
+    selectedModel,
+    setSelectedModel,
+    apiKey,
+    setApiKey,
+    isLoadingModels,
+    hasStoredApiKey,
+    validateApiKey,
+    saveApiKey: saveProviderApiKey,
+    deleteApiKey,
+    loadModels,
+    // Игнорируем ошибки провайдера, т.к. у нас есть свое состояние ошибки
+    error: _providerError,
+  } = useAIProviders()
+
+  // Состояние для источника API ключа
+  const [apiKeySource, setApiKeySource] = useState<'stored' | 'manual' | 'env'>('env')
+
+  // Обновляем источник API ключа при изменении статуса сохраненного ключа
+  useEffect(() => {
+    // Если есть сохраненный ключ и источник не 'manual', устанавливаем 'stored'
+    if (hasStoredApiKey && apiKeySource !== 'manual') {
+      setApiKeySource('stored')
+    }
+    // Если нет сохраненного ключа и источник 'stored', меняем на 'env'
+    else if (!hasStoredApiKey && apiKeySource === 'stored') {
+      setApiKeySource('env')
+    }
+  }, [hasStoredApiKey, apiKeySource])
   const [temperature, setTemperature] = useState<number>(0.7)
   const [style, setStyle] = useState<string>('professional')
   const [focus, setFocus] = useState<string>('balanced')
@@ -61,7 +93,13 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
     }
 
     if (apiKeySource === 'manual' && !apiKey.trim()) {
-      setError('Пожалуйста, укажите API ключ или выберите использование переменных окружения')
+      setError('Пожалуйста, укажите API ключ или выберите другой источник API ключа')
+      return
+    }
+
+    // Проверяем, что модель выбрана
+    if (!selectedModel) {
+      setError('Пожалуйста, выберите модель AI')
       return
     }
 
@@ -69,6 +107,26 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
       setLoading(true)
       setError(null)
       setSuccess(null)
+
+      // Если пользователь ввел ключ вручную и выбрал опцию сохранения, сохраняем его
+      if (apiKeySource === 'manual' && apiKey.trim()) {
+        const isValid = await validateApiKey(apiKey)
+        if (!isValid) {
+          setError('Неверный API ключ. Пожалуйста, проверьте и попробуйте снова.')
+          setLoading(false)
+          return
+        }
+
+        // Спрашиваем пользователя, хочет ли он сохранить ключ
+        const shouldSave = window.confirm(
+          'Хотите сохранить этот API ключ для будущего использования?',
+        )
+
+        if (shouldSave) {
+          await saveProviderApiKey(apiKey)
+          setApiKeySource('stored')
+        }
+      }
 
       // Отправляем запрос на генерацию курса
       const response = await fetch('/api/v1/ai/generate-course', {
@@ -86,9 +144,9 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
           language,
           moduleCount,
           lessonCount,
-          provider,
-          model,
-          apiKey: apiKeySource === 'env' ? undefined : apiKey,
+          provider: selectedProvider,
+          model: selectedModel,
+          apiKey: apiKeySource === 'manual' ? apiKey : undefined, // Отправляем ключ только если он введен вручную
           temperature,
           style,
           focus,
@@ -282,22 +340,20 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
               <div className="space-y-2">
                 <Label htmlFor="provider">AI Провайдер</Label>
                 <Select
-                  value={provider}
+                  value={selectedProvider}
                   onValueChange={(value) => {
-                    setProvider(value as 'openai' | 'google' | 'deepseek')
-                    // Reset to default model when provider changes
-                    if (value === 'google') setModel('gemini-pro')
-                    else if (value === 'deepseek') setModel('deepseek-chat')
-                    else setModel('gpt-4-turbo')
+                    setSelectedProvider(value as AIProvider)
                   }}
                 >
                   <SelectTrigger id="provider">
                     <SelectValue placeholder="Выберите провайдера" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="google">Google Gemini</SelectItem>
-                    <SelectItem value="deepseek">DeepSeek</SelectItem>
+                    {providers.map((provider) => (
+                      <SelectItem key={provider.id} value={provider.id}>
+                        {provider.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -307,22 +363,23 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
                 <Select
                   value={apiKeySource}
                   onValueChange={(value) => {
-                    setApiKeySource(value as 'manual' | 'env')
-                    setApiKey(
-                      value === 'env'
-                        ? provider === 'openai'
-                          ? process.env.OPENAI_API_KEY || ''
-                          : provider === 'google'
-                            ? process.env.GOOGLE_API_KEY || ''
-                            : process.env.DEEPSEEK_API_KEY || ''
-                        : '',
-                    )
+                    setApiKeySource(value as 'stored' | 'manual' | 'env')
+                    // Если выбран ручной ввод, очищаем поле
+                    if (value === 'manual') {
+                      setApiKey('')
+                    }
+                    // Загружаем актуальный список моделей при изменении источника ключа
+                    if (value === 'stored') {
+                      // Загружаем модели с использованием сохраненного ключа
+                      loadModels(true)
+                    }
                   }}
                 >
                   <SelectTrigger id="apiKeySource">
                     <SelectValue placeholder="Выберите источник" />
                   </SelectTrigger>
                   <SelectContent>
+                    {hasStoredApiKey && <SelectItem value="stored">Сохраненный ключ</SelectItem>}
                     <SelectItem value="env">Из переменных окружения</SelectItem>
                     <SelectItem value="manual">Ввести вручную</SelectItem>
                   </SelectContent>
@@ -332,40 +389,101 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
               {apiKeySource === 'manual' && (
                 <div className="space-y-2">
                   <Label htmlFor="apiKey">API Ключ</Label>
-                  <Input
-                    id="apiKey"
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Введите API ключ"
-                  />
+                  <div className="flex space-x-2">
+                    <Input
+                      id="apiKey"
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="Введите API ключ"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={async () => {
+                        if (!apiKey.trim()) return
+
+                        const isValid = await validateApiKey(apiKey)
+                        if (isValid) {
+                          await saveProviderApiKey(apiKey)
+                          setApiKeySource('stored')
+                          // Загружаем актуальный список моделей после сохранения ключа
+                          await loadModels(true)
+                          setSuccess('Ключ успешно сохранен')
+                        } else {
+                          setError('Неверный API ключ')
+                        }
+                      }}
+                      title="Сохранить ключ"
+                    >
+                      <Key className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {apiKeySource === 'stored' && (
+                <div className="space-y-2">
+                  <Label htmlFor="storedKey">Сохраненный ключ</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="storedKey"
+                      type="password"
+                      value="********"
+                      disabled
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={async () => {
+                        if (window.confirm('Вы уверены, что хотите удалить сохраненный ключ?')) {
+                          await deleteApiKey()
+                          setApiKeySource('env')
+                          // Загружаем актуальный список моделей после удаления ключа
+                          await loadModels(true)
+                          setSuccess('Ключ успешно удален')
+                        }
+                      }}
+                      title="Удалить ключ"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
               <div className="space-y-2">
                 <Label htmlFor="model">Модель AI</Label>
-                <Select value={model} onValueChange={setModel}>
+                <Select
+                  value={selectedModel || ''}
+                  onValueChange={setSelectedModel}
+                  disabled={isLoadingModels}
+                >
                   <SelectTrigger id="model">
-                    <SelectValue placeholder="Выберите модель" />
+                    {isLoadingModels ? (
+                      <div className="flex items-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Загрузка моделей...</span>
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Выберите модель" />
+                    )}
                   </SelectTrigger>
                   <SelectContent>
-                    {provider === 'google' ? (
-                      <>
-                        <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
-                        <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                      </>
-                    ) : provider === 'deepseek' ? (
-                      <>
-                        <SelectItem value="deepseek-chat">DeepSeek Chat</SelectItem>
-                        <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                      </>
-                    )}
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                        {model.description && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            - {model.description}
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

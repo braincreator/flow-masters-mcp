@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import JSON5 from 'json5'
 // We'll use OpenAI client for DeepSeek as they have compatible APIs
 
 export interface AIProvider {
@@ -12,7 +13,7 @@ const CMS_BLOCKS = {
     hero: ['DynamicVideoHero', 'InteractiveCalculatorHero', 'GradientTextHero'],
     features: ['ThreeColumnFeatures', 'ComparisonTable', 'ProgressBarsGrid'],
     testimonials: ['VideoTestimonialsSlider', 'LogoCloud', 'CaseStudyCards'],
-    cta: ['CountdownTimerCTA', 'QuizLeadGen', 'ConsultationBooking']
+    cta: ['CountdownTimerCTA', 'QuizLeadGen', 'ConsultationBooking'],
   },
   course: {
     content: [
@@ -20,14 +21,9 @@ const CMS_BLOCKS = {
       'InteractiveSimulation',
       'PeerReviewAssignment',
       'LiveWorkshopEmbed',
-      'ResourceLibrary'
+      'ResourceLibrary',
     ],
-    pricing: [
-      'TieredPricingTable',
-      'MoneyBackGuarantee',
-      'BonusPackages',
-      'PaymentPlanCalculator'
-    ]
+    pricing: ['TieredPricingTable', 'MoneyBackGuarantee', 'BonusPackages', 'PaymentPlanCalculator'],
   },
   funnel: {
     steps: [
@@ -35,10 +31,10 @@ const CMS_BLOCKS = {
       'NurtureEmailSequence',
       'WebinarRegistration',
       'UpsellSequencer',
-      'AlumniPortal'
-    ]
-  }
-};
+      'AlumniPortal',
+    ],
+  },
+}
 
 // No need for a separate DeepSeek interface as we'll use OpenAI client
 
@@ -55,9 +51,18 @@ export interface CourseGenerationParams {
   language?: 'en' | 'ru'
   moduleCount?: number
   lessonCount?: number
-  provider?: 'openai' | 'google' | 'deepseek'
-  model?: 'gpt-4-turbo' | 'gpt-4o' | 'gpt-3.5-turbo' | 'gemini-pro' | 'deepseek-chat'
+  provider?:
+    | 'openai'
+    | 'google'
+    | 'deepseek'
+    | 'anthropic'
+    | 'openrouter'
+    | 'requesty'
+    | 'mistral'
+    | 'openai-compatible'
+  model?: string // Принимаем любую строку как ID модели
   apiKey?: string
+  baseUrl?: string
   temperature?: number
   style?: 'academic' | 'conversational' | 'professional'
   focus?: 'theory' | 'practice' | 'balanced'
@@ -69,13 +74,70 @@ export interface CourseGenerationParams {
   keyThemes?: string[]
 }
 
-/**
- * Генерирует структуру курса с помощью OpenAI
- */
-export async function generateCourseStructure(params: CourseGenerationParams): Promise<any> {
-  try {
-    const validationErrors: string[] = []
+// Тип для возвращаемого значения
+export interface CourseStructure {
+  course: {
+    title: string
+    excerpt: string
+    description: string
+    difficulty: string
+    estimatedDuration: string
+    learningOutcomes: string[]
+    requirements: string[]
+    targetAudience: string[]
+    modules: {
+      title: string
+      description: string
+      lessons: {
+        title: string
+        description: string
+        duration: string
+        type: string
+      }[]
+    }[]
+  }
+  landing?: {
+    hero: {
+      heading: string
+      subheading: string
+      ctaText: string
+    }
+    sections: {
+      type: string
+      content: {
+        heading: string
+        features?: {
+          title: string
+          description: string
+          icon: string
+        }[]
+        [key: string]: any
+      }
+    }[]
+  }
+  funnel?: {
+    name: string
+    steps: {
+      name: string
+      id: string
+      triggerType: string
+    }[]
+    emailSequence: {
+      subject: string
+      content: string
+      delay: number
+      triggerEvent: string
+    }[]
+  }
+}
 
+/**
+ * Генерирует структуру курса с помощью различных AI провайдеров
+ */
+export async function generateCourseStructure(
+  params: CourseGenerationParams,
+): Promise<CourseStructure> {
+  try {
     const provider = params.provider || 'openai'
     const apiKey = params.apiKey || process.env.OPENAI_API_KEY
     if (!apiKey) {
@@ -92,18 +154,24 @@ export async function generateCourseStructure(params: CourseGenerationParams): P
         apiKey,
         baseURL: 'https://api.deepseek.com/v1', // DeepSeek API endpoint
       })
+    } else if (provider === 'anthropic') {
+      // Для Anthropic используем OpenAI клиент с базовым URL для Claude API
+      // В реальном приложении лучше использовать официальный SDK Anthropic
+      client = new OpenAI({ apiKey })
     } else {
       // Default to OpenAI
       client = new OpenAI({ apiKey })
     }
 
-    // Формируем системный промпт
-    const moduleCount = params.moduleCount || 3
-    const lessonCount = params.lessonCount || 3
+    // Используем параметры из запроса или значения по умолчанию
+    const _moduleCount = params.moduleCount || 3
+    const _lessonCount = params.lessonCount || 3
     const model = params.model || 'gpt-4-turbo'
     const temperature = params.temperature || 0.7
     const style = params.style || 'professional'
     const focus = params.focus || 'balanced'
+
+    // Формируем системный промпт
 
     // Создаем стилистические инструкции
     let styleInstructions = ''
@@ -203,8 +271,28 @@ export async function generateCourseStructure(params: CourseGenerationParams): P
       `
     }
 
+    // Создаем инструкции по языку
+    let languageInstructions = ''
+    if (params.language === 'en') {
+      languageInstructions = `
+        Generate all content in English.
+        Use English terminology, examples, and cultural references.
+        Ensure proper English grammar, spelling, and punctuation.
+        Adapt all examples and case studies to be relevant for English-speaking audiences.
+      `
+    } else {
+      // По умолчанию используем русский язык
+      languageInstructions = `
+        Генерируй весь контент на русском языке.
+        Используй русскую терминологию, примеры и культурные референсы.
+        Следи за правильной русской грамматикой, орфографией и пунктуацией.
+        Адаптируй все примеры и кейсы так, чтобы они были актуальны для русскоязычной аудитории.
+      `
+    }
+
     // Объединяем все дополнительные инструкции
     const additionalInstructions = [
+      languageInstructions,
       resourcesInstructions,
       assignmentsInstructions,
       industryInstructions,
@@ -212,7 +300,13 @@ export async function generateCourseStructure(params: CourseGenerationParams): P
       .filter(Boolean)
       .join('')
 
-    const systemPrompt = `Ты - Chief Learning Officer премиум-образовательной платформы. Создай курс уровня MasterClass с маркетинговой инфраструктурой Enterprise-уровня.
+    // Определяем базовый промпт в зависимости от языка
+    const basePrompt =
+      params.language === 'en'
+        ? `You are the Chief Learning Officer of a premium educational platform. Create a MasterClass-level course with Enterprise-level marketing infrastructure.`
+        : `Ты - Chief Learning Officer премиум-образовательной платформы. Создай курс уровня MasterClass с маркетинговой инфраструктурой Enterprise-уровня.`
+
+    const systemPrompt = `${basePrompt}
 
 # Педагогический дизайн (Educational Design):
 1. Методологическая основа:
@@ -445,7 +539,7 @@ ${additionalInstructions}
   }
 }
 
-Создай качественный, профессиональный курс с логичной структурой и последовательностью обучения.`
+Создай качественный, профессиональный курс с логичной структурой и последовательностью обучения. Ответ должен содержать только корректный JSON, без дополнительных комментариев.`
 
     let response
     if (provider === 'google') {
@@ -455,30 +549,93 @@ ${additionalInstructions}
         contents: [
           {
             role: 'user',
-            parts: [{ text: systemPrompt }],
+            parts: [
+              {
+                text:
+                  systemPrompt +
+                  '\n\n' +
+                  (params.language === 'en'
+                    ? `Create a course on the topic "${params.topic}".`
+                    : `Создай курс по теме "${params.topic}".`),
+              },
+            ],
           },
         ],
+        generationConfig: {
+          temperature,
+          maxOutputTokens: 8192*2,
+        },
       })
-      response = { choices: [{ message: { content: result.response.text() } }] }
+
+      // Получаем текст ответа
+      let responseText = result.response.text()
+
+      // Для Google API делаем специальную обработку
+      console.log('Raw Google API response:', responseText)
+
+      // Ищем JSON в ответе с помощью регулярного выражения
+      const jsonRegex = /\{[\s\S]*\}/
+      const jsonMatch = responseText.match(jsonRegex)
+
+      if (jsonMatch) {
+        // Если нашли JSON, используем только его
+        responseText = jsonMatch[0]
+        console.log('Extracted JSON from Google API response:', responseText)
+      }
+
+      response = { choices: [{ message: { content: responseText } }] }
     } else if (provider === 'deepseek') {
       const deepseek = client as OpenAI
       response = await deepseek.chat.completions.create({
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Создай курс по теме "${params.topic}".` },
+          {
+            role: 'user',
+            content:
+              params.language === 'en'
+                ? `Create a course on the topic "${params.topic}".`
+                : `Создай курс по теме "${params.topic}".`,
+          },
+        ],
+        temperature,
+        max_tokens: 4000,
+        response_format: { type: 'json_object' },
+      })
+    } else if (provider === 'anthropic') {
+      // Для Anthropic используем тот же формат, что и для OpenAI
+      // В реальном приложении нужно использовать официальный SDK Anthropic
+      const anthropic = client as OpenAI
+      response = await anthropic.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content:
+              params.language === 'en'
+                ? `Create a course on the topic "${params.topic}".`
+                : `Создай курс по теме "${params.topic}".`,
+          },
         ],
         temperature,
         max_tokens: 4000,
         response_format: { type: 'json_object' },
       })
     } else {
+      // Default to OpenAI
       const openai = client as OpenAI
       response = await openai.chat.completions.create({
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Создай курс по теме "${params.topic}".` },
+          {
+            role: 'user',
+            content:
+              params.language === 'en'
+                ? `Create a course on the topic "${params.topic}".`
+                : `Создай курс по теме "${params.topic}".`,
+          },
         ],
         temperature,
         max_tokens: 4000,
@@ -487,64 +644,183 @@ ${additionalInstructions}
     }
 
     // Получаем ответ и парсим JSON
-    const content = response.choices[0]?.message?.content
+    let content = response.choices[0]?.message?.content
     if (!content) {
-      throw new Error('Не удалось получить ответ от OpenAI')
+      throw new Error(`Не удалось получить ответ от ${provider}`)
     }
 
-    // Валидация адаптации воронки
-    const funnelRules = [
-      {
-        condition: (course: CourseGenerationParams) =>
-          (course.moduleCount || 0) > 5 && (course.lessonCount || 0) > 15,
-        required: 'FS-1',
-      },
-      {
-        condition: (course: CourseGenerationParams) => (course.price || 0) > 500,
-        required: 'FS-2',
-      },
-      {
-        condition: (course: CourseGenerationParams) => course.audienceType === 'B2B',
-        required: 'FS-3',
-      },
-    ]
+    // Обрабатываем ответ для всех провайдеров
+    console.log('Raw content:', content)
 
-    funnelRules.forEach(({ condition, required }) => {
-      if (condition(params) && !content.includes(required)) {
-        validationErrors.push(`Требуется воронка ${required} для текущих параметров курса`)
+    // Ищем JSON в ответе с помощью регулярного выражения
+    const jsonRegex = /\{[\s\S]*?\}/g
+    const jsonMatches = content.match(jsonRegex)
+
+    if (jsonMatches && jsonMatches.length > 0) {
+      // Если нашли несколько JSON-объектов, выбираем самый большой
+      let largestJson = jsonMatches[0]
+      for (const match of jsonMatches) {
+        if (match.length > largestJson.length) {
+          largestJson = match
+        }
       }
-    })
 
-    // Проверка интеграции контента
-    const requiredCourseTerms = [
-      params.topic,
-      ...(params.keyThemes || []),
-      params.targetAudience,
-    ].filter(Boolean)
+      console.log('Found JSON objects:', jsonMatches.length)
+      console.log('Using largest JSON:', largestJson.substring(0, 100) + '...')
 
-    requiredCourseTerms.forEach((term) => {
-      if (term && !content.toLowerCase().includes(term.toLowerCase())) {
-        validationErrors.push(`Отсутствует ключевой термин курса "${term}" в контенте`)
+      // Используем самый большой JSON-объект
+      // content = largestJson
+    }
+
+    // // Удаляем маркдаун-разметку для блоков кода, если она есть
+    // if (content.includes('```json') || content.includes('```')) {
+    //   content = content.replace(/```json\n?/g, '').replace(/```/g, '')
+    // }
+
+    // // Удаляем любые символы перед началом JSON
+    // const jsonStartIndex = content.indexOf('{')
+    // if (jsonStartIndex > 0) {
+    //   content = content.substring(jsonStartIndex)
+    // }
+
+    // // Удаляем любые символы после конца JSON
+    // const lastBraceIndex = content.lastIndexOf('}')
+    // if (lastBraceIndex !== -1 && lastBraceIndex < content.length - 1) {
+    //   content = content.substring(0, lastBraceIndex + 1)
+    // }
+
+    // // Исправляем распространенные ошибки в JSON
+    // // 1. Заменяем одиночные кавычки на двойные
+    // content = content.replace(/([{,]\s*)(')(.*?)('\s*:)/g, '$1"$3"$4')
+    // content = content.replace(/(:\s*)'([^']*)'/g, ':"$2"')
+
+    // // 2. Удаляем запятые после последнего элемента в массивах и объектах
+    // content = content.replace(/,\s*([\]\}])/g, '$1')
+
+    // // 3. Добавляем запятые между элементами, где их не хватает
+    // content = content.replace(/"\s*\}\s*"\s*:/g, '",":')
+    // content = content.replace(/"\s*\]\s*"\s*:/g, '",":')
+
+    // // 4. Исправляем некорректные экранирования в строках
+    // content = content.replace(/\\\\n/g, '\\n')
+
+    // // 5. Исправляем незакрытые строки
+    // content = content.replace(/([^\\])"([^"]*)(\n)/g, '$1"$2"$3')
+
+    // // 6. Исправляем проблему с переносом строки и кавычкой
+    // content = content.replace(/"\n/g, '')
+    // content = content.replace(/\n"/g, '')
+
+    // // 7. Заменяем все неэкранированные переносы строк на пробелы
+    // content = content.replace(/([^\\])\n/g, '$1 ')
+
+    // // 8. Исправляем отсутствующие закрывающие кавычки перед закрывающей скобкой массива
+    // content = content.replace(/([^"\s])\s*\]/g, '$1"\]')
+
+    // // 9. Исправляем отсутствующие закрывающие кавычки перед запятыми в массивах
+    // content = content.replace(/([^"\s])\s*,\s*/g, '$1",\n      "')
+
+    // // 10. Удаляем непечатаемые символы и управляющие последовательности
+    // content = content.replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+
+    // // 11. Исправляем некорректные символы в строках
+    // content = content.replace(/"([^"]*)\t([^"]*)"/, '"$1 $2"')
+
+    // // 12. Исправляем лишние кавычки до и после запятой в строковых значениях
+    // // Например: "title": "ABC",      "DEF" -> "title": "ABC, DEF"
+    // content = content.replace(/"([^"]+)"\s*,\s*"([^"]+)"/g, '"$1, $2"')
+
+    // // 13. Исправляем несколько раз для случаев с несколькими запятыми
+    // for (let i = 0; i < 5; i++) {
+    //   content = content.replace(/"([^"]+)"\s*,\s*"([^"]+)"/g, '"$1, $2"')
+    // }
+
+    // // 14. Исправляем лишние кавычки внутри объекта
+    // // Например: "title": "ABC", "DEF" -> "title": "ABC, DEF"
+    // content = content.replace(/("[^"]+")\s*:\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,/g, '$1: "$2, $3",')
+    // content = content.replace(/("[^"]+")\s*:\s*"([^"]+)"\s*,\s*"([^"]+)"\s*}/g, '$1: "$2, $3"}')
+
+    // // 15. Исправляем специфический случай с title и excerpt
+    // content = content.replace(
+    //   /"title"\s*:\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"excerpt"\s*:/g,
+    //   '"title": "$1, $2", "excerpt":',
+    // )
+    // content = content.replace(
+    //   /"excerpt"\s*:\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"description"\s*:/g,
+    //   '"excerpt": "$1, $2", "description":',
+    // )
+
+    // // 16. Исправляем случай, когда отсутствует закрывающая кавычка и следующее поле включено в значение
+    // // Например: "title": "ABC, excerpt": -> "title": "ABC", "excerpt":
+    // content = content.replace(/"([^"]+)"\s*:\s*"([^"]+),\s*([^"]+)"\s*:/g, '"$1": "$2", "$3":')
+
+    // // 17. Исправляем специфический случай с title и excerpt
+    // content = content.replace(
+    //   /"title"\s*:\s*"([^"]+),\s*excerpt"\s*:/g,
+    //   '"title": "$1", "excerpt":',
+    // )
+
+    // Удаляем все переносы строк
+    // content = content.replace(/"\n/g, '')
+    // content = content.replace(/\n/g, '')
+
+    // Исправляем случай, когда отсутствует закрывающая кавычка перед закрывающей скобкой
+    // Например: "type": "video} -> "type": "video"}
+    // content = content.replace(/"([^"]+)"\s*:\s*"([^"]+)\s*\}/g, '"$1": "$2"}')
+
+    // Исправляем случай, когда отсутствует закрывающая кавычка перед закрывающей скобкой массива
+    // Например: "type": "video] -> "type": "video"]
+    // content = content.replace(/"([^"]+)"\s*:\s*"([^"]+)\s*\]/g, '"$1": "$2"]')
+
+    console.log('Processed content:', content)
+
+    // Парсим JSON и проверяем структуру
+    try {
+      let parsedContent: CourseStructure
+
+      try {
+        // Сначала пробуем стандартный JSON.parse
+        parsedContent = JSON.parse(content) as CourseStructure
+      } catch (jsonError) {
+        console.warn('Standard JSON parsing failed, trying JSON5:', jsonError)
+        // Если стандартный парсинг не удался, используем JSON5
+        try {
+          parsedContent = JSON5.parse(content) as CourseStructure
+        } catch (json5Error) {
+          console.error('JSON5 parsing also failed:', json5Error)
+          // Если и JSON5 не смог парсить, пробуем исправить еще некоторые распространенные ошибки
+
+          // Исправляем некорректные символы переноса строки в строках
+          content = content.replace(/([^\\])"([^"]*)\n([^"]*)"/g, '$1"$2\\n$3"')
+
+          // Исправляем некорректные запятые в массивах
+          content = content.replace(/\[\s*,/g, '[')
+          content = content.replace(/,\s*,/g, ',')
+
+          // Еще одна попытка с JSON5
+          try {
+            parsedContent = JSON5.parse(content) as CourseStructure
+          } catch (finalError) {
+            console.error('All parsing attempts failed. Final content:', content)
+            throw finalError
+          }
+        }
       }
-    })
 
-    // Чекер 3: SEO-параметры
-    const keywordDensity =
-      (content.match(new RegExp(params.topic, 'gi')) || []).length /
-      (content.split(' ').length || 1)
-    if (keywordDensity < 0.015 || keywordDensity > 0.025) {
-      validationErrors.push(
-        `Плотность ключевых слов (${(keywordDensity * 100).toFixed(2)}%) вне диапазона 1.5-2.5%`,
+      // Проверяем, что есть обязательные поля
+      if (!parsedContent.course) {
+        throw new Error('Отсутствует обязательное поле "course" в ответе')
+      }
+
+      return parsedContent
+    } catch (error) {
+      console.error('Error parsing AI response:', error)
+      throw new Error(
+        `Не удалось парсить JSON ответ от ${provider}: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     }
-
-    if (validationErrors.length > 0) {
-      throw new Error(`Ошибки валидации контента:\n${validationErrors.join('\n')}`)
-    }
-
-    return JSON.parse(content)
   } catch (error) {
-    console.error('Error generating course with OpenAI:', error)
+    console.error('Error generating course:', error)
     throw error
   }
 }

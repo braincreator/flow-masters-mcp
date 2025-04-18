@@ -90,6 +90,7 @@
     "graphql": "^16.10.0",
     "highlight.js": "^11.11.1",
     "js-cookie": "^3.0.5",
+    "json5": "^2.2.3",
     "lodash.debounce": "^4.0.8",
     "lru-cache": "^11.1.0",
     "lucide-react": "^0.483.0",
