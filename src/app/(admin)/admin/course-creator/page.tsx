@@ -75,7 +75,7 @@ export default function CourseCreatorPage() {
     name: '',
     type: 'course' as 'course' | 'landing' | 'funnel' | 'full',
     description: '',
-    content: courseData
+    content: courseData,
   })
   const [templateLoading, setTemplateLoading] = useState(false)
   const [templateError, setTemplateError] = useState<string | null>(null)
@@ -124,7 +124,7 @@ export default function CourseCreatorPage() {
         [key: string]: any
       } = {
         course: parsedData.course ? parsedData : { course: parsedData },
-        language: options.language
+        language: options.language,
       }
 
       // Если данные уже содержат поле course, используем их как есть
@@ -213,13 +213,22 @@ export default function CourseCreatorPage() {
       // Парсим JSON данные курса
       let parsedData
       try {
-        parsedData = JSON.parse(courseData)
-      } catch (_e) {
+        // Используем более надежный способ парсинга JSON
+        const jsonString = courseData.trim()
+        parsedData = JSON.parse(jsonString)
+        console.log('Successfully parsed JSON data:', parsedData)
+      } catch (e) {
+        console.error('JSON parse error:', e)
         throw new Error('Неверный формат JSON. Пожалуйста, проверьте данные курса.')
       }
 
       // Проверяем структуру данных и корректируем при необходимости
       let previewData
+
+      // Проверяем наличие обязательных полей
+      if (!parsedData) {
+        throw new Error('Данные курса отсутствуют')
+      }
 
       // Если данные уже содержат поле course, используем их как есть
       if (parsedData.course) {
@@ -227,6 +236,17 @@ export default function CourseCreatorPage() {
       } else {
         // Иначе предполагаем, что весь объект - это данные курса
         previewData = { course: parsedData }
+      }
+
+      // Проверяем, что course содержит необходимые поля
+      if (!previewData.course.title) {
+        console.warn('Course title is missing')
+      }
+
+      // Проверяем, что modules существует и является массивом
+      if (!Array.isArray(previewData.course.modules)) {
+        console.warn('Course modules is not an array, initializing empty array')
+        previewData.course.modules = []
       }
 
       // Если не включать лендинг или воронку, удаляем их из предпросмотра
@@ -238,9 +258,11 @@ export default function CourseCreatorPage() {
         delete previewData.funnel
       }
 
+      console.log('Preview data prepared:', previewData)
       setPreviewData(previewData)
       setActiveTab('preview')
     } catch (error) {
+      console.error('Preview error:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     }
   }
@@ -538,20 +560,24 @@ export default function CourseCreatorPage() {
                                 id="template-name"
                                 placeholder="Мой шаблон"
                                 value={templateForm.name}
-                                onChange={(e) => setTemplateForm({
-                                  ...templateForm,
-                                  name: e.target.value
-                                })}
+                                onChange={(e) =>
+                                  setTemplateForm({
+                                    ...templateForm,
+                                    name: e.target.value,
+                                  })
+                                }
                               />
                             </div>
                             <div>
                               <Label htmlFor="template-type">Тип шаблона</Label>
                               <Select
                                 value={templateForm.type}
-                                onValueChange={(value) => setTemplateForm({
-                                  ...templateForm,
-                                  type: value as 'course' | 'landing' | 'funnel' | 'full'
-                                })}
+                                onValueChange={(value) =>
+                                  setTemplateForm({
+                                    ...templateForm,
+                                    type: value as 'course' | 'landing' | 'funnel' | 'full',
+                                  })
+                                }
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Выберите тип" />
@@ -572,10 +598,12 @@ export default function CourseCreatorPage() {
                               placeholder="Описание шаблона..."
                               rows={2}
                               value={templateForm.description}
-                              onChange={(e) => setTemplateForm({
-                                ...templateForm,
-                                description: e.target.value
-                              })}
+                              onChange={(e) =>
+                                setTemplateForm({
+                                  ...templateForm,
+                                  description: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div className="mt-4">
@@ -584,9 +612,9 @@ export default function CourseCreatorPage() {
                               disabled={templateLoading}
                               onClick={async () => {
                                 try {
-                                  setTemplateLoading(true);
-                                  setTemplateError(null);
-                                  
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
@@ -598,34 +626,32 @@ export default function CourseCreatorPage() {
                                       description: templateForm.description,
                                       content: courseData,
                                     }),
-                                  });
+                                  })
 
-                                  const data = await response.json();
-                                  
+                                  const data = await response.json()
+
                                   if (!response.ok) {
-                                    throw new Error(
-                                      data.message || 'Ошибка при создании шаблона'
-                                    );
+                                    throw new Error(data.message || 'Ошибка при создании шаблона')
                                   }
 
-                                  toast.success('Шаблон успешно создан!');
-                                  router.refresh();
+                                  toast.success('Шаблон успешно создан!')
+                                  router.refresh()
                                 } catch (err: unknown) {
-                                  let errorMessage = 'Неизвестная ошибка';
+                                  let errorMessage = 'Неизвестная ошибка'
                                   if (err instanceof Error) {
-                                    errorMessage = err.message;
+                                    errorMessage = err.message
                                   } else if (typeof err === 'string') {
-                                    errorMessage = err;
+                                    errorMessage = err
                                   }
-                                  setTemplateError(errorMessage);
-                                  toast.error(errorMessage);
+                                  setTemplateError(errorMessage)
+                                  toast.error(errorMessage)
                                 } finally {
-                                  setTemplateLoading(false);
+                                  setTemplateLoading(false)
                                 }
                                 try {
-                                  setTemplateLoading(true);
-                                  setTemplateError(null);
-                                  
+                                  setTemplateLoading(true)
+                                  setTemplateError(null)
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
@@ -635,52 +661,56 @@ export default function CourseCreatorPage() {
                                       ...templateForm,
                                       content: courseData,
                                     }),
-                                  });
+                                  })
 
                                   if (!response.ok) {
-                                    const errorData = await response.json().catch(() => ({}));
+                                    const errorData = await response.json().catch(() => ({}))
                                     throw new Error(
-                                      errorData.message || 'Failed to create template'
-                                    );
+                                      errorData.message || 'Failed to create template',
+                                    )
                                   }
 
-                                  await response.json();
-                                  toast.success('Template created successfully!');
-                                  router.refresh();
+                                  await response.json()
+                                  toast.success('Template created successfully!')
+                                  router.refresh()
                                 } catch (error: unknown) {
-                                  const message = error instanceof Error
-                                    ? error.message
-                                    : 'An unknown error occurred';
-                                  setTemplateError(message);
-                                  toast.error(message);
+                                  const message =
+                                    error instanceof Error
+                                      ? error.message
+                                      : 'An unknown error occurred'
+                                  setTemplateError(message)
+                                  toast.error(message)
                                 } finally {
-                                  setTemplateLoading(false);
+                                  setTemplateLoading(false)
                                 }
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
                                     const errorData = await response.json()
-                                    throw new Error(errorData.message || 'Ошибка при создании шаблона')
+                                    throw new Error(
+                                      errorData.message || 'Ошибка при создании шаблона',
+                                    )
                                   }
 
                                   const result = await response.json()
                                   toast.success('Шаблон успешно создан!')
                                   router.refresh()
                                 } catch (err) {
-                                  const error = err instanceof Error ? err : new Error('Неизвестная ошибка')
+                                  const error =
+                                    err instanceof Error ? err : new Error('Неизвестная ошибка')
                                   setTemplateError(error.message)
                                   toast.error(error.message)
                                 } finally {
@@ -689,16 +719,16 @@ export default function CourseCreatorPage() {
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
@@ -718,16 +748,16 @@ export default function CourseCreatorPage() {
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
@@ -747,16 +777,16 @@ export default function CourseCreatorPage() {
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
@@ -776,16 +806,16 @@ export default function CourseCreatorPage() {
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
@@ -805,16 +835,16 @@ export default function CourseCreatorPage() {
                                 try {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
-                                  
+
                                   const response = await fetch('/api/v1/templates', {
                                     method: 'POST',
                                     headers: {
-                                      'Content-Type': 'application/json'
+                                      'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
                                       ...templateForm,
-                                      content: courseData
-                                    })
+                                      content: courseData,
+                                    }),
                                   })
 
                                   if (!response.ok) {
@@ -864,7 +894,7 @@ export default function CourseCreatorPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
-                      <AIGenerator onGeneratedContent={setCourseData} />
+                      <AIGenerator onGeneratedContent={setCourseData} onPreview={handlePreview} />
                     </CardContent>
                     {/* Consistent CardFooter background */}
                     <CardFooter className="bg-gray-50 flex justify-between py-4 rounded-b-lg">

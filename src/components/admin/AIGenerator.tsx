@@ -27,9 +27,10 @@ import { AIProvider } from '@/services/ai/providerService'
 
 interface AIGeneratorProps {
   onGeneratedContent: (content: string) => void
+  onPreview?: () => void
 }
 
-export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
+export function AIGenerator({ onGeneratedContent, onPreview }: AIGeneratorProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -573,7 +574,13 @@ export function AIGenerator({ onGeneratedContent }: AIGeneratorProps) {
             <div className="flex justify-between">
               <Button
                 variant="outline"
-                onClick={() => onGeneratedContent(generatedData)}
+                onClick={() => {
+                  onGeneratedContent(generatedData)
+                  // Вызываем функцию предпросмотра, если она предоставлена
+                  if (onPreview) {
+                    onPreview()
+                  }
+                }}
                 className="flex-1 mr-2"
               >
                 <Eye className="mr-2 h-4 w-4" />

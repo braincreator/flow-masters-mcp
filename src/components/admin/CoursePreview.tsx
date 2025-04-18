@@ -17,10 +17,19 @@ interface CoursePreviewProps {
 }
 
 export function CoursePreview({ courseData }: CoursePreviewProps) {
-  if (!courseData || !courseData.course) {
+  // Проверяем наличие данных
+  if (!courseData) {
+    console.error('CoursePreview: courseData is undefined or null')
     return <div>Нет данных для предпросмотра</div>
   }
 
+  // Проверяем наличие данных курса
+  if (!courseData.course) {
+    console.error('CoursePreview: courseData.course is undefined or null')
+    return <div>Структура данных курса некорректна</div>
+  }
+
+  // Извлекаем данные с проверкой
   const { course, landing, funnel } = courseData
 
   return (
@@ -51,13 +60,32 @@ export function CoursePreview({ courseData }: CoursePreviewProps) {
 }
 
 function CoursePreviewContent({ course }: { course: any }) {
+  // Проверяем наличие обязательных полей
+  if (!course) {
+    console.error('CoursePreviewContent: course is undefined or null')
+    return <div>Нет данных курса</div>
+  }
+
+  // Проверяем наличие заголовка
+  const title = course.title || 'Курс без названия'
+
+  // Проверяем наличие модулей
+  const modules = Array.isArray(course.modules) ? course.modules : []
+
+  // Проверяем наличие других полей
+  const learningOutcomes = Array.isArray(course.learningOutcomes) ? course.learningOutcomes : []
+  const requirements = Array.isArray(course.requirements) ? course.requirements : []
+  const targetAudience = Array.isArray(course.targetAudience) ? course.targetAudience : []
+
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
-            <CardTitle>{course.title}</CardTitle>
-            <Badge variant={getBadgeVariant(course.difficulty)}>{course.difficulty}</Badge>
+            <CardTitle>{title}</CardTitle>
+            {course.difficulty && (
+              <Badge variant={getBadgeVariant(course.difficulty)}>{course.difficulty}</Badge>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -70,33 +98,33 @@ function CoursePreviewContent({ course }: { course: any }) {
             </div>
           )}
 
-          {course.learningOutcomes && course.learningOutcomes.length > 0 && (
+          {learningOutcomes.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">Чему вы научитесь</h3>
               <ul className="list-disc pl-5 space-y-1">
-                {course.learningOutcomes.map((outcome: string, index: number) => (
+                {learningOutcomes.map((outcome: string, index: number) => (
                   <li key={index}>{outcome}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {course.requirements && course.requirements.length > 0 && (
+          {requirements.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">Требования</h3>
               <ul className="list-disc pl-5 space-y-1">
-                {course.requirements.map((requirement: string, index: number) => (
+                {requirements.map((requirement: string, index: number) => (
                   <li key={index}>{requirement}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {course.targetAudience && course.targetAudience.length > 0 && (
+          {targetAudience.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">Для кого этот курс</h3>
               <ul className="list-disc pl-5 space-y-1">
-                {course.targetAudience.map((audience: string, index: number) => (
+                {targetAudience.map((audience: string, index: number) => (
                   <li key={index}>{audience}</li>
                 ))}
               </ul>
@@ -105,62 +133,79 @@ function CoursePreviewContent({ course }: { course: any }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Программа курса</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {course.modules.map((module: any, moduleIndex: number) => (
-              <AccordionItem key={moduleIndex} value={`module-${moduleIndex}`}>
-                <AccordionTrigger>
-                  <div className="flex items-center">
-                    <span className="mr-2">{moduleIndex + 1}.</span>
-                    <span>{module.title}</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  {module.description && <p className="mb-4">{module.description}</p>}
+      {modules.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Программа курса</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {modules.map((module: any, moduleIndex: number) => {
+                // Проверяем наличие уроков в модуле
+                const lessons = Array.isArray(module.lessons) ? module.lessons : []
 
-                  <div className="space-y-2">
-                    {module.lessons.map((lesson: any, lessonIndex: number) => (
-                      <div key={lessonIndex} className="border p-3 rounded-md">
-                        <div className="flex justify-between">
-                          <div>
-                            <span className="font-medium">
-                              {moduleIndex + 1}.{lessonIndex + 1}. {lesson.title}
-                            </span>
-                            {lesson.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {lesson.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {lesson.type && (
-                              <Badge variant="outline">{getLessonTypeLabel(lesson.type)}</Badge>
-                            )}
-                            {lesson.duration && (
-                              <span className="text-sm text-muted-foreground">
-                                {lesson.duration}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                return (
+                  <AccordionItem key={moduleIndex} value={`module-${moduleIndex}`}>
+                    <AccordionTrigger>
+                      <div className="flex items-center">
+                        <span className="mr-2">{moduleIndex + 1}.</span>
+                        <span>{module.title || `Модуль ${moduleIndex + 1}`}</span>
                       </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </CardContent>
-      </Card>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {module.description && <p className="mb-4">{module.description}</p>}
+
+                      <div className="space-y-2">
+                        {lessons.map((lesson: any, lessonIndex: number) => (
+                          <div key={lessonIndex} className="border p-3 rounded-md">
+                            <div className="flex justify-between">
+                              <div>
+                                <span className="font-medium">
+                                  {moduleIndex + 1}.{lessonIndex + 1}.{' '}
+                                  {lesson.title || `Урок ${lessonIndex + 1}`}
+                                </span>
+                                {lesson.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {lesson.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {lesson.type && (
+                                  <Badge variant="outline">{getLessonTypeLabel(lesson.type)}</Badge>
+                                )}
+                                {lesson.duration && (
+                                  <span className="text-sm text-muted-foreground">
+                                    {lesson.duration}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
 
 function LandingPreviewContent({ landing }: { landing: any }) {
+  // Проверяем наличие обязательных полей
+  if (!landing) {
+    console.error('LandingPreviewContent: landing is undefined or null')
+    return <div>Нет данных лендинга</div>
+  }
+
+  // Проверяем наличие секций
+  const sections = Array.isArray(landing.sections) ? landing.sections : []
+
   return (
     <div className="space-y-4">
       <Card>
@@ -185,7 +230,7 @@ function LandingPreviewContent({ landing }: { landing: any }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium">Заголовок:</span>
-                  <p className="text-sm">{landing.hero.heading}</p>
+                  <p className="text-sm">{landing.hero.heading || 'Заголовок не указан'}</p>
                 </div>
                 {landing.hero.subheading && (
                   <div>
@@ -203,25 +248,31 @@ function LandingPreviewContent({ landing }: { landing: any }) {
             </div>
           )}
 
-          {landing.sections && landing.sections.length > 0 && (
+          {sections.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Секции лендинга</h3>
               <Accordion type="single" collapsible className="w-full">
-                {landing.sections.map((section: any, index: number) => (
-                  <AccordionItem key={index} value={`section-${index}`}>
-                    <AccordionTrigger>
-                      <div className="flex items-center">
-                        <span className="mr-2">{index + 1}.</span>
-                        <span>{section.type.charAt(0).toUpperCase() + section.type.slice(1)}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-60 text-sm">
-                        {JSON.stringify(section.content, null, 2)}
-                      </pre>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
+                {sections.map((section: any, index: number) => {
+                  // Проверяем наличие типа секции
+                  const sectionType = section.type || 'section'
+                  const sectionContent = section.content || {}
+
+                  return (
+                    <AccordionItem key={index} value={`section-${index}`}>
+                      <AccordionTrigger>
+                        <div className="flex items-center">
+                          <span className="mr-2">{index + 1}.</span>
+                          <span>{sectionType.charAt(0).toUpperCase() + sectionType.slice(1)}</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-60 text-sm">
+                          {JSON.stringify(sectionContent, null, 2)}
+                        </pre>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )
+                })}
               </Accordion>
             </div>
           )}
@@ -232,6 +283,16 @@ function LandingPreviewContent({ landing }: { landing: any }) {
 }
 
 function FunnelPreviewContent({ funnel }: { funnel: any }) {
+  // Проверяем наличие обязательных полей
+  if (!funnel) {
+    console.error('FunnelPreviewContent: funnel is undefined or null')
+    return <div>Нет данных воронки</div>
+  }
+
+  // Проверяем наличие шагов и email-последовательности
+  const steps = Array.isArray(funnel.steps) ? funnel.steps : []
+  const emailSequence = Array.isArray(funnel.emailSequence) ? funnel.emailSequence : []
+
   return (
     <div className="space-y-4">
       <Card>
@@ -239,13 +300,15 @@ function FunnelPreviewContent({ funnel }: { funnel: any }) {
           <CardTitle>Шаги воронки</CardTitle>
         </CardHeader>
         <CardContent>
-          {funnel.steps && funnel.steps.length > 0 ? (
+          {steps.length > 0 ? (
             <div className="space-y-2">
-              {funnel.steps.map((step: any, index: number) => (
+              {steps.map((step: any, index: number) => (
                 <div key={index} className="flex items-center p-3 border rounded-md">
                   <div className="flex-1">
-                    <div className="font-medium">{step.name}</div>
-                    <div className="text-sm text-muted-foreground">ID: {step.id}</div>
+                    <div className="font-medium">{step.name || `Шаг ${index + 1}`}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ID: {step.id || `step_${index + 1}`}
+                    </div>
                   </div>
                   {step.triggerType && <Badge variant="outline">{step.triggerType}</Badge>}
                 </div>
@@ -262,14 +325,14 @@ function FunnelPreviewContent({ funnel }: { funnel: any }) {
           <CardTitle>Email-последовательность</CardTitle>
         </CardHeader>
         <CardContent>
-          {funnel.emailSequence && funnel.emailSequence.length > 0 ? (
+          {emailSequence.length > 0 ? (
             <Accordion type="single" collapsible className="w-full">
-              {funnel.emailSequence.map((email: any, index: number) => (
+              {emailSequence.map((email: any, index: number) => (
                 <AccordionItem key={index} value={`email-${index}`}>
                   <AccordionTrigger>
                     <div className="flex items-center">
                       <span className="mr-2">{index + 1}.</span>
-                      <span>{email.subject}</span>
+                      <span>{email.subject || `Email ${index + 1}`}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
@@ -279,7 +342,7 @@ function FunnelPreviewContent({ funnel }: { funnel: any }) {
                         <div>Триггер: {email.triggerEvent || 'signup'}</div>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">
-                        {email.content}
+                        {email.content || 'Содержимое не указано'}
                       </div>
                     </div>
                   </AccordionContent>
