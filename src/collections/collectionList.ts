@@ -57,6 +57,8 @@ import { Integrations } from './Integrations'
 import { Projects } from './Projects' // User projects? Or internal?
 import { Solutions } from './Solutions' // Needs clarification
 import { Events } from './Events' // Needs clarification
+import { CalendlySettings } from './CalendlySettings'
+import { Bookings } from './Bookings'
 
 const collections = [
   // Core / Site
@@ -121,6 +123,8 @@ const collections = [
   Projects,
   Solutions,
   Events,
+  CalendlySettings,
+  Bookings,
 ]
 
 export default collections

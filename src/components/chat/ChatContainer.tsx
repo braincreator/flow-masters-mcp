@@ -18,13 +18,14 @@ type ChatContainerProps = {
   onRetryMessage?: (messageId: string) => void
   suggestions?: string[]
   onSuggestionClick: (suggestion: string) => void
+  onButtonClick?: (button: MessageButton) => void
   placeholder?: string
   theme?: 'light' | 'dark' | 'system'
   primaryColor?: string
   height?: number
   borderRadius?: 'none' | 'small' | 'medium' | 'large'
   showTimestamps?: boolean
-  messagesEndRef: RefObject<HTMLDivElement>
+  messagesEndRef: RefObject<HTMLDivElement | null>
   maxRetries?: number
   enableTypingIndicator?: boolean
 }
@@ -52,6 +53,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   onRetryMessage,
   suggestions = [],
   onSuggestionClick,
+  onButtonClick,
   placeholder = 'Введите сообщение...',
   theme = 'light',
   primaryColor = '#0070f3',
@@ -71,6 +73,13 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
 
   // Обработчик клика по кнопке
   const handleButtonClick = (button: MessageButton) => {
+    // Если есть внешний обработчик, используем его
+    if (onButtonClick) {
+      onButtonClick(button)
+      return
+    }
+
+    // Стандартная обработка кнопок
     switch (button.action) {
       case 'reply':
         onSendMessage(button.value)

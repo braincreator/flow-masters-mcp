@@ -11,6 +11,7 @@ export type MessageType =
   | 'card'
   | 'buttons'
   | 'quickReplies'
+  | 'markdown'
 
 export interface MessageButton {
   id: string
@@ -64,6 +65,7 @@ export interface Message {
   card?: MessageCard
   buttons?: MessageButton[]
   quickReplies?: MessageQuickReply[]
+
   retryCount?: number
   isTyping?: boolean
 }

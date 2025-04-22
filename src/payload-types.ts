@@ -185,6 +185,8 @@ export interface Config {
     projects: Project;
     solutions: Solution;
     events: Event;
+    'calendly-settings': CalendlySetting;
+    bookings: Booking;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -239,6 +241,8 @@ export interface Config {
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     solutions: SolutionsSelect<false> | SolutionsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    'calendly-settings': CalendlySettingsSelect<false> | CalendlySettingsSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -8881,6 +8885,71 @@ export interface ChatBlock {
     borderRadius?: ('none' | 'small' | 'medium' | 'large') | null;
     showTimestamps?: boolean | null;
   };
+  calendlySettings?: {
+    /**
+     * Показывать виджет Calendly в чате при запросе на бронирование
+     */
+    enableCalendly?: boolean | null;
+    /**
+     * Выберите способ настройки Calendly
+     */
+    calendlySource?: ('collection' | 'manual') | null;
+    /**
+     * Выберите настройки Calendly из коллекции
+     */
+    calendlySettingId?: (string | null) | CalendlySetting;
+    /**
+     * Ваш username в Calendly (часть URL после calendly.com/)
+     */
+    username?: string | null;
+    /**
+     * Slug типа события в Calendly (часть URL после username)
+     */
+    eventType?: string | null;
+    /**
+     * Скрыть детали типа события в виджете Calendly
+     */
+    hideEventTypeDetails?: boolean | null;
+    /**
+     * Скрыть баннер GDPR в виджете Calendly
+     */
+    hideGdprBanner?: boolean | null;
+    /**
+     * Слова, при наличии которых в сообщении пользователя будет предложено бронирование
+     */
+    bookingTriggerWords?:
+      | {
+          word: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Сообщение, которое будет показано перед виджетом Calendly
+     */
+    bookingResponseMessage?: {
+      root: {
+        type: string;
+        children: {
+          type: string;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    /**
+     * Показывать кнопку для отправки запроса на бронирование
+     */
+    showCalendlyButton?: boolean | null;
+    /**
+     * Текст, который будет отображаться на кнопке бронирования
+     */
+    buttonText?: string | null;
+  };
   advancedSettings?: {
     enableHistory?: boolean | null;
     maxMessages?: number | null;
@@ -8961,6 +9030,50 @@ export interface Integration {
   lastSync?: string | null;
   lastSyncStatus?: ('success' | 'error') | null;
   lastError?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendly-settings".
+ */
+export interface CalendlySetting {
+  id: string;
+  /**
+   * Понятное название для идентификации настроек Calendly
+   */
+  name: string;
+  /**
+   * Краткое описание назначения этих настроек
+   */
+  description?: string | null;
+  /**
+   * Ваш username в Calendly (часть URL после calendly.com/)
+   */
+  username: string;
+  /**
+   * Slug типа события в Calendly (часть URL после username)
+   */
+  eventType: string;
+  /**
+   * Скрыть детали типа события в виджете Calendly
+   */
+  hideEventTypeDetails?: boolean | null;
+  /**
+   * Скрыть баннер GDPR в виджете Calendly
+   */
+  hideGdprBanner?: boolean | null;
+  isActive?: boolean | null;
+  owner?: (string | null) | User;
+  lastUsed?: string | null;
+  /**
+   * URL для получения уведомлений о новых бронированиях
+   */
+  webhookUrl?: string | null;
+  /**
+   * Секретный ключ для проверки подлинности запросов от Calendly
+   */
+  webhookSecret?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12348,6 +12461,45 @@ export interface SubscriptionPayment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  eventType: string;
+  eventTypeUUID?: string | null;
+  scheduledAt: string;
+  endTime?: string | null;
+  duration?: number | null;
+  status: 'scheduled' | 'canceled' | 'rescheduled' | 'completed' | 'no_show';
+  calendlyURI?: string | null;
+  calendlyUUID?: string | null;
+  cancellationReason?: string | null;
+  notes?: string | null;
+  questions?:
+    | {
+        question?: string | null;
+        answer?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  rawData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -12676,6 +12828,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: string | Event;
+      } | null)
+    | ({
+        relationTo: 'calendly-settings';
+        value: string | CalendlySetting;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: string | Booking;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -15777,6 +15937,26 @@ export interface ChatBlockSelect<T extends boolean = true> {
         borderRadius?: T;
         showTimestamps?: T;
       };
+  calendlySettings?:
+    | T
+    | {
+        enableCalendly?: T;
+        calendlySource?: T;
+        calendlySettingId?: T;
+        username?: T;
+        eventType?: T;
+        hideEventTypeDetails?: T;
+        hideGdprBanner?: T;
+        bookingTriggerWords?:
+          | T
+          | {
+              word?: T;
+              id?: T;
+            };
+        bookingResponseMessage?: T;
+        showCalendlyButton?: T;
+        buttonText?: T;
+      };
   advancedSettings?:
     | T
     | {
@@ -18209,6 +18389,55 @@ export interface EventsSelect<T extends boolean = true> {
   type?: T;
   data?: T;
   timestamp?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendly-settings_select".
+ */
+export interface CalendlySettingsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  username?: T;
+  eventType?: T;
+  hideEventTypeDetails?: T;
+  hideGdprBanner?: T;
+  isActive?: T;
+  owner?: T;
+  lastUsed?: T;
+  webhookUrl?: T;
+  webhookSecret?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  customerName?: T;
+  customerEmail?: T;
+  customerPhone?: T;
+  eventType?: T;
+  eventTypeUUID?: T;
+  scheduledAt?: T;
+  endTime?: T;
+  duration?: T;
+  status?: T;
+  calendlyURI?: T;
+  calendlyUUID?: T;
+  cancellationReason?: T;
+  notes?: T;
+  questions?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  rawData?: T;
+  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }

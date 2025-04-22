@@ -240,6 +240,162 @@ export const Chat: Block = {
       ],
     },
     {
+      name: 'calendlySettings',
+      type: 'group',
+      label: 'Настройки Calendly',
+      fields: [
+        {
+          name: 'enableCalendly',
+          type: 'checkbox',
+          label: 'Включить бронирование встреч',
+          defaultValue: false,
+          admin: {
+            description: 'Показывать виджет Calendly в чате при запросе на бронирование',
+          },
+        },
+        {
+          name: 'calendlySource',
+          type: 'radio',
+          label: 'Источник настроек Calendly',
+          defaultValue: 'collection',
+          options: [
+            {
+              label: 'Выбрать из коллекции',
+              value: 'collection',
+            },
+            {
+              label: 'Указать вручную',
+              value: 'manual',
+            },
+          ],
+          admin: {
+            description: 'Выберите способ настройки Calendly',
+            condition: (_, siblingData) => siblingData?.enableCalendly === true,
+          },
+        },
+        {
+          name: 'calendlySettingId',
+          type: 'relationship',
+          relationTo: 'calendly-settings',
+          label: 'Настройки Calendly',
+          admin: {
+            description: 'Выберите настройки Calendly из коллекции',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.calendlySource === 'collection',
+          },
+        },
+        {
+          name: 'username',
+          type: 'text',
+          label: 'Calendly Username',
+          admin: {
+            description: 'Ваш username в Calendly (часть URL после calendly.com/)',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.calendlySource === 'manual',
+          },
+        },
+        {
+          name: 'eventType',
+          type: 'text',
+          label: 'Тип события',
+          admin: {
+            description: 'Slug типа события в Calendly (часть URL после username)',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.calendlySource === 'manual',
+          },
+        },
+        {
+          name: 'hideEventTypeDetails',
+          type: 'checkbox',
+          label: 'Скрыть детали события',
+          defaultValue: true,
+          admin: {
+            description: 'Скрыть детали типа события в виджете Calendly',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.calendlySource === 'manual',
+          },
+        },
+        {
+          name: 'hideGdprBanner',
+          type: 'checkbox',
+          label: 'Скрыть баннер GDPR',
+          defaultValue: true,
+          admin: {
+            description: 'Скрыть баннер GDPR в виджете Calendly',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.calendlySource === 'manual',
+          },
+        },
+        {
+          name: 'bookingTriggerWords',
+          type: 'array',
+          label: 'Триггерные слова для бронирования',
+          admin: {
+            description:
+              'Слова, при наличии которых в сообщении пользователя будет предложено бронирование',
+            condition: (_, siblingData) => siblingData?.enableCalendly === true,
+          },
+          defaultValue: [
+            { word: 'записаться' },
+            { word: 'запись' },
+            { word: 'встреча' },
+            { word: 'встретиться' },
+            { word: 'бронирование' },
+            { word: 'забронировать' },
+            { word: 'консультация' },
+          ],
+          fields: [
+            {
+              name: 'word',
+              type: 'text',
+              label: 'Слово',
+              required: true,
+            },
+          ],
+        },
+        {
+          name: 'bookingResponseMessage',
+          type: 'richText',
+          label: 'Сообщение при предложении бронирования',
+          editor: lexicalEditor({}),
+          defaultValue: [
+            {
+              children: [
+                {
+                  text: 'Вы можете забронировать встречу, выбрав удобное время в календаре ниже:',
+                },
+              ],
+            },
+          ],
+          admin: {
+            description: 'Сообщение, которое будет показано перед виджетом Calendly',
+            condition: (_, siblingData) => siblingData?.enableCalendly === true,
+          },
+        },
+        {
+          name: 'showCalendlyButton',
+          type: 'checkbox',
+          label: 'Показывать кнопку бронирования',
+          defaultValue: false,
+          admin: {
+            description: 'Показывать кнопку для отправки запроса на бронирование',
+            condition: (_, siblingData) => siblingData?.enableCalendly === true,
+          },
+        },
+        {
+          name: 'buttonText',
+          type: 'text',
+          label: 'Текст кнопки',
+          defaultValue: 'Забронировать встречу',
+          admin: {
+            description: 'Текст, который будет отображаться на кнопке бронирования',
+            condition: (_, siblingData) =>
+              siblingData?.enableCalendly === true && siblingData?.showCalendlyButton === true,
+          },
+        },
+      ],
+    },
+    {
       name: 'advancedSettings',
       type: 'group',
       label: 'Расширенные настройки',

@@ -22,7 +22,7 @@ export default function ChatPage() {
                 format: 0,
                 mode: 'normal',
                 style: '',
-                text: 'Этот чат поможет вам получить ответы на интересующие вопросы. Попробуйте задать вопрос о наших услугах или продуктах.',
+                text: 'Этот чат поможет вам получить ответы на интересующие вопросы. Попробуйте задать вопрос о наших услугах или записаться на консультацию.',
                 type: 'text',
                 version: 1,
               },
@@ -60,7 +60,7 @@ export default function ChatPage() {
                   format: 0,
                   mode: 'normal',
                   style: '',
-                  text: 'Привет! Я интерактивный чат-бот. Чем могу помочь?',
+                  text: 'Привет! Я интерактивный чат-бот. Могу ответить на ваши вопросы или помочь записаться на консультацию.',
                   type: 'text',
                   version: 1,
                 },
@@ -92,12 +92,12 @@ export default function ChatPage() {
         description: 'Контактная информация',
       },
       {
-        text: 'Какие у вас есть продукты?',
-        description: 'Обзор продуктов',
+        text: 'Хочу записаться на консультацию',
+        description: 'Бронирование консультации',
       },
       {
-        text: 'Нужна консультация',
-        description: 'Запрос на консультацию',
+        text: 'Какие у вас есть продукты?',
+        description: 'Обзор продуктов',
       },
     ],
     fallbackResponses: [
@@ -171,6 +171,71 @@ export default function ChatPage() {
       maxWidth: 800,
       borderRadius: 'medium' as const,
       showTimestamps: true,
+    },
+    calendlySettings: {
+      enableCalendly: true,
+      calendlySource: 'collection' as const,
+      calendlySettingId: '6807ebb606a018fcfa243010', // ID настроек в коллекции CalendlySettings
+      // Кнопка под чатом не нужна, так как календарь открывается через кнопку в чате
+      showCalendlyButton: false,
+      buttonText: 'Забронировать консультацию',
+      // Слова-триггеры для автоматического предложения бронирования
+      bookingTriggerWords: [
+        // Основные триггерные слова
+        { word: 'записаться' },
+        { word: 'запись' },
+        { word: 'встреча' },
+        { word: 'встретиться' },
+        { word: 'бронирование' },
+        { word: 'забронировать' },
+        { word: 'консультация' },
+        // Дополнительные триггерные слова
+        { word: 'календарь' },
+        { word: 'расписание' },
+        { word: 'связаться' },
+        { word: 'связь' },
+        { word: 'звонок' },
+        { word: 'позвонить' },
+        { word: 'свободн' },
+        { word: 'доступн' },
+        { word: 'удобн' },
+        { word: 'помощь' },
+        { word: 'поддержк' },
+        { word: 'совет' },
+        { word: 'обсудить' },
+        { word: 'общение' },
+        { word: 'поговорить' },
+      ],
+      // Сообщение при запросе на бронирование
+      bookingResponseMessage: {
+        root: {
+          children: [
+            {
+              children: [
+                {
+                  detail: 0,
+                  format: 0,
+                  mode: 'normal',
+                  style: '',
+                  text: 'Вы можете забронировать консультацию, нажав на кнопку с иконкой календаря ниже:',
+                  type: 'text',
+                  version: 1,
+                },
+              ],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              type: 'paragraph',
+              version: 1,
+            },
+          ],
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          type: 'root',
+          version: 1,
+        },
+      },
     },
     advancedSettings: {
       enableHistory: true,

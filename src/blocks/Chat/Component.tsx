@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import RichText from '@/components/RichText'
 import { BaseBlock } from '../BaseBlock/Component'
 import ChatContainer from '@/components/chat/ChatContainer'
@@ -25,6 +24,19 @@ export type ChatProps = {
     botName?: string
     botAvatar?: any
     userAvatar?: any
+  }
+  calendlySettings?: {
+    enableCalendly?: boolean
+    calendlySource?: 'collection' | 'manual'
+    calendlySettingId?: string
+    username?: string
+    eventType?: string
+    hideEventTypeDetails?: boolean
+    hideGdprBanner?: boolean
+    bookingTriggerWords?: { word: string }[]
+    bookingResponseMessage?: Record<string, unknown>
+    showCalendlyButton?: boolean
+    buttonText?: string
   }
   promptSuggestions?: {
     text: string
@@ -59,17 +71,21 @@ export const ChatBlock: React.FC<ChatProps> = ({
   description,
   webhookSettings,
   chatSettings,
+  calendlySettings = {},
   promptSuggestions = [],
   fallbackResponses = [],
   appearance = {},
   advancedSettings = {},
   settings,
 }) => {
-  const _router = useRouter() // Unused but kept for future use
+  // Удаляем неиспользуемую переменную _router
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  // Состояние для пользовательской информации
+  const [userInfo, setUserInfo] = useState<{ name?: string; email?: string }>({})
 
   // Настройки по умолчанию
   const {
@@ -276,6 +292,242 @@ export const ChatBlock: React.FC<ChatProps> = ({
     })
   }
 
+  // Извлечение информации о пользователе из сообщений
+  useEffect(() => {
+    // Простая логика для извлечения имени и email из сообщений
+    const nameMatch = messages.find(
+      (m) =>
+        m.sender === 'user' &&
+        (m.content.toString().toLowerCase().includes('меня зовут') ||
+          m.content.toString().toLowerCase().includes('моё имя')),
+    )
+
+    const emailMatch = messages.find(
+      (m) => m.sender === 'user' && m.content.toString().includes('@'),
+    )
+
+    if (nameMatch) {
+      // Простая эвристика для извлечения имени
+      const content = nameMatch.content.toString().toLowerCase()
+      const nameIndex = Math.max(content.indexOf('меня зовут'), content.indexOf('моё имя'))
+
+      if (nameIndex >= 0) {
+        const name = nameMatch.content
+          .toString()
+          .substring(nameIndex + 10)
+          .trim()
+        setUserInfo((prev) => ({ ...prev, name }))
+      }
+    }
+
+    if (emailMatch) {
+      // Простая эвристика для извлечения email
+      const words = emailMatch.content.toString().split(' ')
+      const email = words.find((w: string) => w.includes('@') && w.includes('.'))
+
+      if (email) {
+        setUserInfo((prev) => ({ ...prev, email }))
+      }
+    }
+  }, [messages])
+
+  // Проверка на наличие триггерных слов для бронирования
+  /**
+   * Улучшенная функция для проверки наличия триггерных слов бронирования в сообщении
+   * Проверяет не только отдельные слова, но и фразы, а также контекст сообщения
+   */
+  const checkForBookingTriggers = (content: string): boolean => {
+    if (!calendlySettings?.enableCalendly || !calendlySettings?.bookingTriggerWords?.length) {
+      return false
+    }
+
+    // Приводим текст к нижнему регистру и удаляем знаки препинания для лучшего сопоставления
+    const lowerContent = content.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
+
+    // Разбиваем на слова для проверки отдельных слов и словосочетаний
+    const words = lowerContent.split(/\s+/)
+
+    // 1. Проверка на точное совпадение триггерных слов
+    const hasExactTriggerWord = calendlySettings.bookingTriggerWords.some((item) =>
+      lowerContent.includes(item.word.toLowerCase()),
+    )
+
+    if (hasExactTriggerWord) return true
+
+    // 2. Проверка на наличие слов в контексте бронирования/записи
+    const bookingContextWords = ['хочу', 'можно', 'как', 'когда', 'где', 'время']
+    const hasBookingContext = bookingContextWords.some((contextWord) =>
+      lowerContent.includes(contextWord),
+    )
+
+    // Слова, связанные с временем (для определения контекста бронирования)
+    const timeWords = [
+      'время',
+      'часы',
+      'минуты',
+      'дата',
+      'день',
+      'неделя',
+      'месяц',
+      'завтра',
+      'сегодня',
+    ]
+    const hasTimeContext = timeWords.some((timeWord) => lowerContent.includes(timeWord))
+
+    // 3. Проверка на наличие фраз, связанных с бронированием
+    const bookingPhrases = [
+      'когда можно',
+      'как записаться',
+      'хочу записаться',
+      'нужна консультация',
+      'нужна встреча',
+      'хочу встретиться',
+      'хочу проконсультироваться',
+      'запишите меня',
+      'свободное время',
+      'свободная дата',
+      'когда удобно',
+      'ваше расписание',
+      'ваша занятость',
+      'когда вы свободны',
+      'когда можем',
+      'хочу поговорить',
+      'нужен звонок',
+      'нужна помощь',
+      'нужна поддержка',
+      'нужен совет',
+    ]
+
+    const hasBookingPhrase = bookingPhrases.some((phrase) => lowerContent.includes(phrase))
+
+    // 4. Проверка на вопросы о времени/дате/расписании
+    const isTimeQuestion =
+      (lowerContent.includes('когда') ||
+        lowerContent.includes('во сколько') ||
+        lowerContent.includes('в какое время')) &&
+      (lowerContent.includes('можно') ||
+        lowerContent.includes('удобно') ||
+        lowerContent.includes('доступно'))
+
+    // 5. Проверка на наличие слов из триггерного списка в контексте бронирования
+    const hasTriggerWordInContext = calendlySettings.bookingTriggerWords.some((item) => {
+      const triggerWord = item.word.toLowerCase()
+      // Проверяем, есть ли триггерное слово в массиве слов
+      return words.some((word) => {
+        // Проверяем на частичное совпадение (например, "запис" будет соответствовать "записаться", "записи" и т.д.)
+        return word.includes(triggerWord) || triggerWord.includes(word)
+      })
+    })
+
+    // Возвращаем true, если выполняется хотя бы одно из условий:
+    // 1. Есть фраза, связанная с бронированием
+    // 2. Есть вопрос о времени/дате
+    // 3. Есть триггерное слово в контексте бронирования или времени
+    return (
+      hasBookingPhrase ||
+      isTimeQuestion ||
+      (hasTriggerWordInContext && (hasBookingContext || hasTimeContext))
+    )
+  }
+
+  // Состояние для хранения загруженных настроек Calendly из коллекции
+  const [collectionCalendlySettings, setCollectionCalendlySettings] = useState<{
+    username?: string
+    eventType?: string
+    hideEventTypeDetails?: boolean
+    hideGdprBanner?: boolean
+    isLoading: boolean
+    error?: string
+  }>({ isLoading: false })
+
+  // Загрузка настроек Calendly из коллекции при инициализации компонента
+  useEffect(() => {
+    const loadCalendlySettings = async () => {
+      if (
+        calendlySettings?.enableCalendly &&
+        calendlySettings.calendlySource === 'collection' &&
+        calendlySettings.calendlySettingId
+      ) {
+        try {
+          const response = await fetch(
+            `/api/calendly-settings/${calendlySettings.calendlySettingId}`,
+          )
+
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(
+              `Ошибка при загрузке настроек Calendly: ${response.status} ${errorText}`,
+            )
+          }
+
+          const data = await response.json()
+
+          // Обрабатываем ответ от стандартного API Payload
+          if (data) {
+            setCollectionCalendlySettings({
+              username: data.username,
+              eventType: data.eventType,
+              hideEventTypeDetails: data.hideEventTypeDetails,
+              hideGdprBanner: data.hideGdprBanner,
+              isLoading: false,
+              error: undefined,
+            })
+          } else {
+            throw new Error('Не удалось получить настройки Calendly')
+          }
+        } catch (error) {
+          console.error('Ошибка при загрузке настроек Calendly:', error)
+          setCollectionCalendlySettings({
+            isLoading: false,
+            error: error instanceof Error ? error.message : 'Неизвестная ошибка',
+          })
+        }
+      }
+    }
+
+    // Загружаем настройки Calendly при инициализации компонента
+    if (calendlySettings?.enableCalendly) {
+      setCollectionCalendlySettings((prev) => ({ ...prev, isLoading: true }))
+      loadCalendlySettings()
+    }
+  }, [
+    // Загружаем настройки только при инициализации или изменении настроек
+    calendlySettings?.enableCalendly,
+    calendlySettings?.calendlySource,
+    calendlySettings?.calendlySettingId,
+  ])
+
+  // Получение настроек Calendly
+  const _getCalendlySettings = () => {
+    if (!calendlySettings?.enableCalendly) {
+      return null
+    }
+
+    if (calendlySettings.calendlySource === 'collection' && calendlySettings.calendlySettingId) {
+      // Возвращаем загруженные настройки из коллекции
+      if (collectionCalendlySettings.username && collectionCalendlySettings.eventType) {
+        return {
+          username: collectionCalendlySettings.username,
+          eventType: collectionCalendlySettings.eventType,
+          hideEventTypeDetails: collectionCalendlySettings.hideEventTypeDetails,
+          hideGdprBanner: collectionCalendlySettings.hideGdprBanner,
+        }
+      }
+      return null
+    }
+
+    if (calendlySettings.calendlySource === 'manual') {
+      return {
+        username: calendlySettings.username,
+        eventType: calendlySettings.eventType,
+        hideEventTypeDetails: calendlySettings.hideEventTypeDetails,
+        hideGdprBanner: calendlySettings.hideGdprBanner,
+      }
+    }
+
+    return null
+  }
+
   // Отправка сообщения
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
@@ -293,6 +545,58 @@ export const ChatBlock: React.FC<ChatProps> = ({
     setMessages((prev) => [...prev, userMessage])
     setIsLoading(true)
     setError(null)
+
+    // Проверяем, есть ли в сообщении триггерные слова для бронирования
+    const isBookingRequest = checkForBookingTriggers(content)
+
+    if (isBookingRequest && calendlySettings?.enableCalendly) {
+      // Проверяем наличие настроек Calendly
+      // Для простоты не проверяем результат, так как отображение календаря происходит в другом месте
+      _getCalendlySettings()
+
+      // Добавляем сообщение с предложением забронировать встречу
+      const bookingMessage: Message = {
+        id: `bot-booking-${Date.now()}`,
+        content:
+          calendlySettings.bookingResponseMessage ||
+          'Вы можете забронировать встречу, выбрав удобное время в календаре ниже:',
+        sender: 'bot',
+        timestamp: new Date(),
+        senderName: botName,
+        avatar: botAvatar,
+        buttons: [
+          {
+            id: `calendly-btn-${Date.now()}`,
+            text: 'Показать календарь',
+            value: 'показать календарь',
+            style: 'primary',
+          },
+        ],
+      }
+
+      // Получаем настройки Calendly
+      const calendlyConfig = _getCalendlySettings()
+
+      // Если настроек нет, показываем сообщение об ошибке
+      if (!calendlyConfig) {
+        const errorMessage: Message = {
+          id: `bot-error-${Date.now()}`,
+          content: 'Не удалось загрузить настройки календаря. Пожалуйста, попробуйте позже.',
+          sender: 'bot',
+          timestamp: new Date(),
+          senderName: botName,
+          avatar: botAvatar,
+          isError: true,
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      }
+
+      // Добавляем сообщение с предложением забронировать встречу
+      setMessages((prev) => [...prev, bookingMessage])
+
+      setIsLoading(false)
+      return
+    }
 
     // Добавляем индикатор набора текста
     const typingIndicatorId = `typing-${Date.now()}`
@@ -471,7 +775,86 @@ export const ChatBlock: React.FC<ChatProps> = ({
             borderRadius={borderRadius}
             showTimestamps={showTimestamps}
             messagesEndRef={messagesEndRef}
+            onButtonClick={(button) => {
+              // Если нажата кнопка показа календаря
+              if (button.value === 'показать календарь') {
+                const calendlyConfig = _getCalendlySettings()
+                if (calendlyConfig) {
+                  // Создаем URL для Calendly
+                  const username = calendlyConfig.username || ''
+                  const eventType = calendlyConfig.eventType || ''
+
+                  if (username && eventType) {
+                    // Формируем параметры
+                    const params = new URLSearchParams()
+
+                    if (calendlyConfig.hideEventTypeDetails) {
+                      params.append('hide_event_type_details', '1')
+                    }
+
+                    if (calendlyConfig.hideGdprBanner) {
+                      params.append('hide_gdpr_banner', '1')
+                    }
+
+                    // Добавляем prefill параметры, если они есть
+                    if (userInfo?.name) {
+                      params.append('name', userInfo.name)
+                    }
+
+                    if (userInfo?.email) {
+                      params.append('email', userInfo.email)
+                    }
+
+                    const calendlyUrl = `https://calendly.com/${username}/${eventType}?${params.toString()}`
+
+                    // Открываем календарь в новом окне
+                    window.open(calendlyUrl, '_blank')
+
+                    // Добавляем сообщение о том, что календарь открыт
+                    const confirmMessage: Message = {
+                      id: `calendly-confirm-${Date.now()}`,
+                      content:
+                        'Календарь бронирования открыт в новом окне. Если окно не открылось, пожалуйста, проверьте настройки блокировки всплывающих окон в вашем браузере.',
+                      sender: 'bot',
+                      timestamp: new Date(),
+                      senderName: botName,
+                      avatar: botAvatar,
+                    }
+                    setMessages((prev) => [...prev, confirmMessage])
+                  } else {
+                    // Если нет необходимых параметров
+                    const errorMessage: Message = {
+                      id: `calendly-error-${Date.now()}`,
+                      content: 'Не удалось открыть календарь: недостаточно данных в настройках.',
+                      sender: 'bot',
+                      timestamp: new Date(),
+                      senderName: botName,
+                      avatar: botAvatar,
+                      isError: true,
+                    }
+                    setMessages((prev) => [...prev, errorMessage])
+                  }
+                } else {
+                  // Если нет настроек
+                  const errorMessage: Message = {
+                    id: `calendly-error-${Date.now()}`,
+                    content: 'Не удалось открыть календарь: настройки недоступны.',
+                    sender: 'bot',
+                    timestamp: new Date(),
+                    senderName: botName,
+                    avatar: botAvatar,
+                    isError: true,
+                  }
+                  setMessages((prev) => [...prev, errorMessage])
+                }
+              } else {
+                // Для других кнопок отправляем сообщение
+                sendMessage(button.value)
+              }
+            }}
           />
+
+          {/* Кнопка под чатом удалена, теперь календарь открывается только через кнопку в чате */}
         </div>
       </div>
     </BaseBlock>

@@ -15,7 +15,16 @@ import Image from 'next/image'
 import { format } from 'date-fns'
 import { ru, enUS } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
-import { Check, Clock, AlertCircle, ExternalLink, Download, Copy, Send } from 'lucide-react'
+import {
+  Check,
+  Clock,
+  AlertCircle,
+  ExternalLink,
+  Download,
+  Copy,
+  Send,
+  Calendar,
+} from 'lucide-react'
 
 type MessageProps = {
   message: MessageType
@@ -168,6 +177,11 @@ const Message: React.FC<MessageProps> = ({
   const renderButton = (button: MessageButton) => {
     const getButtonIcon = () => {
       if (button.icon) return button.icon
+
+      // Специальная обработка для кнопки Calendly
+      if (button.value === 'показать календарь') {
+        return <Calendar className="h-4 w-4 mr-1" />
+      }
 
       switch (button.action) {
         case 'link':
