@@ -218,6 +218,11 @@ const server = http.createServer(async (req, res) => {
           }),
         )
       }
+    } else if (pathname === '/mcp/blocks') {
+      // Получить список доступных блоков для шаблонов страниц
+      const blocksResponse = await apiClient.getAvailableBlocks()
+      res.statusCode = blocksResponse.success ? 200 : 500
+      res.end(JSON.stringify(blocksResponse))
     } else if (pathname === '/mcp/proxy') {
       // Прокси для API запросов
       if (req.method === 'POST') {
@@ -286,6 +291,7 @@ const server = http.createServer(async (req, res) => {
             '/mcp/endpoints/refresh',
             '/mcp/context',
             '/mcp/proxy',
+            '/mcp/blocks',
           ],
           llmSupport: config.llm.modelContextEnabled,
           endpointsCount: endpointsCrawler.getEndpointCount(),

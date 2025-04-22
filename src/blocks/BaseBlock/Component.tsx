@@ -2,13 +2,14 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { BlockSize, BlockStyle, BlockBackground, BlockAnimation } from '@/types/blocks'
 
-interface BaseBlockProps {
+export interface BaseBlockProps {
   children: React.ReactNode
   size?: BlockSize
   style?: BlockStyle
   background?: BlockBackground
   animation?: BlockAnimation
   className?: string
+  settings?: any
 }
 
 export const BaseBlock: React.FC<BaseBlockProps> = ({

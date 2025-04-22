@@ -105,12 +105,32 @@ export class LLMHandler {
     const maxEndpoints = 10 // Максимальное количество эндпоинтов для включения в контекст
     const limitedEndpoints = endpoints.slice(0, maxEndpoints)
 
+    // Проверяем, содержит ли запрос упоминание о блоках или лендингах
+    const isBlocksRelated =
+      query.toLowerCase().includes('блок') ||
+      query.toLowerCase().includes('block') ||
+      query.toLowerCase().includes('лендинг') ||
+      query.toLowerCase().includes('landing') ||
+      query.toLowerCase().includes('страниц') ||
+      query.toLowerCase().includes('page')
+
     // Базовая информация
     let context = `Запрос: "${query}"
 
 Ниже представлена информация о доступных API эндпоинтах, которые могут быть полезны для выполнения этого запроса:
 
 `
+
+    // Добавляем информацию о блоках API, если запрос связан с блоками или лендингами
+    if (isBlocksRelated) {
+      context += `ВАЖНО: Для получения информации о доступных блоках для встраивания в шаблоны страниц используйте эндпоинт:
+
+GET /api/v1/blocks
+
+Этот эндпоинт возвращает список всех доступных блоков с их описаниями, полями и примерами использования.
+
+`
+    }
 
     // Формируем описание каждого эндпоинта
     if (limitedEndpoints.length > 0) {

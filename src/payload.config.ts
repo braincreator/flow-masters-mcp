@@ -81,6 +81,35 @@ export default buildConfig({
           path: '/monitoring',
           Component: Dashboard,
         },
+        landingGenerator: {
+          path: '/landing-generator',
+          Component: '@/components/admin/LandingGeneratorView',
+        },
+      },
+    },
+    nav: {
+      Content: {
+        default: true,
+      },
+      Generators: {
+        sections: [
+          {
+            label: 'Генератор лендингов',
+            url: '/admin/landing-generator',
+          },
+          {
+            label: 'Создание курса',
+            url: '/admin/course-creator',
+          },
+        ],
+      },
+      Analytics: {
+        sections: [
+          {
+            label: 'Аналитика курсов',
+            url: '/admin/analytics/courses',
+          },
+        ],
       },
     },
     livePreview: {

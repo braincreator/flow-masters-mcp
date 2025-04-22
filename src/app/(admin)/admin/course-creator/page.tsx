@@ -32,6 +32,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import {
   Loader2,
   AlertCircle,
+  Check,
   CheckCircle2,
   Eye,
   Download,
@@ -151,7 +152,32 @@ export default function CourseCreatorPage() {
       }
 
       // Отправляем запрос на создание курса
-      const response = await fetch('/api/v1/courses/create-from-content', {
+      console.log('Sending request to create course:', requestData)
+
+      try {
+        const response = await fetch('/api/v1/courses/create-from-content', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        })
+
+        const result = await response.json()
+        console.log('API response:', result)
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Ошибка при создании курса')
+        }
+      } catch (apiError) {
+        console.error('API error:', apiError)
+        throw new Error(
+          `Ошибка при вызове API: ${apiError instanceof Error ? apiError.message : 'Неизвестная ошибка'}`,
+        )
+      }
+
+      // Получаем результат еще раз, так как переменная result могла быть не определена
+      const finalResponse = await fetch('/api/v1/courses/create-from-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,17 +185,28 @@ export default function CourseCreatorPage() {
         body: JSON.stringify(requestData),
       })
 
-      const result = await response.json()
+      const finalResult = await finalResponse.json()
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Ошибка при создании курса')
+      if (!finalResponse.ok) {
+        throw new Error(finalResult.error || 'Ошибка при создании курса')
       }
 
       // Complete progress
       setProgress(100)
-      setResult(result.data)
-      setSuccess('Курс успешно создан!')
-      setActiveTab('result')
+      setResult(finalResult.data)
+
+      // Создаем сообщение об успехе с ссылкой на просмотр курса
+      const courseId = finalResult.data.course.id
+      const courseUrl = `/admin/collections/courses/${courseId}`
+
+      setSuccess(
+        `Курс успешно создан! Вы можете <a href="${courseUrl}" class="text-blue-600 underline font-medium">просмотреть его в CMS</a> или <button type="button" class="text-blue-600 underline font-medium" onclick="document.getElementById('export-json-button').click()">экспортировать JSON</button>.`,
+      )
+
+      // Остаемся на текущей вкладке или переходим на вкладку предпросмотра
+      if (activeTab !== 'preview') {
+        setActiveTab('preview')
+      }
     } catch (error) {
       console.error('Error creating course:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
@@ -486,12 +523,20 @@ export default function CourseCreatorPage() {
                         Создавайте образовательный контент из внешних источников
                       </p>
                     </div>
-                    <Button variant="secondary" asChild className="shadow-sm">
-                      <Link href="/admin/course-creator/docs" className="flex items-center gap-2">
-                        <Book className="h-4 w-4" />
-                        API документация
-                      </Link>
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" asChild className="shadow-sm">
+                        <Link href="/admin/course-creator/docs" className="flex items-center gap-2">
+                          <Book className="h-4 w-4" />
+                          API документация
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild className="shadow-sm">
+                        <Link href="/docs/blocks-api" className="flex items-center gap-2">
+                          <Code className="h-4 w-4" />
+                          Blocks API
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -528,14 +573,7 @@ export default function CourseCreatorPage() {
                     <Eye className="h-4 w-4" />
                     <span>Предпросмотр</span>
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="result"
-                    disabled={!result}
-                    className="flex items-center gap-2 py-3 data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-blue-700"
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Результат</span>
-                  </TabsTrigger>
+                  {/* Вкладка Результат скрыта, но содержимое доступно через кнопку Экспортировать JSON */}
                 </TabsList>
 
                 <TabsContent value="templates">
@@ -705,7 +743,7 @@ export default function CourseCreatorPage() {
                                     )
                                   }
 
-                                  const result = await response.json()
+                                  await response.json() // Игнорируем результат
                                   toast.success('Шаблон успешно создан!')
                                   router.refresh()
                                 } catch (err) {
@@ -735,7 +773,7 @@ export default function CourseCreatorPage() {
                                     throw new Error('Ошибка при создании шаблона')
                                   }
 
-                                  const result = await response.json()
+                                  await response.json() // Игнорируем результат
                                   toast.success('Шаблон успешно создан!')
                                   router.refresh()
                                 } catch (err) {
@@ -851,7 +889,7 @@ export default function CourseCreatorPage() {
                                     throw new Error('Ошибка при создании шаблона')
                                   }
 
-                                  const result = await response.json()
+                                  await response.json() // Игнорируем результат
                                   toast.success('Шаблон успешно создан!')
                                   router.refresh()
                                 } catch (err) {
@@ -1189,14 +1227,27 @@ export default function CourseCreatorPage() {
                         </div>
                       )}
                       <div className="flex justify-between w-full">
-                        <Button
-                          variant="outline"
-                          onClick={() => setActiveTab('input')}
-                          className="flex items-center gap-2"
-                        >
-                          <ArrowLeft className="h-4 w-4" />
-                          Вернуться к вводу данных
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setActiveTab('input')}
+                            className="flex items-center gap-2"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            Вернуться к вводу данных
+                          </Button>
+
+                          {result && (
+                            <Button
+                              variant="outline"
+                              onClick={handleExportCourse}
+                              className="flex items-center gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              Экспортировать JSON
+                            </Button>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           <TooltipProvider>
                             <Tooltip>
@@ -1215,13 +1266,18 @@ export default function CourseCreatorPage() {
                           </TooltipProvider>
                           <Button
                             onClick={handleCreateCourse}
-                            disabled={loading}
+                            disabled={loading || !!result}
                             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                           >
                             {loading ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Создание курса...
+                              </>
+                            ) : result ? (
+                              <>
+                                <Check className="mr-2 h-4 w-4" />
+                                Курс создан
                               </>
                             ) : (
                               <>
@@ -1308,6 +1364,7 @@ export default function CourseCreatorPage() {
                         Вернуться к вводу данных
                       </Button>
                       <Button
+                        id="export-json-button"
                         variant="secondary"
                         onClick={handleExportCourse}
                         className="flex items-center gap-2"

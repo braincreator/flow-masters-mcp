@@ -254,7 +254,8 @@ function LandingPreviewContent({ landing }: { landing: any }) {
               <Accordion type="single" collapsible className="w-full">
                 {sections.map((section: any, index: number) => {
                   // Проверяем наличие типа секции
-                  const sectionType = section.type || 'section'
+                  const sectionType = section.blockType || section.type || 'section'
+                  const sectionName = section.blockName || ''
                   const sectionContent = section.content || {}
 
                   return (
@@ -262,13 +263,44 @@ function LandingPreviewContent({ landing }: { landing: any }) {
                       <AccordionTrigger>
                         <div className="flex items-center">
                           <span className="mr-2">{index + 1}.</span>
-                          <span>{sectionType.charAt(0).toUpperCase() + sectionType.slice(1)}</span>
+                          <span>
+                            {sectionType.charAt(0).toUpperCase() + sectionType.slice(1)}
+                            {sectionName && ` - ${sectionName}`}
+                          </span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-60 text-sm">
-                          {JSON.stringify(sectionContent, null, 2)}
-                        </pre>
+                        <div className="space-y-2">
+                          {sectionContent.heading && (
+                            <div className="mb-2">
+                              <span className="font-medium">Заголовок:</span>{' '}
+                              {sectionContent.heading}
+                            </div>
+                          )}
+                          {sectionContent.subheading && (
+                            <div className="mb-2">
+                              <span className="font-medium">Подзаголовок:</span>{' '}
+                              {sectionContent.subheading}
+                            </div>
+                          )}
+                          {section.settings && (
+                            <div className="mb-2">
+                              <span className="font-medium">Настройки:</span>
+                              <Badge variant="outline" className="ml-2">
+                                {section.settings.background &&
+                                  `Фон: ${section.settings.background}`}
+                              </Badge>
+                              {section.settings.textAlign && (
+                                <Badge variant="outline" className="ml-2">
+                                  Выравнивание: {section.settings.textAlign}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-60 text-sm">
+                            {JSON.stringify(sectionContent, null, 2)}
+                          </pre>
+                        </div>
                       </AccordionContent>
                     </AccordionItem>
                   )

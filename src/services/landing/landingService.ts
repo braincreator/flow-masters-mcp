@@ -2,16 +2,25 @@ import { getPayloadClient } from '@/utilities/payload'
 import { slugify } from '@/utilities/strings'
 import type { Payload } from 'payload'
 
+// Функция для преобразования массива в строку
+function arrayToString(value: any): string {
+  if (Array.isArray(value)) {
+    return value.join(' ')
+  }
+  return String(value || '')
+}
+
 // Типы для данных лендинга
 export interface HeroData {
-  heading?: string
-  subheading?: string
-  ctaText?: string
+  heading?: string | string[]
+  subheading?: string | string[]
+  ctaText?: string | string[]
   backgroundImage?: string // ID медиа-файла
 }
 
 export interface SectionData {
-  type: string
+  type?: string
+  blockType?: string
   content: any
 }
 
@@ -86,8 +95,11 @@ export class LandingService {
                 {
                   blockType: 'hero',
                   blockName: 'Course Hero',
-                  heading: landingData.hero.heading || courseTitle,
-                  subheading: landingData.hero.subheading || currentLanding.excerpt,
+                  heading: arrayToString(landingData.hero.heading) || courseTitle,
+                  subheading: arrayToString(landingData.hero.subheading) || currentLanding.excerpt,
+                  ...(landingData.hero.ctaText && {
+                    ctaText: arrayToString(landingData.hero.ctaText),
+                  }),
                   ...(landingData.hero.backgroundImage && {
                     backgroundImage: landingData.hero.backgroundImage,
                   }),
@@ -98,10 +110,13 @@ export class LandingService {
           // Добавляем другие секции, если они есть
           ...(landingData.sections
             ? landingData.sections.map((section) => {
+                // Определяем тип блока (используем blockType, если он есть, иначе type)
+                const blockType = section.blockType || section.type || 'section'
+
                 // Преобразуем секции в соответствующие блоки Payload
                 return {
-                  blockType: section.type,
-                  blockName: `${section.type.charAt(0).toUpperCase() + section.type.slice(1)} Section`,
+                  blockType,
+                  blockName: `${blockType.charAt(0).toUpperCase() + blockType.slice(1)} Section`,
                   ...section.content,
                 }
               })
@@ -123,7 +138,9 @@ export class LandingService {
             text: 'Запишитесь на курс прямо сейчас и начните свой путь к новым знаниям.',
             buttons: [
               {
-                label: landingData.hero?.ctaText || 'Записаться на курс',
+                label: landingData.hero?.ctaText
+                  ? arrayToString(landingData.hero.ctaText)
+                  : 'Записаться на курс',
                 link: {
                   type: 'custom',
                   url: '#signup',
@@ -222,8 +239,11 @@ export class LandingService {
                 {
                   blockType: 'hero',
                   blockName: 'Course Hero',
-                  heading: landingData.hero.heading || courseTitle,
-                  subheading: landingData.hero.subheading || course.excerpt,
+                  heading: arrayToString(landingData.hero.heading) || courseTitle,
+                  subheading: arrayToString(landingData.hero.subheading) || course.excerpt,
+                  ...(landingData.hero.ctaText && {
+                    ctaText: arrayToString(landingData.hero.ctaText),
+                  }),
                   ...(landingData.hero.backgroundImage && {
                     backgroundImage: landingData.hero.backgroundImage,
                   }),
@@ -234,10 +254,13 @@ export class LandingService {
           // Добавляем другие секции, если они есть
           ...(landingData.sections
             ? landingData.sections.map((section) => {
+                // Определяем тип блока (используем blockType, если он есть, иначе type)
+                const blockType = section.blockType || section.type || 'section'
+
                 // Преобразуем секции в соответствующие блоки Payload
                 return {
-                  blockType: section.type,
-                  blockName: `${section.type.charAt(0).toUpperCase() + section.type.slice(1)} Section`,
+                  blockType,
+                  blockName: `${blockType.charAt(0).toUpperCase() + blockType.slice(1)} Section`,
                   ...section.content,
                 }
               })
@@ -259,7 +282,9 @@ export class LandingService {
             text: 'Запишитесь на курс прямо сейчас и начните свой путь к новым знаниям.',
             buttons: [
               {
-                label: landingData.hero?.ctaText || 'Записаться на курс',
+                label: landingData.hero?.ctaText
+                  ? arrayToString(landingData.hero.ctaText)
+                  : 'Записаться на курс',
                 link: {
                   type: 'custom',
                   url: '#signup',

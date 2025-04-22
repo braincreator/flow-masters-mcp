@@ -168,6 +168,21 @@ export class ApiClient {
   }
 
   /**
+   * Получить список доступных блоков для шаблонов страниц
+   */
+  async getAvailableBlocks(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await this.client.get('/blocks')
+      return response.data
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
+
+  /**
    * Выполнить общий запрос к API
    */
   async request<T = any>(

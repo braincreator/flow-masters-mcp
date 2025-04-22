@@ -10,10 +10,56 @@ export interface AIProvider {
 // Доступные CMS-блоки из системы (обновлено согласно текущей реализации)
 const CMS_BLOCKS = {
   landing: {
-    hero: ['DynamicVideoHero', 'InteractiveCalculatorHero', 'GradientTextHero'],
-    features: ['ThreeColumnFeatures', 'ComparisonTable', 'ProgressBarsGrid'],
-    testimonials: ['VideoTestimonialsSlider', 'LogoCloud', 'CaseStudyCards'],
-    cta: ['CountdownTimerCTA', 'QuizLeadGen', 'ConsultationBooking'],
+    // Основные блоки
+    hero: ['hero', 'DynamicVideoHero', 'InteractiveCalculatorHero', 'GradientTextHero'],
+    content: ['content'],
+    callToAction: ['callToAction', 'CountdownTimerCTA', 'QuizLeadGen', 'ConsultationBooking'],
+    features: ['features', 'ThreeColumnFeatures', 'ComparisonTable', 'ProgressBarsGrid'],
+
+    // Информационные блоки
+    faq: ['faq', 'courseFAQ'],
+    stats: ['stats'],
+    testimonials: ['testimonials', 'VideoTestimonialsSlider', 'LogoCloud', 'CaseStudyCards'],
+    pricingTable: ['pricingTable', 'coursePricingComparison'],
+    banner: ['banner'],
+    tabs: ['tabs'],
+    timeline: ['timeline'],
+    tableOfContents: ['tableOfContents'],
+    roadmap: ['roadmap'],
+    benefitsOutcomes: ['benefitsOutcomes'],
+    targetAudience: ['targetAudience'],
+    guarantee: ['guarantee'],
+    socialProofAdvanced: ['socialProofAdvanced'],
+
+    // Медиа блоки
+    media: ['media'],
+    video: ['video'],
+    audio: ['audio'],
+    carousel: ['carousel'],
+    gallery: ['gallery'],
+
+    // Структурные блоки
+    divider: ['divider'],
+    accordion: ['accordion'],
+    card: ['card'],
+    steps: ['steps'],
+
+    // Блоки с людьми
+    teamMembers: ['teamMembers'],
+    instructorProfile: ['instructorProfile'],
+
+    // Бизнес-блоки
+    services: ['services'],
+    caseStudies: ['caseStudies'],
+    techStack: ['techStack'],
+    plansComparison: ['plansComparison'],
+
+    // Функциональные блоки
+    form: ['form'],
+    newsletter: ['newsletter'],
+    feedback: ['feedback'],
+    poll: ['poll'],
+    leadMagnetOffer: ['leadMagnetOffer'],
   },
   course: {
     content: [
@@ -24,6 +70,13 @@ const CMS_BLOCKS = {
       'ResourceLibrary',
     ],
     pricing: ['TieredPricingTable', 'MoneyBackGuarantee', 'BonusPackages', 'PaymentPlanCalculator'],
+    curriculum: ['curriculum'],
+    courseOverview: ['courseOverview'],
+    quizAssessment: ['quizAssessment'],
+    assignments: ['assignments'],
+    achievementsBlock: ['achievementsBlock'],
+    projectShowcase: ['projectShowcase'],
+    recommendations: ['recommendations'],
   },
   funnel: {
     steps: [
@@ -32,7 +85,9 @@ const CMS_BLOCKS = {
       'WebinarRegistration',
       'UpsellSequencer',
       'AlumniPortal',
+      'funnelStep',
     ],
+    emailSequence: ['emailSequence'],
   },
 }
 
@@ -491,24 +546,132 @@ ${additionalInstructions}
     "hero": {
       "heading": "Заголовок героя",
       "subheading": "Подзаголовок героя",
-      "ctaText": "Текст кнопки"
+      "ctaText": "Текст кнопки",
+      "backgroundImage": "Ссылка на изображение фона (опционально)",
+      "layout": "default",
+      "actions": [
+        {
+          "label": "Текст кнопки",
+          "href": "Ссылка"
+        }
+      ]
     },
     "sections": [
       {
-        "type": "features",
+        "blockType": "features",
+        "blockName": "Основные преимущества",
         "content": {
           "heading": "Заголовок секции",
+          "subheading": "Подзаголовок секции",
           "features": [
             {
               "title": "Название фичи",
               "description": "Описание фичи",
               "icon": "icon_name"
-            },
-            ...
+            }
+          ]
+        },
+        "settings": {
+          "background": "light",
+          "paddingTop": "medium",
+          "paddingBottom": "medium"
+        }
+      },
+      {
+        "blockType": "testimonials",
+        "blockName": "Отзывы участников",
+        "content": {
+          "heading": "Что говорят наши студенты",
+          "testimonials": [
+            {
+              "quote": "Текст отзыва",
+              "author": "Имя автора",
+              "role": "Должность",
+              "company": "Компания"
+            }
           ]
         }
       },
-      ...
+      {
+        "blockType": "faq",
+        "blockName": "Частые вопросы",
+        "content": {
+          "heading": "Часто задаваемые вопросы",
+          "faqs": [
+            {
+              "question": "Вопрос",
+              "answer": "Ответ"
+            }
+          ]
+        }
+      },
+      {
+        "blockType": "pricingTable",
+        "blockName": "Тарифы",
+        "content": {
+          "heading": "Выберите подходящий тариф",
+          "pricing": [
+            {
+              "title": "Базовый",
+              "price": "9,990 ₽",
+              "description": "Описание тарифа",
+              "features": ["Функция 1", "Функция 2"],
+              "cta": {
+                "label": "Купить",
+                "href": "/checkout"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "blockType": "callToAction",
+        "blockName": "Призыв к действию",
+        "content": {
+          "heading": "Готовы начать?",
+          "text": "Присоединяйтесь к курсу сегодня и получите доступ к эксклюзивным материалам.",
+          "ctaText": "Записаться на курс",
+          "ctaUrl": "/signup"
+        },
+        "settings": {
+          "background": "primary",
+          "textAlign": "center"
+        }
+      },
+      {
+        "blockType": "form",
+        "blockName": "Форма записи",
+        "content": {
+          "heading": "Записаться на курс",
+          "formFields": [
+            {
+              "name": "name",
+              "type": "text",
+              "label": "Имя",
+              "placeholder": "Введите ваше имя",
+              "required": true
+            },
+            {
+              "name": "email",
+              "type": "email",
+              "label": "Email",
+              "placeholder": "Введите ваш email",
+              "required": true
+            }
+          ],
+          "submitButtonText": "Отправить"
+        }
+      },
+      {
+        "blockType": "newsletter",
+        "blockName": "Подписка на рассылку",
+        "content": {
+          "newsletterTitle": "Подпишитесь на нашу рассылку",
+          "newsletterDescription": "Получайте полезные материалы и новости курса",
+          "newsletterPlaceholder": "Ваш email",
+          "newsletterButtonText": "Подписаться"
+        }
+      }
     ]
   }`
       : ''
@@ -563,7 +726,7 @@ ${additionalInstructions}
         ],
         generationConfig: {
           temperature,
-          maxOutputTokens: 8192*2,
+          maxOutputTokens: 8192 * 2,
         },
       })
 

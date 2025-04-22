@@ -355,31 +355,82 @@ export class ProviderService implements AIProviderService {
   private async getGoogleModels(apiKey?: string): Promise<AIModel[]> {
     try {
       // Для Google всегда требуется API ключ для получения списка моделей
+      console.log(
+        'getGoogleModels called with apiKey:',
+        apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined',
+      )
+
       if (apiKey) {
         try {
           // Если есть API ключ, пытаемся получить список моделей
           const url = `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`
+          console.log('Fetching Google models from URL:', url)
+
           const response = await fetch(url)
+          console.log('Google API response status:', response.status, response.statusText)
 
           if (!response.ok) {
             throw new Error(`Failed to fetch Google models: ${response.statusText}`)
           }
 
           const data = (await response.json()) as { models: GoogleModel[] }
+          console.log('Google API response data:', data)
 
           // Фильтруем только модели Gemini
           const googleModels = data.models
             .filter((model) => model.name.includes('gemini'))
-            .map((model) => ({
-              id: model.name.split('/').pop() || model.name,
-              name:
-                model.displayName ||
-                this.formatModelName(model.name.split('/').pop() || model.name),
-              description: model.description,
-              maxTokens: model.outputTokenLimit,
-              provider: 'google' as AIProvider,
-            }))
+            .map((model) => {
+              // Формируем описание с характеристиками
+              let description = ''
 
+              // Добавляем информацию о контекстном окне
+              if (model.inputTokenLimit) {
+                const contextSize =
+                  model.inputTokenLimit >= 1000000
+                    ? '1M'
+                    : model.inputTokenLimit >= 100000
+                      ? '100K'
+                      : model.inputTokenLimit >= 32000
+                        ? '32K'
+                        : `${model.inputTokenLimit}`
+                description += `Контекст: ${contextSize} токенов`
+              }
+
+              // Добавляем информацию о мультимодальности
+              if (model.name.includes('vision')) {
+                description += description ? ' | Мультимодальная' : 'Мультимодальная'
+              } else if (model.name.includes('flash')) {
+                description += description ? ' | Быстрая' : 'Быстрая'
+              } else if (model.inputTokenLimit) {
+                description += description
+                  ? ` | Вход: ${model.inputTokenLimit >= 1000000 ? '1M' : model.inputTokenLimit}`
+                  : `Вход: ${model.inputTokenLimit >= 1000000 ? '1M' : model.inputTokenLimit}`
+              }
+
+              // Добавляем информацию о лимите выходных токенов
+              if (model.outputTokenLimit) {
+                description += description
+                  ? ` | Выход: ${model.outputTokenLimit}`
+                  : `Выход: ${model.outputTokenLimit}`
+              }
+
+              // Если нет информации о лимитах, используем оригинальное описание
+              if (!description && model.description) {
+                description = model.description
+              }
+
+              return {
+                id: model.name, // Используем полное имя модели
+                name:
+                  model.displayName ||
+                  this.formatModelName(model.name.split('/').pop() || model.name),
+                description,
+                maxTokens: model.outputTokenLimit,
+                provider: 'google' as AIProvider,
+              }
+            })
+
+          console.log('Filtered Google models:', googleModels)
           return googleModels
         } catch (error) {
           console.error('Error fetching Google models with API key:', error)
@@ -387,36 +438,38 @@ export class ProviderService implements AIProviderService {
         }
       }
 
+      console.log('Returning default Google models')
+
       // Если API ключ не предоставлен, возвращаем дефолтные модели
       return [
         {
           id: 'models/gemini-1.5-pro',
           name: 'Gemini 1.5 Pro',
-          description: 'Мощная модель с расширенным контекстом (1M токенов)',
+          description: 'Контекст: 1M токенов | Вход: 1M | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-1.5-pro-vision',
           name: 'Gemini 1.5 Pro Vision',
-          description: 'Мощная мультимодальная модель с поддержкой изображений',
+          description: 'Контекст: 1M токенов | Мультимодальная | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-1.5-flash',
           name: 'Gemini 1.5 Flash',
-          description: 'Быстрая версия с оптимизированной производительностью',
+          description: 'Контекст: 1M токенов | Быстрая | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-pro',
           name: 'Gemini Pro',
-          description: 'Модель общего назначения для текстовых задач',
+          description: 'Контекст: 32K токенов | Вход: 32K | Выход: 8192',
           provider: 'google',
         },
         {
           id: 'models/gemini-pro-vision',
           name: 'Gemini Pro Vision',
-          description: 'Мультимодальная модель с поддержкой изображений',
+          description: 'Контекст: 32K токенов | Мультимодальная | Выход: 4096',
           provider: 'google',
         },
       ]
@@ -428,31 +481,31 @@ export class ProviderService implements AIProviderService {
         {
           id: 'models/gemini-1.5-pro',
           name: 'Gemini 1.5 Pro',
-          description: 'Мощная модель с расширенным контекстом (1M токенов)',
+          description: 'Контекст: 1M токенов | Вход: 1M | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-1.5-pro-vision',
           name: 'Gemini 1.5 Pro Vision',
-          description: 'Мощная мультимодальная модель с поддержкой изображений',
+          description: 'Контекст: 1M токенов | Мультимодальная | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-1.5-flash',
           name: 'Gemini 1.5 Flash',
-          description: 'Быстрая версия с оптимизированной производительностью',
+          description: 'Контекст: 1M токенов | Быстрая | Выход: 2048',
           provider: 'google',
         },
         {
           id: 'models/gemini-pro',
           name: 'Gemini Pro',
-          description: 'Модель общего назначения для текстовых задач',
+          description: 'Контекст: 32K токенов | Вход: 32K | Выход: 8192',
           provider: 'google',
         },
         {
           id: 'models/gemini-pro-vision',
           name: 'Gemini Pro Vision',
-          description: 'Мультимодальная модель с поддержкой изображений',
+          description: 'Контекст: 32K токенов | Мультимодальная | Выход: 4096',
           provider: 'google',
         },
       ]
@@ -483,25 +536,25 @@ export class ProviderService implements AIProviderService {
           {
             id: 'deepseek-chat',
             name: 'DeepSeek Chat',
-            description: 'Основная модель для диалогов',
+            description: 'Контекст: 32K токенов | Текстовая | Выход: 4096',
             provider: 'deepseek',
           },
           {
             id: 'deepseek-coder',
             name: 'DeepSeek Coder',
-            description: 'Специализированная модель для программирования',
+            description: 'Контекст: 32K токенов | Кодинг | Выход: 4096',
             provider: 'deepseek',
           },
           {
             id: 'deepseek-llm-67b-chat',
             name: 'DeepSeek LLM 67B Chat',
-            description: 'Мощная модель для диалогов на основе 67B параметров',
+            description: 'Контекст: 32K токенов | 67B параметров | Выход: 4096',
             provider: 'deepseek',
           },
           {
             id: 'deepseek-coder-instruct',
             name: 'DeepSeek Coder Instruct',
-            description: 'Модель для программирования с инструкциями',
+            description: 'Контекст: 32K токенов | Кодинг | Выход: 4096',
             provider: 'deepseek',
           },
         ]
@@ -543,31 +596,31 @@ export class ProviderService implements AIProviderService {
       {
         id: 'claude-3-5-sonnet',
         name: 'Claude 3.5 Sonnet',
-        description: 'Новейшая модель Claude с улучшенными возможностями',
+        description: 'Контекст: 200K токенов | Мультимодальная | Выход: 4096',
         provider: 'anthropic',
       },
       {
         id: 'claude-3-opus',
         name: 'Claude 3 Opus',
-        description: 'Самая мощная модель Claude 3',
+        description: 'Контекст: 200K токенов | Мультимодальная | Выход: 4096',
         provider: 'anthropic',
       },
       {
         id: 'claude-3-sonnet',
         name: 'Claude 3 Sonnet',
-        description: 'Сбалансированная модель по цене и производительности',
+        description: 'Контекст: 200K токенов | Мультимодальная | Выход: 4096',
         provider: 'anthropic',
       },
       {
         id: 'claude-3-haiku',
         name: 'Claude 3 Haiku',
-        description: 'Быстрая и экономичная модель',
+        description: 'Контекст: 200K токенов | Мультимодальная | Выход: 4096',
         provider: 'anthropic',
       },
       {
         id: 'claude-2.1',
         name: 'Claude 2.1',
-        description: 'Предыдущее поколение модели Claude',
+        description: 'Контекст: 100K токенов | Текстовая | Выход: 4096',
         provider: 'anthropic',
       },
     ]
@@ -602,19 +655,19 @@ export class ProviderService implements AIProviderService {
         {
           id: 'openai/gpt-4o',
           name: 'GPT-4o',
-          description: 'OpenAI',
+          description: 'Контекст: 128K токенов | Мультимодальная | Выход: 4096',
           provider: 'openrouter',
         },
         {
           id: 'anthropic/claude-3-opus',
           name: 'Claude 3 Opus',
-          description: 'Anthropic',
+          description: 'Контекст: 200K токенов | Мультимодальная | Выход: 4096',
           provider: 'openrouter',
         },
         {
           id: 'meta-llama/llama-3-70b-instruct',
           name: 'Llama 3 70B Instruct',
-          description: 'Meta',
+          description: 'Контекст: 8K токенов | 70B параметров | Выход: 4096',
           provider: 'openrouter',
         },
       ]
@@ -627,49 +680,49 @@ export class ProviderService implements AIProviderService {
       {
         id: 'gpt-4o',
         name: 'GPT-4o',
-        description: 'OpenAI через Requesty',
+        description: 'Контекст: 128K | OpenAI через Requesty',
         provider: 'requesty',
       },
       {
         id: 'gpt-4o-mini',
         name: 'GPT-4o Mini',
-        description: 'OpenAI через Requesty',
+        description: 'Контекст: 128K | OpenAI через Requesty',
         provider: 'requesty',
       },
       {
         id: 'claude-3-5-sonnet',
         name: 'Claude 3.5 Sonnet',
-        description: 'Anthropic через Requesty',
+        description: 'Контекст: 200K | Anthropic через Requesty',
         provider: 'requesty',
       },
       {
         id: 'claude-3-opus',
         name: 'Claude 3 Opus',
-        description: 'Anthropic через Requesty',
+        description: 'Контекст: 200K | Anthropic через Requesty',
         provider: 'requesty',
       },
       {
         id: 'claude-3-sonnet',
         name: 'Claude 3 Sonnet',
-        description: 'Anthropic через Requesty',
+        description: 'Контекст: 200K | Anthropic через Requesty',
         provider: 'requesty',
       },
       {
         id: 'claude-3-haiku',
         name: 'Claude 3 Haiku',
-        description: 'Anthropic через Requesty',
+        description: 'Контекст: 200K | Anthropic через Requesty',
         provider: 'requesty',
       },
       {
         id: 'gemini-1.5-pro',
         name: 'Gemini 1.5 Pro',
-        description: 'Google через Requesty',
+        description: 'Контекст: 1M | Google через Requesty',
         provider: 'requesty',
       },
       {
         id: 'mistral-large-2',
         name: 'Mistral Large 2',
-        description: 'Mistral через Requesty',
+        description: 'Контекст: 32K | Mistral через Requesty',
         provider: 'requesty',
       },
     ]
@@ -699,31 +752,31 @@ export class ProviderService implements AIProviderService {
           {
             id: 'mistral-large-2',
             name: 'Mistral Large 2',
-            description: 'Новейшая и самая мощная модель Mistral',
+            description: 'Контекст: 32K токенов | Текстовая | Выход: 8192',
             provider: 'mistral',
           },
           {
             id: 'mistral-large-latest',
             name: 'Mistral Large',
-            description: 'Мощная модель Mistral',
+            description: 'Контекст: 32K токенов | Текстовая | Выход: 8192',
             provider: 'mistral',
           },
           {
             id: 'mistral-medium-latest',
             name: 'Mistral Medium',
-            description: 'Сбалансированная модель',
+            description: 'Контекст: 32K токенов | Текстовая | Выход: 8192',
             provider: 'mistral',
           },
           {
             id: 'mistral-small-latest',
             name: 'Mistral Small',
-            description: 'Быстрая и экономичная модель',
+            description: 'Контекст: 32K токенов | Текстовая | Выход: 8192',
             provider: 'mistral',
           },
           {
             id: 'open-mistral-7b',
             name: 'Open Mistral 7B',
-            description: 'Открытая модель Mistral 7B',
+            description: 'Контекст: 8K токенов | Текстовая | Выход: 2048',
             provider: 'mistral',
           },
         ]
@@ -802,43 +855,43 @@ export class ProviderService implements AIProviderService {
           {
             id: 'gpt-4o',
             name: 'GPT-4o',
-            description: 'Самая новая и мощная модель GPT-4',
+            description: 'Контекст: 128K токенов | Мультимодальная | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'gpt-4o-mini',
             name: 'GPT-4o Mini',
-            description: 'Компактная и экономичная версия GPT-4o',
+            description: 'Контекст: 128K токенов | Мультимодальная | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'gpt-4-turbo',
             name: 'GPT-4 Turbo',
-            description: 'Улучшенная версия GPT-4 с расширенным контекстом',
+            description: 'Контекст: 128K токенов | Текстовая | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'gpt-4-vision-preview',
             name: 'GPT-4 Vision',
-            description: 'GPT-4 с поддержкой изображений',
+            description: 'Контекст: 128K токенов | Мультимодальная | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'gpt-4',
             name: 'GPT-4',
-            description: 'Стандартная версия GPT-4',
+            description: 'Контекст: 8K токенов | Текстовая | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'gpt-3.5-turbo',
             name: 'GPT-3.5 Turbo',
-            description: 'Быстрая и экономичная модель',
+            description: 'Контекст: 16K токенов | Текстовая | Выход: 4096',
             provider: 'openai',
           },
           {
             id: 'dall-e-3',
             name: 'DALL-E 3',
-            description: 'Модель для генерации изображений',
+            description: 'Генерация изображений | 1024x1024 | 1024x1792 | 1792x1024',
             provider: 'openai',
           },
         ]

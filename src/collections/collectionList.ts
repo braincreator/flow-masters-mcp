@@ -26,6 +26,7 @@ import { Reviews } from './Reviews'
 // Courses / LMS
 import { Courses } from './Courses'
 import { Modules } from './Modules'
+import { Lessons } from './Lessons'
 import { Resources } from './Resources' // Learning resources?
 import { Achievements } from './Achievements'
 import Templates from './Templates'
@@ -87,6 +88,7 @@ const collections = [
   // Courses / LMS
   Courses,
   Modules,
+  Lessons,
   Resources,
   Achievements,
   Templates,

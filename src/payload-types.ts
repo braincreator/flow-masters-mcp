@@ -139,6 +139,7 @@ export interface Config {
     calendar: CalendarBlock;
     eventTracker: EventTrackerBlock;
     reportEmbed: ReportEmbedBlock;
+    n8nChatDemo: N8NChatDemoBlock;
   };
   collections: {
     pages: Page;
@@ -161,6 +162,7 @@ export interface Config {
     reviews: Review;
     courses: Course;
     modules: Module;
+    lessons: Lesson;
     resources: Resource;
     achievements: Achievement;
     templates: Template;
@@ -214,6 +216,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
     modules: ModulesSelect<false> | ModulesSelect<true>;
+    lessons: LessonsSelect<false> | LessonsSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     templates: TemplatesSelect<false> | TemplatesSelect<true>;
@@ -1597,6 +1600,7 @@ export interface Page {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
+    | N8NChatDemoBlock
   )[];
   meta?: {
     title?: string | null;
@@ -3616,6 +3620,7 @@ export interface Course {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
+    | N8NChatDemoBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -7226,6 +7231,7 @@ export interface Module {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
+    | N8NChatDemoBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -8759,6 +8765,129 @@ export interface ReportEmbedBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'reportEmbed';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "N8nChatDemoBlock".
+ */
+export interface N8NChatDemoBlock {
+  /**
+   * Основной заголовок блока демонстрации чата
+   */
+  heading?: string | null;
+  /**
+   * Краткое описание или приветствие
+   */
+  subheading?: string | null;
+  /**
+   * Подробное описание демонстрации автоматизации
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  webhookSettings: {
+    /**
+     * URL вебхука для отправки сообщений в n8n
+     */
+    n8nWebhookUrl: string;
+    /**
+     * Секретный ключ для аутентификации запросов (опционально)
+     */
+    webhookSecret?: string | null;
+    /**
+     * Максимальное время ожидания ответа от n8n в миллисекундах
+     */
+    timeout?: number | null;
+  };
+  chatSettings?: {
+    initialMessage?: {
+      root: {
+        type: string;
+        children: {
+          type: string;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    placeholderText?: string | null;
+    botName?: string | null;
+    botAvatar?: (string | null) | Media;
+    userAvatar?: (string | null) | Media;
+  };
+  promptSuggestions?:
+    | {
+        text: string;
+        /**
+         * Дополнительная информация о подсказке (отображается при наведении)
+         */
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Ответы, которые будут использованы, если n8n не ответит или произойдет ошибка
+   */
+  fallbackResponses?:
+    | {
+        response: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  appearance?: {
+    theme?: ('light' | 'dark' | 'system') | null;
+    primaryColor?: string | null;
+    chatHeight?: number | null;
+    maxWidth?: number | null;
+    borderRadius?: ('none' | 'small' | 'medium' | 'large') | null;
+    showTimestamps?: boolean | null;
+  };
+  advancedSettings?: {
+    enableHistory?: boolean | null;
+    maxMessages?: number | null;
+    /**
+     * Отправлять дополнительные данные о пользователе и странице в n8n
+     */
+    sendMetadata?: boolean | null;
+    /**
+     * Показывать отладочную информацию в консоли
+     */
+    debugMode?: boolean | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'n8nChatDemo';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -10385,6 +10514,62 @@ export interface Solution {
   createdAt: string;
 }
 /**
+ * Коллекция для уроков внутри модулей курсов.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons".
+ */
+export interface Lesson {
+  id: string;
+  title: string;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  status?: ('draft' | 'published') | null;
+  module: string | Module;
+  description?: string | null;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  type?: ('video' | 'text' | 'quiz' | 'assignment') | null;
+  /**
+   * Например: "30 минут" или "1 час"
+   */
+  duration?: string | null;
+  /**
+   * Порядковый номер урока в модуле
+   */
+  order?: number | null;
+  /**
+   * URL видео для уроков типа "Видео"
+   */
+  videoUrl?: string | null;
+  /**
+   * Файлы, прикрепленные к уроку
+   */
+  attachments?:
+    | {
+        title: string;
+        file: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "templates".
  */
@@ -11887,6 +12072,7 @@ export interface Popup {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
+    | N8NChatDemoBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -12386,6 +12572,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'modules';
         value: string | Module;
+      } | null)
+    | ({
+        relationTo: 'lessons';
+        value: string | Lesson;
       } | null)
     | ({
         relationTo: 'resources';
@@ -13015,6 +13205,7 @@ export interface PagesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
+        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
       };
   meta?:
     | T
@@ -15527,6 +15718,64 @@ export interface ReportEmbedBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "N8nChatDemoBlock_select".
+ */
+export interface N8NChatDemoBlockSelect<T extends boolean = true> {
+  heading?: T;
+  subheading?: T;
+  description?: T;
+  webhookSettings?:
+    | T
+    | {
+        n8nWebhookUrl?: T;
+        webhookSecret?: T;
+        timeout?: T;
+      };
+  chatSettings?:
+    | T
+    | {
+        initialMessage?: T;
+        placeholderText?: T;
+        botName?: T;
+        botAvatar?: T;
+        userAvatar?: T;
+      };
+  promptSuggestions?:
+    | T
+    | {
+        text?: T;
+        description?: T;
+        id?: T;
+      };
+  fallbackResponses?:
+    | T
+    | {
+        response?: T;
+        id?: T;
+      };
+  appearance?:
+    | T
+    | {
+        theme?: T;
+        primaryColor?: T;
+        chatHeight?: T;
+        maxWidth?: T;
+        borderRadius?: T;
+        showTimestamps?: T;
+      };
+  advancedSettings?:
+    | T
+    | {
+        enableHistory?: T;
+        maxMessages?: T;
+        sendMetadata?: T;
+        debugMode?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -16540,6 +16789,7 @@ export interface CoursesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
+        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -17005,6 +17255,34 @@ export interface ModulesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
+        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons_select".
+ */
+export interface LessonsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  slugLock?: T;
+  status?: T;
+  module?: T;
+  description?: T;
+  content?: T;
+  type?: T;
+  duration?: T;
+  order?: T;
+  videoUrl?: T;
+  attachments?:
+    | T
+    | {
+        title?: T;
+        file?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -17689,6 +17967,7 @@ export interface PopupsSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
+        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;

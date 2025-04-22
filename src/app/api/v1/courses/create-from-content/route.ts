@@ -20,6 +20,8 @@ const moduleSchema = z.object({
   description: z.string().optional(),
   lessons: z.array(lessonSchema).min(1),
   order: z.number().optional(),
+  content: z.string().optional(), // Текстовое содержимое модуля (будет преобразовано в layout)
+  layout: z.array(z.any()).optional(), // Содержимое модуля в формате blocks
 })
 
 // Схема для курса
@@ -40,23 +42,47 @@ const courseSchema = z.object({
   layout: z.array(z.any()).optional(), // Содержимое страницы курса
 })
 
+// Функция для преобразования массива в строку
+const arrayToString = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value.join(' ')
+  }
+  return String(value || '')
+}
+
 // Схема для лендинга
 const landingSchema = z
   .object({
     title: z.string().optional(),
     hero: z
       .object({
-        heading: z.string().optional(),
-        subheading: z.string().optional(),
-        ctaText: z.string().optional(),
+        heading: z
+          .union([z.string(), z.array(z.any())])
+          .transform(arrayToString)
+          .optional(),
+        subheading: z
+          .union([z.string(), z.array(z.any())])
+          .transform(arrayToString)
+          .optional(),
+        ctaText: z
+          .union([z.string(), z.array(z.any())])
+          .transform(arrayToString)
+          .optional(),
       })
       .optional(),
     sections: z
       .array(
-        z.object({
-          type: z.string(),
-          content: z.any(),
-        }),
+        z
+          .object({
+            type: z.string().optional().default('section'),
+            blockType: z.string().optional(),
+            content: z.any(),
+          })
+          .transform((section) => ({
+            ...section,
+            // Если type не указан, но есть blockType, используем blockType как type
+            type: section.type || section.blockType || 'section',
+          })),
       )
       .optional(),
   })

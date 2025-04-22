@@ -44,6 +44,12 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
   const [hasStoredApiKey, setHasStoredApiKey] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Функция для получения базового URL API без префикса локализации
+  const getApiBaseUrl = useCallback(() => {
+    // Всегда используем стандартный путь без префикса локализации
+    return '/api/v1'
+  }, [])
+
   // Загрузка списка моделей для выбранного провайдера
   const loadModels = useCallback(
     async (shouldSetDefaultModel = true) => {
@@ -51,13 +57,15 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
       setError(null)
 
       try {
+        const baseUrl = getApiBaseUrl()
+
         // Проверяем наличие сохраненного ключа для текущего провайдера
-        const keyResponse = await fetch(`/api/v1/ai/providers/keys?provider=${selectedProvider}`)
+        const keyResponse = await fetch(`${baseUrl}/ai/providers/keys?provider=${selectedProvider}`)
         const keyData = await keyResponse.json()
         const hasKey = keyData.success && keyData.hasKey
 
         // Загружаем модели с использованием сохраненного ключа, если он есть
-        const url = `/api/v1/ai/providers/models?provider=${selectedProvider}`
+        const url = `${baseUrl}/ai/providers/models?provider=${selectedProvider}`
         const response = await fetch(url)
         const data = await response.json()
 
@@ -89,7 +97,8 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
   // Проверка наличия сохраненного API ключа
   const checkStoredApiKey = useCallback(async () => {
     try {
-      const response = await fetch(`/api/v1/ai/providers/keys?provider=${selectedProvider}`)
+      const baseUrl = getApiBaseUrl()
+      const response = await fetch(`${baseUrl}/ai/providers/keys?provider=${selectedProvider}`)
       const data = await response.json()
 
       if (data.success) {
@@ -101,13 +110,14 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
       console.error('Error checking stored API key:', err)
       setHasStoredApiKey(false)
     }
-  }, [selectedProvider])
+  }, [selectedProvider, getApiBaseUrl])
 
   // Валидация API ключа
   const validateApiKey = useCallback(
     async (key: string): Promise<boolean> => {
       try {
-        const response = await fetch('/api/v1/ai/providers/validate-key', {
+        const baseUrl = getApiBaseUrl()
+        const response = await fetch(`${baseUrl}/ai/providers/validate-key`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -125,14 +135,15 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
         return false
       }
     },
-    [selectedProvider],
+    [selectedProvider, getApiBaseUrl],
   )
 
   // Сохранение API ключа
   const saveApiKey = useCallback(
     async (key: string): Promise<boolean> => {
       try {
-        const response = await fetch('/api/v1/ai/providers/keys', {
+        const baseUrl = getApiBaseUrl()
+        const response = await fetch(`${baseUrl}/ai/providers/keys`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -160,13 +171,14 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
         return false
       }
     },
-    [selectedProvider, loadModels],
+    [selectedProvider, loadModels, getApiBaseUrl],
   )
 
   // Удаление API ключа
   const deleteApiKey = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/v1/ai/providers/keys?provider=${selectedProvider}`, {
+      const baseUrl = getApiBaseUrl()
+      const response = await fetch(`${baseUrl}/ai/providers/keys?provider=${selectedProvider}`, {
         method: 'DELETE',
       })
 
@@ -187,7 +199,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
       setError('Failed to delete API key. Please try again.')
       return false
     }
-  }, [selectedProvider, loadModels])
+  }, [selectedProvider, loadModels, getApiBaseUrl])
 
   // Эффект при изменении провайдера
   useEffect(() => {

@@ -39,6 +39,9 @@ const NewsletterBlock = dynamic(() =>
 const CountdownBlock = dynamic(() =>
   import('./Countdown/Component').then((mod) => mod.CountdownBlock),
 )
+const LeadMagnetOfferBlock = dynamic(() =>
+  import('./LeadMagnetOffer/Component').then((mod) => mod.LeadMagnetOfferBlock),
+)
 
 // Блоки для отображения данных
 const FeatureGridBlock = dynamic(() =>
@@ -82,6 +85,9 @@ const PricingTableBlock = dynamic(() =>
   import('./PricingTable/Component').then((mod) => mod.PricingTableBlock),
 )
 
+// Интеграционные блоки
+const N8nChatDemoBlock = dynamic(() => import('./N8nChatDemo/Component').then((mod) => mod.default))
+
 // Объединяем все блоки в один объект
 const blockComponents = {
   // Основные блоки
@@ -112,6 +118,7 @@ const blockComponents = {
   form: FormBlock,
   newsletter: NewsletterBlock,
   countdown: CountdownBlock,
+  leadMagnetOffer: LeadMagnetOfferBlock,
 
   // Блоки для отображения данных
   featureGrid: FeatureGridBlock,
@@ -134,6 +141,9 @@ const blockComponents = {
   productsList: ProductsListBlock,
   productsFilter: ProductsFilterBlock,
   pricingTable: PricingTableBlock,
+
+  // Интеграционные блоки
+  n8nChatDemo: N8nChatDemoBlock,
 } as const
 
 type Props = {

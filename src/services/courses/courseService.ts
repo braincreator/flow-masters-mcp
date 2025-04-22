@@ -15,6 +15,8 @@ export interface LessonData {
 export interface ModuleData {
   title: string
   description?: string
+  content?: string
+  layout?: any[] // Содержимое модуля в формате blocks
   lessons: LessonData[]
   order?: number
 }
@@ -156,6 +158,52 @@ export class CourseService {
           ...(locale && { locale }),
           // Другие поля модуля
           ...(moduleData.description && { description: moduleData.description }),
+          // Обновляем layout модуля, если он предоставлен
+          ...(moduleData.layout && { layout: moduleData.layout }),
+          // Если layout не предоставлен, но есть content, создаем базовый layout
+          ...(!moduleData.layout &&
+            moduleData.content && {
+              layout: [
+                {
+                  blockType: 'content',
+                  blockName: 'Module Content',
+                  columns: [
+                    {
+                      size: 'full',
+                      richText: {
+                        root: {
+                          children: [
+                            {
+                              children: [
+                                {
+                                  detail: 0,
+                                  format: 0,
+                                  mode: 'normal',
+                                  style: '',
+                                  text: moduleData.content,
+                                  type: 'text',
+                                  version: 1,
+                                },
+                              ],
+                              direction: 'ltr',
+                              format: '',
+                              indent: 0,
+                              type: 'paragraph',
+                              version: 1,
+                            },
+                          ],
+                          direction: 'ltr',
+                          format: '',
+                          indent: 0,
+                          type: 'root',
+                          version: 1,
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+            }),
         },
       })
 
@@ -427,6 +475,50 @@ export class CourseService {
           ...(locale && { locale }),
           // Другие поля модуля
           ...(moduleData.description && { description: moduleData.description }),
+          // Создаем базовый layout для модуля
+          layout: moduleData.layout || [
+            {
+              blockType: 'content',
+              blockName: 'Module Content',
+              columns: [
+                {
+                  size: 'full',
+                  richText: {
+                    root: {
+                      children: [
+                        {
+                          children: [
+                            {
+                              detail: 0,
+                              format: 0,
+                              mode: 'normal',
+                              style: '',
+                              text:
+                                moduleData.content ||
+                                moduleData.description ||
+                                `Содержимое модуля "${moduleData.title}"`,
+                              type: 'text',
+                              version: 1,
+                            },
+                          ],
+                          direction: 'ltr',
+                          format: '',
+                          indent: 0,
+                          type: 'paragraph',
+                          version: 1,
+                        },
+                      ],
+                      direction: 'ltr',
+                      format: '',
+                      indent: 0,
+                      type: 'root',
+                      version: 1,
+                    },
+                  },
+                },
+              ],
+            },
+          ],
         },
       })
 

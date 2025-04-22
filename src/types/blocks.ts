@@ -668,6 +668,7 @@ export type Block =
   | FeaturesBlock
   | BlogBlock
   | BlogPostBlock
+  | N8nChatDemoBlock
 
 export interface Video {
   blockType: 'video'
