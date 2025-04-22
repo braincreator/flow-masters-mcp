@@ -1,17 +1,17 @@
 import React from 'react'
 import { Metadata } from 'next'
-import { N8nChatDemoBlock } from '@/blocks/N8nChatDemo/Component'
+import { ChatBlock } from '@/blocks/Chat/Component'
 
 export const metadata: Metadata = {
-  title: 'N8n Chat Demo | Flow Masters',
-  description: 'Интерактивная демонстрация возможностей автоматизации с использованием n8n',
+  title: 'Интерактивный чат | Flow Masters',
+  description: 'Интерактивный чат для общения и получения информации',
 }
 
-export default function N8nChatDemoPage() {
+export default function ChatPage() {
   // Тестовые данные для демонстрации
-  const demoData = {
-    heading: 'Демонстрация интеграции с n8n',
-    subheading: 'Задайте вопрос о возможностях автоматизации',
+  const chatData = {
+    heading: 'Интерактивный чат',
+    subheading: 'Задайте вопрос и получите ответ',
     description: {
       root: {
         children: [
@@ -22,7 +22,7 @@ export default function N8nChatDemoPage() {
                 format: 0,
                 mode: 'normal',
                 style: '',
-                text: 'Этот чат интегрирован с n8n для демонстрации возможностей автоматизации. Попробуйте задать вопрос о том, как автоматизировать бизнес-процессы или интегрировать различные сервисы.',
+                text: 'Этот чат поможет вам получить ответы на интересующие вопросы. Попробуйте задать вопрос о наших услугах или продуктах.',
                 type: 'text',
                 version: 1,
               },
@@ -42,8 +42,10 @@ export default function N8nChatDemoPage() {
       },
     },
     webhookSettings: {
-      // Замените на реальный URL вебхука n8n
-      n8nWebhookUrl: 'https://n8n.flow-masters.ru/webhook/c352d717-c827-49b9-9bfa-621a4655ab2e',
+      // Явно указываем источник настроек
+      webhookSource: 'manual' as const,
+      // Используем тот же URL вебхука, но с новым именем поля
+      webhookUrl: 'https://n8n.flow-masters.ru/webhook/c352d717-c827-49b9-9bfa-621a4655ab2e',
       webhookSecret: 'demo-secret',
       timeout: 30000,
     },
@@ -58,7 +60,7 @@ export default function N8nChatDemoPage() {
                   format: 0,
                   mode: 'normal',
                   style: '',
-                  text: 'Привет! Я демонстрационный чат-бот, интегрированный с n8n. Задайте мне вопрос о возможностях автоматизации.',
+                  text: 'Привет! Я интерактивный чат-бот. Чем могу помочь?',
                   type: 'text',
                   version: 1,
                 },
@@ -77,25 +79,25 @@ export default function N8nChatDemoPage() {
           version: 1,
         },
       },
-      placeholderText: 'Задайте вопрос об автоматизации...',
-      botName: 'Автоматизация Бот',
+      placeholderText: 'Введите ваше сообщение...',
+      botName: 'Ассистент',
     },
     promptSuggestions: [
       {
-        text: 'Что такое n8n?',
-        description: 'Узнайте больше о платформе n8n',
+        text: 'Расскажи о ваших услугах',
+        description: 'Информация об услугах компании',
       },
       {
-        text: 'Как интегрировать CRM с почтой?',
-        description: 'Примеры интеграции CRM-систем',
+        text: 'Как с вами связаться?',
+        description: 'Контактная информация',
       },
       {
-        text: 'Какие задачи можно автоматизировать?',
-        description: 'Обзор возможностей автоматизации',
+        text: 'Какие у вас есть продукты?',
+        description: 'Обзор продуктов',
       },
       {
-        text: 'Как настроить вебхуки?',
-        description: 'Информация о настройке вебхуков',
+        text: 'Нужна консультация',
+        description: 'Запрос на консультацию',
       },
     ],
     fallbackResponses: [
@@ -175,13 +177,14 @@ export default function N8nChatDemoPage() {
       maxMessages: 50,
       sendMetadata: true,
       debugMode: true,
+      testMode: false,
     },
-    blockType: 'n8nChatDemo' as const,
+    blockType: 'chat' as const,
   }
 
   return (
     <div className="container mx-auto py-10">
-      <N8nChatDemoBlock {...demoData} />
+      <ChatBlock {...chatData} />
     </div>
   )
 }

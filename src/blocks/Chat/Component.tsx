@@ -2,24 +2,25 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
 import RichText from '@/components/RichText'
 import { BaseBlock } from '../BaseBlock/Component'
 import ChatContainer from '@/components/chat/ChatContainer'
-import { Message, MessageButton, MessageQuickReply, MessageMedia, MessageCard } from '@/types/chat'
-import { getRandomFallbackResponse, formatChatHistory } from '@/utilities/chat'
+import { Message } from '@/types/chat'
+import { getRandomFallbackResponse } from '@/utilities/chat'
 
-export type N8nChatDemoProps = {
+export type ChatProps = {
   heading?: string
   subheading?: string
   description?: any
   webhookSettings: {
-    n8nWebhookUrl: string
+    webhookSource?: 'collection' | 'manual'
+    webhook?: string
+    webhookUrl?: string
     webhookSecret?: string
     timeout?: number
   }
   chatSettings: {
-    initialMessage?: any
+    initialMessage?: Record<string, unknown>
     placeholderText?: string
     botName?: string
     botAvatar?: any
@@ -30,7 +31,7 @@ export type N8nChatDemoProps = {
     description?: string
   }[]
   fallbackResponses?: {
-    response: any
+    response: Record<string, unknown>
   }[]
   appearance?: {
     theme?: 'light' | 'dark' | 'system'
@@ -47,12 +48,12 @@ export type N8nChatDemoProps = {
     debugMode?: boolean
     testMode?: boolean
   }
-  blockType: 'n8nChatDemo'
+  blockType: 'chat'
   blockName?: string
-  settings?: any
+  settings?: Record<string, unknown>
 }
 
-export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
+export const ChatBlock: React.FC<ChatProps> = ({
   heading,
   subheading,
   description,
@@ -68,7 +69,7 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   // Настройки по умолчанию
   const {
@@ -92,12 +93,74 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
   // Состояние для тестового режима
   const [testMode, _setTestMode] = useState(defaultTestMode)
 
-  const { n8nWebhookUrl, webhookSecret = '', timeout: _timeout = 30000 } = webhookSettings
+  const {
+    webhookSource = 'collection',
+    webhook,
+    webhookUrl,
+    webhookSecret = '',
+    timeout: _timeout = 30000,
+  } = webhookSettings
+
+  // Состояние для хранения данных вебхука из коллекции
+  const [webhookData, setWebhookData] = useState<{
+    webhookUrl?: string
+    webhookSecret?: string
+    timeout?: number
+  }>({})
+
+  // Загружаем данные вебхука из коллекции, если выбран этот источник
+  useEffect(() => {
+    const loadWebhookData = async () => {
+      if (webhookSource === 'collection' && webhook) {
+        try {
+          // Получаем данные интеграции из API
+          const response = await fetch(`/api/v1/integrations/${webhook}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (debugMode) {
+              console.log('Получены данные интеграции:', data.doc)
+            }
+            setWebhookData({
+              webhookUrl: data.doc.webhookUrl,
+              webhookSecret: data.doc.apiKey, // Используем apiKey как webhookSecret
+              timeout: 30000, // Используем стандартный таймаут
+            })
+
+            // Обновляем дату последнего использования интеграции
+            fetch(`/api/v1/integrations/${webhook}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                lastSync: new Date().toISOString(),
+                lastSyncStatus: 'success',
+              }),
+            }).catch((err) => {
+              if (debugMode) {
+                console.error('Ошибка при обновлении даты использования интеграции:', err)
+              }
+            })
+          } else {
+            if (debugMode) {
+              console.error('Ошибка при загрузке данных вебхука:', await response.text())
+            }
+          }
+        } catch (err) {
+          if (debugMode) {
+            console.error('Ошибка при загрузке данных вебхука:', err)
+          }
+        }
+      }
+    }
+
+    loadWebhookData()
+  }, [webhook, webhookSource, debugMode])
 
   const {
     initialMessage,
-    placeholderText = 'Задайте вопрос об автоматизации...',
-    botName = 'Автоматизация Бот',
+    placeholderText = 'Введите ваше сообщение...',
+    botName = 'Ассистент',
     botAvatar,
     userAvatar,
   } = chatSettings
@@ -193,7 +256,7 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
           })
         } else {
           resolve({
-            response: `Я получил ваше сообщение: "${userMessage}". Это тестовый режим без подключения к n8n.`,
+            response: `Я получил ваше сообщение: "${userMessage}". Это тестовый режим без подключения к серверу.`,
             type: 'text',
             quickReplies: [
               {
@@ -213,7 +276,7 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
     })
   }
 
-  // Отправка сообщения в n8n
+  // Отправка сообщения
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
 
@@ -265,16 +328,35 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
             }
           : {}
 
-        // Отправляем запрос в n8n
-        const response = await fetch('/api/v1/n8n-chat', {
+        // Отправляем запрос на сервер
+        // Отладочный вывод
+        if (debugMode) {
+          console.log('Отправляем запрос с параметрами:', {
+            webhookSource,
+            webhookUrl,
+            webhookData,
+            finalWebhookUrl: webhookSource === 'collection' ? webhookData.webhookUrl : webhookUrl,
+          })
+        }
+
+        // Проверяем, что URL вебхука существует
+        const finalWebhookUrl = webhookSource === 'collection' ? webhookData.webhookUrl : webhookUrl
+        const finalWebhookSecret =
+          webhookSource === 'collection' ? webhookData.webhookSecret : webhookSecret
+
+        if (!finalWebhookUrl) {
+          throw new Error('Не указан URL вебхука. Проверьте настройки блока.')
+        }
+
+        const response = await fetch('/api/v1/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             message: content,
-            webhookUrl: n8nWebhookUrl,
-            webhookSecret,
+            webhookUrl: finalWebhookUrl,
+            webhookSecret: finalWebhookSecret,
             metadata,
             history: enableHistory ? messages : [],
           }),
@@ -375,19 +457,6 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
             </div>
           )}
 
-          {/* Кнопка для включения тестового режима - скрыта
-          {debugMode && (
-            <div className="mb-2 flex justify-end">
-              <button
-                onClick={() => setTestMode((prev) => !prev)}
-                className={`text-xs px-2 py-1 rounded ${testMode ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              >
-                {testMode ? 'Тестовый режим включен' : 'Тестовый режим выключен'}
-              </button>
-            </div>
-          )}
-          */}
-
           <ChatContainer
             messages={messages}
             isLoading={isLoading}
@@ -409,4 +478,4 @@ export const N8nChatDemoBlock: React.FC<N8nChatDemoProps> = ({
   )
 }
 
-export default N8nChatDemoBlock
+export default ChatBlock

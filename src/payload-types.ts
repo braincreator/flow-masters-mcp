@@ -139,7 +139,7 @@ export interface Config {
     calendar: CalendarBlock;
     eventTracker: EventTrackerBlock;
     reportEmbed: ReportEmbedBlock;
-    n8nChatDemo: N8NChatDemoBlock;
+    chat: ChatBlock;
   };
   collections: {
     pages: Page;
@@ -1600,7 +1600,7 @@ export interface Page {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
-    | N8NChatDemoBlock
+    | ChatBlock
   )[];
   meta?: {
     title?: string | null;
@@ -3620,7 +3620,7 @@ export interface Course {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
-    | N8NChatDemoBlock
+    | ChatBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -7231,7 +7231,7 @@ export interface Module {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
-    | N8NChatDemoBlock
+    | ChatBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -8768,11 +8768,11 @@ export interface ReportEmbedBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "N8nChatDemoBlock".
+ * via the `definition` "ChatBlock".
  */
-export interface N8NChatDemoBlock {
+export interface ChatBlock {
   /**
-   * Основной заголовок блока демонстрации чата
+   * Основной заголовок блока чата
    */
   heading?: string | null;
   /**
@@ -8780,7 +8780,7 @@ export interface N8NChatDemoBlock {
    */
   subheading?: string | null;
   /**
-   * Подробное описание демонстрации автоматизации
+   * Подробное описание блока чата
    */
   description?: {
     root: {
@@ -8797,17 +8797,25 @@ export interface N8NChatDemoBlock {
     };
     [k: string]: unknown;
   } | null;
-  webhookSettings: {
+  webhookSettings?: {
     /**
-     * URL вебхука для отправки сообщений в n8n
+     * Выберите способ настройки вебхука
      */
-    n8nWebhookUrl: string;
+    webhookSource?: ('collection' | 'manual') | null;
+    /**
+     * Выберите настроенный вебхук из коллекции интеграций
+     */
+    webhook?: (string | null) | Integration;
+    /**
+     * URL вебхука для отправки сообщений
+     */
+    webhookUrl?: string | null;
     /**
      * Секретный ключ для аутентификации запросов (опционально)
      */
     webhookSecret?: string | null;
     /**
-     * Максимальное время ожидания ответа от n8n в миллисекундах
+     * Максимальное время ожидания ответа в миллисекундах
      */
     timeout?: number | null;
   };
@@ -8843,7 +8851,7 @@ export interface N8NChatDemoBlock {
       }[]
     | null;
   /**
-   * Ответы, которые будут использованы, если n8n не ответит или произойдет ошибка
+   * Ответы, которые будут использованы, если сервер не ответит или произойдет ошибка
    */
   fallbackResponses?:
     | {
@@ -8877,17 +8885,84 @@ export interface N8NChatDemoBlock {
     enableHistory?: boolean | null;
     maxMessages?: number | null;
     /**
-     * Отправлять дополнительные данные о пользователе и странице в n8n
+     * Отправлять дополнительные данные о пользователе и странице
      */
     sendMetadata?: boolean | null;
     /**
      * Показывать отладочную информацию в консоли
      */
     debugMode?: boolean | null;
+    /**
+     * Использовать тестовые ответы без отправки запросов на сервер
+     */
+    testMode?: boolean | null;
   };
   id?: string | null;
   blockName?: string | null;
-  blockType: 'n8nChatDemo';
+  blockType: 'chat';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: string;
+  name: string;
+  description?: string | null;
+  type: 'webhook' | 'email' | 'crm' | 'custom';
+  status: 'active' | 'inactive';
+  webhookUrl?: string | null;
+  /**
+   * API key for authentication
+   */
+  apiKey?: string | null;
+  triggers: {
+    event: 'order.created' | 'order.updated' | 'payment.received' | 'user.registered' | 'form.submitted';
+    conditions?:
+      | {
+          field: string;
+          operator: 'eq' | 'ne' | 'gt' | 'lt' | 'contains';
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  actions: {
+    type: 'http' | 'email';
+    config?: {
+      url?: string | null;
+      method?: ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') | null;
+      headers?:
+        | {
+            [k: string]: unknown;
+          }
+        | unknown[]
+        | string
+        | number
+        | boolean
+        | null;
+      body?:
+        | {
+            [k: string]: unknown;
+          }
+        | unknown[]
+        | string
+        | number
+        | boolean
+        | null;
+      to?: string | null;
+      from?: string | null;
+      subject?: string | null;
+      emailBody?: string | null;
+    };
+    id?: string | null;
+  }[];
+  lastSync?: string | null;
+  lastSyncStatus?: ('success' | 'error') | null;
+  lastError?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -12072,7 +12147,7 @@ export interface Popup {
     | CalendarBlock
     | EventTrackerBlock
     | ReportEmbedBlock
-    | N8NChatDemoBlock
+    | ChatBlock
   )[];
   updatedAt: string;
   createdAt: string;
@@ -12268,69 +12343,6 @@ export interface SubscriptionPayment {
     | number
     | boolean
     | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "integrations".
- */
-export interface Integration {
-  id: string;
-  name: string;
-  description?: string | null;
-  type: 'webhook' | 'email' | 'crm' | 'custom';
-  status: 'active' | 'inactive';
-  webhookUrl?: string | null;
-  /**
-   * API key for authentication
-   */
-  apiKey?: string | null;
-  triggers: {
-    event: 'order.created' | 'order.updated' | 'payment.received' | 'user.registered' | 'form.submitted';
-    conditions?:
-      | {
-          field: string;
-          operator: 'eq' | 'ne' | 'gt' | 'lt' | 'contains';
-          value: string;
-          id?: string | null;
-        }[]
-      | null;
-    id?: string | null;
-  }[];
-  actions: {
-    type: 'http' | 'email';
-    config?: {
-      url?: string | null;
-      method?: ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') | null;
-      headers?:
-        | {
-            [k: string]: unknown;
-          }
-        | unknown[]
-        | string
-        | number
-        | boolean
-        | null;
-      body?:
-        | {
-            [k: string]: unknown;
-          }
-        | unknown[]
-        | string
-        | number
-        | boolean
-        | null;
-      to?: string | null;
-      from?: string | null;
-      subject?: string | null;
-      emailBody?: string | null;
-    };
-    id?: string | null;
-  }[];
-  lastSync?: string | null;
-  lastSyncStatus?: ('success' | 'error') | null;
-  lastError?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -13205,7 +13217,7 @@ export interface PagesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
-        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
+        chat?: T | ChatBlockSelect<T>;
       };
   meta?:
     | T
@@ -15718,16 +15730,18 @@ export interface ReportEmbedBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "N8nChatDemoBlock_select".
+ * via the `definition` "ChatBlock_select".
  */
-export interface N8NChatDemoBlockSelect<T extends boolean = true> {
+export interface ChatBlockSelect<T extends boolean = true> {
   heading?: T;
   subheading?: T;
   description?: T;
   webhookSettings?:
     | T
     | {
-        n8nWebhookUrl?: T;
+        webhookSource?: T;
+        webhook?: T;
+        webhookUrl?: T;
         webhookSecret?: T;
         timeout?: T;
       };
@@ -15770,6 +15784,7 @@ export interface N8NChatDemoBlockSelect<T extends boolean = true> {
         maxMessages?: T;
         sendMetadata?: T;
         debugMode?: T;
+        testMode?: T;
       };
   id?: T;
   blockName?: T;
@@ -16789,7 +16804,7 @@ export interface CoursesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
-        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
+        chat?: T | ChatBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -17255,7 +17270,7 @@ export interface ModulesSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
-        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
+        chat?: T | ChatBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -17967,7 +17982,7 @@ export interface PopupsSelect<T extends boolean = true> {
         calendar?: T | CalendarBlockSelect<T>;
         eventTracker?: T | EventTrackerBlockSelect<T>;
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
-        n8nChatDemo?: T | N8NChatDemoBlockSelect<T>;
+        chat?: T | ChatBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;

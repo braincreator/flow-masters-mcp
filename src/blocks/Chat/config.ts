@@ -1,16 +1,16 @@
 import type { Block } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 
-export const N8nChatDemo: Block = {
-  slug: 'n8nChatDemo',
-  interfaceName: 'N8nChatDemoBlock',
+export const Chat: Block = {
+  slug: 'chat',
+  interfaceName: 'ChatBlock',
   fields: [
     {
       name: 'heading',
       type: 'text',
       label: 'Заголовок блока',
       admin: {
-        description: 'Основной заголовок блока демонстрации чата',
+        description: 'Основной заголовок блока чата',
       },
     },
     {
@@ -27,7 +27,7 @@ export const N8nChatDemo: Block = {
       label: 'Описание',
       editor: lexicalEditor({}),
       admin: {
-        description: 'Подробное описание демонстрации автоматизации',
+        description: 'Подробное описание блока чата',
       },
     },
     {
@@ -36,12 +36,47 @@ export const N8nChatDemo: Block = {
       label: 'Настройки вебхука',
       fields: [
         {
-          name: 'n8nWebhookUrl',
-          type: 'text',
-          label: 'URL вебхука n8n',
+          name: 'webhookSource',
+          type: 'radio',
+          label: 'Источник настроек вебхука',
+          defaultValue: 'collection',
+          options: [
+            {
+              label: 'Выбрать из коллекции',
+              value: 'collection',
+            },
+            {
+              label: 'Указать вручную',
+              value: 'manual',
+            },
+          ],
+          admin: {
+            description: 'Выберите способ настройки вебхука',
+          },
+        },
+        {
+          name: 'webhook',
+          type: 'relationship',
+          relationTo: 'integrations',
+          label: 'Вебхук',
           required: true,
           admin: {
-            description: 'URL вебхука для отправки сообщений в n8n',
+            description: 'Выберите настроенный вебхук из коллекции интеграций',
+            condition: (_, siblingData) => siblingData?.webhookSource === 'collection',
+            where: {
+              type: { equals: 'webhook' },
+              status: { equals: 'active' },
+            },
+          },
+        },
+        {
+          name: 'webhookUrl',
+          type: 'text',
+          label: 'URL вебхука',
+          required: true,
+          admin: {
+            description: 'URL вебхука для отправки сообщений',
+            condition: (_, siblingData) => siblingData?.webhookSource === 'manual',
           },
         },
         {
@@ -50,6 +85,7 @@ export const N8nChatDemo: Block = {
           label: 'Секретный ключ вебхука',
           admin: {
             description: 'Секретный ключ для аутентификации запросов (опционально)',
+            condition: (_, siblingData) => siblingData?.webhookSource === 'manual',
           },
         },
         {
@@ -58,7 +94,8 @@ export const N8nChatDemo: Block = {
           label: 'Таймаут ответа (мс)',
           defaultValue: 30000,
           admin: {
-            description: 'Максимальное время ожидания ответа от n8n в миллисекундах',
+            description: 'Максимальное время ожидания ответа в миллисекундах',
+            condition: (_, siblingData) => siblingData?.webhookSource === 'manual',
           },
         },
       ],
@@ -77,7 +114,7 @@ export const N8nChatDemo: Block = {
             {
               children: [
                 {
-                  text: 'Привет! Я демонстрационный чат-бот, интегрированный с n8n. Задайте мне вопрос о возможностях автоматизации.',
+                  text: 'Привет! Я чат-бот. Чем могу помочь?',
                 },
               ],
             },
@@ -87,13 +124,13 @@ export const N8nChatDemo: Block = {
           name: 'placeholderText',
           type: 'text',
           label: 'Текст плейсхолдера в поле ввода',
-          defaultValue: 'Задайте вопрос об автоматизации...',
+          defaultValue: 'Введите ваше сообщение...',
         },
         {
           name: 'botName',
           type: 'text',
           label: 'Имя бота',
-          defaultValue: 'Автоматизация Бот',
+          defaultValue: 'Ассистент',
         },
         {
           name: 'botAvatar',
@@ -135,7 +172,8 @@ export const N8nChatDemo: Block = {
       type: 'array',
       label: 'Резервные ответы',
       admin: {
-        description: 'Ответы, которые будут использованы, если n8n не ответит или произойдет ошибка',
+        description:
+          'Ответы, которые будут использованы, если сервер не ответит или произойдет ошибка',
       },
       fields: [
         {
@@ -224,7 +262,7 @@ export const N8nChatDemo: Block = {
           label: 'Отправлять метаданные',
           defaultValue: true,
           admin: {
-            description: 'Отправлять дополнительные данные о пользователе и странице в n8n',
+            description: 'Отправлять дополнительные данные о пользователе и странице',
           },
         },
         {
@@ -234,6 +272,15 @@ export const N8nChatDemo: Block = {
           defaultValue: false,
           admin: {
             description: 'Показывать отладочную информацию в консоли',
+          },
+        },
+        {
+          name: 'testMode',
+          type: 'checkbox',
+          label: 'Тестовый режим',
+          defaultValue: false,
+          admin: {
+            description: 'Использовать тестовые ответы без отправки запросов на сервер',
           },
         },
       ],

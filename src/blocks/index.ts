@@ -76,7 +76,7 @@ import { ProjectShowcase } from './ProjectShowcase/config'
 import { FunnelStep } from './FunnelStep/config'
 import { Recommendations } from './Recommendations/config'
 import { PopupTriggerConfig } from './PopupTriggerConfig/config'
-import { N8nChatDemo } from './N8nChatDemo/config'
+import { Chat } from './Chat/config' // Универсальный блок чата
 
 // Восстанавливаем объект basicBlocks
 const basicBlocks: Record<string, Block> = {
@@ -178,7 +178,7 @@ const basicBlocks: Record<string, Block> = {
   reportEmbed: ReportEmbed,
 
   // Интеграции
-  n8nChatDemo: N8nChatDemo,
+  chat: Chat,
 }
 
 // Список всех доступных блоков для использования в конфигурации

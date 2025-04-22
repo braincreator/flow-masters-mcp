@@ -86,7 +86,7 @@ const PricingTableBlock = dynamic(() =>
 )
 
 // Интеграционные блоки
-const N8nChatDemoBlock = dynamic(() => import('./N8nChatDemo/Component').then((mod) => mod.default))
+const ChatBlock = dynamic(() => import('./Chat/Component').then((mod) => mod.default))
 
 // Объединяем все блоки в один объект
 const blockComponents = {
@@ -143,7 +143,8 @@ const blockComponents = {
   pricingTable: PricingTableBlock,
 
   // Интеграционные блоки
-  n8nChatDemo: N8nChatDemoBlock,
+  chat: ChatBlock,
+  n8nChatDemo: ChatBlock, // Для обратной совместимости
 } as const
 
 type Props = {

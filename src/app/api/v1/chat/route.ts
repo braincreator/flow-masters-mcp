@@ -3,13 +3,20 @@ import { z } from 'zod'
 import { formatChatHistory, sanitizeMessage, containsProhibitedContent } from '@/utilities/chat'
 
 // Схема валидации запроса
-const requestSchema = z.object({
-  message: z.string().min(1).max(1000),
-  webhookUrl: z.string().url(),
-  webhookSecret: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
-  history: z.array(z.any()).optional(),
-})
+const requestSchema = z
+  .object({
+    message: z.string().min(1).max(1000),
+    // Поддерживаем оба варианта названия поля
+    webhookUrl: z.string().url().optional(),
+    n8nWebhookUrl: z.string().url().optional(),
+    webhookSecret: z.string().optional(),
+    metadata: z.record(z.any()).optional(),
+    history: z.array(z.any()).optional(),
+  })
+  .refine((data) => data.webhookUrl || data.n8nWebhookUrl, {
+    message: 'Требуется указать webhookUrl или n8nWebhookUrl',
+    path: ['webhookUrl'],
+  })
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +35,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { message, webhookUrl, webhookSecret, metadata, history } = validationResult.data
+    // Используем webhookUrl или n8nWebhookUrl, в зависимости от того, что пришло
+    const {
+      message,
+      webhookUrl: url1,
+      n8nWebhookUrl: url2,
+      webhookSecret,
+      metadata,
+      history,
+    } = validationResult.data
+    const webhookUrl = url1 || url2
 
     // Проверяем сообщение на запрещенный контент
     if (containsProhibitedContent(message)) {
@@ -47,13 +63,13 @@ export async function POST(req: NextRequest) {
     // Форматируем историю чата, если она есть
     const formattedHistory = history ? formatChatHistory(history) : []
 
-    // Подготавливаем данные для отправки в n8n
+    // Подготавливаем данные для отправки на сервер
     const payload = {
       message: sanitizedMessage,
       history: formattedHistory,
       metadata: {
         timestamp: new Date().toISOString(),
-        source: 'n8n-chat-demo',
+        source: 'chat-block',
         ...metadata,
       },
     }
@@ -68,28 +84,33 @@ export async function POST(req: NextRequest) {
       headers['x-webhook-secret'] = webhookSecret
     }
 
-    // Отправляем запрос в n8n
-    let n8nData
+    // Отправляем запрос на вебхук
+    let responseData
     try {
+      // Проверяем, что URL вебхука существует
+      if (!webhookUrl) {
+        throw new Error('Не указан URL вебхука')
+      }
+
       console.log(`Отправка запроса на webhook: ${webhookUrl}`)
 
-      const n8nResponse = await fetch(webhookUrl, {
+      const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
       })
 
-      // Проверяем ответ от n8n
-      if (!n8nResponse.ok) {
-        console.error(`Ошибка от n8n: ${n8nResponse.status} ${n8nResponse.statusText}`)
+      // Проверяем ответ от вебхука
+      if (!webhookResponse.ok) {
+        console.error(`Ошибка от вебхука: ${webhookResponse.status} ${webhookResponse.statusText}`)
 
         // Добавляем больше информации в ответ для отладки
         return NextResponse.json(
           {
             status: 'error',
-            error: `Ошибка от n8n: ${n8nResponse.status} ${n8nResponse.statusText}`,
+            error: `Ошибка от вебхука: ${webhookResponse.status} ${webhookResponse.statusText}`,
             details: {
-              webhookUrl: webhookUrl.replace(/\/\w+$/, '/***'), // Маскируем часть URL для безопасности
+              webhookUrl: webhookUrl ? webhookUrl.replace(/\/\w+$/, '/***') : 'undefined', // Маскируем часть URL для безопасности
               timestamp: new Date().toISOString(),
             },
           },
@@ -97,26 +118,26 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      // Парсим ответ от n8n
-      n8nData = await n8nResponse.json()
+      // Парсим ответ от вебхука
+      responseData = await webhookResponse.json()
     } catch (error) {
       // Обрабатываем ошибки сети и другие исключения
-      console.error('Ошибка при подключении к n8n:', error)
+      console.error('Ошибка при подключении к вебхуку:', error)
 
       return NextResponse.json(
         {
           status: 'error',
-          error: 'Не удалось подключиться к n8n',
+          error: 'Не удалось подключиться к вебхуку',
           message: error instanceof Error ? error.message : 'Неизвестная ошибка сети',
           details: {
-            webhookUrl: webhookUrl.replace(/\/\w+$/, '/***'), // Маскируем часть URL для безопасности
+            webhookUrl: webhookUrl ? webhookUrl.replace(/\/\w+$/, '/***') : 'undefined', // Маскируем часть URL для безопасности
             timestamp: new Date().toISOString(),
           },
         },
         { status: 502 },
       )
     }
-    console.log('Ответ от n8n:', n8nData)
+    console.log('Ответ от вебхука:', responseData)
 
     // Определяем типы для наших данных
     type MessageButton = {
@@ -191,25 +212,25 @@ export async function POST(req: NextRequest) {
       return text
     }
 
-    // Обрабатываем ответ от n8n
+    // Обрабатываем ответ от вебхука
     let processedData: ChatResponse = {}
 
     // Проверяем, есть ли поле output и является ли оно строкой с markdown
-    if (n8nData.output && typeof n8nData.output === 'string') {
+    if (responseData.output && typeof responseData.output === 'string') {
       // Пытаемся извлечь JSON из markdown
-      const extracted = extractJsonFromMarkdown(n8nData.output)
+      const extracted = extractJsonFromMarkdown(responseData.output)
       if (typeof extracted === 'object' && extracted !== null) {
         processedData = extracted as ChatResponse
       } else {
         // Если не удалось извлечь JSON, используем текст как ответ
         processedData = { response: String(extracted), type: 'text' }
       }
-    } else if (n8nData.output && typeof n8nData.output === 'object') {
+    } else if (responseData.output && typeof responseData.output === 'object') {
       // Если output уже является объектом, используем его
-      processedData = n8nData.output as ChatResponse
+      processedData = responseData.output as ChatResponse
     } else {
-      // Используем сам n8nData, если нет поля output
-      processedData = n8nData as unknown as ChatResponse
+      // Используем сам responseData, если нет поля output
+      processedData = responseData as unknown as ChatResponse
     }
 
     console.log('Обработанные данные:', processedData)
@@ -226,7 +247,7 @@ export async function POST(req: NextRequest) {
       quickReplies: processedData.quickReplies,
     })
   } catch (error) {
-    console.error('Ошибка при обработке запроса n8n-chat:', error)
+    console.error('Ошибка при обработке запроса chat:', error)
 
     return NextResponse.json(
       {
