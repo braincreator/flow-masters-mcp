@@ -16,7 +16,7 @@
     "dev:preview": "node fix-importmap.js && cross-env NODE_OPTIONS=--no-deprecation next dev",
     "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build && pnpm start",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
-    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:types": "node --import ./scripts/register-css-loader.mjs ./node_modules/.bin/payload generate:types",
     "ii": "cross-env NODE_OPTIONS=--no-deprecation pnpm --ignore-workspace install",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation next lint --fix",
@@ -180,6 +180,9 @@
     ],
     "overrides": {
       "@aws-sdk/client-s3": "3.779.0"
+    },
+    "patchedDependencies": {
+      "react-image-crop@10.1.8": "patches/react-image-crop@10.1.8.patch"
     }
   }
 }

@@ -15,6 +15,7 @@ export const Users: CollectionConfig = {
     delete: authenticated,
   },
   admin: {
+    group: 'User Management',
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'role'],
   },

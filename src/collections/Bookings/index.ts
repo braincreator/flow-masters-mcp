@@ -6,7 +6,7 @@ export const Bookings: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'status', 'startTime', 'invitee.name'],
-    group: 'Integrations',
+    group: 'Integrations & Services',
   },
   access: {
     read: () => true,
@@ -166,7 +166,7 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
-      name: 'calendlyEventUri',
+      name: 'calendlyURI',
       type: 'text',
       label: 'URI события Calendly',
       admin: {
@@ -174,7 +174,16 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
-      name: 'calendlyEventTypeUri',
+      name: 'calendlyUUID',
+      type: 'text',
+      label: 'UUID события Calendly',
+      admin: {
+        condition: (data) => data.type === 'calendly',
+      },
+      index: true,
+    },
+    {
+      name: 'calendlyEventTypeURI',
       type: 'text',
       label: 'URI типа события Calendly',
       admin: {

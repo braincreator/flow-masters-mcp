@@ -6,7 +6,7 @@ export const EmailTemplates: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'subject', 'sender', 'updatedAt'],
-    group: 'Email',
+    group: 'Marketing & Communications',
   },
   labels: {
     singular: 'Email Template',

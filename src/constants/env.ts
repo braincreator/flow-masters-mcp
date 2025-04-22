@@ -11,6 +11,7 @@ export const ENV = {
   PAYLOAD_SMTP_PASSWORD: process.env.PAYLOAD_SMTP_PASSWORD || 'directus',
   PAYLOAD_DEFAULT_SENDER_EMAIL: process.env.PAYLOAD_DEFAULT_SENDER_EMAIL || 'admin@flow-masters.ru',
   PAYLOAD_DEFAULT_SENDER_NAME: process.env.PAYLOAD_DEFAULT_SENDER_NAME || 'Flow Masters',
+  CALENDLY_WEBHOOK_SECRET: process.env.CALENDLY_WEBHOOK_SECRET || '',
 } as const
 
 export const IS_PRODUCTION = ENV.NODE_ENV === 'production'

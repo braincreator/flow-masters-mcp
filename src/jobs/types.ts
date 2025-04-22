@@ -34,3 +34,7 @@ export interface BroadcastReport {
     id?: string
   }>
 }
+
+export interface EmailCampaignJobData {
+  campaignId: string
+}

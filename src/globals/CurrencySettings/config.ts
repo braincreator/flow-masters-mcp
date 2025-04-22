@@ -12,7 +12,7 @@ export const CurrencySettings: GlobalConfig = {
     update: isAdmin,
   },
   admin: {
-    group: 'System',
+    group: 'Financial Settings',
   },
   fields: [
     {

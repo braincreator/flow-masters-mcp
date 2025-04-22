@@ -23,6 +23,7 @@ export const Media: CollectionConfig = {
     update: authenticated,
   },
   admin: {
+    group: 'Content Management',
     useAsTitle: 'filename',
     defaultColumns: ['filename', 'alt', 'updatedAt'],
     preview: (doc) => {

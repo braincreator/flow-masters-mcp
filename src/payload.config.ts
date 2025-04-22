@@ -41,6 +41,8 @@ import MetricsDashboard from '@/components/admin/MetricsDashboard'
 import { Broadcasts } from './collections/Broadcasts'
 import { BroadcastReports } from './collections/BroadcastReports'
 import { NewsletterBroadcastJobData, SendToAllResult } from './jobs/types'
+import { processEmailCampaign } from './jobs/emailCampaign'
+import { checkScheduledEmailCampaigns } from './jobs/scheduledEmailCampaigns'
 
 import { ServiceRegistry } from '@/services/service.registry'
 
@@ -100,6 +102,14 @@ export default buildConfig({
           {
             label: 'Создание курса',
             url: '/admin/course-creator',
+          },
+        ],
+      },
+      Marketing: {
+        sections: [
+          {
+            label: 'Email кампании',
+            url: '/admin/email-campaigns',
           },
         ],
       },
@@ -294,12 +304,56 @@ export default buildConfig({
         },
       },
       // --- КОНЕЦ НОВОЙ ЗАДАЧИ ---
+
+      // Email Campaign Task
+      {
+        slug: 'email-campaign',
+        handler: async (args) => {
+          const { job, req } = args
+          const payload = req.payload
+
+          try {
+            const data = job.input as { campaignId: string }
+
+            payload.logger.info(`Starting email campaign job for campaign ID: ${data.campaignId}`)
+
+            await processEmailCampaign(data)
+
+            return {
+              output: {
+                status: 'completed',
+                campaignId: data.campaignId,
+              },
+            }
+          } catch (error) {
+            payload.logger.error('Failed to process email campaign job', error)
+
+            return {
+              output: {
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              },
+            }
+          }
+        },
+        retries: {
+          attempts: 3,
+        },
+      },
     ],
     autoRun: [
       {
         cron: '* * * * *',
         limit: 10,
         queue: 'default',
+      },
+      {
+        cron: '0 * * * *', // Run every hour
+        handler: async ({ payload }) => {
+          payload.logger.info('Running scheduled email campaigns check')
+          await checkScheduledEmailCampaigns()
+          return { success: true }
+        },
       },
     ],
     shouldAutoRun: async () => true,

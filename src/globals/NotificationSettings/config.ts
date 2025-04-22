@@ -12,7 +12,7 @@ export const NotificationSettings: GlobalConfig = {
     update: isAdmin,
   },
   admin: {
-    group: 'System',
+    group: 'System Settings',
   },
   fields: [
     {

@@ -4,7 +4,7 @@ import { isAdmin } from '@/access/isAdmin'
 export const EmailSettings: GlobalConfig = {
   slug: 'email-settings',
   admin: {
-    group: 'System',
+    group: 'System Settings',
   },
   label: 'Email Settings',
   access: {

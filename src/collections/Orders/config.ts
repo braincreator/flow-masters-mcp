@@ -8,7 +8,7 @@ export const Orders: CollectionConfig = {
   admin: {
     useAsTitle: 'orderNumber',
     defaultColumns: ['orderNumber', 'user', 'total', 'status', 'createdAt'],
-    group: 'Commerce',
+    group: 'E-commerce',
   },
   access: {
     create: () => true,
@@ -68,7 +68,7 @@ export const Orders: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: PAYMENT_CONFIG.defaultCurrency,
-      options: PAYMENT_CONFIG.supportedCurrencies.map(currency => ({
+      options: PAYMENT_CONFIG.supportedCurrencies.map((currency) => ({
         label: currency,
         value: currency,
       })),

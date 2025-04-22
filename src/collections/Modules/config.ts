@@ -5,6 +5,7 @@ import { availableBlocks } from '../../blocks'
 export const Modules: CollectionConfig = {
   slug: 'modules',
   admin: {
+    group: 'Learning Management',
     useAsTitle: 'title',
     defaultColumns: ['title', 'course', 'status', 'updatedAt'],
     description: 'Коллекция для модулей внутри курсов.',

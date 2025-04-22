@@ -2,6 +2,7 @@ import { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { EmailService } from './email.service'
 import { TelegramService } from './telegram.service'
+import { Order } from '../payload-types'
 
 export class NotificationService extends BaseService {
   private static instance: NotificationService | null = null
@@ -30,20 +31,24 @@ export class NotificationService extends BaseService {
   }): Promise<boolean> {
     try {
       // 1. Отправка email подтверждения
-      await this.emailService.sendTemplate('payment_confirmation', orderData.customerEmail, {
-        orderId: orderData.orderId,
-        orderNumber: orderData.orderNumber,
-        total: orderData.total,
-        currency: orderData.currency,
-      })
+      if (this.emailService) {
+        await this.emailService.sendTemplate('payment_confirmation', orderData.customerEmail, {
+          orderId: orderData.orderId,
+          orderNumber: orderData.orderNumber,
+          total: orderData.total,
+          currency: orderData.currency,
+        })
+      }
 
       // 2. Отправка уведомления в Telegram (для администраторов)
-      await this.telegramService.sendMessage(
-        `💰 Новый оплаченный заказ!\n` +
-          `Номер заказа: ${orderData.orderNumber}\n` +
-          `Сумма: ${orderData.total} ${orderData.currency}\n` +
-          `Email клиента: ${orderData.customerEmail}`,
-      )
+      if (this.telegramService) {
+        await this.telegramService.sendMessage(
+          `💰 Новый оплаченный заказ!\n` +
+            `Номер заказа: ${orderData.orderNumber}\n` +
+            `Сумма: ${orderData.total} ${orderData.currency}\n` +
+            `Email клиента: ${orderData.customerEmail}`,
+        )
+      }
 
       return true
     } catch (error) {
@@ -52,7 +57,7 @@ export class NotificationService extends BaseService {
     }
   }
 
-  async sendDigitalOrderStatusUpdate(orderData: any): Promise<boolean> {
+  async sendDigitalOrderStatusUpdate(orderData: { orderId: string; status: string; customerEmail?: string; downloadLinks?: string[] }): Promise<boolean> {
     try {
       if (!orderData.orderId || !orderData.status) {
         console.error('Invalid order data for status update notification')
@@ -60,7 +65,7 @@ export class NotificationService extends BaseService {
       }
 
       // Получаем информацию о заказе
-      const order = await this.payload.findByID({
+      const order = await this.payload.findByID<Order, any>({
         collection: 'orders',
         id: orderData.orderId,
       })
@@ -71,14 +76,14 @@ export class NotificationService extends BaseService {
       }
 
       // Получаем email клиента
-      const customerEmail = order.user || orderData.customerEmail
+      const customerEmail = (order as any).customer || orderData.customerEmail;
 
       // Отправляем уведомление в зависимости от статуса
       switch (orderData.status) {
         case 'payment_confirmed':
           await this.emailService.sendTemplate('order_paid', customerEmail, {
-            orderNumber: order.orderNumber,
-            products: order.items,
+            orderNumber: (order as any).orderNumber,
+            products: (order as any).items,
           })
           break
 

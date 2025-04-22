@@ -39,6 +39,7 @@ export const Pages: CollectionConfig = {
     slug: true,
   },
   admin: {
+    group: 'Content Management',
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) => {

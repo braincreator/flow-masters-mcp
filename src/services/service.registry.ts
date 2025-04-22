@@ -10,6 +10,7 @@ import { TelegramService } from './telegram.service'
 import { PaymentService } from './payment.service'
 import { SubscriptionService } from './subscription.service'
 import { OrderService } from './order.service'
+import { CalendlyService } from './calendly.service'
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry
@@ -52,6 +53,9 @@ export class ServiceRegistry {
     this.getPriceService()
     this.getRecommendationService()
     this.getOrderService()
+
+    // Интеграции с внешними сервисами
+    this.getCalendlyService()
   }
 
   getProductService(): ProductService {
@@ -138,6 +142,14 @@ export class ServiceRegistry {
     const key = 'order'
     if (!this.services.has(key)) {
       this.services.set(key, OrderService.getInstance(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getCalendlyService(): CalendlyService {
+    const key = 'calendly'
+    if (!this.services.has(key)) {
+      this.services.set(key, CalendlyService.getInstance(this.payload))
     }
     return this.services.get(key)
   }

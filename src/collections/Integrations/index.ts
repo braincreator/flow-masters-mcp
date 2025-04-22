@@ -10,7 +10,7 @@ export const Integrations: CollectionConfig = {
   slug: 'integrations',
   admin: {
     useAsTitle: 'name',
-    group: 'System',
+    group: 'Integrations & Services',
     defaultColumns: ['name', 'template', 'status', 'lastSync'],
     components: {
       BeforeList: TestIntegration,
@@ -26,7 +26,7 @@ export const Integrations: CollectionConfig = {
       name: 'template',
       type: 'select',
       required: true,
-      options: IntegrationTemplates.map(template => ({
+      options: IntegrationTemplates.map((template) => ({
         label: template.label,
         value: template.slug,
       })),
@@ -138,7 +138,7 @@ export const Integrations: CollectionConfig = {
               Field: DynamicConfigFields,
             },
           },
-          fields: [] // Dynamic fields based on action type
+          fields: [], // Dynamic fields based on action type
         },
       ],
     },

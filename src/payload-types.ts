@@ -172,6 +172,7 @@ export interface Config {
     'newsletter-subscribers': NewsletterSubscriber;
     'email-templates': EmailTemplate;
     'sender-emails': SenderEmail;
+    'email-campaigns': EmailCampaign;
     broadcasts: Broadcast;
     'broadcast-reports': BroadcastReport;
     popups: Popup;
@@ -228,6 +229,7 @@ export interface Config {
     'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'sender-emails': SenderEmailsSelect<false> | SenderEmailsSelect<true>;
+    'email-campaigns': EmailCampaignsSelect<false> | EmailCampaignsSelect<true>;
     broadcasts: BroadcastsSelect<false> | BroadcastsSelect<true>;
     'broadcast-reports': BroadcastReportsSelect<false> | BroadcastReportsSelect<true>;
     popups: PopupsSelect<false> | PopupsSelect<true>;
@@ -283,6 +285,7 @@ export interface Config {
     tasks: {
       'newsletter-broadcast': TaskNewsletterBroadcast;
       'recalculate-user-segments': TaskRecalculateUserSegments;
+      'email-campaign': TaskEmailCampaign;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -11015,6 +11018,100 @@ export interface SenderEmail {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-campaigns".
+ */
+export interface EmailCampaign {
+  id: string;
+  name: string;
+  description?: string | null;
+  status?: ('draft' | 'active' | 'processing' | 'completed' | 'paused' | 'error') | null;
+  triggerType: 'manual' | 'schedule' | 'event';
+  schedule?: {
+    frequency?: ('once' | 'daily' | 'weekly' | 'monthly') | null;
+    startDate: string;
+    endDate?: string | null;
+  };
+  eventTrigger?: {
+    eventType:
+      | 'user.registered'
+      | 'order.created'
+      | 'order.status.updated'
+      | 'newsletter.subscribed'
+      | 'cart.abandoned';
+    delay?: number | null;
+    /**
+     * JSON с условиями для фильтрации событий
+     */
+    conditions?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  targetAudience: {
+    audienceType: 'all_subscribers' | 'user_segment' | 'user_filter' | 'event_related';
+    segment?: (string | null) | UserSegment;
+    /**
+     * JSON с условиями для фильтрации пользователей
+     */
+    filter?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    locale?: ('' | 'ru' | 'en') | null;
+  };
+  emailSequence?:
+    | {
+        template: string | EmailTemplate;
+        /**
+         * Задержка перед отправкой этого письма (от начала кампании или предыдущего письма)
+         */
+        delay?: number | null;
+        /**
+         * JSON с условиями, при которых это письмо будет отправлено
+         */
+        condition?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  lastRun?: string | null;
+  stats?: {
+    totalSent?: number | null;
+    opened?: number | null;
+    clicked?: number | null;
+    bounced?: number | null;
+    unsubscribed?: number | null;
+  };
+  logs?:
+    | {
+        timestamp?: string | null;
+        message?: string | null;
+        level?: ('info' | 'warning' | 'error' | 'success') | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Создание и запуск массовых рассылок новостей.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -12465,19 +12562,19 @@ export interface SubscriptionPayment {
  */
 export interface Booking {
   id: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string | null;
-  eventType: string;
-  eventTypeUUID?: string | null;
-  scheduledAt: string;
+  title: string;
+  type: 'calendly' | 'manual' | 'other';
+  status: 'confirmed' | 'canceled' | 'rescheduled' | 'completed' | 'no-show';
+  startTime: string;
   endTime?: string | null;
-  duration?: number | null;
-  status: 'scheduled' | 'canceled' | 'rescheduled' | 'completed' | 'no_show';
-  calendlyURI?: string | null;
-  calendlyUUID?: string | null;
-  cancellationReason?: string | null;
-  notes?: string | null;
+  eventName?: string | null;
+  location?: string | null;
+  invitee?: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    timezone?: string | null;
+  };
   questions?:
     | {
         question?: string | null;
@@ -12485,16 +12582,19 @@ export interface Booking {
         id?: string | null;
       }[]
     | null;
-  rawData?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  lastUpdated?: string | null;
+  notes?: string | null;
+  cancellationReason?: string | null;
+  canceledBy?: string | null;
+  previousStartTime?: string | null;
+  previousEndTime?: string | null;
+  calendlyURI?: string | null;
+  calendlyUUID?: string | null;
+  calendlyEventTypeURI?: string | null;
+  settingsId?: string | null;
+  source?: string | null;
+  medium?: string | null;
+  campaign?: string | null;
+  rawData?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12610,7 +12710,12 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'newsletter-broadcast' | 'recalculate-user-segments' | 'schedulePublish';
+        taskSlug:
+          | 'inline'
+          | 'newsletter-broadcast'
+          | 'recalculate-user-segments'
+          | 'email-campaign'
+          | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -12643,7 +12748,9 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'newsletter-broadcast' | 'recalculate-user-segments' | 'schedulePublish') | null;
+  taskSlug?:
+    | ('inline' | 'newsletter-broadcast' | 'recalculate-user-segments' | 'email-campaign' | 'schedulePublish')
+    | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -12776,6 +12883,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sender-emails';
         value: string | SenderEmail;
+      } | null)
+    | ({
+        relationTo: 'email-campaigns';
+        value: string | EmailCampaign;
       } | null)
     | ({
         relationTo: 'broadcasts';
@@ -17673,6 +17784,66 @@ export interface SenderEmailsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-campaigns_select".
+ */
+export interface EmailCampaignsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  status?: T;
+  triggerType?: T;
+  schedule?:
+    | T
+    | {
+        frequency?: T;
+        startDate?: T;
+        endDate?: T;
+      };
+  eventTrigger?:
+    | T
+    | {
+        eventType?: T;
+        delay?: T;
+        conditions?: T;
+      };
+  targetAudience?:
+    | T
+    | {
+        audienceType?: T;
+        segment?: T;
+        filter?: T;
+        locale?: T;
+      };
+  emailSequence?:
+    | T
+    | {
+        template?: T;
+        delay?: T;
+        condition?: T;
+        id?: T;
+      };
+  lastRun?: T;
+  stats?:
+    | T
+    | {
+        totalSent?: T;
+        opened?: T;
+        clicked?: T;
+        bounced?: T;
+        unsubscribed?: T;
+      };
+  logs?:
+    | T
+    | {
+        timestamp?: T;
+        message?: T;
+        level?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "broadcasts_select".
  */
 export interface BroadcastsSelect<T extends boolean = true> {
@@ -18416,19 +18587,21 @@ export interface CalendlySettingsSelect<T extends boolean = true> {
  * via the `definition` "bookings_select".
  */
 export interface BookingsSelect<T extends boolean = true> {
-  customerName?: T;
-  customerEmail?: T;
-  customerPhone?: T;
-  eventType?: T;
-  eventTypeUUID?: T;
-  scheduledAt?: T;
-  endTime?: T;
-  duration?: T;
+  title?: T;
+  type?: T;
   status?: T;
-  calendlyURI?: T;
-  calendlyUUID?: T;
-  cancellationReason?: T;
-  notes?: T;
+  startTime?: T;
+  endTime?: T;
+  eventName?: T;
+  location?: T;
+  invitee?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+        timezone?: T;
+      };
   questions?:
     | T
     | {
@@ -18436,8 +18609,19 @@ export interface BookingsSelect<T extends boolean = true> {
         answer?: T;
         id?: T;
       };
+  notes?: T;
+  cancellationReason?: T;
+  canceledBy?: T;
+  previousStartTime?: T;
+  previousEndTime?: T;
+  calendlyURI?: T;
+  calendlyUUID?: T;
+  calendlyEventTypeURI?: T;
+  settingsId?: T;
+  source?: T;
+  medium?: T;
+  campaign?: T;
   rawData?: T;
-  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -19893,6 +20077,14 @@ export interface TaskNewsletterBroadcast {
  * via the `definition` "TaskRecalculate-user-segments".
  */
 export interface TaskRecalculateUserSegments {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskEmail-campaign".
+ */
+export interface TaskEmailCampaign {
   input?: unknown;
   output?: unknown;
 }

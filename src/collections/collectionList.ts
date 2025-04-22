@@ -40,6 +40,7 @@ import { Messages } from './Messages' // Assuming this is forum/user messages
 import { NewsletterSubscribers } from './newsletter-subscribers'
 import { EmailTemplates } from './EmailTemplates'
 import { SenderEmails } from './SenderEmails'
+import { EmailCampaigns } from './EmailCampaigns'
 import { Broadcasts } from './Broadcasts'
 import { BroadcastReports } from './BroadcastReports'
 import { Popups } from './Popups'
@@ -106,6 +107,7 @@ const collections = [
   NewsletterSubscribers,
   EmailTemplates,
   SenderEmails,
+  EmailCampaigns,
   Broadcasts,
   BroadcastReports,
   Popups,

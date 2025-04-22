@@ -6,7 +6,7 @@ const AutomationJobs: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'status', 'triggerType', 'lastRun', 'nextRun'],
-    group: 'Automation',
+    group: 'Automation & System',
   },
   access: {
     read: isAdminOrEditor,

@@ -21,6 +21,9 @@ export type CollectionSlug =
   | 'orders'
   | 'solutions'
   | 'broadcast-reports'
+  | 'email-templates'
+  | 'email-campaigns'
+  | 'notifications'
 
 // Global types
 export type GlobalSlug = 'header' | 'footer' | 'site-config'

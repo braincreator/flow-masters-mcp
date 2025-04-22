@@ -138,7 +138,7 @@ export const PaymentProviders: GlobalConfig = {
     update: isAdmin,
   },
   admin: {
-    group: 'System',
+    group: 'Financial Settings',
   },
   fields: [
     {

@@ -106,6 +106,7 @@ const pricingHook: FieldHook = ({ value, siblingData, originalDoc, operation }) 
 export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
+    group: 'E-commerce',
     useAsTitle: 'title',
     defaultColumns: [
       'title',

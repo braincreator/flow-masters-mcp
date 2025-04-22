@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload/types'
 export const Messages: CollectionConfig = {
   slug: 'messages',
   admin: {
+    group: 'Community & Engagement',
     useAsTitle: 'subject',
     defaultColumns: ['name', 'email', 'subject', 'source', 'createdAt'],
     preview: (doc) => `/admin/collections/messages/${doc.id}`,

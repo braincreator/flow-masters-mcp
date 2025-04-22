@@ -4,6 +4,7 @@ import { slugField } from '@/fields/slug'
 export const ForumCategories: CollectionConfig = {
   slug: 'forum-categories',
   admin: {
+    group: 'Community & Engagement',
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'description'],
     description: 'Категории для организации тем на форуме.',

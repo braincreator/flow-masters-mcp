@@ -6,7 +6,7 @@ const CourseAnalytics: CollectionConfig = {
   admin: {
     useAsTitle: 'courseTitle',
     defaultColumns: ['courseTitle', 'views', 'completionRate', 'createdAt'],
-    group: 'Analytics',
+    group: 'Analytics & Reporting',
   },
   access: {
     read: isAdminOrEditor,

@@ -21,6 +21,13 @@ interface SendEmailOptions {
   subject: string
   html: string
   from?: string
+  cc?: string | string[]
+  bcc?: string | string[]
+  attachments?: Array<{
+    filename: string
+    content: Buffer | string
+    contentType?: string
+  }>
 }
 
 interface EmailSettingsType {
@@ -31,6 +38,45 @@ interface EmailSettingsType {
     password: string
     from?: string
   }
+}
+
+// Интерфейс для шаблона письма
+interface EmailTemplateType {
+  id: string
+  name: string
+  slug: string
+  subject: string | Record<string, string>
+  body: string | Record<string, unknown>
+  sender?:
+    | {
+        emailAddress: string
+        senderName: string
+      }
+    | string
+}
+
+// Интерфейс для опций отправки шаблонного письма
+interface SendTemplateOptions {
+  locale?: string
+  cc?: string | string[]
+  bcc?: string | string[]
+  attachments?: Array<{
+    filename: string
+    content: Buffer | string
+    contentType?: string
+  }>
+  customSender?: {
+    email: string
+    name: string
+  }
+}
+
+// Интерфейс для данных отслеживания заказа
+interface OrderTrackingData {
+  orderId: string
+  status: string
+  downloadLinks?: string[]
+  [key: string]: unknown
 }
 
 export interface SendToAllResult {
@@ -225,9 +271,10 @@ export class EmailService extends BaseService {
         this.payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
         return { success: false, email: subscriber.email, error: 'Send email function failed' }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       this.payload.logger.error(
-        `Error sending newsletter email to subscriber ${subscriberId}: ${error.message}`,
+        `Error sending newsletter email to subscriber ${subscriberId}: ${errorMessage}`,
       )
       return { success: false, error: error.message || 'Unknown error' }
     }
@@ -313,18 +360,20 @@ export class EmailService extends BaseService {
           })
 
           results.successfullySent++
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
           results.failedToSend++
           results.sendErrors.push({
-            error: `Failed to send to ${subscriber.email}: ${error.message}`,
+            error: `Failed to send to ${subscriber.email}: ${errorMessage}`,
           })
           this.payload.logger.error(`Failed to send newsletter email to ${subscriber.email}`)
         }
       }
 
       return results
-    } catch (error: any) {
-      this.payload.logger.error(`Failed to process newsletter broadcast: ${error.message}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.payload.logger.error(`Failed to process newsletter broadcast: ${errorMessage}`)
       throw error
     }
   }
@@ -480,9 +529,349 @@ export class EmailService extends BaseService {
   }
 
   /**
+   * Отправляет email на основе шаблона из коллекции email-templates
+   * @param templateSlug Slug шаблона из коллекции email-templates
+   * @param to Email получателя
+   * @param data Данные для подстановки в шаблон
+   * @param options Дополнительные опции
+   * @returns Promise<boolean> Результат отправки
+   */
+
+  async sendTemplateEmail(
+    templateSlug: string,
+    to: string,
+    data: Record<string, unknown>,
+    options?: SendTemplateOptions,
+  ): Promise<boolean> {
+    try {
+      // 1. Получаем шаблон из коллекции
+      const templateResult = await this.payload.find({
+        collection: 'email-templates',
+        where: {
+          slug: {
+            equals: templateSlug,
+          },
+        },
+        depth: 1, // Для загрузки связанных данных (sender)
+      })
+
+      if (!templateResult.docs.length) {
+        this.payload.logger.error(`Email template "${templateSlug}" not found`)
+        return false
+      }
+
+      const template = templateResult.docs[0] as EmailTemplateType
+
+      // 2. Получаем данные отправителя
+      let senderEmail: string
+      let senderName: string
+
+      if (options?.customSender) {
+        senderEmail = options.customSender.email
+        senderName = options.customSender.name
+      } else if (template.sender && typeof template.sender === 'object') {
+        // Sender загружен как объект благодаря depth: 1
+        senderEmail = template.sender.emailAddress
+        senderName = template.sender.senderName
+      } else {
+        // Fallback на настройки по умолчанию
+        senderEmail = process.env.EMAIL_FROM || 'admin@flow-masters.ru'
+        senderName = 'Flow Masters'
+      }
+
+      // 3. Получаем тему письма с учетом локализации
+      const locale = options?.locale || 'ru'
+      let subject = template.subject
+
+      // Если subject - это объект с локализациями
+      if (typeof subject === 'object' && subject !== null) {
+        const subjectObj = subject as Record<string, string>
+        subject = subjectObj[locale] || subjectObj.ru || Object.values(subjectObj)[0]
+      }
+
+      // 4. Получаем тело письма
+      let bodyContent = ''
+
+      // Обрабатываем richText или обычный текст
+      if (template.body) {
+        if (typeof template.body === 'object' && template.body !== null) {
+          // Это richText, нужно преобразовать в HTML
+          bodyContent = this.convertRichTextToHTML(template.body)
+        } else {
+          // Это обычный текст
+          bodyContent = String(template.body)
+        }
+      }
+
+      // 5. Заменяем плейсхолдеры на данные
+      bodyContent = this.replacePlaceholders(bodyContent, data)
+      subject = this.replacePlaceholders(subject, data)
+
+      // 6. Отправляем письмо
+      const from = `"${senderName}" <${senderEmail}>`
+
+      const emailOptions: SendEmailOptions = {
+        to,
+        subject,
+        html: bodyContent,
+        from,
+      }
+
+      // Добавляем CC и BCC если указаны
+      if (options?.cc) {
+        emailOptions.cc = options.cc
+      }
+
+      if (options?.bcc) {
+        emailOptions.bcc = options.bcc
+      }
+
+      // Добавляем вложения если указаны
+      if (options?.attachments && options.attachments.length > 0) {
+        emailOptions.attachments = options.attachments
+      }
+
+      return await this.sendEmail(emailOptions)
+    } catch (error) {
+      this.payload.logger.error(`Failed to send template email ${templateSlug}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * Заменяет плейсхолдеры в тексте на значения из объекта данных
+   * @param text Текст с плейсхолдерами вида {{key}}
+   * @param data Объект с данными для подстановки
+   * @returns Текст с замененными плейсхолдерами
+   */
+  private replacePlaceholders(text: string, data: Record<string, unknown>): string {
+    return text.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+      const keys = key.trim().split('.')
+      let value = data
+
+      // Поддержка вложенных свойств (например, {{user.name}})
+      for (const k of keys) {
+        if (value === undefined || value === null) break
+        value = value[k]
+      }
+
+      // Возвращаем значение или пустую строку, если значение не найдено
+      return value !== undefined && value !== null ? String(value) : ''
+    })
+  }
+
+  /**
+   * Преобразует richText в HTML
+   * @param richText Объект richText из Payload CMS
+   * @returns HTML строка
+   */
+  private convertRichTextToHTML(richText: Record<string, unknown>): string {
+    // Простая реализация для базовых элементов
+    // В реальном проекте здесь должна быть более сложная логика
+    try {
+      if (!richText || !richText.root || !richText.root.children) {
+        return ''
+      }
+
+      let html = ''
+
+      const processNode = (node: Record<string, unknown>): string => {
+        if (!node) return ''
+
+        if (node.type === 'text') {
+          let text = node.text || ''
+          if (node.bold) text = `<strong>${text}</strong>`
+          if (node.italic) text = `<em>${text}</em>`
+          if (node.underline) text = `<u>${text}</u>`
+          if (node.strikethrough) text = `<s>${text}</s>`
+          if (node.code) text = `<code>${text}</code>`
+          return text
+        }
+
+        if (node.type === 'paragraph') {
+          const children = node.children?.map(processNode).join('') || ''
+          return `<p>${children}</p>`
+        }
+
+        if (node.type === 'heading') {
+          const level = node.level || 1
+          const children = node.children?.map(processNode).join('') || ''
+          return `<h${level}>${children}</h${level}>`
+        }
+
+        if (node.type === 'list') {
+          const tag = node.listType === 'ordered' ? 'ol' : 'ul'
+          const children = node.children?.map(processNode).join('') || ''
+          return `<${tag}>${children}</${tag}>`
+        }
+
+        if (node.type === 'listItem') {
+          const children = node.children?.map(processNode).join('') || ''
+          return `<li>${children}</li>`
+        }
+
+        if (node.type === 'link') {
+          const children = node.children?.map(processNode).join('') || ''
+          const href = node.url || '#'
+          const target = node.newTab ? ' target="_blank" rel="noopener noreferrer"' : ''
+          return `<a href="${href}"${target}>${children}</a>`
+        }
+
+        // Рекурсивно обрабатываем дочерние элементы
+        if (node.children && Array.isArray(node.children)) {
+          return node.children.map(processNode).join('')
+        }
+
+        return ''
+      }
+
+      // Обрабатываем корневой элемент
+      html = richText.root.children.map(processNode).join('')
+      return html
+    } catch (error) {
+      console.error('Error converting richText to HTML:', error)
+      return ''
+    }
+  }
+
+  /**
+   * Отправляет email на основе шаблона (устаревший метод)
+   * @deprecated Используйте sendTemplateEmail вместо этого метода
+   */
+  async sendTemplate(
+    templateName: string,
+    to: string,
+    data: Record<string, unknown>,
+  ): Promise<boolean> {
+    try {
+      // Проверяем, есть ли шаблон в коллекции
+      const templateResult = await this.payload.find({
+        collection: 'email-templates',
+        where: {
+          slug: {
+            equals: templateName,
+          },
+        },
+      })
+
+      // Если шаблон найден, используем новый метод
+      if (templateResult.docs.length > 0) {
+        return this.sendTemplateEmail(templateName, to, data)
+      }
+
+      // Иначе используем старую логику
+      let html: string = ''
+
+      switch (templateName) {
+        case 'payment_confirmation':
+          // TODO: Implement payment confirmation template
+          html = `<h1>Payment Confirmation</h1><p>Your payment was confirmed.</p>`
+          break
+        case 'order_paid':
+          // TODO: Implement order paid template
+          html = `<h1>Order Paid</h1><p>Your order has been paid.</p>`
+          break
+        case 'download_ready':
+          // TODO: Implement download ready template
+          html = `<h1>Download Ready</h1><p>Your download is ready.</p>`
+          break
+        case 'order_completed':
+          // TODO: Implement order completed template
+          html = `<h1>Order Completed</h1><p>Your order has been completed.</p>`
+          break
+        case 'order_status_update':
+          // TODO: Implement order status update template
+          html = `<h1>Order Status Update</h1><p>Your order status has been updated.</p>`
+          break
+        case 'abandoned-cart':
+          // TODO: Implement abandoned cart template
+          html = `<h1>Abandoned Cart</h1><p>You have items in your cart.</p>`
+          break
+        default:
+          console.error(`Template ${templateName} not found`)
+          return false
+      }
+
+      return await this.sendEmail({
+        to,
+        subject: templateName, // You might want to define a subject based on the template
+        html,
+      })
+    } catch (error) {
+      console.error(`Failed to send template email ${templateName}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письма по кампании
+   * @param campaignId ID кампании
+   * @param recipients Получатели
+   * @param templateSlug Slug шаблона
+   * @param data Данные для шаблона
+   * @returns Результат отправки
+   */
+  async sendCampaignEmails(
+    campaignId: string,
+    recipients: Array<{ id: string; email: string; name?: string; locale?: string }>,
+    templateSlug: string,
+    data: Record<string, unknown>,
+  ): Promise<{ success: number; failed: number; errors: Array<{ email: string; error: string }> }> {
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as Array<{ email: string; error: string }>,
+    }
+
+    for (const recipient of recipients) {
+      try {
+        // Добавляем данные получателя в шаблон
+        const templateData = {
+          ...data,
+          recipient: {
+            id: recipient.id,
+            email: recipient.email,
+            name: recipient.name || '',
+          },
+          campaign: {
+            id: campaignId,
+          },
+        }
+
+        // Отправляем письмо
+        const success = await this.sendTemplateEmail(templateSlug, recipient.email, templateData, {
+          locale: recipient.locale || 'ru',
+        })
+
+        if (success) {
+          results.success++
+        } else {
+          results.failed++
+          results.errors.push({
+            email: recipient.email,
+            error: 'Failed to send email',
+          })
+        }
+      } catch (error: unknown) {
+        results.failed++
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        results.errors.push({
+          email: recipient.email,
+          error: errorMessage,
+        })
+        this.payload.logger.error(
+          `Error sending campaign email to ${recipient.email}: ${errorMessage}`,
+        )
+      }
+    }
+
+    return results
+  }
+
+  /**
    * Отправляет уведомление об обновлении статуса цифрового заказа
    */
-  async sendDigitalOrderStatusUpdate(orderTracking: any): Promise<boolean> {
+  async sendDigitalOrderStatusUpdate(orderTracking: OrderTrackingData): Promise<boolean> {
     try {
       if (!orderTracking.orderId || !orderTracking.status) {
         console.error('Missing required fields in order tracking data')

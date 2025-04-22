@@ -12,7 +12,7 @@ export const ExchangeRateSettings: GlobalConfig = {
     update: isAdmin,
   },
   admin: {
-    group: 'System',
+    group: 'Financial Settings',
   },
   fields: [
     {

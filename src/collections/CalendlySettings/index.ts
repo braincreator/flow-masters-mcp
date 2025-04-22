@@ -1,12 +1,16 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import WebhookInstructions from './components/WebhookInstructions'
 
 export const CalendlySettings: CollectionConfig = {
   slug: 'calendly-settings',
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'eventType', 'isActive'],
-    group: 'Integrations',
+    group: 'Integrations & Services',
+    components: {
+      BeforeListView: WebhookInstructions,
+    },
   },
   access: {
     read: () => true,
