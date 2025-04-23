@@ -114,7 +114,7 @@ export function useReadingTime(
     }
 
     // Set interval to periodically update time spent
-    intervalRef.current = setInterval(() => {
+    const updateTimeSpent = () => {
       if (isActiveRef.current) {
         const currentTime = Date.now()
         const elapsed = Math.floor((currentTime - startTimeRef.current) / 1000)
@@ -131,21 +131,28 @@ export function useReadingTime(
           return newTime
         })
       }
-    }, 1000) // Update every second
+    }
 
-    // Add event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
-    window.addEventListener('blur', handleBlur)
+    intervalRef.current = setInterval(updateTimeSpent, 1000) // Update every second
+
+    // Используем AbortController для управления событиями
+    const abortController = new AbortController()
+    const signal = abortController.signal
+
+    // Add event listeners with signal
+    document.addEventListener('visibilitychange', handleVisibilityChange, { signal })
+    window.addEventListener('focus', handleFocus, { signal })
+    window.addEventListener('blur', handleBlur, { signal })
 
     // Clean up
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
-      window.removeEventListener('blur', handleBlur)
+      // Отменяем все события сразу
+      abortController.abort()
 
+      // Очищаем интервал
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
 
       // Add any active time since last check

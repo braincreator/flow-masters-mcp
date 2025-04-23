@@ -77,20 +77,21 @@ function useClickableCard<T extends HTMLElement>({
 
   useEffect(() => {
     const cardNode = card.current
+    if (!cardNode) return
 
     const abortController = new AbortController()
+    const signal = abortController.signal
 
-    if (cardNode) {
-      cardNode.addEventListener('mousedown', handleMouseDown, {
-        signal: abortController.signal,
-      })
-      cardNode.addEventListener('mouseup', handleMouseUp, {
-        signal: abortController.signal,
-      })
-    }
+    cardNode.addEventListener('mousedown', handleMouseDown, { signal })
+    cardNode.addEventListener('mouseup', handleMouseUp, { signal })
 
     return () => {
       abortController.abort()
+
+      // Очищаем ссылки для предотвращения утечек памяти
+      timeDown.current = 0
+      hasActiveParent.current = false
+      pressedButton.current = 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card, link, router])

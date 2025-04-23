@@ -11,57 +11,77 @@ const localeCache = new LRUCache({
   dispose: (value) => {
     // Clean up references
     if (value && typeof value === 'object') {
-      Object.keys(value).forEach(k => {
-        (value as any)[k] = null
+      Object.keys(value).forEach((k) => {
+        ;(value as any)[k] = null
       })
     }
   },
   sizeCalculation: (value) => {
     return JSON.stringify(value).length
   },
-  maxSize: 5000000 // 5MB total cache size
+  maxSize: 5000000, // 5MB total cache size
 })
 
-let memoryCheckInterval: NodeJS.Timeout
+let memoryCheckInterval: NodeJS.Timeout | undefined
 
 // Memory pressure handling with proper cleanup
-if (typeof process !== 'undefined') {
-  if (memoryCheckInterval) clearInterval(memoryCheckInterval)
-  
-  memoryCheckInterval = setInterval(() => {
-    const usage = process.memoryUsage()
-    if (usage.heapUsed > usage.heapTotal * 0.8) {
-      localeCache.clear()
-    }
-  }, 300000) // 5 minutes
+const setupMemoryCheck = () => {
+  // Clear existing interval if it exists
+  if (memoryCheckInterval) {
+    clearInterval(memoryCheckInterval)
+    memoryCheckInterval = undefined
+  }
+
+  if (typeof process !== 'undefined') {
+    memoryCheckInterval = setInterval(() => {
+      try {
+        const usage = process.memoryUsage()
+        if (usage.heapUsed > usage.heapTotal * 0.8) {
+          localeCache.clear()
+          console.log('Locale cache cleared due to high memory usage')
+        }
+      } catch (error) {
+        console.error('Error in locale memory check interval:', error)
+      }
+    }, 300000) // 5 minutes
+  }
+}
+
+// Запускаем проверку памяти только на сервере
+if (typeof window === 'undefined') {
+  setupMemoryCheck()
 }
 
 export const cleanupLocaleCache = () => {
-  if (memoryCheckInterval) clearInterval(memoryCheckInterval)
+  if (memoryCheckInterval) {
+    clearInterval(memoryCheckInterval)
+    memoryCheckInterval = undefined
+  }
   localeCache.clear()
 }
 
 const metrics = {
   hits: 0,
   misses: 0,
-  errors: 0
+  errors: 0,
 }
 
 const performance = {
   fetchTimes: [] as number[],
   avgFetchTime: 0,
-  maxFetchTime: 0
+  maxFetchTime: 0,
 }
 
 export const getLocalizationMetrics = () => ({
   ...metrics,
   cacheSize: localeCache.size,
-  itemCount: localeCache.itemCount
+  itemCount: localeCache.itemCount,
 })
 
 export const getPerformanceMetrics = () => ({
   ...performance,
-  avgFetchTime: performance.fetchTimes.reduce((a, b) => a + b, 0) / performance.fetchTimes.length || 0
+  avgFetchTime:
+    performance.fetchTimes.reduce((a, b) => a + b, 0) / performance.fetchTimes.length || 0,
 })
 
 const getFallbackLocale = (locale: string): string => {
@@ -75,21 +95,21 @@ export const getLocalizedContent = async (
   collection: string,
   docId: string,
   locale: string,
-  useFallback = true
+  useFallback = true,
 ) => {
   const cacheKey = `${collection}:${docId}:${locale}`
   const startTime = Date.now()
-  
+
   try {
     let content = localeCache.get(cacheKey)
     if (content) {
       metrics.hits++
       return content
     }
-    
+
     metrics.misses++
     content = await fetchLocalizedContent(collection, docId, locale)
-    
+
     // Try fallback if content not found
     if (!content && useFallback && locale !== DEFAULT_LOCALE) {
       content = await fetchLocalizedContent(collection, docId, DEFAULT_LOCALE)
@@ -113,10 +133,7 @@ export const getLocalizedContent = async (
 }
 
 // Add cache invalidation on locale updates
-export const invalidateLocaleCache = (
-  collection: string,
-  docId: string
-) => {
+export const invalidateLocaleCache = (collection: string, docId: string) => {
   const pattern = new RegExp(`^${collection}:${docId}:`)
   for (const key of localeCache.keys()) {
     if (pattern.test(key)) {
@@ -126,17 +143,17 @@ export const invalidateLocaleCache = (
 }
 
 export const getLocalizedContentBatch = async (
-  items: Array<{collection: string, docId: string, locale: string}>
+  items: Array<{ collection: string; docId: string; locale: string }>,
 ) => {
   const results = await Promise.all(
-    items.map(async ({collection, docId, locale}) => {
+    items.map(async ({ collection, docId, locale }) => {
       try {
         return await getLocalizedContent(collection, docId, locale)
       } catch (error) {
         console.error(`Batch localization failed for ${collection}:${docId}:${locale}`)
         return null
       }
-    })
+    }),
   )
   return results.filter(Boolean)
 }
@@ -148,8 +165,9 @@ export const preloadCommonContent = async () => {
   for (const collection of commonCollections) {
     for (const locale of SUPPORTED_LOCALES) {
       preloadTasks.push(
-        getLocalizedContent(collection, 'main', locale)
-          .catch(error => console.error(`Preload failed for ${collection}:${locale}`, error))
+        getLocalizedContent(collection, 'main', locale).catch((error) =>
+          console.error(`Preload failed for ${collection}:${locale}`, error),
+        ),
       )
     }
   }
@@ -161,7 +179,7 @@ export const preloadCommonContent = async () => {
 if (typeof process !== 'undefined') {
   preloadCommonContent()
     .then(() => console.log('Common content preloaded'))
-    .catch(error => console.error('Failed to preload common content:', error))
+    .catch((error) => console.error('Failed to preload common content:', error))
 }
 
 export const persistCache = async () => {
@@ -189,7 +207,30 @@ export const loadPersistedCache = async () => {
 }
 
 // Add periodic cache persistence
-if (typeof process !== 'undefined') {
-  setInterval(persistCache, 1000 * 60 * 30) // Every 30 minutes
-  process.on('SIGTERM', persistCache)
+let persistInterval: NodeJS.Timeout | undefined
+
+if (typeof window === 'undefined') {
+  // Только на сервере
+  // Очищаем существующий интервал, если он есть
+  if (persistInterval) {
+    clearInterval(persistInterval)
+    persistInterval = undefined
+  }
+
+  persistInterval = setInterval(persistCache, 1000 * 60 * 30) // Every 30 minutes
+
+  // Сохраняем кэш при завершении работы
+  process.on('SIGTERM', () => {
+    persistCache()
+    if (persistInterval) {
+      clearInterval(persistInterval)
+    }
+  })
+
+  process.on('SIGINT', () => {
+    persistCache()
+    if (persistInterval) {
+      clearInterval(persistInterval)
+    }
+  })
 }

@@ -133,48 +133,70 @@ const PostContent: React.FC<PostContentProps> = ({
       }, 100)
       return () => clearTimeout(timer)
     }
+  }, [enableCodeHighlighting])
 
-    if (enhanceHeadings) {
-      const contentElement = document.getElementById(`post-content-${postId}`)
-      if (contentElement) {
-        const headings = contentElement.querySelectorAll('h2, h3, h4, h5, h6')
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('animated')
-                observer.unobserve(entry.target)
-              }
-            })
-          },
-          { threshold: 0.2 },
-        )
-        headings.forEach((heading) => {
-          if (!heading.id) {
-            const text = heading.textContent || ''
-            heading.id = text
-              .toLowerCase()
-              .replace(/\s+/g, '-')
-              .replace(/[^\w-]/g, '')
+  useEffect(() => {
+    if (!enhanceHeadings || typeof window === 'undefined') return
+
+    const contentElement = document.getElementById(`post-content-${postId}`)
+    if (!contentElement) return
+
+    const headings = contentElement.querySelectorAll('h2, h3, h4, h5, h6')
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animated')
+            observer.unobserve(entry.target)
           }
-          const anchor = document.createElement('a')
-          anchor.href = `#${heading.id}`
-          anchor.className = 'heading-anchor'
-          anchor.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-            </svg>
-          `
-          heading.appendChild(anchor)
-          observer.observe(heading)
         })
-        return () => {
-          headings.forEach((heading) => observer.unobserve(heading))
-        }
+      },
+      { threshold: 0.2 },
+    )
+
+    // Массив созданных элементов для последующей очистки
+    const createdAnchors: HTMLAnchorElement[] = []
+
+    headings.forEach((heading) => {
+      if (!heading.id) {
+        const text = heading.textContent || ''
+        heading.id = text
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w-]/g, '')
       }
+
+      // Проверяем, нет ли уже якоря (чтобы избежать дублирования при повторном рендере)
+      if (!heading.querySelector('.heading-anchor')) {
+        const anchor = document.createElement('a')
+        anchor.href = `#${heading.id}`
+        anchor.className = 'heading-anchor'
+        anchor.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+        `
+        heading.appendChild(anchor)
+        createdAnchors.push(anchor)
+      }
+
+      observer.observe(heading)
+    })
+
+    return () => {
+      // Отключаем наблюдатель
+      headings.forEach((heading) => observer.unobserve(heading))
+      observer.disconnect()
+
+      // Удаляем созданные якоря, чтобы избежать утечек памяти
+      createdAnchors.forEach((anchor) => {
+        if (anchor.parentNode) {
+          anchor.parentNode.removeChild(anchor)
+        }
+      })
     }
-  }, [enableCodeHighlighting, enhanceHeadings, postId])
+  }, [enhanceHeadings, postId])
 
   return (
     <div

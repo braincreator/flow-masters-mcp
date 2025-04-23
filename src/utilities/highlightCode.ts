@@ -41,39 +41,86 @@ export function highlightCode(): void {
         // Make sure pre has position relative for absolute positioning of button
         preElement.style.position = 'relative'
 
+        // Создаем AbortController для управления событиями
+        const abortController = new AbortController()
+        const signal = abortController.signal
+
+        // Сохраняем ссылку на AbortController в атрибуте элемента
+        preElement.setAttribute(
+          'data-abort-controller-id',
+          Math.random().toString(36).substring(2, 9),
+        )
+        ;(window as any)[preElement.getAttribute('data-abort-controller-id')!] = abortController
+
         // Show button on hover
-        preElement.addEventListener('mouseenter', () => {
-          copyButton.style.opacity = '1'
+        preElement.addEventListener(
+          'mouseenter',
+          () => {
+            copyButton.style.opacity = '1'
+          },
+          { signal },
+        )
+
+        preElement.addEventListener(
+          'mouseleave',
+          () => {
+            copyButton.style.opacity = '0'
+            // Reset button text if it was changed
+            if (copyButton.textContent !== 'Copy') {
+              setTimeout(() => {
+                copyButton.textContent = 'Copy'
+              }, 300)
+            }
+          },
+          { signal },
+        )
+
+        // Очистка при уничтожении элемента
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.removedNodes.length) {
+              for (let i = 0; i < mutation.removedNodes.length; i++) {
+                const node = mutation.removedNodes[i]
+                if (node === preElement) {
+                  // Отменяем все события
+                  abortController.abort()
+                  // Удаляем ссылку на AbortController
+                  delete (window as any)[preElement.getAttribute('data-abort-controller-id')!]
+                  // Отключаем наблюдатель
+                  observer.disconnect()
+                }
+              }
+            }
+          })
         })
 
-        preElement.addEventListener('mouseleave', () => {
-          copyButton.style.opacity = '0'
-          // Reset button text if it was changed
-          if (copyButton.textContent !== 'Copy') {
-            setTimeout(() => {
-              copyButton.textContent = 'Copy'
-            }, 300)
-          }
-        })
+        // Наблюдаем за родительским элементом
+        if (preElement.parentNode) {
+          observer.observe(preElement.parentNode, { childList: true })
+        }
 
         // Handle copy action
-        copyButton.addEventListener('click', () => {
-          const codeElement = preElement.querySelector('code')
-          if (codeElement) {
-            navigator.clipboard
-              .writeText(codeElement.textContent || '')
-              .then(() => {
-                copyButton.textContent = 'Copied!'
-                setTimeout(() => {
-                  copyButton.textContent = 'Copy'
-                }, 2000)
-              })
-              .catch((err) => {
-                console.error('Failed to copy code:', err)
-                copyButton.textContent = 'Error!'
-              })
-          }
-        })
+        copyButton.addEventListener(
+          'click',
+          () => {
+            const codeElement = preElement.querySelector('code')
+            if (codeElement) {
+              navigator.clipboard
+                .writeText(codeElement.textContent || '')
+                .then(() => {
+                  copyButton.textContent = 'Copied!'
+                  setTimeout(() => {
+                    copyButton.textContent = 'Copy'
+                  }, 2000)
+                })
+                .catch((err) => {
+                  console.error('Failed to copy code:', err)
+                  copyButton.textContent = 'Error!'
+                })
+            }
+          },
+          { signal },
+        )
 
         // Add button to pre element
         preElement.appendChild(copyButton)

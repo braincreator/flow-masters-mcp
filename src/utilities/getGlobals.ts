@@ -100,23 +100,42 @@ export const invalidateGlobalCache = (slug: GlobalSlug, locale?: string) => {
 }
 
 // Memory pressure handling
-let memoryInterval: NodeJS.Timeout
+let memoryInterval: NodeJS.Timeout | undefined
 
-if (typeof process !== 'undefined') {
+// Функция для создания интервала проверки памяти
+const setupMemoryCheck = () => {
   // Clear existing interval if it exists
-  if (memoryInterval) clearInterval(memoryInterval)
+  if (memoryInterval) {
+    clearInterval(memoryInterval)
+    memoryInterval = undefined
+  }
 
-  memoryInterval = setInterval(() => {
-    const usage = process.memoryUsage()
-    if (usage.heapUsed / usage.heapTotal > 0.9) {
-      globalCache.clear()
-    }
-  }, 300000) // 5 minutes
+  if (typeof process !== 'undefined') {
+    memoryInterval = setInterval(() => {
+      try {
+        const usage = process.memoryUsage()
+        if (usage.heapUsed / usage.heapTotal > 0.9) {
+          globalCache.clear()
+          console.log('Global cache cleared due to high memory usage')
+        }
+      } catch (error) {
+        console.error('Error in memory check interval:', error)
+      }
+    }, 300000) // 5 minutes
+  }
+}
+
+// Запускаем проверку памяти только на сервере
+if (typeof window === 'undefined') {
+  setupMemoryCheck()
 }
 
 // Cleanup function
 export const cleanupGlobalCache = () => {
-  if (memoryInterval) clearInterval(memoryInterval)
+  if (memoryInterval) {
+    clearInterval(memoryInterval)
+    memoryInterval = undefined
+  }
   globalCache.clear()
 }
 

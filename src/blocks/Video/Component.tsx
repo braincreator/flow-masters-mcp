@@ -1,4 +1,4 @@
-"use client"
+'use client'
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
@@ -23,7 +23,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Slider } from '@/components/ui/slider'
-import type { Video as VideoBlockType, VideoType, AspectRatio, VideoStyle, VideoSize } from '@/types/blocks'
+import type {
+  Video as VideoBlockType,
+  VideoType,
+  AspectRatio,
+  VideoStyle,
+  VideoSize,
+} from '@/types/blocks'
 import { cn } from '@/lib/utils'
 
 const aspectRatios = {
@@ -103,6 +109,10 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     const video = videoRef.current
     if (!video) return
 
+    // Создаем объект AbortController для управления событиями
+    const abortController = new AbortController()
+    const signal = abortController.signal
+
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handleDurationChange = () => setDuration(video.duration)
     const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement)
@@ -132,31 +142,38 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       }
     }
 
-    video.addEventListener('timeupdate', handleTimeUpdate)
-    video.addEventListener('durationchange', handleDurationChange)
-    video.addEventListener('loadstart', handleLoadStart)
-    video.addEventListener('loadeddata', handleLoadedData)
-    video.addEventListener('error', handleError)
-    video.addEventListener('waiting', handleWaiting)
-    video.addEventListener('playing', handlePlaying)
-    video.addEventListener('progress', handleProgress)
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    // Используем опцию signal для автоматического удаления обработчиков
+    video.addEventListener('timeupdate', handleTimeUpdate, { signal })
+    video.addEventListener('durationchange', handleDurationChange, { signal })
+    video.addEventListener('loadstart', handleLoadStart, { signal })
+    video.addEventListener('loadeddata', handleLoadedData, { signal })
+    video.addEventListener('error', handleError, { signal })
+    video.addEventListener('waiting', handleWaiting, { signal })
+    video.addEventListener('playing', handlePlaying, { signal })
+    video.addEventListener('progress', handleProgress, { signal })
+    document.addEventListener('fullscreenchange', handleFullscreenChange, { signal })
 
     // Предварительная загрузка
     video.preload = 'auto'
 
     return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate)
-      video.removeEventListener('durationchange', handleDurationChange)
-      video.removeEventListener('loadstart', handleLoadStart)
-      video.removeEventListener('loadeddata', handleLoadedData)
-      video.removeEventListener('error', handleError)
-      video.removeEventListener('waiting', handleWaiting)
-      video.removeEventListener('playing', handlePlaying)
-      video.removeEventListener('progress', handleProgress)
-      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      // Отменяем все события сразу
+      abortController.abort()
+
+      // Останавливаем воспроизведение и освобождаем ресурсы
+      if (!video.paused) {
+        try {
+          video.pause()
+        } catch (e) {
+          console.error('Error pausing video:', e)
+        }
+      }
+
+      // Очищаем ссылки на источник
+      video.removeAttribute('src')
+      video.load()
     }
-  }, [])
+  }, [autoPlay])
 
   const togglePlay = useCallback(() => {
     if (videoRef.current) {

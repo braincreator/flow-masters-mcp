@@ -43,7 +43,11 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
   }, [lastScrollY, mobileMenuOpen])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     let ticking = false
+    const abortController = new AbortController()
+    const signal = abortController.signal
 
     const onScroll = () => {
       if (!ticking) {
@@ -55,19 +59,28 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
       }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true, signal })
+
+    return () => {
+      abortController.abort()
+    }
   }, [handleScroll])
 
   // Prevent scrolling when mobile menu is open
   useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const originalOverflow = document.body.style.overflow
+
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
     }
+
     return () => {
-      document.body.style.overflow = ''
+      // Восстанавливаем оригинальное значение
+      document.body.style.overflow = originalOverflow
     }
   }, [mobileMenuOpen])
 

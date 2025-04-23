@@ -1,4 +1,4 @@
-"use client"
+'use client'
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
@@ -64,12 +64,20 @@ export const Carousel: React.FC<CarouselProps> = ({
   }, [])
 
   useEffect(() => {
+    // Очищаем существующий интервал при изменении зависимостей
+    if (autoPlayTimer.current) {
+      clearInterval(autoPlayTimer.current)
+      autoPlayTimer.current = undefined
+    }
+
     if (autoPlay && !isHovered && !isDragging) {
       autoPlayTimer.current = setInterval(nextSlide, autoPlayInterval)
     }
+
     return () => {
       if (autoPlayTimer.current) {
         clearInterval(autoPlayTimer.current)
+        autoPlayTimer.current = undefined
       }
     }
   }, [autoPlay, autoPlayInterval, isHovered, isDragging, nextSlide])
