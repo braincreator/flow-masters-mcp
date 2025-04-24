@@ -45,8 +45,8 @@ export async function retryOnSessionExpired<T>(
         // Пробуем переподключиться если соединение потеряно
         if (error?.name === 'MongoNotConnectedError') {
           try {
-            if (global.payloadClient) {
-              await global.payloadClient.disconnect()
+            if (global.payloadClient && typeof global.payloadClient.db.destroy === 'function') {
+              await global.payloadClient.db.destroy()
               global.payloadClient = null
             }
           } catch (disconnectError) {
@@ -74,7 +74,10 @@ export const getPayloadClient = async (): Promise<Payload> => {
       } catch (error) {
         logger.warn('Соединение потеряно, переподключаемся...')
         try {
-          await global.payloadClient.disconnect()
+          // Используем метод destroy из адаптера базы данных, если он существует
+          if (typeof global.payloadClient.db.destroy === 'function') {
+            await global.payloadClient.db.destroy()
+          }
         } catch (disconnectError) {
           logger.error('Ошибка при отключении:', disconnectError)
         }

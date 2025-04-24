@@ -1,7 +1,9 @@
 import type { Payload } from 'payload'
-
 import { getPayload } from 'payload'
-import config from '@/payload-config'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+import payloadConfig from '@/payload-config'
 import { addProductsAndUpdateHeader } from '@/utilities/products'
 import { logger } from '@/utilities/logger'
 
@@ -18,7 +20,7 @@ console.log('PAYLOAD_SECRET:', process.env.PAYLOAD_SECRET)
 console.log('DATABASE_URI:', process.env.DATABASE_URI)
 
 if (!process.env.PAYLOAD_SECRET) {
-  throw new Error(`PAYLOAD_SECRET not found in environment. 
+  throw new Error(`PAYLOAD_SECRET not found in environment.
     Please check that ${envPath} exists and contains PAYLOAD_SECRET`)
 }
 
@@ -26,12 +28,11 @@ if (!process.env.PAYLOAD_SECRET) {
 const init = async () => {
   try {
     // Get the config and explicitly set the secret
-    const originalConfig = await configPromise
     const config = {
-      ...originalConfig,
+      ...payloadConfig,
       secret: process.env.PAYLOAD_SECRET,
       db: {
-        ...originalConfig.db,
+        ...payloadConfig.db,
         url: process.env.DATABASE_URI,
       },
     }
@@ -49,11 +50,10 @@ const init = async () => {
     })
 
     console.log('Successfully added products and updated header')
-    
-    if (payload) {
-      await payload.disconnect()
+
+    if (payload && typeof payload.db?.destroy === 'function') {
+      await payload.db.destroy()
     }
-    
   } catch (error) {
     console.error('Error details:', error)
     process.exit(1)

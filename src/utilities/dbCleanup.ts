@@ -10,7 +10,9 @@ export const cleanupConnection = async (payload: Payload) => {
 
   const timeoutId = setTimeout(async () => {
     try {
-      await payload.db?.disconnect()
+      if (typeof payload.db?.destroy === 'function') {
+        await payload.db.destroy()
+      }
       connections.delete(payload)
     } catch (error) {
       console.error('Error cleaning up connection:', error)
