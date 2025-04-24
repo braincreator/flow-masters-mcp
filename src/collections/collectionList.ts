@@ -3,6 +3,7 @@ import { Media } from './Media'
 import { Users } from './Users'
 import { Categories } from './Categories' // General categories, maybe split later?
 import { Tags } from './Tags' // General tags
+import { Notifications } from './Notifications'
 
 // Analytics
 import CourseAnalytics from './CourseAnalytics'
@@ -29,6 +30,13 @@ import { Modules } from './Modules'
 import { Lessons } from './Lessons'
 import { Resources } from './Resources' // Learning resources?
 import { Achievements } from './Achievements'
+import { UserAchievements } from './UserAchievements'
+import { CourseEnrollments } from './CourseEnrollments'
+import { LessonProgress } from './LessonProgress'
+import { Leaderboard } from './Leaderboard'
+import { Rewards } from './Rewards'
+import { UserRewards } from './UserRewards'
+import { Certificates } from './Certificates'
 import Templates from './Templates'
 import AutomationJobs from './AutomationJobs'
 
@@ -68,6 +76,7 @@ const collections = [
   Users,
   Categories,
   Tags,
+  Notifications,
 
   // Analytics
   CourseAnalytics,
@@ -94,6 +103,13 @@ const collections = [
   Lessons,
   Resources,
   Achievements,
+  UserAchievements,
+  CourseEnrollments,
+  LessonProgress,
+  Leaderboard,
+  Rewards,
+  UserRewards,
+  Certificates,
   Templates,
 
   // Automation

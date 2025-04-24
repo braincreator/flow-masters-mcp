@@ -9,6 +9,7 @@ import SuggestionChips from './SuggestionChips'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import './chat.css'
+import { useTranslations } from 'next-intl'
 
 type ChatContainerProps = {
   messages: MessageType[]
@@ -28,6 +29,7 @@ type ChatContainerProps = {
   messagesEndRef: RefObject<HTMLDivElement | null>
   maxRetries?: number
   enableTypingIndicator?: boolean
+  locale: string
 }
 
 const getBorderRadiusClass = (borderRadius: 'none' | 'small' | 'medium' | 'large') => {
@@ -54,7 +56,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   suggestions = [],
   onSuggestionClick,
   onButtonClick,
-  placeholder = 'Введите сообщение...',
+  placeholder: initialPlaceholder,
   theme = 'light',
   primaryColor = '#0070f3',
   height = 500,
@@ -63,7 +65,11 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   messagesEndRef,
   maxRetries = 3,
   enableTypingIndicator = true,
+  locale,
 }) => {
+  const t = useTranslations('Chat')
+  const placeholder = initialPlaceholder || t('inputPlaceholder')
+
   // Состояние для отслеживания попыток повторной отправки
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null)
 
@@ -151,6 +157,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
             onButtonClick={handleButtonClick}
             onQuickReplyClick={handleQuickReplyClick}
             onRetry={canRetry(message) ? handleRetry : undefined}
+            locale={locale}
           />
         ))}
 
@@ -169,7 +176,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
                 disabled={isLoading}
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
-                Повторить
+                {t('retryButton')}
               </Button>
             )}
           </div>

@@ -16,10 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 interface ManageSubscriptionsProps {
   userId: string
   locale?: string
+  storageKey?: string
 }
 
 // Статус подписки с цветом и локализованным названием
@@ -29,6 +32,7 @@ type StatusInfo = {
 }
 
 export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSubscriptionsProps) {
+  const t = useTranslations('ManageSubscriptions')
   const [subscriptions, setSubscriptions] = useState<
     Array<Subscription & { plan?: SubscriptionPlan }>
   >([])
@@ -48,7 +52,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
         const response = await fetch(`/api/v1/subscription/user/${userId}`)
 
         if (!response.ok) {
-          throw new Error('Не удалось загрузить подписки пользователя')
+          throw new Error(t('errorFetchSubscriptions'))
         }
 
         const data = await response.json()
@@ -78,91 +82,48 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
 
           setSubscriptions(subscriptionsWithPlans)
         } else {
-          throw new Error(data.error || 'Ошибка загрузки подписок')
+          throw new Error(data.error || t('errorFetchGeneric'))
         }
       } catch (error) {
         console.error('Error fetching user subscriptions:', error)
-        setError(error instanceof Error ? error.message : 'Произошла ошибка')
+        setError(error instanceof Error ? error.message : t('errorFetchGeneric'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchUserSubscriptions()
-  }, [userId])
+  }, [userId, t])
 
   // Локализованные статусы подписок
   const getStatusInfo = (status: string): StatusInfo => {
-    if (locale === 'ru') {
-      switch (status) {
-        case 'active':
-          return { label: 'Активна', color: 'bg-green-500' }
-        case 'paused':
-          return { label: 'Приостановлена', color: 'bg-amber-500' }
-        case 'canceled':
-          return { label: 'Отменена', color: 'bg-red-500' }
-        case 'expired':
-          return { label: 'Истекла', color: 'bg-gray-500' }
-        case 'failed':
-          return { label: 'Ошибка оплаты', color: 'bg-red-500' }
-        case 'pending':
-          return { label: 'Ожидает оплаты', color: 'bg-blue-500' }
-        default:
-          return { label: status, color: 'bg-gray-500' }
-      }
-    } else {
-      switch (status) {
-        case 'active':
-          return { label: 'Active', color: 'bg-green-500' }
-        case 'paused':
-          return { label: 'Paused', color: 'bg-amber-500' }
-        case 'canceled':
-          return { label: 'Canceled', color: 'bg-red-500' }
-        case 'expired':
-          return { label: 'Expired', color: 'bg-gray-500' }
-        case 'failed':
-          return { label: 'Payment Failed', color: 'bg-red-500' }
-        case 'pending':
-          return { label: 'Pending', color: 'bg-blue-500' }
-        default:
-          return { label: status, color: 'bg-gray-500' }
-      }
+    const statusKey = `status${status.charAt(0).toUpperCase() + status.slice(1)}`
+    const label = t.rich(statusKey, { default: status })
+    let color = 'bg-gray-500' // Default color
+
+    switch (status) {
+      case 'active':
+        color = 'bg-green-500'
+        break
+      case 'paused':
+        color = 'bg-amber-500'
+        break
+      case 'canceled':
+      case 'failed':
+        color = 'bg-red-500'
+        break
+      case 'pending':
+        color = 'bg-blue-500'
+        break
     }
+
+    return { label: label || status, color }
   }
 
   // Форматирование периода
   const formatPeriod = (period: string): string => {
-    if (locale === 'ru') {
-      switch (period) {
-        case 'daily':
-          return 'Ежедневно'
-        case 'weekly':
-          return 'Еженедельно'
-        case 'monthly':
-          return 'Ежемесячно'
-        case 'quarterly':
-          return 'Ежеквартально'
-        case 'annual':
-          return 'Ежегодно'
-        default:
-          return period
-      }
-    } else {
-      switch (period) {
-        case 'daily':
-          return 'Daily'
-        case 'weekly':
-          return 'Weekly'
-        case 'monthly':
-          return 'Monthly'
-        case 'quarterly':
-          return 'Quarterly'
-        case 'annual':
-          return 'Annual'
-        default:
-          return period
-      }
-    }
+    const periodKey = `period${period.charAt(0).toUpperCase() + period.slice(1)}`
+    return t.rich(periodKey, { default: period }) || period
   }
 
   // Форматирование даты
@@ -205,7 +166,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Ошибка при выполнении действия')
+        throw new Error(errorData.error || t('errorActionGeneric'))
       }
 
       // Обновляем список подписок
@@ -235,7 +196,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
       setSubscriptions(updatedSubscriptions)
     } catch (error) {
       console.error(`Error ${actionType} subscription:`, error)
-      setError(error instanceof Error ? error.message : 'Произошла ошибка')
+      setError(error instanceof Error ? error.message : t('errorActionGeneric'))
     } finally {
       setProcessingSubscriptionId(null)
       setSelectedSubscription(null)
@@ -250,39 +211,57 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
     setConfirmDialogOpen(true)
   }
 
+  // Заголовки и текст диалога
+  const getConfirmationDetails = () => {
+    if (!actionType) return { title: '', description: '', actionText: '' }
+    const title = t('confirmTitle')
+    const description = t(`confirmDescription${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`)
+    const actionText = t(`confirmAction${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`)
+    return { title, description, actionText }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary mr-2" />
+        <span>{t('loadingMessage')}</span>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-        <h3 className="text-xl font-semibold mb-2">
-          {locale === 'ru' ? 'Не удалось загрузить подписки' : 'Failed to load subscriptions'}
-        </h3>
-        <p className="text-muted-foreground">{error}</p>
-      </div>
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            {t('errorTitle')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{error}</p>
+        </CardContent>
+      </Card>
     )
   }
 
   if (subscriptions.length === 0) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold mb-2">
-          {locale === 'ru' ? 'У вас нет активных подписок' : 'You have no subscriptions'}
-        </h3>
-        <p className="text-muted-foreground">
-          {locale === 'ru'
-            ? 'Выберите план подписки, чтобы начать пользоваться всеми возможностями'
-            : 'Choose a subscription plan to start using all features'}
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('noSubscriptionsTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-4">
+            {t('noSubscriptionsDescription')}
+          </p>
+          <Button asChild>
+            <Link href={`/${locale}/account/subscriptions/new`}>
+              {t('browsePlansButton')}
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -290,12 +269,10 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold tracking-tight">
-          {locale === 'ru' ? 'Ваши подписки' : 'Your Subscriptions'}
+          {t('yourSubscriptionsTitle')}
         </h2>
         <p className="text-muted-foreground mt-2">
-          {locale === 'ru'
-            ? 'Управляйте своими подписками - приостанавливайте, возобновляйте или отменяйте их'
-            : 'Manage your subscriptions - pause, resume or cancel them'}
+          {t('manageSubscriptionsDescription')}
         </p>
       </div>
 
@@ -307,7 +284,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
             <Card key={subscription.id} className="flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <CardTitle>{subscription.plan?.name || 'Подписка'}</CardTitle>
+                  <CardTitle>{subscription.plan?.name || t('planLabel')}</CardTitle>
                   <Badge className={`${statusInfo.color} text-white`}>{statusInfo.label}</Badge>
                 </div>
                 <div className="mt-2">
@@ -327,7 +304,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                 <div className="space-y-3">
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">
-                      {locale === 'ru' ? 'Дата начала:' : 'Start date:'}
+                      {t('startDateLabel')}
                     </span>
                     <span className="text-sm ml-2">{formatDate(subscription.startDate)}</span>
                   </div>
@@ -335,7 +312,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                   {subscription.status === 'active' && (
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">
-                        {locale === 'ru' ? 'Следующий платеж:' : 'Next payment:'}
+                        {t('nextPaymentLabel')}
                       </span>
                       <span className="text-sm ml-2">
                         {formatDate(subscription.nextPaymentDate)}
@@ -346,7 +323,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                   {subscription.endDate && (
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">
-                        {locale === 'ru' ? 'Дата окончания:' : 'End date:'}
+                        {t('endDateLabel')}
                       </span>
                       <span className="text-sm ml-2">{formatDate(subscription.endDate)}</span>
                     </div>
@@ -354,7 +331,10 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                 </div>
               </CardContent>
 
-              <CardFooter className="flex gap-2">
+              <CardFooter className={cn(
+                "flex gap-2",
+                subscription.status === 'active' && "grid grid-cols-2"
+              )}>
                 {subscription.status === 'active' && (
                   <>
                     <Button
@@ -368,7 +348,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                       ) : (
                         <PauseCircle className="h-4 w-4 mr-2" />
                       )}
-                      {locale === 'ru' ? 'Приостановить' : 'Pause'}
+                      <span className="ml-2">{t('pauseButton')}</span>
                     </Button>
 
                     <Button
@@ -382,7 +362,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                       ) : (
                         <XCircle className="h-4 w-4 mr-2" />
                       )}
-                      {locale === 'ru' ? 'Отменить' : 'Cancel'}
+                      <span className="ml-2">{t('cancelButton')}</span>
                     </Button>
                   </>
                 )}
@@ -398,13 +378,13 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                     ) : (
                       <PlayCircle className="h-4 w-4 mr-2" />
                     )}
-                    {locale === 'ru' ? 'Возобновить' : 'Resume'}
+                    <span className="ml-2">{t('resumeButton')}</span>
                   </Button>
                 )}
 
                 {(subscription.status === 'canceled' || subscription.status === 'expired') && (
                   <Button className="w-full" variant="outline" disabled>
-                    {locale === 'ru' ? 'Подписка неактивна' : 'Subscription inactive'}
+                    {t('inactiveSubscription')}
                   </Button>
                 )}
 
@@ -416,7 +396,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                       /* Редирект на страницу оплаты */
                     }}
                   >
-                    {locale === 'ru' ? 'Обновить способ оплаты' : 'Update payment method'}
+                    {t('updatePaymentMethod')}
                   </Button>
                 )}
               </CardFooter>
@@ -428,33 +408,22 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {actionType === 'cancel' &&
-                (locale === 'ru' ? 'Отменить подписку?' : 'Cancel subscription?')}
-              {actionType === 'pause' &&
-                (locale === 'ru' ? 'Приостановить подписку?' : 'Pause subscription?')}
-              {actionType === 'resume' &&
-                (locale === 'ru' ? 'Возобновить подписку?' : 'Resume subscription?')}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{getConfirmationDetails().title}</AlertDialogTitle>
             <AlertDialogDescription>
-              {actionType === 'cancel' &&
-                (locale === 'ru'
-                  ? 'Подписка будет отменена, но вы сможете пользоваться услугами до окончания оплаченного периода.'
-                  : 'Your subscription will be canceled, but you can continue to use the service until the end of the paid period.')}
-              {actionType === 'pause' &&
-                (locale === 'ru'
-                  ? 'Подписка будет приостановлена, и с вас не будут списываться средства до её возобновления.'
-                  : 'Your subscription will be paused, and you will not be charged until you resume it.')}
-              {actionType === 'resume' &&
-                (locale === 'ru'
-                  ? 'Подписка будет возобновлена, и следующий платеж будет списан в соответствии с периодом подписки.'
-                  : 'Your subscription will be resumed, and the next payment will be charged according to the subscription period.')}
+              {getConfirmationDetails().description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{locale === 'ru' ? 'Отмена' : 'Cancel'}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAction}>
-              {locale === 'ru' ? 'Подтвердить' : 'Confirm'}
+            <AlertDialogCancel onClick={() => setConfirmDialogOpen(false)}>
+              {t('confirmCancelButton')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleAction}
+              disabled={processingSubscriptionId === selectedSubscription?.id}
+            >
+              {processingSubscriptionId === selectedSubscription?.id
+                ? t('processing')
+                : getConfirmationDetails().actionText}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

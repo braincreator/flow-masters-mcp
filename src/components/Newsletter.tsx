@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 interface NewsletterProps {
   title?: string
@@ -22,10 +23,10 @@ interface NewsletterProps {
 }
 
 export const Newsletter: React.FC<NewsletterProps> = ({
-  title = 'Subscribe to our newsletter',
-  description = 'Stay updated with our latest news and articles',
-  buttonText = 'Subscribe',
-  placeholderText = 'Enter your email',
+  title: initialTitle,
+  description: initialDescription,
+  buttonText: initialButtonText,
+  placeholderText: initialPlaceholderText,
   layout = 'stacked',
   variant = 'default',
   className,
@@ -34,9 +35,16 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   locale = 'en',
   errorMessage,
   successTitle,
-  successMessage,
+  successMessage: initialSuccessMessage,
   source = 'website',
 }) => {
+  const t = useTranslations('Newsletter')
+
+  const title = initialTitle || t('defaultTitle')
+  const description = initialDescription || t('defaultDescription')
+  const buttonText = initialButtonText || t('defaultButtonText')
+  const placeholderText = initialPlaceholderText || t('defaultPlaceholderText')
+
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,30 +53,12 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   const [isClient, setIsClient] = useState(false)
 
   const messages = {
-    error:
-      errorMessage ||
-      (locale === 'ru'
-        ? 'Пожалуйста, введите корректный email адрес'
-        : 'Please enter a valid email address'),
-    successTitle:
-      successTitle || (locale === 'ru' ? 'Спасибо за подписку!' : 'Thank you for subscribing!'),
-    successMessage:
-      successMessage ||
-      (locale === 'ru'
-        ? 'Мы отправили письмо с подтверждением на '
-        : "We've sent a confirmation email to "),
-    networkError:
-      locale === 'ru'
-        ? 'Ошибка сети при подписке. Пожалуйста, попробуйте позже.'
-        : 'Network error during subscription. Please try again later.',
-    serverError:
-      locale === 'ru'
-        ? 'Ошибка сервера при подписке. Пожалуйста, попробуйте позже.'
-        : 'Server error during subscription. Please try again later.',
-    alreadySubscribed:
-      locale === 'ru'
-        ? 'Этот email уже подписан на нашу рассылку.'
-        : 'This email is already subscribed to our newsletter.',
+    error: errorMessage || t('errorInvalidEmail'),
+    successTitle: successTitle || t('successTitle'),
+    successMessage: initialSuccessMessage || t('successMessage'),
+    networkError: t('errorNetwork'),
+    serverError: t('errorServer'),
+    alreadySubscribed: t('errorAlreadySubscribed'),
   }
 
   useEffect(() => {
@@ -100,8 +90,6 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     setIsSubmitting(true)
 
     try {
-      setLoading(true)
-      setError(null)
       const response = await fetch('/api/v1/newsletter/subscribe', {
         method: 'POST',
         headers: {
@@ -195,7 +183,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
                 isCompact ? 'px-3 py-1 text-sm' : 'px-4 py-2',
                 error && 'border-red-500 focus:ring-red-500/50',
               )}
-              aria-label="Email address"
+              aria-label={t('emailInputLabel')}
               disabled={isSubmitting}
             />
             {error && (
@@ -216,7 +204,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
             )}
             disabled={isSubmitting}
           >
-            {isSubmitting ? (locale === 'ru' ? 'Подписка...' : 'Subscribing...') : buttonText}
+            {isSubmitting ? t('submittingText') : buttonText}
           </button>
         </form>
       ) : (

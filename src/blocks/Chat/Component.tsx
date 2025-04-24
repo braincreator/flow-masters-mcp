@@ -6,6 +6,8 @@ import { BaseBlock } from '../BaseBlock/Component'
 import ChatContainer from '@/components/chat/ChatContainer'
 import { Message } from '@/types/chat'
 import { getRandomFallbackResponse } from '@/utilities/chat'
+import { parseJsonSafely } from '@/utils/jsonFixer'
+import { useTranslations } from 'next-intl'
 
 export type ChatProps = {
   heading?: string
@@ -567,7 +569,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
         buttons: [
           {
             id: `calendly-btn-${Date.now()}`,
-            text: 'Показать календарь',
+            text: useTranslations('Chat')('showCalendarButton'),
             value: 'показать календарь',
             style: 'primary',
           },
@@ -581,7 +583,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
       if (!calendlyConfig) {
         const errorMessage: Message = {
           id: `bot-error-${Date.now()}`,
-          content: 'Не удалось загрузить настройки календаря. Пожалуйста, попробуйте позже.',
+          content: useTranslations('Chat')('serverError'),
           sender: 'bot',
           timestamp: new Date(),
           senderName: botName,
@@ -682,26 +684,73 @@ export const ChatBlock: React.FC<ChatProps> = ({
           throw new Error(`Ошибка: ${response.status} - ${errorDetails.error || errorText}`)
         }
 
-        data = await response.json()
+        // Получаем ответ и проверяем его на валидность
+        const rawData = await response.text()
+
+        // Используем улучшенный парсер JSON
+        type ChatResponseData = {
+          status?: string
+          response?: string
+          type?: string
+          media?: any
+          card?: any
+          buttons?: any[]
+          quickReplies?: any[]
+          metadata?: Record<string, any>
+        }
+
+        const parsedData = parseJsonSafely<ChatResponseData>(rawData, {
+          status: 'success',
+          response: 'Не удалось получить ответ от сервера. Пожалуйста, попробуйте еще раз.',
+          type: 'text',
+        })
+
+        if (debugMode && parsedData) {
+          console.log('Полученный ответ:', parsedData)
+        }
+
+        data = parsedData
       }
 
       // Удаляем индикатор набора текста
       setMessages((prev) => prev.filter((msg) => msg.id !== typingIndicatorId))
 
       // Добавляем ответ бота в чат
+      // Проверяем, что data не null
+      if (!data) {
+        data = {
+          response: 'Не удалось получить ответ от сервера',
+          type: 'text',
+        }
+      }
+
+      // Приводим тип к строке, чтобы соответствовал MessageType
+      const messageType = (data.type as string) || 'text'
+
+      // Используем приведение типов для решения проблем с TypeScript
+      const responseData = data as unknown as {
+        response: string
+        type?: string
+        media?: any
+        card?: any
+        buttons?: any[]
+        quickReplies?: any[]
+        metadata?: Record<string, any>
+      }
+
       const botMessage: Message = {
         id: `bot-${Date.now()}`,
-        content: data.response,
+        content: responseData.response || 'Нет ответа',
         sender: 'bot',
         timestamp: new Date(),
         senderName: botName,
         avatar: botAvatar,
-        type: data.type || 'text',
-        media: data.media,
-        card: data.card,
-        buttons: data.buttons,
-        quickReplies: data.quickReplies,
-        metadata: data.metadata,
+        type: messageType as any, // Используем any для обхода проблем с типами
+        media: responseData.media,
+        card: responseData.card,
+        buttons: responseData.buttons,
+        quickReplies: responseData.quickReplies,
+        metadata: responseData.metadata,
       }
 
       setMessages((prev) => {
@@ -717,7 +766,8 @@ export const ChatBlock: React.FC<ChatProps> = ({
       // Удаляем индикатор набора текста
       setMessages((prev) => prev.filter((msg) => msg.id !== typingIndicatorId))
 
-      setError('Произошла ошибка при обработке запроса')
+      const t = useTranslations('Chat')
+      setError(t('errorMessage'))
 
       // Используем резервный ответ, если есть
       if (fallbackResponses.length > 0) {
@@ -775,6 +825,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
             borderRadius={borderRadius}
             showTimestamps={showTimestamps}
             messagesEndRef={messagesEndRef}
+            locale={typeof window !== 'undefined' ? window.navigator.language : 'en'}
             onButtonClick={(button) => {
               // Если нажата кнопка показа календаря
               if (button.value === 'показать календарь') {

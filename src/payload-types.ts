@@ -165,6 +165,8 @@ export interface Config {
     lessons: Lesson;
     resources: Resource;
     achievements: Achievement;
+    'course-enrollments': CourseEnrollment;
+    certificates: Certificate;
     templates: Template;
     'automation-jobs': AutomationJob;
     'forum-categories': ForumCategory;
@@ -222,6 +224,8 @@ export interface Config {
     lessons: LessonsSelect<false> | LessonsSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
+    'course-enrollments': CourseEnrollmentsSelect<false> | CourseEnrollmentsSelect<true>;
+    certificates: CertificatesSelect<false> | CertificatesSelect<true>;
     templates: TemplatesSelect<false> | TemplatesSelect<true>;
     'automation-jobs': AutomationJobsSelect<false> | AutomationJobsSelect<true>;
     'forum-categories': ForumCategoriesSelect<false> | ForumCategoriesSelect<true>;
@@ -3629,6 +3633,25 @@ export interface Course {
     | ReportEmbedBlock
     | ChatBlock
   )[];
+  /**
+   * Продукт, который нужно купить для доступа к курсу
+   */
+  product?: (string | null) | Product;
+  /**
+   * Как пользователи получают доступ к курсу
+   */
+  accessType?: ('paid' | 'free' | 'subscription') | null;
+  /**
+   * Как долго пользователи имеют доступ к курсу после покупки
+   */
+  accessDuration?: {
+    type?: ('unlimited' | 'limited') | null;
+    /**
+     * Количество единиц времени
+     */
+    duration?: number | null;
+    unit?: ('days' | 'weeks' | 'months' | 'years') | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -7599,6 +7622,14 @@ export interface Product {
    */
   productType: 'digital' | 'subscription' | 'service' | 'access';
   /**
+   * Is this product a course?
+   */
+  isCourse?: boolean | null;
+  /**
+   * Related course (if this is a course product)
+   */
+  course?: (string | null) | Course;
+  /**
    * URL to download the digital product (only visible after purchase)
    */
   downloadLink?: string | null;
@@ -10761,6 +10792,120 @@ export interface Lesson {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Tracks user enrollments and access to courses
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-enrollments".
+ */
+export interface CourseEnrollment {
+  id: string;
+  /**
+   * User who has access to the course
+   */
+  user: string | User;
+  /**
+   * Course the user has access to
+   */
+  course: string | Course;
+  /**
+   * Current status of the enrollment
+   */
+  status: 'active' | 'completed' | 'expired' | 'revoked';
+  /**
+   * When the user was enrolled in the course
+   */
+  enrolledAt: string;
+  /**
+   * When the enrollment expires (if applicable)
+   */
+  expiresAt?: string | null;
+  /**
+   * When the user completed the course (if applicable)
+   */
+  completedAt?: string | null;
+  /**
+   * Percentage of course completion (0-100)
+   */
+  progress?: number | null;
+  /**
+   * When the user last accessed the course
+   */
+  lastAccessedAt?: string | null;
+  /**
+   * How the user got access to this course
+   */
+  source?: ('purchase' | 'admin' | 'promotion' | 'subscription') | null;
+  /**
+   * Order that granted access to this course (if applicable)
+   */
+  orderId?: (string | null) | Order;
+  /**
+   * Administrative notes about this enrollment
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Course completion certificates
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "certificates".
+ */
+export interface Certificate {
+  id: string;
+  /**
+   * Unique identifier for the certificate
+   */
+  certificateId: string;
+  /**
+   * User who earned the certificate
+   */
+  user: string | User;
+  /**
+   * Name of the user as it appears on the certificate
+   */
+  userName: string;
+  /**
+   * Course the certificate is for
+   */
+  course: string | Course;
+  /**
+   * Title of the course as it appears on the certificate
+   */
+  courseTitle: string;
+  /**
+   * When the user completed the course
+   */
+  completionDate: string;
+  /**
+   * When the certificate was issued
+   */
+  issueDate: string;
+  /**
+   * Course instructor
+   */
+  instructor?: (string | null) | User;
+  /**
+   * Current status of the certificate
+   */
+  status: 'active' | 'revoked';
+  /**
+   * Additional metadata for the certificate
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "templates".
  */
@@ -12855,6 +13000,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'achievements';
         value: string | Achievement;
+      } | null)
+    | ({
+        relationTo: 'course-enrollments';
+        value: string | CourseEnrollment;
+      } | null)
+    | ({
+        relationTo: 'certificates';
+        value: string | Certificate;
       } | null)
     | ({
         relationTo: 'templates';
@@ -16437,6 +16590,8 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   productType?: T;
+  isCourse?: T;
+  course?: T;
   downloadLink?: T;
   subscriptionDetails?:
     | T
@@ -17097,6 +17252,15 @@ export interface CoursesSelect<T extends boolean = true> {
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
         chat?: T | ChatBlockSelect<T>;
       };
+  product?: T;
+  accessType?: T;
+  accessDuration?:
+    | T
+    | {
+        type?: T;
+        duration?: T;
+        unit?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -17623,6 +17787,43 @@ export interface AchievementsSelect<T extends boolean = true> {
   icon?: T;
   rarity?: T;
   pointsAwarded?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-enrollments_select".
+ */
+export interface CourseEnrollmentsSelect<T extends boolean = true> {
+  user?: T;
+  course?: T;
+  status?: T;
+  enrolledAt?: T;
+  expiresAt?: T;
+  completedAt?: T;
+  progress?: T;
+  lastAccessedAt?: T;
+  source?: T;
+  orderId?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "certificates_select".
+ */
+export interface CertificatesSelect<T extends boolean = true> {
+  certificateId?: T;
+  user?: T;
+  userName?: T;
+  course?: T;
+  courseTitle?: T;
+  completionDate?: T;
+  issueDate?: T;
+  instructor?: T;
+  status?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }

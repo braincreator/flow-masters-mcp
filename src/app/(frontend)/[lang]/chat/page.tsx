@@ -1,17 +1,35 @@
 import React from 'react'
 import { Metadata } from 'next'
 import { ChatBlock } from '@/blocks/Chat/Component'
+import { getTranslations } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Интерактивный чат | Flow Masters',
-  description: 'Интерактивный чат для общения и получения информации',
+interface Props {
+  params: {
+    lang: string
+  }
 }
 
-export default function ChatPage() {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = await Promise.resolve(params)
+  const t = await getTranslations({ locale: lang, namespace: 'chat' })
+
+  return {
+    title: t('metadata.title'),
+    description: t('metadata.description'),
+  }
+}
+
+export default async function ChatPage({ params }: Props) {
+  const { lang } = await Promise.resolve(params)
+  setRequestLocale(lang)
+
+  // Получаем переводы
+  const t = await getTranslations({ locale: lang, namespace: 'chat' })
   // Тестовые данные для демонстрации
   const chatData = {
-    heading: 'Интерактивный чат',
-    subheading: 'Задайте вопрос и получите ответ',
+    heading: t('heading'),
+    subheading: t('subheading'),
     description: {
       root: {
         children: [
@@ -22,7 +40,7 @@ export default function ChatPage() {
                 format: 0,
                 mode: 'normal',
                 style: '',
-                text: 'Этот чат поможет вам получить ответы на интересующие вопросы. Попробуйте задать вопрос о наших услугах или записаться на консультацию.',
+                text: t('description'),
                 type: 'text',
                 version: 1,
               },
@@ -60,7 +78,7 @@ export default function ChatPage() {
                   format: 0,
                   mode: 'normal',
                   style: '',
-                  text: 'Привет! Я интерактивный чат-бот. Могу ответить на ваши вопросы или помочь записаться на консультацию.',
+                  text: t('initialMessage'),
                   type: 'text',
                   version: 1,
                 },
@@ -79,25 +97,25 @@ export default function ChatPage() {
           version: 1,
         },
       },
-      placeholderText: 'Введите ваше сообщение...',
-      botName: 'Ассистент',
+      placeholderText: t('placeholderText'),
+      botName: t('botName'),
     },
     promptSuggestions: [
       {
-        text: 'Расскажи о ваших услугах',
-        description: 'Информация об услугах компании',
+        text: t('promptSuggestions.services.text'),
+        description: t('promptSuggestions.services.description'),
       },
       {
-        text: 'Как с вами связаться?',
-        description: 'Контактная информация',
+        text: t('promptSuggestions.contact.text'),
+        description: t('promptSuggestions.contact.description'),
       },
       {
-        text: 'Хочу записаться на консультацию',
-        description: 'Бронирование консультации',
+        text: t('promptSuggestions.booking.text'),
+        description: t('promptSuggestions.booking.description'),
       },
       {
-        text: 'Какие у вас есть продукты?',
-        description: 'Обзор продуктов',
+        text: t('promptSuggestions.products.text'),
+        description: t('promptSuggestions.products.description'),
       },
     ],
     fallbackResponses: [
@@ -112,7 +130,7 @@ export default function ChatPage() {
                     format: 0,
                     mode: 'normal',
                     style: '',
-                    text: 'Извините, в данный момент я не могу получить ответ от сервера. Попробуйте повторить запрос позже или свяжитесь с нами для получения дополнительной информации.',
+                    text: t('fallbackResponses.serverError'),
                     type: 'text',
                     version: 1,
                   },
@@ -143,7 +161,7 @@ export default function ChatPage() {
                     format: 0,
                     mode: 'normal',
                     style: '',
-                    text: 'Похоже, возникла техническая проблема. Наша команда уже работает над её устранением. Пожалуйста, попробуйте снова через несколько минут.',
+                    text: t('fallbackResponses.technicalIssue'),
                     type: 'text',
                     version: 1,
                   },
@@ -178,34 +196,11 @@ export default function ChatPage() {
       calendlySettingId: '6807ebb606a018fcfa243010', // ID настроек в коллекции CalendlySettings
       // Кнопка под чатом не нужна, так как календарь открывается через кнопку в чате
       showCalendlyButton: false,
-      buttonText: 'Забронировать консультацию',
+      buttonText: t('calendlySettings.buttonText'),
       // Слова-триггеры для автоматического предложения бронирования
-      bookingTriggerWords: [
-        // Основные триггерные слова
-        { word: 'записаться' },
-        { word: 'запись' },
-        { word: 'встреча' },
-        { word: 'встретиться' },
-        { word: 'бронирование' },
-        { word: 'забронировать' },
-        { word: 'консультация' },
-        // Дополнительные триггерные слова
-        { word: 'календарь' },
-        { word: 'расписание' },
-        { word: 'связаться' },
-        { word: 'связь' },
-        { word: 'звонок' },
-        { word: 'позвонить' },
-        { word: 'свободн' },
-        { word: 'доступн' },
-        { word: 'удобн' },
-        { word: 'помощь' },
-        { word: 'поддержк' },
-        { word: 'совет' },
-        { word: 'обсудить' },
-        { word: 'общение' },
-        { word: 'поговорить' },
-      ],
+      bookingTriggerWords: t('calendlySettings.bookingTriggerWords')
+        .split(',')
+        .map((word) => ({ word: word.trim() })),
       // Сообщение при запросе на бронирование
       bookingResponseMessage: {
         root: {
@@ -217,7 +212,7 @@ export default function ChatPage() {
                   format: 0,
                   mode: 'normal',
                   style: '',
-                  text: 'Вы можете забронировать консультацию, нажав на кнопку с иконкой календаря ниже:',
+                  text: t('calendlySettings.bookingResponseMessage'),
                   type: 'text',
                   version: 1,
                 },

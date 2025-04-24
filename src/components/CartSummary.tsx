@@ -5,6 +5,7 @@ import { formatPrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTranslations } from 'next-intl'
 
 interface CartSummaryProps {
   showItems?: boolean
@@ -12,6 +13,7 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
+  const t = useTranslations('CartSummary')
   const { items, total, itemCount, isLoading, error } = useCart(locale)
 
   if (isLoading) {
@@ -20,33 +22,29 @@ export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 text-destructive">
-        {locale === 'ru' ? 'Ошибка загрузки итогов' : 'Error loading summary'}
-      </div>
+      <div className="bg-white rounded-lg shadow p-4 text-destructive">{t('errorLoading')}</div>
     )
   }
 
   if (itemCount <= 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 text-muted-foreground">
-        {locale === 'ru' ? 'Корзина пуста' : 'Cart is empty'}
-      </div>
+      <div className="bg-white rounded-lg shadow p-4 text-muted-foreground">{t('emptyCart')}</div>
     )
   }
 
   const getProductTitle = (itemProduct: string | Product | null | undefined): string => {
     if (typeof itemProduct === 'object' && itemProduct?.title) {
       const title = itemProduct.title
-      return typeof title === 'object' ? title[locale] || title.en || 'Product' : title
+      return typeof title === 'object'
+        ? title[locale] || title.en || t('productFallbackTitle')
+        : title
     }
-    return 'Product'
+    return t('productFallbackTitle')
   }
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold mb-4">
-        {locale === 'ru' ? 'Итого заказа' : 'Order Summary'}
-      </h3>
+      <h3 className="text-lg font-semibold mb-4">{t('orderSummaryTitle')}</h3>
 
       {showItems && items.length > 0 && (
         <div className="space-y-2 mb-4">
@@ -73,11 +71,11 @@ export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
 
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span>{locale === 'ru' ? 'Товары' : 'Items'}</span>
+          <span>{t('itemsLabel')}</span>
           <span>{itemCount}</span>
         </div>
         <div className="flex justify-between font-semibold text-lg">
-          <span>{locale === 'ru' ? 'Итого' : 'Total'}</span>
+          <span>{t('totalLabel')}</span>
           <span>{formatPrice(total, locale)}</span>
         </div>
       </div>

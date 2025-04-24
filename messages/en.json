@@ -1,0 +1,468 @@
+{
+  "Account": {
+    "subscriptions": {
+      "metadata": {
+        "title": "Your Subscriptions",
+        "description": "Manage your subscription plans"
+      },
+      "title": "Subscriptions",
+      "description": "View and manage your active subscriptions or select a new subscription plan",
+      "tabs": {
+        "current": "Your Subscriptions",
+        "new": "Available Plans"
+      },
+      "notAuthenticated": {
+        "title": "Authentication Required",
+        "description": "Please login to view your subscriptions",
+        "loginButton": "Login"
+      },
+      "newSubscription": {
+        "heading": "Choose a Subscription Plan",
+        "description": "Select a plan that matches your needs"
+      }
+    }
+  },
+  "Subscription": {
+    "checkout": {
+      "metadata": {
+        "title": "Subscription Checkout",
+        "description": "Complete your subscription purchase"
+      },
+      "title": "Subscription Checkout",
+      "price": "Price",
+      "includedFeatures": "Included Features",
+      "trialPeriod": "Includes a free trial period of {days} days",
+      "paymentMethod": {
+        "title": "Payment Method",
+        "description": "Select your preferred payment method",
+        "provider": "Payment Provider",
+        "selectProvider": "Select a payment provider"
+      },
+      "terms": {
+        "agree": "I agree to the terms and conditions",
+        "description": "By subscribing, you agree to our terms of service and privacy policy"
+      },
+      "buttons": {
+        "subscribe": "Complete Subscription",
+        "processing": "Processing...",
+        "cancel": "Cancel"
+      },
+      "notAuthenticated": {
+        "title": "Authentication Required",
+        "description": "Please login to complete your subscription",
+        "loginButton": "Login"
+      },
+      "errors": {
+        "title": "An error occurred",
+        "planFetchFailed": "Failed to load subscription plan",
+        "invalidPlan": "The selected subscription plan is invalid",
+        "subscriptionFailed": "Failed to create subscription",
+        "unknown": "An unknown error occurred",
+        "backButton": "Back to plans"
+      },
+      "noPlan": {
+        "title": "No Plan Selected",
+        "description": "Please select a subscription plan to continue",
+        "browseButton": "Browse Plans"
+      },
+      "success": {
+        "title": "Subscription Created!",
+        "description": "Your subscription has been successfully created",
+        "redirectMessage": "You will be redirected to your subscriptions page",
+        "manageButton": "Manage Subscriptions"
+      }
+    },
+    "result": {
+      "metadata": {
+        "title": "Subscription Result",
+        "description": "Results of your subscription payment"
+      },
+      "loading": "Loading subscription details...",
+      "redirectMessage": "You will be redirected shortly...",
+      "success": {
+        "title": "Payment Successful",
+        "description": "Your subscription has been successfully activated"
+      },
+      "pending": {
+        "title": "Payment Processing",
+        "description": "Your payment is being processed. This may take a few moments."
+      },
+      "failed": {
+        "title": "Payment Failed",
+        "description": "There was an issue processing your payment. Please try again."
+      },
+      "unknown": {
+        "title": "Unknown Status",
+        "description": "We couldn't determine the status of your subscription"
+      },
+      "subscriptionDetails": {
+        "id": "Subscription ID",
+        "status": "Status",
+        "startDate": "Start Date",
+        "nextPayment": "Next Payment"
+      },
+      "errors": {
+        "title": "Error Loading Subscription",
+        "subscriptionFetchFailed": "Failed to load subscription details",
+        "invalidSubscription": "The subscription information is invalid",
+        "unknown": "An unknown error occurred"
+      },
+      "buttons": {
+        "viewSubscriptions": "View My Subscriptions",
+        "checkStatus": "Check Status",
+        "tryAgain": "Try Again",
+        "backToSubscriptions": "Back to Subscriptions"
+      }
+    }
+  },
+  "newsletterUnsubscribed": {
+    "title": "Successfully Unsubscribed",
+    "getMessage": "The address {email} has been successfully removed from our mailing list.",
+    "getMessageGeneric": "You have successfully unsubscribed from our newsletter.",
+    "noMoreEmails": "You will no longer receive news and offers from us.",
+    "resubscribePrompt": "If this was a mistake, you can subscribe again at any time.",
+    "resubscribeLink": "Subscribe again",
+    "goHome": "Go to Homepage",
+    "unsubscribedEmailLabel": "Unsubscribed email:"
+  },
+  "CalendlyWebhookInstructions": {
+    "title": "Setting up Calendly Webhooks",
+    "step1": "Login to your Calendly account",
+    "step2": "Navigate to the <strong>Integrations</strong> section",
+    "step3": "Select <strong>Webhooks</strong>",
+    "step4": "Click <strong>Create New Webhook</strong>",
+    "step5": "Save the webhook settings",
+    "envSetupTitle": "Setting up Environment Variables",
+    "checkWebhooksTitle": "Checking Webhooks Operation"
+  },
+  "AccountDashboard": {
+    "notAuthenticated": "Not Authenticated",
+    "loginButton": "Log In",
+    "description": "Manage your account and courses",
+    "tabs": {
+      "courses": "My Courses",
+      "achievements": "Achievements",
+      "rewards": "Rewards",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "achievementsCard": {
+      "title": "My Achievements",
+      "description": "Track your progress and unlock new achievements"
+    },
+    "leaderboardCard": {
+      "title": "Leaderboard",
+      "description": "See how you rank against other users"
+    },
+    "rewardsCard": {
+      "title": "My Rewards",
+      "description": "View and redeem your rewards"
+    },
+    "settingsCard": {
+      "title": "Account Settings",
+      "description": "Manage your account preferences"
+    }
+  },
+  "EnrolledCourses": {
+    "errorTitle": "Error",
+    "noCoursesTitle": "No Courses Yet",
+    "browseCoursesButton": "Browse Courses",
+    "noImagePlaceholder": "No image",
+    "progressLabel": "Progress",
+    "browseMoreButton": "Browse More Courses"
+  },
+  "NotificationCenter": {
+    "title": "Notifications",
+    "noNotifications": "No notifications"
+  },
+  "SubscriptionPlans": {
+    "errorLoading": "Failed to load subscription plans",
+    "notFoundTitle": "Subscription Plans Not Found",
+    "notFoundDescription": "There are currently no subscription plans available",
+    "noFeaturesDescription": "No feature description available"
+  },
+  "LessonProgress": {
+    "lessonCompleted": "Lesson completed",
+    "markAsViewed": "Mark as viewed"
+  },
+  "common": {
+    "home": "Home",
+    "about": "About",
+    "courses": "Courses",
+    "blog": "Blog",
+    "contact": "Contact",
+    "login": "Log In",
+    "register": "Sign Up",
+    "logout": "Log Out",
+    "account": "Account",
+    "search": "Search",
+    "back": "Back",
+    "settings": "Settings",
+    "leaderboard": "Leaderboard",
+    "userMenuLabel": "User menu",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "home": {
+    "title": "Flow Masters",
+    "subtitle": "Master your workflow with automation",
+    "cta": "Get Started"
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "description": "Welcome back! Log in to access your account.",
+      "button": "Log In",
+      "loading": "Logging in..."
+    },
+    "register": {
+      "title": "Create an Account",
+      "description": "Join our learning platform and get access to courses.",
+      "button": "Sign Up",
+      "loading": "Creating account..."
+    },
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "createAccount": "Create Account",
+    "loginSuccess": "Logged in successfully",
+    "registerSuccess": "Account created successfully",
+    "logoutSuccess": "Logged out successfully",
+    "placeholders": {
+      "email": "your.email@example.com",
+      "password": "••••••••",
+      "name": "John Doe"
+    },
+    "validation": {
+      "invalidEmail": "Please enter a valid email address",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "nameRequired": "Name must be at least 2 characters",
+      "passwordMismatch": "Passwords do not match",
+      "acceptTerms": "You must accept the terms and conditions"
+    },
+    "errors": {
+      "loginFailed": "Login failed",
+      "loginError": "An error occurred during login",
+      "registrationFailed": "Registration failed",
+      "registrationError": "An error occurred during registration",
+      "registrationSuccessLoginFailed": "Registration successful, but login failed. Please try logging in."
+    },
+    "terms": {
+      "agree": "I agree to the",
+      "termsOfService": "Terms of Service",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy"
+    }
+  },
+  "courses": {
+    "all": "All Courses",
+    "popular": "Popular Courses",
+    "new": "New Courses",
+    "freeCourses": "Free Courses",
+    "premium": "Premium Courses",
+    "enroll": "Enroll Now",
+    "continue": "Continue Learning",
+    "completed": "Completed",
+    "level": "Level",
+    "duration": "Duration",
+    "lessons": "Lessons",
+    "students": "Students",
+    "rating": "Rating",
+    "instructor": "Instructor",
+    "price": "Price",
+    "freeLabel": "Free",
+    "curriculum": "Curriculum",
+    "description": "Description",
+    "reviews": "Reviews",
+    "requirements": "Requirements",
+    "whatYouWillLearn": "What You Will Learn"
+  },
+  "blog": {
+    "all": "All Posts",
+    "popular": "Popular Posts",
+    "recent": "Recent Posts",
+    "categories": "Categories",
+    "tags": "Tags",
+    "readMore": "Read More",
+    "publishedOn": "Published on",
+    "by": "by",
+    "relatedPosts": "Related Posts"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "serverError": "Server error",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "invalidCredentials": "Invalid credentials",
+    "emailExists": "Email already exists",
+    "passwordMismatch": "Passwords do not match",
+    "requiredField": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordTooShort": "Password must be at least 6 characters"
+  },
+  "Newsletter": {
+    "defaultTitle": "Subscribe to our newsletter",
+    "defaultDescription": "Stay updated with our latest news and articles",
+    "defaultButtonText": "Subscribe",
+    "defaultPlaceholderText": "Enter your email",
+    "errorInvalidEmail": "Please enter a valid email address",
+    "successTitle": "Thank you for subscribing!",
+    "successMessage": "We've sent a confirmation email to ",
+    "errorNetwork": "Network error during subscription. Please try again later.",
+    "errorServer": "Server error during subscription. Please try again later.",
+    "errorAlreadySubscribed": "This email is already subscribed to our newsletter.",
+    "submittingText": "Subscribing...",
+    "emailInputLabel": "Email address"
+  },
+  "PaymentForm": {
+    "errorLoadingProviders": "Failed to load payment methods. Please try again later.",
+    "errorNoProviders": "Payment methods are temporarily unavailable",
+    "title": "Complete your payment",
+    "emailLabel": "Email for receipt",
+    "emailPlaceholder": "Your email",
+    "selectMethodLabel": "Select payment method",
+    "totalLabel": "Total:",
+    "proceedButton": "Proceed to payment",
+    "errorEmailRequired": "Please provide your email address",
+    "errorProviderRequired": "Please select a payment method",
+    "errorCartEmpty": "Your cart is empty",
+    "errorCheckoutFailed": "Failed to create payment",
+    "errorCheckoutFailedDefault": "Checkout failed",
+    "errorFetchProvidersFailed": "Failed to fetch payment providers"
+  },
+  "PaymentResult": {
+    "processingTitle": "Processing payment...",
+    "processingDescription": "Please wait while we verify your payment",
+    "processingWaitMessage": "Your payment is being processed. This may take a moment.",
+    "processingDoNotClose": "Please do not close this page.",
+    "successTitle": "Payment successful!",
+    "successOrderLabel": "Order: #{orderNumber}",
+    "successThankYou": "Thank you for your purchase!",
+    "successRedirect": "You will be redirected to the home page in 5 seconds...",
+    "successHomeButton": "Return to Home Page",
+    "errorTitle": "Payment failed",
+    "errorOrderLabel": "Order: #{orderNumber}",
+    "errorTryAgainButton": "Try Again",
+    "errorHomeButton": "Return to Home Page",
+    "errorMissingOrderInfo": "Missing order information",
+    "errorCancelledOrFailed": "Payment was cancelled or failed",
+    "errorStatusCheck": "An error occurred while checking payment status",
+    "errorVerificationFailed": "Payment verification failed",
+    "errorProcessingWait": "Payment is still processing, please wait",
+    "errorNotSuccessful": "Payment was not successful",
+    "errorVerifyStatus": "Could not verify payment status",
+    "successIconLabel": "Success",
+    "errorIconLabel": "Error"
+  },
+  "ManageSubscriptions": {
+    "errorFetchSubscriptions": "Failed to load user subscriptions",
+    "errorFetchGeneric": "An error occurred while loading subscriptions",
+    "errorActionGeneric": "Error performing action on subscription",
+    "loadingMessage": "Loading your subscriptions...",
+    "errorTitle": "Failed to load subscriptions",
+    "noSubscriptionsTitle": "You have no active subscriptions",
+    "noSubscriptionsDescription": "Choose a subscription plan to start using all features",
+    "browsePlansButton": "Browse Plans",
+    "planLabel": "Plan",
+    "statusLabel": "Status",
+    "priceLabel": "Price",
+    "startDateLabel": "Start date",
+    "nextPaymentLabel": "Next payment",
+    "trialEndsLabel": "Trial ends",
+    "manageSubscriptionLabel": "Manage subscription",
+    "pauseButton": "Pause",
+    "resumeButton": "Resume",
+    "cancelButton": "Cancel",
+    "confirmTitle": "Confirm action",
+    "confirmDescriptionCancel": "Your subscription will be canceled, but you can continue to use the service until the end of the paid period. Are you sure?",
+    "confirmDescriptionPause": "Your subscription will be paused, and you will not be charged until you resume it. Are you sure?",
+    "confirmDescriptionResume": "Your subscription will be resumed, and the next payment will be charged according to the subscription period. Are you sure?",
+    "confirmActionCancel": "Cancel Subscription",
+    "confirmActionPause": "Pause",
+    "confirmActionResume": "Resume",
+    "confirmCancelButton": "Cancel",
+    "processing": "Processing...",
+    "statusActive": "Active",
+    "statusPaused": "Paused",
+    "statusCanceled": "Canceled",
+    "statusExpired": "Expired",
+    "statusFailed": "Payment Failed",
+    "statusPending": "Pending",
+    "statusDefault": "Unknown Status",
+    "periodDaily": "Daily",
+    "periodWeekly": "Weekly",
+    "periodMonthly": "Monthly",
+    "periodQuarterly": "Quarterly",
+    "periodAnnual": "Annual",
+    "periodDefault": ""
+  },
+  "CookieConsentBanner": {
+    "message": "We use cookies to enhance your browsing experience. By continuing to use this site, you agree to our use of cookies. <a>Learn more</a>",
+    "necessaryButton": "Necessary Only",
+    "acceptAllButton": "Accept All"
+  },
+  "Chat": {
+    "inputPlaceholder": "Type a message...",
+    "retryButton": "Retry",
+    "imageAltDefault": "Image",
+    "videoTagNotSupported": "Your browser does not support the video tag.",
+    "audioTagNotSupported": "Your browser does not support the audio tag.",
+    "downloadFileDefaultName": "Download file",
+    "downloadButton": "Download",
+    "typingIndicator": "Typing...",
+    "errorMessage": "An error occurred while processing your request",
+    "sendButton": "Send",
+    "copyButton": "Copy",
+    "copiedButton": "Copied!",
+    "showCalendarButton": "Show calendar",
+    "bookConsultation": "Book a consultation",
+    "loadingMessage": "Loading...",
+    "networkError": "Network error. Please check your internet connection.",
+    "serverError": "Server error. Please try again later.",
+    "messageNotSent": "Message not sent",
+    "tryAgain": "Try again"
+  },
+  "chat": {
+    "metadata": {
+      "title": "Chat with Us",
+      "description": "Get instant answers to your questions through our AI-powered chat"
+    },
+    "heading": "Chat with Our Assistant",
+    "subheading": "Get quick answers to your questions",
+    "description": "Our AI assistant is here to help you with any questions you might have about our services, products, or how to get started.",
+    "initialMessage": "Hello! I'm your virtual assistant. How can I help you today?",
+    "placeholderText": "Type your message here...",
+    "botName": "Assistant",
+    "promptSuggestions": {
+      "services": {
+        "text": "What services do you offer?",
+        "description": "Learn about our services"
+      },
+      "contact": {
+        "text": "How can I contact you?",
+        "description": "Get our contact information"
+      },
+      "booking": {
+        "text": "I'd like to book a consultation",
+        "description": "Schedule a meeting with us"
+      },
+      "products": {
+        "text": "Tell me about your products",
+        "description": "Explore our product offerings"
+      }
+    },
+    "fallbackResponses": {
+      "serverError": "I'm sorry, but there seems to be a server error. Please try again later or contact our support team if the issue persists.",
+      "technicalIssue": "We're experiencing some technical difficulties right now. Please try again in a few minutes."
+    },
+    "calendlySettings": {
+      "buttonText": "Book a Consultation",
+      "bookingTriggerWords": "book,schedule,appointment,meeting,consultation",
+      "bookingResponseMessage": "I'd be happy to help you schedule a consultation! You can choose a convenient time from our calendar below:"
+    }
+  }
+}

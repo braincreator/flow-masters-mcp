@@ -3,8 +3,15 @@
 import { useState } from 'react'
 import { useCart } from '@/hooks/useCart'
 import { CartSummary } from '@/components/CartSummary'
+import { useTranslations } from 'next-intl'
+import { Locale } from '@/constants'
 
-export function Checkout() {
+interface CheckoutProps {
+  locale: Locale
+}
+
+export function Checkout({ locale }: CheckoutProps) {
+  const t = useTranslations('Checkout')
   const { cart, total } = useCart()
   const [paymentMethod, setPaymentMethod] = useState('yoomoney')
   const [loading, setLoading] = useState(false)
@@ -16,7 +23,7 @@ export function Checkout() {
       setLoading(true)
 
       if (cart.length === 0) {
-        throw new Error('Cart is empty')
+        throw new Error(t('errorCartEmpty'))
       }
 
       const response = await fetch('/api/v1/checkout', {
@@ -35,15 +42,15 @@ export function Checkout() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Checkout failed')
+        const errorData = await response.json()
+        throw new Error(errorData.message || t('errorCheckoutFailedDefault'))
       }
 
       const { paymentUrl } = await response.json()
       window.location.href = paymentUrl
     } catch (error) {
       console.error('Checkout error:', error)
-      setError(error instanceof Error ? error.message : 'Checkout failed')
+      setError(error instanceof Error ? error.message : t('errorCheckoutFailedDefault'))
     } finally {
       setLoading(false)
     }
@@ -52,10 +59,10 @@ export function Checkout() {
   return (
     <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Checkout</h2>
+        <h2 className="text-2xl font-bold mb-4">{t('title')}</h2>
 
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Select Payment Method</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('selectPaymentMethodTitle')}</h3>
           <div className="space-y-2">
             <label className="flex items-center p-3 border rounded hover:bg-gray-50">
               <input
@@ -65,7 +72,7 @@ export function Checkout() {
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="mr-2"
               />
-              <span>YooMoney</span>
+              <span>{t('paymentMethodYooMoney')}</span>
             </label>
             <label className="flex items-center p-3 border rounded hover:bg-gray-50">
               <input
@@ -75,7 +82,7 @@ export function Checkout() {
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="mr-2"
               />
-              <span>Robokassa</span>
+              <span>{t('paymentMethodRobokassa')}</span>
             </label>
           </div>
         </div>
@@ -87,12 +94,12 @@ export function Checkout() {
           disabled={loading || cart.length === 0}
           className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          {loading ? 'Processing...' : 'Proceed to Payment'}
+          {loading ? t('processingButton') : t('proceedButton')}
         </button>
       </div>
 
       <div>
-        <CartSummary />
+        <CartSummary locale={locale} />
       </div>
     </div>
   )

@@ -2,8 +2,10 @@
 
 import React from 'react'
 import { useConfig } from '@payloadcms/ui'
+import { useTranslations } from 'next-intl'
 
 export const WebhookInstructions: React.FC = () => {
+  const t = useTranslations('CalendlyWebhookInstructions')
   const { serverURL } = useConfig()
   const webhookUrl = `${serverURL}/api/v1/calendly-webhooks`
 
@@ -11,26 +13,20 @@ export const WebhookInstructions: React.FC = () => {
     <div
       style={{ margin: '20px 0', padding: '20px', backgroundColor: '#f7f7f7', borderRadius: '4px' }}
     >
-      <h2>Настройка вебхуков Calendly</h2>
+      <h2>{t('title')}</h2>
       <p>
         Для отслеживания статусов бронирований из Calendly, необходимо настроить вебхуки в панели
         администратора Calendly.
       </p>
 
-      <h3>Шаги настройки:</h3>
+      <h3>{t('stepsTitle')}</h3>
       <ol style={{ lineHeight: '1.6' }}>
-        <li>Войдите в свой аккаунт Calendly</li>
+        <li>{t('step1')}</li>
+        <li>{t('step2', { strong: (chunks) => <strong>{chunks}</strong> })}</li>
+        <li>{t('step3', { strong: (chunks) => <strong>{chunks}</strong> })}</li>
+        <li>{t('step4', { strong: (chunks) => <strong>{chunks}</strong> })}</li>
         <li>
-          Перейдите в раздел <strong>Integrations</strong>
-        </li>
-        <li>
-          Выберите <strong>Webhooks</strong>
-        </li>
-        <li>
-          Нажмите <strong>Create New Webhook</strong>
-        </li>
-        <li>
-          Введите URL вебхука:
+          {t('step5.part1')}
           <div
             style={{
               padding: '10px',
@@ -45,26 +41,26 @@ export const WebhookInstructions: React.FC = () => {
           </div>
         </li>
         <li>
-          Выберите события для отслеживания:
+          {t('step6.title')}
           <ul style={{ marginTop: '10px' }}>
             <li>
-              <strong>invitee.created</strong> - создание нового бронирования
+              <strong>invitee.created</strong> - {t('step6.eventCreated')}
             </li>
             <li>
-              <strong>invitee.canceled</strong> - отмена бронирования
+              <strong>invitee.canceled</strong> - {t('step6.eventCanceled')}
             </li>
             <li>
-              <strong>invitee.rescheduled</strong> - перенос бронирования
+              <strong>invitee.rescheduled</strong> - {t('step6.eventRescheduled')}
             </li>
             <li>
-              <strong>invitee_no_show.created</strong> - клиент не явился
+              <strong>invitee_no_show.created</strong> - {t('step6.eventNoShow')}
             </li>
           </ul>
         </li>
-        <li>Сохраните настройки вебхука</li>
+        <li>{t('step7')}</li>
       </ol>
 
-      <h3>Настройка переменных окружения</h3>
+      <h3>{t('envSetupTitle')}</h3>
       <p>
         Для безопасной работы вебхуков необходимо добавить секретный ключ в переменные окружения
         вашего проекта:
@@ -84,7 +80,7 @@ export const WebhookInstructions: React.FC = () => {
         Секретный ключ можно получить при создании вебхука в Calendly.
       </p>
 
-      <h3>Проверка работы вебхуков</h3>
+      <h3>{t('checkWebhooksTitle')}</h3>
       <p>
         После настройки вебхуков, создайте тестовое бронирование в Calendly и проверьте, что оно
         появилось в коллекции Bookings.

@@ -57,7 +57,12 @@ export class NotificationService extends BaseService {
     }
   }
 
-  async sendDigitalOrderStatusUpdate(orderData: { orderId: string; status: string; customerEmail?: string; downloadLinks?: string[] }): Promise<boolean> {
+  async sendDigitalOrderStatusUpdate(orderData: {
+    orderId: string
+    status: string
+    customerEmail?: string
+    downloadLinks?: string[]
+  }): Promise<boolean> {
     try {
       if (!orderData.orderId || !orderData.status) {
         console.error('Invalid order data for status update notification')
@@ -76,7 +81,7 @@ export class NotificationService extends BaseService {
       }
 
       // Получаем email клиента
-      const customerEmail = (order as any).customer || orderData.customerEmail;
+      const customerEmail = (order as any).customer || orderData.customerEmail
 
       // Отправляем уведомление в зависимости от статуса
       switch (orderData.status) {
@@ -192,5 +197,77 @@ export class NotificationService extends BaseService {
       sort: '-createdAt',
       ...options,
     })
+  }
+
+  /**
+   * Отправляет уведомление пользователю
+   * @param data Данные уведомления
+   */
+  async sendNotification(data: {
+    userId: string
+    title: string
+    message: string
+    type: string
+    link?: string
+    metadata?: Record<string, any>
+  }): Promise<any> {
+    try {
+      const notification = await this.payload.create({
+        collection: 'notifications',
+        data: {
+          user: data.userId,
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          isRead: false,
+          link: data.link,
+          metadata: data.metadata,
+        },
+      })
+
+      console.log(`Notification sent to user ${data.userId}: ${data.title}`)
+      return notification
+    } catch (error) {
+      console.error('Error sending notification:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Отмечает все уведомления пользователя как прочитанные
+   * @param userId ID пользователя
+   */
+  async markAllAsRead(userId: string): Promise<void> {
+    try {
+      // Получаем все непрочитанные уведомления пользователя
+      const notifications = await this.payload.find({
+        collection: 'notifications',
+        where: {
+          and: [
+            {
+              user: {
+                equals: userId,
+              },
+            },
+            {
+              isRead: {
+                equals: false,
+              },
+            },
+          ],
+        },
+        limit: 1000,
+      })
+
+      // Отмечаем каждое уведомление как прочитанное
+      for (const notification of notifications.docs) {
+        await this.markNotificationAsRead(notification.id)
+      }
+
+      console.log(`Marked all notifications as read for user ${userId}`)
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error)
+      throw error
+    }
   }
 }

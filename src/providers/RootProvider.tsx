@@ -8,6 +8,8 @@ import { I18nProvider } from '@/providers/I18n'
 import { Toaster } from 'sonner'
 import { PayloadAPIProvider } from '@/providers/payload'
 import { CurrencyProvider } from './CurrencyProvider'
+import { NextIntlClientProvider } from 'next-intl'
+import { useMessages } from 'next-intl'
 
 interface RootProviderProps {
   children: React.ReactNode
@@ -15,6 +17,8 @@ interface RootProviderProps {
 }
 
 export function RootProvider({ children, lang }: RootProviderProps) {
+  // Используем существующий провайдер I18n для обратной совместимости
+  // и добавляем NextIntlClientProvider для нового функционала
   return (
     <DropdownProvider>
       <ThemeProvider>

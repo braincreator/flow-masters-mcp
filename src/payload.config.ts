@@ -43,6 +43,9 @@ import { BroadcastReports } from './collections/BroadcastReports'
 import { NewsletterBroadcastJobData, SendToAllResult } from './jobs/types'
 import { processEmailCampaign } from './jobs/emailCampaign'
 import { checkScheduledEmailCampaigns } from './jobs/scheduledEmailCampaigns'
+import { checkExpiringRewards } from './jobs/checkExpiringRewards'
+import setupRewardsEndpoint from './endpoints/setup-rewards'
+// Используем строковый путь к компоненту для настройки наград
 
 import { ServiceRegistry } from '@/services/service.registry'
 
@@ -87,6 +90,10 @@ export default buildConfig({
           path: '/landing-generator',
           Component: '@/components/admin/LandingGeneratorView',
         },
+        setupRewards: {
+          path: '/admin/setup-rewards',
+          Component: '@/app/(admin)/admin/setup-rewards/page',
+        },
       },
     },
     nav: {
@@ -97,11 +104,11 @@ export default buildConfig({
         sections: [
           {
             label: 'Генератор лендингов',
-            url: '/admin/landing-generator',
+            url: '/landing-generator',
           },
           {
             label: 'Создание курса',
-            url: '/admin/course-creator',
+            url: '/course-creator',
           },
         ],
       },
@@ -109,7 +116,11 @@ export default buildConfig({
         sections: [
           {
             label: 'Email кампании',
-            url: '/admin/email-campaigns',
+            url: '/email-campaigns',
+          },
+          {
+            label: 'Настройка наград',
+            url: '/admin/setup-rewards',
           },
         ],
       },
@@ -117,7 +128,7 @@ export default buildConfig({
         sections: [
           {
             label: 'Аналитика курсов',
-            url: '/admin/analytics/courses',
+            url: '/analytics/courses',
           },
         ],
       },
@@ -340,6 +351,38 @@ export default buildConfig({
           attempts: 3,
         },
       },
+      // Expiring Rewards Check Task
+      {
+        slug: 'check-expiring-rewards',
+        handler: async (args) => {
+          const { req } = args
+          const payload = req.payload
+
+          try {
+            payload.logger.info('Starting expiring rewards check job')
+
+            await checkExpiringRewards()
+
+            return {
+              output: {
+                status: 'completed',
+              },
+            }
+          } catch (error) {
+            payload.logger.error('Failed to process expiring rewards check job', error)
+
+            return {
+              output: {
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              },
+            }
+          }
+        },
+        retries: {
+          attempts: 2,
+        },
+      },
     ],
     autoRun: [
       {
@@ -352,6 +395,14 @@ export default buildConfig({
         handler: async ({ payload }) => {
           payload.logger.info('Running scheduled email campaigns check')
           await checkScheduledEmailCampaigns()
+          return { success: true }
+        },
+      },
+      {
+        cron: '0 10 * * *', // Run every day at 10:00 AM
+        handler: async ({ payload }) => {
+          payload.logger.info('Running expiring rewards check')
+          await checkExpiringRewards()
           return { success: true }
         },
       },
@@ -456,6 +507,11 @@ export default buildConfig({
           res.status(500).send(`Error generating preview: ${error.message}`)
         }
       },
+    },
+    {
+      path: '/api/v1/setup-rewards',
+      method: 'post',
+      handler: setupRewardsEndpoint.handler,
     },
   ],
   graphQL: {

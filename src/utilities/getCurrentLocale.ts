@@ -1,6 +1,5 @@
 import { cookies, headers } from 'next/headers'
-import { SUPPORTED_LOCALES } from '@/constants'
-import type { Locale } from '@/types'
+import { SUPPORTED_LOCALES, type Locale } from '@/constants'
 
 export async function getCurrentLocale(): Promise<Locale> {
   try {
@@ -31,7 +30,7 @@ export async function getCurrentLocale(): Promise<Locale> {
 
     // Default fallback
     return 'ru'
-  } catch (error) {
+  } catch (_error) {
     // If we're on the client side or if headers/cookies are not available
     return 'ru'
   }

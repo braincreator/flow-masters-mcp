@@ -78,6 +78,33 @@ export const Users: CollectionConfig = {
           'Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.',
       },
     },
+    {
+      name: 'xp',
+      label: 'Очки опыта (XP)',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        position: 'sidebar',
+        description: 'Очки опыта пользователя, заработанные за достижения и активность',
+      },
+    },
+    {
+      name: 'level',
+      label: 'Уровень',
+      type: 'number',
+      defaultValue: 1,
+      min: 1,
+      admin: {
+        position: 'sidebar',
+        description: 'Текущий уровень пользователя, основанный на количестве XP',
+        readOnly: true,
+      },
+      access: {
+        create: () => false,
+        update: () => false,
+      },
+    },
   ],
   timestamps: true,
 }

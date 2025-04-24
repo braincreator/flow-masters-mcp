@@ -1,127 +1,590 @@
-"Account": {
-  "subscriptions": {
-    "metadata": {
-      "title": "Your Subscriptions",
-      "description": "Manage your subscription plans"
-    },
-    "title": "Subscriptions",
-    "description": "View and manage your active subscriptions or select a new subscription plan",
-    "tabs": {
-      "current": "Your Subscriptions",
-      "new": "Available Plans"
-    },
-    "notAuthenticated": {
-      "title": "Authentication Required",
-      "description": "Please login to view your subscriptions",
-      "loginButton": "Login"
-    },
-    "newSubscription": {
-      "heading": "Choose a Subscription Plan",
-      "description": "Select a plan that matches your needs"
-    }
-  }
-},
-
-"Subscription": {
-  "checkout": {
-    "metadata": {
-      "title": "Subscription Checkout",
-      "description": "Complete your subscription purchase"
-    },
-    "title": "Subscription Checkout",
-    "price": "Price",
-    "includedFeatures": "Included Features",
-    "trialPeriod": "Includes a free trial period of {days} days",
-    "paymentMethod": {
-      "title": "Payment Method",
-      "description": "Select your preferred payment method",
-      "provider": "Payment Provider",
-      "selectProvider": "Select a payment provider"
-    },
-    "terms": {
-      "agree": "I agree to the terms and conditions",
-      "description": "By subscribing, you agree to our terms of service and privacy policy"
-    },
-    "buttons": {
-      "subscribe": "Complete Subscription",
-      "processing": "Processing...",
-      "cancel": "Cancel"
-    },
-    "notAuthenticated": {
-      "title": "Authentication Required",
-      "description": "Please login to complete your subscription",
-      "loginButton": "Login"
-    },
-    "errors": {
-      "title": "An error occurred",
-      "planFetchFailed": "Failed to load subscription plan",
-      "invalidPlan": "The selected subscription plan is invalid",
-      "subscriptionFailed": "Failed to create subscription",
-      "unknown": "An unknown error occurred",
-      "backButton": "Back to plans"
-    },
-    "noPlan": {
-      "title": "No Plan Selected",
-      "description": "Please select a subscription plan to continue",
-      "browseButton": "Browse Plans"
-    },
-    "success": {
-      "title": "Subscription Created!",
-      "description": "Your subscription has been successfully created",
-      "redirectMessage": "You will be redirected to your subscriptions page",
-      "manageButton": "Manage Subscriptions"
+{
+  "Account": {
+    "subscriptions": {
+      "metadata": {
+        "title": "Your Subscriptions",
+        "description": "Manage your subscription plans"
+      },
+      "title": "Subscriptions",
+      "description": "View and manage your active subscriptions or select a new subscription plan",
+      "tabs": {
+        "current": "Your Subscriptions",
+        "new": "Available Plans"
+      },
+      "notAuthenticated": {
+        "title": "Authentication Required",
+        "description": "Please login to view your subscriptions",
+        "loginButton": "Login"
+      },
+      "newSubscription": {
+        "heading": "Choose a Subscription Plan",
+        "description": "Select a plan that matches your needs"
+      }
     }
   },
-  "result": {
-    "metadata": {
-      "title": "Subscription Result",
-      "description": "Results of your subscription payment"
+
+  "Subscription": {
+    "checkout": {
+      "metadata": {
+        "title": "Subscription Checkout",
+        "description": "Complete your subscription purchase"
+      },
+      "title": "Subscription Checkout",
+      "price": "Price",
+      "includedFeatures": "Included Features",
+      "trialPeriod": "Includes a free trial period of {days} days",
+      "paymentMethod": {
+        "title": "Payment Method",
+        "description": "Select your preferred payment method",
+        "provider": "Payment Provider",
+        "selectProvider": "Select a payment provider"
+      },
+      "terms": {
+        "agree": "I agree to the terms and conditions",
+        "description": "By subscribing, you agree to our terms of service and privacy policy"
+      },
+      "buttons": {
+        "subscribe": "Complete Subscription",
+        "processing": "Processing...",
+        "cancel": "Cancel"
+      },
+      "notAuthenticated": {
+        "title": "Authentication Required",
+        "description": "Please login to complete your subscription",
+        "loginButton": "Login"
+      },
+      "errors": {
+        "title": "An error occurred",
+        "planFetchFailed": "Failed to load subscription plan",
+        "invalidPlan": "The selected subscription plan is invalid",
+        "subscriptionFailed": "Failed to create subscription",
+        "unknown": "An unknown error occurred",
+        "backButton": "Back to plans"
+      },
+      "noPlan": {
+        "title": "No Plan Selected",
+        "description": "Please select a subscription plan to continue",
+        "browseButton": "Browse Plans"
+      },
+      "success": {
+        "title": "Subscription Created!",
+        "description": "Your subscription has been successfully created",
+        "redirectMessage": "You will be redirected to your subscriptions page",
+        "manageButton": "Manage Subscriptions"
+      }
     },
-    "loading": "Loading subscription details...",
-    "redirectMessage": "You will be redirected shortly...",
-    "success": {
-      "title": "Payment Successful",
-      "description": "Your subscription has been successfully activated"
+    "result": {
+      "metadata": {
+        "title": "Subscription Result",
+        "description": "Results of your subscription payment"
+      },
+      "loading": "Loading subscription details...",
+      "redirectMessage": "You will be redirected shortly...",
+      "success": {
+        "title": "Payment Successful",
+        "description": "Your subscription has been successfully activated"
+      },
+      "pending": {
+        "title": "Payment Processing",
+        "description": "Your payment is being processed. This may take a few moments."
+      },
+      "failed": {
+        "title": "Payment Failed",
+        "description": "There was an issue processing your payment. Please try again."
+      },
+      "unknown": {
+        "title": "Unknown Status",
+        "description": "We couldn't determine the status of your subscription"
+      },
+      "subscriptionDetails": {
+        "id": "Subscription ID",
+        "status": "Status",
+        "startDate": "Start Date",
+        "nextPayment": "Next Payment"
+      },
+      "errors": {
+        "title": "Error Loading Subscription",
+        "subscriptionFetchFailed": "Failed to load subscription details",
+        "invalidSubscription": "The subscription information is invalid",
+        "unknown": "An unknown error occurred"
+      },
+      "buttons": {
+        "viewSubscriptions": "View My Subscriptions",
+        "checkStatus": "Check Status",
+        "tryAgain": "Try Again",
+        "backToSubscriptions": "Back to Subscriptions"
+      }
+    }
+  },
+  "newsletterUnsubscribed": {
+    "title": "Successfully Unsubscribed",
+    "getMessage": "The address {email} has been successfully removed from our mailing list.",
+    "getMessageGeneric": "You have successfully unsubscribed from our newsletter.",
+    "noMoreEmails": "You will no longer receive news and offers from us.",
+    "resubscribePrompt": "If this was a mistake, you can subscribe again at any time.",
+    "resubscribeLink": "Subscribe again",
+    "goHome": "Go to Homepage",
+    "unsubscribedEmailLabel": "Unsubscribed email:"
+  },
+  "CalendlyWebhookInstructions": {
+    "title": "Setting up Calendly Webhooks",
+    "step1": "Login to your Calendly account",
+    "step2": "Navigate to the <strong>Integrations</strong> section",
+    "step3": "Select <strong>Webhooks</strong>",
+    "step4": "Click <strong>Create New Webhook</strong>",
+    "step5": "Save the webhook settings",
+    "envSetupTitle": "Setting up Environment Variables",
+    "checkWebhooksTitle": "Checking Webhooks Operation"
+  },
+  "AccountDashboard": {
+    "notAuthenticated": "Not Authenticated",
+    "loginButton": "Log In",
+    "description": "Manage your account and courses",
+    "tabs": {
+      "courses": "My Courses",
+      "achievements": "Achievements",
+      "rewards": "Rewards",
+      "profile": "Profile",
+      "settings": "Settings"
     },
-    "pending": {
-      "title": "Payment Processing",
-      "description": "Your payment is being processed. This may take a few moments."
+    "achievementsCard": {
+      "title": "My Achievements",
+      "description": "Track your progress and unlock new achievements"
     },
-    "failed": {
-      "title": "Payment Failed",
-      "description": "There was an issue processing your payment. Please try again."
+    "leaderboardCard": {
+      "title": "Leaderboard",
+      "description": "See how you rank against other users"
     },
-    "unknown": {
-      "title": "Unknown Status",
-      "description": "We couldn't determine the status of your subscription"
+    "rewardsCard": {
+      "title": "My Rewards",
+      "description": "View and redeem your rewards"
     },
-    "subscriptionDetails": {
-      "id": "Subscription ID",
-      "status": "Status",
-      "startDate": "Start Date",
-      "nextPayment": "Next Payment"
+    "settingsCard": {
+      "title": "Account Settings",
+      "description": "Manage your account preferences"
+    }
+  },
+  "EnrolledCourses": {
+    "errorTitle": "Error",
+    "noCoursesTitle": "No Courses Yet",
+    "browseCoursesButton": "Browse Courses",
+    "noImagePlaceholder": "No image",
+    "progressLabel": "Progress",
+    "browseMoreButton": "Browse More Courses"
+  },
+  "NotificationCenter": {
+    "title": "Notifications",
+    "noNotifications": "No notifications"
+  },
+  "SubscriptionPlans": {
+    "errorLoading": "Failed to load subscription plans",
+    "notFoundTitle": "Subscription Plans Not Found",
+    "notFoundDescription": "There are currently no subscription plans available",
+    "noFeaturesDescription": "No feature description available"
+  },
+  "LessonProgress": {
+    "lessonCompleted": "Lesson completed",
+    "markAsViewed": "Mark as viewed"
+  },
+  "common": {
+    "home": "Home",
+    "about": "About",
+    "courses": "Courses",
+    "blog": "Blog",
+    "contact": "Contact",
+    "login": "Log In",
+    "register": "Sign Up",
+    "logout": "Log Out",
+    "account": "Account",
+    "search": "Search",
+    "back": "Back"
+  },
+  "home": {
+    "title": "Flow Masters",
+    "subtitle": "Master your workflow with automation",
+    "cta": "Get Started"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "createAccount": "Create Account",
+    "loginSuccess": "Logged in successfully",
+    "registerSuccess": "Account created successfully",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "courses": {
+    "all": "All Courses",
+    "popular": "Popular Courses",
+    "new": "New Courses",
+    "freeCourses": "Free Courses",
+    "premium": "Premium Courses",
+    "enroll": "Enroll Now",
+    "continue": "Continue Learning",
+    "completed": "Completed",
+    "level": "Level",
+    "duration": "Duration",
+    "lessons": "Lessons",
+    "students": "Students",
+    "rating": "Rating",
+    "instructor": "Instructor",
+    "price": "Price",
+    "freeLabel": "Free",
+    "curriculum": "Curriculum",
+    "description": "Description",
+    "reviews": "Reviews",
+    "requirements": "Requirements",
+    "whatYouWillLearn": "What You Will Learn"
+  },
+  "blog": {
+    "all": "All Posts",
+    "popular": "Popular Posts",
+    "recent": "Recent Posts",
+    "categories": "Categories",
+    "tags": "Tags",
+    "readMore": "Read More",
+    "publishedOn": "Published on",
+    "by": "by",
+    "relatedPosts": "Related Posts"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "serverError": "Server error",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "invalidCredentials": "Invalid credentials",
+    "emailExists": "Email already exists",
+    "passwordMismatch": "Passwords do not match",
+    "requiredField": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordTooShort": "Password must be at least 6 characters"
+  },
+  "ProductFilters": {
+    "title": "Filters",
+    "searchLabel": "Search",
+    "categoriesLabel": "Categories",
+    "productTypesLabel": "Product Types",
+    "tagsLabel": "Tags",
+    "priceRangeLabel": "Price Range",
+    "sortLabel": "Sort",
+    "layoutLabel": "Layout",
+    "gridView": "Grid view",
+    "listView": "List view"
+  },
+  "Media": {
+    "videoUnavailable": "Video unavailable",
+    "imageUnavailable": "Image unavailable",
+    "pdfUnavailable": "PDF document unavailable",
+    "pdfPreviewError": "Failed to display PDF in browser",
+    "genericUnavailable": "Media unavailable"
+  },
+  "PaymentResult": {
+    "verifyingPayment": "Please wait while we verify your payment"
+  },
+  "CourseProgressBar": {
+    "label": "Course Progress"
+  },
+  "CourseAchievements": {
+    "title": "Course Achievements"
+  },
+  "LessonNavigation": {
+    "courseProgressLabel": "Course Progress",
+    "noLessons": "No lessons available"
+  },
+  "CourseCompletePage": {
+    "loginRequiredTitle": "Login Required",
+    "accessRestrictedTitle": "Access Restricted",
+    "recommendedCoursesTitle": "Recommended Courses"
+  },
+  "CourseLearnPage": {
+    "loginRequiredTitle": "Login Required",
+    "accessRestrictedTitle": "Access Restricted",
+    "yourProgressLabel": "Your Progress",
+    "tabContent": "Content",
+    "tabOverview": "Overview",
+    "tabNotes": "Notes",
+    "tabDiscussion": "Discussion"
+  },
+  "CourseNotes": {
+    "tabCurrentLesson": "Current Lesson",
+    "tabAllNotes": "All Notes"
+  },
+  "CourseOverview": {
+    "infoTitle": "Course Information",
+    "infoDescription": "Overview of the course details",
+    "aboutTitle": "About This Course",
+    "prerequisitesTitle": "Prerequisites"
+  },
+  "LessonViewer": {
+    "selectLessonPrompt": "Select a lesson to start learning",
+    "assignmentLabel": "Assignment",
+    "resourcesLabel": "Resources",
+    "additionalResourcesLabel": "Additional Resources"
+  },
+  "CourseCertificate": {
+    "title": "Certificate of Completion",
+    "certifiesThat": "This certifies that",
+    "successfullyCompleted": "has successfully completed the course",
+    "instructorTitle": "Course Instructor"
+  },
+  "BlogSocialShare": {
+    "shareLabel": "Share",
+    "facebookLabel": "Facebook",
+    "twitterLabel": "Twitter"
+  },
+  "UserLevel": {
+    "noLevelData": "No level data",
+    "statisticsTitle": "Statistics"
+  },
+  "PageRootComponent": {
+    "headerNotAvailable": "Header Not Available",
+    "footerNotAvailable": "Footer Not Available"
+  },
+  "NewsletterBlock": {
+    "emailPlaceholder": "Enter your email",
+    "emailAriaLabel": "Email address",
+    "submitButton": "Subscribe"
+  },
+  "TableOfContentsBlock": {
+    "ariaLabel": "Table of contents"
+  },
+  "LeadMagnetOfferBlock": {
+    "submitButton": "Download Now",
+    "successMessage": "Success! Check your email.",
+    "errorMessage": "An error occurred. Please try again."
+  },
+  "CarouselBlock": {
+    "previousSlideAriaLabel": "Previous slide",
+    "nextSlideAriaLabel": "Next slide"
+  },
+  "CodeBlock": {
+    "copyButton": "Copy",
+    "copiedButton": "Copied!"
+  },
+  "AudioBlock": {
+    "downloadAriaLabel": "Download audio"
+  },
+  "FAQBlock": {
+    "searchPlaceholder": "Search FAQs..."
+  },
+  "TestIntegrationComponent": {
+    "title": "Test Integration",
+    "dataLabel": "Test Data",
+    "successMessage": "Success!",
+    "errorMessage": "Error"
+  },
+  "AccountProfile": {
+    "changePasswordTitle": "Change Password",
+    "updateButton": "Update Profile",
+    "updatingButton": "Updating...",
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "An error occurred while updating your profile",
+    "updateFailedError": "Failed to update profile",
+    "validation": {
+      "invalidEmail": "Please enter a valid email address",
+      "passwordFieldsRequired": "All password fields are required to change password",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
+  },
+  "SubscriptionManagement": {
+    "cancelButton": "Cancel Subscription",
+    "updatePaymentButton": "Update Payment Method"
+  },
+  "UI": {
+    "Dialog": {
+      "confirmButton": "Confirm",
+      "cancelButton": "Cancel",
+      "defaultTitle": "Are you sure?"
     },
-    "errors": {
-      "title": "Error Loading Subscription",
-      "subscriptionFetchFailed": "Failed to load subscription details",
-      "invalidSubscription": "The subscription information is invalid",
-      "unknown": "An unknown error occurred"
+    "Toast": {
+      "successTitle": "Success",
+      "errorTitle": "Error",
+      "infoTitle": "Info",
+      "warningTitle": "Warning"
+    }
+  },
+  "Admin": {
+    "MetricsDashboard": {
+      "title": "Metrics Dashboard",
+      "users": "Users",
+      "courses": "Courses",
+      "revenue": "Revenue"
     },
-    "buttons": {
-      "viewSubscriptions": "View My Subscriptions",
-      "checkStatus": "Check Status",
-      "tryAgain": "Try Again",
-      "backToSubscriptions": "Back to Subscriptions"
+    "SetupRewardsPage": {
+      "pageTitle": "Reward System Setup",
+      "cardTitle": "Setup Tool",
+      "description1": "This tool will help you set up the initial reward system components:",
+      "item1": "Creating email templates for rewards",
+      "item2": "Setting up email campaigns for reward events",
+      "item3": "Configuring the reward automation system",
+      "setupButton": "Set Up Reward System",
+      "errorTitle": "Error",
+      "errorFailedSetup": "Failed to set up rewards system",
+      "errorUnknown": "An error occurred"
+    },
+    "CourseAnalyticsPage": {
+      "pageTitle": "Course Analytics",
+      "backButton": "Back to Courses"
+    },
+    "AllCoursesAnalyticsPage": {
+      "pageTitle": "Courses Analytics",
+      "addNewButton": "Add New Course"
+    },
+    "CategoryMigrationPage": {
+      "cardTitle": "Category Type Migration",
+      "successTitle": "Success",
+      "errorTitle": "Error",
+      "selectAll": {
+        "product": "Product Category",
+        "blog": "Blog Category",
+        "general": "General Category",
+        "none": "None"
+      },
+      "table": {
+        "title": "Title",
+        "slug": "Slug",
+        "currentType": "Current Type",
+        "newType": "New Type",
+        "nonePlaceholder": "None"
+      },
+      "saveButton": "Save Changes",
+      "savingButton": "Saving...",
+      "errorFetch": "Failed to fetch categories",
+      "errorUpdate": "Failed to update categories"
+    },
+    "EmailCampaignManagerPage": {
+      "pageTitle": "Email Campaign Manager"
+    },
+    "MonitoringPage": {
+      "pageTitle": "System Monitoring"
+    }
+  },
+  "TestBlocksPage": {
+    "pageTitle": "Test Content Blocks"
+  },
+  "FormBlock": {
+    "internalServerError": "Internal Server Error"
+  },
+  "BannerBlock": {
+    "dismiss": "Dismiss"
+  },
+  "TeamMembersBlock": {
+    "defaultHeading": "Our Team"
+  },
+  "API": {
+    "Validation": {
+      "userIdRequired": "User ID is required",
+      "courseIdRequired": "Course ID is required"
+    },
+    "Errors": {
+      "failedToCheckAccess": "Failed to check course access",
+      "failedToGenerateCertificate": "Failed to generate certificate",
+      "failedToGetCertificates": "Failed to get certificates",
+      "failedToSetupRewards": "Failed to set up rewards system",
+      "unknownError": "Unknown error"
+    }
+  },
+  "EnrollmentService": {
+    "defaultStudentName": "Student"
+  },
+  "PayloadAdmin": {
+    "Collections": {
+      "Promotions": {
+        "description": "Manage promotion codes and discounts",
+        "fields": {
+          "type": {
+            "percentage": "Percentage Discount",
+            "fixed": "Fixed Amount",
+            "buy_x_get_y": "Buy X Get Y"
+          },
+          "minPurchase": {
+            "description": "Minimum purchase amount required"
+          },
+          "maxDiscount": {
+            "description": "Maximum discount amount"
+          },
+          "usageLimit": {
+            "description": "Maximum number of times this code can be used"
+          },
+          "userLimit": {
+            "description": "Maximum times a single user can use this code"
+          },
+          "status": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "expired": "Expired"
+          },
+          "categories": {
+            "description": "Specific categories this promotion applies to"
+          }
+        }
+      },
+      "Discounts": {
+        "fields": {
+          "type": {
+            "percentage": "Percentage off",
+            "fixed": "Fixed amount off",
+            "shipping": "Free shipping"
+          },
+          "currency": {
+            "USD": "USD",
+            "EUR": "EUR"
+          }
+        }
+      }
+    },
+    "Endpoints": {
+      "SetupRewards": {
+        "rewardTemplateName": "General Reward Template",
+        "expiringTemplateName": "Expiring Reward Template",
+        "campaignDescription": "Sends a series of emails after a reward is received to increase engagement",
+        "unknownError": "Unknown error"
+      }
+    },
+    "Fields": {
+      "Slug": {
+        "label": "Slug",
+        "lockButtonUnlock": "Unlock",
+        "lockButtonLock": "Lock"
+      },
+      "Product": {
+        "featuresLabel": "Product Features",
+        "imageSingular": "Image",
+        "imagePlural": "Images",
+        "statusDraft": "Draft",
+        "statusPublished": "Published"
+      },
+      "Lexical": {
+        "urlRequired": "URL is required",
+        "appearance": {
+          "default": "Default",
+          "primary": "Primary",
+          "secondary": "Secondary",
+          "outline": "Outline",
+          "ghost": "Ghost",
+          "inline": "Inline"
+        }
+      },
+      "Hero": {
+        "typeNone": "None",
+        "typeHighImpact": "High Impact",
+        "typeMediumImpact": "Medium Impact",
+        "typeLowImpact": "Low Impact"
+      }
+    },
+    "Common": {
+      "adminGroup": "Admin"
+    }
+  },
+  "Plugins": {
+    "SEO": {
+      "defaultWebsiteTitle": "Payload Website Template"
     }
   }
-},
-"newsletterUnsubscribed": {
-  "title": "Successfully Unsubscribed",
-  "getMessage": "The address {email} has been successfully removed from our mailing list.",
-  "getMessageGeneric": "You have successfully unsubscribed from our newsletter.",
-  "noMoreEmails": "You will no longer receive news and offers from us.",
-  "resubscribePrompt": "If this was a mistake, you can subscribe again at any time.",
-  "resubscribeLink": "Subscribe again",
-  "goHome": "Go to Homepage",
-  "unsubscribedEmailLabel": "Unsubscribed email:"
-} 
+}

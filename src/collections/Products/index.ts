@@ -304,6 +304,24 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'isCourse',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Is this product a course?',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'course',
+      type: 'relationship',
+      relationTo: 'courses',
+      admin: {
+        description: 'Related course (if this is a course product)',
+        condition: (data) => data.isCourse === true,
+      },
+    },
+    {
       name: 'downloadLink',
       type: 'text',
       admin: {

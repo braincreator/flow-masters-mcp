@@ -1,0 +1,34 @@
+{
+  "name": "Reward Engagement Campaign",
+  "description": "Email campaign to encourage users to use their rewards",
+  "status": "draft",
+  "triggerType": "event",
+  "eventTrigger": {
+    "eventType": "reward.awarded",
+    "delay": 0,
+    "conditions": {}
+  },
+  "targetAudience": {
+    "audienceType": "event_related"
+  },
+  "emailSequence": [
+    {
+      "template": "reward-generic",
+      "delay": 0
+    },
+    {
+      "template": "reward-reminder-1",
+      "delay": 72,
+      "condition": {
+        "rewardStatus": "active"
+      }
+    },
+    {
+      "template": "reward-reminder-2",
+      "delay": 168,
+      "condition": {
+        "rewardStatus": "active"
+      }
+    }
+  ]
+}

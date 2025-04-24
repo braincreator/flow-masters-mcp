@@ -2,6 +2,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import createNextIntlPlugin from 'next-intl/plugin'
 
 // Импортируем пакеты, которые использовались через require.resolve
 import cryptoBrowserify from 'crypto-browserify'
@@ -166,4 +167,6 @@ const nextConfig = {
   },
 }
 
-export default withPayload(nextConfig)
+const withNextIntl = createNextIntlPlugin()
+
+export default withNextIntl(withPayload(nextConfig))

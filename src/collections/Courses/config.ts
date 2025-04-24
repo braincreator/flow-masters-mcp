@@ -105,19 +105,72 @@ export const Courses: CollectionConfig = {
       required: true,
       localized: true,
     },
-    // Дополнительные поля, если нужны:
-    // {
-    //   name: 'price',
-    //   type: 'number',
-    // },
-    // {
-    //   name: 'relatedProducts', // Связь с продуктами (если курс - это продукт)
-    //   type: 'relationship',
-    //   relationTo: 'products',
-    // },
-    // {
-    //   name: 'accessRules', // Правила доступа к курсу
-    //   type: 'group',
-    // }
+    {
+      name: 'product',
+      type: 'relationship',
+      relationTo: 'products',
+      label: 'Связанный продукт',
+      admin: {
+        description: 'Продукт, который нужно купить для доступа к курсу',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'accessType',
+      type: 'select',
+      label: 'Тип доступа',
+      options: [
+        { label: 'Платный', value: 'paid' },
+        { label: 'Бесплатный', value: 'free' },
+        { label: 'По подписке', value: 'subscription' },
+      ],
+      defaultValue: 'paid',
+      admin: {
+        position: 'sidebar',
+        description: 'Как пользователи получают доступ к курсу',
+      },
+    },
+    {
+      name: 'accessDuration',
+      type: 'group',
+      label: 'Длительность доступа',
+      admin: {
+        description: 'Как долго пользователи имеют доступ к курсу после покупки',
+        condition: (data) => data?.accessType === 'paid',
+      },
+      fields: [
+        {
+          name: 'type',
+          type: 'select',
+          options: [
+            { label: 'Неограниченный', value: 'unlimited' },
+            { label: 'Ограниченный период', value: 'limited' },
+          ],
+          defaultValue: 'unlimited',
+        },
+        {
+          name: 'duration',
+          type: 'number',
+          admin: {
+            description: 'Количество единиц времени',
+            condition: (data) => data?.type === 'limited',
+          },
+        },
+        {
+          name: 'unit',
+          type: 'select',
+          options: [
+            { label: 'Дни', value: 'days' },
+            { label: 'Недели', value: 'weeks' },
+            { label: 'Месяцы', value: 'months' },
+            { label: 'Годы', value: 'years' },
+          ],
+          defaultValue: 'months',
+          admin: {
+            condition: (data) => data?.type === 'limited',
+          },
+        },
+      ],
+    },
   ],
 }

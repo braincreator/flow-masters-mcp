@@ -3,7 +3,7 @@
 import React from 'react'
 import { PaymentStatus } from '@/types/constants'
 import { CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
 interface PaymentStatusProps {
@@ -77,17 +77,11 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({
 
         <div className="mt-6 space-x-4">
           {status === 'failed' && (
-            <Button
-              onClick={() => router.push(`/orders/${orderNumber}`)}
-              variant="primary"
-            >
+            <Button onClick={() => router.push(`/orders/${orderNumber}`)} variant="primary">
               Try Again
             </Button>
           )}
-          <Button
-            onClick={() => router.push('/orders')}
-            variant="secondary"
-          >
+          <Button onClick={() => router.push('/orders')} variant="secondary">
             View Orders
           </Button>
         </div>

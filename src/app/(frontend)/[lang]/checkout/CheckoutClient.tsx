@@ -48,6 +48,16 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Добавляем состояние для кода скидки
+  const [discountCode, setDiscountCode] = useState('')
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string
+    amount: number
+    percentage?: number
+  } | null>(null)
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false)
+  const [discountError, setDiscountError] = useState<string | null>(null)
+
   // No shipping address fields needed for digital products
 
   // Add state for selected crypto currency
@@ -114,6 +124,74 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     }
   }
 
+  const handleDiscountCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDiscountCode(e.target.value)
+    if (discountError) {
+      setDiscountError(null)
+    }
+  }
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError(locale === 'ru' ? 'Введите код скидки' : 'Enter a discount code')
+      return
+    }
+
+    setIsApplyingDiscount(true)
+    setDiscountError(null)
+
+    try {
+      const response = await fetch('/api/v1/discount/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: discountCode,
+          cartTotal: total,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to apply discount')
+      }
+
+      if (!data.isValid) {
+        setDiscountError(
+          data.message ||
+            (locale === 'ru' ? 'Недействительный код скидки' : 'Invalid discount code'),
+        )
+        return
+      }
+
+      setAppliedDiscount({
+        code: discountCode,
+        amount: data.discountAmount,
+        percentage: data.discountPercentage,
+      })
+
+      // Очищаем поле ввода после успешного применения
+      setDiscountCode('')
+    } catch (err) {
+      console.error('Error applying discount:', err)
+      setDiscountError(
+        err instanceof Error
+          ? err.message
+          : locale === 'ru'
+            ? 'Ошибка при применении скидки'
+            : 'Error applying discount',
+      )
+    } finally {
+      setIsApplyingDiscount(false)
+    }
+  }
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null)
+  }
+
   const handleCheckout = async () => {
     // Reset errors before checking
     setError(null)
@@ -174,6 +252,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         returnUrl: `${window.location.origin}/${locale}/payment/success`,
         ...(provider.id === 'crypto' && {
           selectedCurrency: selectedCryptoCurrency,
+        }),
+        ...(appliedDiscount && {
+          discount: {
+            code: appliedDiscount.code,
+            amount: appliedDiscount.amount,
+          },
         }),
       }
 
@@ -321,11 +405,79 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     </p>
                     <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
                   </div>
+
+                  {/* Discount code input */}
+                  <div className="mt-4 mb-2">
+                    <Label htmlFor="discount-code" className="text-sm">
+                      {locale === 'ru' ? 'Код скидки' : 'Discount code'}
+                    </Label>
+                    <div className="flex mt-1">
+                      <Input
+                        id="discount-code"
+                        type="text"
+                        placeholder={locale === 'ru' ? 'Введите код' : 'Enter code'}
+                        value={discountCode}
+                        onChange={handleDiscountCodeChange}
+                        className="rounded-r-none"
+                        disabled={isApplyingDiscount || !!appliedDiscount}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="rounded-l-none"
+                        onClick={handleApplyDiscount}
+                        disabled={isApplyingDiscount || !!appliedDiscount || !discountCode.trim()}
+                      >
+                        {isApplyingDiscount ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : locale === 'ru' ? (
+                          'Применить'
+                        ) : (
+                          'Apply'
+                        )}
+                      </Button>
+                    </div>
+                    {discountError && (
+                      <p className="text-sm text-destructive mt-1">{discountError}</p>
+                    )}
+                  </div>
+
+                  {/* Applied discount */}
+                  {appliedDiscount && (
+                    <div className="flex justify-between items-center text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                      <div className="flex items-center">
+                        <span className="font-medium text-green-700 dark:text-green-300">
+                          {locale === 'ru' ? 'Скидка' : 'Discount'}: {appliedDiscount.code}
+                          {appliedDiscount.percentage && ` (${appliedDiscount.percentage}%)`}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-medium text-green-700 dark:text-green-300 mr-2">
+                          -{formatPrice(appliedDiscount.amount, locale === 'ru' ? 'RUB' : 'USD')}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 rounded-full"
+                          onClick={handleRemoveDiscount}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* No shipping row needed for digital products */}
                   <div key="separator" className="border-t my-2" />
                   <div key="total" className="flex justify-between font-medium">
                     <p>{locale === 'ru' ? 'Итого' : 'Total'}</p>
-                    <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
+                    <p>
+                      {formatPrice(
+                        appliedDiscount ? total - appliedDiscount.amount : total,
+                        locale === 'ru' ? 'RUB' : 'USD',
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>

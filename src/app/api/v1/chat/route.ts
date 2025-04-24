@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { formatChatHistory, sanitizeMessage, containsProhibitedContent } from '@/utilities/chat'
+import { parseJsonSafely } from '@/utils/jsonFixer'
 
 // Схема валидации запроса
 const requestSchema = z
@@ -198,17 +199,26 @@ export async function POST(req: NextRequest) {
       const match = text.match(jsonRegex)
 
       if (match && match[1]) {
-        try {
-          // Пытаемся распарсить JSON
-          return JSON.parse(match[1])
-        } catch (e) {
-          console.error('Ошибка при парсинге JSON из markdown:', e)
+        // Используем улучшенный парсер JSON
+        const parsedJson = parseJsonSafely<ChatResponse>(match[1])
+        if (parsedJson) {
+          return parsedJson
+        } else {
+          console.error('Не удалось распарсить JSON из markdown даже с исправлениями')
           // Возвращаем оригинальный текст, если не удалось распарсить
           return text
         }
       }
 
-      // Если не нашли markdown code block, возвращаем исходный текст
+      // Проверяем, не является ли весь текст JSON-ом
+      if (text.trim().startsWith('{') && text.trim().endsWith('}')) {
+        const parsedJson = parseJsonSafely<ChatResponse>(text)
+        if (parsedJson) {
+          return parsedJson
+        }
+      }
+
+      // Если не нашли markdown code block или JSON, возвращаем исходный текст
       return text
     }
 

@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: string
   name: string
   email: string
+  role?: string
   avatar?: string
 }
 
@@ -13,57 +15,162 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  register: (userData: RegisterData) => Promise<void>
 }
 
-// Это заглушка для хука аутентификации
-// В реальном приложении здесь будет логика работы с сессией/JWT/cookies
+interface RegisterData {
+  name: string
+  email: string
+  password: string
+}
+
 export function useAuth(): AuthState {
-  const [state, setState] = useState<AuthState>({
+  const router = useRouter()
+  const [state, setState] = useState<Omit<AuthState, 'login' | 'logout' | 'register'>>({
     user: null,
     isAuthenticated: false,
     isLoading: true,
   })
 
-  useEffect(() => {
-    // Имитация проверки аутентификации
-    const checkAuth = async () => {
-      try {
-        // В реальном приложении здесь будет запрос к API для проверки токена/сессии
-        // Например: const response = await fetch('/api/auth/me')
+  const checkAuth = useCallback(async () => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true }))
 
-        // Имитация задержки запроса
-        await new Promise((resolve) => setTimeout(resolve, 500))
+      // Call Payload's /api/users/me endpoint to check authentication
+      const response = await fetch('/api/users/me', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      })
 
-        // Проверяем, есть ли в localStorage сохраненный пользователь
-        const storedUser = localStorage.getItem('current_user')
+      if (!response.ok) {
+        throw new Error('Not authenticated')
+      }
 
-        if (storedUser) {
-          const user = JSON.parse(storedUser)
-          setState({
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } else {
-          // Пользователь не авторизован
-          setState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-          })
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error)
+      const data = await response.json()
+
+      if (data && data.user) {
+        setState({
+          user: {
+            id: data.user.id,
+            name: data.user.name || '',
+            email: data.user.email,
+            role: data.user.role,
+            avatar: data.user.avatar?.url,
+          },
+          isAuthenticated: true,
+          isLoading: false,
+        })
+      } else {
         setState({
           user: null,
           isAuthenticated: false,
           isLoading: false,
         })
       }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
     }
+  }, [])
 
+  useEffect(() => {
     checkAuth()
   }, [])
 
-  return state
+  const login = async (email: string, password: string) => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true }))
+
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Login failed')
+      }
+
+      await checkAuth()
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
+
+  const logout = async () => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true }))
+
+      const response = await fetch('/api/users/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Logout failed')
+      }
+
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
+
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Logout failed:', error)
+      setState((prev) => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  const register = async (userData: RegisterData) => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true }))
+
+      // Register the user
+      const registerResponse = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...userData,
+          role: 'customer', // Default role for students
+        }),
+      })
+
+      if (!registerResponse.ok) {
+        const error = await registerResponse.json()
+        throw new Error(error.message || 'Registration failed')
+      }
+
+      // Log the user in after registration
+      await login(userData.email, userData.password)
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
+
+  return {
+    ...state,
+    login,
+    logout,
+    register,
+  }
 }

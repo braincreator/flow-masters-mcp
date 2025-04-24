@@ -14,6 +14,8 @@ import { cn } from '@/utilities/ui'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { Menu, X, ShoppingCart } from 'lucide-react'
 import { CartBadge } from '@/components/CartBadge'
+import { AuthNav } from '@/components/auth/AuthNav'
+import NotificationCenter from '@/components/Notifications/NotificationCenter'
 
 interface HeaderClientProps {
   data: Header
@@ -125,6 +127,8 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
             <div className="hidden md:flex items-center gap-4">
               <HeaderNav data={data} />
               <div className="flex items-center gap-2 ml-4 border-l border-border/40 pl-4">
+                <NotificationCenter />
+                <AuthNav />
                 <ThemeSelector />
                 <LanguageSwitcher />
                 <Link
@@ -173,6 +177,8 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
           <div className="container py-6">
             <HeaderNav data={data} mobile={true} />
             <div className="flex items-center justify-center gap-6 pt-6 mt-6 border-t border-border/40">
+              <NotificationCenter />
+              <AuthNav />
               <ThemeSelector />
               <LanguageSwitcher />
             </div>

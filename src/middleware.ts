@@ -2,11 +2,20 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 import { metricsCollector } from '@/utilities/payload/metrics'
+import createMiddleware from 'next-intl/middleware'
 
 // Move constants outside
 const SKIP_PATHS = ['/admin', '/_next', '/next/preview']
 const STATIC_FILE_REGEX = /\.[^/]+$/
 
+// Создаем middleware для next-intl
+const intlMiddleware = createMiddleware({
+  locales: SUPPORTED_LOCALES,
+  defaultLocale: DEFAULT_LOCALE,
+  localePrefix: 'as-needed',
+})
+
+// Наш основной middleware
 export function middleware(request: NextRequest) {
   const startTime = Date.now()
   const pathname = request.nextUrl.pathname
@@ -77,5 +86,8 @@ function redirectResponse(path: string, baseUrl: string, startTime: number) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    // Исключаем файлы и API маршруты
+    '/((?!api|_next|.*\\.).*)',
+  ],
 }

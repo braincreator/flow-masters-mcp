@@ -25,6 +25,8 @@ import {
   Send,
   Calendar,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Locale } from '@/constants'
 
 type MessageProps = {
   message: MessageType
@@ -33,6 +35,7 @@ type MessageProps = {
   onButtonClick?: (button: MessageButton) => void
   onQuickReplyClick?: (quickReply: MessageQuickReply) => void
   onRetry?: (messageId: string) => void
+  locale?: Locale
 }
 
 const Message: React.FC<MessageProps> = ({
@@ -42,9 +45,10 @@ const Message: React.FC<MessageProps> = ({
   onButtonClick,
   onQuickReplyClick,
   onRetry,
+  locale = 'ru',
 }) => {
+  const t = useTranslations('Chat')
   const isBot = message.sender === 'bot'
-  const locale = typeof window !== 'undefined' ? window.navigator.language : 'ru'
   const dateLocale = locale.startsWith('ru') ? ru : enUS
 
   // Форматирование времени
@@ -100,7 +104,7 @@ const Message: React.FC<MessageProps> = ({
           <div className="rounded-lg overflow-hidden my-3 shadow-sm">
             <Image
               src={media.url}
-              alt={media.altText || 'Image'}
+              alt={media.altText || t('imageAltDefault')}
               width={media.width || 300}
               height={media.height || 200}
               className="w-full h-auto object-cover"
@@ -116,7 +120,7 @@ const Message: React.FC<MessageProps> = ({
               poster={media.thumbnailUrl}
               className="w-full max-h-[300px]"
             >
-              Your browser does not support the video tag.
+              {t('videoTagNotSupported')}
             </video>
           </div>
         )
@@ -124,7 +128,7 @@ const Message: React.FC<MessageProps> = ({
         return (
           <div className="my-3 rounded-lg overflow-hidden shadow-sm">
             <audio src={media.url} controls className="w-full p-2 bg-muted/30">
-              Your browser does not support the audio tag.
+              {t('audioTagNotSupported')}
             </audio>
           </div>
         )
@@ -132,14 +136,16 @@ const Message: React.FC<MessageProps> = ({
         return (
           <div className="flex items-center gap-3 p-3 border rounded-lg shadow-sm my-3">
             <Download className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm flex-grow truncate">{media.fileName || 'Download file'}</span>
+            <span className="text-sm flex-grow truncate">
+              {media.fileName || t('downloadFileDefaultName')}
+            </span>
             <Button
               size="sm"
               variant="outline"
               className="chat-button"
               onClick={() => window.open(media.url, '_blank')}
             >
-              Download
+              {t('downloadButton')}
             </Button>
           </div>
         )
@@ -179,7 +185,7 @@ const Message: React.FC<MessageProps> = ({
       if (button.icon) return button.icon
 
       // Специальная обработка для кнопки Calendly
-      if (button.value === 'показать календарь') {
+      if (button.value === 'показать календарь' || button.value === 'show calendar') {
         return <Calendar className="h-4 w-4 mr-1" />
       }
 
@@ -252,7 +258,7 @@ const Message: React.FC<MessageProps> = ({
           <div className="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden mr-3 mt-1">
             <Image
               src={typeof message.avatar === 'string' ? message.avatar : message.avatar.url}
-              alt={message.senderName || (isBot ? 'Бот' : 'Пользователь')}
+              alt={message.senderName || (isBot ? 'Bot' : 'User')}
               width={32}
               height={32}
               className="h-full w-full object-cover"
@@ -291,7 +297,29 @@ const Message: React.FC<MessageProps> = ({
                   message.type === 'markdown' ? (
                     <MarkdownRenderer content={message.content} />
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {/* Проверяем, не является ли содержимое JSON-строкой */}
+                      {(() => {
+                        try {
+                          // Проверяем, похоже ли содержимое на JSON
+                          if (
+                            message.content.trim().startsWith('{') &&
+                            message.content.trim().endsWith('}')
+                          ) {
+                            // Пытаемся преобразовать в объект и получить поле response
+                            const parsed = JSON.parse(message.content)
+                            if (parsed && typeof parsed === 'object' && parsed.response) {
+                              return parsed.response
+                            }
+                          }
+                          // Если не удалось распарсить или нет поля response, возвращаем исходный текст
+                          return message.content
+                        } catch (e) {
+                          // В случае ошибки возвращаем исходный текст
+                          return message.content
+                        }
+                      })()}
+                    </p>
                   )
                 ) : (
                   <RichText data={message.content} />
@@ -331,7 +359,7 @@ const Message: React.FC<MessageProps> = ({
                   size="icon"
                   className="h-5 w-5 ml-1"
                   onClick={() => onRetry(message.id)}
-                  title="Повторить отправку"
+                  title={t('retryButton')}
                 >
                   <Send className="h-3 w-3" />
                 </Button>

@@ -4,6 +4,7 @@ import React, { useState, KeyboardEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Send } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type ChatInputProps = {
   onSendMessage: (message: string) => void
@@ -15,9 +16,11 @@ type ChatInputProps = {
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   isLoading,
-  placeholder = 'Введите сообщение...',
+  placeholder: initialPlaceholder,
   primaryColor = '#0070f3',
 }) => {
+  const t = useTranslations('Chat')
+  const placeholder = initialPlaceholder || t('inputPlaceholder')
   const [message, setMessage] = useState('')
 
   const handleSend = () => {
@@ -50,6 +53,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         size="icon"
         className="rounded-full shadow-sm transition-all duration-200 hover:shadow-md"
         style={{ backgroundColor: primaryColor }}
+        aria-label={t('sendButton')}
       >
         <Send className="h-4 w-4" />
       </Button>

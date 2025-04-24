@@ -14,12 +14,14 @@ import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/utilities/ui'
+import { useTranslations } from 'next-intl'
 
 interface CartProps {
   locale: Locale
 }
 
 export function Cart({ locale }: CartProps) {
+  const t = useTranslations('Cart')
   const { cart, items, itemCount, total, isLoading, error, remove, update, clear, mutateCart } =
     useCart(locale)
 
@@ -34,15 +36,10 @@ export function Cart({ locale }: CartProps) {
   if (error) {
     return (
       <Card className="text-center py-12 text-destructive">
-        <h2 className="text-2xl font-bold mb-4">
-          {locale === 'ru' ? 'Ошибка загрузки корзины' : 'Error loading cart'}
-        </h2>
-        <p>
-          {error.message ||
-            (locale === 'ru' ? 'Попробуйте обновить страницу' : 'Please try refreshing the page.')}
-        </p>
+        <h2 className="text-2xl font-bold mb-4">{t('errorTitle')}</h2>
+        <p>{error.message || t('errorDescriptionDefault')}</p>
         <Button onClick={() => mutateCart()} variant="outline" className="mt-4">
-          {locale === 'ru' ? 'Попробовать снова' : 'Try Again'}
+          {t('tryAgainButton')}
         </Button>
       </Card>
     )
@@ -51,13 +48,9 @@ export function Cart({ locale }: CartProps) {
   if (!cart || items.length === 0) {
     return (
       <Card className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">
-          {locale === 'ru' ? 'Ваша корзина пуста' : 'Your cart is empty'}
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">{t('emptyTitle')}</h2>
         <Button asChild variant="default">
-          <Link href={`/${locale}/products`}>
-            {locale === 'ru' ? 'Продолжить покупки →' : 'Continue Shopping →'}
-          </Link>
+          <Link href={`/${locale}/products`}>{t('continueShoppingButton')}</Link>
         </Button>
       </Card>
     )
@@ -99,9 +92,11 @@ export function Cart({ locale }: CartProps) {
   const getProductTitle = (itemProduct: string | Product | null | undefined): string => {
     if (typeof itemProduct === 'object' && itemProduct?.title) {
       const title = itemProduct.title
-      return typeof title === 'object' ? title[locale] || title.en || 'Product' : title
+      return typeof title === 'object'
+        ? title[locale] || title.en || t('productFallbackTitle')
+        : title
     }
-    return 'Product'
+    return t('productFallbackTitle')
   }
 
   const getProductSlug = (itemProduct: string | Product | null | undefined): string | null => {
@@ -176,7 +171,7 @@ export function Cart({ locale }: CartProps) {
                     onChange={(e) => handleQuantityChange(productId, e.target.value)}
                     className="w-20"
                     disabled={isUpdating}
-                    aria-label={locale === 'ru' ? 'Количество' : 'Quantity'}
+                    aria-label={t('quantityLabel')}
                   />
                   <Button
                     variant="ghost"
@@ -184,7 +179,7 @@ export function Cart({ locale }: CartProps) {
                     onClick={() => handleRemoveClick(productId)}
                     className="text-destructive hover:text-destructive/90"
                     disabled={isUpdating}
-                    aria-label={locale === 'ru' ? 'Удалить товар' : 'Remove item'}
+                    aria-label={t('removeItemLabel')}
                   >
                     {isUpdating && updatingItemId === productId ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -205,34 +200,28 @@ export function Cart({ locale }: CartProps) {
 
       <Card className="p-6">
         <div className="flex justify-between text-xl font-bold mb-4">
-          <span>{locale === 'ru' ? 'Итого:' : 'Total:'}</span>
+          <span>{t('totalLabel')}</span>
           <span>{formatPrice(total, locale)}</span>
         </div>
 
         <Button className="w-full" size="lg" asChild>
-          <Link href={`/${locale}/checkout`}>
-            {locale === 'ru' ? 'Перейти к оформлению заказа' : 'Proceed to Checkout'}
-          </Link>
+          <Link href={`/${locale}/checkout`}>{t('checkoutButton')}</Link>
         </Button>
       </Card>
 
       <ModalDialog
         isOpen={removeModalOpen}
         onClose={() => setRemoveModalOpen(false)}
-        title={locale === 'ru' ? 'Удалить товар' : 'Remove Item'}
-        description={
-          locale === 'ru'
-            ? 'Вы уверены, что хотите удалить этот товар из корзины?'
-            : 'Are you sure you want to remove this item from your cart?'
-        }
+        title={t('removeModalTitle')}
+        description={t('removeModalDescription')}
         actions={[
           {
-            label: locale === 'ru' ? 'Отмена' : 'Cancel',
+            label: t('cancelButton'),
             onClick: () => setRemoveModalOpen(false),
             variant: 'outline',
           },
           {
-            label: locale === 'ru' ? 'Удалить' : 'Remove',
+            label: t('removeButton'),
             onClick: confirmRemove,
             variant: 'destructive',
           },

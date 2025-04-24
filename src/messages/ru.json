@@ -1,127 +1,560 @@
-"Account": {
-  "subscriptions": {
-    "metadata": {
-      "title": "Ваши подписки",
-      "description": "Управление планами подписок"
-    },
-    "title": "Подписки",
-    "description": "Просмотр и управление вашими активными подписками или выбор нового плана",
-    "tabs": {
-      "current": "Ваши подписки",
-      "new": "Доступные планы"
-    },
-    "notAuthenticated": {
-      "title": "Требуется авторизация",
-      "description": "Пожалуйста, войдите в систему для просмотра ваших подписок",
-      "loginButton": "Войти"
-    },
-    "newSubscription": {
-      "heading": "Выберите план подписки",
-      "description": "Выберите план, соответствующий вашим потребностям"
-    }
-  }
-},
-
-"Subscription": {
-  "checkout": {
-    "metadata": {
-      "title": "Оформление подписки",
-      "description": "Завершите покупку подписки"
-    },
-    "title": "Оформление подписки",
-    "price": "Цена",
-    "includedFeatures": "Включенные функции",
-    "trialPeriod": "Включает бесплатный пробный период {days} дней",
-    "paymentMethod": {
-      "title": "Способ оплаты",
-      "description": "Выберите предпочтительный способ оплаты",
-      "provider": "Платежная система",
-      "selectProvider": "Выберите платежную систему"
-    },
-    "terms": {
-      "agree": "Я согласен с условиями и положениями",
-      "description": "Подписываясь, вы соглашаетесь с нашими условиями обслуживания и политикой конфиденциальности"
-    },
-    "buttons": {
-      "subscribe": "Оформить подписку",
-      "processing": "Обработка...",
-      "cancel": "Отмена"
-    },
-    "notAuthenticated": {
-      "title": "Требуется авторизация",
-      "description": "Пожалуйста, войдите в систему для оформления подписки",
-      "loginButton": "Войти"
-    },
-    "errors": {
-      "title": "Произошла ошибка",
-      "planFetchFailed": "Не удалось загрузить план подписки",
-      "invalidPlan": "Выбранный план подписки недействителен",
-      "subscriptionFailed": "Не удалось оформить подписку",
-      "unknown": "Произошла неизвестная ошибка",
-      "backButton": "Вернуться к планам"
-    },
-    "noPlan": {
-      "title": "План не выбран",
-      "description": "Пожалуйста, выберите план подписки для продолжения",
-      "browseButton": "Просмотреть планы"
-    },
-    "success": {
-      "title": "Подписка оформлена!",
-      "description": "Ваша подписка успешно оформлена",
-      "redirectMessage": "Вы будете перенаправлены на страницу подписок",
-      "manageButton": "Управление подписками"
+{
+  "Account": {
+    "subscriptions": {
+      "metadata": {
+        "title": "Ваши подписки",
+        "description": "Управление планами подписок"
+      },
+      "title": "Подписки",
+      "description": "Просмотр и управление вашими активными подписками или выбор нового плана",
+      "tabs": {
+        "current": "Ваши подписки",
+        "new": "Доступные планы"
+      },
+      "notAuthenticated": {
+        "title": "Требуется авторизация",
+        "description": "Пожалуйста, войдите в систему для просмотра ваших подписок",
+        "loginButton": "Войти"
+      },
+      "newSubscription": {
+        "heading": "Выберите план подписки",
+        "description": "Выберите план, соответствующий вашим потребностям"
+      }
     }
   },
-  "result": {
-    "metadata": {
-      "title": "Результат подписки",
-      "description": "Результаты платежа за подписку"
+
+  "Subscription": {
+    "checkout": {
+      "metadata": {
+        "title": "Оформление подписки",
+        "description": "Завершите покупку подписки"
+      },
+      "title": "Оформление подписки",
+      "price": "Цена",
+      "includedFeatures": "Включенные функции",
+      "trialPeriod": "Включает бесплатный пробный период {days} дней",
+      "paymentMethod": {
+        "title": "Способ оплаты",
+        "description": "Выберите предпочтительный способ оплаты",
+        "provider": "Платежная система",
+        "selectProvider": "Выберите платежную систему"
+      },
+      "terms": {
+        "agree": "Я согласен с условиями и положениями",
+        "description": "Подписываясь, вы соглашаетесь с нашими условиями обслуживания и политикой конфиденциальности"
+      },
+      "buttons": {
+        "subscribe": "Оформить подписку",
+        "processing": "Обработка...",
+        "cancel": "Отмена"
+      },
+      "notAuthenticated": {
+        "title": "Требуется авторизация",
+        "description": "Пожалуйста, войдите в систему для оформления подписки",
+        "loginButton": "Войти"
+      },
+      "errors": {
+        "title": "Произошла ошибка",
+        "planFetchFailed": "Не удалось загрузить план подписки",
+        "invalidPlan": "Выбранный план подписки недействителен",
+        "subscriptionFailed": "Не удалось оформить подписку",
+        "unknown": "Произошла неизвестная ошибка",
+        "backButton": "Вернуться к планам"
+      },
+      "noPlan": {
+        "title": "План не выбран",
+        "description": "Пожалуйста, выберите план подписки для продолжения",
+        "browseButton": "Просмотреть планы"
+      },
+      "success": {
+        "title": "Подписка оформлена!",
+        "description": "Ваша подписка успешно оформлена",
+        "redirectMessage": "Вы будете перенаправлены на страницу подписок",
+        "manageButton": "Управление подписками"
+      }
     },
-    "loading": "Загрузка информации о подписке...",
-    "redirectMessage": "Вы будете перенаправлены в ближайшее время...",
-    "success": {
-      "title": "Платеж успешен",
-      "description": "Ваша подписка успешно активирована"
+    "result": {
+      "metadata": {
+        "title": "Результат подписки",
+        "description": "Результаты платежа за подписку"
+      },
+      "loading": "Загрузка информации о подписке...",
+      "redirectMessage": "Вы будете перенаправлены в ближайшее время...",
+      "success": {
+        "title": "Платеж успешен",
+        "description": "Ваша подписка успешно активирована"
+      },
+      "pending": {
+        "title": "Платеж обрабатывается",
+        "description": "Ваш платеж обрабатывается. Это может занять некоторое время."
+      },
+      "failed": {
+        "title": "Платеж не прошел",
+        "description": "При обработке вашего платежа возникла проблема. Пожалуйста, попробуйте еще раз."
+      },
+      "unknown": {
+        "title": "Неизвестный статус",
+        "description": "Мы не смогли определить статус вашей подписки"
+      },
+      "subscriptionDetails": {
+        "id": "ID подписки",
+        "status": "Статус",
+        "startDate": "Дата начала",
+        "nextPayment": "Следующий платеж"
+      },
+      "errors": {
+        "title": "Ошибка загрузки подписки",
+        "subscriptionFetchFailed": "Не удалось загрузить информацию о подписке",
+        "invalidSubscription": "Информация о подписке недействительна",
+        "unknown": "Произошла неизвестная ошибка"
+      },
+      "buttons": {
+        "viewSubscriptions": "Просмотреть мои подписки",
+        "checkStatus": "Проверить статус",
+        "tryAgain": "Попробовать снова",
+        "backToSubscriptions": "Вернуться к подпискам"
+      }
+    }
+  },
+  "newsletterUnsubscribed": {
+    "title": "Вы успешно отписаны",
+    "getMessage": "Адрес {email} был успешно удален из нашей рассылки.",
+    "getMessageGeneric": "Вы успешно отписались от нашей рассылки.",
+    "noMoreEmails": "Вы больше не будете получать от нас письма с новостями и предложениями.",
+    "resubscribePrompt": "Если это была ошибка, вы можете подписаться снова в любой момент.",
+    "resubscribeLink": "Подписаться снова",
+    "goHome": "Вернуться на главную",
+    "unsubscribedEmailLabel": "Отписанный email:"
+  },
+  "CalendlyWebhookInstructions": {
+    "title": "Настройка вебхуков Calendly",
+    "step1": "Войдите в свой аккаунт Calendly",
+    "step2": "Перейдите в раздел <strong>Интеграции</strong>",
+    "step3": "Выберите <strong>Вебхуки</strong>",
+    "step4": "Нажмите <strong>Создать новый вебхук</strong>",
+    "step5": "Сохраните настройки вебхука",
+    "envSetupTitle": "Настройка переменных окружения",
+    "checkWebhooksTitle": "Проверка работы вебхуков"
+  },
+  "AccountDashboard": {
+    "notAuthenticated": "Не авторизован",
+    "loginButton": "Войти",
+    "description": "Управление вашим аккаунтом и курсами",
+    "tabs": {
+      "courses": "Мои курсы",
+      "achievements": "Достижения",
+      "rewards": "Награды",
+      "profile": "Профиль",
+      "settings": "Настройки"
     },
-    "pending": {
-      "title": "Платеж обрабатывается",
-      "description": "Ваш платеж обрабатывается. Это может занять некоторое время."
+    "achievementsCard": {
+      "title": "Мои достижения",
+      "description": "Отслеживайте свой прогресс и разблокируйте новые достижения"
     },
-    "failed": {
-      "title": "Платеж не прошел",
-      "description": "При обработке вашего платежа возникла проблема. Пожалуйста, попробуйте еще раз."
+    "leaderboardCard": {
+      "title": "Таблица лидеров",
+      "description": "Узнайте, как вы ранжируетесь среди других пользователей"
     },
-    "unknown": {
-      "title": "Неизвестный статус",
-      "description": "Мы не смогли определить статус вашей подписки"
+    "rewardsCard": {
+      "title": "Мои награды",
+      "description": "Просматривайте и используйте ваши награды"
     },
-    "subscriptionDetails": {
-      "id": "ID подписки",
-      "status": "Статус",
-      "startDate": "Дата начала",
-      "nextPayment": "Следующий платеж"
+    "settingsCard": {
+      "title": "Настройки аккаунта",
+      "description": "Управление настройками вашего аккаунта"
+    }
+  },
+  "EnrolledCourses": {
+    "errorTitle": "Ошибка",
+    "noCoursesTitle": "Пока нет курсов",
+    "browseCoursesButton": "Просмотреть курсы",
+    "noImagePlaceholder": "Нет изображения",
+    "progressLabel": "Прогресс",
+    "browseMoreButton": "Просмотреть больше курсов"
+  },
+  "NotificationCenter": {
+    "title": "Уведомления",
+    "noNotifications": "Нет уведомлений"
+  },
+  "SubscriptionPlans": {
+    "errorLoading": "Не удалось загрузить планы подписок",
+    "notFoundTitle": "Планы подписок не найдены",
+    "notFoundDescription": "В настоящее время нет доступных планов подписок",
+    "noFeaturesDescription": "Нет описания функций"
+  },
+  "LessonProgress": {
+    "lessonCompleted": "Урок завершен",
+    "markAsViewed": "Отметить как просмотренный"
+  },
+  "common": {
+    "home": "Главная",
+    "about": "О нас",
+    "courses": "Курсы",
+    "blog": "Блог",
+    "contact": "Контакты",
+    "login": "Войти",
+    "register": "Регистрация",
+    "logout": "Выйти",
+    "account": "Аккаунт",
+    "search": "Поиск",
+    "back": "Назад"
+  },
+  "home": {
+    "title": "Flow Masters",
+    "subtitle": "Освойте свой рабочий процесс с автоматизацией",
+    "cta": "Начать"
+  },
+  "auth": {
+    "login": "Войти",
+    "register": "Регистрация",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "name": "Полное имя",
+    "forgotPassword": "Забыли пароль?",
+    "noAccount": "Нет аккаунта?",
+    "haveAccount": "Уже есть аккаунт?",
+    "createAccount": "Создать аккаунт",
+    "loginSuccess": "Вход выполнен успешно",
+    "registerSuccess": "Аккаунт успешно создан",
+    "logoutSuccess": "Выход выполнен успешно"
+  },
+  "courses": {
+    "all": "Все курсы",
+    "popular": "Популярные курсы",
+    "new": "Новые курсы",
+    "freeCourses": "Бесплатные курсы",
+    "premium": "Премиум курсы",
+    "enroll": "Записаться",
+    "continue": "Продолжить обучение",
+    "completed": "Завершено",
+    "level": "Уровень",
+    "duration": "Продолжительность",
+    "lessons": "Уроки",
+    "students": "Студенты",
+    "rating": "Рейтинг",
+    "instructor": "Инструктор",
+    "price": "Цена",
+    "freeLabel": "Бесплатно",
+    "curriculum": "Программа",
+    "description": "Описание",
+    "reviews": "Отзывы",
+    "requirements": "Требования",
+    "whatYouWillLearn": "Чему вы научитесь"
+  },
+  "blog": {
+    "all": "Все статьи",
+    "popular": "Популярные статьи",
+    "recent": "Недавние статьи",
+    "categories": "Категории",
+    "tags": "Теги",
+    "readMore": "Читать далее",
+    "publishedOn": "Опубликовано",
+    "by": "автор",
+    "relatedPosts": "Похожие статьи"
+  },
+  "errors": {
+    "notFound": "Страница не найдена",
+    "serverError": "Ошибка сервера",
+    "unauthorized": "Не авторизован",
+    "forbidden": "Доступ запрещен",
+    "invalidCredentials": "Неверные учетные данные",
+    "emailExists": "Email уже существует",
+    "passwordMismatch": "Пароли не совпадают",
+    "requiredField": "Это поле обязательно",
+    "invalidEmail": "Неверный email адрес",
+    "passwordTooShort": "Пароль должен содержать не менее 6 символов"
+  },
+  "ProductFilters": {
+    "title": "[RU] Filters",
+    "searchLabel": "[RU] Search",
+    "categoriesLabel": "[RU] Categories",
+    "productTypesLabel": "[RU] Product Types",
+    "tagsLabel": "[RU] Tags",
+    "priceRangeLabel": "[RU] Price Range",
+    "sortLabel": "[RU] Sort",
+    "layoutLabel": "[RU] Layout",
+    "gridView": "[RU] Grid view",
+    "listView": "[RU] List view"
+  },
+  "Media": {
+    "videoUnavailable": "[RU] Видео недоступно",
+    "imageUnavailable": "[RU] Изображение недоступно",
+    "pdfUnavailable": "[RU] PDF документ недоступен",
+    "pdfPreviewError": "[RU] Не удалось отобразить PDF в браузере",
+    "genericUnavailable": "[RU] Медиа недоступно"
+  },
+  "PaymentResult": {
+    "verifyingPayment": "[RU] Please wait while we verify your payment"
+  },
+  "CourseProgressBar": {
+    "label": "[RU] Прогресс курса"
+  },
+  "CourseAchievements": {
+    "title": "[RU] Достижения курса"
+  },
+  "LessonNavigation": {
+    "courseProgressLabel": "[RU] Course Progress",
+    "noLessons": "[RU] No lessons available"
+  },
+  "CourseCompletePage": {
+    "loginRequiredTitle": "[RU] Login Required",
+    "accessRestrictedTitle": "[RU] Access Restricted",
+    "recommendedCoursesTitle": "[RU] Recommended Courses"
+  },
+  "CourseLearnPage": {
+    "loginRequiredTitle": "[RU] Login Required",
+    "accessRestrictedTitle": "[RU] Access Restricted",
+    "yourProgressLabel": "[RU] Your Progress",
+    "tabContent": "[RU] Content",
+    "tabOverview": "[RU] Overview",
+    "tabNotes": "[RU] Notes",
+    "tabDiscussion": "[RU] Discussion"
+  },
+  "CourseNotes": {
+    "tabCurrentLesson": "[RU] Current Lesson",
+    "tabAllNotes": "[RU] All Notes"
+  },
+  "CourseOverview": {
+    "infoTitle": "[RU] Course Information",
+    "infoDescription": "[RU] Overview of the course details",
+    "aboutTitle": "[RU] About This Course",
+    "prerequisitesTitle": "[RU] Prerequisites"
+  },
+  "LessonViewer": {
+    "selectLessonPrompt": "[RU] Select a lesson to start learning",
+    "assignmentLabel": "[RU] Assignment",
+    "resourcesLabel": "[RU] Resources",
+    "additionalResourcesLabel": "[RU] Additional Resources"
+  },
+  "CourseCertificate": {
+    "title": "[RU] Certificate of Completion",
+    "certifiesThat": "[RU] This certifies that",
+    "successfullyCompleted": "[RU] has successfully completed the course",
+    "instructorTitle": "[RU] Course Instructor"
+  },
+  "BlogSocialShare": {
+    "shareLabel": "[RU] Share",
+    "facebookLabel": "[RU] Facebook",
+    "twitterLabel": "[RU] Twitter"
+  },
+  "UserLevel": {
+    "noLevelData": "[RU] Нет данных о уровне",
+    "statisticsTitle": "[RU] Статистика"
+  },
+  "PageRootComponent": {
+    "headerNotAvailable": "[RU] Header Not Available",
+    "footerNotAvailable": "[RU] Footer Not Available"
+  },
+  "NewsletterBlock": {
+    "emailPlaceholder": "[RU] Enter your email",
+    "emailAriaLabel": "[RU] Email address",
+    "submitButton": "[RU] Subscribe"
+  },
+  "TableOfContentsBlock": {
+    "ariaLabel": "[RU] Table of contents"
+  },
+  "LeadMagnetOfferBlock": {
+    "submitButton": "[RU] Download Now",
+    "successMessage": "[RU] Success! Check your email.",
+    "errorMessage": "[RU] An error occurred. Please try again."
+  },
+  "CarouselBlock": {
+    "previousSlideAriaLabel": "[RU] Previous slide",
+    "nextSlideAriaLabel": "[RU] Next slide"
+  },
+  "CodeBlock": {
+    "copyButton": "[RU] Copy",
+    "copiedButton": "[RU] Copied!"
+  },
+  "AudioBlock": {
+    "downloadAriaLabel": "[RU] Download audio"
+  },
+  "FAQBlock": {
+    "searchPlaceholder": "[RU] Search FAQs..."
+  },
+  "TestIntegrationComponent": {
+    "title": "[RU] Test Integration",
+    "dataLabel": "[RU] Test Data",
+    "successMessage": "[RU] Success!",
+    "errorMessage": "[RU] Error"
+  },
+  "Admin": {
+    "MetricsDashboard": {
+      "title": "[RU] Metrics Dashboard",
+      "users": "[RU] Users",
+      "courses": "[RU] Courses",
+      "revenue": "[RU] Revenue"
     },
-    "errors": {
-      "title": "Ошибка загрузки подписки",
-      "subscriptionFetchFailed": "Не удалось загрузить информацию о подписке",
-      "invalidSubscription": "Информация о подписке недействительна",
-      "unknown": "Произошла неизвестная ошибка"
+    "SetupRewardsPage": {
+      "pageTitle": "[RU] Reward System Setup",
+      "cardTitle": "[RU] Setup Tool",
+      "description1": "[RU] This tool will help you set up the initial reward system components:",
+      "item1": "[RU] Creating email templates for rewards",
+      "item2": "[RU] Setting up email campaigns for reward events",
+      "item3": "[RU] Configuring the reward automation system",
+      "setupButton": "[RU] Set Up Reward System",
+      "errorTitle": "[RU] Error",
+      "errorFailedSetup": "[RU] Failed to set up rewards system",
+      "errorUnknown": "[RU] An error occurred"
     },
-    "buttons": {
-      "viewSubscriptions": "Просмотреть мои подписки",
-      "checkStatus": "Проверить статус",
-      "tryAgain": "Попробовать снова",
-      "backToSubscriptions": "Вернуться к подпискам"
+    "CourseAnalyticsPage": {
+      "pageTitle": "[RU] Аналитика курса",
+      "backButton": "[RU] Back to Courses"
+    },
+    "AllCoursesAnalyticsPage": {
+      "pageTitle": "[RU] Аналитика курсов",
+      "addNewButton": "[RU] Add New Course"
+    },
+    "CategoryMigrationPage": {
+      "cardTitle": "[RU] Category Type Migration",
+      "successTitle": "[RU] Success",
+      "errorTitle": "[RU] Error",
+      "selectAll": {
+        "product": "[RU] Product Category",
+        "blog": "[RU] Blog Category",
+        "general": "[RU] General Category",
+        "none": "[RU] None"
+      },
+      "table": {
+        "title": "[RU] Title",
+        "slug": "[RU] Slug",
+        "currentType": "[RU] Current Type",
+        "newType": "[RU] New Type",
+        "nonePlaceholder": "[RU] None"
+      },
+      "saveButton": "[RU] Save Changes",
+      "savingButton": "[RU] Saving...",
+      "errorFetch": "[RU] Failed to fetch categories",
+      "errorUpdate": "[RU] Failed to update categories"
+    },
+    "EmailCampaignManagerPage": {
+      "pageTitle": "[RU] Email Campaign Manager"
+    },
+    "MonitoringPage": {
+      "pageTitle": "[RU] System Monitoring"
+    }
+  },
+  "TestBlocksPage": {
+    "pageTitle": "[RU] Test Content Blocks"
+  },
+  "FormBlock": {
+    "internalServerError": "[RU] Internal Server Error"
+  },
+  "BannerBlock": {
+    "dismiss": "[RU] Dismiss"
+  },
+  "TeamMembersBlock": {
+    "defaultHeading": "[RU] Our Team"
+  },
+  "API": {
+    "Validation": {
+      "userIdRequired": "[RU] User ID is required",
+      "courseIdRequired": "[RU] Course ID is required"
+    },
+    "Errors": {
+      "failedToCheckAccess": "[RU] Failed to check course access",
+      "failedToGenerateCertificate": "[RU] Failed to generate certificate",
+      "failedToGetCertificates": "[RU] Failed to get certificates",
+      "failedToSetupRewards": "[RU] Failed to set up rewards system",
+      "unknownError": "[RU] Unknown error"
+    }
+  },
+  "EnrollmentService": {
+    "defaultStudentName": "[RU] Student"
+  },
+  "PayloadAdmin": {
+    "Collections": {
+      "Promotions": {
+        "description": "[RU] Manage promotion codes and discounts",
+        "fields": {
+          "type": {
+            "percentage": "[RU] Percentage Discount",
+            "fixed": "[RU] Fixed Amount",
+            "buy_x_get_y": "[RU] Buy X Get Y"
+          },
+          "minPurchase": {
+            "description": "[RU] Minimum purchase amount required"
+          },
+          "maxDiscount": {
+            "description": "[RU] Maximum discount amount"
+          },
+          "usageLimit": {
+            "description": "[RU] Maximum number of times this code can be used"
+          },
+          "userLimit": {
+            "description": "[RU] Maximum times a single user can use this code"
+          },
+          "status": {
+            "active": "[RU] Active",
+            "inactive": "[RU] Inactive",
+            "expired": "[RU] Expired"
+          },
+          "categories": {
+            "description": "[RU] Specific categories this promotion applies to"
+          }
+        }
+      },
+      "Discounts": {
+        "fields": {
+          "type": {
+            "percentage": "[RU] Percentage off",
+            "fixed": "[RU] Fixed amount off",
+            "shipping": "[RU] Free shipping"
+          },
+          "currency": {
+            "USD": "[RU] USD",
+            "EUR": "[RU] EUR"
+          }
+        }
+      }
+    },
+    "Endpoints": {
+      "SetupRewards": {
+        "rewardTemplateName": "[RU] Общий шаблон награды",
+        "expiringTemplateName": "[RU] Шаблон истекающей награды",
+        "campaignDescription": "[RU] Отправляет серию писем после получения награды для повышения вовлеченности",
+        "unknownError": "[RU] Unknown error"
+      }
+    },
+    "Fields": {
+      "Slug": {
+        "label": "[RU] Slug",
+        "lockButtonUnlock": "[RU] Unlock",
+        "lockButtonLock": "[RU] Lock"
+      },
+      "Product": {
+        "featuresLabel": "[RU] Product Features",
+        "imageSingular": "[RU] Image",
+        "imagePlural": "[RU] Images",
+        "statusDraft": "[RU] Draft",
+        "statusPublished": "[RU] Published"
+      },
+      "Lexical": {
+        "urlRequired": "[RU] URL is required",
+        "appearance": {
+          "default": "[RU] Default",
+          "primary": "[RU] Primary",
+          "secondary": "[RU] Secondary",
+          "outline": "[RU] Outline",
+          "ghost": "[RU] Ghost",
+          "inline": "[RU] Inline"
+        }
+      },
+      "Hero": {
+        "typeNone": "[RU] None",
+        "typeHighImpact": "[RU] High Impact",
+        "typeMediumImpact": "[RU] Medium Impact",
+        "typeLowImpact": "[RU] Low Impact"
+      }
+    },
+    "Common": {
+      "adminGroup": "[RU] Admin"
+    }
+  },
+  "Plugins": {
+    "SEO": {
+      "defaultWebsiteTitle": "[RU] Payload Website Template"
     }
   }
-},
-"newsletterUnsubscribed": {
-  "title": "Вы успешно отписаны",
-  "getMessage": "Адрес {email} был успешно удален из нашей рассылки.",
-  "getMessageGeneric": "Вы успешно отписались от нашей рассылки.",
-  "noMoreEmails": "Вы больше не будете получать от нас письма с новостями и предложениями.",
-  "resubscribePrompt": "Если это была ошибка, вы можете подписаться снова в любой момент.",
-  "resubscribeLink": "Подписаться снова",
-  "goHome": "Вернуться на главную",
-  "unsubscribedEmailLabel": "Отписанный email:"
-} 
+}
