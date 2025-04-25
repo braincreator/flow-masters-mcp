@@ -147,6 +147,7 @@ export interface Config {
     users: User;
     categories: Category;
     tags: Tag;
+    notifications: Notification;
     'course-analytics': CourseAnalytic;
     posts: Post;
     'post-metrics': PostMetric;
@@ -154,6 +155,7 @@ export interface Config {
     comments: Comments;
     products: Product;
     productCategories: ProductCategory;
+    services: Service;
     orders: Order;
     'order-tracking': OrderTracking;
     'cart-sessions': CartSession;
@@ -165,7 +167,12 @@ export interface Config {
     lessons: Lesson;
     resources: Resource;
     achievements: Achievement;
+    'user-achievements': UserAchievement;
     'course-enrollments': CourseEnrollment;
+    'lesson-progress': LessonProgress;
+    leaderboard: Leaderboard;
+    rewards: Reward;
+    'user-rewards': UserReward;
     certificates: Certificate;
     templates: Template;
     'automation-jobs': AutomationJob;
@@ -206,6 +213,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'course-analytics': CourseAnalyticsSelect<false> | CourseAnalyticsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'post-metrics': PostMetricsSelect<false> | PostMetricsSelect<true>;
@@ -213,6 +221,7 @@ export interface Config {
     comments: CommentsSelect<false> | CommentsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     productCategories: ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'order-tracking': OrderTrackingSelect<false> | OrderTrackingSelect<true>;
     'cart-sessions': CartSessionsSelect<false> | CartSessionsSelect<true>;
@@ -224,7 +233,12 @@ export interface Config {
     lessons: LessonsSelect<false> | LessonsSelect<true>;
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
+    'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     'course-enrollments': CourseEnrollmentsSelect<false> | CourseEnrollmentsSelect<true>;
+    'lesson-progress': LessonProgressSelect<false> | LessonProgressSelect<true>;
+    leaderboard: LeaderboardSelect<false> | LeaderboardSelect<true>;
+    rewards: RewardsSelect<false> | RewardsSelect<true>;
+    'user-rewards': UserRewardsSelect<false> | UserRewardsSelect<true>;
     certificates: CertificatesSelect<false> | CertificatesSelect<true>;
     templates: TemplatesSelect<false> | TemplatesSelect<true>;
     'automation-jobs': AutomationJobsSelect<false> | AutomationJobsSelect<true>;
@@ -290,6 +304,7 @@ export interface Config {
       'newsletter-broadcast': TaskNewsletterBroadcast;
       'recalculate-user-segments': TaskRecalculateUserSegments;
       'email-campaign': TaskEmailCampaign;
+      'check-expiring-rewards': TaskCheckExpiringRewards;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -1833,10 +1848,19 @@ export interface User {
   id: string;
   name: string;
   role: 'admin' | 'customer';
+  locale?: ('ru' | 'en') | null;
   /**
    * Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.
    */
   segments?: (string | UserSegment)[] | null;
+  /**
+   * Очки опыта пользователя, заработанные за достижения и активность
+   */
+  xp?: number | null;
+  /**
+   * Текущий уровень пользователя, основанный на количестве XP
+   */
+  level?: number | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -7380,9 +7404,32 @@ export interface Achievement {
     };
     [k: string]: unknown;
   };
+  category: 'course_completion' | 'learning_milestones' | 'engagement' | 'social' | 'special';
   icon: string | Media;
+  triggerEvent:
+    | 'course.started'
+    | 'course.completed'
+    | 'course.progress'
+    | 'lesson.completed'
+    | 'quiz.completed'
+    | 'assignment.completed'
+    | 'streak.achieved'
+    | 'login.count'
+    | 'profile.completed'
+    | 'comment.added'
+    | 'content.shared'
+    | 'referral.completed';
+  /**
+   * Конкретный курс, к которому привязано достижение (если применимо)
+   */
+  courseId?: (string | null) | Course;
+  /**
+   * Требуемое значение для получения достижения (например, процент прогресса, дни серии)
+   */
+  requiredValue?: number | null;
+  xpValue: number;
   rarity?: ('common' | 'uncommon' | 'rare' | 'epic' | 'legendary') | null;
-  pointsAwarded?: number | null;
+  status: 'active' | 'inactive' | 'hidden';
   updatedAt: string;
   createdAt: string;
 }
@@ -7625,6 +7672,10 @@ export interface Product {
    * Is this product a course?
    */
   isCourse?: boolean | null;
+  /**
+   * Is this product a consulting service?
+   */
+  isConsulting?: boolean | null;
   /**
    * Related course (if this is a course product)
    */
@@ -10310,6 +10361,53 @@ export interface SocialShare {
   blockType: 'socialShare';
 }
 /**
+ * User notifications
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: string;
+  /**
+   * Notification title
+   */
+  title: string;
+  /**
+   * Notification message
+   */
+  message: string;
+  /**
+   * User who received the notification
+   */
+  user: string | User;
+  /**
+   * Type of notification
+   */
+  type: 'achievement' | 'level_up' | 'course_completed' | 'certificate' | 'system' | 'other';
+  /**
+   * Whether the notification has been read
+   */
+  isRead?: boolean | null;
+  /**
+   * Optional link to navigate to when clicking the notification
+   */
+  link?: string | null;
+  /**
+   * Additional metadata for the notification
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "course-analytics".
  */
@@ -10438,6 +10536,187 @@ export interface Author {
   slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: string;
+  title: string;
+  /**
+   * Тип услуги
+   */
+  serviceType:
+    | 'consultation'
+    | 'development'
+    | 'support'
+    | 'audit'
+    | 'integration'
+    | 'content_creation'
+    | 'automation'
+    | 'other';
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Краткое описание для карточек услуг (макс. 160 символов)
+   */
+  shortDescription: string;
+  /**
+   * Базовая цена в USD
+   */
+  price: number;
+  /**
+   * Продолжительность в минутах (0 для неограниченной)
+   */
+  duration?: number | null;
+  /**
+   * Изображение услуги
+   */
+  thumbnail?: (string | null) | Media;
+  features?:
+    | {
+        name: string;
+        description: string;
+        /**
+         * Включено ли в базовую стоимость
+         */
+        included?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Галерея изображений услуги
+   */
+  gallery?:
+    | {
+        image: string | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Связанные услуги
+   */
+  relatedServices?: (string | Service)[] | null;
+  /**
+   * Требуется ли бронирование времени для этой услуги
+   */
+  requiresBooking?: boolean | null;
+  bookingSettings?: {
+    provider?: ('calendly' | 'internal' | 'other') | null;
+    /**
+     * Имя пользователя Calendly
+     */
+    calendlyUsername?: string | null;
+    /**
+     * Тип события Calendly
+     */
+    calendlyEventType?: string | null;
+    /**
+     * Скрыть детали типа события
+     */
+    hideEventTypeDetails?: boolean | null;
+    /**
+     * Скрыть баннер GDPR
+     */
+    hideGdprBanner?: boolean | null;
+    /**
+     * Включить форму дополнительной информации
+     */
+    enableAdditionalInfo?: boolean | null;
+    /**
+     * Поля для дополнительной информации
+     */
+    additionalInfoFields?:
+      | {
+          /**
+           * Имя поля (латинскими буквами, без пробелов)
+           */
+          fieldName: string;
+          /**
+           * Название поля
+           */
+          fieldLabel: string;
+          fieldType: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox';
+          /**
+           * Обязательное поле
+           */
+          required?: boolean | null;
+          /**
+           * Варианты выбора
+           */
+          options?:
+            | {
+                label: string;
+                value: string;
+                id?: string | null;
+              }[]
+            | null;
+          /**
+           * Подсказка для поля
+           */
+          description?: string | null;
+          /**
+           * Плейсхолдер
+           */
+          placeholder?: string | null;
+          /**
+           * Отправлять в Calendly как дополнительный вопрос
+           */
+          sendToCalendly?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Заголовок формы дополнительной информации
+     */
+    additionalInfoTitle?: string | null;
+    /**
+     * Описание формы дополнительной информации
+     */
+    additionalInfoDescription?: string | null;
+    /**
+     * Обязательно заполнять форму
+     */
+    additionalInfoRequired?: boolean | null;
+  };
+  /**
+   * Требуется ли оплата перед получением услуги
+   */
+  requiresPayment?: boolean | null;
+  paymentSettings?: {
+    paymentType?: ('full_prepayment' | 'partial_prepayment' | 'post_payment') | null;
+    /**
+     * Процент предоплаты
+     */
+    prepaymentPercentage?: number | null;
+  };
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (string | null) | Media;
+  };
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -10792,6 +11071,45 @@ export interface Lesson {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * User achievements tracking
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-achievements".
+ */
+export interface UserAchievement {
+  id: string;
+  /**
+   * User who earned the achievement
+   */
+  user: string | User;
+  /**
+   * The achievement earned by the user
+   */
+  achievement: string | Achievement;
+  /**
+   * When the achievement was awarded
+   */
+  awardedAt: string;
+  /**
+   * Current status of the achievement
+   */
+  status: 'active' | 'revoked';
+  /**
+   * Additional metadata for the achievement
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Tracks user enrollments and access to courses
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -10843,6 +11161,260 @@ export interface CourseEnrollment {
    * Administrative notes about this enrollment
    */
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tracking user progress through lessons
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-progress".
+ */
+export interface LessonProgress {
+  id: string;
+  /**
+   * User who viewed the lesson
+   */
+  user: string | User;
+  /**
+   * The lesson that was viewed
+   */
+  lesson: string | Lesson;
+  /**
+   * The course the lesson belongs to
+   */
+  course: string | Course;
+  /**
+   * Current status of the lesson progress
+   */
+  status: 'in_progress' | 'completed';
+  /**
+   * When the lesson was completed
+   */
+  completedAt?: string | null;
+  /**
+   * When the lesson was last accessed
+   */
+  lastAccessedAt: string;
+  /**
+   * Time spent on the lesson in seconds
+   */
+  timeSpent?: number | null;
+  /**
+   * Additional metadata for the lesson progress
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User leaderboard rankings
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leaderboard".
+ */
+export interface Leaderboard {
+  id: string;
+  /**
+   * User in the leaderboard
+   */
+  user: string | User;
+  /**
+   * Total XP of the user
+   */
+  xp: number;
+  /**
+   * Current level of the user
+   */
+  level: number;
+  /**
+   * Current rank of the user in the leaderboard
+   */
+  rank: number;
+  /**
+   * Previous rank of the user (0 means new entry)
+   */
+  previousRank?: number | null;
+  /**
+   * Change in rank since last update (positive means improvement)
+   */
+  rankChange?: number | null;
+  /**
+   * Number of achievements earned by the user
+   */
+  achievements?: number | null;
+  /**
+   * Number of courses completed by the user
+   */
+  coursesCompleted?: number | null;
+  /**
+   * Current learning streak in days
+   */
+  streak?: number | null;
+  /**
+   * When the user was last active
+   */
+  lastActive?: string | null;
+  /**
+   * Additional metadata for the leaderboard entry
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Rewards for achievements and level milestones
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rewards".
+ */
+export interface Reward {
+  id: string;
+  /**
+   * Название награды
+   */
+  title: string;
+  /**
+   * Описание награды
+   */
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Тип награды
+   */
+  type: 'level' | 'achievement' | 'course' | 'special';
+  /**
+   * Иконка награды
+   */
+  icon?: (string | null) | Media;
+  /**
+   * Требуемый уровень для получения награды (для наград типа "Уровень")
+   */
+  requiredLevel?: number | null;
+  /**
+   * Требуемое достижение для получения награды (для наград типа "Достижение")
+   */
+  requiredAchievement?: (string | null) | Achievement;
+  /**
+   * Требуемый курс для получения награды (для наград типа "Курс")
+   */
+  requiredCourse?: (string | null) | Course;
+  /**
+   * Тип вознаграждения
+   */
+  rewardType: 'discount' | 'free_course' | 'badge' | 'certificate' | 'exclusive_content' | 'other';
+  /**
+   * Размер скидки в процентах (для наград типа "Скидка")
+   */
+  discountValue?: number | null;
+  /**
+   * Бесплатный курс (для наград типа "Бесплатный курс")
+   */
+  freeCourse?: (string | null) | Course;
+  /**
+   * Эксклюзивный контент (для наград типа "Доступ к эксклюзивному контенту")
+   */
+  exclusiveContent?: (string | null) | Page;
+  /**
+   * Срок действия награды в днях (0 = бессрочно)
+   */
+  expiresAfter?: number | null;
+  /**
+   * Статус награды
+   */
+  status: 'active' | 'inactive' | 'draft';
+  /**
+   * Дополнительные метаданные для награды
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User rewards tracking
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-rewards".
+ */
+export interface UserReward {
+  id: string;
+  /**
+   * User who received the reward
+   */
+  user: string | User;
+  /**
+   * The reward that was awarded
+   */
+  reward: string | Reward;
+  /**
+   * When the reward was awarded
+   */
+  awardedAt: string;
+  /**
+   * When the reward expires (if applicable)
+   */
+  expiresAt?: string | null;
+  /**
+   * Current status of the reward
+   */
+  status: 'active' | 'used' | 'expired' | 'revoked';
+  /**
+   * When the reward was used (if applicable)
+   */
+  usedAt?: string | null;
+  /**
+   * Unique code for the reward (if applicable)
+   */
+  code?: string | null;
+  /**
+   * Additional metadata for the user reward
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -11100,9 +11672,14 @@ export interface EmailTemplate {
   id: string;
   name: string;
   /**
+   * Краткое описание назначения шаблона
+   */
+  description?: string | null;
+  /**
    * Уникальный идентификатор для использования в коде (например, "welcome-email").
    */
   slug: string;
+  templateType?: ('auth' | 'courses' | 'orders' | 'rewards' | 'newsletters' | 'other') | null;
   sender: string | SenderEmail;
   subject: string;
   /**
@@ -11123,6 +11700,19 @@ export interface EmailTemplate {
     };
     [k: string]: unknown;
   };
+  /**
+   * Список доступных плейсхолдеров, разделенных запятыми
+   */
+  placeholders?: string | null;
+  /**
+   * Этот шаблон был создан или обновлен из кода
+   */
+  syncedFromCode?: boolean | null;
+  lastSyncedAt?: string | null;
+  /**
+   * Для предпросмотра шаблона сохраните изменения
+   */
+  previewNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12740,6 +13330,14 @@ export interface Booking {
   medium?: string | null;
   campaign?: string | null;
   rawData?: string | null;
+  /**
+   * Заказ, связанный с этим бронированием
+   */
+  order?: (string | null) | Order;
+  /**
+   * Отметьте, если консультация оплачена
+   */
+  isPaid?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12860,6 +13458,7 @@ export interface PayloadJob {
           | 'newsletter-broadcast'
           | 'recalculate-user-segments'
           | 'email-campaign'
+          | 'check-expiring-rewards'
           | 'schedulePublish';
         taskID: string;
         input?:
@@ -12894,7 +13493,14 @@ export interface PayloadJob {
       }[]
     | null;
   taskSlug?:
-    | ('inline' | 'newsletter-broadcast' | 'recalculate-user-segments' | 'email-campaign' | 'schedulePublish')
+    | (
+        | 'inline'
+        | 'newsletter-broadcast'
+        | 'recalculate-user-segments'
+        | 'email-campaign'
+        | 'check-expiring-rewards'
+        | 'schedulePublish'
+      )
     | null;
   queue?: string | null;
   waitUntil?: string | null;
@@ -12930,6 +13536,10 @@ export interface PayloadLockedDocument {
         value: string | Tag;
       } | null)
     | ({
+        relationTo: 'notifications';
+        value: string | Notification;
+      } | null)
+    | ({
         relationTo: 'course-analytics';
         value: string | CourseAnalytic;
       } | null)
@@ -12956,6 +13566,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'productCategories';
         value: string | ProductCategory;
+      } | null)
+    | ({
+        relationTo: 'services';
+        value: string | Service;
       } | null)
     | ({
         relationTo: 'orders';
@@ -13002,8 +13616,28 @@ export interface PayloadLockedDocument {
         value: string | Achievement;
       } | null)
     | ({
+        relationTo: 'user-achievements';
+        value: string | UserAchievement;
+      } | null)
+    | ({
         relationTo: 'course-enrollments';
         value: string | CourseEnrollment;
+      } | null)
+    | ({
+        relationTo: 'lesson-progress';
+        value: string | LessonProgress;
+      } | null)
+    | ({
+        relationTo: 'leaderboard';
+        value: string | Leaderboard;
+      } | null)
+    | ({
+        relationTo: 'rewards';
+        value: string | Reward;
+      } | null)
+    | ({
+        relationTo: 'user-rewards';
+        value: string | UserReward;
       } | null)
     | ({
         relationTo: 'certificates';
@@ -16333,7 +16967,10 @@ export interface MediaSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
+  locale?: T;
   segments?: T;
+  xp?: T;
+  level?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -16380,6 +17017,21 @@ export interface TagsSelect<T extends boolean = true> {
   description?: T;
   slug?: T;
   slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  title?: T;
+  message?: T;
+  user?: T;
+  type?: T;
+  isRead?: T;
+  link?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -16591,6 +17243,7 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   productType?: T;
   isCourse?: T;
+  isConsulting?: T;
   course?: T;
   downloadLink?: T;
   subscriptionDetails?:
@@ -16635,6 +17288,89 @@ export interface ProductCategoriesSelect<T extends boolean = true> {
   slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  title?: T;
+  serviceType?: T;
+  description?: T;
+  shortDescription?: T;
+  price?: T;
+  duration?: T;
+  thumbnail?: T;
+  features?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        included?: T;
+        id?: T;
+      };
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  relatedServices?: T;
+  requiresBooking?: T;
+  bookingSettings?:
+    | T
+    | {
+        provider?: T;
+        calendlyUsername?: T;
+        calendlyEventType?: T;
+        hideEventTypeDetails?: T;
+        hideGdprBanner?: T;
+        enableAdditionalInfo?: T;
+        additionalInfoFields?:
+          | T
+          | {
+              fieldName?: T;
+              fieldLabel?: T;
+              fieldType?: T;
+              required?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              description?: T;
+              placeholder?: T;
+              sendToCalendly?: T;
+              id?: T;
+            };
+        additionalInfoTitle?: T;
+        additionalInfoDescription?: T;
+        additionalInfoRequired?: T;
+      };
+  requiresPayment?: T;
+  paymentSettings?:
+    | T
+    | {
+        paymentType?: T;
+        prepaymentPercentage?: T;
+      };
+  status?: T;
+  publishedAt?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -17784,9 +18520,27 @@ export interface ResourcesSelect<T extends boolean = true> {
 export interface AchievementsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  category?: T;
   icon?: T;
+  triggerEvent?: T;
+  courseId?: T;
+  requiredValue?: T;
+  xpValue?: T;
   rarity?: T;
-  pointsAwarded?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-achievements_select".
+ */
+export interface UserAchievementsSelect<T extends boolean = true> {
+  user?: T;
+  achievement?: T;
+  awardedAt?: T;
+  status?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -17806,6 +18560,79 @@ export interface CourseEnrollmentsSelect<T extends boolean = true> {
   source?: T;
   orderId?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lesson-progress_select".
+ */
+export interface LessonProgressSelect<T extends boolean = true> {
+  user?: T;
+  lesson?: T;
+  course?: T;
+  status?: T;
+  completedAt?: T;
+  lastAccessedAt?: T;
+  timeSpent?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leaderboard_select".
+ */
+export interface LeaderboardSelect<T extends boolean = true> {
+  user?: T;
+  xp?: T;
+  level?: T;
+  rank?: T;
+  previousRank?: T;
+  rankChange?: T;
+  achievements?: T;
+  coursesCompleted?: T;
+  streak?: T;
+  lastActive?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rewards_select".
+ */
+export interface RewardsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  type?: T;
+  icon?: T;
+  requiredLevel?: T;
+  requiredAchievement?: T;
+  requiredCourse?: T;
+  rewardType?: T;
+  discountValue?: T;
+  freeCourse?: T;
+  exclusiveContent?: T;
+  expiresAfter?: T;
+  status?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-rewards_select".
+ */
+export interface UserRewardsSelect<T extends boolean = true> {
+  user?: T;
+  reward?: T;
+  awardedAt?: T;
+  expiresAt?: T;
+  status?: T;
+  usedAt?: T;
+  code?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -17964,10 +18791,16 @@ export interface NewsletterSubscribersSelect<T extends boolean = true> {
  */
 export interface EmailTemplatesSelect<T extends boolean = true> {
   name?: T;
+  description?: T;
   slug?: T;
+  templateType?: T;
   sender?: T;
   subject?: T;
   body?: T;
+  placeholders?: T;
+  syncedFromCode?: T;
+  lastSyncedAt?: T;
+  previewNote?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -18823,6 +19656,8 @@ export interface BookingsSelect<T extends boolean = true> {
   medium?: T;
   campaign?: T;
   rawData?: T;
+  order?: T;
+  isPaid?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -20286,6 +21121,14 @@ export interface TaskRecalculateUserSegments {
  * via the `definition` "TaskEmail-campaign".
  */
 export interface TaskEmailCampaign {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCheck-expiring-rewards".
+ */
+export interface TaskCheckExpiringRewards {
   input?: unknown;
   output?: unknown;
 }
