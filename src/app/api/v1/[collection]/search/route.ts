@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { searchParamsSchema } from './validation'
 import { buildAggregations } from './aggregations'
 import { formatResults } from './formatters'

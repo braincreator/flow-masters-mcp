@@ -140,6 +140,10 @@
     "notAuthenticated": "Not Authenticated",
     "loginButton": "Log In",
     "description": "Manage your account and courses",
+    "dashboard": {
+      "title": "Account Dashboard",
+      "description": "Manage your account, courses, and achievements"
+    },
     "tabs": {
       "courses": "My Courses",
       "achievements": "Achievements",
@@ -174,7 +178,8 @@
   },
   "NotificationCenter": {
     "title": "Notifications",
-    "noNotifications": "No notifications"
+    "noNotifications": "No notifications",
+    "loading": "Loading notifications..."
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",

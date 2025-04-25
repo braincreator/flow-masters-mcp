@@ -28,14 +28,6 @@ const getModulePath = (pkg) => {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'flow-masters-bucket.s3.cloud.ru',
-      'raw.githubusercontent.com',
-      'github.com',
-      'localhost',
-      'payload-cms.imgix.net',
-      'images.unsplash.com',
-    ].filter(Boolean),
     remotePatterns: [
       {
         protocol: 'https',
@@ -57,6 +49,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
       },
     ],
   },
@@ -80,7 +76,7 @@ const nextConfig = {
       ],
     },
   },
-  turbopack: true,
+  turbopack: {},
   serverExternalPackages: ['mongoose'],
 
   transpilePackages: [

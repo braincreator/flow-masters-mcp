@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyApiKey } from '@/utilities/auth'
 import { generateMeta } from '@/utilities/generateMeta'
 import type { Config } from '@/payload-types'
@@ -8,10 +8,7 @@ import type { Metadata } from 'next'
 type CollectionNames = keyof Config['collections']
 type SupportedCollections = 'pages' | 'posts' | 'products'
 
-export async function GET(
-  req: Request,
-  { params }: { params: { collection: CollectionNames } }
-) {
+export async function GET(req: Request, { params }: { params: { collection: CollectionNames } }) {
   try {
     const apiKey = req.headers.get('x-api-key')
     if (!verifyApiKey(apiKey)) {
@@ -30,7 +27,7 @@ export async function GET(
     if (!['pages', 'posts', 'products'].includes(collection)) {
       return NextResponse.json(
         { error: 'Metadata not supported for this collection' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -50,10 +47,7 @@ export async function GET(
     const document = result.docs[0]
 
     if (!document) {
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
     let metadata: Metadata
@@ -63,7 +57,7 @@ export async function GET(
       case 'posts':
         metadata = await generateMeta({ doc: document })
         break
-      
+
       case 'products':
         metadata = await generateMeta({
           title: document.title,
@@ -71,19 +65,17 @@ export async function GET(
           image: document.thumbnail?.url,
         })
         break
-      
+
       default:
-        return NextResponse.json(
-          { error: 'Unsupported collection type' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Unsupported collection type' }, { status: 400 })
     }
 
     // Форматируем метаданные для API ответа
     const formattedMetadata = {
-      title: typeof metadata.title === 'object' 
-        ? metadata.title.absolute || metadata.title.default 
-        : metadata.title,
+      title:
+        typeof metadata.title === 'object'
+          ? metadata.title.absolute || metadata.title.default
+          : metadata.title,
       description: metadata.description,
       openGraph: metadata.openGraph,
       twitter: metadata.twitter,

@@ -7,16 +7,17 @@
 
 @layer base {
   /* Добавление базовых стилей для создания правильного sticky footer */
-  html {
+  html,
+  body {
     @apply h-full;
   }
 
   body {
-    @apply min-h-full flex flex-col;
+    @apply min-h-screen flex flex-col;
   }
 
   main {
-    @apply flex-grow;
+    @apply flex-grow flex flex-col;
   }
 
   :root {

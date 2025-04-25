@@ -70,16 +70,18 @@ export default async function LangLayout({ children, params }: LayoutProps) {
           className={cn(
             GeistSans.variable,
             GeistMono.variable,
-            'flex flex-col min-h-full bg-background font-sans antialiased',
+            'flex flex-col min-h-screen bg-background font-sans antialiased',
           )}
-          style={{ '--header-height': '4rem' } as React.CSSProperties}
+          style={{ '--header-height': '4rem', '--footer-height': '12rem' } as React.CSSProperties}
           data-lang={lang}
         >
-          <ThemeProvider lang={lang}>
-            <I18nProvider lang={lang}>
+          <ThemeProvider>
+            <I18nProvider defaultLang={lang}>
               {isDraftMode && <AdminBar />}
               <Header locale={lang} />
-              <main className="relative flex-grow pt-[var(--header-height)]">{children}</main>
+              <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
+                {children}
+              </main>
               <div id="pagination-slot" className="container py-8"></div>
               <Footer locale={lang} />
               <FloatingCartButtonWrapper locale={lang} />

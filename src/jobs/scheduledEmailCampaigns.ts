@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 /**
  * Scheduled job that checks for email campaigns that need to be run

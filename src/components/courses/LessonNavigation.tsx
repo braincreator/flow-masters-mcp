@@ -3,9 +3,14 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, CheckCircle, Circle, Lock } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Progress } from '@/components/ui/Progress'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/Accordion'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { cn } from '@/utilities/ui'
 
 interface LessonNavigationProps {
@@ -56,7 +61,7 @@ export function LessonNavigation({
   // Find the next and previous lessons
   const findAdjacentLessons = () => {
     let allLessons: { moduleId: string; lessonId: string }[] = []
-    
+
     modules.forEach((module) => {
       if (module.lessons && Array.isArray(module.lessons)) {
         module.lessons.forEach((lesson) => {
@@ -64,11 +69,11 @@ export function LessonNavigation({
         })
       }
     })
-    
+
     const currentIndex = allLessons.findIndex(
-      (item) => item.moduleId === currentModuleId && item.lessonId === currentLessonId
+      (item) => item.moduleId === currentModuleId && item.lessonId === currentLessonId,
     )
-    
+
     return {
       prev: currentIndex > 0 ? allLessons[currentIndex - 1] : null,
       next: currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null,
@@ -94,13 +99,13 @@ export function LessonNavigation({
   const isLessonAccessible = (moduleIndex: number, lessonIndex: number) => {
     // First module's first lesson is always accessible
     if (moduleIndex === 0 && lessonIndex === 0) return true
-    
+
     // If previous lesson in same module is completed, this lesson is accessible
     if (lessonIndex > 0) {
       const prevLesson = modules[moduleIndex].lessons[lessonIndex - 1]
       if (completedLessons.has(prevLesson.id)) return true
     }
-    
+
     // If this is the first lesson of a module (not the first module)
     if (lessonIndex === 0 && moduleIndex > 0) {
       // Check if the last lesson of the previous module is completed
@@ -110,7 +115,7 @@ export function LessonNavigation({
         return completedLessons.has(lastLessonOfPrevModule.id)
       }
     }
-    
+
     return false
   }
 
@@ -147,9 +152,10 @@ export function LessonNavigation({
                   {module.lessons && Array.isArray(module.lessons) ? (
                     module.lessons.map((lesson, lessonIndex) => {
                       const isAccessible = isLessonAccessible(moduleIndex, lessonIndex)
-                      const isActive = currentModuleId === module.id && currentLessonId === lesson.id
+                      const isActive =
+                        currentModuleId === module.id && currentLessonId === lesson.id
                       const isCompleted = completedLessons.has(lesson.id)
-                      
+
                       return (
                         <li key={lesson.id}>
                           <button
@@ -157,8 +163,10 @@ export function LessonNavigation({
                             disabled={!isAccessible}
                             className={cn(
                               'flex items-center gap-2 w-full text-left py-2 px-3 rounded transition-colors',
-                              isActive ? 'bg-primary/10 text-primary' : 'hover:bg-gray-100 dark:hover:bg-gray-800',
-                              !isAccessible && 'opacity-50 cursor-not-allowed'
+                              isActive
+                                ? 'bg-primary/10 text-primary'
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800',
+                              !isAccessible && 'opacity-50 cursor-not-allowed',
                             )}
                           >
                             {isCompleted ? (
@@ -194,15 +202,11 @@ export function LessonNavigation({
           <ChevronLeft className="h-4 w-4 mr-1" />
           Previous
         </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push(`/courses/${courseSlug}`)}
-        >
+
+        <Button variant="outline" size="sm" onClick={() => router.push(`/courses/${courseSlug}`)}>
           Course Details
         </Button>
-        
+
         <Button
           variant="outline"
           size="sm"

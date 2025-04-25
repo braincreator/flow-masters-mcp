@@ -1,7 +1,7 @@
 /* THIS FILE WAS MODIFIED TO FIX BUILD ERRORS */
 import { NextRequest, NextResponse } from 'next/server'
 import config from '@/payload.config'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 export async function GET(req: NextRequest) {
   try {

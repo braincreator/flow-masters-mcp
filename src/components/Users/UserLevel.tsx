@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { getUserLevelInfo } from '@/lib/api/users'
-import { Progress } from '@/components/ui/Progress'
+import { Progress } from '@/components/ui/progress'
 import { Loader2 } from 'lucide-react'
 
 interface UserLevelProps {
@@ -114,15 +114,15 @@ export default function UserLevel({ userId, showDetails = true, className = '' }
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="text-gray-600">Всего XP:</div>
             <div className="font-medium">{levelInfo.currentXP}</div>
-            
+
             <div className="text-gray-600">Текущий уровень:</div>
             <div className="font-medium">{levelInfo.currentLevel}</div>
-            
+
             {!levelInfo.isMaxLevel && (
               <>
                 <div className="text-gray-600">Следующий уровень:</div>
                 <div className="font-medium">{levelInfo.currentLevel + 1}</div>
-                
+
                 <div className="text-gray-600">Прогресс:</div>
                 <div className="font-medium">{levelInfo.progress}%</div>
               </>

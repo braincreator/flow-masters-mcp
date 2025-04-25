@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Clock, BookOpen, Award, User } from 'lucide-react'
 
 interface CourseOverviewProps {
@@ -41,14 +41,12 @@ export function CourseOverview({ course }: CourseOverviewProps) {
                 {course.difficulty ? (
                   <Badge
                     className={
-                      difficultyColors[
-                        course.difficulty as keyof typeof difficultyColors
-                      ] || 'bg-gray-100'
+                      difficultyColors[course.difficulty as keyof typeof difficultyColors] ||
+                      'bg-gray-100'
                     }
                   >
-                    {difficultyLabels[
-                      course.difficulty as keyof typeof difficultyLabels
-                    ] || course.difficulty}
+                    {difficultyLabels[course.difficulty as keyof typeof difficultyLabels] ||
+                      course.difficulty}
                   </Badge>
                 ) : (
                   'Not specified'

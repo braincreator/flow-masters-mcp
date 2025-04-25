@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSideURL } from '@/utilities/getURL'
 import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'

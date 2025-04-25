@@ -1,5 +1,5 @@
 import type { Config } from 'src/payload-types'
-import { getPayloadClient } from './payload'
+import { getPayloadClient } from './payload/index'
 import { unstable_cache } from 'next/cache'
 import { LRUCache } from 'lru-cache'
 
@@ -35,14 +35,14 @@ async function getDocument(collection: Collection, slug: string, depth = 0) {
 
 export const getCachedDocument = (collection: Collection, slug: string, depth = 0) => {
   const cacheKey = `${collection}_${slug}_${depth}`
-  
+
   return unstable_cache(
     async () => {
       const cached = documentCache.get(cacheKey)
       if (cached) return cached
 
       const doc = await getDocument(collection, slug, depth)
-      
+
       if (doc) {
         // Limit cache size
         if (documentCache.size > 1000) {
@@ -51,22 +51,23 @@ export const getCachedDocument = (collection: Collection, slug: string, depth = 
         }
         documentCache.set(cacheKey, doc)
       }
-      
+
       return doc
     },
     [collection, slug, depth],
     {
       tags: [cacheKey, collection],
       revalidate: 3600,
-      maxAge: 3600 // 1 hour
-    }
+      maxAge: 3600, // 1 hour
+    },
   )
 }
 
 // More aggressive memory management
 if (typeof process !== 'undefined') {
   process.on('memory', (info) => {
-    if (info.heapUsed / info.heapTotal > 0.8) { // Lower threshold
+    if (info.heapUsed / info.heapTotal > 0.8) {
+      // Lower threshold
       console.warn('High memory usage detected, clearing document cache')
       documentCache.reset()
     }

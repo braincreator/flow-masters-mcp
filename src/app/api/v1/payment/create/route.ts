@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { PaymentProvider } from '@/types/payment'
 import { ServiceRegistry } from '@/services/service.registry'
 

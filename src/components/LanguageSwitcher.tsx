@@ -4,7 +4,7 @@ import React from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import ReactCountryFlag from 'react-country-flag'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 import { useDropdown } from '@/providers/DropdownContext'
@@ -23,7 +23,7 @@ export function LanguageSwitcher() {
   const isOpen = openDropdown === 'language'
 
   const currentLang = pathname?.split('/')[1] || lang
-  const currentLanguage = locales.find(locale => locale.code === currentLang)
+  const currentLanguage = locales.find((locale) => locale.code === currentLang)
 
   const handleToggle = () => {
     setOpenDropdown(isOpen ? null : 'language')
@@ -31,8 +31,8 @@ export function LanguageSwitcher() {
 
   const switchLanguage = (code: string) => {
     const segments = pathname?.split('/').filter(Boolean) || []
-    const langIndex = segments.findIndex(seg => locales.some(loc => loc.code === seg))
-    
+    const langIndex = segments.findIndex((seg) => locales.some((loc) => loc.code === seg))
+
     let newPathname
     if (langIndex !== -1) {
       segments[langIndex] = code
@@ -52,7 +52,7 @@ export function LanguageSwitcher() {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full 
+        className="flex items-center gap-2 rounded-full
                    hover:bg-accent/10 hover:text-accent
                    transition-all duration-300 ease-out"
       >
@@ -66,11 +66,11 @@ export function LanguageSwitcher() {
           className="transition-transform duration-300 group-hover:scale-110"
         />
         <span>{currentLanguage?.label}</span>
-        <ChevronDown 
+        <ChevronDown
           className={cn(
-            "h-4 w-4 transition-all duration-300",
-            isOpen ? "rotate-180 text-accent" : "rotate-0"
-          )} 
+            'h-4 w-4 transition-all duration-300',
+            isOpen ? 'rotate-180 text-accent' : 'rotate-0',
+          )}
         />
       </Button>
 
@@ -81,8 +81,8 @@ export function LanguageSwitcher() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 z-50 mt-2 w-40 rounded-xl 
-                       bg-card shadow-lg shadow-black/5 
+            className="absolute right-0 z-50 mt-2 w-40 rounded-xl
+                       bg-card shadow-lg shadow-black/5
                        border border-border overflow-hidden
                        dark:shadow-white/5"
           >
@@ -91,10 +91,10 @@ export function LanguageSwitcher() {
                 key={locale.code}
                 onClick={() => switchLanguage(locale.code)}
                 className={cn(
-                  "flex w-full items-center gap-2 px-4 py-2.5",
-                  "transition-all duration-300",
-                  "hover:bg-accent/10 hover:text-accent",
-                  locale.code === currentLang && "bg-accent/10 text-accent"
+                  'flex w-full items-center gap-2 px-4 py-2.5',
+                  'transition-all duration-300',
+                  'hover:bg-accent/10 hover:text-accent',
+                  locale.code === currentLang && 'bg-accent/10 text-accent',
                 )}
               >
                 <ReactCountryFlag

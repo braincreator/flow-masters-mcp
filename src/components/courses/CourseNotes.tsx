@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Textarea } from '@/components/ui/Textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { Alert, AlertDescription } from '@/components/ui/Alert'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Save, Trash2, Plus, BookOpen, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -42,12 +42,14 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
         if (savedNotes) {
           const allNotes = JSON.parse(savedNotes) as Note[]
           setNotes(allNotes)
-          
+
           // Set current note to the most recent note for this lesson, if any
-          const lessonNotes = allNotes.filter(note => note.lessonId === lessonId)
+          const lessonNotes = allNotes.filter((note) => note.lessonId === lessonId)
           if (lessonNotes.length > 0) {
             // Sort by timestamp descending and get the most recent
-            lessonNotes.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            lessonNotes.sort(
+              (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+            )
             setCurrentNote(lessonNotes[0].content)
           } else {
             setCurrentNote('')
@@ -77,11 +79,11 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
       }
 
       // Add to existing notes
-      const updatedNotes = [...notes.filter(note => note.lessonId !== lessonId), newNote]
-      
+      const updatedNotes = [...notes.filter((note) => note.lessonId !== lessonId), newNote]
+
       // In a real app, this would be an API call
       localStorage.setItem(`course_notes_${user.id}_${courseId}`, JSON.stringify(updatedNotes))
-      
+
       setNotes(updatedNotes)
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
@@ -97,15 +99,15 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
 
     try {
       // Filter out the deleted note
-      const updatedNotes = notes.filter(note => note.id !== noteId)
-      
+      const updatedNotes = notes.filter((note) => note.id !== noteId)
+
       // In a real app, this would be an API call
       localStorage.setItem(`course_notes_${user.id}_${courseId}`, JSON.stringify(updatedNotes))
-      
+
       setNotes(updatedNotes)
-      
+
       // If we deleted the current lesson's note, clear the current note
-      const deletedNote = notes.find(note => note.id === noteId)
+      const deletedNote = notes.find((note) => note.id === noteId)
       if (deletedNote && deletedNote.lessonId === lessonId) {
         setCurrentNote('')
       }
@@ -119,10 +121,10 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
   }
 
   // Get all notes for the current course
-  const courseNotes = notes.filter(note => note.lessonId.startsWith(courseId))
-  
+  const courseNotes = notes.filter((note) => note.lessonId.startsWith(courseId))
+
   // Get notes for the current lesson
-  const lessonNotes = notes.filter(note => note.lessonId === lessonId)
+  const lessonNotes = notes.filter((note) => note.lessonId === lessonId)
 
   return (
     <Card className="h-full flex flex-col">
@@ -132,18 +134,24 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
           Notes
         </CardTitle>
       </CardHeader>
-      
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
+
+      <Tabs
+        defaultValue={activeTab}
+        onValueChange={setActiveTab}
+        className="flex-grow flex flex-col"
+      >
         <TabsList className="grid grid-cols-2">
           <TabsTrigger value="current">Current Lesson</TabsTrigger>
           <TabsTrigger value="all">All Notes</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="current" className="flex-grow flex flex-col">
           <CardContent className="flex-grow flex flex-col">
             <div className="flex justify-between items-center mb-2">
               <div className="text-sm text-gray-500">
-                {lessonNotes.length > 0 ? 'Your notes for this lesson:' : 'No notes for this lesson yet'}
+                {lessonNotes.length > 0
+                  ? 'Your notes for this lesson:'
+                  : 'No notes for this lesson yet'}
               </div>
               {lessonNotes.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={createNewNote}>
@@ -152,14 +160,14 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
                 </Button>
               )}
             </div>
-            
+
             <Textarea
               placeholder="Take notes for this lesson..."
               className="flex-grow resize-none mb-4"
               value={currentNote}
               onChange={(e) => setCurrentNote(e.target.value)}
             />
-            
+
             <div className="flex justify-end">
               <Button onClick={saveNote} disabled={!currentNote.trim() || isSaving}>
                 {isSaving ? (
@@ -172,16 +180,18 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
                 )}
               </Button>
             </div>
-            
+
             {saveSuccess && (
               <Alert className="mt-4 bg-green-50 border-green-200">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <AlertDescription className="text-green-800">Note saved successfully!</AlertDescription>
+                <AlertDescription className="text-green-800">
+                  Note saved successfully!
+                </AlertDescription>
               </Alert>
             )}
           </CardContent>
         </TabsContent>
-        
+
         <TabsContent value="all" className="flex-grow overflow-auto">
           <CardContent>
             {courseNotes.length > 0 ? (

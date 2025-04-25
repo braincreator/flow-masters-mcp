@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import { LessonNavigation } from './LessonNavigation'
 import { LessonViewer } from './LessonViewer'
 

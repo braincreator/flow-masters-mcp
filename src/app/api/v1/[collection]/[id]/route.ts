@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyApiKey } from '@/utilities/auth'
 import type { Config } from '@/payload-types'
 
@@ -7,7 +7,7 @@ type CollectionNames = keyof Config['collections']
 
 export async function GET(
   req: Request,
-  { params }: { params: { collection: CollectionNames; id: string } }
+  { params }: { params: { collection: CollectionNames; id: string } },
 ) {
   try {
     const apiKey = req.headers.get('x-api-key')
@@ -27,10 +27,7 @@ export async function GET(
     })
 
     if (!document) {
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
     return NextResponse.json(document)

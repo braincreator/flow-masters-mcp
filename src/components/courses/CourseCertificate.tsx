@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Award, Download, Share2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import html2canvas from 'html2canvas'
@@ -14,7 +14,11 @@ interface CourseCertificateProps {
   certificateId?: string
 }
 
-export function CourseCertificate({ course, completionDate, certificateId }: CourseCertificateProps) {
+export function CourseCertificate({
+  course,
+  completionDate,
+  certificateId,
+}: CourseCertificateProps) {
   const { user } = useAuth()
   const certificateRef = useRef<HTMLDivElement>(null)
 
@@ -63,7 +67,7 @@ export function CourseCertificate({ course, completionDate, certificateId }: Cou
     } else {
       // Fallback for browsers that don't support the Web Share API
       const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        `I've completed the "${course.title}" course! #learning #education`
+        `I've completed the "${course.title}" course! #learning #education`,
       )}&url=${encodeURIComponent(window.location.href)}`
       window.open(shareUrl, '_blank')
     }
@@ -113,7 +117,11 @@ export function CourseCertificate({ course, completionDate, certificateId }: Cou
               <Download className="h-4 w-4" />
               Download Certificate
             </Button>
-            <Button variant="outline" onClick={shareCertificate} className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={shareCertificate}
+              className="flex items-center gap-2"
+            >
               <Share2 className="h-4 w-4" />
               Share
             </Button>

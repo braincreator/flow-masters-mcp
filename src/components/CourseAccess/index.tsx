@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 
 interface CourseAccessProps {
@@ -84,7 +84,11 @@ export const CourseAccess: React.FC<CourseAccessProps> = ({
   if (!user) {
     return (
       <div className={`course-access ${className}`}>
-        <Button onClick={() => router.push('/login?redirect=' + encodeURIComponent(window.location.pathname))}>
+        <Button
+          onClick={() =>
+            router.push('/login?redirect=' + encodeURIComponent(window.location.pathname))
+          }
+        >
           Login to Access Course
         </Button>
       </div>
@@ -102,7 +106,7 @@ export const CourseAccess: React.FC<CourseAccessProps> = ({
           Purchase Course
         </Button>
       )}
-      
+
       {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
     </div>
   )

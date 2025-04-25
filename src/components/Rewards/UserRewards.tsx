@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { getUserRewards, useReward, activateDiscountFromReward } from '@/lib/api/rewards'
 import Image from 'next/image'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Loader2, Gift, Check, Clock, X } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface UserRewardsProps {
   userId?: string

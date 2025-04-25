@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { getPayloadClient } from './payload'
+import { getPayloadClient } from './payload/index'
 import { errorResponse } from './api'
 import { cookies } from 'next/headers'
 

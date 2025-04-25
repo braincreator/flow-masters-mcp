@@ -12,7 +12,7 @@ export async function GET() {
   try {
     // Импортируем getPayloadClient только на сервере (API routes всегда выполняются на сервере)
     console.log('API /currency-settings: importing getPayloadClient')
-    const { getPayloadClient } = await import('@/utilities/payload')
+    const { getPayloadClient } = await import('@/utilities/payload/index')
 
     // Получаем данные из Payload CMS
     console.log('API /currency-settings: calling getPayloadClient')

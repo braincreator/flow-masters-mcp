@@ -1,4 +1,4 @@
-import { getPayloadClient } from '../utilities/payload'
+import { getPayloadClient } from '../utilities/payload/index'
 import { ProductService } from './product.service'
 
 export async function getProductService(): Promise<ProductService> {

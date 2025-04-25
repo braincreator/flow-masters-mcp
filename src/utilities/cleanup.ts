@@ -19,15 +19,17 @@ export async function cleanupResources() {
   // Cleanup all caches
   cleanupGlobalCache()
   cleanupLocaleCache()
-  
+
   // Cleanup connections
   await cleanupPayloadConnections()
-  
+
   // Cleanup monitoring
   connectionMonitor.cleanup()
-  
+
   // Cleanup database
-  await databaseConnection.disconnect()
+  if (typeof databaseConnection.disconnect === 'function') {
+    await databaseConnection.disconnect()
+  }
 
   // Force garbage collection if available
   if (global.gc) {

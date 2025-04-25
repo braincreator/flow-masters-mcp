@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { markLessonAsViewed, getLessonProgressStatus } from '@/lib/api/lessons'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CheckCircle, Circle, Loader2 } from 'lucide-react'
 
 interface LessonProgressProps {

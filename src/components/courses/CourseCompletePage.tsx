@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Loader2, CheckCircle, Award, ArrowRight } from 'lucide-react'
 import { CourseCertificate } from './CourseCertificate'
 import confetti from 'canvas-confetti'
@@ -57,10 +57,10 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
     try {
       setIsGeneratingCertificate(true)
-      
+
       const newCertificate = await generateCertificate(user.id, course.id)
       setCertificate(newCertificate)
-      
+
       // Trigger confetti when certificate is generated
       const duration = 3 * 1000
       const animationEnd = Date.now() + duration
@@ -70,7 +70,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         return Math.random() * (max - min) + min
       }
 
-      const interval = setInterval(function() {
+      const interval = setInterval(function () {
         const timeLeft = animationEnd - Date.now()
 
         if (timeLeft <= 0) {
@@ -78,17 +78,17 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         }
 
         const particleCount = 50 * (timeLeft / duration)
-        
+
         // since particles fall down, start a bit higher than random
         confetti({
           ...defaults,
           particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
         })
         confetti({
           ...defaults,
           particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
         })
       }, 250)
 
@@ -111,7 +111,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         return Math.random() * (max - min) + min
       }
 
-      const interval: any = setInterval(function() {
+      const interval: any = setInterval(function () {
         const timeLeft = animationEnd - Date.now()
 
         if (timeLeft <= 0) {
@@ -119,17 +119,17 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         }
 
         const particleCount = 50 * (timeLeft / duration)
-        
+
         // since particles fall down, start a bit higher than random
         confetti({
           ...defaults,
           particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
         })
         confetti({
           ...defaults,
           particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
         })
       }, 250)
 
@@ -150,7 +150,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
       try {
         setAccessLoading(true)
-        
+
         // Check if user has access to this course
         const response = await fetch('/api/v1/courses/access', {
           method: 'POST',
@@ -172,13 +172,15 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
         // If user has access, get their enrollment
         if (data.hasAccess) {
-          const enrollmentResponse = await fetch(`/api/v1/courses/enrollment?userId=${user.id}&courseId=${course.id}`)
-          
+          const enrollmentResponse = await fetch(
+            `/api/v1/courses/enrollment?userId=${user.id}&courseId=${course.id}`,
+          )
+
           if (enrollmentResponse.ok) {
             const enrollmentData = await enrollmentResponse.json()
             if (enrollmentData.enrollment) {
               setEnrollment(enrollmentData.enrollment)
-              
+
               // If progress is not 100%, update it to 100%
               if (enrollmentData.enrollment.progress < 100) {
                 await fetch('/api/v1/courses/enrollment', {
@@ -193,16 +195,18 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
                   }),
                 })
               }
-              
+
               // Check if user already has a certificate
-              const certificatesResponse = await fetch(`/api/v1/courses/certificates?userId=${user.id}`)
-              
+              const certificatesResponse = await fetch(
+                `/api/v1/courses/certificates?userId=${user.id}`,
+              )
+
               if (certificatesResponse.ok) {
                 const certificatesData = await certificatesResponse.json()
                 const courseCertificate = certificatesData.certificates.find(
-                  (cert: any) => cert.course === course.id
+                  (cert: any) => cert.course === course.id,
                 )
-                
+
                 if (courseCertificate) {
                   setCertificate(courseCertificate)
                 }
@@ -228,11 +232,11 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
     const loadRelatedCourses = async () => {
       try {
         setIsLoadingRelated(true)
-        
+
         // In a real app, this would be an API call to get related courses
         // For now, we'll just simulate it with a timeout
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
         // Mock data for related courses
         setRelatedCourses([
           {
@@ -255,7 +259,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         setIsLoadingRelated(false)
       }
     }
-    
+
     loadRelatedCourses()
   }, [course])
 
@@ -273,7 +277,11 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-4">Login Required</h1>
           <p className="mb-6">Please log in to access your certificate.</p>
-          <Button onClick={() => router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)}>
+          <Button
+            onClick={() =>
+              router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+            }
+          >
             Log In
           </Button>
         </div>
@@ -286,12 +294,8 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
       <div className="container max-w-screen-xl mx-auto py-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-4">Access Restricted</h1>
-          <p className="mb-6">
-            You need to complete the course to access this page.
-          </p>
-          <Button onClick={() => router.push(`/courses/${course.slug}/learn`)}>
-            Go to Course
-          </Button>
+          <p className="mb-6">You need to complete the course to access this page.</p>
+          <Button onClick={() => router.push(`/courses/${course.slug}/learn`)}>Go to Course</Button>
         </div>
       </div>
     )
@@ -306,7 +310,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         <h1 className="text-4xl font-bold mb-4">Congratulations, {user.name}!</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           You've successfully completed the <strong>{course.title}</strong> course.
-          {certificate ? " Here's your certificate of completion." : ""}
+          {certificate ? " Here's your certificate of completion." : ''}
         </p>
       </div>
 
@@ -319,9 +323,9 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
             </CardContent>
           </Card>
         ) : certificate ? (
-          <CourseCertificate 
-            course={course} 
-            completionDate={certificate.completionDate} 
+          <CourseCertificate
+            course={course}
+            completionDate={certificate.completionDate}
             certificateId={certificate.certificateId}
           />
         ) : (
@@ -342,7 +346,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
       <div className="mb-16">
         <h2 className="text-2xl font-bold mb-6 text-center">What's Next?</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -356,7 +360,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
               Share on LinkedIn
             </Button>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <ArrowRight className="h-5 w-5 text-primary" />
@@ -375,7 +379,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
       {relatedCourses.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-6 text-center">Recommended Courses</h2>
-          
+
           {isLoadingRelated ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -383,7 +387,10 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedCourses.map((relatedCourse) => (
-                <div key={relatedCourse.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
+                <div
+                  key={relatedCourse.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100"
+                >
                   {relatedCourse.featuredImage && (
                     <div className="h-40 bg-gray-200 relative">
                       <img
@@ -396,8 +403,8 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
                   <div className="p-6">
                     <h3 className="text-lg font-semibold mb-2">{relatedCourse.title}</h3>
                     <p className="text-gray-600 text-sm mb-4">{relatedCourse.excerpt}</p>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => router.push(`/courses/${relatedCourse.slug}`)}
                     >

@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { NextResponse } from 'next/server'
 
 export async function GET(req: Request) {

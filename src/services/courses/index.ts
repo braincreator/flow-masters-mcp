@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { CourseService } from './courseService'
 import { EnrollmentService } from './enrollmentService'
 import { ServiceRegistry } from '../service.registry'

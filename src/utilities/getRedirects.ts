@@ -1,6 +1,6 @@
 import { LRUCache } from 'lru-cache'
 import { unstable_cache } from 'next/cache'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 // Add LRU cache for frequently accessed redirects
 const redirectCache = new LRUCache({
@@ -39,6 +39,6 @@ export const getCachedRedirects = () =>
     ['redirects'],
     {
       tags: ['redirects'],
-      revalidate: 3600 // 1 hour
-    }
+      revalidate: 3600, // 1 hour
+    },
   )

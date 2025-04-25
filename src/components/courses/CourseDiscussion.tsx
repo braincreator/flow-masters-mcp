@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/Textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import { MessageSquare, Send, ThumbsUp, Flag, Reply } from 'lucide-react'
@@ -64,7 +64,8 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
               id: 'comment1',
               userId: 'user1',
               userName: 'John Doe',
-              content: 'This lesson was really helpful! I especially liked the explanation of the key concepts.',
+              content:
+                'This lesson was really helpful! I especially liked the explanation of the key concepts.',
               timestamp: new Date(Date.now() - 3600000).toISOString(),
               likes: 5,
               liked: false,
@@ -77,22 +78,26 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                   timestamp: new Date(Date.now() - 1800000).toISOString(),
                   likes: 2,
                   liked: false,
-                }
-              ]
+                },
+              ],
             },
             {
               id: 'comment2',
               userId: 'user3',
               userName: 'Alex Johnson',
-              content: 'I had a question about the second example. Could someone explain how the algorithm works in more detail?',
+              content:
+                'I had a question about the second example. Could someone explain how the algorithm works in more detail?',
               timestamp: new Date(Date.now() - 7200000).toISOString(),
               likes: 0,
               liked: false,
-              replies: []
-            }
+              replies: [],
+            },
           ]
           setComments(mockComments)
-          localStorage.setItem(`course_comments_${courseId}_${lessonId}`, JSON.stringify(mockComments))
+          localStorage.setItem(
+            `course_comments_${courseId}_${lessonId}`,
+            JSON.stringify(mockComments),
+          )
         }
       } catch (error) {
         console.error('Error loading comments:', error)
@@ -119,15 +124,18 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
         timestamp: new Date().toISOString(),
         likes: 0,
         liked: false,
-        replies: []
+        replies: [],
       }
 
       // Add to existing comments
       const updatedComments = [newCommentObj, ...comments]
-      
+
       // In a real app, this would be an API call
-      localStorage.setItem(`course_comments_${courseId}_${lessonId}`, JSON.stringify(updatedComments))
-      
+      localStorage.setItem(
+        `course_comments_${courseId}_${lessonId}`,
+        JSON.stringify(updatedComments),
+      )
+
       setComments(updatedComments)
       setNewComment('')
     } catch (error) {
@@ -150,23 +158,26 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
         content: replyContent,
         timestamp: new Date().toISOString(),
         likes: 0,
-        liked: false
+        liked: false,
       }
 
       // Add reply to the comment
-      const updatedComments = comments.map(comment => {
+      const updatedComments = comments.map((comment) => {
         if (comment.id === commentId) {
           return {
             ...comment,
-            replies: [...comment.replies, newReply]
+            replies: [...comment.replies, newReply],
           }
         }
         return comment
       })
-      
+
       // In a real app, this would be an API call
-      localStorage.setItem(`course_comments_${courseId}_${lessonId}`, JSON.stringify(updatedComments))
-      
+      localStorage.setItem(
+        `course_comments_${courseId}_${lessonId}`,
+        JSON.stringify(updatedComments),
+      )
+
       setComments(updatedComments)
       setReplyContent('')
       setReplyingTo(null)
@@ -180,48 +191,51 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
 
     try {
       let updatedComments
-      
+
       if (isReply && replyId) {
         // Toggle like on a reply
-        updatedComments = comments.map(comment => {
+        updatedComments = comments.map((comment) => {
           if (comment.id === commentId) {
-            const updatedReplies = comment.replies.map(reply => {
+            const updatedReplies = comment.replies.map((reply) => {
               if (reply.id === replyId) {
                 const wasLiked = reply.liked
                 return {
                   ...reply,
                   likes: wasLiked ? reply.likes - 1 : reply.likes + 1,
-                  liked: !wasLiked
+                  liked: !wasLiked,
                 }
               }
               return reply
             })
-            
+
             return {
               ...comment,
-              replies: updatedReplies
+              replies: updatedReplies,
             }
           }
           return comment
         })
       } else {
         // Toggle like on a comment
-        updatedComments = comments.map(comment => {
+        updatedComments = comments.map((comment) => {
           if (comment.id === commentId) {
             const wasLiked = comment.liked
             return {
               ...comment,
               likes: wasLiked ? comment.likes - 1 : comment.likes + 1,
-              liked: !wasLiked
+              liked: !wasLiked,
             }
           }
           return comment
         })
       }
-      
+
       // In a real app, this would be an API call
-      localStorage.setItem(`course_comments_${courseId}_${lessonId}`, JSON.stringify(updatedComments))
-      
+      localStorage.setItem(
+        `course_comments_${courseId}_${lessonId}`,
+        JSON.stringify(updatedComments),
+      )
+
       setComments(updatedComments)
     } catch (error) {
       console.error('Error toggling like:', error)
@@ -241,7 +255,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
           Discussion ({comments.length})
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="flex-grow flex flex-col">
         {user ? (
           <div className="mb-6">
@@ -250,9 +264,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                 {user.avatar ? (
                   <AvatarImage src={user.avatar} alt={user.name} />
                 ) : (
-                  <AvatarFallback>
-                    {user.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 )}
               </Avatar>
               <Textarea
@@ -263,12 +275,14 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
               />
             </div>
             <div className="flex justify-end">
-              <Button 
-                onClick={submitComment} 
+              <Button
+                onClick={submitComment}
                 disabled={!newComment.trim() || isSubmitting}
                 size="sm"
               >
-                {isSubmitting ? 'Posting...' : (
+                {isSubmitting ? (
+                  'Posting...'
+                ) : (
                   <>
                     <Send className="h-4 w-4 mr-1" />
                     Post
@@ -284,7 +298,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
             </p>
           </div>
         )}
-        
+
         <div className="space-y-6 overflow-auto">
           {isLoading ? (
             <div className="text-center py-8">
@@ -338,7 +352,9 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                            onClick={() =>
+                              setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                            }
                             className="h-6 p-0 flex items-center gap-1 text-xs text-gray-500"
                           >
                             <Reply className="h-3.5 w-3.5" />
@@ -349,7 +365,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Reply form */}
                 {replyingTo === comment.id && user && (
                   <div className="ml-8 p-3 border rounded-md bg-gray-50 dark:bg-gray-800">
@@ -358,9 +374,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                         {user.avatar ? (
                           <AvatarImage src={user.avatar} alt={user.name} />
                         ) : (
-                          <AvatarFallback>
-                            {user.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
+                          <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                         )}
                       </Avatar>
                       <Textarea
@@ -371,14 +385,10 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                       />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setReplyingTo(null)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setReplyingTo(null)}>
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => submitReply(comment.id)}
                         disabled={!replyContent.trim()}
@@ -388,7 +398,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                     </div>
                   </div>
                 )}
-                
+
                 {/* Replies */}
                 {comment.replies.length > 0 && (
                   <div className="ml-8 space-y-3">
@@ -409,7 +419,9 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
                               <div>
                                 <p className="font-medium text-sm">{reply.userName}</p>
                                 <p className="text-xs text-gray-500">
-                                  {formatDistanceToNow(new Date(reply.timestamp), { addSuffix: true })}
+                                  {formatDistanceToNow(new Date(reply.timestamp), {
+                                    addSuffix: true,
+                                  })}
                                 </p>
                               </div>
                               <Button

@@ -2,24 +2,72 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Card, CardContent, CardHeader, Chip, CircularProgress, Divider, Grid, IconButton, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
-import { PlayArrow, Pause, Refresh, Delete } from '@mui/icons-material'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Separator } from '@/components/ui/separator'
+import {
+  Loader2,
+  PlayCircle,
+  PauseCircle,
+  RefreshCw,
+  X,
+  AlertCircle,
+  Edit,
+} from 'lucide-react'
 import { usePayloadAPI } from '@/hooks/usePayloadAPI'
+import { cn } from '@/utilities/ui'
 
-const statusColors = {
-  draft: 'default',
-  active: 'primary',
-  processing: 'secondary',
-  completed: 'success',
-  paused: 'warning',
-  error: 'error',
+interface Campaign {
+  id: string
+  name: string
+  status: string
+  triggerType: string
+  lastRun?: string
+  stats?: {
+    totalSent?: number
+    opened?: number
+  }
+  recentLogs?: Array<{
+    message: string
+    timestamp: string
+    level: string
+  }>
+}
+
+// Mapping status to variant for Badge component
+const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  switch (status) {
+    case 'draft':
+      return 'secondary'
+    case 'active':
+      return 'default'
+    case 'processing':
+      return 'default'
+    case 'completed':
+      return 'default'
+    case 'paused':
+      return 'secondary'
+    case 'error':
+      return 'destructive'
+    default:
+      return 'secondary'
+  }
 }
 
 const EmailCampaignManager: React.FC = () => {
   const router = useRouter()
-  const [campaigns, setCampaigns] = useState([])
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCampaign, setSelectedCampaign] = useState(null)
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const { data, error } = usePayloadAPI(`/api/email-campaigns?limit=100&depth=0&sort=-createdAt`, {
@@ -35,10 +83,10 @@ const EmailCampaignManager: React.FC = () => {
   }, [data])
 
   const handleRefresh = () => {
-    setRefreshTrigger(prev => prev + 1)
+    setRefreshTrigger((prev) => prev + 1)
   }
 
-  const handleTriggerCampaign = async (campaignId) => {
+  const handleTriggerCampaign = async (campaignId: string) => {
     try {
       const response = await fetch('/api/v1/email-campaigns/trigger', {
         method: 'POST',
@@ -49,19 +97,22 @@ const EmailCampaignManager: React.FC = () => {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to trigger campaign')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to trigger campaign')
       }
 
-      // Refresh the list
       handleRefresh()
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error triggering campaign:', error)
-      alert(`Error: ${error.message}`)
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`)
+      } else {
+        alert('An unknown error occurred')
+      }
     }
   }
 
-  const handlePauseCampaign = async (campaignId) => {
+  const handlePauseCampaign = async (campaignId: string) => {
     try {
       const response = await fetch(`/api/email-campaigns/${campaignId}`, {
         method: 'PATCH',
@@ -72,32 +123,39 @@ const EmailCampaignManager: React.FC = () => {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to pause campaign')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to pause campaign')
       }
 
-      // Refresh the list
       handleRefresh()
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error pausing campaign:', error)
-      alert(`Error: ${error.message}`)
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`)
+      } else {
+        alert('An unknown error occurred')
+      }
     }
   }
 
-  const handleViewDetails = async (campaignId) => {
+  const handleViewDetails = async (campaignId: string) => {
     try {
       const response = await fetch(`/api/v1/email-campaigns/status?id=${campaignId}`)
-      
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to get campaign details')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get campaign details')
       }
-      
+
       const campaignDetails = await response.json()
       setSelectedCampaign(campaignDetails)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting campaign details:', error)
-      alert(`Error: ${error.message}`)
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`)
+      } else {
+        alert('An unknown error occurred')
+      }
     }
   }
 
@@ -107,17 +165,21 @@ const EmailCampaignManager: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-        <CircularProgress />
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div style={{ padding: '2rem' }}>
-        <Typography color="error">Error loading campaigns: {error.message}</Typography>
-        <Button variant="contained" onClick={handleRefresh} startIcon={<Refresh />} style={{ marginTop: '1rem' }}>
+      <div className="p-8">
+        <div className="flex items-center gap-2 text-destructive mb-4">
+          <AlertCircle className="h-5 w-5" />
+          <p>Error loading campaigns: {error.message}</p>
+        </div>
+        <Button variant="outline" onClick={handleRefresh} className="mt-4">
+          <RefreshCw className="h-4 w-4 mr-2" />
           Retry
         </Button>
       </div>
@@ -125,196 +187,193 @@ const EmailCampaignManager: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <Typography variant="h5">Email Campaigns</Typography>
-            <div>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={handleCreateCampaign}
-                style={{ marginRight: '1rem' }}
-              >
-                Create Campaign
-              </Button>
-              <Button 
-                variant="outlined" 
-                startIcon={<Refresh />} 
-                onClick={handleRefresh}
-              >
-                Refresh
-              </Button>
-            </div>
-          </div>
-        </Grid>
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Email Campaigns</h2>
+        <div className="flex gap-2">
+          <Button onClick={handleCreateCampaign} className="mr-2">
+            Create Campaign
+          </Button>
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
 
-        <Grid item xs={12} md={selectedCampaign ? 7 : 12}>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Last Run</TableCell>
-                  <TableCell>Stats</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {campaigns.map((campaign) => (
-                  <TableRow key={campaign.id} onClick={() => handleViewDetails(campaign.id)} style={{ cursor: 'pointer' }}>
-                    <TableCell>{campaign.name}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={campaign.status} 
-                        color={statusColors[campaign.status] || 'default'} 
-                        size="small" 
-                      />
-                    </TableCell>
-                    <TableCell>{campaign.triggerType}</TableCell>
-                    <TableCell>{campaign.lastRun ? new Date(campaign.lastRun).toLocaleString() : 'Never'}</TableCell>
-                    <TableCell>
-                      {campaign.stats?.totalSent ? `${campaign.stats.totalSent} sent` : 'No data'}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleTriggerCampaign(campaign.id)
-                        }}
-                        disabled={!['draft', 'paused'].includes(campaign.status)}
-                      >
-                        <PlayArrow />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handlePauseCampaign(campaign.id)
-                        }}
-                        disabled={!['active', 'processing'].includes(campaign.status)}
-                      >
-                        <Pause />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          router.push(`/admin/collections/email-campaigns/${campaign.id}`)
-                        }}
-                      >
-                        <Refresh />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {campaigns.length === 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className={cn('col-span-1', selectedCampaign ? 'md:col-span-7' : 'md:col-span-12')}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaigns</CardTitle>
+              <CardDescription>Manage your email campaigns</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      <Typography variant="body2" color="textSecondary" style={{ padding: '2rem' }}>
-                        No campaigns found. Create your first email campaign to get started.
-                      </Typography>
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Last Run</TableHead>
+                    <TableHead>Stats</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
+                </TableHeader>
+                <TableBody>
+                  {campaigns.map((campaign) => (
+                    <TableRow
+                      key={campaign.id}
+                      className="cursor-pointer"
+                      onClick={() => handleViewDetails(campaign.id)}
+                    >
+                      <TableCell className="font-medium">{campaign.name}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(campaign.status)}>{campaign.status}</Badge>
+                      </TableCell>
+                      <TableCell>{campaign.triggerType}</TableCell>
+                      <TableCell>
+                        {campaign.lastRun ? new Date(campaign.lastRun).toLocaleString() : 'Never'}
+                      </TableCell>
+                      <TableCell>
+                        {campaign.stats?.totalSent ? `${campaign.stats.totalSent} sent` : 'No data'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleTriggerCampaign(campaign.id)
+                            }}
+                            disabled={!['draft', 'paused'].includes(campaign.status)}
+                          >
+                            <PlayCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePauseCampaign(campaign.id)
+                            }}
+                            disabled={!['active', 'processing'].includes(campaign.status)}
+                          >
+                            <PauseCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/admin/collections/email-campaigns/${campaign.id}`)
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {campaigns.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No campaigns found. Create your first email campaign to get started.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
 
         {selectedCampaign && (
-          <Grid item xs={12} md={5}>
+          <div className="col-span-1 md:col-span-5">
             <Card>
-              <CardHeader 
-                title={selectedCampaign.name}
-                subheader={
-                  <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
-                    <Chip 
-                      label={selectedCampaign.status} 
-                      color={statusColors[selectedCampaign.status] || 'default'} 
-                      size="small" 
-                      style={{ marginRight: '0.5rem' }}
-                    />
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>{selectedCampaign.name}</CardTitle>
+                  <div className="flex items-center mt-2">
+                    <Badge variant={getStatusVariant(selectedCampaign.status)} className="mr-2">
+                      {selectedCampaign.status}
+                    </Badge>
                     {selectedCampaign.lastRun && (
-                      <Typography variant="caption">
+                      <span className="text-xs text-muted-foreground">
                         Last run: {new Date(selectedCampaign.lastRun).toLocaleString()}
-                      </Typography>
+                      </span>
                     )}
                   </div>
-                }
-                action={
-                  <IconButton onClick={() => setSelectedCampaign(null)}>
-                    <Delete />
-                  </IconButton>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Campaign Stats</Typography>
-                <Grid container spacing={2} style={{ marginBottom: '1rem' }}>
-                  <Grid item xs={6}>
-                    <Paper style={{ padding: '1rem', textAlign: 'center' }}>
-                      <Typography variant="h4">{selectedCampaign.stats?.totalSent || 0}</Typography>
-                      <Typography variant="body2" color="textSecondary">Emails Sent</Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper style={{ padding: '1rem', textAlign: 'center' }}>
-                      <Typography variant="h4">{selectedCampaign.stats?.opened || 0}</Typography>
-                      <Typography variant="body2" color="textSecondary">Opened</Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setSelectedCampaign(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-semibold mb-4">Campaign Stats</h3>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <p className="text-2xl font-bold">{selectedCampaign.stats?.totalSent || 0}</p>
+                      <p className="text-sm text-muted-foreground">Emails Sent</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <p className="text-2xl font-bold">{selectedCampaign.stats?.opened || 0}</p>
+                      <p className="text-sm text-muted-foreground">Opened</p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                <Typography variant="h6" gutterBottom>Recent Logs</Typography>
-                <List dense>
-                  {selectedCampaign.recentLogs?.map((log, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={log.message}
-                        secondary={new Date(log.timestamp).toLocaleString()}
-                        primaryTypographyProps={{ 
-                          color: log.level === 'error' ? 'error' : 'textPrimary',
-                          variant: 'body2'
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                  {(!selectedCampaign.recentLogs || selectedCampaign.recentLogs.length === 0) && (
-                    <ListItem>
-                      <ListItemText
-                        primary="No logs available"
-                        primaryTypographyProps={{ color: 'textSecondary', variant: 'body2' }}
-                      />
-                    </ListItem>
-                  )}
-                </List>
+                <h3 className="text-lg font-semibold mb-4">Recent Logs</h3>
+                {selectedCampaign.recentLogs && selectedCampaign.recentLogs.length > 0 ? (
+                  <div className="space-y-2">
+                    {selectedCampaign.recentLogs.map((log, index) => (
+                      <div key={index} className="p-3 border rounded-md">
+                        <p
+                          className={cn(
+                            'text-sm font-medium',
+                            log.level === 'error' ? 'text-destructive' : '',
+                          )}
+                        >
+                          {log.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-4">No logs available</p>
+                )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
+                <div className="flex justify-between mt-6">
+                  <Button
                     onClick={() => handleTriggerCampaign(selectedCampaign.id)}
                     disabled={!['draft', 'paused'].includes(selectedCampaign.status)}
                   >
+                    <PlayCircle className="h-4 w-4 mr-2" />
                     Run Campaign
                   </Button>
-                  <Button 
-                    variant="outlined" 
-                    onClick={() => router.push(`/admin/collections/email-campaigns/${selectedCampaign.id}`)}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/admin/collections/email-campaigns/${selectedCampaign.id}`)
+                    }
                   >
+                    <Edit className="h-4 w-4 mr-2" />
                     Edit Campaign
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </Grid>
+          </div>
         )}
-      </Grid>
+      </div>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { LRUCache } from 'lru-cache'
 import type { GlobalPayload } from 'payload/types'
-import { getPayloadClient, retryOnSessionExpired } from './payload'
+import { getPayloadClient, retryOnSessionExpired } from './payload/index'
 
 // Strongly type the globals
 type GlobalSlug = 'header' | 'footer' | 'navigation'

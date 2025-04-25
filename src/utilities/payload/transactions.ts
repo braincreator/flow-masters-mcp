@@ -1,4 +1,4 @@
-import { getPayloadClient } from './payload'
+import { getPayloadClient } from './index'
 import mongoose from 'mongoose'
 
 interface TransactionOptions {
@@ -8,7 +8,7 @@ interface TransactionOptions {
 
 export async function withTransaction<T>(
   operation: (session: mongoose.ClientSession) => Promise<T>,
-  options: TransactionOptions = {}
+  options: TransactionOptions = {},
 ) {
   const payload = await getPayloadClient()
   const { timeout = 30000, maxRetries = 3 } = options
@@ -16,12 +16,12 @@ export async function withTransaction<T>(
 
   while (attempt < maxRetries) {
     const session = await payload.db.connection.startSession()
-    
+
     try {
       session.startTransaction({
         readConcern: { level: 'snapshot' },
         writeConcern: { w: 'majority' },
-        maxTimeMS: timeout
+        maxTimeMS: timeout,
       })
 
       const result = await operation(session)
@@ -29,7 +29,7 @@ export async function withTransaction<T>(
       return result
     } catch (error) {
       await session.abortTransaction()
-      
+
       if (error.name === 'WriteConflict' && attempt < maxRetries - 1) {
         attempt++
         continue

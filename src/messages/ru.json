@@ -140,6 +140,10 @@
     "notAuthenticated": "Не авторизован",
     "loginButton": "Войти",
     "description": "Управление вашим аккаунтом и курсами",
+    "dashboard": {
+      "title": "Личный кабинет",
+      "description": "Управление вашим аккаунтом, курсами и достижениями"
+    },
     "tabs": {
       "courses": "Мои курсы",
       "achievements": "Достижения",
@@ -174,7 +178,8 @@
   },
   "NotificationCenter": {
     "title": "Уведомления",
-    "noNotifications": "Нет уведомлений"
+    "noNotifications": "Нет уведомлений",
+    "loading": "Загрузка уведомлений..."
   },
   "SubscriptionPlans": {
     "errorLoading": "Не удалось загрузить планы подписок",

@@ -103,7 +103,7 @@ async function getSettings() {
       console.log('formatPrice/getSettings: server-side execution')
       // Динамический импорт на сервере
       console.log('formatPrice/getSettings: importing getPayloadClient')
-      const { getPayloadClient } = await import('@/utilities/payload')
+      const { getPayloadClient } = await import('@/utilities/payload/index')
 
       // Получаем Payload
       console.log('formatPrice/getSettings: calling getPayloadClient')
