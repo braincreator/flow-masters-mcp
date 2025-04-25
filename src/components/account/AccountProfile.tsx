@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import UserLevel from '@/components/Users/UserLevel'
+import { useTranslations } from 'next-intl'
 
 interface User {
   id: string
@@ -26,56 +27,63 @@ interface AccountProfileProps {
   locale: string
 }
 
-const profileSchema = z
-  .object({
-    name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-    email: z.string().email({ message: 'Please enter a valid email address' }).optional(),
-    currentPassword: z.string().optional(),
-    newPassword: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters' })
-      .optional(),
-    confirmPassword: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      // If any password field is filled, all password fields must be filled
-      const hasCurrentPassword = !!data.currentPassword
-      const hasNewPassword = !!data.newPassword
-      const hasConfirmPassword = !!data.confirmPassword
+const getProfileSchema = (t: any) =>
+  z
+    .object({
+      name: z.string().min(2, { message: t('validation.nameRequired') }),
+      email: z
+        .string()
+        .email({ message: t('validation.invalidEmail') })
+        .optional(),
+      currentPassword: z.string().optional(),
+      newPassword: z
+        .string()
+        .min(6, { message: t('validation.passwordTooShort') })
+        .optional(),
+      confirmPassword: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        // If any password field is filled, all password fields must be filled
+        const hasCurrentPassword = !!data.currentPassword
+        const hasNewPassword = !!data.newPassword
+        const hasConfirmPassword = !!data.confirmPassword
 
-      // If any password field is filled, all must be filled
-      if (hasCurrentPassword || hasNewPassword || hasConfirmPassword) {
-        return hasCurrentPassword && hasNewPassword && hasConfirmPassword
-      }
+        // If any password field is filled, all must be filled
+        if (hasCurrentPassword || hasNewPassword || hasConfirmPassword) {
+          return hasCurrentPassword && hasNewPassword && hasConfirmPassword
+        }
 
-      return true
-    },
-    {
-      message: 'All password fields are required to change password',
-      path: ['currentPassword'],
-    },
-  )
-  .refine(
-    (data) => {
-      // If new password is provided, it must match confirm password
-      if (data.newPassword && data.confirmPassword) {
-        return data.newPassword === data.confirmPassword
-      }
-      return true
-    },
-    {
-      message: 'Passwords do not match',
-      path: ['confirmPassword'],
-    },
-  )
-
-type ProfileFormValues = z.infer<typeof profileSchema>
+        return true
+      },
+      {
+        message: t('validation.passwordFieldsRequired'),
+        path: ['currentPassword'],
+      },
+    )
+    .refine(
+      (data) => {
+        // If new password is provided, it must match confirm password
+        if (data.newPassword && data.confirmPassword) {
+          return data.newPassword === data.confirmPassword
+        }
+        return true
+      },
+      {
+        message: t('validation.passwordsDoNotMatch'),
+        path: ['confirmPassword'],
+      },
+    )
 
 export function AccountProfile({ user, locale }: AccountProfileProps) {
+  const t = useTranslations('AccountProfile')
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Create the schema with translations
+  const profileSchema = getProfileSchema(t)
+  type ProfileFormValues = z.infer<typeof profileSchema>
 
   const {
     register,
@@ -121,7 +129,7 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to update profile')
+        throw new Error(errorData.message || t('updateFailedError'))
       }
 
       // Clear password fields
@@ -133,9 +141,9 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
         confirmPassword: '',
       })
 
-      setSuccess('Profile updated successfully')
+      setSuccess(t('updateSuccess'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while updating your profile')
+      setError(err instanceof Error ? err.message : t('updateError'))
     } finally {
       setIsLoading(false)
     }
@@ -177,7 +185,7 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium">
-              Full Name
+              {t('fullName')}
             </label>
             <Input
               id="name"
@@ -190,18 +198,18 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium">
-              Email (cannot be changed)
+              {t('emailLabel')}
             </label>
             <Input id="email" type="email" value={user.email} disabled />
           </div>
 
           <div className="pt-4 border-t">
-            <h3 className="text-lg font-medium mb-4">Change Password</h3>
+            <h3 className="text-lg font-medium mb-4">{t('changePasswordTitle')}</h3>
 
             <div className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="currentPassword" className="block text-sm font-medium">
-                  Current Password
+                  {t('currentPassword')}
                 </label>
                 <PasswordInput
                   id="currentPassword"
@@ -215,7 +223,7 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
               <div className="space-y-2">
                 <label htmlFor="newPassword" className="block text-sm font-medium">
-                  New Password
+                  {t('newPassword')}
                 </label>
                 <PasswordInput
                   id="newPassword"
@@ -229,7 +237,7 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="block text-sm font-medium">
-                  Confirm New Password
+                  {t('confirmPassword')}
                 </label>
                 <PasswordInput
                   id="confirmPassword"
@@ -245,7 +253,7 @@ export function AccountProfile({ user, locale }: AccountProfileProps) {
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isLoading ? 'Updating...' : 'Update Profile'}
+            {isLoading ? t('updatingButton') : t('updateButton')}
           </Button>
         </form>
       </CardContent>

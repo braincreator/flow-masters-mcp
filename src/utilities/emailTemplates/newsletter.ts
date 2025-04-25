@@ -1,9 +1,11 @@
+import { lexicalToHtml } from '../lexicalToHtml'
+
 export interface NewsletterEmailData {
   email: string
   unsubscribeToken?: string
   locale?: string
   title?: string
-  content?: string
+  content?: string | Record<string, unknown> // Support for Lexical content
   siteUrl?: string
 }
 
@@ -108,23 +110,23 @@ export const generateNewsletterEmail = (data: NewsletterEmailData): string => {
     <div class="header">
       <img src="${siteUrl}/logo.png" alt="Flow Masters" class="logo">
     </div>
-    
+
     <div class="content">
       <h1>${title}</h1>
       <p>${texts.greeting},</p>
       <p>${texts.intro}</p>
-      
+
       <div>
-        ${content}
+        ${typeof content === 'object' ? lexicalToHtml(content) : content}
       </div>
-      
+
       <a href="${siteUrl}" class="button">${texts.visitWebsite}</a>
     </div>
-    
+
     <div class="footer">
       <p>${texts.footer}</p>
       <p>
-        <a href="${siteUrl}/profile">${texts.preferences}</a> | 
+        <a href="${siteUrl}/profile">${texts.preferences}</a> |
         <a href="${siteUrl}/contact">${texts.contact}</a>
       </p>
       <div class="unsubscribe">

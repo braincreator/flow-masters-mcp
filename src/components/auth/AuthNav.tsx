@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
@@ -19,7 +19,12 @@ import { useTranslations } from 'next-intl'
 export function AuthNav() {
   const t = useTranslations('common')
   const tDashboard = useTranslations('AccountDashboard')
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout, refreshAuth } = useAuth()
+
+  // Refresh auth state when component mounts
+  useEffect(() => {
+    refreshAuth()
+  }, [refreshAuth])
   const pathname = usePathname()
   const currentLocale = pathname?.split('/')[1] || 'en'
 

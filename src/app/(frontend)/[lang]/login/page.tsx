@@ -39,7 +39,7 @@ export default async function LoginPage({ params }: Props) {
           <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-gray-600 mt-2">{t('description')}</p>
         </div>
-        <LoginForm />
+        <LoginForm locale={lang} />
       </div>
     </div>
   )

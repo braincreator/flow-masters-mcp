@@ -874,14 +874,65 @@ export class PaymentService extends BaseService {
         try {
           const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           const notificationService = serviceRegistry.getNotificationService()
+          const emailService = serviceRegistry.getEmailService()
 
+          // Get order details with items
+          const orderWithItems = await this.payload.findByID({
+            collection: 'orders',
+            id: orderId,
+            depth: 2, // Include product details
+          })
+
+          // Format order items
+          const items = (orderWithItems.items || []).map((item) => {
+            const product = typeof item.product === 'object' ? item.product : null
+            return {
+              product: typeof item.product === 'string' ? item.product : product?.id || '',
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+              name: product?.title || 'Product',
+              type: product?.isCourse ? 'course' : 'product',
+            }
+          })
+
+          // Send order confirmation email
+          try {
+            await emailService.sendOrderConfirmationEmail({
+              userName: orderWithItems.customer?.name || orderWithItems.customer || '',
+              email: orderWithItems.customer?.email || orderWithItems.customer || '',
+              orderNumber: orderWithItems.orderNumber || orderId,
+              orderDate: orderWithItems.createdAt || new Date().toISOString(),
+              items: items.map((item) => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                total: item.price * item.quantity,
+                type: item.type as 'course' | 'product' | 'subscription' | 'other',
+                id: item.product,
+              })),
+              subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+              total:
+                orderWithItems.total ||
+                items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+              currency: orderWithItems.currency || 'RUB',
+              paymentMethod: update.paymentProvider,
+              paymentStatus: 'paid',
+              locale: orderWithItems.customer?.locale || 'ru',
+            })
+          } catch (emailError) {
+            console.error('Failed to send order confirmation email:', emailError)
+          }
+
+          // Send payment confirmation notification
           await notificationService.sendPaymentConfirmation({
             orderId,
-            data: {
-              ...order,
-              paymentId: update.paymentId,
-              paymentProvider: update.paymentProvider,
-            },
+            orderNumber: orderWithItems.orderNumber || orderId,
+            customerEmail: orderWithItems.customer?.email || orderWithItems.customer || '',
+            total: orderWithItems.total || 0,
+            currency: orderWithItems.currency || 'RUB',
+            items,
+            paymentMethod: update.paymentProvider,
+            paymentId: update.paymentId,
           })
         } catch (notifError) {
           console.error('Failed to send payment notification:', notifError)

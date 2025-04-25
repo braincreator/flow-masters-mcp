@@ -28,25 +28,82 @@ export class NotificationService extends BaseService {
     customerEmail: string
     total: number
     currency: string
+    items?: Array<{
+      product: string
+      quantity: number
+      price: number
+      name?: string
+      type?: 'course' | 'product' | 'subscription' | 'other'
+    }>
+    paymentMethod?: string
+    paymentId?: string
+    locale?: string
   }): Promise<boolean> {
     try {
-      // 1. Отправка email подтверждения
+      // 1. Get user details
+      let userName = ''
+      let userEmail = orderData.customerEmail
+      let userLocale = orderData.locale || 'ru'
+
+      try {
+        // Try to get user details if we have a user reference
+        const order = await this.payload.findByID({
+          collection: 'orders',
+          id: orderData.orderId,
+          depth: 1, // Include user data
+        })
+
+        if (order.user) {
+          // If user is a reference and populated
+          if (typeof order.user === 'object' && order.user !== null) {
+            userName = order.user.name || ''
+            userEmail = order.user.email || orderData.customerEmail
+            userLocale = order.user.locale || orderData.locale || 'ru'
+          }
+        }
+      } catch (userError) {
+        console.error('Error getting user details for payment confirmation:', userError)
+        // Continue with the data we have
+      }
+
+      // 2. Format order items
+      const orderItems = (orderData.items || []).map((item) => ({
+        name: item.name || 'Product',
+        description: '',
+        quantity: item.quantity,
+        price: item.price,
+        total: item.price * item.quantity,
+        type: item.type || 'product',
+        id: item.product,
+      }))
+
+      // 3. Send email using our new template
       if (this.emailService) {
-        await this.emailService.sendTemplate('payment_confirmation', orderData.customerEmail, {
-          orderId: orderData.orderId,
+        await this.emailService.sendPaymentConfirmationEmail({
+          userName: userName || userEmail,
+          email: userEmail,
           orderNumber: orderData.orderNumber,
-          total: orderData.total,
+          paymentDate: new Date().toISOString(),
+          paymentAmount: orderData.total,
           currency: orderData.currency,
+          paymentMethod: orderData.paymentMethod,
+          transactionId: orderData.paymentId,
+          locale: userLocale,
+          purchasedItems: orderItems.map((item) => ({
+            name: item.name,
+            type: item.type as 'course' | 'product' | 'subscription' | 'other',
+            id: item.id,
+          })),
         })
       }
 
-      // 2. Отправка уведомления в Telegram (для администраторов)
+      // 4. Отправка уведомления в Telegram (для администраторов)
       if (this.telegramService) {
         await this.telegramService.sendMessage(
           `💰 Новый оплаченный заказ!\n` +
             `Номер заказа: ${orderData.orderNumber}\n` +
             `Сумма: ${orderData.total} ${orderData.currency}\n` +
-            `Email клиента: ${orderData.customerEmail}`,
+            `Email клиента: ${userEmail}`,
         )
       }
 

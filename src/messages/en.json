@@ -140,6 +140,8 @@
     "notAuthenticated": "Not Authenticated",
     "loginButton": "Log In",
     "description": "Manage your account and courses",
+    "welcomeMessage": "Welcome, {name}",
+    "notAuthenticatedDescription": "Please log in to access your account",
     "dashboard": {
       "title": "Account Dashboard",
       "description": "Manage your account, courses, and achievements"
@@ -165,7 +167,8 @@
     },
     "settingsCard": {
       "title": "Account Settings",
-      "description": "Manage your account preferences"
+      "description": "Manage your account preferences",
+      "comingSoon": "Settings options coming soon"
     }
   },
   "EnrolledCourses": {
@@ -179,7 +182,8 @@
   "NotificationCenter": {
     "title": "Notifications",
     "noNotifications": "No notifications",
-    "loading": "Loading notifications..."
+    "loading": "Loading notifications...",
+    "errorLoading": "Failed to load notifications"
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",

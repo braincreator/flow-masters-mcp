@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useAuth } from '@/hooks/useAuth'
 
 // Form validation schema
 const createLoginSchema = (t: any) =>
@@ -28,7 +29,11 @@ type LoginSchema = z.ZodObject<{
 
 type LoginFormValues = z.infer<LoginSchema>
 
-export function LoginForm() {
+interface LoginFormProps {
+  locale?: string
+}
+
+export function LoginForm({ locale = 'ru' }: LoginFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/account'
@@ -53,30 +58,18 @@ export function LoginForm() {
     },
   })
 
+  // Get auth context
+  const { login } = useAuth()
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || t('errors.loginFailed'))
-      }
+      await login(data.email, data.password)
 
       // Successful login
       router.push(redirectTo)
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.loginError'))
     } finally {
@@ -112,7 +105,10 @@ export function LoginForm() {
             <label htmlFor="password" className="block text-sm font-medium">
               {t('password')}
             </label>
-            <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+            <Link
+              href={`/${locale}/forgot-password`}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
               {t('forgotPassword')}
             </Link>
           </div>
@@ -134,7 +130,7 @@ export function LoginForm() {
           <p className="text-sm text-gray-600">
             {t('noAccount')}{' '}
             <Link
-              href={`/register${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
+              href={`/${locale}/register${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
               className="text-blue-600 hover:text-blue-800"
             >
               {t('register.button')}

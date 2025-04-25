@@ -465,46 +465,74 @@ export class RewardService extends BaseService {
         return false
       }
 
-      // Формируем данные для шаблона
-      const templateData = {
+      // Создаем базовые данные для всех типов наград
+      const baseRewardData = {
         userName: user.name || 'Пользователь',
+        email: user.email,
         rewardTitle: reward.title,
         rewardDescription: reward.description,
-        rewardType: reward.rewardType,
+        rewardType: reward.rewardType as
+          | 'generic'
+          | 'discount'
+          | 'free_course'
+          | 'badge'
+          | 'certificate'
+          | 'exclusive_content',
+        rewardId: reward.id,
         rewardCode: userReward.code,
         expiresAt: userReward.expiresAt,
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru',
+        locale: user.locale || 'ru',
+        rewardUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'}/${user.locale || 'ru'}/rewards`,
       }
 
-      // Выбираем шаблон в зависимости от типа награды
-      let templateSlug = 'reward-generic'
+      // В зависимости от типа награды используем разные шаблоны
+      let result = false
+
       switch (reward.rewardType) {
         case 'discount':
-          templateSlug = 'reward-discount'
+          // Дополнительные данные для скидки
+          result = await this.emailService.sendRewardEmail({
+            ...baseRewardData,
+            discountAmount: reward.discountAmount?.toString() || '',
+            discountType: reward.discountType as 'percentage' | 'fixed',
+            applicableTo: reward.applicableTo || '',
+          })
           break
-        case 'free_course':
-          templateSlug = 'reward-free-course'
-          break
-        case 'badge':
-          templateSlug = 'reward-badge'
-          break
-        case 'certificate':
-          templateSlug = 'reward-certificate'
-          break
-        case 'exclusive_content':
-          templateSlug = 'reward-exclusive-content'
-          break
-      }
 
-      // Отправляем email
-      const result = await this.emailService.sendTemplateEmail(
-        templateSlug,
-        user.email,
-        templateData,
-        {
-          locale: user.locale || 'ru',
-        },
-      )
+        case 'free_course':
+          // Дополнительные данные для бесплатного курса
+          const courseId = reward.freeCourse
+          let courseData = {}
+
+          if (courseId) {
+            try {
+              // Получаем информацию о курсе
+              const course = await this.payload.findByID({
+                collection: 'courses',
+                id: courseId,
+              })
+
+              courseData = {
+                courseId,
+                courseUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'}/${user.locale || 'ru'}/courses/${courseId}`,
+                courseDuration: course.duration || '',
+                courseLevel: course.level || '',
+              }
+            } catch (courseError) {
+              console.error('Error fetching course data for reward email:', courseError)
+            }
+          }
+
+          result = await this.emailService.sendRewardEmail({
+            ...baseRewardData,
+            ...courseData,
+          })
+          break
+
+        default:
+          // Для всех остальных типов используем базовый шаблон
+          result = await this.emailService.sendRewardEmail(baseRewardData)
+      }
 
       return result
     } catch (error) {

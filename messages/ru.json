@@ -139,6 +139,12 @@
     "notAuthenticated": "Не авторизован",
     "loginButton": "Войти",
     "description": "Управление вашим аккаунтом и курсами",
+    "welcomeMessage": "Добро пожаловать, {name}",
+    "notAuthenticatedDescription": "Пожалуйста, войдите, чтобы получить доступ к вашему аккаунту",
+    "dashboard": {
+      "title": "Панель управления",
+      "description": "Управляйте своим аккаунтом, курсами и достижениями"
+    },
     "tabs": {
       "courses": "Мои курсы",
       "achievements": "Достижения",
@@ -160,20 +166,28 @@
     },
     "settingsCard": {
       "title": "Настройки аккаунта",
-      "description": "Управление настройками вашего аккаунта"
+      "description": "Управление настройками вашего аккаунта",
+      "comingSoon": "Настройки скоро будут доступны"
     }
   },
   "EnrolledCourses": {
     "errorTitle": "Ошибка",
+    "errorFetchFailed": "Не удалось получить записанные курсы",
+    "errorLoadingCourses": "Ошибка загрузки ваших курсов",
     "noCoursesTitle": "Пока нет курсов",
+    "noCoursesDescription": "Вы еще не записались ни на один курс",
     "browseCoursesButton": "Просмотреть курсы",
     "noImagePlaceholder": "Нет изображения",
     "progressLabel": "Прогресс",
-    "browseMoreButton": "Просмотреть больше курсов"
+    "browseMoreButton": "Просмотреть больше курсов",
+    "lastAccessed": "Последний доступ: {date}",
+    "notStartedYet": "Еще не начат"
   },
   "NotificationCenter": {
     "title": "Уведомления",
-    "noNotifications": "Нет уведомлений"
+    "noNotifications": "Нет уведомлений",
+    "loading": "Загрузка уведомлений...",
+    "errorLoading": "Не удалось загрузить уведомления"
   },
   "SubscriptionPlans": {
     "errorLoading": "Не удалось загрузить планы подписок",
@@ -220,6 +234,37 @@
       "description": "Присоединяйтесь к нашей обучающей платформе и получите доступ к курсам.",
       "button": "Зарегистрироваться",
       "loading": "Создание аккаунта..."
+    },
+    "forgotPassword": {
+      "title": "Восстановление пароля",
+      "description": "Введите ваш email адрес, и мы отправим вам ссылку для сброса пароля.",
+      "emailPlaceholder": "Введите ваш email адрес",
+      "resetButton": "Сбросить пароль",
+      "requestingReset": "Отправка ссылки...",
+      "successMessage": "Если аккаунт с таким email существует, мы отправили ссылку для сброса пароля. Пожалуйста, проверьте вашу почту.",
+      "backToLogin": "Вернуться к входу",
+      "rememberPassword": "Вспомнили пароль?",
+      "loginLink": "Войти",
+      "errors": {
+        "requestFailed": "Не удалось запросить сброс пароля",
+        "requestError": "Произошла ошибка при обработке запроса"
+      }
+    },
+    "resetPassword": {
+      "title": "Сброс пароля",
+      "description": "Введите новый пароль ниже.",
+      "passwordPlaceholder": "Введите новый пароль",
+      "confirmPasswordPlaceholder": "Подтвердите новый пароль",
+      "resetButton": "Сбросить пароль",
+      "resetting": "Сброс пароля...",
+      "successMessage": "Ваш пароль был успешно сброшен. Теперь вы можете войти, используя новый пароль.",
+      "loginButton": "Перейти к входу",
+      "errors": {
+        "resetFailed": "Не удалось сбросить пароль",
+        "resetError": "Произошла ошибка при сбросе пароля",
+        "tokenExpired": "Срок действия ссылки для сброса пароля истек",
+        "invalidToken": "Недействительная ссылка для сброса пароля"
+      }
     },
     "email": "Email",
     "password": "Пароль",
@@ -359,6 +404,26 @@
     "successIconLabel": "Успех",
     "errorIconLabel": "Ошибка"
   },
+  "AccountProfile": {
+    "fullName": "Полное имя",
+    "emailLabel": "Email (не может быть изменен)",
+    "changePasswordTitle": "Изменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Подтвердите новый пароль",
+    "updateButton": "Обновить профиль",
+    "updatingButton": "Обновление...",
+    "updateSuccess": "Профиль успешно обновлен",
+    "updateError": "Произошла ошибка при обновлении профиля",
+    "updateFailedError": "Не удалось обновить профиль",
+    "validation": {
+      "nameRequired": "Имя должно содержать не менее 2 символов",
+      "invalidEmail": "Пожалуйста, введите корректный email адрес",
+      "passwordTooShort": "Пароль должен содержать не менее 6 символов",
+      "passwordFieldsRequired": "Все поля пароля должны быть заполнены для изменения пароля",
+      "passwordsDoNotMatch": "Пароли не совпадают"
+    }
+  },
   "ManageSubscriptions": {
     "errorFetchSubscriptions": "Не удалось загрузить подписки пользователя",
     "errorFetchGeneric": "Произошла ошибка при загрузке подписок",
@@ -464,6 +529,116 @@
       "buttonText": "Забронировать консультацию",
       "bookingTriggerWords": "забронировать,записаться,встреча,консультация,созвон",
       "bookingResponseMessage": "Я буду рад помочь вам запланировать консультацию! Вы можете выбрать удобное время в нашем календаре ниже:"
+    }
+  },
+  "API": {
+    "Validation": {
+      "userIdRequired": "Требуется ID пользователя",
+      "courseIdRequired": "Требуется ID курса"
+    },
+    "Errors": {
+      "failedToCheckAccess": "Не удалось проверить доступ к курсу",
+      "failedToGenerateCertificate": "Не удалось сгенерировать сертификат",
+      "failedToGetCertificates": "Не удалось получить сертификаты",
+      "failedToSetupRewards": "Не удалось настроить систему наград",
+      "unknownError": "Неизвестная ошибка"
+    }
+  },
+  "EnrollmentService": {
+    "defaultStudentName": "Студент"
+  },
+  "PayloadAdmin": {
+    "Collections": {
+      "Promotions": {
+        "description": "Управление промокодами и скидками",
+        "fields": {
+          "type": {
+            "percentage": "Процентная скидка",
+            "fixed": "Фиксированная сумма",
+            "buy_x_get_y": "Купи X получи Y"
+          },
+          "minPurchase": {
+            "description": "Минимальная сумма покупки"
+          },
+          "maxDiscount": {
+            "description": "Максимальная сумма скидки"
+          },
+          "usageLimit": {
+            "description": "Максимальное количество использований кода"
+          },
+          "userLimit": {
+            "description": "Максимальное количество использований кода одним пользователем"
+          },
+          "status": {
+            "active": "Активен",
+            "inactive": "Неактивен",
+            "expired": "Истек"
+          },
+          "categories": {
+            "description": "Категории, к которым применяется эта акция"
+          }
+        }
+      },
+      "Discounts": {
+        "fields": {
+          "type": {
+            "percentage": "Процент скидки",
+            "fixed": "Фиксированная сумма скидки",
+            "shipping": "Бесплатная доставка"
+          },
+          "currency": {
+            "USD": "USD",
+            "EUR": "EUR"
+          }
+        }
+      }
+    },
+    "Endpoints": {
+      "SetupRewards": {
+        "rewardTemplateName": "Общий шаблон награды",
+        "expiringTemplateName": "Шаблон истекающей награды",
+        "campaignDescription": "Отправляет серию писем после получения награды для повышения вовлеченности",
+        "unknownError": "Неизвестная ошибка"
+      }
+    },
+    "Fields": {
+      "Slug": {
+        "label": "Slug",
+        "lockButtonUnlock": "Разблокировать",
+        "lockButtonLock": "Заблокировать"
+      },
+      "Product": {
+        "featuresLabel": "Особенности продукта",
+        "imageSingular": "Изображение",
+        "imagePlural": "Изображения",
+        "statusDraft": "Черновик",
+        "statusPublished": "Опубликовано"
+      },
+      "Lexical": {
+        "urlRequired": "URL обязателен",
+        "appearance": {
+          "default": "По умолчанию",
+          "primary": "Основной",
+          "secondary": "Вторичный",
+          "outline": "Контурный",
+          "ghost": "Призрачный",
+          "inline": "Встроенный"
+        }
+      },
+      "Hero": {
+        "typeNone": "Нет",
+        "typeHighImpact": "Высокое воздействие",
+        "typeMediumImpact": "Среднее воздействие",
+        "typeLowImpact": "Низкое воздействие"
+      }
+    },
+    "Common": {
+      "adminGroup": "Администрирование"
+    }
+  },
+  "Plugins": {
+    "SEO": {
+      "defaultWebsiteTitle": "Шаблон сайта Payload"
     }
   }
 }

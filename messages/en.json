@@ -139,6 +139,12 @@
     "notAuthenticated": "Not Authenticated",
     "loginButton": "Log In",
     "description": "Manage your account and courses",
+    "welcomeMessage": "Welcome, {name}",
+    "notAuthenticatedDescription": "Please log in to access your account",
+    "dashboard": {
+      "title": "Account Dashboard",
+      "description": "Manage your account, courses, and achievements"
+    },
     "tabs": {
       "courses": "My Courses",
       "achievements": "Achievements",
@@ -160,20 +166,28 @@
     },
     "settingsCard": {
       "title": "Account Settings",
-      "description": "Manage your account preferences"
+      "description": "Manage your account preferences",
+      "comingSoon": "Settings options coming soon"
     }
   },
   "EnrolledCourses": {
     "errorTitle": "Error",
+    "errorFetchFailed": "Failed to fetch enrolled courses",
+    "errorLoadingCourses": "Error loading your courses",
     "noCoursesTitle": "No Courses Yet",
+    "noCoursesDescription": "You haven't enrolled in any courses yet",
     "browseCoursesButton": "Browse Courses",
     "noImagePlaceholder": "No image",
     "progressLabel": "Progress",
-    "browseMoreButton": "Browse More Courses"
+    "browseMoreButton": "Browse More Courses",
+    "lastAccessed": "Last accessed: {date}",
+    "notStartedYet": "Not started yet"
   },
   "NotificationCenter": {
     "title": "Notifications",
-    "noNotifications": "No notifications"
+    "noNotifications": "No notifications",
+    "loading": "Loading notifications...",
+    "errorLoading": "Failed to load notifications"
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",
@@ -220,6 +234,37 @@
       "description": "Join our learning platform and get access to courses.",
       "button": "Sign Up",
       "loading": "Creating account..."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "description": "Enter your email address and we'll send you a link to reset your password.",
+      "emailPlaceholder": "Enter your email address",
+      "resetButton": "Reset Password",
+      "requestingReset": "Sending reset link...",
+      "successMessage": "If an account exists with this email, we've sent a password reset link. Please check your inbox.",
+      "backToLogin": "Back to Login",
+      "rememberPassword": "Remember your password?",
+      "loginLink": "Log in",
+      "errors": {
+        "requestFailed": "Password reset request failed",
+        "requestError": "An error occurred while processing your request"
+      }
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "description": "Enter your new password below.",
+      "passwordPlaceholder": "Enter new password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "resetButton": "Reset Password",
+      "resetting": "Resetting password...",
+      "successMessage": "Your password has been successfully reset. You can now log in with your new password.",
+      "loginButton": "Go to Login",
+      "errors": {
+        "resetFailed": "Password reset failed",
+        "resetError": "An error occurred while resetting your password",
+        "tokenExpired": "Reset token has expired",
+        "invalidToken": "Invalid reset token"
+      }
     },
     "email": "Email",
     "password": "Password",
@@ -358,6 +403,26 @@
     "successIconLabel": "Success",
     "errorIconLabel": "Error"
   },
+  "AccountProfile": {
+    "fullName": "Full Name",
+    "emailLabel": "Email (cannot be changed)",
+    "changePasswordTitle": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updateButton": "Update Profile",
+    "updatingButton": "Updating...",
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "An error occurred while updating your profile",
+    "updateFailedError": "Failed to update profile",
+    "validation": {
+      "nameRequired": "Name must be at least 2 characters",
+      "invalidEmail": "Please enter a valid email address",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordFieldsRequired": "All password fields are required to change password",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
+  },
   "ManageSubscriptions": {
     "errorFetchSubscriptions": "Failed to load user subscriptions",
     "errorFetchGeneric": "An error occurred while loading subscriptions",
@@ -463,6 +528,304 @@
       "buttonText": "Book a Consultation",
       "bookingTriggerWords": "book,schedule,appointment,meeting,consultation",
       "bookingResponseMessage": "I'd be happy to help you schedule a consultation! You can choose a convenient time from our calendar below:"
+    }
+  },
+  "ProductFilters": {
+    "title": "Filters",
+    "searchLabel": "Search",
+    "categoriesLabel": "Categories",
+    "productTypesLabel": "Product Types",
+    "tagsLabel": "Tags",
+    "priceRangeLabel": "Price Range",
+    "sortLabel": "Sort",
+    "layoutLabel": "Layout",
+    "gridView": "Grid view",
+    "listView": "List view"
+  },
+  "Media": {
+    "videoUnavailable": "Video unavailable",
+    "imageUnavailable": "Image unavailable",
+    "pdfUnavailable": "PDF document unavailable",
+    "pdfPreviewError": "Failed to display PDF in browser",
+    "genericUnavailable": "Media unavailable"
+  },
+  "CourseProgressBar": {
+    "label": "Course Progress"
+  },
+  "CourseAchievements": {
+    "title": "Course Achievements"
+  },
+  "LessonNavigation": {
+    "courseProgressLabel": "Course Progress",
+    "noLessons": "No lessons available"
+  },
+  "CourseCompletePage": {
+    "loginRequiredTitle": "Login Required",
+    "accessRestrictedTitle": "Access Restricted",
+    "recommendedCoursesTitle": "Recommended Courses"
+  },
+  "CourseLearnPage": {
+    "loginRequiredTitle": "Login Required",
+    "accessRestrictedTitle": "Access Restricted",
+    "yourProgressLabel": "Your Progress",
+    "tabContent": "Content",
+    "tabOverview": "Overview",
+    "tabNotes": "Notes",
+    "tabDiscussion": "Discussion"
+  },
+  "CourseNotes": {
+    "tabCurrentLesson": "Current Lesson",
+    "tabAllNotes": "All Notes"
+  },
+  "CourseOverview": {
+    "infoTitle": "Course Information",
+    "infoDescription": "Overview of the course details",
+    "aboutTitle": "About This Course",
+    "prerequisitesTitle": "Prerequisites"
+  },
+  "LessonViewer": {
+    "selectLessonPrompt": "Select a lesson to start learning",
+    "assignmentLabel": "Assignment",
+    "resourcesLabel": "Resources",
+    "additionalResourcesLabel": "Additional Resources"
+  },
+  "CourseCertificate": {
+    "title": "Certificate of Completion",
+    "certifiesThat": "This certifies that",
+    "successfullyCompleted": "has successfully completed the course",
+    "instructorTitle": "Course Instructor"
+  },
+  "BlogSocialShare": {
+    "shareLabel": "Share",
+    "facebookLabel": "Facebook",
+    "twitterLabel": "Twitter"
+  },
+  "NewsletterBlock": {
+    "emailPlaceholder": "Enter your email",
+    "emailAriaLabel": "Email address",
+    "submitButton": "Subscribe"
+  },
+  "TableOfContentsBlock": {
+    "ariaLabel": "Table of contents"
+  },
+  "LeadMagnetOfferBlock": {
+    "submitButton": "Download Now",
+    "successMessage": "Success! Check your email.",
+    "errorMessage": "An error occurred. Please try again."
+  },
+  "CarouselBlock": {
+    "previousSlideAriaLabel": "Previous slide",
+    "nextSlideAriaLabel": "Next slide"
+  },
+  "CodeBlock": {
+    "copyButton": "Copy",
+    "copiedButton": "Copied!"
+  },
+  "AudioBlock": {
+    "downloadAriaLabel": "Download audio"
+  },
+  "FAQBlock": {
+    "searchPlaceholder": "Search FAQs..."
+  },
+  "TestIntegrationComponent": {
+    "title": "Test Integration",
+    "dataLabel": "Test Data",
+    "successMessage": "Success!",
+    "errorMessage": "Error"
+  },
+  "SubscriptionManagement": {
+    "cancelButton": "Cancel Subscription",
+    "updatePaymentButton": "Update Payment Method"
+  },
+  "UI": {
+    "Dialog": {
+      "confirmButton": "Confirm",
+      "cancelButton": "Cancel",
+      "defaultTitle": "Are you sure?"
+    },
+    "Toast": {
+      "successTitle": "Success",
+      "errorTitle": "Error",
+      "infoTitle": "Info",
+      "warningTitle": "Warning"
+    }
+  },
+  "Admin": {
+    "MetricsDashboard": {
+      "title": "Metrics Dashboard",
+      "users": "Users",
+      "courses": "Courses",
+      "revenue": "Revenue"
+    },
+    "SetupRewardsPage": {
+      "pageTitle": "Reward System Setup",
+      "cardTitle": "Setup Tool",
+      "description1": "This tool will help you set up the initial reward system components:",
+      "item1": "Creating email templates for rewards",
+      "item2": "Setting up email campaigns for reward events",
+      "item3": "Configuring the reward automation system",
+      "setupButton": "Set Up Reward System",
+      "errorTitle": "Error",
+      "errorFailedSetup": "Failed to set up rewards system",
+      "errorUnknown": "An error occurred"
+    },
+    "CourseAnalyticsPage": {
+      "pageTitle": "Course Analytics",
+      "backButton": "Back to Courses"
+    },
+    "AllCoursesAnalyticsPage": {
+      "pageTitle": "Courses Analytics",
+      "addNewButton": "Add New Course"
+    },
+    "CategoryMigrationPage": {
+      "cardTitle": "Category Type Migration",
+      "successTitle": "Success",
+      "errorTitle": "Error",
+      "selectAll": {
+        "product": "Product Category",
+        "blog": "Blog Category",
+        "general": "General Category",
+        "none": "None"
+      },
+      "table": {
+        "title": "Title",
+        "slug": "Slug",
+        "currentType": "Current Type",
+        "newType": "New Type",
+        "nonePlaceholder": "None"
+      },
+      "saveButton": "Save Changes",
+      "savingButton": "Saving...",
+      "errorFetch": "Failed to fetch categories",
+      "errorUpdate": "Failed to update categories"
+    },
+    "EmailCampaignManagerPage": {
+      "pageTitle": "Email Campaign Manager"
+    },
+    "MonitoringPage": {
+      "pageTitle": "System Monitoring"
+    }
+  },
+  "TestBlocksPage": {
+    "pageTitle": "Test Content Blocks"
+  },
+  "FormBlock": {
+    "internalServerError": "Internal Server Error"
+  },
+  "BannerBlock": {
+    "dismiss": "Dismiss"
+  },
+  "TeamMembersBlock": {
+    "defaultHeading": "Our Team"
+  },
+  "API": {
+    "Validation": {
+      "userIdRequired": "User ID is required",
+      "courseIdRequired": "Course ID is required"
+    },
+    "Errors": {
+      "failedToCheckAccess": "Failed to check course access",
+      "failedToGenerateCertificate": "Failed to generate certificate",
+      "failedToGetCertificates": "Failed to get certificates",
+      "failedToSetupRewards": "Failed to set up rewards system",
+      "unknownError": "Unknown error"
+    }
+  },
+  "EnrollmentService": {
+    "defaultStudentName": "Student"
+  },
+  "PayloadAdmin": {
+    "Collections": {
+      "Promotions": {
+        "description": "Manage promotion codes and discounts",
+        "fields": {
+          "type": {
+            "percentage": "Percentage Discount",
+            "fixed": "Fixed Amount",
+            "buy_x_get_y": "Buy X Get Y"
+          },
+          "minPurchase": {
+            "description": "Minimum purchase amount required"
+          },
+          "maxDiscount": {
+            "description": "Maximum discount amount"
+          },
+          "usageLimit": {
+            "description": "Maximum number of times this code can be used"
+          },
+          "userLimit": {
+            "description": "Maximum times a single user can use this code"
+          },
+          "status": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "expired": "Expired"
+          },
+          "categories": {
+            "description": "Specific categories this promotion applies to"
+          }
+        }
+      },
+      "Discounts": {
+        "fields": {
+          "type": {
+            "percentage": "Percentage off",
+            "fixed": "Fixed amount off",
+            "shipping": "Free shipping"
+          },
+          "currency": {
+            "USD": "USD",
+            "EUR": "EUR"
+          }
+        }
+      }
+    },
+    "Endpoints": {
+      "SetupRewards": {
+        "rewardTemplateName": "General Reward Template",
+        "expiringTemplateName": "Expiring Reward Template",
+        "campaignDescription": "Sends a series of emails after a reward is received to increase engagement",
+        "unknownError": "Unknown error"
+      }
+    },
+    "Fields": {
+      "Slug": {
+        "label": "Slug",
+        "lockButtonUnlock": "Unlock",
+        "lockButtonLock": "Lock"
+      },
+      "Product": {
+        "featuresLabel": "Product Features",
+        "imageSingular": "Image",
+        "imagePlural": "Images",
+        "statusDraft": "Draft",
+        "statusPublished": "Published"
+      },
+      "Lexical": {
+        "urlRequired": "URL is required",
+        "appearance": {
+          "default": "Default",
+          "primary": "Primary",
+          "secondary": "Secondary",
+          "outline": "Outline",
+          "ghost": "Ghost",
+          "inline": "Inline"
+        }
+      },
+      "Hero": {
+        "typeNone": "None",
+        "typeHighImpact": "High Impact",
+        "typeMediumImpact": "Medium Impact",
+        "typeLowImpact": "Low Impact"
+      }
+    },
+    "Common": {
+      "adminGroup": "Admin"
+    }
+  },
+  "Plugins": {
+    "SEO": {
+      "defaultWebsiteTitle": "Payload Website Template"
     }
   }
 }

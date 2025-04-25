@@ -10,6 +10,7 @@ import { PayloadAPIProvider } from '@/providers/payload'
 import { CurrencyProvider } from './CurrencyProvider'
 import { NextIntlClientProvider } from 'next-intl'
 import { useMessages } from 'next-intl'
+import { AuthProvider } from '@/providers/AuthProvider'
 
 interface RootProviderProps {
   children: React.ReactNode
@@ -24,10 +25,12 @@ export function RootProvider({ children, lang }: RootProviderProps) {
       <ThemeProvider>
         <I18nProvider defaultLang={lang}>
           <HeaderThemeProvider>
-            <PayloadAPIProvider>
-              <CurrencyProvider>{children}</CurrencyProvider>
-              <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
-            </PayloadAPIProvider>
+            <AuthProvider>
+              <PayloadAPIProvider>
+                <CurrencyProvider>{children}</CurrencyProvider>
+                <Toaster position="top-right" toastOptions={{ className: 'toast-offset' }} />
+              </PayloadAPIProvider>
+            </AuthProvider>
           </HeaderThemeProvider>
         </I18nProvider>
       </ThemeProvider>

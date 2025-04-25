@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTranslations } from 'next-intl'
+import { useAuth } from '@/hooks/useAuth'
 
 // Form validation schema
 const createRegisterSchema = (t: any) =>
@@ -44,7 +45,11 @@ type RegisterSchema = z.ZodEffects<
 
 type RegisterFormValues = z.infer<RegisterSchema>
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  locale?: string
+}
+
+export function RegisterForm({ locale = 'ru' }: RegisterFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/account'
@@ -72,48 +77,22 @@ export function RegisterForm() {
     },
   })
 
+  // Get auth context
+  const { register: registerUser } = useAuth()
+
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          role: 'customer', // Default role for students
-        }),
+      await registerUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || t('errors.registrationFailed'))
-      }
-
-      // After successful registration, log the user in
-      const loginResponse = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      })
-
-      if (!loginResponse.ok) {
-        throw new Error(t('errors.registrationSuccessLoginFailed'))
-      }
 
       // Redirect to the specified page or account page
       router.push(redirectTo)
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.registrationError'))
     } finally {

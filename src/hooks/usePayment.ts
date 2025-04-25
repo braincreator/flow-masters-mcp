@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { PaymentProvider } from '@/types/constants'
 import { PAYMENT_CONFIG } from '@/constants/payment'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
 interface UsePaymentProps {

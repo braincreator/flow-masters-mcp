@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import mongoose from 'mongoose'
 import { checkDatabaseConnection } from '@/utilities/payload/database'
 

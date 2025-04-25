@@ -62,6 +62,46 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'locale',
+      label: 'Preferred Language',
+      type: 'select',
+      defaultValue: 'ru',
+      options: [
+        {
+          label: 'Russian',
+          value: 'ru',
+        },
+        {
+          label: 'English',
+          value: 'en',
+        },
+      ],
+    },
+    {
+      name: 'resetPasswordToken',
+      type: 'text',
+      access: {
+        read: () => false,
+        create: () => false,
+        update: () => false,
+      },
+      admin: {
+        hidden: true,
+      },
+    },
+    {
+      name: 'resetPasswordExpiration',
+      type: 'date',
+      access: {
+        read: () => false,
+        create: () => false,
+        update: () => false,
+      },
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'segments',
       label: 'Сегменты пользователя (автоматически)',
       type: 'relationship',

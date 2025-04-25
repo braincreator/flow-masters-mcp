@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,7 +23,9 @@ export function AccountDashboard({ locale }: AccountDashboardProps) {
   const commonT = useTranslations('common')
   const { user, isAuthenticated, isLoading, logout } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('courses')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(tabParam || 'courses')
 
   useEffect(() => {
     // If not loading and not authenticated, redirect to login
@@ -31,6 +33,16 @@ export function AccountDashboard({ locale }: AccountDashboardProps) {
       router.push(`/login?redirect=${encodeURIComponent('/account')}`)
     }
   }, [isLoading, isAuthenticated, router])
+
+  // Update active tab when URL parameter changes
+  useEffect(() => {
+    if (
+      tabParam &&
+      ['courses', 'achievements', 'rewards', 'profile', 'settings'].includes(tabParam)
+    ) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   if (isLoading) {
     return (
@@ -66,7 +78,18 @@ export function AccountDashboard({ locale }: AccountDashboardProps) {
         </Button>
       </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        defaultValue={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value)
+          // Update URL when tab changes
+          const params = new URLSearchParams(searchParams.toString())
+          params.set('tab', value)
+          router.replace(`/${locale}/account?${params.toString()}`, { scroll: false })
+        }}
+        className="space-y-4"
+      >
         <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full max-w-md">
           <TabsTrigger value="courses">{t('tabs.courses')}</TabsTrigger>
           <TabsTrigger value="achievements">{t('tabs.achievements')}</TabsTrigger>

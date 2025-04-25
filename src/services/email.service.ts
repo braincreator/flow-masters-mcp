@@ -1,19 +1,46 @@
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 import nodemailer from 'nodemailer'
+import { lexicalToHtml } from '../utilities/lexicalToHtml'
+
+// Import all email templates from the centralized index
 import {
-  generateNewsletterEmail,
-  NewsletterEmailData,
-} from '../utilities/emailTemplates/newsletter'
-import { generateWelcomeEmail, WelcomeEmailData } from '../utilities/emailTemplates/welcome'
-import {
+  // Auth emails
+  generatePasswordResetEmail,
+  PasswordResetEmailData,
+  generateWelcomeEmail,
+  WelcomeEmailData,
   generateUnsubscribeConfirmationEmail,
   UnsubscribeConfirmationEmailData,
-} from '../utilities/emailTemplates/unsubscribeConfirmation'
-import {
+
+  // Newsletter emails
+  generateNewsletterEmail,
+  NewsletterEmailData,
   generateAdminNewSubscriberNotificationEmail,
   AdminNewSubscriberNotificationEmailData,
-} from '../utilities/emailTemplates/adminNewSubscriber'
+
+  // Course emails
+  generateCourseEnrollmentEmail,
+  CourseEnrollmentEmailData,
+  generateCourseCompletionEmail,
+  CourseCompletionEmailData,
+  generateCourseProgressEmail,
+  CourseProgressEmailData,
+  generateCourseCertificateEmail,
+  CourseCertificateEmailData,
+
+  // Order emails
+  generateOrderConfirmationEmail,
+  OrderConfirmationEmailData,
+  generatePaymentConfirmationEmail,
+  PaymentConfirmationEmailData,
+
+  // Reward emails
+  generateRewardGenericEmail,
+  RewardEmailData,
+  generateRewardDiscountEmail,
+  generateRewardFreeCourseEmail,
+} from '../utilities/emailTemplates'
 
 // Интерфейс для опций отправки письма
 interface SendEmailOptions {
@@ -117,14 +144,32 @@ export class EmailService extends BaseService {
       return nodemailer.createTransport(customSettings)
     }
 
-    // Проверка наличия необходимых переменных окружения
-    if (
-      process.env.NODE_ENV === 'production' &&
-      (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD)
-    ) {
-      console.error('SMTP configuration is missing for production environment!')
+    // Check if real email sending is enabled in development
+    const useRealEmailInDev = process.env.USE_REAL_EMAIL_IN_DEV === 'true'
+
+    // If we're in development and not using real email, use ethereal (fake SMTP service)
+    if (process.env.NODE_ENV !== 'production' && !useRealEmailInDev) {
+      // Create a test account on ethereal.email
+      return nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.ETHEREAL_USER || '',
+          pass: process.env.ETHEREAL_PASSWORD || '',
+        },
+      })
     }
 
+    // Проверка наличия необходимых переменных окружения
+    if (
+      (process.env.NODE_ENV === 'production' || useRealEmailInDev) &&
+      (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD)
+    ) {
+      console.error('SMTP configuration is missing for email sending!')
+    }
+
+    // Use real SMTP settings for production or when explicitly enabled in development
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '465'),
@@ -202,9 +247,18 @@ export class EmailService extends BaseService {
         html,
       })
 
-      // В режиме разработки выводим URL для просмотра письма
-      if (process.env.NODE_ENV !== 'production' && info.messageId) {
+      // Check if we're using Ethereal (fake SMTP) in development
+      const useRealEmailInDev = process.env.USE_REAL_EMAIL_IN_DEV === 'true'
+      const isEtherealEmail = process.env.NODE_ENV !== 'production' && !useRealEmailInDev
+
+      // In development mode with Ethereal, show preview URL
+      if (isEtherealEmail && info.messageId) {
         console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
+      }
+
+      // If using real email in development, log a clear message
+      if (process.env.NODE_ENV !== 'production' && useRealEmailInDev) {
+        console.log(`REAL EMAIL SENT to ${to} - Check the actual inbox!`)
       }
 
       console.log(
@@ -276,7 +330,7 @@ export class EmailService extends BaseService {
       this.payload.logger.error(
         `Error sending newsletter email to subscriber ${subscriberId}: ${errorMessage}`,
       )
-      return { success: false, error: error.message || 'Unknown error' }
+      return { success: false, error: errorMessage }
     }
   }
 
@@ -285,7 +339,7 @@ export class EmailService extends BaseService {
    */
   async sendBroadcast(
     title: string,
-    content: string,
+    content: string | Record<string, unknown>, // Support for Lexical content
     locale?: string,
     customSmtpSettings?: {
       host: string
@@ -443,6 +497,218 @@ export class EmailService extends BaseService {
   }
 
   /**
+   * Отправляет письмо для сброса пароля
+   */
+  async sendPasswordResetEmail(
+    userData: Pick<PasswordResetEmailData, 'email' | 'name' | 'locale' | 'resetToken'>,
+  ): Promise<boolean> {
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
+
+      const emailData: PasswordResetEmailData = {
+        ...userData,
+        siteUrl,
+      }
+
+      const html = generatePasswordResetEmail(emailData)
+
+      const result = await this.sendEmail({
+        to: userData.email,
+        subject: userData.locale === 'ru' ? 'Сброс пароля' : 'Password Reset',
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send password reset email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо о зачислении на курс
+   */
+  async sendCourseEnrollmentEmail(data: CourseEnrollmentEmailData): Promise<boolean> {
+    try {
+      const html = generateCourseEnrollmentEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Вы успешно записаны на курс "${data.courseName}"`
+            : `You've successfully enrolled in "${data.courseName}"`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send course enrollment email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо о завершении курса
+   */
+  async sendCourseCompletionEmail(data: CourseCompletionEmailData): Promise<boolean> {
+    try {
+      const html = generateCourseCompletionEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Поздравляем с завершением курса "${data.courseName}"!`
+            : `Congratulations on completing "${data.courseName}"!`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send course completion email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо о прогрессе в курсе
+   */
+  async sendCourseProgressEmail(data: CourseProgressEmailData): Promise<boolean> {
+    try {
+      const html = generateCourseProgressEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `${data.progressPercentage}% пройдено в курсе "${data.courseName}"`
+            : `${data.progressPercentage}% completed in "${data.courseName}"`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send course progress email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо с сертификатом о прохождении курса
+   */
+  async sendCourseCertificateEmail(data: CourseCertificateEmailData): Promise<boolean> {
+    try {
+      const html = generateCourseCertificateEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Ваш сертификат за курс "${data.courseName}"`
+            : `Your certificate for "${data.courseName}"`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send course certificate email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо с подтверждением заказа
+   */
+  async sendOrderConfirmationEmail(data: OrderConfirmationEmailData): Promise<boolean> {
+    try {
+      const html = generateOrderConfirmationEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Подтверждение заказа #${data.orderNumber}`
+            : `Order Confirmation #${data.orderNumber}`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send order confirmation email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо с подтверждением оплаты
+   */
+  async sendPaymentConfirmationEmail(data: PaymentConfirmationEmailData): Promise<boolean> {
+    try {
+      const html = generatePaymentConfirmationEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Подтверждение оплаты для заказа #${data.orderNumber}`
+            : `Payment Confirmation for Order #${data.orderNumber}`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send payment confirmation email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет письмо с уведомлением о награде
+   */
+  async sendRewardEmail(
+    data: RewardEmailData & {
+      discountAmount?: string
+      discountType?: 'percentage' | 'fixed'
+      applicableTo?: string
+      courseId?: string
+      courseUrl?: string
+      courseDuration?: string
+      courseLevel?: string
+    },
+  ): Promise<boolean> {
+    try {
+      let html: string
+
+      // Determine which reward template to use based on the reward type
+      switch (data.rewardType) {
+        case 'discount':
+          html = generateRewardDiscountEmail(data)
+          break
+        case 'free_course':
+          html = generateRewardFreeCourseEmail(data)
+          break
+        default:
+          html = generateRewardGenericEmail(data)
+      }
+
+      const result = await this.sendEmail({
+        to: data.userName.includes('@') ? data.userName : data.email || '',
+        subject:
+          data.locale === 'ru'
+            ? `Вы получили награду: ${data.rewardTitle}`
+            : `You've received a reward: ${data.rewardTitle}`,
+        html,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to send reward email:', error)
+      return false
+    }
+  }
+
+  /**
    * Отправляет уведомление администратору о новом подписчике
    */
   async sendAdminNewSubscriberNotification(
@@ -586,7 +852,10 @@ export class EmailService extends BaseService {
       // Если subject - это объект с локализациями
       if (typeof subject === 'object' && subject !== null) {
         const subjectObj = subject as Record<string, string>
-        subject = subjectObj[locale] || subjectObj.ru || Object.values(subjectObj)[0]
+        const localizedSubject = subjectObj[locale] || subjectObj.ru || Object.values(subjectObj)[0]
+        if (localizedSubject) {
+          subject = localizedSubject
+        }
       }
 
       // 4. Получаем тело письма
@@ -644,15 +913,21 @@ export class EmailService extends BaseService {
    * @param data Объект с данными для подстановки
    * @returns Текст с замененными плейсхолдерами
    */
-  private replacePlaceholders(text: string, data: Record<string, unknown>): string {
-    return text.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+  private replacePlaceholders(
+    text: string | Record<string, string>,
+    data: Record<string, unknown>,
+  ): string {
+    // If text is not a string, convert it to a string
+    const textStr = typeof text === 'string' ? text : JSON.stringify(text)
+
+    return textStr.replace(/\{\{([^}]+)\}\}/g, (_match, key) => {
       const keys = key.trim().split('.')
-      let value = data
+      let value: unknown = data
 
       // Поддержка вложенных свойств (например, {{user.name}})
       for (const k of keys) {
         if (value === undefined || value === null) break
-        value = value[k]
+        value = (value as Record<string, unknown>)[k]
       }
 
       // Возвращаем значение или пустую строку, если значение не найдено
@@ -666,72 +941,8 @@ export class EmailService extends BaseService {
    * @returns HTML строка
    */
   private convertRichTextToHTML(richText: Record<string, unknown>): string {
-    // Простая реализация для базовых элементов
-    // В реальном проекте здесь должна быть более сложная логика
-    try {
-      if (!richText || !richText.root || !richText.root.children) {
-        return ''
-      }
-
-      let html = ''
-
-      const processNode = (node: Record<string, unknown>): string => {
-        if (!node) return ''
-
-        if (node.type === 'text') {
-          let text = node.text || ''
-          if (node.bold) text = `<strong>${text}</strong>`
-          if (node.italic) text = `<em>${text}</em>`
-          if (node.underline) text = `<u>${text}</u>`
-          if (node.strikethrough) text = `<s>${text}</s>`
-          if (node.code) text = `<code>${text}</code>`
-          return text
-        }
-
-        if (node.type === 'paragraph') {
-          const children = node.children?.map(processNode).join('') || ''
-          return `<p>${children}</p>`
-        }
-
-        if (node.type === 'heading') {
-          const level = node.level || 1
-          const children = node.children?.map(processNode).join('') || ''
-          return `<h${level}>${children}</h${level}>`
-        }
-
-        if (node.type === 'list') {
-          const tag = node.listType === 'ordered' ? 'ol' : 'ul'
-          const children = node.children?.map(processNode).join('') || ''
-          return `<${tag}>${children}</${tag}>`
-        }
-
-        if (node.type === 'listItem') {
-          const children = node.children?.map(processNode).join('') || ''
-          return `<li>${children}</li>`
-        }
-
-        if (node.type === 'link') {
-          const children = node.children?.map(processNode).join('') || ''
-          const href = node.url || '#'
-          const target = node.newTab ? ' target="_blank" rel="noopener noreferrer"' : ''
-          return `<a href="${href}"${target}>${children}</a>`
-        }
-
-        // Рекурсивно обрабатываем дочерние элементы
-        if (node.children && Array.isArray(node.children)) {
-          return node.children.map(processNode).join('')
-        }
-
-        return ''
-      }
-
-      // Обрабатываем корневой элемент
-      html = richText.root.children.map(processNode).join('')
-      return html
-    } catch (error) {
-      console.error('Error converting richText to HTML:', error)
-      return ''
-    }
+    // Используем утилиту lexicalToHtml для преобразования Lexical в HTML
+    return lexicalToHtml(richText)
   }
 
   /**

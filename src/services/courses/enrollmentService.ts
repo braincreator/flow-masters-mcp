@@ -1,5 +1,6 @@
 import { Payload } from 'payload'
 import { User } from '@/payload-types'
+import { ServiceRegistry } from '../service.registry'
 
 export interface EnrollmentData {
   userId: string
@@ -97,7 +98,7 @@ export class EnrollmentService {
 
       // Track enrollment event in analytics and achievements
       try {
-        const serviceRegistry = this.payload.services
+        const serviceRegistry = ServiceRegistry.getInstance(this.payload)
         if (serviceRegistry) {
           // Track achievement event
           const achievementService = serviceRegistry.getAchievementService()
@@ -106,6 +107,36 @@ export class EnrollmentService {
             courseId: data.courseId,
             eventType: 'course.started',
           })
+
+          // Send enrollment email
+          try {
+            // Get user details
+            const user = await this.payload.findByID({
+              collection: 'users',
+              id: data.userId,
+            })
+
+            // Get course details
+            const course = await this.payload.findByID({
+              collection: 'courses',
+              id: data.courseId,
+            })
+
+            // Send enrollment email
+            const emailService = serviceRegistry.getEmailService()
+            await emailService.sendCourseEnrollmentEmail({
+              userName: user.name || 'Student',
+              email: user.email,
+              courseName: course.title,
+              courseId: data.courseId,
+              locale: user.locale || 'ru',
+              expiresAt: data.expiresAt,
+              isPaid: data.source === 'purchase',
+              orderNumber: data.orderId,
+            })
+          } catch (emailError) {
+            console.error('Error sending enrollment email:', emailError)
+          }
         }
       } catch (error) {
         console.error('Error tracking enrollment event:', error)
@@ -333,7 +364,7 @@ export class EnrollmentService {
 
       // Track progress achievement
       try {
-        const serviceRegistry = this.payload.services
+        const serviceRegistry = ServiceRegistry.getInstance(this.payload)
         if (serviceRegistry) {
           const achievementService = serviceRegistry.getAchievementService()
           await achievementService.processEvent({
@@ -342,6 +373,72 @@ export class EnrollmentService {
             eventType: 'course.progress',
             value: Math.min(100, Math.max(0, progress)),
           })
+
+          // Send progress milestone emails at 25%, 50%, and 75%
+          const previousProgress = enrollment.progress || 0
+          const currentProgress = Math.min(100, Math.max(0, progress))
+
+          // Check if we've crossed a milestone
+          const milestones = [25, 50, 75]
+          for (const milestone of milestones) {
+            if (previousProgress < milestone && currentProgress >= milestone) {
+              try {
+                // Get user details
+                const user = await this.payload.findByID({
+                  collection: 'users',
+                  id: userId,
+                })
+
+                // Get course details
+                const course = await this.payload.findByID({
+                  collection: 'courses',
+                  id: courseId,
+                })
+
+                // Get next lesson if available
+                let nextLessonName = ''
+                let nextLessonUrl = ''
+
+                try {
+                  // This is a simplified example - you would need to implement
+                  // logic to find the next unfinished lesson
+                  const lessons = await this.payload.find({
+                    collection: 'lessons',
+                    where: {
+                      course: {
+                        equals: courseId,
+                      },
+                    },
+                    sort: 'order',
+                    limit: 1,
+                  })
+
+                  if (lessons.docs.length > 0) {
+                    const nextLesson = lessons.docs[0]
+                    nextLessonName = nextLesson.title
+                    nextLessonUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/${user.locale || 'ru'}/courses/${courseId}/learn/${nextLesson.id}`
+                  }
+                } catch (lessonError) {
+                  console.error('Error finding next lesson:', lessonError)
+                }
+
+                // Send progress email
+                const emailService = serviceRegistry.getEmailService()
+                await emailService.sendCourseProgressEmail({
+                  userName: user.name || 'Student',
+                  email: user.email,
+                  courseName: course.title,
+                  courseId: courseId,
+                  progressPercentage: milestone,
+                  locale: user.locale || 'ru',
+                  nextLessonName,
+                  nextLessonUrl,
+                })
+              } catch (emailError) {
+                console.error(`Error sending ${milestone}% progress email:`, emailError)
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Error tracking progress achievement:', error)
@@ -360,7 +457,7 @@ export class EnrollmentService {
 
         // Track completion event and achievements
         try {
-          const serviceRegistry = this.payload.services
+          const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           if (serviceRegistry) {
             // Track course completion achievement
             const achievementService = serviceRegistry.getAchievementService()
@@ -370,6 +467,82 @@ export class EnrollmentService {
               eventType: 'course.completed',
               value: 100,
             })
+
+            // Send course completion email
+            try {
+              // Get user details
+              const user = await this.payload.findByID({
+                collection: 'users',
+                id: userId,
+              })
+
+              // Get course details
+              const course = await this.payload.findByID({
+                collection: 'courses',
+                id: courseId,
+              })
+
+              // Find next recommended course if available
+              let nextCourseId = ''
+              let nextCourseName = ''
+
+              try {
+                // This is a simplified example - you would need to implement
+                // logic to find the next recommended course
+                const recommendedCourses = await this.payload.find({
+                  collection: 'courses',
+                  where: {
+                    id: {
+                      not_equals: courseId,
+                    },
+                    status: {
+                      equals: 'published',
+                    },
+                  },
+                  limit: 1,
+                })
+
+                if (recommendedCourses.docs.length > 0) {
+                  const nextCourse = recommendedCourses.docs[0]
+                  nextCourseId = nextCourse.id
+                  nextCourseName = nextCourse.title
+                }
+              } catch (courseError) {
+                console.error('Error finding next course:', courseError)
+              }
+
+              // Generate certificate
+              const certificate = await this.generateCertificate(userId, courseId)
+
+              // Send completion email
+              const emailService = serviceRegistry.getEmailService()
+              await emailService.sendCourseCompletionEmail({
+                userName: user.name || 'Student',
+                email: user.email,
+                courseName: course.title,
+                courseId: courseId,
+                certificateId: certificate?.certificateId,
+                completionDate: new Date().toISOString(),
+                locale: user.locale || 'ru',
+                nextCourseId,
+                nextCourseName,
+              })
+
+              // Also send certificate email
+              if (certificate) {
+                await emailService.sendCourseCertificateEmail({
+                  userName: user.name || 'Student',
+                  email: user.email,
+                  courseName: course.title,
+                  courseId: courseId,
+                  certificateId: certificate.certificateId,
+                  completionDate: new Date().toISOString(),
+                  locale: user.locale || 'ru',
+                })
+              }
+            } catch (emailError) {
+              console.error('Error sending completion email:', emailError)
+            }
           }
         } catch (error) {
           console.error('Error tracking completion event:', error)
@@ -525,7 +698,7 @@ export class EnrollmentService {
 
       // Track certificate generation in achievements
       try {
-        const serviceRegistry = this.payload.services
+        const serviceRegistry = ServiceRegistry.getInstance(this.payload)
         if (serviceRegistry) {
           const achievementService = serviceRegistry.getAchievementService()
           await achievementService.processEvent({

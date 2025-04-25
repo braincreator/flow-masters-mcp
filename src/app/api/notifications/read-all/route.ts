@@ -1,39 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
-    
+
     // Проверяем, авторизован ли пользователь
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     const userId = session.user.id
-    
+
+    // Получаем payload client
+    const payload = await getPayloadClient()
+
     // Отмечаем все уведомления как прочитанные
-    const serviceRegistry = payload.services
-    if (!serviceRegistry) {
-      return NextResponse.json(
-        { error: 'Service registry not available' },
-        { status: 500 }
-      )
-    }
-    
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
     const notificationService = serviceRegistry.getNotificationService()
     await notificationService.markAllAsRead(userId)
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error marking all notifications as read:', error)
-    return NextResponse.json(
-      { error: 'Failed to mark all notifications as read' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to mark all notifications as read' }, { status: 500 })
   }
 }

@@ -140,6 +140,8 @@
     "notAuthenticated": "Не авторизован",
     "loginButton": "Войти",
     "description": "Управление вашим аккаунтом и курсами",
+    "welcomeMessage": "Добро пожаловать, {name}",
+    "notAuthenticatedDescription": "Пожалуйста, войдите, чтобы получить доступ к вашему аккаунту",
     "dashboard": {
       "title": "Личный кабинет",
       "description": "Управление вашим аккаунтом, курсами и достижениями"
@@ -165,7 +167,8 @@
     },
     "settingsCard": {
       "title": "Настройки аккаунта",
-      "description": "Управление настройками вашего аккаунта"
+      "description": "Управление настройками вашего аккаунта",
+      "comingSoon": "Настройки скоро появятся"
     }
   },
   "EnrolledCourses": {
@@ -179,7 +182,8 @@
   "NotificationCenter": {
     "title": "Уведомления",
     "noNotifications": "Нет уведомлений",
-    "loading": "Загрузка уведомлений..."
+    "loading": "Загрузка уведомлений...",
+    "errorLoading": "Ошибка загрузки уведомлений"
   },
   "SubscriptionPlans": {
     "errorLoading": "Не удалось загрузить планы подписок",
