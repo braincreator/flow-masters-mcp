@@ -25,9 +25,9 @@ The system automatically tries to use a CMS template first, and falls back to a 
 
 ### Components
 
-1. **Base Email Templates** - TypeScript classes in `src/utilities/emailTemplates/`
+1. **Base Email Templates** - TypeScript functions in `src/utilities/emailTemplates/`
 2. **Email Template Types** - TypeScript interfaces in `src/types/emailTemplates.ts`
-3. **Enhanced Email Service** - Service that handles sending emails in `src/services/email.service.ts` with support for both CMS and code templates
+3. **Email Service** - Service that handles sending emails in `src/services/email.service.ts` with support for both CMS and code templates
 4. **Template Sync Script** - Script to sync code templates to CMS in `src/scripts/sync-email-templates.ts`
 
 ### Flow
@@ -250,11 +250,12 @@ npm run sync:email-templates
 ### Creating a Code-based Template
 
 1. Create a new TypeScript file in the appropriate directory in `src/utilities/emailTemplates/`
-2. Extend the `BaseEmailTemplate` class
-3. Implement the `generateContent` method
-4. Export a generator function
-5. Add the template to the `index.ts` exports
-6. Run the sync script to create the CMS version
+2. Create a generator function that returns HTML
+3. Export the generator function
+4. Add the template to the appropriate index exports
+5. Add the template type to `src/types/emailTemplates.ts`
+6. Add a method to the `EmailService` class
+7. Run the sync script to create the CMS version
 
 ## Best Practices
 

@@ -14,11 +14,11 @@ This document provides an overview of the email templates system in the Flow Mas
 
 ## Architecture
 
-The email template system is built on a modular, object-oriented architecture:
+The email template system is built on a modular, functional architecture:
 
-### Base Template Class
+### Template Generator Functions
 
-All email templates extend the `BaseEmailTemplate` class, which provides:
+All email templates are implemented as generator functions that:
 
 - Common styling and layout
 - Localization support
@@ -160,27 +160,29 @@ await emailService.sendCourseEnrollmentEmail({
 
 ### Advanced Usage
 
-For more complex scenarios, you can use the template classes directly:
+For more complex scenarios, you can use the template generator functions directly:
 
 ```typescript
-import { CourseCompletionEmail } from '@/utilities/emailTemplates';
+import { generateCourseCompletionEmail } from '@/utilities/emailTemplates/courses/courseCompletion';
 
-// Create the email
-const email = new CourseCompletionEmail({
+// Generate the email HTML
+const html = generateCourseCompletionEmail({
   userName: 'John Doe',
   email: 'user@example.com',
   courseName: 'Advanced Flow Masters',
   courseId: 'course456',
   certificateId: 'cert123',
   completionDate: new Date().toISOString(),
-  locale: 'en'
+  locale: 'en',
+  siteUrl: 'https://flow-masters.ru'
 });
 
-// Get the HTML
-const html = email.generateHTML();
+// Use the HTML
+console.log('Generated HTML:', html);
 
-// Get the subject
-const subject = email.getSubject();
+// Extract subject from HTML
+const subjectMatch = html.match(/<title>(.*?)<\/title>/);
+const subject = subjectMatch ? subjectMatch[1] : 'Default Subject';
 
 // Send using your own method
 sendEmail({

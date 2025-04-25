@@ -5,43 +5,45 @@ import { lexicalToHtml } from '../utilities/lexicalToHtml'
 import { EmailTemplateSlug, TemplateDataMap } from '../types/emailTemplates'
 
 // Import all email templates from the centralized index
+// Auth emails
+import { generatePasswordResetEmail } from '../utilities/emailTemplates/auth/passwordReset'
+import { generateWelcomeEmail } from '../utilities/emailTemplates/auth/welcome'
+import { generateUnsubscribeConfirmationEmail } from '../utilities/emailTemplates/auth/unsubscribeConfirmation'
+
+// Newsletter emails
+import { generateNewsletterEmail } from '../utilities/emailTemplates/newsletters/newsletter'
+import { generateAdminNewSubscriberNotificationEmail } from '../utilities/emailTemplates/newsletters/adminNewSubscriber'
+
+// Course emails
+import { generateCourseEnrollmentEmail } from '../utilities/emailTemplates/courses/courseEnrollment'
+import { generateCourseCompletionEmail } from '../utilities/emailTemplates/courses/courseCompletion'
+import { generateCourseProgressEmail } from '../utilities/emailTemplates/courses/courseProgress'
+import { generateCourseCertificateEmail } from '../utilities/emailTemplates/courses/courseCertificate'
+
+// Order emails
+import { generateOrderConfirmationEmail } from '../utilities/emailTemplates/orders/orderConfirmation'
+import { generatePaymentConfirmationEmail } from '../utilities/emailTemplates/orders/paymentConfirmation'
+
+// Reward emails
+import { generateRewardGenericEmail } from '../utilities/emailTemplates/rewards/rewardGeneric'
+import { generateRewardDiscountEmail } from '../utilities/emailTemplates/rewards/rewardDiscount'
+import { generateRewardFreeCourseEmail } from '../utilities/emailTemplates/rewards/rewardFreeCourse'
+
+// Import types from emailTemplates.ts
 import {
-  // Auth emails
-  generatePasswordResetEmail,
   PasswordResetEmailData,
-  generateWelcomeEmail,
   WelcomeEmailData,
-  generateUnsubscribeConfirmationEmail,
   UnsubscribeConfirmationEmailData,
-
-  // Newsletter emails
-  generateNewsletterEmail,
   NewsletterEmailData,
-  generateAdminNewSubscriberNotificationEmail,
   AdminNewSubscriberNotificationEmailData,
-
-  // Course emails
-  generateCourseEnrollmentEmail,
   CourseEnrollmentEmailData,
-  generateCourseCompletionEmail,
   CourseCompletionEmailData,
-  generateCourseProgressEmail,
   CourseProgressEmailData,
-  generateCourseCertificateEmail,
   CourseCertificateEmailData,
-
-  // Order emails
-  generateOrderConfirmationEmail,
   OrderConfirmationEmailData,
-  generatePaymentConfirmationEmail,
   PaymentConfirmationEmailData,
-
-  // Reward emails
-  generateRewardGenericEmail,
   RewardEmailData,
-  generateRewardDiscountEmail,
-  generateRewardFreeCourseEmail,
-} from '../utilities/emailTemplates'
+} from '../types/emailTemplates'
 
 // Интерфейс для опций отправки письма
 interface SendEmailOptions {
@@ -874,6 +876,7 @@ export class EmailService extends BaseService {
         ...subscriberData,
         siteUrl,
         adminPanelUrl,
+        email: adminEmail,
       }
 
       // First try to use a CMS template

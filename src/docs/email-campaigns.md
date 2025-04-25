@@ -28,7 +28,7 @@ Campaigns use templates from the existing `email-templates` collection, which co
 
 ### 3. Email Service
 
-The enhanced `EmailService` provides methods for:
+The `EmailService` provides methods for:
 - Sending template-based emails with variable replacement
 - Converting rich text to HTML
 - Sending campaign emails to multiple recipients

@@ -39,7 +39,13 @@
     "sync:email-templates:simple": "node src/scripts/simple-sync-templates.js",
     "create:email-templates": "node src/scripts/create-email-templates.js",
     "update:email-methods": "node src/scripts/update-email-methods.js",
-    "test:email-templates": "node src/scripts/test-email-templates.js"
+    "test:email-templates": "node src/scripts/test-email-templates.js",
+    "test:send-email": "tsx src/scripts/test-send-email.ts",
+    "test:simple-email": "node src/scripts/simple-email-test.js",
+    "test:enhanced-email": "tsx src/scripts/test-enhanced-email.js",
+    "test:direct-email": "tsx src/scripts/direct-email-test.js",
+    "test:email-service": "tsx src/scripts/email-service-test.js",
+    "test:standalone-email": "node src/scripts/standalone-email-test.js"
   },
   "dependencies": {
     "@aws-sdk/nested-clients": "^3.777.0",
