@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 import nodemailer from 'nodemailer'
 import { lexicalToHtml } from '../utilities/lexicalToHtml'
+import { EmailTemplateSlug, TemplateDataMap } from '../types/emailTemplates'
 
 // Import all email templates from the centralized index
 import {
@@ -446,6 +447,21 @@ export class EmailService extends BaseService {
         siteUrl,
       }
 
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'welcome-email',
+        subscriberData.email,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: subscriberData.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
+      // Otherwise, fall back to the code-based template
       const html = generateWelcomeEmail(emailData)
 
       const result = await this.sendEmail({
@@ -476,6 +492,20 @@ export class EmailService extends BaseService {
       const emailData: UnsubscribeConfirmationEmailData = {
         ...subscriberData,
         siteUrl,
+      }
+
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        EmailTemplateSlug.UNSUBSCRIBE_CONFIRMATION,
+        subscriberData.email,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: subscriberData.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
       }
 
       const html = generateUnsubscribeConfirmationEmail(emailData)
@@ -510,6 +540,20 @@ export class EmailService extends BaseService {
         siteUrl,
       }
 
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        EmailTemplateSlug.PASSWORD_RESET,
+        userData.email,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: userData.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generatePasswordResetEmail(emailData)
 
       const result = await this.sendEmail({
@@ -530,10 +574,32 @@ export class EmailService extends BaseService {
    */
   async sendCourseEnrollmentEmail(data: CourseEnrollmentEmailData): Promise<boolean> {
     try {
+      // Ensure email field is set
+      const emailTo = data.userName?.includes('@') ? data.userName : data.email || ''
+      if (!emailTo) {
+        console.error('No email address provided for course enrollment email')
+        return false
+      }
+
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'course-enrollment',
+        emailTo,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
+      // Otherwise, fall back to the code-based template
       const html = generateCourseEnrollmentEmail(data)
 
       const result = await this.sendEmail({
-        to: data.userName.includes('@') ? data.userName : data.email || '',
+        to: emailTo,
         subject:
           data.locale === 'ru'
             ? `Вы успешно записаны на курс "${data.courseName}"`
@@ -553,6 +619,20 @@ export class EmailService extends BaseService {
    */
   async sendCourseCompletionEmail(data: CourseCompletionEmailData): Promise<boolean> {
     try {
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'course-completion',
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generateCourseCompletionEmail(data)
 
       const result = await this.sendEmail({
@@ -576,6 +656,20 @@ export class EmailService extends BaseService {
    */
   async sendCourseProgressEmail(data: CourseProgressEmailData): Promise<boolean> {
     try {
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'course-progress',
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generateCourseProgressEmail(data)
 
       const result = await this.sendEmail({
@@ -599,6 +693,20 @@ export class EmailService extends BaseService {
    */
   async sendCourseCertificateEmail(data: CourseCertificateEmailData): Promise<boolean> {
     try {
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'course-certificate',
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generateCourseCertificateEmail(data)
 
       const result = await this.sendEmail({
@@ -622,6 +730,20 @@ export class EmailService extends BaseService {
    */
   async sendOrderConfirmationEmail(data: OrderConfirmationEmailData): Promise<boolean> {
     try {
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'order-confirmation',
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generateOrderConfirmationEmail(data)
 
       const result = await this.sendEmail({
@@ -645,6 +767,20 @@ export class EmailService extends BaseService {
    */
   async sendPaymentConfirmationEmail(data: PaymentConfirmationEmailData): Promise<boolean> {
     try {
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        'payment-confirmation',
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(data)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
       const html = generatePaymentConfirmationEmail(data)
 
       const result = await this.sendEmail({
@@ -678,22 +814,33 @@ export class EmailService extends BaseService {
     },
   ): Promise<boolean> {
     try {
-      let html: string
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
 
-      // Determine which reward template to use based on the reward type
-      switch (data.rewardType) {
-        case 'discount':
-          html = generateRewardDiscountEmail(data)
-          break
-        case 'free_course':
-          html = generateRewardFreeCourseEmail(data)
-          break
-        default:
-          html = generateRewardGenericEmail(data)
+      // Ensure we have all required data
+      const emailData: RewardEmailData = {
+        ...data,
+        siteUrl,
       }
 
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        EmailTemplateSlug.REWARD_GENERIC,
+        data.userName?.includes('@') ? data.userName : data.email || '',
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
+      // Otherwise, fall back to the code-based template
+      const html = generateRewardGenericEmail(emailData)
+
       const result = await this.sendEmail({
-        to: data.userName.includes('@') ? data.userName : data.email || '',
+        to: data.userName?.includes('@') ? data.userName : data.email || '',
         subject:
           data.locale === 'ru'
             ? `Вы получили награду: ${data.rewardTitle}`
@@ -718,16 +865,32 @@ export class EmailService extends BaseService {
     >,
   ): Promise<boolean> {
     try {
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@flow-masters.ru'
-      const adminPanelUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000/admin'
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
+      const adminPanelUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000/admin'
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@flow-masters.ru'
 
+      // Ensure we have all required data
       const emailData: AdminNewSubscriberNotificationEmailData = {
         ...subscriberData,
-        adminPanelUrl,
         siteUrl,
+        adminPanelUrl,
       }
 
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        EmailTemplateSlug.ADMIN_NEW_SUBSCRIBER,
+        adminEmail,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: 'ru' }, // Admin notifications are always in Russian
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
+      // Otherwise, fall back to the code-based template
       const html = generateAdminNewSubscriberNotificationEmail(emailData)
 
       const result = await this.sendEmail({

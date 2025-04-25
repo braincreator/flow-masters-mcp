@@ -18,13 +18,31 @@ export const EmailTemplates: CollectionConfig = {
     update: isAdmin,
     delete: isAdmin,
   },
-  hooks: {},
+  hooks: {
+    beforeChange: [
+      async ({ data }) => {
+        // If the template was synced from code, add a flag
+        if (data.lastSyncedAt) {
+          data.syncedFromCode = true
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
       label: 'Название шаблона (для админки)',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'description',
+      label: 'Описание',
+      type: 'textarea',
+      admin: {
+        description: 'Краткое описание назначения шаблона',
+      },
     },
     {
       name: 'slug',
@@ -36,6 +54,23 @@ export const EmailTemplates: CollectionConfig = {
       admin: {
         description:
           'Уникальный идентификатор для использования в коде (например, "welcome-email").',
+      },
+    },
+    {
+      name: 'templateType',
+      label: 'Тип шаблона',
+      type: 'select',
+      options: [
+        { label: 'Аутентификация', value: 'auth' },
+        { label: 'Курсы', value: 'courses' },
+        { label: 'Заказы', value: 'orders' },
+        { label: 'Награды', value: 'rewards' },
+        { label: 'Рассылки', value: 'newsletters' },
+        { label: 'Другое', value: 'other' },
+      ],
+      defaultValue: 'other',
+      admin: {
+        position: 'sidebar',
       },
     },
     {
@@ -65,6 +100,48 @@ export const EmailTemplates: CollectionConfig = {
       admin: {
         description: 'Используйте {{placeholder}} для вставки динамических данных.',
       },
+    },
+    {
+      name: 'placeholders',
+      label: 'Доступные плейсхолдеры',
+      type: 'text',
+      admin: {
+        description: 'Список доступных плейсхолдеров, разделенных запятыми',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'syncedFromCode',
+      label: 'Синхронизирован из кода',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Этот шаблон был создан или обновлен из кода',
+      },
+    },
+    {
+      name: 'lastSyncedAt',
+      label: 'Последняя синхронизация',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'previewNote',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Для предпросмотра шаблона сохраните изменения',
+      },
+      defaultValue: 'Предпросмотр доступен после сохранения',
     },
   ],
 }

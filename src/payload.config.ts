@@ -22,6 +22,8 @@ import updateItemHandler from './endpoints/cart/updateItemHandler'
 import removeItemHandler from './endpoints/cart/removeItemHandler'
 import clearCartHandler from './endpoints/cart/clearCartHandler'
 import triggerNewsletterBroadcastHandler from './endpoints/triggerNewsletterBroadcast'
+import { previewEmailTemplate } from './api/preview-email-template'
+import { previewEmail } from './api/preview-email'
 
 // Plugins
 import { plugins } from './plugins'
@@ -512,6 +514,16 @@ export default buildConfig({
       path: '/api/v1/setup-rewards',
       method: 'post',
       handler: setupRewardsEndpoint.handler,
+    },
+    {
+      path: '/api/preview-email-template',
+      method: 'post',
+      handler: previewEmailTemplate,
+    },
+    {
+      path: '/api/preview-email',
+      method: 'get',
+      handler: previewEmail,
     },
   ],
   graphQL: {

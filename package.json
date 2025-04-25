@@ -34,7 +34,12 @@
     "migrate:up": "cross-env NODE_OPTIONS=--no-deprecation payload migrate up",
     "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate down",
     "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
-    "migrate:reset": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:reset"
+    "migrate:reset": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:reset",
+    "sync:email-templates": "node src/scripts/run-sync-templates.js",
+    "sync:email-templates:simple": "node src/scripts/simple-sync-templates.js",
+    "create:email-templates": "node src/scripts/create-email-templates.js",
+    "update:email-methods": "node src/scripts/update-email-methods.js",
+    "test:email-templates": "node src/scripts/test-email-templates.js"
   },
   "dependencies": {
     "@aws-sdk/nested-clients": "^3.777.0",
