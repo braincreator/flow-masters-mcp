@@ -313,6 +313,15 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'isConsulting',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Is this product a consulting service?',
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'course',
       type: 'relationship',
       relationTo: 'courses',

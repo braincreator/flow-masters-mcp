@@ -1,3 +1,4 @@
+import React from 'react'
 import { Media } from '@/payload-types'
 
 export type MessageSender = 'user' | 'bot' | 'system'
@@ -12,6 +13,7 @@ export type MessageType =
   | 'buttons'
   | 'quickReplies'
   | 'markdown'
+  | 'component'
 
 export interface MessageButton {
   id: string
@@ -65,6 +67,7 @@ export interface Message {
   card?: MessageCard
   buttons?: MessageButton[]
   quickReplies?: MessageQuickReply[]
+  component?: React.ReactNode // Для компонентных сообщений
 
   retryCount?: number
   isTyping?: boolean

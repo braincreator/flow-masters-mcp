@@ -89,24 +89,21 @@ export class CalendlyService extends BaseService {
     signature: string,
     timestamp: string,
     body: string,
-    secret: string
+    secret: string,
   ): boolean {
     try {
       // Создаем строку для подписи: timestamp + '.' + body
       const signatureString = `${timestamp}.${body}`
-      
+
       // Создаем HMAC с использованием SHA-256 и секретного ключа
       const hmac = crypto.createHmac('sha256', secret)
       hmac.update(signatureString)
-      
+
       // Получаем хеш в виде шестнадцатеричной строки
       const computedSignature = hmac.digest('hex')
-      
+
       // Сравниваем вычисленную подпись с полученной
-      return crypto.timingSafeEqual(
-        Buffer.from(computedSignature),
-        Buffer.from(signature)
-      )
+      return crypto.timingSafeEqual(Buffer.from(computedSignature), Buffer.from(signature))
     } catch (error) {
       console.error('Error verifying Calendly signature:', error)
       return false
@@ -117,7 +114,7 @@ export class CalendlyService extends BaseService {
    * Обрабатывает вебхук от Calendly
    */
   public async processWebhook(
-    webhookData: CalendlyWebhookPayload
+    webhookData: CalendlyWebhookPayload,
   ): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       const { event } = webhookData
@@ -126,37 +123,37 @@ export class CalendlyService extends BaseService {
         case 'invitee.created':
           await this.handleInviteeCreated(webhookData)
           break
-        
+
         case 'invitee.canceled':
           await this.handleInviteeCanceled(webhookData)
           break
-        
+
         case 'invitee.rescheduled':
           await this.handleInviteeRescheduled(webhookData)
           break
-        
+
         case 'invitee_no_show.created':
           await this.handleInviteeNoShow(webhookData)
           break
-        
+
         case 'routing_form_submission.created':
           // Обработка отправки формы маршрутизации (если нужно)
           break
-        
+
         default:
           console.log(`Unhandled Calendly event type: ${event}`)
-          return { 
-            success: true, 
-            message: `Event ${event} received but not processed` 
+          return {
+            success: true,
+            message: `Event ${event} received but not processed`,
           }
       }
 
       return { success: true }
     } catch (error) {
       console.error('Error processing Calendly webhook:', error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
       }
     }
   }
@@ -168,11 +165,11 @@ export class CalendlyService extends BaseService {
     try {
       const { payload } = webhookData
       const { invitee, event_type, scheduled_event, tracking } = payload
-      
+
       if (!scheduled_event?.uuid) {
         throw new Error('Missing scheduled_event.uuid in webhook payload')
       }
-      
+
       // Проверяем, существует ли уже бронирование с таким UUID
       const existingBookings = await this.payload.find({
         collection: 'bookings',
@@ -182,12 +179,54 @@ export class CalendlyService extends BaseService {
           },
         },
       })
-      
+
       if (existingBookings.docs.length > 0) {
         console.log(`Booking with UUID ${scheduled_event.uuid} already exists, skipping creation`)
         return
       }
-      
+
+      // Проверяем, есть ли оплаченный заказ для этого email
+      let isPaid = false
+      let orderId = null
+
+      if (invitee?.email) {
+        // Находим пользователя по email
+        const users = await this.payload.find({
+          collection: 'users',
+          where: {
+            email: {
+              equals: invitee.email,
+            },
+          },
+        })
+
+        if (users.docs.length > 0) {
+          const userId = users.docs[0].id
+
+          // Ищем оплаченные заказы этого пользователя для консультаций
+          const orders = await this.payload.find({
+            collection: 'orders',
+            where: {
+              customer: {
+                equals: userId,
+              },
+              status: {
+                equals: 'paid',
+              },
+              // Здесь можно добавить дополнительные условия для определения заказов консультаций
+              // например, по типу продукта или другим параметрам
+            },
+            sort: '-createdAt', // Сначала самые новые
+            limit: 1,
+          })
+
+          if (orders.docs.length > 0) {
+            isPaid = true
+            orderId = orders.docs[0].id
+          }
+        }
+      }
+
       // Создаем новое бронирование
       const booking = await this.payload.create({
         collection: 'bookings',
@@ -205,10 +244,11 @@ export class CalendlyService extends BaseService {
             phone: invitee?.text_reminder_number,
             timezone: invitee?.timezone,
           },
-          questions: invitee?.questions_and_answers?.map(qa => ({
-            question: qa.question,
-            answer: qa.answer,
-          })) || [],
+          questions:
+            invitee?.questions_and_answers?.map((qa) => ({
+              question: qa.question,
+              answer: qa.answer,
+            })) || [],
           calendlyURI: scheduled_event.uri,
           calendlyUUID: scheduled_event.uuid,
           calendlyEventTypeURI: event_type?.uuid,
@@ -216,9 +256,23 @@ export class CalendlyService extends BaseService {
           medium: tracking?.utm_medium,
           campaign: tracking?.utm_campaign,
           rawData: JSON.stringify(webhookData),
+          isPaid: isPaid,
+          order: orderId,
         },
       })
-      
+
+      // Если есть связанный заказ, обновляем его статус на 'completed'
+      if (orderId) {
+        await this.payload.update({
+          collection: 'orders',
+          id: orderId,
+          data: {
+            status: 'completed',
+            notes: `Booking completed: ${scheduled_event.uuid}`,
+          },
+        })
+      }
+
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.created', booking)
     } catch (error) {
@@ -234,11 +288,11 @@ export class CalendlyService extends BaseService {
     try {
       const { payload } = webhookData
       const { scheduled_event } = payload
-      
+
       if (!scheduled_event?.uuid) {
         throw new Error('Missing scheduled_event.uuid in webhook payload')
       }
-      
+
       // Находим бронирование по UUID
       const existingBookings = await this.payload.find({
         collection: 'bookings',
@@ -248,12 +302,12 @@ export class CalendlyService extends BaseService {
           },
         },
       })
-      
+
       if (existingBookings.docs.length === 0) {
         console.log(`Booking with UUID ${scheduled_event.uuid} not found, cannot cancel`)
         return
       }
-      
+
       // Обновляем статус бронирования
       const booking = await this.payload.update({
         collection: 'bookings',
@@ -265,7 +319,7 @@ export class CalendlyService extends BaseService {
           rawData: JSON.stringify(webhookData),
         },
       })
-      
+
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.canceled', booking)
     } catch (error) {
@@ -281,11 +335,11 @@ export class CalendlyService extends BaseService {
     try {
       const { payload } = webhookData
       const { scheduled_event, old_scheduled_event } = payload
-      
+
       if (!scheduled_event?.uuid) {
         throw new Error('Missing scheduled_event.uuid in webhook payload')
       }
-      
+
       // Находим старое бронирование по UUID
       const existingBookings = await this.payload.find({
         collection: 'bookings',
@@ -295,15 +349,17 @@ export class CalendlyService extends BaseService {
           },
         },
       })
-      
+
       if (existingBookings.docs.length === 0) {
-        console.log(`Booking with UUID ${old_scheduled_event?.uuid || scheduled_event.uuid} not found, creating new booking instead`)
+        console.log(
+          `Booking with UUID ${old_scheduled_event?.uuid || scheduled_event.uuid} not found, creating new booking instead`,
+        )
         // Если старое бронирование не найдено, создаем новое
         return this.handleInviteeCreated(webhookData)
       }
-      
+
       const existingBooking = existingBookings.docs[0]
-      
+
       // Обновляем бронирование
       const booking = await this.payload.update({
         collection: 'bookings',
@@ -319,7 +375,7 @@ export class CalendlyService extends BaseService {
           rawData: JSON.stringify(webhookData),
         },
       })
-      
+
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.rescheduled', booking)
     } catch (error) {
@@ -335,11 +391,11 @@ export class CalendlyService extends BaseService {
     try {
       const { payload } = webhookData
       const { scheduled_event } = payload
-      
+
       if (!scheduled_event?.uuid) {
         throw new Error('Missing scheduled_event.uuid in webhook payload')
       }
-      
+
       // Находим бронирование по UUID
       const existingBookings = await this.payload.find({
         collection: 'bookings',
@@ -349,12 +405,12 @@ export class CalendlyService extends BaseService {
           },
         },
       })
-      
+
       if (existingBookings.docs.length === 0) {
         console.log(`Booking with UUID ${scheduled_event.uuid} not found, cannot mark as no-show`)
         return
       }
-      
+
       // Обновляем статус бронирования
       const booking = await this.payload.update({
         collection: 'bookings',
@@ -364,7 +420,7 @@ export class CalendlyService extends BaseService {
           rawData: JSON.stringify(webhookData),
         },
       })
-      
+
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.no_show', booking)
     } catch (error) {
@@ -401,7 +457,7 @@ export class CalendlyService extends BaseService {
           },
         },
       })
-      
+
       return result.docs
     } catch (error) {
       console.error('Error fetching active Calendly settings:', error)

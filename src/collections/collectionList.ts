@@ -17,6 +17,7 @@ import { Comments } from './Comments'
 // Store / E-commerce
 import { Products } from './Products'
 import { ProductCategories } from './ProductCategories'
+import { Services } from './Services'
 import { Orders } from './Orders'
 import { OrderTracking } from './OrderTracking'
 import { CartSessions } from './CartSessions'
@@ -90,6 +91,7 @@ const collections = [
   // Store / E-commerce
   Products,
   ProductCategories,
+  Services,
   Orders,
   OrderTracking,
   CartSessions,

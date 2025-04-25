@@ -12,6 +12,7 @@ import { AccountProfile } from './AccountProfile'
 import UserAchievements from '@/components/Achievements/UserAchievements'
 import UserRewards from '@/components/Rewards/UserRewards'
 import TopUsers from '@/components/Leaderboard/TopUsers'
+import PendingBookings from '@/components/services/PendingBookings'
 import { useTranslations } from 'next-intl'
 
 interface AccountDashboardProps {
@@ -77,6 +78,9 @@ export function AccountDashboard({ locale }: AccountDashboardProps) {
           {commonT('logout')}
         </Button>
       </div>
+
+      {/* Показываем незавершенные бронирования, если они есть */}
+      <PendingBookings locale={locale} />
 
       <Tabs
         value={activeTab}

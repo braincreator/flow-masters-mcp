@@ -293,7 +293,10 @@ const Message: React.FC<MessageProps> = ({
             ) : (
               <>
                 {/* Текстовый контент */}
-                {typeof message.content === 'string' ? (
+                {message.type === 'component' && message.component ? (
+                  // Рендерим React-компонент
+                  <div className="w-full">{message.component}</div>
+                ) : typeof message.content === 'string' ? (
                   message.type === 'markdown' ? (
                     <MarkdownRenderer content={message.content} />
                   ) : (

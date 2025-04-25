@@ -222,6 +222,26 @@ export const Bookings: CollectionConfig = {
         readOnly: true,
       },
     },
+    {
+      name: 'order',
+      type: 'relationship',
+      relationTo: 'orders',
+      label: 'Связанный заказ',
+      admin: {
+        description: 'Заказ, связанный с этим бронированием',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'isPaid',
+      type: 'checkbox',
+      label: 'Оплачено',
+      defaultValue: false,
+      admin: {
+        description: 'Отметьте, если консультация оплачена',
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true,
 }

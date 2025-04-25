@@ -836,42 +836,53 @@ export const ChatBlock: React.FC<ChatProps> = ({
                   const eventType = calendlyConfig.eventType || ''
 
                   if (username && eventType) {
-                    // Формируем параметры
-                    const params = new URLSearchParams()
+                    // Добавляем сообщение с компонентом оплаты и бронирования
+                    // Используем динамический импорт компонента ServiceBookingInChat
+                    import('@/components/chat/ServiceBookingInChat')
+                      .then(({ ServiceBookingInChat }) => {
+                        // Создаем сообщение с компонентом бронирования
+                        const bookingMessage: Message = {
+                          id: `calendly-booking-${Date.now()}`,
+                          content: '',
+                          sender: 'bot',
+                          timestamp: new Date(),
+                          senderName: botName,
+                          avatar: botAvatar,
+                          type: 'component',
+                          component: (
+                            <ServiceBookingInChat
+                              serviceType="consultation"
+                              calendlyUsername={username}
+                              calendlyEventType={eventType}
+                              hideEventTypeDetails={calendlyConfig.hideEventTypeDetails}
+                              hideGdprBanner={calendlyConfig.hideGdprBanner}
+                              prefill={{
+                                name: userInfo.name,
+                                email: userInfo.email,
+                              }}
+                              className="w-full"
+                            />
+                          ),
+                        }
 
-                    if (calendlyConfig.hideEventTypeDetails) {
-                      params.append('hide_event_type_details', '1')
-                    }
+                        setMessages((prev) => [...prev, bookingMessage])
+                      })
+                      .catch((error) => {
+                        console.error('Failed to load ConsultingBookingFlow component:', error)
 
-                    if (calendlyConfig.hideGdprBanner) {
-                      params.append('hide_gdpr_banner', '1')
-                    }
-
-                    // Добавляем prefill параметры, если они есть
-                    if (userInfo?.name) {
-                      params.append('name', userInfo.name)
-                    }
-
-                    if (userInfo?.email) {
-                      params.append('email', userInfo.email)
-                    }
-
-                    const calendlyUrl = `https://calendly.com/${username}/${eventType}?${params.toString()}`
-
-                    // Открываем календарь в новом окне
-                    window.open(calendlyUrl, '_blank')
-
-                    // Добавляем сообщение о том, что календарь открыт
-                    const confirmMessage: Message = {
-                      id: `calendly-confirm-${Date.now()}`,
-                      content:
-                        'Календарь бронирования открыт в новом окне. Если окно не открылось, пожалуйста, проверьте настройки блокировки всплывающих окон в вашем браузере.',
-                      sender: 'bot',
-                      timestamp: new Date(),
-                      senderName: botName,
-                      avatar: botAvatar,
-                    }
-                    setMessages((prev) => [...prev, confirmMessage])
+                        // Если не удалось загрузить компонент, показываем ошибку
+                        const errorMessage: Message = {
+                          id: `bot-error-${Date.now()}`,
+                          content:
+                            'Не удалось загрузить компонент бронирования. Пожалуйста, свяжитесь с нами другим способом.',
+                          sender: 'bot',
+                          timestamp: new Date(),
+                          senderName: botName,
+                          avatar: botAvatar,
+                          isError: true,
+                        }
+                        setMessages((prev) => [...prev, errorMessage])
+                      })
                   } else {
                     // Если нет необходимых параметров
                     const errorMessage: Message = {

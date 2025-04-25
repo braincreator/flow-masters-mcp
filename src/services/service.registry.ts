@@ -11,6 +11,8 @@ import { PaymentService } from './payment.service'
 import { SubscriptionService } from './subscription.service'
 import { OrderService } from './order.service'
 import { CalendlyService } from './calendly.service'
+import { ServiceService } from './service.service'
+import { AutoAccountService } from './auto-account.service'
 import { EnrollmentService } from './courses/enrollmentService'
 import { LessonProgressService } from './courses/lessonProgressService'
 import { AchievementService } from './achievement.service'
@@ -60,6 +62,8 @@ export class ServiceRegistry {
     this.getPriceService()
     this.getRecommendationService()
     this.getOrderService()
+    this.getServiceService()
+    this.getAutoAccountService()
 
     // Курсы и обучение
     this.getEnrollmentService()
@@ -232,6 +236,22 @@ export class ServiceRegistry {
     if (!this.services.has(key)) {
       const NotificationService = require('./notification.service').NotificationService
       this.services.set(key, NotificationService.getInstance(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getServiceService(): ServiceService {
+    const key = 'service'
+    if (!this.services.has(key)) {
+      this.services.set(key, new ServiceService(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getAutoAccountService(): AutoAccountService {
+    const key = 'autoAccount'
+    if (!this.services.has(key)) {
+      this.services.set(key, new AutoAccountService(this.payload))
     }
     return this.services.get(key)
   }
