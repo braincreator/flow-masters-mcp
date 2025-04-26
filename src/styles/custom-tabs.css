@@ -1,0 +1,58 @@
+/* Custom Tab Styles */
+
+/* Gradient background for tabs list */
+.tabs-gradient .radix-tabs-list {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode support */
+[data-theme='dark'] .tabs-gradient .radix-tabs-list {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Tab indicator glow effect */
+.tab-indicator-glow [data-state='active'] > [data-state='active'] {
+  box-shadow: 0 0 15px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .tab-indicator-glow [data-state='active'] > [data-state='active'] {
+  box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Tab hover effect */
+.tabs-hover-effect .radix-tabs-trigger:hover {
+  transform: translateY(-1px);
+}
+
+/* Tab active scale effect */
+.tabs-active-scale .radix-tabs-trigger[data-state='active'] {
+  transform: scale(1.05);
+}
+
+/* Tab content transition */
+.tab-content-transition .radix-tabs-content {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Tab icon styles */
+.tab-with-icon .radix-tabs-trigger svg {
+  margin-right: 6px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .tab-with-icon .radix-tabs-trigger svg {
+    margin-right: 4px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .tabs-active-scale .radix-tabs-trigger[data-state='active'] {
+    transform: scale(1.02);
+  }
+}

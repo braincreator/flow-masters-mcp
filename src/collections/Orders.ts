@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
+import { convertPrice } from '@/utilities/formatPrice'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -119,6 +120,53 @@ export const Orders: CollectionConfig = {
       },
     },
     // No shipping fields needed for digital products
+    {
+      name: 'orderType',
+      type: 'select',
+      required: false,
+      options: [
+        { label: 'Product', value: 'product' },
+        { label: 'Service', value: 'service' },
+        { label: 'Subscription', value: 'subscription' },
+      ],
+      admin: {
+        description: 'Type of order',
+      },
+    },
+    {
+      name: 'serviceData',
+      type: 'group',
+      admin: {
+        description: 'Additional data for service orders',
+        condition: (data) => data.orderType === 'service',
+      },
+      fields: [
+        {
+          name: 'serviceId',
+          type: 'text',
+          required: false,
+          admin: {
+            description: 'ID of the service',
+          },
+        },
+        {
+          name: 'serviceType',
+          type: 'text',
+          required: false,
+          admin: {
+            description: 'Type of service',
+          },
+        },
+        {
+          name: 'requiresBooking',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Whether this service requires booking',
+          },
+        },
+      ],
+    },
   ],
   hooks: {
     beforeChange: [

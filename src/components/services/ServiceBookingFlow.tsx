@@ -52,7 +52,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       // Проверяем, нужно ли собирать дополнительную информацию
       if (
         bookingSettings?.enableAdditionalInfo &&
-        bookingSettings.additionalInfoFields?.length > 0
+        bookingSettings.additionalInfoFields?.length || 0 > 0
       ) {
         setStep('additionalInfo')
       } else if (requiresBooking) {
@@ -81,7 +81,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
             // Проверяем, нужно ли собирать дополнительную информацию
             if (
               bookingSettings?.enableAdditionalInfo &&
-              bookingSettings.additionalInfoFields?.length > 0
+              bookingSettings.additionalInfoFields?.length || 0 > 0
             ) {
               setStep('additionalInfo')
             } else if (!requiresBooking) {
@@ -200,7 +200,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   if (
     step === 'additionalInfo' &&
     bookingSettings?.enableAdditionalInfo &&
-    bookingSettings.additionalInfoFields?.length > 0
+    bookingSettings.additionalInfoFields?.length || 0 > 0
   ) {
     return (
       <div className={className}>

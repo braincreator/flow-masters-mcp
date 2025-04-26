@@ -10743,6 +10743,27 @@ export interface Order {
       currency: string;
     };
   };
+  /**
+   * Type of order
+   */
+  orderType?: ('product' | 'service' | 'subscription') | null;
+  /**
+   * Additional data for service orders
+   */
+  serviceData?: {
+    /**
+     * ID of the service
+     */
+    serviceId?: string | null;
+    /**
+     * Type of service
+     */
+    serviceType?: string | null;
+    /**
+     * Whether this service requires booking
+     */
+    requiresBooking?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -17403,6 +17424,14 @@ export interface OrdersSelect<T extends boolean = true> {
               amount?: T;
               currency?: T;
             };
+      };
+  orderType?: T;
+  serviceData?:
+    | T
+    | {
+        serviceId?: T;
+        serviceType?: T;
+        requiresBooking?: T;
       };
   updatedAt?: T;
   createdAt?: T;
