@@ -37,7 +37,10 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 }) => {
   const t = useTranslations('ServiceBooking')
   const [step, setStep] = useState<'payment' | 'additionalInfo' | 'booking' | 'complete'>('payment')
-  const [additionalInfo, setAdditionalInfo] = useState<Record<string, any> | null>(null)
+  const [additionalInfo, setAdditionalInfo] = useState<Record<
+    string,
+    string | number | boolean | Date
+  > | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(initialOrderId || null)
@@ -51,8 +54,8 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
       // Проверяем, нужно ли собирать дополнительную информацию
       if (
-        bookingSettings?.enableAdditionalInfo &&
-        bookingSettings.additionalInfoFields?.length || 0 > 0
+        (bookingSettings?.enableAdditionalInfo && bookingSettings.additionalInfoFields?.length) ||
+        0 > 0
       ) {
         setStep('additionalInfo')
       } else if (requiresBooking) {
@@ -81,7 +84,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
             // Проверяем, нужно ли собирать дополнительную информацию
             if (
               bookingSettings?.enableAdditionalInfo &&
-              bookingSettings.additionalInfoFields?.length || 0 > 0
+              (bookingSettings.additionalInfoFields?.length || 0) > 0
             ) {
               setStep('additionalInfo')
             } else if (!requiresBooking) {
@@ -103,7 +106,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
       return () => clearInterval(interval)
     }
-  }, [orderId, paymentVerified, requiresBooking])
+  }, [orderId, paymentVerified, requiresBooking, skipPayment, bookingSettings])
 
   // Обработчик инициализации оплаты
   const handleInitiatePayment = async () => {
@@ -149,7 +152,9 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   }
 
   // Обработчик отправки формы дополнительной информации
-  const handleAdditionalInfoSubmit = async (data: Record<string, any>) => {
+  const handleAdditionalInfoSubmit = async (
+    data: Record<string, string | number | boolean | Date>,
+  ) => {
     try {
       setAdditionalInfo(data)
 
@@ -200,7 +205,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   if (
     step === 'additionalInfo' &&
     bookingSettings?.enableAdditionalInfo &&
-    bookingSettings.additionalInfoFields?.length || 0 > 0
+    (bookingSettings.additionalInfoFields?.length || 0) > 0
   ) {
     return (
       <div className={className}>
@@ -208,15 +213,19 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
           <AlertDescription>{t('paymentComplete')}</AlertDescription>
         </Alert>
 
-        <AdditionalInfoForm
-          fields={bookingSettings.additionalInfoFields as AdditionalInfoField[]}
-          title={bookingSettings.additionalInfoTitle || t('additionalInfoTitle')}
-          description={bookingSettings.additionalInfoDescription || t('additionalInfoDescription')}
-          isRequired={bookingSettings.additionalInfoRequired || false}
-          onSubmit={handleAdditionalInfoSubmit}
-          onSkip={!bookingSettings.additionalInfoRequired ? handleAdditionalInfoSkip : undefined}
-          className="mt-4"
-        />
+        {bookingSettings && (
+          <AdditionalInfoForm
+            fields={bookingSettings.additionalInfoFields as AdditionalInfoField[]}
+            title={bookingSettings.additionalInfoTitle || t('additionalInfoTitle')}
+            description={
+              bookingSettings.additionalInfoDescription || t('additionalInfoDescription')
+            }
+            isRequired={bookingSettings.additionalInfoRequired || false}
+            onSubmit={handleAdditionalInfoSubmit}
+            onSkip={!bookingSettings.additionalInfoRequired ? handleAdditionalInfoSkip : undefined}
+            className="mt-4"
+          />
+        )}
       </div>
     )
   }
@@ -262,7 +271,15 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
                               if (field.fieldType === 'checkbox') {
                                 acc[field.fieldLabel] = value ? 'Да' : 'Нет'
                               } else if (field.fieldType === 'date' && value) {
-                                acc[field.fieldLabel] = new Date(value).toLocaleDateString()
+                                // Проверяем, что value - это объект Date
+                                if (value instanceof Date) {
+                                  acc[field.fieldLabel] = value.toLocaleDateString()
+                                } else {
+                                  // Если это строка или число, преобразуем в Date
+                                  acc[field.fieldLabel] = new Date(
+                                    value as string | number,
+                                  ).toLocaleDateString()
+                                }
                               } else {
                                 acc[field.fieldLabel] = String(value)
                               }

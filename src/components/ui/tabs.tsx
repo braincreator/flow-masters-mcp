@@ -14,7 +14,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'relative inline-flex h-12 items-center justify-center rounded-xl bg-muted/50 p-1 backdrop-blur-sm text-muted-foreground shadow-sm',
+      'relative inline-flex h-12 items-center justify-center rounded-xl bg-muted/80 p-1 backdrop-blur-sm text-muted-foreground shadow-md border border-border/30',
       className,
     )}
     {...props}
@@ -29,7 +29,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'relative inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 hover:text-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground',
+      'relative inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-primary',
       className,
     )}
     {...props}
@@ -37,7 +37,7 @@ const TabsTrigger = React.forwardRef<
     {props.children}
     {showIndicator && (
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-full rounded-lg bg-background shadow-md -z-10"
+        className="absolute bottom-0 left-0 right-0 h-full rounded-lg bg-background/90 shadow-md -z-10 border border-primary/20"
         layoutId="tab-indicator"
         initial={false}
         transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}

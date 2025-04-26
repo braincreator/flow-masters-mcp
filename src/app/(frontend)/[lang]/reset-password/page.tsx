@@ -43,7 +43,9 @@ export default async function ResetPasswordPage({ params, searchParams }: Props)
             <p className="mt-2 text-sm text-gray-600">{t('resetPasswordDescription')}</p>
           </div>
 
-          <ErrorBoundary fallback={<ErrorButtonWrapper label={t('errors.resetPasswordError')} />}>
+          <ErrorBoundary
+            fallback={<ErrorButtonWrapper label={t('errors.resetPasswordError')} locale={lang} />}
+          >
             <ResetPasswordForm token={token || ''} locale={lang} />
           </ErrorBoundary>
         </div>

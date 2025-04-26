@@ -20,28 +20,35 @@ export class PasswordResetEmail extends BaseEmailTemplate<PasswordResetEmailData
     this.email = data.email
     this.name = data.name
     this.resetToken = data.resetToken
-    this.resetUrl = `${this.siteUrl}/${this.locale}/reset-password/${this.resetToken}`
+    this.resetUrl = `${this.siteUrl}/${this.locale}/reset-password?token=${this.resetToken}&email=${encodeURIComponent(this.email)}`
   }
 
   protected generateContent() {
     // Localized texts
-    const texts = this.locale === 'ru' ? {
-      subject: 'Сброс пароля',
-      greeting: this.name ? `Здравствуйте, ${this.name}!` : 'Здравствуйте!',
-      message: 'Мы получили запрос на сброс пароля для вашей учетной записи. Чтобы сбросить пароль, нажмите на кнопку ниже:',
-      buttonText: 'Сбросить пароль',
-      expiration: 'Эта ссылка действительна в течение 1 часа.',
-      ignoreMessage: 'Если вы не запрашивали сброс пароля, проигнорируйте это письмо или свяжитесь с нашей службой поддержки.',
-      footer: 'С уважением, команда Flow Masters'
-    } : {
-      subject: 'Password Reset',
-      greeting: this.name ? `Hello, ${this.name}!` : 'Hello!',
-      message: 'We received a request to reset the password for your account. To reset your password, click the button below:',
-      buttonText: 'Reset Password',
-      expiration: 'This link is valid for 1 hour.',
-      ignoreMessage: 'If you did not request a password reset, please ignore this email or contact our support team.',
-      footer: 'Best regards, Flow Masters Team'
-    }
+    const texts =
+      this.locale === 'ru'
+        ? {
+            subject: 'Сброс пароля',
+            greeting: this.name ? `Здравствуйте, ${this.name}!` : 'Здравствуйте!',
+            message:
+              'Мы получили запрос на сброс пароля для вашей учетной записи. Чтобы сбросить пароль, нажмите на кнопку ниже:',
+            buttonText: 'Сбросить пароль',
+            expiration: 'Эта ссылка действительна в течение 1 часа.',
+            ignoreMessage:
+              'Если вы не запрашивали сброс пароля, проигнорируйте это письмо или свяжитесь с нашей службой поддержки.',
+            footer: 'С уважением, команда Flow Masters',
+          }
+        : {
+            subject: 'Password Reset',
+            greeting: this.name ? `Hello, ${this.name}!` : 'Hello!',
+            message:
+              'We received a request to reset the password for your account. To reset your password, click the button below:',
+            buttonText: 'Reset Password',
+            expiration: 'This link is valid for 1 hour.',
+            ignoreMessage:
+              'If you did not request a password reset, please ignore this email or contact our support team.',
+            footer: 'Best regards, Flow Masters Team',
+          }
 
     // Build the body content
     const bodyContent = `
@@ -62,7 +69,7 @@ export class PasswordResetEmail extends BaseEmailTemplate<PasswordResetEmailData
     return {
       subject: texts.subject,
       bodyContent,
-      footerContent
+      footerContent,
     }
   }
 }
