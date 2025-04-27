@@ -12,26 +12,26 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await Promise.resolve(params)
-  const t = await getTranslations({ locale: lang, namespace: 'auth.resetPassword' })
+  const t = await getTranslations({ locale: lang, namespace: 'auth' })
 
   return {
-    title: t('title'),
-    description: t('description'),
+    title: t('resetPassword.title'),
+    description: t('resetPassword.description'),
   }
 }
 
 export default async function ResetPasswordPage({ params }: Props) {
   const { lang, token } = await Promise.resolve(params)
   setRequestLocale(lang)
-  
-  const t = await getTranslations({ locale: lang, namespace: 'auth.resetPassword' })
+
+  const t = await getTranslations({ locale: lang, namespace: 'auth' })
 
   return (
     <div className="container max-w-screen-xl mx-auto py-12 flex flex-col items-center justify-center flex-grow">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="text-gray-600 mt-2">{t('description')}</p>
+          <h1 className="text-3xl font-bold">{t('resetPassword.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('resetPassword.description')}</p>
         </div>
         <ResetPasswordForm token={token} locale={lang} />
       </div>

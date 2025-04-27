@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 import crypto from 'crypto'
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    const user = users.docs[0]
+    const user = users.docs[0] as any // Type assertion to avoid TypeScript errors
 
     // Generate a reset token
     const resetToken = crypto.randomBytes(32).toString('hex')
@@ -48,10 +48,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Send the reset email
-    const emailService = ServiceRegistry.getEmailService(payload)
+    const serviceRegistry = ServiceRegistry.getInstance(payload)
+    const emailService = serviceRegistry.getEmailService()
     await emailService.sendPasswordResetEmail({
       email: user.email,
-      name: user.name,
+      name: user.name || '',
       locale: user.locale || 'ru',
       resetToken,
     })
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     console.error('Error in forgot password:', error)
     return NextResponse.json(
       { message: 'An error occurred while processing your request' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

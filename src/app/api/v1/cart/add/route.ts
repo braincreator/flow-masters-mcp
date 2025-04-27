@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Получаем cookie для поиска сессии корзины
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const sessionCookie = cookieStore.get('payload-cart-session')
     const sessionId = sessionCookie?.value
 

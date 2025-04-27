@@ -135,6 +135,99 @@
     "envSetupTitle": "Setting up Environment Variables",
     "checkWebhooksTitle": "Checking Webhooks Operation"
   },
+  "DashboardHero": {
+    "goodMorning": "Good Morning",
+    "goodAfternoon": "Good Afternoon",
+    "goodEvening": "Good Evening",
+    "welcomeBack": "Welcome back to your learning dashboard",
+    "dayStreak": "day streak",
+    "level": "Level",
+    "logout": "Logout",
+    "lastActive": "Last active"
+  },
+  "UserStats": {
+    "title": "Your Learning Stats",
+    "description": "Track your progress and achievements",
+    "level": "Level",
+    "tabs": {
+      "overview": "Overview",
+      "progress": "Progress"
+    },
+    "courses": "Courses",
+    "lessons": "Lessons",
+    "hours": "Hours",
+    "achievements": "Achievements",
+    "streak": "Day Streak",
+    "lastActive": "Last Active",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{days} days ago",
+    "days": "days",
+    "totalTime": "Total Time",
+    "learning": "Learning time",
+    "stayActive": "Keep up the good work!",
+    "keepGoing": "Keep the streak going!",
+    "courseProgress": "Course Progress",
+    "lessonProgress": "Lesson Progress",
+    "achievementProgress": "Achievement Progress",
+    "coursesCompleted": "courses completed",
+    "lessonsCompleted": "lessons completed",
+    "achievementsUnlocked": "achievements unlocked",
+    "learningTrend": "Learning Trend",
+    "lastSevenDays": "Last 7 days"
+  },
+  "ActivityFeed": {
+    "title": "Recent Activity",
+    "description": "Your latest learning activities",
+    "viewAll": "View All",
+    "viewMore": "View More",
+    "noActivity": "No recent activity",
+    "completedLesson": "Completed a lesson",
+    "earnedAchievement": "Earned an achievement",
+    "unlockedAchievement": "Unlocked an achievement",
+    "claimedReward": "Claimed a reward",
+    "completedCourse": "Completed a course",
+    "startedCourse": "Started a new course",
+    "joinedCourse": "Joined a new course",
+    "postedComment": "Posted a comment",
+    "leftComment": "Left a comment",
+    "likedPost": "Liked a post",
+    "earnedCertificate": "Earned a certificate",
+    "minutesAgo": "{minutes} minutes ago",
+    "hoursAgo": "{hours} hours ago",
+    "daysAgo": "{days} days ago",
+    "justNow": "Just now",
+    "minuteAgo": "minute ago",
+    "hourAgo": "hour ago",
+    "dayAgo": "day ago"
+  },
+  "QuickActions": {
+    "continueLearning": "Continue Learning",
+    "viewAchievements": "Achievements",
+    "claimRewards": "Rewards",
+    "schedule": "Schedule",
+    "support": "Support",
+    "certificates": "Certificates",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "RecommendedCourses": {
+    "title": "Recommended for You",
+    "description": "Courses tailored to your interests and learning path",
+    "viewAll": "View All",
+    "noRecommendations": "No recommendations available",
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "trending": "Trending",
+    "new": "New",
+    "hour": "hour",
+    "hours": "hours",
+    "students": "students",
+    "noImage": "No image"
+  },
   "AccountDashboard": {
     "notAuthenticated": "Not Authenticated",
     "loginButton": "Log In",
@@ -167,7 +260,8 @@
     "settingsCard": {
       "title": "Account Settings",
       "description": "Manage your account preferences",
-      "comingSoon": "Settings options coming soon"
+      "comingSoon": "Settings options coming soon",
+      "notifyMe": "Notify me when available"
     }
   },
   "EnrolledCourses": {
@@ -270,7 +364,7 @@
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "name": "Full Name",
-    "forgotPassword": "Forgot Password?",
+    "forgotPasswordLink": "Forgot Password?",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
     "createAccount": "Create Account",
@@ -827,5 +921,39 @@
     "SEO": {
       "defaultWebsiteTitle": "Payload Website Template"
     }
+  },
+  "ServiceBooking": {
+    "paymentTitle": "Service Payment",
+    "paymentDescription": "Complete the payment to proceed with this service.",
+    "bookingTitle": "Schedule Your Session",
+    "bookingDescription": "Choose a convenient time for your session.",
+    "successTitle": "Success!",
+    "successDescription": "Your service has been successfully booked and paid for. We'll contact you shortly with further details.",
+    "price": "Price",
+    "payNow": "Pay Now",
+    "processing": "Processing...",
+    "paymentComplete": "Payment complete! You can now schedule your session.",
+    "completeBooking": "Complete Booking",
+    "viewOrders": "View My Orders",
+    "orderNumber": "Order Number",
+    "additionalInfoTitle": "Additional Information",
+    "additionalInfoDescription": "Please provide some additional information to help us prepare for your session.",
+    "additionalInfoRequired": "This information is required to complete your booking.",
+    "additionalInfoOptional": "This information is optional but helps us provide a better service.",
+    "skipAdditionalInfo": "Skip this step",
+    "submitAdditionalInfo": "Submit Information",
+    "submittingInfo": "Submitting...",
+    "bookingConfirmed": "Booking Confirmed",
+    "bookingConfirmedDescription": "Your booking has been confirmed. We look forward to meeting you!",
+    "bookingDetails": "Booking Details",
+    "date": "Date",
+    "time": "Time",
+    "resumeBookingTitle": "Complete Your Booking",
+    "resumeBookingDescription": "You've already paid for this service. Please complete your booking by scheduling a time.",
+    "pendingBookingsTitle": "Pending Bookings",
+    "pendingBookingsDescription": "You have services that require scheduling",
+    "noPendingBookings": "You have no pending bookings",
+    "completeYourBooking": "Complete your booking",
+    "paidOn": "Paid on"
   }
 }

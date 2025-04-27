@@ -14,13 +14,17 @@ import { useTranslations } from 'next-intl'
 
 // Form validation schema
 const createResetPasswordSchema = (t: any) =>
-  z.object({
-    password: z.string().min(6, { message: t('validation.passwordTooShort') }),
-    confirmPassword: z.string(),
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: t('validation.passwordMismatch'),
-    path: ['confirmPassword'],
-  })
+  z
+    .object({
+      password: z.string().min(6, {
+        message: t('validation.passwordTooShort'),
+      }),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('validation.passwordMismatch'),
+      path: ['confirmPassword'],
+    })
 
 type ResetPasswordSchema = z.ZodEffects<
   z.ZodObject<{
@@ -43,7 +47,7 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
   const [success, setSuccess] = useState(false)
 
   // Get translations
-  const t = useTranslations('auth.resetPassword')
+  const t = useTranslations('auth')
   const commonT = useTranslations('common')
 
   // Create schema with translations
@@ -79,13 +83,13 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || t('errors.resetFailed'))
+        throw new Error(errorData.message || t('resetPassword.errors.resetFailed'))
       }
 
       // Show success message
       setSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.resetError'))
+      setError(err instanceof Error ? err.message : t('resetPassword.errors.resetError'))
     } finally {
       setIsLoading(false)
     }
@@ -96,14 +100,14 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
       <div className="space-y-6">
         <Alert className="bg-green-50 border-green-200">
           <AlertDescription className="text-green-800">
-            {t('successMessage')}
+            {t('resetPassword.successMessage')}
           </AlertDescription>
         </Alert>
         <div className="text-center">
           <Button asChild variant="default">
             <Link href={`/${locale}/login`} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
-              {t('loginButton')}
+              {t('resetPassword.loginButton')}
             </Link>
           </Button>
         </div>
@@ -126,7 +130,7 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
           </label>
           <PasswordInput
             id="password"
-            placeholder={t('passwordPlaceholder')}
+            placeholder={t('resetPassword.passwordPlaceholder')}
             {...register('password')}
             className={errors.password ? 'border-red-500' : ''}
           />
@@ -139,7 +143,7 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
           </label>
           <PasswordInput
             id="confirmPassword"
-            placeholder={t('confirmPasswordPlaceholder')}
+            placeholder={t('resetPassword.confirmPasswordPlaceholder')}
             {...register('confirmPassword')}
             className={errors.confirmPassword ? 'border-red-500' : ''}
           />
@@ -150,7 +154,7 @@ export function ResetPasswordForm({ token, locale }: ResetPasswordFormProps) {
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isLoading ? t('resetting') : t('resetButton')}
+          {isLoading ? t('resetPassword.resetting') : t('resetPassword.resetButton')}
         </Button>
       </form>
     </div>

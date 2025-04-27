@@ -135,6 +135,99 @@
     "envSetupTitle": "Настройка переменных окружения",
     "checkWebhooksTitle": "Проверка работы вебхуков"
   },
+  "DashboardHero": {
+    "goodMorning": "Доброе утро",
+    "goodAfternoon": "Добрый день",
+    "goodEvening": "Добрый вечер",
+    "welcomeBack": "Добро пожаловать в вашу учебную панель",
+    "dayStreak": "дней подряд",
+    "level": "Уровень",
+    "logout": "Выйти",
+    "lastActive": "Последняя активность"
+  },
+  "UserStats": {
+    "title": "Ваша статистика обучения",
+    "description": "Отслеживайте свой прогресс и достижения",
+    "level": "Уровень",
+    "tabs": {
+      "overview": "Обзор",
+      "progress": "Прогресс"
+    },
+    "courses": "Курсы",
+    "lessons": "Уроки",
+    "hours": "Часы",
+    "achievements": "Достижения",
+    "streak": "Дней подряд",
+    "lastActive": "Последняя активность",
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "daysAgo": "{days} дней назад",
+    "days": "дней",
+    "totalTime": "Общее время",
+    "learning": "Время обучения",
+    "stayActive": "Продолжайте в том же духе!",
+    "keepGoing": "Поддерживайте серию!",
+    "courseProgress": "Прогресс по курсам",
+    "lessonProgress": "Прогресс по урокам",
+    "achievementProgress": "Прогресс достижений",
+    "coursesCompleted": "курсов завершено",
+    "lessonsCompleted": "уроков завершено",
+    "achievementsUnlocked": "достижений разблокировано",
+    "learningTrend": "Тенденция обучения",
+    "lastSevenDays": "Последние 7 дней"
+  },
+  "ActivityFeed": {
+    "title": "Недавняя активность",
+    "description": "Ваши последние учебные действия",
+    "viewAll": "Смотреть все",
+    "viewMore": "Показать больше",
+    "noActivity": "Нет недавней активности",
+    "completedLesson": "Завершен урок",
+    "earnedAchievement": "Получено достижение",
+    "unlockedAchievement": "Разблокировано достижение",
+    "claimedReward": "Получена награда",
+    "completedCourse": "Завершен курс",
+    "startedCourse": "Начат новый курс",
+    "joinedCourse": "Присоединился к новому курсу",
+    "postedComment": "Оставлен комментарий",
+    "leftComment": "Оставлен комментарий",
+    "likedPost": "Понравилась публикация",
+    "earnedCertificate": "Получен сертификат",
+    "minutesAgo": "{minutes} минут назад",
+    "hoursAgo": "{hours} часов назад",
+    "daysAgo": "{days} дней назад",
+    "justNow": "Только что",
+    "minuteAgo": "минуту назад",
+    "hourAgo": "час назад",
+    "dayAgo": "день назад"
+  },
+  "QuickActions": {
+    "continueLearning": "Продолжить обучение",
+    "viewAchievements": "Достижения",
+    "claimRewards": "Награды",
+    "schedule": "Расписание",
+    "support": "Поддержка",
+    "certificates": "Сертификаты",
+    "settings": "Настройки",
+    "help": "Помощь"
+  },
+  "RecommendedCourses": {
+    "title": "Рекомендовано для вас",
+    "description": "Курсы, подобранные под ваши интересы и учебный путь",
+    "viewAll": "Смотреть все",
+    "noRecommendations": "Нет доступных рекомендаций",
+    "level": {
+      "beginner": "Начинающий",
+      "intermediate": "Средний",
+      "advanced": "Продвинутый"
+    },
+    "trending": "Популярное",
+    "new": "Новое",
+    "hour": "час",
+    "hours": "часов",
+    "students": "студентов",
+    "noImage": "Нет изображения"
+  },
   "AccountDashboard": {
     "notAuthenticated": "Не авторизован",
     "loginButton": "Войти",
@@ -167,7 +260,8 @@
     "settingsCard": {
       "title": "Настройки аккаунта",
       "description": "Управление настройками вашего аккаунта",
-      "comingSoon": "Настройки скоро будут доступны"
+      "comingSoon": "Настройки скоро будут доступны",
+      "notifyMe": "Уведомить когда будет доступно"
     }
   },
   "EnrolledCourses": {
@@ -215,7 +309,10 @@
     "leaderboard": "Таблица лидеров",
     "userMenuLabel": "Меню пользователя",
     "showPassword": "Показать пароль",
-    "hidePassword": "Скрыть пароль"
+    "hidePassword": "Скрыть пароль",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль"
   },
   "home": {
     "title": "Flow Masters",
@@ -270,7 +367,7 @@
     "password": "Пароль",
     "confirmPassword": "Подтвердите пароль",
     "name": "Полное имя",
-    "forgotPassword": "Забыли пароль?",
+    "forgotPasswordLink": "Забыли пароль?",
     "noAccount": "Нет аккаунта?",
     "haveAccount": "Уже есть аккаунт?",
     "createAccount": "Создать аккаунт",
@@ -640,5 +737,39 @@
     "SEO": {
       "defaultWebsiteTitle": "Шаблон сайта Payload"
     }
+  },
+  "ServiceBooking": {
+    "paymentTitle": "Оплата услуги",
+    "paymentDescription": "Завершите оплату, чтобы продолжить с этой услугой.",
+    "bookingTitle": "Запланируйте вашу сессию",
+    "bookingDescription": "Выберите удобное время для вашей сессии.",
+    "successTitle": "Успех!",
+    "successDescription": "Ваша услуга была успешно забронирована и оплачена. Мы свяжемся с вами в ближайшее время с дополнительной информацией.",
+    "price": "Цена",
+    "payNow": "Оплатить сейчас",
+    "processing": "Обработка...",
+    "paymentComplete": "Оплата завершена! Теперь вы можете запланировать вашу сессию.",
+    "completeBooking": "Завершить бронирование",
+    "viewOrders": "Посмотреть мои заказы",
+    "orderNumber": "Номер заказа",
+    "additionalInfoTitle": "Дополнительная информация",
+    "additionalInfoDescription": "Пожалуйста, предоставьте дополнительную информацию, чтобы помочь нам подготовиться к вашей сессии.",
+    "additionalInfoRequired": "Эта информация необходима для завершения бронирования.",
+    "additionalInfoOptional": "Эта информация не обязательна, но помогает нам предоставить лучший сервис.",
+    "skipAdditionalInfo": "Пропустить этот шаг",
+    "submitAdditionalInfo": "Отправить информацию",
+    "submittingInfo": "Отправка...",
+    "bookingConfirmed": "Бронирование подтверждено",
+    "bookingConfirmedDescription": "Ваше бронирование подтверждено. Мы с нетерпением ждем встречи с вами!",
+    "bookingDetails": "Детали бронирования",
+    "date": "Дата",
+    "time": "Время",
+    "resumeBookingTitle": "Завершите ваше бронирование",
+    "resumeBookingDescription": "Вы уже оплатили эту услугу. Пожалуйста, завершите бронирование, выбрав время.",
+    "pendingBookingsTitle": "Ожидающие бронирования",
+    "pendingBookingsDescription": "У вас есть услуги, требующие планирования",
+    "noPendingBookings": "У вас нет ожидающих бронирований",
+    "completeYourBooking": "Завершите ваше бронирование",
+    "paidOn": "Оплачено"
   }
 }

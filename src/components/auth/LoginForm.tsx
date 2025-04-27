@@ -109,7 +109,7 @@ export function LoginForm({ locale = 'ru' }: LoginFormProps) {
               href={`/${locale}/forgot-password`}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              {t('forgotPassword')}
+              {t('forgotPasswordLink')}
             </Link>
           </div>
           <PasswordInput

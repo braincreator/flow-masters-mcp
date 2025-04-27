@@ -15,7 +15,9 @@ import { useTranslations } from 'next-intl'
 // Form validation schema
 const createForgotPasswordSchema = (t: any) =>
   z.object({
-    email: z.string().email({ message: t('validation.invalidEmail') }),
+    email: z.string().email({
+      message: t('validation.invalidEmail'),
+    }),
   })
 
 type ForgotPasswordSchema = z.ZodObject<{
@@ -35,7 +37,7 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
   const [success, setSuccess] = useState(false)
 
   // Get translations
-  const t = useTranslations('auth.forgotPassword')
+  const t = useTranslations('auth')
   const commonT = useTranslations('common')
 
   // Create schema with translations
@@ -69,13 +71,13 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || t('errors.requestFailed'))
+        throw new Error(errorData.message || t('forgotPassword.errors.requestFailed'))
       }
 
       // Show success message
       setSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.requestError'))
+      setError(err instanceof Error ? err.message : t('forgotPassword.errors.requestError'))
     } finally {
       setIsLoading(false)
     }
@@ -86,14 +88,14 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
       <div className="space-y-6">
         <Alert className="bg-green-50 border-green-200">
           <AlertDescription className="text-green-800">
-            {t('successMessage')}
+            {t('forgotPassword.successMessage')}
           </AlertDescription>
         </Alert>
         <div className="text-center">
           <Button asChild variant="outline">
             <Link href={`/${locale}/login`} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
-              {t('backToLogin')}
+              {t('forgotPassword.backToLogin')}
             </Link>
           </Button>
         </div>
@@ -117,7 +119,7 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
           <Input
             id="email"
             type="email"
-            placeholder={t('emailPlaceholder')}
+            placeholder={t('forgotPassword.emailPlaceholder')}
             {...register('email')}
             className={errors.email ? 'border-red-500' : ''}
           />
@@ -126,14 +128,14 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isLoading ? t('requestingReset') : t('resetButton')}
+          {isLoading ? t('forgotPassword.requestingReset') : t('forgotPassword.resetButton')}
         </Button>
 
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            {t('rememberPassword')}{' '}
+            {t('forgotPassword.rememberPassword')}{' '}
             <Link href={`/${locale}/login`} className="text-blue-600 hover:text-blue-800">
-              {t('loginLink')}
+              {t('forgotPassword.loginLink')}
             </Link>
           </p>
         </div>

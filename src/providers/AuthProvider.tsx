@@ -9,6 +9,11 @@ interface User {
   email: string
   role?: string
   avatar?: string
+  level?: number
+  xp?: number
+  xpToNextLevel?: number
+  streak?: number
+  lastActive?: string
 }
 
 interface AuthContextType {
@@ -64,6 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: data.user.email,
             role: data.user.role,
             avatar: data.user.avatar?.url,
+            level: data.user.level,
+            xp: data.user.xp,
+            xpToNextLevel: data.user.xpToNextLevel,
+            streak: data.user.streak,
+            lastActive: data.user.lastActive,
           },
           isAuthenticated: true,
           isLoading: false,
@@ -134,7 +144,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       })
 
-      router.push('/')
+      // Получаем текущую локаль из URL
+      const pathname = window.location.pathname
+      const locale = pathname.split('/')[1] || 'ru' // Используем 'ru' как дефолтную локаль, если не найдена
+
+      router.push(`/${locale}`)
       router.refresh()
     } catch (error) {
       console.error('Logout failed:', error)

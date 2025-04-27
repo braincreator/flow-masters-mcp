@@ -220,9 +220,11 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
 
     try {
       // Try to get existing user session
+      // Await cookies() before using getAll()
+      const cookieStore = await cookies()
       user = await payload.findGlobalByID({
         id: 'current-user',
-        req: { cookies: cookies().getAll() },
+        req: { cookies: cookieStore.getAll() },
       })
     } catch (error) {
       console.error('Error fetching user:', error)

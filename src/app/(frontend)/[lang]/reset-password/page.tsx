@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale: lang, namespace: 'auth' })
 
   return {
-    title: t('resetPassword'),
-    description: t('resetPasswordDescription'),
+    title: t('resetPassword.title'),
+    description: t('resetPassword.description'),
   }
 }
 
@@ -39,12 +39,14 @@ export default async function ResetPasswordPage({ params, searchParams }: Props)
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center py-12">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">{t('resetPassword')}</h1>
-            <p className="mt-2 text-sm text-gray-600">{t('resetPasswordDescription')}</p>
+            <h1 className="text-2xl font-bold">{t('resetPassword.title')}</h1>
+            <p className="mt-2 text-sm text-gray-600">{t('resetPassword.description')}</p>
           </div>
 
           <ErrorBoundary
-            fallback={<ErrorButtonWrapper label={t('errors.resetPasswordError')} locale={lang} />}
+            fallback={
+              <ErrorButtonWrapper label={t('resetPassword.errors.resetError')} locale={lang} />
+            }
           >
             <ResetPasswordForm token={token || ''} locale={lang} />
           </ErrorBoundary>
