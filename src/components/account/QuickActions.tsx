@@ -6,16 +6,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
-import { 
-  BookOpen, 
-  Award, 
-  Gift, 
-  Settings, 
+import {
+  BookOpen,
+  Award,
+  Gift,
+  Settings,
   HelpCircle,
   Calendar,
   MessageSquare,
   FileText,
-  LogOut
+  LogOut,
 } from 'lucide-react'
 
 interface QuickActionsProps {
@@ -25,64 +25,64 @@ interface QuickActionsProps {
 
 export function QuickActions({ locale, onLogout }: QuickActionsProps) {
   const t = useTranslations('QuickActions')
-  
+
   const actions = [
     {
       id: 'continue-learning',
       icon: <BookOpen className="w-5 h-5" />,
       label: t('continueLearning'),
-      href: '/courses/continue',
-      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+      href: `/${locale}/courses/continue`,
+      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
     },
     {
       id: 'achievements',
       icon: <Award className="w-5 h-5" />,
       label: t('viewAchievements'),
-      href: `/${locale}/account?tab=achievements`,
-      color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'
+      href: `/${locale}/achievements`,
+      color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300',
     },
     {
       id: 'rewards',
       icon: <Gift className="w-5 h-5" />,
       label: t('claimRewards'),
-      href: `/${locale}/account?tab=rewards`,
-      color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300'
+      href: `/${locale}/rewards`,
+      color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
     },
     {
       id: 'schedule',
       icon: <Calendar className="w-5 h-5" />,
       label: t('schedule'),
-      href: '/calendar',
-      color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
+      href: `/${locale}/calendar`,
+      color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
     },
     {
       id: 'support',
       icon: <MessageSquare className="w-5 h-5" />,
       label: t('support'),
-      href: '/support',
-      color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'
+      href: `/${locale}/support`,
+      color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
     },
     {
       id: 'certificates',
       icon: <FileText className="w-5 h-5" />,
       label: t('certificates'),
-      href: '/certificates',
-      color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'
+      href: `/${locale}/certificates`,
+      color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
     },
     {
       id: 'settings',
       icon: <Settings className="w-5 h-5" />,
       label: t('settings'),
-      href: `/${locale}/account?tab=settings`,
-      color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+      href: `/${locale}/settings`,
+      color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     },
     {
       id: 'help',
       icon: <HelpCircle className="w-5 h-5" />,
       label: t('help'),
-      href: '/help',
-      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'
-    }
+      href: `/${locale}/help`,
+      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+    },
   ]
 
   return (

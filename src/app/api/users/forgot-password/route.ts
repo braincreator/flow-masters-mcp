@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       id: user.id,
       data: {
         resetPasswordToken: resetToken,
-        resetPasswordExpiration: resetTokenExpiration,
+        resetPasswordExpiration: resetTokenExpiration.toISOString(), // Convert to ISO string for Payload date field
       },
     })
 

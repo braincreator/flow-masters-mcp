@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     // Verify auth
     const auth = await verifyAuth(req)
     if (!auth.success) {
-      return auth.response
+      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const subscriptionId = params.id
@@ -125,7 +125,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     // Verify auth
     const auth = await verifyAuth(req)
     if (!auth.success) {
-      return auth.response
+      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const subscriptionId = params.id

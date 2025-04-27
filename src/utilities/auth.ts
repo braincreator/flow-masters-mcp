@@ -211,7 +211,13 @@ export async function verifyWebhookSignature(request: Request): Promise<NextResp
   }
 }
 
-export async function verifyAuth(request: Request): Promise<AuthResult> {
+export async function verifyAuth(request: Request): Promise<{
+  isAuthenticated: boolean
+  user?: any
+  error?: string
+  success?: boolean
+  response?: NextResponse
+}> {
   try {
     const payload = await getPayloadClient()
 
@@ -222,22 +228,37 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
       // Try to get existing user session
       // Await cookies() before using getAll()
       const cookieStore = await cookies()
-      user = await payload.findGlobalByID({
-        id: 'current-user',
-        req: { cookies: cookieStore.getAll() },
+
+      // Create a request object with cookies
+      const req = {
+        cookies: cookieStore.getAll(),
+      }
+
+      // Use the correct method to get the current user in Payload v3.33.0
+      // The /me endpoint is used to get the current user
+      const response = await payload.request({
+        path: '/api/users/me',
+        method: 'get',
+        req,
       })
+
+      user = response.user
     } catch (error) {
       console.error('Error fetching user:', error)
       return {
         isAuthenticated: false,
+        success: false,
         error: 'Not authenticated',
+        response: NextResponse.json({ error: 'Not authenticated' }, { status: 401 }),
       }
     }
 
     if (!user) {
       return {
         isAuthenticated: false,
+        success: false,
         error: 'Not authenticated',
+        response: NextResponse.json({ error: 'Not authenticated' }, { status: 401 }),
       }
     }
 
@@ -245,7 +266,12 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
     if (!user.id || user.banned) {
       return {
         isAuthenticated: false,
+        success: false,
         error: 'Forbidden: User is banned or invalid',
+        response: NextResponse.json(
+          { error: 'Forbidden: User is banned or invalid' },
+          { status: 403 },
+        ),
       }
     }
 
@@ -269,13 +295,16 @@ export async function verifyAuth(request: Request): Promise<AuthResult> {
 
     return {
       isAuthenticated: true,
+      success: true,
       user,
     }
   } catch (error) {
     console.error('Auth verification error:', error)
     return {
       isAuthenticated: false,
+      success: false,
       error: 'Authorization error',
+      response: NextResponse.json({ error: 'Authorization error' }, { status: 500 }),
     }
   }
 }

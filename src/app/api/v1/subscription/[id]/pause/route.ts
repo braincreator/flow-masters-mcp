@@ -8,7 +8,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // Verify auth
     const auth = await verifyAuth(request)
     if (!auth.success) {
-      return auth.response
+      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const subscriptionId = params.id

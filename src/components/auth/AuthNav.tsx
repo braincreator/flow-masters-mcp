@@ -93,29 +93,11 @@ export function AuthNav() {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
-            href={`/${currentLocale}/account?tab=courses`}
+            href={`/${currentLocale}/courses`}
             className="flex items-center gap-2 cursor-pointer"
           >
             <BookOpen className="h-4 w-4" />
-            <span>{tDashboard('tabs.courses')}</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/${currentLocale}/account?tab=achievements`}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <Award className="h-4 w-4" />
-            <span>{tDashboard('tabs.achievements')}</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/${currentLocale}/account?tab=rewards`}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <Gift className="h-4 w-4" />
-            <span>{tDashboard('tabs.rewards')}</span>
+            <span>{t('courses')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
@@ -129,7 +111,7 @@ export function AuthNav() {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
-            href={`/${currentLocale}/account?tab=settings`}
+            href={`/${currentLocale}/settings`}
             className="flex items-center gap-2 cursor-pointer"
           >
             <Settings className="h-4 w-4" />

@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: { userId: stri
     // Verify auth and permissions
     const auth = await verifyAuth(request)
     if (!auth.success) {
-      return auth.response
+      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Only allow users to access their own subscriptions or admins to access any

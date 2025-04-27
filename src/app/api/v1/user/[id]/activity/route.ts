@@ -2,6 +2,83 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyAuth } from '@/utilities/auth'
 
+// Define interfaces for activity data
+interface UserAchievement {
+  id: string
+  user: string
+  achievement?: {
+    id: string
+    name: string
+    courseId?: string
+    [key: string]: unknown
+  }
+  createdAt: string
+  [key: string]: unknown
+}
+
+interface CourseEnrollment {
+  id: string
+  user: string
+  course?: {
+    id: string
+    title: string
+    [key: string]: unknown
+  }
+  status: string
+  enrolledAt?: string
+  completedAt?: string
+  createdAt: string
+  updatedAt: string
+  [key: string]: unknown
+}
+
+interface LessonProgress {
+  id: string
+  user: string
+  lesson?: {
+    id: string
+    title: string
+    module?: {
+      course?: {
+        id: string
+        title: string
+        [key: string]: unknown
+      }
+      [key: string]: unknown
+    }
+    [key: string]: unknown
+  }
+  completed: boolean
+  updatedAt: string
+  [key: string]: unknown
+}
+
+interface UserReward {
+  id: string
+  user: string
+  reward?: {
+    id: string
+    name: string
+    [key: string]: unknown
+  }
+  createdAt: string
+  [key: string]: unknown
+}
+
+// Define PayloadResponse interface for consistent typing
+interface PayloadResponse<T> {
+  docs: T[]
+  totalDocs: number
+  limit: number
+  totalPages: number
+  page: number
+  pagingCounter: number
+  hasPrevPage: boolean
+  hasNextPage: boolean
+  prevPage: number | null
+  nextPage: number | null
+}
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify authentication using Payload CMS
@@ -9,7 +86,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // Check if user is authenticated
     if (!auth.isAuthenticated || !auth.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user has access to this data
@@ -38,7 +115,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         sort: '-createdAt',
         limit: 20,
         depth: 1, // Include achievement details
-      }),
+      }) as unknown as PayloadResponse<UserAchievement>,
 
       // Get course enrollments
       payload.find({
@@ -51,7 +128,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         sort: '-createdAt',
         limit: 20,
         depth: 1, // Include course details
-      }),
+      }) as unknown as PayloadResponse<CourseEnrollment>,
 
       // Get lesson progress
       payload.find({
@@ -67,7 +144,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         sort: '-updatedAt',
         limit: 20,
         depth: 1, // Include lesson details
-      }),
+      }) as unknown as PayloadResponse<LessonProgress>,
 
       // Get user rewards
       payload.find({
@@ -80,7 +157,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         sort: '-createdAt',
         limit: 20,
         depth: 1, // Include reward details
-      }),
+      }) as unknown as PayloadResponse<UserReward>,
     ])
 
     // Transform the data into a unified activity feed format
