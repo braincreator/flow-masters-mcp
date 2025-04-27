@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Award, Flame, Calendar, Bell, Settings } from 'lucide-react'
+import { useNotifications } from '@/providers/NotificationsProvider'
 
 interface User {
   id: string
@@ -31,7 +32,7 @@ interface DashboardHeroProps {
 export function DashboardHero({ user, locale, onLogout }: DashboardHeroProps) {
   const t = useTranslations('DashboardHero')
   const [greeting, setGreeting] = useState('')
-  const [notifications, setNotifications] = useState(3)
+  const { unreadCount: notifications } = useNotifications()
 
   useEffect(() => {
     // Set greeting based on time of day
@@ -114,7 +115,12 @@ export function DashboardHero({ user, locale, onLogout }: DashboardHeroProps) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Button variant="outline" size="sm" className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="relative"
+              onClick={() => (window.location.href = `/${locale}/notifications`)}
+            >
               <Bell className="w-4 h-4" />
               {notifications > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -122,7 +128,11 @@ export function DashboardHero({ user, locale, onLogout }: DashboardHeroProps) {
                 </span>
               )}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => (window.location.href = `/${locale}/settings`)}
+            >
               <Settings className="w-4 h-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={onLogout}>

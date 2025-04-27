@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { CommentForm } from './CommentForm'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/useAuth'
+import { useBlog } from '@/providers/BlogProvider'
 
 // Переводы для компонента комментариев
 const translations = {
@@ -268,92 +269,31 @@ export function Comments({
   allowReporting = false,
   locale = 'en',
 }: CommentsProps) {
-  const [comments, setComments] = useState<CommentType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [replyToId, setReplyToId] = useState<string | null>(null)
 
-  // Получаем пользователя из контекста аутентификации
-  const { user } = useAuth?.() || { user: null }
+  // Get user from auth context
+  const { user } = useAuth()
 
-  // Получаем переводы
+  // Get blog context for comments functionality
+  const {
+    comments,
+    isLoadingComments: loading,
+    commentError: error,
+    fetchComments,
+    addComment,
+  } = useBlog()
+
+  // Get translations
   const t = locale === 'ru' ? translations.ru : translations.en
 
-  // Функция для адаптации формата данных Payload к формату компонента CommentType
-  const adaptCommentData = (comment: any): CommentType => {
-    // Проверяем структуру данных и применяем соответствующее преобразование
-    return {
-      id: comment.id || '',
-      author: {
-        name: comment.author?.name || 'Anonymous',
-        email: comment.author?.email,
-        website: comment.author?.website,
-        avatar: comment.author?.avatar,
-      },
-      content: comment.content || '',
-      createdAt: comment.createdAt || new Date().toISOString(),
-      parentId: comment.parentComment || undefined,
-      replies: Array.isArray(comment.replies) ? comment.replies.map(adaptCommentData) : [],
-    }
-  }
+  // Fetch comments when component mounts
+  React.useEffect(() => {
+    fetchComments(postId)
+  }, [fetchComments, postId])
 
-  // Адаптируем структуру данных API к формату компонента
-  const adaptApiResponse = (data: any): CommentType[] => {
-    if (Array.isArray(data)) {
-      return data.map(adaptCommentData)
-    } else if (data.comments && Array.isArray(data.comments)) {
-      return data.comments.map(adaptCommentData)
-    } else if (data.docs && Array.isArray(data.docs)) {
-      return data.docs.map(adaptCommentData)
-    }
-    return []
-  }
-
-  // Загрузка комментариев
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/v1/blog/comment?postId=${postId}`)
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch comments')
-        }
-
-        const data = await response.json()
-        console.log('Received comments data:', data)
-
-        // Адаптируем данные к требуемому формату
-        const adaptedComments = adaptApiResponse(data)
-        console.log('Adapted comments:', adaptedComments)
-        setComments(adaptedComments)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error loading comments')
-        console.error('Error fetching comments:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchComments()
-  }, [postId])
-
-  // Обработчик успешного добавления комментария
+  // Handle successful comment submission
   const handleCommentSuccess = () => {
-    // Перезагружаем комментарии после успешного добавления
-    fetch(`/api/v1/blog/comment?postId=${postId}`)
-      .then((response) => {
-        if (!response.ok) throw new Error('Failed to refresh comments')
-        return response.json()
-      })
-      .then((data) => {
-        console.log('Refreshed comments data:', data)
-        const adaptedComments = adaptApiResponse(data)
-        setComments(adaptedComments)
-      })
-      .catch((err) => {
-        console.error('Error refreshing comments:', err)
-      })
+    fetchComments(postId)
   }
 
   return (
@@ -366,7 +306,13 @@ export function Comments({
 
       {/* Comment form */}
       {user ? (
-        <CommentForm postId={postId} onSuccess={handleCommentSuccess} user={user} locale={locale} />
+        <CommentForm
+          postId={postId}
+          onSuccess={handleCommentSuccess}
+          user={user}
+          locale={locale}
+          addComment={addComment}
+        />
       ) : (
         <Tabs defaultValue="guest" className="w-full">
           <TabsList className="mb-3">
@@ -375,7 +321,12 @@ export function Comments({
             {/*<TabsTrigger value="user">{t.asUser}</TabsTrigger>*/}
           </TabsList>
           <TabsContent value="guest" className="mt-0">
-            <CommentForm postId={postId} onSuccess={handleCommentSuccess} locale={locale} />
+            <CommentForm
+              postId={postId}
+              onSuccess={handleCommentSuccess}
+              locale={locale}
+              addComment={addComment}
+            />
           </TabsContent>
         </Tabs>
       )}

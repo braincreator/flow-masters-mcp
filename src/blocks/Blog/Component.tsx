@@ -1,5 +1,4 @@
 'use client'
-'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -17,6 +16,7 @@ import { Media } from '@/components/Media'
 import { cn } from '@/utilities/ui'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Grid2X2, List, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useBlog } from '@/providers/BlogProvider'
 
 interface Post {
   id: string
@@ -161,7 +161,16 @@ export function Blog({
   const tagSlug = searchParams.get('tag') || ''
 
   // Use Payload API to fetch data
-  const { fetchPosts, fetchCategories, fetchTags } = usePayloadAPI()
+  const { fetchPosts: fetchPayloadPosts, fetchCategories, fetchTags } = usePayloadAPI()
+
+  // Use BlogProvider for blog-related functionality
+  const {
+    posts: blogPosts,
+    isLoading: blogLoading,
+    error: blogError,
+    fetchPosts: fetchBlogPosts,
+    setSearchQuery: setBlogSearchQuery,
+  } = useBlog()
 
   // Memoize fetch functions to avoid recreating them on each render
   const fetchPostsData = useCallback(async () => {
@@ -171,18 +180,38 @@ export function Blog({
 
     try {
       console.log('BlogBlock: Fetching posts')
-      const response = await fetchPosts({
-        locale: currentLocale || DEFAULT_LOCALE,
-        page: currentPage,
-        limit: postsPerPage,
-        searchQuery,
-        categorySlug: categorySlug || (categoryID ? categoryID : ''),
-        tagSlug: tagSlug || (tagID ? tagID : ''),
-        authorId: authorID || '',
-      })
 
-      setPosts(response.docs)
-      setTotalPages(Math.ceil(response.totalDocs / postsPerPage))
+      // Use BlogProvider if available, otherwise fallback to direct API call
+      if (fetchBlogPosts) {
+        await fetchBlogPosts({
+          page: currentPage,
+          limit: postsPerPage,
+          categorySlug: categorySlug || (categoryID ? categoryID : ''),
+          tagSlug: tagSlug || (tagID ? tagID : ''),
+          authorId: authorID || '',
+          locale: currentLocale || DEFAULT_LOCALE,
+        })
+
+        // Update local state from BlogProvider
+        if (blogPosts) {
+          setPosts(blogPosts)
+          setTotalPages(Math.ceil(blogPosts.length / postsPerPage))
+        }
+      } else {
+        // Fallback to direct API call
+        const response = await fetchPayloadPosts({
+          locale: currentLocale || DEFAULT_LOCALE,
+          page: currentPage,
+          limit: postsPerPage,
+          searchQuery,
+          categorySlug: categorySlug || (categoryID ? categoryID : ''),
+          tagSlug: tagSlug || (tagID ? tagID : ''),
+          authorId: authorID || '',
+        })
+
+        setPosts(response.docs)
+        setTotalPages(Math.ceil(response.totalDocs / postsPerPage))
+      }
     } catch (err) {
       console.error('BlogBlock: Error fetching posts:', err)
       setError('An error occurred while fetching posts. Showing sample content instead.')
@@ -202,7 +231,9 @@ export function Blog({
     categoryID,
     tagID,
     authorID,
-    fetchPosts,
+    fetchPayloadPosts,
+    fetchBlogPosts,
+    blogPosts,
   ])
 
   const fetchCategoriesData = useCallback(async () => {
@@ -412,7 +443,12 @@ export function Blog({
                   placeholder="Search posts..."
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value)
+                    const value = e.target.value
+                    setSearchQuery(value)
+                    // Also update search query in BlogProvider
+                    if (setBlogSearchQuery) {
+                      setBlogSearchQuery(value)
+                    }
                     setCurrentPage(1)
                   }}
                   className="pl-9"

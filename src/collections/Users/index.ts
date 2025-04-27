@@ -102,6 +102,34 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'emailNotifications',
+      type: 'json',
+      admin: {
+        description: 'Email notification preferences',
+      },
+    },
+    {
+      name: 'pushNotifications',
+      type: 'json',
+      admin: {
+        description: 'Push notification preferences',
+      },
+    },
+    {
+      name: 'notificationFrequency',
+      type: 'select',
+      defaultValue: 'immediately',
+      options: [
+        { label: 'Immediately', value: 'immediately' },
+        { label: 'Daily', value: 'daily' },
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Never', value: 'never' },
+      ],
+      admin: {
+        description: 'How often to receive notifications',
+      },
+    },
+    {
       name: 'segments',
       label: 'Сегменты пользователя (автоматически)',
       type: 'relationship',

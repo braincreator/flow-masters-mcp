@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Heart } from 'lucide-react'
-import { useFavorites } from '@/hooks/useFavorites'
+import { useFavorites } from '@/providers/FavoritesProvider'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/utilities/ui'
@@ -100,10 +100,7 @@ export function FavoriteButton({
     <Button
       variant="outline"
       size={size}
-      className={cn(
-        'p-0 h-[40px] w-[40px]',
-        className,
-      )}
+      className={cn('p-0 h-[40px] w-[40px]', className)}
       onClick={handleFavoriteToggle}
       disabled={disabled || isLoadingFavorites || favoriteProductIds === undefined}
       aria-label={isCurrentlyFavorite ? texts.ariaLabelRemove : texts.ariaLabelAdd}

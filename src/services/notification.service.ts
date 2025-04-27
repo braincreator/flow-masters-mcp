@@ -44,6 +44,7 @@ export class NotificationService extends BaseService {
       let userName = ''
       let userEmail = orderData.customerEmail
       let userLocale = orderData.locale || 'ru'
+      let userId = null
 
       try {
         // Try to get user details if we have a user reference
@@ -59,6 +60,10 @@ export class NotificationService extends BaseService {
             userName = order.user.name || ''
             userEmail = order.user.email || orderData.customerEmail
             userLocale = order.user.locale || orderData.locale || 'ru'
+            userId = order.user.id
+          } else {
+            // If user is just an ID
+            userId = order.user
           }
         }
       } catch (userError) {
@@ -77,8 +82,37 @@ export class NotificationService extends BaseService {
         id: item.product,
       }))
 
-      // 3. Send email using our new template
-      if (this.emailService) {
+      // Check user notification preferences if we have a user ID
+      let preferences = {
+        allowInApp: true,
+        allowEmail: true,
+        allowPush: false,
+      }
+
+      if (userId) {
+        preferences = await this.checkUserNotificationPreferences(userId, 'account')
+
+        // Create in-app notification for the user
+        await this.payload.create({
+          collection: 'notifications',
+          data: {
+            user: userId,
+            title: 'Payment Confirmed',
+            message: `Your payment for order #${orderData.orderNumber} has been confirmed.`,
+            type: 'payment_confirmed',
+            isRead: false,
+            metadata: {
+              orderId: orderData.orderId,
+              orderNumber: orderData.orderNumber,
+              total: orderData.total,
+              currency: orderData.currency,
+            },
+          },
+        })
+      }
+
+      // 3. Send email using our template if allowed by user preferences
+      if (this.emailService && preferences.allowEmail) {
         await this.emailService.sendPaymentConfirmationEmail({
           userName: userName || userEmail,
           email: userEmail,
@@ -130,6 +164,7 @@ export class NotificationService extends BaseService {
       const order = await this.payload.findByID<Order, any>({
         collection: 'orders',
         id: orderData.orderId,
+        depth: 1, // Include user data
       })
 
       if (!order) {
@@ -137,36 +172,119 @@ export class NotificationService extends BaseService {
         return false
       }
 
-      // Получаем email клиента
-      const customerEmail = (order as any).customer || orderData.customerEmail
+      // Получаем информацию о пользователе
+      let userId = null
+      let userLocale = 'ru'
+      const customerEmail = order.customer?.email || orderData.customerEmail
 
-      // Отправляем уведомление в зависимости от статуса
-      switch (orderData.status) {
-        case 'payment_confirmed':
-          await this.emailService.sendTemplate('order_paid', customerEmail, {
-            orderNumber: (order as any).orderNumber,
-            products: (order as any).items,
-          })
-          break
+      if (order.user) {
+        // If user is a reference and populated
+        if (typeof order.user === 'object' && order.user !== null) {
+          userId = order.user.id
+          userLocale = order.user.locale || 'ru'
+        } else {
+          // If user is just an ID
+          userId = order.user
+        }
+      }
 
-        case 'ready_for_download':
-          await this.emailService.sendTemplate('download_ready', customerEmail, {
-            orderNumber: order.orderNumber,
-            downloadLinks: orderData.downloadLinks,
-          })
-          break
+      // Проверяем настройки уведомлений пользователя
+      let preferences = {
+        allowInApp: true,
+        allowEmail: true,
+        allowPush: false,
+      }
 
-        case 'completed':
-          await this.emailService.sendTemplate('order_completed', customerEmail, {
-            orderNumber: order.orderNumber,
-          })
-          break
+      if (userId) {
+        preferences = await this.checkUserNotificationPreferences(userId, 'account')
+      }
 
-        default:
-          await this.emailService.sendTemplate('order_status_update', customerEmail, {
-            orderNumber: order.orderNumber,
-            status: orderData.status,
-          })
+      // Создаем in-app уведомление, если есть userId
+      if (userId) {
+        let title = 'Order Status Update'
+        let message = `Your order #${order.orderNumber} status has been updated to ${orderData.status}`
+
+        switch (orderData.status) {
+          case 'payment_confirmed':
+            title = 'Payment Confirmed'
+            message = `Your payment for order #${order.orderNumber} has been confirmed.`
+            break
+          case 'ready_for_download':
+            title = 'Download Ready'
+            message = `Your digital products from order #${order.orderNumber} are ready for download.`
+            break
+          case 'completed':
+            title = 'Order Completed'
+            message = `Your order #${order.orderNumber} has been completed.`
+            break
+        }
+
+        await this.payload.create({
+          collection: 'notifications',
+          data: {
+            user: userId,
+            title,
+            message,
+            type: 'order_status',
+            isRead: false,
+            metadata: {
+              orderId: orderData.orderId,
+              orderNumber: order.orderNumber,
+              status: orderData.status,
+            },
+          },
+        })
+      }
+
+      // Отправляем email уведомление, если разрешено
+      if (preferences.allowEmail && customerEmail) {
+        switch (orderData.status) {
+          case 'payment_confirmed':
+            await this.emailService.sendTemplateEmail(
+              'order_paid',
+              customerEmail,
+              {
+                orderNumber: order.orderNumber,
+                products: order.items,
+              },
+              { locale: userLocale },
+            )
+            break
+
+          case 'ready_for_download':
+            await this.emailService.sendTemplateEmail(
+              'download_ready',
+              customerEmail,
+              {
+                orderNumber: order.orderNumber,
+                downloadLinks: orderData.downloadLinks,
+              },
+              { locale: userLocale },
+            )
+            break
+
+          case 'completed':
+            await this.emailService.sendTemplateEmail(
+              'order_completed',
+              customerEmail,
+              {
+                orderNumber: order.orderNumber,
+              },
+              { locale: userLocale },
+            )
+            break
+
+          default:
+            await this.emailService.sendTemplateEmail(
+              'order_status_update',
+              customerEmail,
+              {
+                orderNumber: order.orderNumber,
+                status: orderData.status,
+              },
+              { locale: userLocale },
+            )
+        }
       }
 
       return true
@@ -195,6 +313,9 @@ export class NotificationService extends BaseService {
         return
       }
 
+      // Check user notification preferences
+      const preferences = await this.checkUserNotificationPreferences(user.id, 'marketing')
+
       const templateData = {
         userName: user.name || user.email,
         items: items.map((item) => ({
@@ -208,13 +329,7 @@ export class NotificationService extends BaseService {
         cartUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/cart`,
       }
 
-      // Send email notification
-      await this.emailService.sendTemplate('abandoned-cart', {
-        to: user.email,
-        templateData,
-      })
-
-      // Store notification in database
+      // Store notification in database (in-app notification)
       await this.payload.create({
         collection: 'notifications',
         data: {
@@ -226,6 +341,17 @@ export class NotificationService extends BaseService {
           read: false,
         },
       })
+
+      // Send email notification if allowed by user preferences
+      if (preferences.allowEmail && user.email) {
+        await this.emailService
+          .sendTemplateEmail('abandoned-cart', user.email, templateData, {
+            locale: user.locale || 'ru',
+          })
+          .catch((err) => {
+            console.error('Failed to send abandoned cart email:', err)
+          })
+      }
     } catch (error) {
       console.error('Failed to send abandoned cart reminder:', error)
       throw error
@@ -257,6 +383,86 @@ export class NotificationService extends BaseService {
   }
 
   /**
+   * Проверяет настройки уведомлений пользователя
+   * @param userId ID пользователя
+   * @param notificationType Тип уведомления
+   * @returns Объект с флагами, указывающими, какие типы уведомлений разрешены
+   */
+  async checkUserNotificationPreferences(
+    userId: string,
+    notificationType: string,
+  ): Promise<{
+    allowInApp: boolean
+    allowEmail: boolean
+    allowPush: boolean
+  }> {
+    try {
+      // Получаем пользователя и его настройки уведомлений
+      const user = await this.payload.findByID({
+        collection: 'users',
+        id: userId,
+      })
+
+      // Значения по умолчанию, если настройки не найдены
+      const defaults = {
+        allowInApp: true,
+        allowEmail: true,
+        allowPush: false,
+      }
+
+      // Если у пользователя нет настроек уведомлений, используем значения по умолчанию
+      if (!user.emailNotifications && !user.pushNotifications) {
+        return defaults
+      }
+
+      // Проверяем частоту уведомлений
+      if (user.notificationFrequency === 'never') {
+        return {
+          allowInApp: true, // In-app уведомления всегда разрешены
+          allowEmail: false,
+          allowPush: false,
+        }
+      }
+
+      // Определяем категорию уведомления
+      let category = 'account' // По умолчанию считаем, что это уведомление аккаунта
+
+      // Маппинг типов уведомлений на категории
+      if (['course_completed', 'lesson_completed', 'course_enrolled'].includes(notificationType)) {
+        category = 'courses'
+      } else if (['achievement', 'level_up'].includes(notificationType)) {
+        category = 'achievements'
+      } else if (['comment_reply', 'comment_mention'].includes(notificationType)) {
+        category = 'comments'
+      } else if (['newsletter', 'broadcast'].includes(notificationType)) {
+        category = 'newsletter'
+      } else if (['promo', 'discount', 'marketing'].includes(notificationType)) {
+        category = 'marketing'
+      }
+
+      // Проверяем настройки email уведомлений для данной категории
+      const allowEmail = user.emailNotifications?.[category] ?? defaults.allowEmail
+
+      // Проверяем настройки push уведомлений для данной категории
+      const allowPush = user.pushNotifications?.[category] ?? defaults.allowPush
+
+      return {
+        allowInApp: true, // In-app уведомления всегда разрешены
+        allowEmail,
+        allowPush,
+      }
+    } catch (error) {
+      console.error('Error checking user notification preferences:', error)
+      // В случае ошибки возвращаем значения по умолчанию
+      return {
+        allowInApp: true,
+        allowEmail: true,
+        allowPush: false,
+      }
+    }
+  }
+
+  /**
    * Отправляет уведомление пользователю
    * @param data Данные уведомления
    */
@@ -269,6 +475,10 @@ export class NotificationService extends BaseService {
     metadata?: Record<string, any>
   }): Promise<any> {
     try {
+      // Проверяем настройки уведомлений пользователя
+      const preferences = await this.checkUserNotificationPreferences(data.userId, data.type)
+
+      // Создаем in-app уведомление (всегда)
       const notification = await this.payload.create({
         collection: 'notifications',
         data: {
@@ -281,6 +491,46 @@ export class NotificationService extends BaseService {
           metadata: data.metadata,
         },
       })
+
+      // Если разрешены email уведомления, отправляем email
+      if (preferences.allowEmail && this.emailService) {
+        try {
+          // Получаем пользователя для получения email
+          const user = await this.payload.findByID({
+            collection: 'users',
+            id: data.userId,
+          })
+
+          if (user.email) {
+            // Отправляем email уведомление
+            await this.emailService
+              .sendTemplateEmail(
+                'notification',
+                user.email,
+                {
+                  title: data.title,
+                  message: data.message,
+                  type: data.type,
+                  link: data.link,
+                  ...data.metadata,
+                },
+                { locale: user.locale || 'ru' },
+              )
+              .catch((err) => {
+                console.error('Failed to send email notification:', err)
+              })
+          }
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError)
+          // Не прерываем выполнение, если не удалось отправить email
+        }
+      }
+
+      // Если разрешены push уведомления, отправляем push (в будущем)
+      if (preferences.allowPush) {
+        // TODO: Реализовать отправку push-уведомлений
+        console.log('Push notifications are enabled but not implemented yet')
+      }
 
       console.log(`Notification sent to user ${data.userId}: ${data.title}`)
       return notification

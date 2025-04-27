@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { CartSummary } from '@/components/CartSummary'
 import { useTranslations } from 'next-intl'
 import { Locale } from '@/constants'
@@ -22,7 +22,7 @@ export function Checkout({ locale }: CheckoutProps) {
       setError(null)
       setLoading(true)
 
-      if (cart.length === 0) {
+      if (!cart || cart.items.length === 0) {
         throw new Error(t('errorCartEmpty'))
       }
 
@@ -32,8 +32,8 @@ export function Checkout({ locale }: CheckoutProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cart.map((item) => ({
-            id: item.id,
+          items: cart.items.map((item) => ({
+            id: typeof item.product === 'string' ? item.product : item.product?.id,
             quantity: item.quantity,
           })),
           email: 'customer@example.com', // Replace with actual user email
@@ -91,7 +91,7 @@ export function Checkout({ locale }: CheckoutProps) {
 
         <button
           onClick={handleCheckout}
-          disabled={loading || cart.length === 0}
+          disabled={loading || !cart || cart.items.length === 0}
           className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {loading ? t('processingButton') : t('proceedButton')}

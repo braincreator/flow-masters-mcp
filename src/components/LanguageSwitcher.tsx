@@ -9,6 +9,7 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 import { useDropdown } from '@/providers/DropdownContext'
 import { useI18n } from '@/providers/I18n'
+import { useLocale } from '@/providers/LocaleProvider'
 
 const locales = [
   { code: 'en', label: 'English', countryCode: 'US' },
@@ -18,11 +19,16 @@ const locales = [
 export function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
+
+  // Use both providers for backward compatibility
   const { lang, setLang } = useI18n()
+  const { locale, setLocale, supportedLocales } = useLocale()
+
   const { openDropdown, setOpenDropdown } = useDropdown()
   const isOpen = openDropdown === 'language'
 
-  const currentLang = pathname?.split('/')[1] || lang
+  // Use locale from LocaleProvider if available, otherwise fallback to I18n or pathname
+  const currentLang = locale || pathname?.split('/')[1] || lang
   const currentLanguage = locales.find((locale) => locale.code === currentLang)
 
   const handleToggle = () => {
@@ -30,6 +36,17 @@ export function LanguageSwitcher() {
   }
 
   const switchLanguage = (code: string) => {
+    // Update both providers for backward compatibility
+    setLang(code)
+
+    // Use LocaleProvider's setLocale if available, which handles path updates
+    if (setLocale) {
+      setLocale(code as any) // Type cast to match Locale type
+      setOpenDropdown(null)
+      return
+    }
+
+    // Fallback to manual path manipulation if LocaleProvider is not available
     const segments = pathname?.split('/').filter(Boolean) || []
     const langIndex = segments.findIndex((seg) => locales.some((loc) => loc.code === seg))
 
@@ -41,7 +58,6 @@ export function LanguageSwitcher() {
       newPathname = `/${code}${pathname || ''}`
     }
 
-    setLang(code)
     router.push(newPathname)
     setOpenDropdown(null)
   }

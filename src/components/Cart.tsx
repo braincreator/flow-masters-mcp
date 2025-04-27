@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,8 +22,17 @@ interface CartProps {
 
 export function Cart({ locale }: CartProps) {
   const t = useTranslations('Cart')
-  const { cart, items, itemCount, total, isLoading, error, remove, update, clear, mutateCart } =
-    useCart(locale)
+  const {
+    cart,
+    itemCount,
+    total,
+    isLoading,
+    error,
+    removeItem,
+    updateItem,
+    emptyCart,
+    refreshCart,
+  } = useCart()
 
   const [removeModalOpen, setRemoveModalOpen] = useState(false)
   const [itemToRemove, setItemToRemove] = useState<string | null>(null)
@@ -38,14 +47,14 @@ export function Cart({ locale }: CartProps) {
       <Card className="text-center py-12 text-destructive">
         <h2 className="text-2xl font-bold mb-4">{t('errorTitle')}</h2>
         <p>{error.message || t('errorDescriptionDefault')}</p>
-        <Button onClick={() => mutateCart()} variant="outline" className="mt-4">
+        <Button onClick={() => refreshCart()} variant="outline" className="mt-4">
           {t('tryAgainButton')}
         </Button>
       </Card>
     )
   }
 
-  if (!cart || items.length === 0) {
+  if (!cart || cart.items.length === 0) {
     return (
       <Card className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">{t('emptyTitle')}</h2>
@@ -66,7 +75,7 @@ export function Cart({ locale }: CartProps) {
     setUpdatingItemId(itemToRemove)
     setRemoveModalOpen(false)
     try {
-      await remove(itemToRemove)
+      await removeItem(itemToRemove)
     } finally {
       setItemToRemove(null)
       setUpdatingItemId(null)
@@ -80,9 +89,9 @@ export function Cart({ locale }: CartProps) {
     setUpdatingItemId(productId)
     try {
       if (newQuantity === 0) {
-        await remove(productId)
+        await removeItem(productId)
       } else {
-        await update(productId, newQuantity)
+        await updateItem(productId, newQuantity)
       }
     } finally {
       setUpdatingItemId(null)
@@ -117,7 +126,7 @@ export function Cart({ locale }: CartProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        {items.map(({ product, quantity, price }) => {
+        {cart.items.map(({ product, quantity, price }) => {
           const productId = typeof product === 'string' ? product : product?.id
           if (!productId) return null
 

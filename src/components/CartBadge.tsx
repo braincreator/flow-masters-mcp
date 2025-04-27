@@ -1,13 +1,11 @@
 'use client'
 
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { cn } from '@/utilities/ui'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useI18n } from '@/providers/I18n'
 
 export function CartBadge() {
-  const { lang } = useI18n()
-  const { itemCount, isLoading } = useCart(lang || 'en')
+  const { itemCount, isLoading } = useCart()
 
   if (isLoading) {
     return <Skeleton className="absolute -top-2 -right-2 rounded-full w-5 h-5" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { formatPrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
@@ -14,7 +14,7 @@ interface CartSummaryProps {
 
 export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
   const t = useTranslations('CartSummary')
-  const { items, total, itemCount, isLoading, error } = useCart(locale)
+  const { cart, total, itemCount, isLoading, error } = useCart()
 
   if (isLoading) {
     return <CartSummarySkeleton showItems={showItems} />
@@ -46,9 +46,9 @@ export function CartSummary({ showItems = true, locale }: CartSummaryProps) {
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="text-lg font-semibold mb-4">{t('orderSummaryTitle')}</h3>
 
-      {showItems && items.length > 0 && (
+      {showItems && cart && cart.items.length > 0 && (
         <div className="space-y-2 mb-4">
-          {items.map((item) => {
+          {cart.items.map((item) => {
             const itemPrice = item.price
             const productId = typeof item.product === 'string' ? item.product : item.product?.id
             if (!productId) return null

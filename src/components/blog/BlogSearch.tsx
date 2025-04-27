@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search } from '@/components/ui/search'
 import { cn } from '@/lib/utils'
+import { useSearch } from '@/providers/SearchProvider'
 
 export interface BlogSearchProps {
   onSearch?: (query: string) => void
@@ -26,10 +27,13 @@ export function BlogSearch({
   showClearButton = true,
   size = 'default',
 }: BlogSearchProps) {
-  const [query, setQuery] = useState(initialQuery)
+  const [localQuery, setLocalQuery] = useState(initialQuery)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  // Get search context
+  const { query: globalQuery, setQuery: setGlobalQuery, search } = useSearch()
 
   // Get the current locale from the pathname
   const segments = pathname.split('/')
@@ -37,11 +41,19 @@ export function BlogSearch({
 
   // Handle the search query change
   const handleSearchChange = (value: string) => {
-    setQuery(value)
+    setLocalQuery(value)
+
+    // Update global search context
+    setGlobalQuery(value)
 
     // If there's an onSearch prop, call it
     if (onSearch) {
       onSearch(value)
+
+      // Also perform search in global context
+      if (value.trim().length >= 2) {
+        search(value)
+      }
       return
     }
 
@@ -62,10 +74,17 @@ export function BlogSearch({
     router.push(`/${currentLocale}/blog?${params.toString()}`, { scroll: false })
   }
 
-  // Update query when initialQuery changes
+  // Update query when initialQuery or globalQuery changes
   useEffect(() => {
-    setQuery(initialQuery)
-  }, [initialQuery])
+    // Prefer initialQuery from props if provided
+    if (initialQuery) {
+      setLocalQuery(initialQuery)
+    }
+    // Otherwise use global query from context if available
+    else if (globalQuery && globalQuery !== localQuery) {
+      setLocalQuery(globalQuery)
+    }
+  }, [initialQuery, globalQuery, localQuery])
 
   // Get the appropriate className based on variant
   let inputClassName = ''
@@ -86,7 +105,7 @@ export function BlogSearch({
 
   return (
     <Search
-      value={query}
+      value={localQuery}
       onChange={handleSearchChange}
       placeholder={placeholder}
       className={className}

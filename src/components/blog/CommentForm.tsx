@@ -88,6 +88,7 @@ export interface CommentFormProps {
   onCancel?: () => void
   locale?: 'en' | 'ru'
   user?: any // Пользователь, если авторизован
+  addComment?: (postId: string, content: string, parentCommentId?: string) => Promise<boolean>
 }
 
 export function CommentForm({
@@ -122,39 +123,53 @@ export function CommentForm({
     setErrorMessage('')
 
     try {
-      const payload = {
-        postId,
-        ...(parentCommentId ? { parentComment: parentCommentId } : {}),
-        content: data.comment,
-        author: user
-          ? {
-              name: user.name,
-              email: user.email,
-              ...(user.avatar ? { avatar: user.avatar } : {}),
-            }
-          : {
-              name: data.name,
-              email: data.email,
-            },
+      // If addComment is provided through props (from BlogProvider), use it
+      if (addComment) {
+        const success = await addComment(postId, data.comment, parentCommentId)
+
+        if (success) {
+          setSubmitStatus('success')
+          form.reset()
+          onSuccess?.()
+        } else {
+          throw new Error('Failed to submit comment')
+        }
+      } else {
+        // Fallback to direct API call if addComment is not provided
+        const payload = {
+          postId,
+          ...(parentCommentId ? { parentComment: parentCommentId } : {}),
+          content: data.comment,
+          author: user
+            ? {
+                name: user.name,
+                email: user.email,
+                ...(user.avatar ? { avatar: user.avatar } : {}),
+              }
+            : {
+                name: data.name,
+                email: data.email,
+              },
+        }
+
+        const response = await fetch('/api/v1/blog/comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to submit comment')
+        }
+
+        setSubmitStatus('success')
+        form.reset()
+        onSuccess?.()
       }
-
-      const response = await fetch('/api/v1/blog/comment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to submit comment')
-      }
-
-      setSubmitStatus('success')
-      form.reset()
-      onSuccess?.()
     } catch (error) {
       setSubmitStatus('error')
       setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred')

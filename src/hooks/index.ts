@@ -10,3 +10,9 @@ export * from './globals/footer'
 
 // Other hooks
 export * from './revalidateRedirects'
+export * from './useNotifications'
+export * from './useNewsletterSubscription'
+export * from './useToast'
+export * from './useCart'
+export * from './useFavorites'
+export * from './useCachedFetch'

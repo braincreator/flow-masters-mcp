@@ -955,5 +955,275 @@
     "noPendingBookings": "You have no pending bookings",
     "completeYourBooking": "Complete your booking",
     "paidOn": "Paid on"
+  },
+  "Settings": {
+    "metadata": {
+      "title": "Account Settings",
+      "description": "Manage your account preferences and settings"
+    },
+    "title": "Settings",
+    "description": "Customize your account preferences and settings",
+    "tabs": {
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "privacy": "Privacy & Security",
+      "appearance": "Appearance",
+      "language": "Language",
+      "integrations": "Integrations"
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "description": "Manage your personal information",
+      "avatarLabel": "Profile Picture",
+      "uploadAvatar": "Upload Picture",
+      "removeAvatar": "Remove",
+      "nameLabel": "Full Name",
+      "emailLabel": "Email Address",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "Tell us a bit about yourself",
+      "saveButton": "Save Changes",
+      "savingButton": "Saving...",
+      "successMessage": "Profile updated successfully",
+      "errorMessage": "Failed to update profile"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "description": "Control how and when you receive notifications",
+      "emailNotifications": "Email Notifications",
+      "pushNotifications": "Push Notifications",
+      "categories": {
+        "account": "Account Updates",
+        "marketing": "Marketing & Promotions",
+        "courses": "Course Updates",
+        "achievements": "Achievements & Rewards",
+        "comments": "Comments & Replies",
+        "newsletter": "Newsletter"
+      },
+      "frequency": {
+        "title": "Notification Frequency",
+        "immediately": "Immediately",
+        "daily": "Daily Digest",
+        "weekly": "Weekly Summary",
+        "never": "Never"
+      },
+      "saveButton": "Save Preferences",
+      "savingButton": "Saving...",
+      "successMessage": "Notification preferences updated",
+      "errorMessage": "Failed to update notification preferences"
+    },
+    "privacy": {
+      "title": "Privacy & Security",
+      "description": "Manage your account security and privacy settings",
+      "changePassword": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "updateButton": "Update Password",
+        "updatingButton": "Updating...",
+        "successMessage": "Password updated successfully",
+        "errorMessage": "Failed to update password"
+      },
+      "twoFactor": {
+        "title": "Two-Factor Authentication",
+        "description": "Add an extra layer of security to your account",
+        "status": {
+          "enabled": "Enabled",
+          "disabled": "Disabled"
+        },
+        "enableButton": "Enable",
+        "disableButton": "Disable",
+        "setupInstructions": "Setup Instructions"
+      },
+      "dataPrivacy": {
+        "title": "Data Privacy",
+        "downloadData": "Download My Data",
+        "deleteAccount": "Delete Account",
+        "deleteWarning": "This action cannot be undone. All your data will be permanently deleted.",
+        "confirmDelete": "Yes, Delete My Account"
+      }
+    },
+    "appearance": {
+      "title": "Appearance Settings",
+      "description": "Customize how the application looks",
+      "theme": {
+        "title": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System Default"
+      },
+      "fontSize": {
+        "title": "Font Size",
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large"
+      },
+      "colorScheme": {
+        "title": "Color Scheme",
+        "default": "Default",
+        "blue": "Blue",
+        "green": "Green",
+        "purple": "Purple"
+      },
+      "loadingAnimations": "Loading Animations",
+      "loadingAnimationsDescription": "Choose how loading animations appear when navigating between pages",
+      "loadingStyles": {
+        "cosmic": "Cosmic (Full-screen immersive animation)",
+        "minimal": "Minimal (Subtle progress bar only)",
+        "both": "Both (Show both animations)"
+      },
+      "previewButton": "Preview Loading Animation",
+      "saveButton": "Save Preferences",
+      "resetButton": "Reset to Default",
+      "successMessage": "Appearance settings updated",
+      "errorMessage": "Failed to update appearance settings"
+    },
+    "language": {
+      "title": "Language Settings",
+      "description": "Choose your preferred language",
+      "selectLabel": "Select Language",
+      "languages": {
+        "en": "English",
+        "ru": "Russian"
+      },
+      "saveButton": "Save Preference",
+      "savingButton": "Saving...",
+      "successMessage": "Language preference updated",
+      "errorMessage": "Failed to update language preference"
+    },
+    "integrations": {
+      "title": "Connected Services",
+      "description": "Manage third-party service connections",
+      "noIntegrations": "No connected services",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "notConnected": "Not Connected"
+    }
+  },
+  "Rewards": {
+    "metadata": {
+      "title": "Your Rewards",
+      "description": "View and manage your rewards and bonuses"
+    },
+    "title": "Rewards",
+    "description": "Manage your rewards and bonuses",
+    "tabs": {
+      "active": "Active",
+      "used": "Used",
+      "expired": "Expired"
+    },
+    "status": {
+      "active": "Active",
+      "used": "Used",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "type": {
+      "discount": "Discount",
+      "free_course": "Free Course",
+      "badge": "Badge",
+      "certificate": "Certificate",
+      "exclusive_content": "Exclusive Content",
+      "other": "Other"
+    },
+    "noRewards": "You don't have any rewards yet",
+    "noActiveRewards": "You don't have any active rewards",
+    "noUsedRewards": "You don't have any used rewards",
+    "noExpiredRewards": "You don't have any expired rewards",
+    "awardedOn": "Awarded on",
+    "expiresOn": "Expires on",
+    "usedOn": "Used on",
+    "useReward": "Use Reward",
+    "activateDiscount": "Activate Discount",
+    "applying": "Applying...",
+    "discountCode": "Discount Code"
+  },
+  "Help": {
+    "metadata": {
+      "title": "Help Center",
+      "description": "Find answers to common questions and get support"
+    },
+    "title": "Help Center",
+    "description": "Find answers to your questions and get the support you need",
+    "searchPlaceholder": "Search for help...",
+    "categories": {
+      "gettingStarted": "Getting Started",
+      "account": "Account & Billing",
+      "courses": "Courses & Learning",
+      "technical": "Technical Support",
+      "faq": "Frequently Asked Questions"
+    },
+    "contactSupport": {
+      "title": "Need More Help?",
+      "description": "Can't find what you're looking for? Our support team is here to help.",
+      "emailButton": "Email Support",
+      "chatButton": "Live Chat",
+      "supportHours": "Support Hours: Monday-Friday, 9AM-6PM (UTC+3)"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "noResults": "No results found for your search",
+      "questions": {
+        "account": {
+          "title": "Account & Billing",
+          "items": [
+            {
+              "question": "How do I change my password?",
+              "answer": "You can change your password in the Settings page under the Privacy & Security tab."
+            },
+            {
+              "question": "How do I update my payment information?",
+              "answer": "You can update your payment information in the Account page under the Subscriptions tab."
+            },
+            {
+              "question": "Can I get a refund?",
+              "answer": "Refund policies vary by product. Please contact our support team for specific refund requests."
+            }
+          ]
+        },
+        "courses": {
+          "title": "Courses & Learning",
+          "items": [
+            {
+              "question": "How do I access my courses?",
+              "answer": "You can access your enrolled courses from your Account Dashboard under the My Courses tab."
+            },
+            {
+              "question": "Can I download course materials?",
+              "answer": "Yes, most course materials are available for download. Look for the download button in the course content."
+            },
+            {
+              "question": "How long do I have access to a course?",
+              "answer": "Access duration depends on the course. Most courses provide lifetime access once purchased."
+            }
+          ]
+        },
+        "technical": {
+          "title": "Technical Issues",
+          "items": [
+            {
+              "question": "Videos are not playing, what should I do?",
+              "answer": "Try refreshing the page, clearing your browser cache, or using a different browser. If issues persist, contact support."
+            },
+            {
+              "question": "How do I clear my browser cache?",
+              "answer": "The process varies by browser. Generally, you can press Ctrl+Shift+Delete (Windows) or Command+Shift+Delete (Mac) to access cache clearing options."
+            },
+            {
+              "question": "The site is loading slowly, how can I fix this?",
+              "answer": "Try clearing your browser cache, using a different browser, or checking your internet connection. If issues persist, contact support."
+            }
+          ]
+        }
+      }
+    },
+    "resources": {
+      "title": "Resources",
+      "documentation": "Documentation",
+      "tutorials": "Tutorials",
+      "blog": "Blog",
+      "community": "Community Forum"
+    }
   }
 }

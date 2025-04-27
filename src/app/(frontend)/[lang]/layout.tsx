@@ -14,6 +14,9 @@ import { ThemeProvider } from '@/providers/Theme'
 import { I18nProvider } from '@/providers/I18n'
 import { setRequestLocale } from 'next-intl/server'
 import { NextIntlClientProvider } from 'next-intl'
+import { LoadingProvider } from '@/providers/LoadingProvider'
+import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
+import { SmartLoading } from '@/components/ui/smart-loading'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -77,14 +80,21 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         >
           <ThemeProvider>
             <I18nProvider defaultLang={lang}>
-              {isDraftMode && <AdminBar />}
-              <Header locale={lang} />
-              <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
-                {children}
-              </main>
-              <div id="pagination-slot" className="container py-8"></div>
-              <Footer locale={lang} />
-              <FloatingCartButtonWrapper locale={lang} />
+              <LoadingConfigProvider>
+                <LoadingProvider>
+                  {/* Add our smart loading component */}
+                  <SmartLoading />
+
+                  {isDraftMode && <AdminBar />}
+                  <Header locale={lang} />
+                  <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
+                    {children}
+                  </main>
+                  <div id="pagination-slot" className="container py-8"></div>
+                  <Footer locale={lang} />
+                  <FloatingCartButtonWrapper locale={lang} />
+                </LoadingProvider>
+              </LoadingConfigProvider>
             </I18nProvider>
           </ThemeProvider>
         </div>

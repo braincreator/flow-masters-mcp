@@ -103,7 +103,10 @@ export const getPayloadClient = async (): Promise<Payload> => {
         mongoURL: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
         onInit: (initPayload) => {
           logger.info('Payload initialized successfully')
-          ServiceRegistry.getInstance(initPayload)
+          // Initialize service registry and attach it to payload
+          if (!initPayload.services) {
+            initPayload.services = ServiceRegistry.getInstance(initPayload)
+          }
         },
       },
     })

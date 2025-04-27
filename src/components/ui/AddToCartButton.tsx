@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Download, Clock, Shield, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { cn } from '@/utilities/ui'
 import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
@@ -63,17 +63,17 @@ export function AddToCartButton({
   successMessage,
   removeMessage,
 }: AddToCartButtonProps) {
-  const { items, add, remove, isLoading: isCartLoading } = useCart(locale)
+  const { cart, addItem, removeItem, isLoading: isCartLoading } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
 
   const texts = LOCALIZED_TEXTS[locale] || LOCALIZED_TEXTS.en
 
   const isInCartState = useMemo(() => {
-    if (isCartLoading || !items) return false
-    return items.some(
+    if (isCartLoading || !cart || !cart.items) return false
+    return cart.items.some(
       (item) => (typeof item.product === 'string' ? item.product : item.product?.id) === product.id,
     )
-  }, [items, product.id, isCartLoading])
+  }, [cart, product.id, isCartLoading])
 
   const getButtonConfig = (type: Product['productType']) => {
     switch (type) {
@@ -126,12 +126,12 @@ export function AddToCartButton({
 
     try {
       if (isInCartState) {
-        await remove(product.id)
+        await removeItem(product.id)
         if (showToast) {
           toast.success(removeMessage || texts.removedFromCart(productName))
         }
       } else {
-        await add(product.id, 1)
+        await addItem(product.id, 1)
         if (showToast) {
           toast.success(successMessage || texts.addedToCart(productName))
         }
