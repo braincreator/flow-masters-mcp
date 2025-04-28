@@ -52,12 +52,12 @@ try {
 
   // Run the type generation command with the custom loader
   execSync(
-    'node --experimental-loader ./scripts/css-loader.mjs ./node_modules/.bin/payload generate:types',
+    'node --import ./scripts/register-css-loader.mjs ./node_modules/.bin/payload generate:types',
     {
       stdio: 'inherit',
       env: {
         ...process.env,
-        NODE_OPTIONS: '--no-deprecation',
+        NODE_OPTIONS: '--no-warnings',
       },
     },
   )

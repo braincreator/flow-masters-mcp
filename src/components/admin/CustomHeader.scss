@@ -1,0 +1,36 @@
+.custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--base);
+  height: 40px;
+  background-color: var(--theme-elevation-50);
+  border-bottom: 1px solid var(--theme-elevation-100);
+  
+  &__environment {
+    .environment-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      
+      &--development {
+        background-color: var(--theme-warning-100);
+        color: var(--theme-warning-700);
+      }
+      
+      &--staging {
+        background-color: var(--theme-info-100);
+        color: var(--theme-info-700);
+      }
+    }
+  }
+  
+  &__welcome {
+    .welcome-message {
+      font-size: 14px;
+      color: var(--theme-elevation-700);
+    }
+  }
+}

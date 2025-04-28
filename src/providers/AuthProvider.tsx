@@ -26,7 +26,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   register: (userData: RegisterData) => Promise<void>
-  refreshAuth: () => Promise<void>
+  refreshAuth: () => Promise<boolean>
 }
 
 interface RegisterData {
@@ -47,8 +47,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     error: null as AppError | null,
   })
 
+  // Use a ref to track if we're currently checking auth to prevent multiple simultaneous checks
+  const isCheckingAuth = React.useRef(false)
+
   const checkAuth = useCallback(async () => {
+    // If we're already checking auth, don't start another check
+    if (isCheckingAuth.current) {
+      logger.debug('Auth check already in progress, skipping')
+      return
+    }
+
     logger.info('Checking authentication status')
+    isCheckingAuth.current = true
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
     const { data, error } = await tryCatch(async () => {
@@ -90,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
         error: error.type === ErrorType.AUTHENTICATION ? null : error,
       })
+      isCheckingAuth.current = false
       return
     }
 
@@ -112,6 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
         error: null,
       })
+      isCheckingAuth.current = false
     } else {
       logger.debug('No user data found')
       setState({
@@ -120,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
         error: null,
       })
+      isCheckingAuth.current = false
     }
   }, [])
 
@@ -131,13 +144,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logger.info('Attempting login', undefined, undefined, { email })
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
+    // Set a very long cookie expiration (100 years)
+    const HUNDRED_YEARS_MS = 1000 * 60 * 60 * 24 * 365 * 100
+
     const { data, error } = await tryCatch(async () => {
       const response = await fetch('/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          // Request a long-lived token
+          maxAge: HUNDRED_YEARS_MS,
+        }),
         credentials: 'include',
       })
 
@@ -233,6 +254,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logger.info('Attempting registration', undefined, undefined, { email: userData.email })
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
+    // Set a very long cookie expiration (100 years)
+    const HUNDRED_YEARS_MS = 1000 * 60 * 60 * 24 * 365 * 100
+
     const { data, error } = await tryCatch(async () => {
       // Register the user
       const registerResponse = await fetch('/api/users', {
@@ -243,6 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...userData,
           role: 'customer', // Default role for students
+          maxAge: HUNDRED_YEARS_MS, // Request a long-lived token
         }),
       })
 
@@ -285,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: userData.email,
     })
 
-    // Log the user in after registration
+    // Log the user in after registration with infinite session
     try {
       await login(userData.email, userData.password)
     } catch (loginError) {
@@ -297,9 +322,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Use a ref to track if we're currently refreshing to prevent multiple simultaneous refreshes
+  const isRefreshing = React.useRef(false)
+
   const refreshAuth = useCallback(async () => {
-    await checkAuth()
-  }, [checkAuth])
+    // If we're already refreshing, don't start another refresh
+    if (isRefreshing.current) {
+      logger.debug('Auth refresh already in progress, skipping')
+      return false
+    }
+
+    logger.info('Manually refreshing authentication state')
+    isRefreshing.current = true
+
+    try {
+      await checkAuth()
+      logger.info('Authentication refresh completed')
+      isRefreshing.current = false
+      return true
+    } catch (error) {
+      logger.error('Authentication refresh failed', undefined, undefined, { error })
+      isRefreshing.current = false
+      return false
+    }
+  }, [checkAuth, logger])
 
   const value: AuthContextType = {
     user: state.user,

@@ -14,15 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
-import {
-  Loader2,
-  PlayCircle,
-  PauseCircle,
-  RefreshCw,
-  X,
-  AlertCircle,
-  Edit,
-} from 'lucide-react'
+import { Loader2, PlayCircle, PauseCircle, RefreshCw, X, AlertCircle, Edit } from 'lucide-react'
 import { usePayloadAPI } from '@/hooks/usePayloadAPI'
 import { cn } from '@/utilities/ui'
 
@@ -44,7 +36,7 @@ interface Campaign {
 }
 
 // Mapping status to variant for Badge component
-const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
     case 'draft':
       return 'secondary'
@@ -94,6 +86,7 @@ const EmailCampaignManager: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ campaignId }),
+        credentials: 'include', // Include cookies for authentication
       })
 
       if (!response.ok) {
@@ -120,6 +113,7 @@ const EmailCampaignManager: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: 'paused' }),
+        credentials: 'include', // Include cookies for authentication
       })
 
       if (!response.ok) {
@@ -140,7 +134,9 @@ const EmailCampaignManager: React.FC = () => {
 
   const handleViewDetails = async (campaignId: string) => {
     try {
-      const response = await fetch(`/api/v1/email-campaigns/status?id=${campaignId}`)
+      const response = await fetch(`/api/v1/email-campaigns/status?id=${campaignId}`, {
+        credentials: 'include', // Include cookies for authentication
+      })
 
       if (!response.ok) {
         const errorData = await response.json()

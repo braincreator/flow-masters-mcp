@@ -100,7 +100,7 @@ interface FetchPostsOptions {
 }
 
 // Create the context
-const BlogContext = createContext<BlogContextType | undefined>(undefined)
+export const BlogContext = createContext<BlogContextType | undefined>(undefined)
 
 // Provider component
 export function BlogProvider({ children }: { children: React.ReactNode }) {
@@ -195,9 +195,9 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
 
         setPosts(data.docs || [])
 
-        // Set featured post if available
-        if (data.docs && data.docs.length > 0 && !featuredPost) {
-          setFeaturedPost(data.docs[0])
+        // Set featured post if available and not already set
+        if (data.docs && data.docs.length > 0) {
+          setFeaturedPost((prev) => prev || data.docs[0])
         }
       } catch (err) {
         console.error('Error fetching blog posts:', err)
@@ -206,7 +206,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false)
       }
     },
-    [featuredPost],
+    [], // Removed featuredPost dependency
   )
 
   // Fetch a single post by slug
@@ -267,6 +267,28 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Fetch comments for a post
+  const fetchComments = useCallback(async (postId: string) => {
+    setIsLoadingComments(true)
+    setCommentError(null)
+
+    try {
+      // Import the API utility functions dynamically to avoid circular dependencies
+      const { blogApi } = await import('@/lib/api')
+
+      // Fetch comments using the API utility function
+      const data = await blogApi.getComments(postId)
+      setComments(data.comments || [])
+    } catch (err) {
+      console.error('Error fetching comments:', err)
+      setCommentError(
+        err instanceof Error ? err.message : 'An error occurred while loading comments',
+      )
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }, [])
+
   // Add a comment to a post
   const addComment = useCallback(
     async (postId: string, content: string, parentCommentId?: string) => {
@@ -301,28 +323,6 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
     },
     [user, fetchComments],
   )
-
-  // Fetch comments for a post
-  const fetchComments = useCallback(async (postId: string) => {
-    setIsLoadingComments(true)
-    setCommentError(null)
-
-    try {
-      // Import the API utility functions dynamically to avoid circular dependencies
-      const { blogApi } = await import('@/lib/api')
-
-      // Fetch comments using the API utility function
-      const data = await blogApi.getComments(postId)
-      setComments(data.comments || [])
-    } catch (err) {
-      console.error('Error fetching comments:', err)
-      setCommentError(
-        err instanceof Error ? err.message : 'An error occurred while loading comments',
-      )
-    } finally {
-      setIsLoadingComments(false)
-    }
-  }, [])
 
   // Toggle a post as favorite
   const toggleFavorite = useCallback((postId: string) => {

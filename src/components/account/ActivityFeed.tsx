@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/useAuth'
 import {
   BookOpen,
   Award,
@@ -20,6 +21,15 @@ interface ActivityFeedProps {
   userId: string
   locale: string
   limit?: number
+}
+
+interface ActivityApiResponse {
+  id: string
+  type: string
+  title: string
+  description?: string
+  timestamp: string
+  meta?: Record<string, unknown>
 }
 
 interface ActivityItem {
@@ -47,32 +57,77 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
   const t = useTranslations('ActivityFeed')
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { refreshAuth } = useAuth()
 
   useEffect(() => {
-    const fetchActivities = async () => {
+    const fetchActivities = async (retryAfterRefresh = false) => {
       try {
         setIsLoading(true)
 
+        console.log(`Fetching activities for user ${userId} with limit ${limit}`)
+
         // Fetch real activity data from the API
-        const response = await fetch(`/api/v1/user/${userId}/activity?limit=${limit}`)
+        const response = await fetch(`/api/v1/user/${userId}/activity?limit=${limit}`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        console.log(`Activity API response status: ${response.status}`)
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch activities: ${response.status}`)
+          // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
+          if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
+            console.warn('Authentication error, refreshing auth and retrying...')
+            await refreshAuth()
+            return fetchActivities(true) // Retry with the retryAfterRefresh flag set to true
+          }
+
+          // For 500 errors, try to get more details from the response
+          if (response.status === 500) {
+            try {
+              const errorData = await response.json()
+              console.error('Server error details:', errorData)
+              throw new Error(`Server error: ${errorData.error || 'Unknown server error'}`)
+            } catch (_parseError) {
+              // If we can't parse the error response, just use the status code
+              throw new Error(`Failed to fetch activities: ${response.status}`)
+            }
+          } else {
+            throw new Error(`Failed to fetch activities: ${response.status}`)
+          }
         }
 
         const result = await response.json()
+        console.log(`Received ${result.data?.length || 0} activities from API`)
 
         if (result.success && Array.isArray(result.data)) {
           // Map the API response to our activity items
-          const mappedActivities = result.data.map((item: any) => ({
-            id: item.id,
-            type: item.type,
-            // Translate the title key
-            title: t(item.title),
-            description: item.description,
-            timestamp: item.timestamp,
-            meta: item.meta || {},
-          }))
+          const mappedActivities = result.data
+            .map((item: ActivityApiResponse) => {
+              try {
+                if (!item || !item.id || !item.type || !item.timestamp) {
+                  console.warn('Skipping invalid activity item:', item)
+                  return null
+                }
+
+                return {
+                  id: item.id,
+                  type: item.type,
+                  // Translate the title key
+                  title: t(item.title || 'unknownActivity'),
+                  description: item.description || '',
+                  timestamp: item.timestamp,
+                  meta: item.meta || {},
+                }
+              } catch (mapError) {
+                console.error('Error mapping activity item:', mapError, item)
+                return null
+              }
+            })
+            .filter(Boolean) // Remove any null items
 
           setActivities(mappedActivities)
         } else {
@@ -82,6 +137,14 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
         }
       } catch (error) {
         console.error('Error fetching activity feed:', error)
+
+        // Show a more user-friendly error in development
+        if (process.env.NODE_ENV === 'development') {
+          alert(
+            `Error fetching activities: ${error instanceof Error ? error.message : String(error)}`,
+          )
+        }
+
         setActivities([])
       } finally {
         setIsLoading(false)
@@ -94,7 +157,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
       setIsLoading(false)
       setActivities([])
     }
-  }, [userId, limit, t, locale])
+  }, [userId, limit, t, locale, refreshAuth])
 
   // Format relative time
   const formatRelativeTime = (dateString: string) => {

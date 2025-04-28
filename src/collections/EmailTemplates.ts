@@ -94,11 +94,11 @@ export const EmailTemplates: CollectionConfig = {
     {
       name: 'body',
       label: 'Тело письма',
-      type: 'richText',
+      type: 'code',
       required: true,
-      localized: true,
       admin: {
         description: 'Используйте {{placeholder}} для вставки динамических данных.',
+        language: 'html',
       },
     },
     {

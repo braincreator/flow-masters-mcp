@@ -2,7 +2,6 @@ export const ENV = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   DATABASE_URI: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
   PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || '08c93b8544167b018efded89',
-  CRON_SECRET: process.env.CRON_SECRET || '08c93b8544167b018efded89',
   SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000',
   S3_BUCKET: 'flow-masters-bucket.s3.cloud.ru',
   PAYLOAD_SMTP_HOST: process.env.PAYLOAD_SMTP_HOST || 'smtp.timeweb.ru',

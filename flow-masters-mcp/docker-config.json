@@ -1,0 +1,22 @@
+{
+  "port": 3030,
+  "host": "0.0.0.0",
+  "apiConfig": {
+    "apiUrl": "http://host.docker.internal:3000",
+    "apiKey": "08c93b8544167b018efded89",
+    "autoUpdate": true,
+    "updateCheckInterval": 60,
+    "basePath": "/api",
+    "apiVersion": "v1"
+  },
+  "llm": {
+    "modelContextEnabled": true,
+    "allowedModels": ["*"],
+    "maxTokens": 8192,
+    "contextWindow": 4096,
+    "caching": {
+      "enabled": true,
+      "ttl": 3600
+    }
+  }
+}

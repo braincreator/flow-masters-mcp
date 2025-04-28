@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { authenticateRequest } from '@/utilities/auth'
+import { getServerSession } from '@/lib/auth'
 
 /**
  * API endpoint to check the status of an email campaign
  * GET /api/v1/email-campaigns/status?id=campaignId
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  // Authenticate the request
-  const auth = await authenticateRequest(req)
-  if (!auth.isAuthenticated) {
-    return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    // Authenticate using getServerSession
+    const session = await getServerSession()
+
+    // Check if user is authenticated
+    if (!session?.user) {
+      console.error('Email campaigns status: User not authenticated')
+      return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 })
+    }
+
+    // Check if user is admin
+    if (!session.user.isAdmin && session.user.role !== 'admin') {
+      console.error('Email campaigns status: User not admin', {
+        role: session.user.role,
+        isAdmin: session.user.isAdmin,
+      })
+      return NextResponse.json({ error: 'Forbidden. Admin access required.' }, { status: 403 })
+    }
+
     // Get campaign ID from query params
     const url = new URL(req.url)
     const campaignId = url.searchParams.get('id')
@@ -47,10 +59,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error checking email campaign status:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     return NextResponse.json(
       { error: 'Failed to check campaign status', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -93,7 +105,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Return campaigns list
     return NextResponse.json({
-      campaigns: campaigns.docs.map(campaign => ({
+      campaigns: campaigns.docs.map((campaign) => ({
         id: campaign.id,
         name: campaign.name,
         status: campaign.status,
@@ -108,10 +120,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error listing email campaigns:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     return NextResponse.json(
       { error: 'Failed to list campaigns', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

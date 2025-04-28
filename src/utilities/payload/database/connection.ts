@@ -2,23 +2,24 @@ import mongoose from 'mongoose'
 import { connectionMonitor } from '../monitoring'
 
 const DEFAULT_CONFIG = {
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 60000,
+  connectTimeoutMS: 30000,
   heartbeatFrequencyMS: 10000,
   retryWrites: true,
   retryReads: true,
-  maxPoolSize: 10,
-  minPoolSize: 1,
-  w: 'majority',
+  maxPoolSize: 20,
+  minPoolSize: 5,
+  w: 1,
+  family: 4,
 }
 
 class DatabaseConnection {
   private static instance: DatabaseConnection
   private isConnecting: boolean = false
   private reconnectAttempts: number = 0
-  private readonly maxReconnectAttempts: number = 5
-  private readonly reconnectInterval: number = 5000
+  private readonly maxReconnectAttempts: number = 20
+  private readonly reconnectInterval: number = 3000
   private connectionPromise: Promise<void> | null = null
 
   private constructor() {
@@ -70,9 +71,11 @@ class DatabaseConnection {
 
     if (!this.isConnecting) {
       this.reconnectAttempts++
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
-      
-      await new Promise(resolve => setTimeout(resolve, this.reconnectInterval))
+      console.log(
+        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
+      )
+
+      await new Promise((resolve) => setTimeout(resolve, this.reconnectInterval))
       await this.connect()
     }
   }
@@ -126,7 +129,7 @@ class DatabaseConnection {
 
   public getConnectionStatus(): string {
     const states = ['disconnected', 'connected', 'connecting', 'disconnecting']
-    return states[mongoose.connection.readyState]
+    return states[mongoose.connection.readyState] || 'unknown'
   }
 }
 

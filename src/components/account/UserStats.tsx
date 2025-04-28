@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger, TabsIndicatorStyles } from '@
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { BarChart, Activity, Award, Clock, Calendar, TrendingUp, Flame } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface UserStatsProps {
   userId: string
@@ -33,16 +34,29 @@ export function UserStats({ userId, locale }: UserStatsProps) {
   const [stats, setStats] = useState<UserStatsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+  const { refreshAuth } = useAuth()
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = async (retryAfterRefresh = false) => {
       try {
         setIsLoading(true)
 
         // Fetch real user stats from the API
-        const response = await fetch(`/api/v1/user/${userId}/stats`)
+        const response = await fetch(`/api/v1/user/${userId}/stats`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
         if (!response.ok) {
+          // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
+          if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
+            console.warn('Authentication error, refreshing auth and retrying...')
+            await refreshAuth()
+            return fetchStats(true) // Retry with the retryAfterRefresh flag set to true
+          }
           throw new Error(`Failed to fetch user stats: ${response.status}`)
         }
 
@@ -72,6 +86,10 @@ export function UserStats({ userId, locale }: UserStatsProps) {
         setIsLoading(false)
       } catch (error) {
         console.error('Error fetching user stats:', error)
+
+        // If we already tried refreshing auth and still got an error, just log it
+        // The retry logic is now handled in the fetch call itself
+
         // Fallback to default values
         setStats({
           totalCourses: 0,
@@ -92,7 +110,7 @@ export function UserStats({ userId, locale }: UserStatsProps) {
     }
 
     fetchStats()
-  }, [userId, locale])
+  }, [userId, locale, refreshAuth])
 
   if (isLoading || !stats) {
     return (

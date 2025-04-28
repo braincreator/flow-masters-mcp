@@ -66,13 +66,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // In Next.js route handlers, params should be treated as a Promise
+    const { id } = await params
+
     // Check if user has access to this data
     // (only admin or the user themselves)
-    if (auth.user.id !== params.id && !auth.user.isAdmin) {
+    if (auth.user.id !== id && !auth.user.isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const userId = params.id
+    const userId = id
     const payload = await getPayloadClient()
 
     // Get query parameters

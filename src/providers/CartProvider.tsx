@@ -24,7 +24,7 @@ import { Locale } from '@/constants'
 // Key for SWR
 export const CART_KEY = '/api/cart'
 
-interface CartContextType {
+export interface CartContextType {
   cart: CartSession | null
   itemCount: number
   total: number
@@ -37,7 +37,7 @@ interface CartContextType {
   refreshCart: () => Promise<void>
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined)
+export const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({
   children,
@@ -202,10 +202,13 @@ export function CartProvider({
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
+// Custom hook to use the cart context
 export function useCart() {
   const context = useContext(CartContext)
+
   if (context === undefined) {
     throw new Error('useCart must be used within a CartProvider')
   }
+
   return context
 }

@@ -48,8 +48,14 @@ interface MetricsData {
     avgResponseTime: number
   }
   system: {
-    cpuUsage: number
-    memoryUsage: number
+    cpu: {
+      usage: number
+    }
+    memory: {
+      percentage: number
+      used: number
+      total: number
+    }
   }
   application: {
     requestCount: number
@@ -65,8 +71,8 @@ interface MetricCardProps {
   trend?: { direction: 'up' | 'down'; percentage: number }
 }
 
-// Temporarily use 'any' for props
-const MetricsDashboard = ({ user, canAccessAdmin, config, permissions }: any) => {
+// Use proper types for Payload v3
+const MetricsDashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<MetricsData[]>([])
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)

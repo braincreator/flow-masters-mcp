@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
+
+// Define the notification preference types based on your UserPreferences interface
+interface EmailNotifications {
+  account: boolean
+  marketing: boolean
+  courses: boolean
+  achievements: boolean
+  comments: boolean
+  newsletter: boolean
+}
+
+interface PushNotifications {
+  account: boolean
+  marketing: boolean
+  courses: boolean
+  achievements: boolean
+  comments: boolean
+  newsletter: boolean
+}
+
+// Extend the User type with notification preferences
+interface User {
+  id: string
+  emailNotifications?: EmailNotifications
+  pushNotifications?: PushNotifications
+  notificationFrequency?: 'immediately' | 'daily' | 'weekly' | 'never'
+}
 
 /**
  * Get user notification preferences
@@ -23,7 +50,7 @@ export async function GET(request: NextRequest) {
     const user = await payload.findByID({
       collection: 'users',
       id: userId,
-    })
+    }) as User
     
     // Return notification preferences or default values
     return NextResponse.json({

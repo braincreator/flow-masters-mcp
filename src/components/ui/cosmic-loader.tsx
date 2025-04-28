@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLoading } from '@/providers/LoadingProvider'
 import { cn } from '@/lib/utils'
 import { useTheme } from 'next-themes'
-import { useDeviceType, useUserPreferences, useViewportSize } from '@/hooks/useMediaQuerySelector'
+import {
+  useDeviceType,
+  useMediaQueryUserPreferences,
+  useViewportSize,
+} from '@/hooks/useMediaQuerySelector'
+import { useUserPreferences } from '@/providers/UserPreferencesProvider'
 
 export function CosmicLoader() {
   const { isLoading, progress } = useLoading()
@@ -14,7 +19,7 @@ export function CosmicLoader() {
 
   // Get device information from MediaQueryProvider
   const { isMobile, isTablet, isDesktop } = useDeviceType()
-  const { prefersReducedMotion } = useUserPreferences()
+  const { prefersReducedMotion } = useMediaQueryUserPreferences()
   const { viewportWidth, viewportHeight } = useViewportSize()
 
   // Adjust number of stars based on device type and viewport size

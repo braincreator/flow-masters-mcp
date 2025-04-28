@@ -61,23 +61,35 @@ interface PayloadResponse<T> {
   nextPage: number | null
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // Await the params object before using it
+  const { id } = await params
   try {
     // Verify authentication using Payload CMS
     const auth = await verifyAuth(request)
 
     // Check if user is authenticated
     if (!auth.isAuthenticated || !auth.user) {
-      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.error('User stats API: Authentication failed', {
+        error: auth.error,
+        isAuthenticated: auth.isAuthenticated,
+        hasUser: !!auth.user,
+        userId: id,
+        requestHeaders: Object.fromEntries(request.headers),
+      })
+      return (
+        auth.response ||
+        NextResponse.json({ error: 'Unauthorized', details: auth.error }, { status: 401 })
+      )
     }
 
     // Check if user has access to this data
     // (only admin or the user themselves)
-    if (auth.user.id !== params.id && !auth.user.isAdmin) {
+    if (auth.user.id !== id && !auth.user.isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const userId = params.id
+    const userId = id
     const payload = await getPayloadClient()
 
     // Fetch user data

@@ -20,14 +20,16 @@ export function usePayloadAPI(url: string, options: UsePayloadAPIOptions = {}) {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch(url)
-        
+        const response = await fetch(url, {
+          credentials: 'include', // Include cookies for authentication
+        })
+
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`)
         }
-        
+
         const result = await response.json()
-        
+
         if (isMounted) {
           setData(result)
           setError(null)

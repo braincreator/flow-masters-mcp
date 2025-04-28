@@ -21,10 +21,9 @@ export function AuthNav() {
   const tDashboard = useTranslations('AccountDashboard')
   const { user, isAuthenticated, isLoading, logout, refreshAuth } = useAuth()
 
-  // Refresh auth state when component mounts
-  useEffect(() => {
-    refreshAuth()
-  }, [refreshAuth])
+  // We don't need to refresh auth on every mount
+  // The AuthProvider already checks auth in its own useEffect
+  // This was causing an infinite loop
   const pathname = usePathname()
   const currentLocale = pathname?.split('/')[1] || 'en'
 

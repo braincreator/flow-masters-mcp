@@ -75,7 +75,7 @@ services:
       - PORT=3030
       - HOST=0.0.0.0
       - API_URL=http://payload:3000
-      - API_KEY=your-api-key-here
+      - API_KEY=${PAYLOAD_SECRET}
       - AUTO_UPDATE=true
       - UPDATE_CHECK_INTERVAL=60
       - API_BASE_PATH=/api

@@ -1,0 +1,210 @@
+// Admin SCSS Overrides for Payload CMS
+
+// Override Payload default variables
+$breakpoint-xs-width: 400px;
+$breakpoint-s-width: 768px;
+$breakpoint-m-width: 1024px;
+$breakpoint-l-width: 1440px;
+
+// Custom mixins
+@mixin card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+@mixin hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+// Custom styles for specific Payload components
+.collection-list {
+  &__card {
+    @include card-shadow;
+    @include hover-lift;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+}
+
+.dashboard {
+  &__card {
+    @include card-shadow;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    
+    &-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+// Custom styles for form elements
+.field-type {
+  margin-bottom: 1.5rem;
+  
+  &__label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  &__error {
+    color: var(--theme-error-500);
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+// Custom button styles
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &--primary {
+    background-color: var(--theme-elevation-800);
+    color: var(--theme-elevation-0);
+    
+    &:hover {
+      background-color: var(--theme-elevation-900);
+    }
+  }
+  
+  &--secondary {
+    background-color: var(--theme-elevation-100);
+    color: var(--theme-elevation-800);
+    
+    &:hover {
+      background-color: var(--theme-elevation-200);
+    }
+  }
+}
+
+// Custom navigation styles
+.nav {
+  &__group {
+    margin-bottom: 1rem;
+    
+    &-label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--theme-elevation-500);
+      padding: 0.5rem 1rem;
+    }
+  }
+  
+  &__link {
+    border-radius: 6px;
+    margin: 0.25rem 0;
+    
+    &--active {
+      background-color: var(--theme-elevation-100);
+      font-weight: 500;
+    }
+  }
+}
+
+// Custom table styles
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  
+  &__header {
+    background-color: var(--theme-elevation-50);
+    font-weight: 600;
+    
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+  }
+  
+  &__row {
+    &:hover {
+      background-color: var(--theme-elevation-50);
+    }
+    
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--theme-elevation-100);
+    }
+  }
+}
+
+// Custom modal styles
+.modal {
+  border-radius: 8px;
+  overflow: hidden;
+  
+  &__header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--theme-elevation-100);
+  }
+  
+  &__content {
+    padding: 1.5rem;
+  }
+  
+  &__footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--theme-elevation-100);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+}
+
+// Custom rich text editor styles
+.rich-text {
+  &__editor {
+    border: 1px solid var(--theme-elevation-100);
+    border-radius: 6px;
+    min-height: 200px;
+  }
+  
+  &__toolbar {
+    border-bottom: 1px solid var(--theme-elevation-100);
+    padding: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+// Custom file upload styles
+.upload {
+  &__area {
+    border: 2px dashed var(--theme-elevation-100);
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: var(--theme-elevation-400);
+    }
+  }
+}
+
+// Custom animation for loading states
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

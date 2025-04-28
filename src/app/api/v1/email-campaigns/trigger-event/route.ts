@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
-import { authenticateRequest } from '@/utilities/auth'
+import { getServerSession } from '@/lib/auth'
 
 /**
  * API endpoint to trigger event-based email campaigns
  * POST /api/v1/email-campaigns/trigger-event
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // Authenticate the request
-  const auth = await authenticateRequest(req)
-  if (!auth.isAuthenticated) {
-    return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    // Authenticate using getServerSession
+    const session = await getServerSession()
+
+    // Check if user is authenticated
+    if (!session?.user) {
+      console.error('Email campaigns trigger-event: User not authenticated')
+      return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 })
+    }
+
+    // Check if user is admin
+    if (!session.user.isAdmin && session.user.role !== 'admin') {
+      console.error('Email campaigns trigger-event: User not admin', {
+        role: session.user.role,
+        isAdmin: session.user.isAdmin,
+      })
+      return NextResponse.json({ error: 'Forbidden. Admin access required.' }, { status: 403 })
+    }
+
     // Parse request body
     const body = await req.json()
     const { eventType, entityId, data } = body
@@ -50,19 +62,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })
 
     if (campaigns.docs.length === 0) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: 'No matching campaigns found for this event type',
-        eventType 
+        eventType,
       })
     }
 
     // Process each matching campaign
     const results = []
-    
+
     for (const campaign of campaigns.docs) {
       try {
         // Check if there are additional conditions to match
-        if (campaign.eventTrigger?.conditions && Object.keys(campaign.eventTrigger.conditions).length > 0) {
+        if (
+          campaign.eventTrigger?.conditions &&
+          Object.keys(campaign.eventTrigger.conditions).length > 0
+        ) {
           // Implement condition matching logic here
           // For now, we'll just assume all conditions match
           // In a real implementation, you'd need to check if the data matches the conditions
@@ -70,7 +85,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         // Calculate delay if needed
         const delay = campaign.eventTrigger?.delay || 0
-        
+
         // If there's a delay, schedule the campaign for later
         if (delay > 0) {
           // Add a log entry about scheduling
@@ -88,11 +103,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               ],
             },
           })
-          
+
           // In a real implementation, you'd need to schedule this for later
           // For now, we'll just queue it immediately
         }
-        
+
         // Queue the campaign job
         await payload.jobs.queue({
           task: 'email-campaign',
@@ -105,7 +120,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             },
           },
         })
-        
+
         // Update campaign status to processing
         await payload.update({
           collection: 'email-campaigns',
@@ -115,7 +130,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             lastRun: new Date().toISOString(),
           },
         })
-        
+
         results.push({
           campaignId: campaign.id,
           name: campaign.name,
@@ -124,7 +139,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       } catch (error) {
         console.error(`Error processing campaign ${campaign.id}:`, error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        
+
         results.push({
           campaignId: campaign.id,
           name: campaign.name,
@@ -142,10 +157,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error triggering event-based campaigns:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
     return NextResponse.json(
       { error: 'Failed to process event', details: errorMessage },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

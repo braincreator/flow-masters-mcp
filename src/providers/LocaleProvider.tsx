@@ -14,7 +14,7 @@ export interface LocaleInfo {
 }
 
 // Define the context type
-interface LocaleContextType {
+export interface LocaleContextType {
   // State
   locale: Locale
   localeInfo: LocaleInfo
@@ -47,7 +47,7 @@ const localeInfoMap: Record<Locale, LocaleInfo> = {
 }
 
 // Create the context
-const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
+export const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
 
 // Provider component
 export function LocaleProvider({

@@ -56,7 +56,7 @@ export interface ToastOptions {
   }
 }
 
-interface NotificationsContextType {
+export interface NotificationsContextType {
   // Persistent notifications
   notifications: Notification[]
   unreadCount: number
@@ -85,7 +85,7 @@ interface NotificationsContextType {
   getUnreadNotifications: () => Notification[]
 }
 
-const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined)
+export const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined)
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth()

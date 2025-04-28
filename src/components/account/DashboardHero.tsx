@@ -76,9 +76,9 @@ export function DashboardHero({ user, locale, onLogout }: DashboardHeroProps) {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {greeting}, {user.name.split(' ')[0]}!
+                  {greeting}, {user.name.split(' ')[0]}
                 </h1>
-                {user.streak && user.streak > 0 && (
+                {/* {user.streak && user.streak > 0 ? (
                   <Badge
                     variant="outline"
                     className="bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300 flex items-center gap-1"
@@ -86,7 +86,7 @@ export function DashboardHero({ user, locale, onLogout }: DashboardHeroProps) {
                     <Flame className="w-3 h-3" />
                     {user.streak} {t('dayStreak')}
                   </Badge>
-                )}
+                ) : null} */}
               </div>
               <p className="text-muted-foreground">{t('welcomeBack')}</p>
               {user.level && (

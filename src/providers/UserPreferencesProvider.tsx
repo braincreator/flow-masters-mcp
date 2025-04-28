@@ -141,7 +141,9 @@ const defaultPreferences: UserPreferences = {
   },
 }
 
-const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined)
+export const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(
+  undefined,
+)
 
 export function UserPreferencesProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth()

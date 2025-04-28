@@ -1,6 +1,6 @@
 import React from 'react'
 import { Metadata } from 'next'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { AdminView } from '@/components/admin/AdminView'
 import EmailCampaignManager from '@/components/admin/EmailCampaignManager'
 

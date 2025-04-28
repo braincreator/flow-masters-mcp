@@ -1,4 +1,4 @@
-import type { Payload, PayloadRequest, PayloadComponent, TaskHandlerArgs } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 import { Response, NextFunction } from 'express'
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url'
 
 import { getServerSideURL } from './utilities/getURL'
 import { defaultLexical } from '@/fields/defaultLexical'
+import { authConfig } from './auth/config'
 
 // Handlers
 import addProductsHandler from './endpoints/add-products'
@@ -39,12 +40,10 @@ import collections from '@/collections/collectionList'
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
 import { Users } from './collections/Users' // Needed for admin.user
-import MetricsDashboard from '@/components/admin/MetricsDashboard'
-import { Broadcasts } from './collections/Broadcasts'
-import { BroadcastReports } from './collections/BroadcastReports'
 import { NewsletterBroadcastJobData, SendToAllResult } from './jobs/types'
 import { processEmailCampaign } from './jobs/emailCampaign'
-import { checkScheduledEmailCampaigns } from './jobs/scheduledEmailCampaigns'
+// These imports are used in the cron jobs that were removed from autoRun
+// import { checkScheduledEmailCampaigns } from './jobs/scheduledEmailCampaigns'
 import { checkExpiringRewards } from './jobs/checkExpiringRewards'
 import setupRewardsEndpoint from './endpoints/setup-rewards'
 // Используем строковый путь к компоненту для настройки наград
@@ -54,22 +53,25 @@ import { ServiceRegistry } from '@/services/service.registry'
 // Import blocks from central index
 import { availableBlocks } from './blocks'
 
-// Mongoose config (keep as is)
+// Mongoose config with improved resilience
 const mongooseConfig = {
   url: ENV.DATABASE_URI,
   connectOptions: {
     directConnection: true,
-    serverSelectionTimeoutMS: 20000,
+    serverSelectionTimeoutMS: 30000, // Increased timeout
     maxPoolSize: 30,
     minPoolSize: 5,
-    socketTimeoutMS: 30000,
-    connectTimeoutMS: 30000,
+    socketTimeoutMS: 45000, // Increased timeout
+    connectTimeoutMS: 45000, // Increased timeout
     family: 4,
+    retryWrites: true,
+    retryReads: true,
   },
 }
 
-// Объявляем тип для MetricsDashboard компонента
-const Dashboard = MetricsDashboard as unknown as PayloadComponent
+// Use a string path for the MetricsDashboard component
+// This ensures compatibility with the importMap generation
+const dashboardPath = '/components/admin/MetricsDashboard'
 
 // --- Определяем интерфейс для входных данных задачи --- //
 interface RecalculateSegmentsInput {
@@ -80,13 +82,18 @@ interface RecalculateSegmentsInput {
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
   secret: ENV.PAYLOAD_SECRET,
+  auth: authConfig,
   admin: {
+    // Specify which collection can access the admin panel
     user: Users.slug,
+
+    // Custom components for the admin panel
     components: {
+      // Define custom views
       views: {
         monitoring: {
           path: '/monitoring',
-          Component: Dashboard,
+          Component: dashboardPath,
         },
         landingGenerator: {
           path: '/landing-generator',
@@ -96,45 +103,45 @@ export default buildConfig({
           path: '/admin/setup-rewards',
           Component: '@/app/(admin)/admin/setup-rewards/page',
         },
+        courseCreator: {
+          path: '/course-creator',
+          Component: '@/components/admin/CourseCreatorView',
+        },
+        analytics: {
+          path: '/analytics',
+          Component: '@/components/admin/AnalyticsView',
+        },
+        emailCampaigns: {
+          path: '/email-campaigns',
+          Component: '@/components/admin/EmailCampaignView',
+        },
+        endpoints: {
+          path: '/endpoints',
+          Component: '@/app/admin/endpoints/page',
+        },
       },
+      // Custom navigation components
+      afterNavLinks: ['/components/admin/CustomNavigation'],
+      // Custom branding
+      graphics: {
+        Logo: '/components/admin/CustomLogo',
+        Icon: '/components/admin/CustomIcon',
+      },
+      // Custom header
+      header: ['/components/admin/CustomHeader'],
+      // Custom actions in the header
+      actions: ['/components/admin/CustomAction'],
+      // Other component overrides
+      beforeLogin: ['/components/admin/CustomLoginMessage'],
+      beforeDashboard: ['/components/admin/CustomDashboard'],
+      // Custom providers
+      providers: ['/components/admin/CustomProvider'],
     },
-    nav: {
-      Content: {
-        default: true,
-      },
-      Generators: {
-        sections: [
-          {
-            label: 'Генератор лендингов',
-            url: '/landing-generator',
-          },
-          {
-            label: 'Создание курса',
-            url: '/course-creator',
-          },
-        ],
-      },
-      Marketing: {
-        sections: [
-          {
-            label: 'Email кампании',
-            url: '/email-campaigns',
-          },
-          {
-            label: 'Настройка наград',
-            url: '/admin/setup-rewards',
-          },
-        ],
-      },
-      Analytics: {
-        sections: [
-          {
-            label: 'Аналитика курсов',
-            url: '/analytics/courses',
-          },
-        ],
-      },
-    },
+
+    // Custom navigation is implemented through afterNavLinks component
+    // In Payload v3, navigation groups are handled through custom components
+
+    // Live preview configuration
     livePreview: {
       breakpoints: [
         {
@@ -157,6 +164,38 @@ export default buildConfig({
         },
       ],
     },
+
+    // Date format for the admin panel
+    dateFormat: 'dd.MM.yyyy HH:mm',
+
+    // Theme configuration (light, dark, or all)
+    theme: 'all',
+
+    // Timezone settings
+    timezones: {
+      supportedTimezones: [
+        { label: 'Moscow Time', value: 'Europe/Moscow' },
+        { label: 'Pacific Time', value: 'America/Los_Angeles' },
+        { label: 'Eastern Time', value: 'America/New_York' },
+      ],
+      defaultTimezone: 'Europe/Moscow',
+    },
+
+    // Custom routes for admin panel sections
+    routes: {
+      // You can customize these routes if needed
+      account: '/account',
+      login: '/login',
+      logout: '/logout',
+    },
+
+    // Metadata for the admin panel
+    meta: {
+      titleSuffix: '- Flow Masters Admin',
+    },
+
+    // Custom styling is applied through components and the theme setting above
+    // Custom components handle the styling through CSS-in-JS
   },
   editor: defaultLexical,
   db: mongooseAdapter(mongooseConfig),
@@ -192,8 +231,9 @@ export default buildConfig({
     },
   }),
 
-  // --- Добавляем конфигурацию фоновых задач --- //
+  // Jobs configuration according to Payload CMS v3 documentation
   jobs: {
+    // Define tasks that can be executed
     tasks: [
       {
         slug: 'newsletter-broadcast',
@@ -249,16 +289,18 @@ export default buildConfig({
         },
         retries: {
           attempts: 3,
+          backoff: {
+            type: 'exponential',
+          },
         },
       },
       {
         slug: 'recalculate-user-segments',
-        // Используем any как временное решение для типа input
-        handler: async (args: TaskHandlerArgs<any>) => {
+        handler: async (args) => {
           const { job, req } = args
           const payload = req.payload
           // Используем приведение типа для доступа к input
-          const inputData = job.input as RecalculateSegmentsInput
+          const inputData = job.input as unknown as RecalculateSegmentsInput
           const userId = inputData.userId
 
           if (!userId) {
@@ -279,14 +321,19 @@ export default buildConfig({
             // ----------------
 
             // 5. Обновить пользователя
-            // Оставляем @ts-expect-error до регенерации типов
-            // @ts-expect-error Property 'segments' does not exist on type 'User' until types are regenerated.
+            // Using a type assertion to handle the segments field
+            // This is necessary because the segments field might not be in the generated types yet
+            type UserUpdateData = {
+              segments?: string[]
+              [key: string]: unknown
+            }
+
             await payload.update({
               collection: 'users',
               id: userId,
               data: {
                 segments: matchingSegmentIds,
-              },
+              } as UserUpdateData,
               overrideAccess: true,
               req,
             })
@@ -311,12 +358,11 @@ export default buildConfig({
         },
         retries: {
           attempts: 3,
-          // Убираем нестандартное поле `delay`
-          // Можно добавить backoff: true, если нужно экспоненциальное увеличение задержки
-          // backoff: true,
+          backoff: {
+            type: 'exponential',
+          },
         },
       },
-      // --- КОНЕЦ НОВОЙ ЗАДАЧИ ---
 
       // Email Campaign Task
       {
@@ -326,7 +372,13 @@ export default buildConfig({
           const payload = req.payload
 
           try {
-            const data = job.input as { campaignId: string }
+            // Define the expected input type
+            type EmailCampaignInput = {
+              campaignId: string
+            }
+
+            // Cast the input to the expected type
+            const data = job.input as unknown as EmailCampaignInput
 
             payload.logger.info(`Starting email campaign job for campaign ID: ${data.campaignId}`)
 
@@ -351,6 +403,9 @@ export default buildConfig({
         },
         retries: {
           attempts: 3,
+          backoff: {
+            type: 'exponential',
+          },
         },
       },
       // Expiring Rewards Check Task
@@ -383,33 +438,55 @@ export default buildConfig({
         },
         retries: {
           attempts: 2,
+          backoff: {
+            type: 'exponential',
+          },
         },
       },
     ],
+    // Configure automatic job execution with cron
     autoRun: [
       {
-        cron: '* * * * *',
-        limit: 10,
-        queue: 'default',
+        cron: '*/5 * * * *', // Run every 5 minutes
+        limit: 10, // Process up to 10 jobs per run
+        queue: 'default', // Process jobs from the default queue
       },
       {
-        cron: '0 * * * *', // Run every hour
-        handler: async ({ payload }) => {
-          payload.logger.info('Running scheduled email campaigns check')
-          await checkScheduledEmailCampaigns()
-          return { success: true }
-        },
+        cron: '0 * * * *', // Run every hour at minute 0
+        queue: 'hourly',
+        limit: 50,
       },
       {
         cron: '0 10 * * *', // Run every day at 10:00 AM
-        handler: async ({ payload }) => {
-          payload.logger.info('Running expiring rewards check')
-          await checkExpiringRewards()
-          return { success: true }
-        },
+        queue: 'daily',
+        limit: 100,
       },
     ],
-    shouldAutoRun: async () => true,
+    // Control whether jobs should auto-run
+    shouldAutoRun: async (_payload) => {
+      // This function will be invoked each time Payload goes to pick up and run jobs
+      // If this function ever returns false, the cron schedule will be stopped
+      return true
+    },
+    // Configure access control for job execution
+    access: {
+      run: ({ req }) => {
+        // Allow logged in users to execute jobs
+        if (req.user) return true
+
+        // For Vercel Cron or other external triggers
+        const authHeader = req.headers.get('authorization')
+        return authHeader === `Bearer ${process.env.CRON_SECRET}`
+      },
+    },
+    // Configure job processing order
+    processingOrder: {
+      default: 'createdAt', // FIFO (first in, first out)
+      queues: {
+        hourly: 'createdAt',
+        daily: 'createdAt',
+      },
+    },
   },
   // -------------------------------------------- //
   plugins,
@@ -484,18 +561,26 @@ export default buildConfig({
     {
       path: '/email-templates/:id/preview',
       method: 'get',
-      handler: async (req: PayloadRequest & { params: any }, res: Response, next: NextFunction) => {
+      handler: async (
+        req: PayloadRequest & { params: { id: string } },
+        res: Response,
+        _next: NextFunction,
+      ) => {
         const { id } = req.params
         try {
-          const template: any = await req.payload.findByID({
+          // Use a more generic approach to avoid type conflicts
+          const result = await req.payload.findByID({
             collection: 'email-templates',
             id: id,
             depth: 0,
           })
 
-          if (!template) {
+          if (!result) {
             return res.status(404).send('Template not found')
           }
+
+          // Cast to a simple object with html property
+          const template = result as unknown as { html?: string }
 
           if (typeof template.html !== 'string') {
             req.payload.logger.warn(`Template ${id} has no generated HTML content for preview.`)
@@ -504,9 +589,10 @@ export default buildConfig({
 
           res.setHeader('Content-Type', 'text/html')
           res.status(200).send(template.html)
-        } catch (error: any) {
-          req.payload.logger.error(`Preview endpoint error for ID ${id}: ${error.message}`, error)
-          res.status(500).send(`Error generating preview: ${error.message}`)
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          req.payload.logger.error(`Preview endpoint error for ID ${id}: ${errorMessage}`, error)
+          res.status(500).send(`Error generating preview: ${errorMessage}`)
         }
       },
     },

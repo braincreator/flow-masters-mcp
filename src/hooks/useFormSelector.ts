@@ -2,22 +2,27 @@
 
 import { useContext } from 'react'
 import { FormContext } from '@/providers/FormProvider'
-import type { FieldValue, FieldValues, ValidationRule } from '@/providers/FormProvider'
+import type {
+  FieldValue,
+  FieldValues,
+  ValidationRule,
+  FormContextType,
+} from '@/providers/FormProvider'
 
 /**
  * Custom hook to select specific parts of the form context
  * This helps prevent unnecessary re-renders when only a subset of the context is needed
- * 
+ *
  * @param selector A function that selects specific parts of the form context
  * @returns The selected parts of the form context
  */
-export function useFormSelector<T>(selector: (context: any) => T): T {
+export function useFormSelector<T>(selector: (context: FormContextType) => T): T {
   const context = useContext(FormContext)
-  
+
   if (context === undefined) {
     throw new Error('useFormSelector must be used within a FormProvider')
   }
-  
+
   return selector(context)
 }
 
@@ -27,7 +32,7 @@ export function useFormSelector<T>(selector: (context: any) => T): T {
  * Select only the form values
  */
 export function useFormValues<T extends FieldValues = FieldValues>() {
-  return useFormSelector(context => ({
+  return useFormSelector((context) => ({
     values: context.formState.values as T,
     setValue: context.setValue,
     setValues: context.setValues,
@@ -39,7 +44,7 @@ export function useFormValues<T extends FieldValues = FieldValues>() {
  * Select only the form errors
  */
 export function useFormErrors() {
-  return useFormSelector(context => ({
+  return useFormSelector((context) => ({
     errors: context.formState.errors,
     setError: context.setError,
     setErrors: context.setErrors,
@@ -52,7 +57,7 @@ export function useFormErrors() {
  * Select only the form submission state
  */
 export function useFormSubmission() {
-  return useFormSelector(context => ({
+  return useFormSelector((context) => ({
     isSubmitting: context.formState.isSubmitting,
     submitCount: context.formState.submitCount,
     handleSubmit: context.handleSubmit,
@@ -64,7 +69,7 @@ export function useFormSubmission() {
  * Select only the form validation
  */
 export function useFormValidation() {
-  return useFormSelector(context => ({
+  return useFormSelector((context) => ({
     validate: context.validate,
     validateField: context.validateField,
     isValid: context.formState.isValid,
@@ -76,16 +81,18 @@ export function useFormValidation() {
  * Get a specific field from the form
  */
 export function useFormField(name: string, validation?: ValidationRule[]) {
-  return useFormSelector(context => {
+  return useFormSelector((context) => {
     const fieldProps = context.register(name, { validation })
-    
+
     return {
       field: fieldProps,
       value: context.formState.values[name],
       error: context.formState.errors[name],
       touched: context.formState.touched[name],
-      setValue: (value: FieldValue, options?: { shouldValidate?: boolean; shouldTouch?: boolean }) => 
-        context.setValue(name, value, options),
+      setValue: (
+        value: FieldValue,
+        options?: { shouldValidate?: boolean; shouldTouch?: boolean },
+      ) => context.setValue(name, value, options),
       setError: (error: string) => context.setError(name, error),
       clearError: () => context.clearErrors(name),
       setTouched: (isTouched?: boolean) => context.setTouched(name, isTouched),

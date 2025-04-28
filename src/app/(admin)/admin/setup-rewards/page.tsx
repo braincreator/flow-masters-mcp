@@ -17,12 +17,34 @@ const SetupRewardsPage: React.FC = () => {
     setResult(null)
 
     try {
+      // First, check authentication status
+      const authCheckResponse = await fetch('/api/auth-test', {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      const authData = await authCheckResponse.json()
+      console.log('Auth check result:', authData)
+
+      // Check if the user is authenticated
+      if (!authData.sessionAuth.isAuthenticated) {
+        throw new Error('You are not authenticated. Please log in and try again.')
+      }
+
+      // Check if the user is an admin
+      if (!authData.sessionAuth.user.isAdmin && authData.sessionAuth.user.role !== 'admin') {
+        throw new Error(
+          'You do not have permission to perform this action. Admin access is required.',
+        )
+      }
+
+      // Now call the setup-rewards endpoint
       const response = await fetch('/api/v1/setup-rewards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Важно для передачи cookie с сессией
+        // Important to include cookies with the session
         credentials: 'include',
       })
 

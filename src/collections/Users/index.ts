@@ -6,7 +6,12 @@ import { ServiceRegistry } from '@/services/service.registry'
 
 export const Users: CollectionConfig = {
   slug: 'users',
-  auth: true,
+  auth: {
+    tokenExpiration: 60 * 60 * 24 * 365 * 100, // 100 years in seconds
+    verify: false,
+    maxLoginAttempts: 5,
+    lockTime: 600 * 1000, // 10 minutes
+  },
   access: {
     admin: isAdmin,
     read: authenticated,

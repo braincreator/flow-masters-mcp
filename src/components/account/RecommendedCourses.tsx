@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Star, Clock, Users, TrendingUp } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface RecommendedCoursesProps {
   userId: string
@@ -38,16 +39,29 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
   const t = useTranslations('RecommendedCourses')
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { refreshAuth } = useAuth()
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCourses = async (retryAfterRefresh = false) => {
       try {
         setIsLoading(true)
 
         // Fetch real recommended courses from the API
-        const response = await fetch(`/api/v1/user/${userId}/recommended-courses?limit=${limit}`)
+        const response = await fetch(`/api/v1/user/${userId}/recommended-courses?limit=${limit}`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
         if (!response.ok) {
+          // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
+          if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
+            console.warn('Authentication error, refreshing auth and retrying...')
+            await refreshAuth()
+            return fetchCourses(true) // Retry with the retryAfterRefresh flag set to true
+          }
           throw new Error(`Failed to fetch recommended courses: ${response.status}`)
         }
 
@@ -70,7 +84,7 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
     }
 
     fetchCourses()
-  }, [userId, locale, limit])
+  }, [userId, locale, limit, refreshAuth])
 
   // Format duration
   const formatDuration = (hours: number) => {

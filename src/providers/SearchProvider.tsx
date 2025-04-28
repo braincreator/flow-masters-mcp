@@ -24,7 +24,7 @@ export interface SearchHistoryItem {
 }
 
 // Define the context type
-interface SearchContextType {
+export interface SearchContextType {
   // Search state
   query: string
   results: SearchResult[]
@@ -55,7 +55,7 @@ interface SearchContextType {
 }
 
 // Create the context
-const SearchContext = createContext<SearchContextType | undefined>(undefined)
+export const SearchContext = createContext<SearchContextType | undefined>(undefined)
 
 // Provider component
 export function SearchProvider({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { withAuth } from '@/utilities/auth'
 import { createCollectionHandlers, isSpecialCollection } from '@/factories/collectionHandlers'
 import type { Config } from '@/payload-types'

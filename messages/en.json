@@ -281,7 +281,9 @@
     "title": "Notifications",
     "noNotifications": "No notifications",
     "loading": "Loading notifications...",
-    "errorLoading": "Failed to load notifications"
+    "errorLoading": "Failed to load notifications",
+    "viewAll": "View All",
+    "markAllAsRead": "Mark all as read"
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",
