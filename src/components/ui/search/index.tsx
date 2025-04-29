@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useCallback } from 'react'
-import debounce from 'lodash.debounce'
+import React, { useCallback, useRef, useEffect } from 'react'
 import { SearchIcon, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -11,7 +10,6 @@ interface SearchProps {
   onChange?: (value: string) => void
   placeholder?: string
   className?: string
-  debounceMs?: number
   showClearButton?: boolean
   size?: 'default' | 'sm' | 'lg'
   inputClassName?: string
@@ -22,22 +20,15 @@ export function Search({
   onChange,
   placeholder = 'Search...',
   className,
-  debounceMs = 500,
   showClearButton = true,
   size = 'default',
   inputClassName,
 }: SearchProps) {
-  const debouncedOnChange = useCallback(
-    debounce((value: string) => {
-      onChange?.(value)
-    }, debounceMs),
-    [onChange, debounceMs],
-  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    debouncedOnChange(newValue)
-  }
+    const newValue = e.target.value;
+    onChange?.(newValue);
+  };
 
   const handleClear = () => {
     onChange?.('')

@@ -157,6 +157,7 @@
     "@types/escape-html": "^1.0.4",
     "@types/express": "^5.0.1",
     "@types/js-cookie": "^3.0.6",
+    "@types/lodash": "^4.17.16",
     "@types/node": "22.5.4",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
@@ -203,9 +204,6 @@
     ],
     "overrides": {
       "@aws-sdk/client-s3": "3.779.0"
-    },
-    "patchedDependencies": {
-      "react-image-crop@10.1.8": "patches/react-image-crop@10.1.8.patch"
     }
   }
 }

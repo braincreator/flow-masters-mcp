@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import debounce from 'lodash.debounce'
 import { PaginatedDocs } from 'payload'
 import { BlogPost, BlogTag } from '@/types/blocks'
 import { Locale } from '@/constants'
@@ -51,7 +52,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   const [loading, setLoading] = useState(false)
 
   // Function to fetch posts from the API route
-  const fetchPosts = useCallback(async (page: number, category?: string, tag?: string, search?: string) => {
+  const fetchPosts = useCallback(async (page: number, category?: string, tag?: string, search?: string, signal?: AbortSignal) => {
+    // Abort any previous request when parameters change
+    if (signal?.aborted) return;
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -63,20 +66,22 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
       // Exclude draft posts
       params.set('where[_status][not_equals]', 'draft')
 
-      const response = await fetch(`/api/v1/posts?${params.toString()}`)
+      const response = await fetch(`/api/v1/posts?${params.toString()}`, { signal })
       if (!response.ok) {
         throw new Error('Failed to fetch posts')
       }
       const data: PaginatedDocs<BlogPost> = await response.json()
       setPosts(data)
       setCurrentPage(page)
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-      // Optionally show an error message to the user
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching posts:', error)
+        // Optionally show an error message to the user
+      }
     } finally {
       setLoading(false)
     }
-  }, [currentCategory, currentTag, searchTerm, locale]); // Dependencies for useCallback
+  }, [locale]); // Only locale is needed as a dependency
 
   // Handle category filter change
   const handleCategoryChange = (categorySlug: string | undefined) => {
@@ -90,11 +95,11 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     setCurrentPage(1) // Reset to first page on filter change
   }
 
-  // Handle search input change (debounced via BlogSearch component)
-  const handleSearchChange = (searchQuery: string | undefined) => {
-    setSearchTerm(searchQuery)
-    setCurrentPage(1) // Reset to first page on search
-  }
+  // Handle search input change
+  const handleSearchChange = useCallback((searchQuery: string | undefined) => {
+    setSearchTerm(searchQuery);
+    setCurrentPage(1); // Reset to first page on search change
+  }, []); // No dependencies needed as it only updates state
 
   // Handle pagination change
   const handlePageChange = (page: number) => {
@@ -103,6 +108,10 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
   // Ref to track initial mount
   const isInitialMount = useRef(true);
+
+  // Ref for AbortController
+  const abortControllerRef = useRef<AbortController | null>(null);
+
 
   // Effect to handle initial search params from the URL on client load
   // This is needed if the user navigates directly to a filtered/paginated URL
@@ -124,17 +133,27 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
   }, [locale]); // Depend only on locale, as initialPosts is static
 
-  // Effect to fetch posts when state changes (filters, search, pagination)
+  // Effect to fetch posts when state changes (filters, pagination, or search becomes empty)
   useEffect(() => {
     // Prevent fetching on initial mount
     if (isInitialMount.current) {
       return;
     }
 
-    // Fetch posts when state changes
-    fetchPosts(currentPage, currentCategory, currentTag, searchTerm);
+    // Create a new AbortController for this immediate fetch
+    const controller = new AbortController();
 
-  }, [currentPage, currentCategory, currentTag, searchTerm, fetchPosts]); // Dependencies
+    // Only fetch immediately if searchTerm is empty or state changes other than searchTerm
+    // If searchTerm is not empty, the debounced function handles the fetch
+    if (!searchTerm) {
+       fetchPosts(currentPage, currentCategory, currentTag, searchTerm, controller.signal);
+    }
+
+    return () => {
+      // Abort the request initiated by this effect
+      controller.abort();
+    };
+  }, [currentPage, currentCategory, currentTag, searchTerm, locale, fetchPosts]); // Dependencies
 
   // Effect to update URL based on state changes
   useEffect(() => {
@@ -147,6 +166,45 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     const newUrl = `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
     window.history.pushState({}, '', newUrl)
   }, [currentPage, currentCategory, currentTag, searchTerm, locale])
+
+  // Effect to debounce fetchPosts when searchTerm, currentPage, currentCategory, or currentTag changes
+  useEffect(() => {
+    const debouncedFetch = debounce(async (page: number, category?: string, tag?: string, search?: string) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        await fetchPosts(page, category, tag, search, controller.signal);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching posts:', error);
+        }
+      } finally {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+      }
+    }, 300) as  typeof fetchPosts & { cancel: () => void }; // Debounce for 300ms and cast to include cancel method
+
+    // Initial fetch on mount or when dependencies change
+    if (!isInitialMount.current) {
+      debouncedFetch(currentPage, currentCategory, currentTag, searchTerm);
+    }
+
+
+    // Cleanup: cancel the debounced function and abort any pending request
+    return () => {
+      debouncedFetch.cancel();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, [searchTerm, currentPage, currentCategory, currentTag, fetchPosts]); // Dependencies for the effect
+
 
   // Find active category details if we have a category filter
   const activeCategory = currentCategory
@@ -183,7 +241,6 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                   size="default"
                   className="w-full"
                   showClearButton={true}
-                  debounceMs={1000} // Set debounce to 1 second
                 />
               </div>
 
@@ -248,7 +305,6 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
               <div className="blog-fade-in visible space-y-8">
                 <div className="grid gap-6 sm:grid-cols-2">
                   {posts.docs.map((post, index) => {
-                    console.log('Rendering post at index', index, ':', post); // Add this line
                     // Add a check to ensure the post object is valid before rendering
                     if (!post || !post.id) {
                       console.warn('Skipping rendering for invalid post object:', post);
