@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 export async function withAuth(
   req: NextRequest,

@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import ProductsClient from './page.client'
@@ -154,7 +154,10 @@ export default async function StorePage({ params, searchParams }: Props) {
           id: doc.id?.toString(),
           title: typeof doc.title === 'string' ? doc.title : doc.title?.[currentLocale] || '',
           description: doc.description ? safeSerialize(doc.description) : null,
-          productCategory: typeof doc.productCategory === 'string' ? doc.productCategory : safeSerialize(doc.productCategory),
+          productCategory:
+            typeof doc.productCategory === 'string'
+              ? doc.productCategory
+              : safeSerialize(doc.productCategory),
         }
       })
 

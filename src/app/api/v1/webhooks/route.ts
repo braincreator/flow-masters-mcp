@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyWebhookSignature } from '@/utilities/auth'
 import { ServiceRegistry } from '@/services/service.registry'
 
@@ -50,4 +50,4 @@ export async function POST(req: Request) {
     console.error('Webhook error:', error)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
-} 
+}

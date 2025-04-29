@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/providers/I18n'
+import { useCache } from '@/providers/CacheProvider' // Import useCache
 
 // Define search result types
 export interface SearchResult {
@@ -63,6 +64,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { lang } = useI18n()
+  const cache = useCache() // Obtain cache instance
 
   // Search state
   const [query, setQueryState] = useState('')
@@ -165,7 +167,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         const { searchApi } = await import('@/lib/api')
 
         // Search using the API utility function
-        const data = await searchApi.search(searchQuery, filters, lang)
+        const data = await searchApi.search(searchQuery, filters, lang, cache) // Pass cache instance
 
         setResults(data.results || [])
         setTotalResults(data.totalResults || data.results?.length || 0)
@@ -271,7 +273,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       const { searchApi } = await import('@/lib/api')
 
       // Get suggestions using the API utility function
-      const data = await searchApi.getSuggestions(input)
+      const data = await searchApi.getSuggestions(input, cache) // Pass cache instance
       return data.suggestions || []
     } catch (err) {
       console.error('Error fetching search suggestions:', err)

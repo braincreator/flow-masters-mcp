@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 /**
  * API endpoint to create a consulting product
@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
   try {
     // Initialize Payload
     const payload = await getPayloadClient()
-    
+
     console.log('Creating consulting product...')
-    
+
     // Check if a consulting product already exists
     const existingProducts = await payload.find({
       collection: 'products',
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         },
       },
     })
-    
+
     if (existingProducts.docs.length > 0) {
       console.log('Consulting product already exists:', existingProducts.docs[0].id)
       return NextResponse.json({
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         product: existingProducts.docs[0],
       })
     }
-    
+
     // Create the consulting product
     const product = await payload.create({
       collection: 'products',
@@ -78,9 +78,9 @@ export async function GET(request: NextRequest) {
         isConsulting: true,
       },
     })
-    
+
     console.log('Consulting product created:', product.id)
-    
+
     return NextResponse.json({
       success: true,
       message: 'Consulting product created successfully',
@@ -89,9 +89,12 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating consulting product:', error)
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
+    )
   }
 }

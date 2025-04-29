@@ -3,7 +3,7 @@
  * These functions handle common API operations and integrate with our context providers
  */
 
-import { useCache } from '@/providers/CacheProvider'
+import { useCache, CacheContextType } from '@/providers/CacheProvider'
 
 /**
  * Generic fetch function that integrates with our CacheProvider
@@ -17,17 +17,14 @@ export async function apiFetch<T = any>(
   url: string,
   options: RequestInit = {},
   cacheKey?: string,
-  cacheTTL?: number
+  cacheTTL?: number,
+  cacheInstance?: CacheContextType // Add cacheInstance parameter with correct type
 ): Promise<T> {
   // If we're in a browser environment and have a cache key, check the cache
-  if (typeof window !== 'undefined' && cacheKey) {
-    const cache = useCache?.()
-    
-    if (cache) {
-      const cachedData = cache.get<T>(cacheKey)
-      if (cachedData) {
-        return cachedData
-      }
+  if (typeof window !== 'undefined' && cacheKey && cacheInstance) { // Use cacheInstance
+    const cachedData = cacheInstance.get<T>(cacheKey)
+    if (cachedData) {
+      return cachedData
     }
   }
   
@@ -50,12 +47,8 @@ export async function apiFetch<T = any>(
   const data = await response.json()
   
   // If we're in a browser environment and have a cache key, cache the data
-  if (typeof window !== 'undefined' && cacheKey) {
-    const cache = useCache?.()
-    
-    if (cache) {
-      cache.set(cacheKey, data, cacheTTL)
-    }
+  if (typeof window !== 'undefined' && cacheKey && cacheInstance) { // Use cacheInstance
+    cacheInstance.set(cacheKey, data, cacheTTL)
   }
   
   return data
@@ -210,7 +203,7 @@ export const searchApi = {
    * @param locale Locale
    * @returns Search results
    */
-  async search(query: string, filters: any = {}, locale = 'en') {
+  async search(query: string, filters: any = {}, locale = 'en', cacheInstance?: CacheContextType) {
     if (!query || query.trim().length < 2) {
       return { results: [], totalResults: 0 }
     }
@@ -235,7 +228,7 @@ export const searchApi = {
     const cacheKey = `search-${params.toString()}`
     
     // Fetch search results
-    return apiFetch(`/api/v1/search?${params.toString()}`, {}, cacheKey, 60) // Cache for 1 minute
+    return apiFetch(`/api/v1/search?${params.toString()}`, {}, cacheKey, 60, cacheInstance) // Cache for 1 minute, pass cacheInstance
   },
   
   /**
@@ -243,7 +236,7 @@ export const searchApi = {
    * @param input Search input
    * @returns Search suggestions
    */
-  async getSuggestions(input: string) {
+  async getSuggestions(input: string, cacheInstance?: CacheContextType) {
     if (!input || input.trim().length < 2) {
       return { suggestions: [] }
     }
@@ -252,7 +245,7 @@ export const searchApi = {
     const cacheKey = `search-suggestions-${input}`
     
     // Fetch search suggestions
-    return apiFetch(`/api/v1/search/suggestions?q=${encodeURIComponent(input)}`, {}, cacheKey, 60) // Cache for 1 minute
+    return apiFetch(`/api/v1/search/suggestions?q=${encodeURIComponent(input)}`, {}, cacheKey, 60, cacheInstance) // Cache for 1 minute, pass cacheInstance
   },
 }
 

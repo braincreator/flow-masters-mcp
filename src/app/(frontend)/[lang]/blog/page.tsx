@@ -3,17 +3,10 @@ import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSideURL } from '@/utilities/getURL'
-import { BlogSearch } from '@/components/blog/BlogSearch'
-import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
-import { BlogPostCard } from '@/components/blog/BlogPostCard'
-import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
 import { Post, Category, Media } from '@/payload-types'
 import { BlogPost, BlogTag } from '@/types/blocks'
-import { Filter, X, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import Link from 'next/link'
+import BlogPageClient from './page.client' // Import the client component
 
 // Localized texts
 const texts = {
@@ -77,11 +70,9 @@ export default async function BlogPage(props: PageParams) {
   try {
     // Destructure props
     const { lang } = await props.params
-    const { page, category, tag, search } = await props.searchParams
 
     const locale = (lang || DEFAULT_LOCALE) as Locale
     const t = texts[locale]
-    const currentPage = parseInt(page || '1', 10)
     const limit = 9 // Posts per page
 
     // Ensure we have a valid server URL for Payload
@@ -104,35 +95,17 @@ export default async function BlogPage(props: PageParams) {
       throw new Error('Database connection error. Please try again later.')
     }
 
-    // Build the query conditions
-    const query: any = {
-      _status: { equals: 'published' },
-    }
-
-    // Track if we have any active filters
-    const hasActiveFilters = !!(category || tag || search)
-
-    if (category) {
-      query['categories.slug'] = { equals: category }
-    }
-
-    if (tag) {
-      query['tags.slug'] = { equals: tag }
-    }
-
-    if (search) {
-      query.or = [{ title: { like: search } }]
-    }
-
-    // Fetch posts based on filters
+    // Fetch the first page of posts
     let posts
     try {
       posts = await payload.find({
         collection: 'posts',
-        where: query,
+        where: {
+          _status: { equals: 'published' },
+        },
         sort: '-publishedAt',
         limit,
-        page: currentPage,
+        page: 1, // Fetch only the first page initially
         depth: 1, // Load relations 1 level deep
         locale: locale,
       })
@@ -246,195 +219,20 @@ export default async function BlogPage(props: PageParams) {
             id: tag.id,
             title: tag.title,
             slug: tag.slug || '',
-          }
+            }
         }),
         readingTime: post.readingTime || 5, // Используем поле readingTime с запасным значением 5 мин
       }
     })
 
-    // Find active category details if we have a category filter
-    const activeCategory = category
-      ? formattedCategories.find((cat) => cat.slug === category)
-      : undefined
-
-    // Функция для генерации URL для удаления фильтра
-    const getClearFilterUrl = (filterType: string) => {
-      const params = new URLSearchParams()
-
-      // Копируем все существующие параметры кроме того, который нужно удалить
-      if (category && filterType !== 'category') params.set('category', category)
-      if (tag && filterType !== 'tag') params.set('tag', tag)
-      if (search) params.set('search', search)
-
-      return `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
-    }
-
-    // URL для очистки всех фильтров
-    const clearAllFiltersUrl = `/${locale}/blog`
-
-    // URL для пагинации
-    const getPageUrl = (pageNum: number) => {
-      const params = new URLSearchParams()
-
-      if (category) params.set('category', category)
-      if (tag) params.set('tag', tag)
-      if (search) params.set('search', search)
-
-      params.set('page', pageNum.toString())
-
-      return `/${locale}/blog?${params.toString()}`
-    }
-
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-12">
-          {/* Hero section с заголовком и описанием */}
-          <div className="relative mx-auto mb-12 text-center">
-            <h1 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t.title}</h1>
-            <p className="mx-auto max-w-xl text-lg text-muted-foreground">{t.description}</p>
-          </div>
-
-          {/* Основной контент */}
-          <div className="lg:flex lg:gap-8">
-            {/* Основная колонка со статьями */}
-            <div className="blog-fade-in visible lg:w-2/3">
-              {/* Панель инструментов с фильтрами и поиском */}
-              <div className="mb-8 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div className="flex-1">
-                  <BlogSearch
-                    placeholder={t.searchPlaceholder}
-                    preserveParams={true}
-                    variant="default"
-                    size="default"
-                    className="w-full"
-                  />
-                </div>
-
-                {hasActiveFilters && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{t.activeFilters}:</span>
-                    <div className="flex flex-wrap gap-2">
-                      {category && activeCategory && (
-                        <Link
-                          href={getClearFilterUrl('category')}
-                          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                        >
-                          {activeCategory.title}
-                          <X className="ml-1 h-3 w-3" />
-                        </Link>
-                      )}
-                      {tag && (
-                        <Link
-                          href={getClearFilterUrl('tag')}
-                          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                        >
-                          {formattedTags.find((t) => t.slug === tag)?.title || tag}
-                          <X className="ml-1 h-3 w-3" />
-                        </Link>
-                      )}
-                    </div>
-                    <Link
-                      href={clearAllFiltersUrl}
-                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        {t.clearFilters}
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Раздел статей */}
-              {posts.docs.length > 0 ? (
-                <div className="blog-fade-in visible space-y-8">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    {formattedPosts.map((post, index) => (
-                      <BlogPostCard
-                        key={post.id}
-                        post={post}
-                        locale={locale}
-                        layout="grid"
-                        imagePriority={index < 2}
-                        className="blog-fade-in visible"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Пагинация */}
-                  {posts.totalPages > 1 && (
-                    <div className="mt-12 flex justify-center">
-                      <Pagination
-                        page={currentPage}
-                        totalPages={posts.totalPages}
-                        baseUrl={`/${locale}/blog`}
-                        searchParams={{
-                          ...(category ? { category } : {}),
-                          ...(tag ? { tag } : {}),
-                          ...(search ? { search } : {}),
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Сообщение "ничего не найдено"
-                <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-muted/20 py-16 text-center">
-                  <div className="h-16 w-16 rounded-full bg-muted/50 p-4">
-                    <Search className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="mt-4 text-xl font-medium">{t.noPostsFound}</h3>
-                  <p className="mt-2 max-w-md text-muted-foreground">{t.tryChangingFilters}</p>
-                  <Link href={clearAllFiltersUrl}>
-                    <Button className="mt-4">{t.clearFilters}</Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Боковая колонка */}
-            <div className="blog-fade-in visible mt-12 lg:mt-0 lg:w-1/3">
-              {/* Категории */}
-              {formattedCategories.length > 0 && (
-                <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
-                  <h3 className="mb-4 text-lg font-medium">{t.categories}</h3>
-                  <BlogTagCloud
-                    tags={formattedCategories}
-                    activeTag={category}
-                    type="categories"
-                    showCount
-                    preserveParams={true}
-                  />
-                </div>
-              )}
-
-              {/* Теги */}
-              {formattedTags.length > 0 && (
-                <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
-                  <h3 className="mb-4 text-lg font-medium">{t.tags}</h3>
-                  <BlogTagCloud
-                    tags={formattedTags}
-                    activeTag={tag}
-                    type="tags"
-                    showCount
-                    sizeFactor
-                    limit={20}
-                    preserveParams={true}
-                  />
-                </div>
-              )}
-
-              {/* Рассылка - рендерится на клиенте с проверкой подписки */}
-              <NewsletterWrapper locale={locale} storageKey="blog_newsletter_subscription" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <BlogPageClient
+        initialPosts={posts}
+        categories={formattedCategories}
+        tags={formattedTags}
+        locale={locale}
+        texts={t}
+      />
     )
   } catch (error) {
     console.error('Error loading blog page:', error)

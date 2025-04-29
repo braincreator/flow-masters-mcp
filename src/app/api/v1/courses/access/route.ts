@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
 // Schema for access check request
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Get enrollment service
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const enrollmentService = serviceRegistry.getEnrollmentService()
@@ -29,11 +29,11 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error checking course access:', error)
     return NextResponse.json(
-      { 
-        hasAccess: false, 
-        error: error instanceof Error ? error.message : 'Failed to check course access' 
-      }, 
-      { status: 500 }
+      {
+        hasAccess: false,
+        error: error instanceof Error ? error.message : 'Failed to check course access',
+      },
+      { status: 500 },
     )
   }
 }

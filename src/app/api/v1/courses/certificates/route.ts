@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
 // Schema for certificate generation request
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Get enrollment service
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const enrollmentService = serviceRegistry.getEnrollmentService()
@@ -29,11 +29,11 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error generating certificate:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to generate certificate' 
-      }, 
-      { status: 500 }
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate certificate',
+      },
+      { status: 500 },
     )
   }
 }
@@ -44,15 +44,12 @@ export async function GET(request: Request) {
     const userId = url.searchParams.get('userId')
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Get enrollment service
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const enrollmentService = serviceRegistry.getEnrollmentService()
@@ -64,11 +61,11 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error getting certificates:', error)
     return NextResponse.json(
-      { 
-        certificates: [], 
-        error: error instanceof Error ? error.message : 'Failed to get certificates' 
-      }, 
-      { status: 500 }
+      {
+        certificates: [],
+        error: error instanceof Error ? error.message : 'Failed to get certificates',
+      },
+      { status: 500 },
     )
   }
 }

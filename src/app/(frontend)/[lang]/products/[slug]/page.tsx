@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ProductDetail } from '@/components/ProductDetail'
 import { RelatedProducts } from '@/components/RelatedProducts'
 import { generateMeta } from '@/utilities/generateMeta'

@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { CourseLearnPage } from '@/components/courses/CourseLearnPage'
 import { notFound } from 'next/navigation'
 

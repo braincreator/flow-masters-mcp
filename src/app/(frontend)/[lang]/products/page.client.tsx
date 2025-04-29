@@ -62,7 +62,7 @@ export default function ProductsClient({
     const categoryLabel =
       typeof category.title === 'object'
         ? category.title[currentLocale] || Object.values(category.title)[0]
-        : category.title || category.name || ''
+        : category.title || ''
 
     return {
       id: category.id,
@@ -102,7 +102,7 @@ export default function ProductsClient({
       // Сначала проверяем, есть ли локализованная цена для текущей локали
       if (product.pricing?.locales?.[currentLocale]?.amount !== undefined) {
         // Используем локализованную цену напрямую, без конвертации
-        productPrice = product.pricing.locales[currentLocale].amount
+        productPrice = product.pricing.locales?.[currentLocale]?.amount ?? 0
         console.log(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
       }
       // Если нет локализованной цены, используем finalPrice/basePrice и конвертируем
@@ -118,19 +118,6 @@ export default function ProductsClient({
           console.log(`DEBUG: Используем basePrice:`, productPrice)
         }
 
-        // Конвертируем если нужно и цена в базовой валюте
-        if (productPrice > 0 && currentLocale !== 'en') {
-          const originalPrice = productPrice
-          productPrice = convertPrice(productPrice, 'en', currentLocale)
-          console.log(
-            `DEBUG: Конвертация из 'en' в '${currentLocale}': ${originalPrice} -> ${productPrice}`,
-          )
-        }
-      }
-      // Для совместимости со старыми форматами цен
-      else if (typeof product.price === 'number') {
-        productPrice = product.price
-        console.log(`DEBUG: Используем простое поле price:`, productPrice)
         // Конвертируем если нужно и цена в базовой валюте
         if (productPrice > 0 && currentLocale !== 'en') {
           const originalPrice = productPrice
@@ -198,11 +185,11 @@ export default function ProductsClient({
       }
 
       // Filter favorites if needed - читаем favoriteProductIds здесь
-      let filteredProducts = data.docs
+      let filteredProducts = data.docs as Product[]
       // Получаем актуальный Set ID избранного прямо перед фильтрацией
       const currentFavoriteIds = favoriteProductIds // Доступ к переменной из замыкания
       if (searchParams.get('favorites') === 'true' && currentFavoriteIds) {
-        filteredProducts = data.docs.filter((product) => currentFavoriteIds.has(product.id))
+        filteredProducts = filteredProducts.filter((product: Product) => currentFavoriteIds.has(product.id))
       }
 
       // Update state with new products
@@ -266,7 +253,7 @@ export default function ProductsClient({
         ]}
         productTypes={productTypes}
         priceRange={priceRange}
-        defaultLayout={searchParams.get('layout') || 'grid'}
+        defaultLayout={searchParams.get('layout') === 'list' || searchParams.get('layout') === 'grid' ? searchParams.get('layout') as 'list' | 'grid' : 'grid'}
         locale={currentLocale}
         showFavorites={searchParams.get('favorites') === 'true'}
         currency={{
@@ -282,20 +269,20 @@ export default function ProductsClient({
           searchPlaceholder: t.filters.searchPlaceholder,
           allCategories: t.categories.all,
           productTypes: t.filters.productTypes,
-          priceRange: t.filters.priceRange,
-          layout: t.filters.layout,
+          priceRange: t.filters.priceRange.label,
+          layout: t.filters.layout[searchParams.get('layout') === 'list' || searchParams.get('layout') === 'grid' ? searchParams.get('layout') as 'list' | 'grid' : 'grid'],
           favorites: currentLocale === 'ru' ? 'Избранное' : 'Favorites',
         }}
       />
 
       {isLoading ? (
         <div className="flex justify-center my-12">
-          <LoadingIndicator size="lg" />
+          <LoadingIndicator />
         </div>
       ) : (
         <ProductsGrid
           products={displayProducts}
-          layout={searchParams.get('layout') || 'grid'}
+          layout={searchParams.get('layout') === 'list' || searchParams.get('layout') === 'grid' ? searchParams.get('layout') as 'list' | 'grid' : 'grid'}
           locale={currentLocale}
           currentPage={currentPageNum}
           totalPages={currentTotalPages}

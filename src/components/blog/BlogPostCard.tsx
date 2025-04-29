@@ -57,6 +57,11 @@ interface Post {
     url: string
     alt: string
   }
+  thumbnail?: { // Add thumbnail field
+    url: string
+    alt: string
+  }
+  content?: any; // Add content field
   author?: {
     name: string
     avatar?: string
@@ -104,6 +109,9 @@ export function BlogPostCard({
   const formattedDate = (post.publishedAt && formatBlogDate(post.publishedAt, locale)) || ''
   const postLink = `/${locale}/blog/${post.slug}`
 
+  const imageUrl = post.thumbnail?.url || post.heroImage?.url || ''; // Determine image URL, fallback to empty string
+  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || 'Blog post image'; // Determine image alt text
+
   return (
     <article
       className={cn(
@@ -114,7 +122,8 @@ export function BlogPostCard({
       style={style}
     >
       {/* Image */}
-      {post.heroImage?.url && (
+      {/* Image */}
+      {imageUrl && ( // Render only if imageUrl exists
         <Link
           href={postLink}
           className={cn(
@@ -123,8 +132,8 @@ export function BlogPostCard({
           )}
         >
           <Image
-            src={post.heroImage.url}
-            alt={post.heroImage.alt || post.title || 'Blog post image'}
+            src={imageUrl} // Use the determined imageUrl
+            alt={imageAlt} // Use the determined imageAlt
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={imagePriority}

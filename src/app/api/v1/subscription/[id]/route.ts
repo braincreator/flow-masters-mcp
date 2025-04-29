@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 import { UpdateSubscriptionParams } from '@/types/subscription'
 import { errorResponse } from '@/utilities/api'

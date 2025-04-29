@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
 

@@ -22,6 +22,7 @@ interface BlogTagCloudProps {
   limit?: number
   preserveParams?: boolean
   className?: string
+  onTagClick?: (slug: string | undefined) => void // Add onTagClick prop
 }
 
 export function BlogTagCloud({
@@ -33,6 +34,7 @@ export function BlogTagCloud({
   limit,
   preserveParams = false,
   className,
+  onTagClick, // Destructure onTagClick prop
 }: BlogTagCloudProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -87,12 +89,18 @@ export function BlogTagCloud({
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
       {/* Include "All" option if activeTag is provided */}
-      {activeTag && (
+      {activeTag !== undefined && ( // Only show "All" if activeTag is being managed
         <Link
-          href={getTagUrl('all')}
+          href={onTagClick ? '#' : getTagUrl('all')} // Use '#' if onTagClick is provided
+          onClick={(e) => {
+            if (onTagClick) {
+              e.preventDefault() // Prevent default link navigation
+              onTagClick(undefined) // Call handler with undefined for "All"
+            }
+          }}
           className={cn(
             'blog-tag inline-flex items-center rounded-full px-3 py-1 text-sm transition-colors',
-            activeTag === 'all' || !activeTag
+            activeTag === undefined // "All" is active when activeTag is undefined
               ? 'bg-accent text-accent-foreground font-medium'
               : 'bg-muted hover:bg-accent/20 text-foreground',
           )}
@@ -117,7 +125,13 @@ export function BlogTagCloud({
         return (
           <Link
             key={tag.slug || index}
-            href={getTagUrl(tag.slug || '')}
+            href={onTagClick ? '#' : getTagUrl(tag.slug || '')} // Use '#' if onTagClick is provided
+            onClick={(e) => {
+              if (onTagClick) {
+                e.preventDefault() // Prevent default link navigation
+                onTagClick(tag.slug || undefined) // Call handler with tag slug
+              }
+            }}
             style={sizeStyle}
             className={cn(
               'blog-tag inline-flex items-center rounded-full px-3 py-1 text-sm transition-all',

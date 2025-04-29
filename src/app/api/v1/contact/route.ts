@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload' // Убедитесь, что путь верный
+import { getPayloadClient } from '@/utilities/payload/index' // Убедитесь, что путь верный
 import { z } from 'zod'
 
 // Схема валидации для входящих данных (должна совпадать с фронтендом)

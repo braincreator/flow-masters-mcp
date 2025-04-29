@@ -66,6 +66,9 @@ export function Search({
             size === 'sm' && 'h-8 text-sm',
             size === 'default' && 'h-10 text-sm',
             size === 'lg' && 'h-12 text-base',
+            // Hide browser's default clear button for search inputs
+            '[&::-webkit-search-cancel-button]:[-webkit-appearance:none]',
+            '[&::-ms-clear]:[display:none] [&::-ms-clear]:[width:0] [&::-ms-clear]:[height:0]',
             inputClassName,
           )}
         />

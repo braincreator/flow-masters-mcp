@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
 import type { Payload } from 'payload'
 

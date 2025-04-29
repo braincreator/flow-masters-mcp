@@ -1,7 +1,7 @@
 import { Locale } from '@/constants'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 

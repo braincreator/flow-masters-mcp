@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
 // Schema for enrollment request
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Get enrollment service
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const enrollmentService = serviceRegistry.getEnrollmentService()
@@ -40,11 +40,11 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error enrolling user in course:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to enroll user in course' 
-      }, 
-      { status: 500 }
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to enroll user in course',
+      },
+      { status: 500 },
     )
   }
 }

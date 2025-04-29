@@ -7,6 +7,7 @@ import { draftMode } from 'next/headers'
 import { Locale } from '@/constants'
 import '@/app/(frontend)/globals.css'
 import FloatingCartButtonWrapper from '@/components/FloatingCartButtonWrapper'
+import CookieConsentBanner from '@/components/CookieConsentBanner/CookieConsentBanner'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
@@ -93,6 +94,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                   <div id="pagination-slot" className="container py-8"></div>
                   <Footer locale={lang} />
                   <FloatingCartButtonWrapper locale={lang} />
+                  <CookieConsentBanner locale={lang} />
                 </LoadingProvider>
               </LoadingConfigProvider>
             </I18nProvider>

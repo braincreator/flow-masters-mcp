@@ -14,7 +14,7 @@ interface Cache {
   [key: string]: CacheEntry<any>
 }
 
-interface CacheContextType {
+export interface CacheContextType {
   // Get data from cache
   get: <T>(key: string) => T | null
   // Set data in cache with optional expiration

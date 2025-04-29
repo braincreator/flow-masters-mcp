@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { convertPrice } from '@/utilities/formatPrice'
 
@@ -244,7 +244,9 @@ export async function GET(request: Request) {
           console.log(`Продукт: ${productWithPrice.title}`)
           console.log(`- Цена в USD: ${productPrice}$`)
           console.log(`- Цена в локальной валюте: ${comparePrice}`)
-          console.log(`- Фильтр: от ${priceFilters.minPrice || 0} до ${priceFilters.maxPrice || '∞'}`)
+          console.log(
+            `- Фильтр: от ${priceFilters.minPrice || 0} до ${priceFilters.maxPrice || '∞'}`,
+          )
 
           // Делаем сравнение
           const meetsMinPrice =
@@ -254,7 +256,9 @@ export async function GET(request: Request) {
 
           const isMatching = meetsMinPrice && meetsMaxPrice
           console.log(`- Результат: ${isMatching ? 'СООТВЕТСТВУЕТ' : 'НЕ СООТВЕТСТВУЕТ'} диапазону`)
-          console.log(`- Причина: мин=${meetsMinPrice ? 'ДА' : 'НЕТ'}, макс=${meetsMaxPrice ? 'ДА' : 'НЕТ'}`)
+          console.log(
+            `- Причина: мин=${meetsMinPrice ? 'ДА' : 'НЕТ'}, макс=${meetsMaxPrice ? 'ДА' : 'НЕТ'}`,
+          )
 
           return isMatching
         })
@@ -267,7 +271,9 @@ export async function GET(request: Request) {
           // We're not recalculating pagination here, which is a limitation
         }
 
-        console.log(`После фильтрации по цене: найдено ${filteredDocs.length} товаров из ${products.docs.length}`)
+        console.log(
+          `После фильтрации по цене: найдено ${filteredDocs.length} товаров из ${products.docs.length}`,
+        )
         return createApiResponse(true, filteredProducts)
       }
 

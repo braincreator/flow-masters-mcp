@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import debounce from 'lodash.debounce' // Import debounce
 import { Search } from '@/components/ui/search'
 import { cn } from '@/lib/utils'
 import { useSearch } from '@/providers/SearchProvider'
@@ -13,6 +14,7 @@ export interface BlogSearchProps {
   className?: string
   preserveParams?: boolean
   variant?: 'default' | 'minimal' | 'sidebar' | 'product-style'
+  debounceMs?: number // Add debounceMs to the interface
   showClearButton?: boolean
   size?: 'default' | 'sm' | 'lg'
 }
@@ -26,8 +28,9 @@ export function BlogSearch({
   variant = 'default',
   showClearButton = true,
   size = 'default',
+  debounceMs, // Add debounceMs to prop destructuring
 }: BlogSearchProps) {
-  const [localQuery, setLocalQuery] = useState(initialQuery)
+  const [localQuery, setLocalQuery] = useState(initialQuery);
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -39,52 +42,28 @@ export function BlogSearch({
   const segments = pathname.split('/')
   const currentLocale = segments.length > 1 ? segments[1] : 'en'
 
-  // Handle the search query change
-  const handleSearchChange = (value: string) => {
-    setLocalQuery(value)
+  // The onChange prop from the parent (page.client.tsx) is already debounced.
+  // We just need to pass the value and the onChange handler down to the generic Search component.
 
-    // Update global search context
-    setGlobalQuery(value)
-
-    // If there's an onSearch prop, call it
-    if (onSearch) {
-      onSearch(value)
-
-      // Also perform search in global context
-      if (value.trim().length >= 2) {
-        search(value)
-      }
-      return
-    }
-
-    // Otherwise update the URL and perform a router-based search
-    if (!value.trim() && !initialQuery) return
-
-    // Create new search params
-    const params = new URLSearchParams(preserveParams ? searchParams.toString() : '')
-
-    if (value.trim()) {
-      params.set('search', value.trim())
-    } else {
-      params.delete('search')
-    }
-    params.delete('page') // Reset to first page on new search
-
-    // Navigate to search results using client-side navigation
-    router.push(`/${currentLocale}/blog?${params.toString()}`, { scroll: false })
-  }
-
-  // Update query when initialQuery or globalQuery changes
+  // Effect to update local query when initialQuery prop changes
   useEffect(() => {
-    // Prefer initialQuery from props if provided
-    if (initialQuery) {
-      setLocalQuery(initialQuery)
-    }
-    // Otherwise use global query from context if available
-    else if (globalQuery && globalQuery !== localQuery) {
-      setLocalQuery(globalQuery)
-    }
-  }, [initialQuery, globalQuery, localQuery])
+    setLocalQuery(initialQuery);
+  }, [initialQuery]);
+
+  // Effect to debounce local query changes and call onSearch
+  useEffect(() => {
+    const handler = debounce(() => {
+      onSearch?.(localQuery);
+    }, debounceMs) as typeof onSearch & { cancel: () => void }; // Type assertion to include cancel
+
+    // Call the debounced handler
+    handler();
+
+    // Cleanup: Cancel the debounced call on unmount or when dependencies change
+    return () => {
+      handler.cancel();
+    };
+  }, [localQuery, debounceMs, onSearch]); // Dependencies: localQuery, debounceMs, and onSearch
 
   // Get the appropriate className based on variant
   let inputClassName = ''
@@ -106,12 +85,12 @@ export function BlogSearch({
   return (
     <Search
       value={localQuery}
-      onChange={handleSearchChange}
+      onChange={setLocalQuery} // Update local state directly
       placeholder={placeholder}
       className={className}
       showClearButton={showClearButton}
       size={size}
-      debounceMs={300}
+      // debounceMs is handled internally by this component's useEffect
       inputClassName={inputClassName}
     />
   )

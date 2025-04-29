@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import fs from 'fs'
 import path from 'path'
 

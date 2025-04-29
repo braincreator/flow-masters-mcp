@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
 // Schema for enrollment update request
@@ -17,15 +17,12 @@ export async function GET(request: Request) {
     const courseId = url.searchParams.get('courseId')
 
     if (!userId || !courseId) {
-      return NextResponse.json(
-        { error: 'User ID and Course ID are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'User ID and Course ID are required' }, { status: 400 })
     }
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Find enrollment
     const enrollments = await payload.find({
       collection: 'course-enrollments',
@@ -54,10 +51,10 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error getting course enrollment:', error)
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to get course enrollment' 
-      }, 
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : 'Failed to get course enrollment',
+      },
+      { status: 500 },
     )
   }
 }
@@ -70,23 +67,27 @@ export async function POST(req: Request) {
 
     // Get payload client
     const payload = await getPayloadClient()
-    
+
     // Get enrollment service
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const enrollmentService = serviceRegistry.getEnrollmentService()
 
     // Update course progress
-    const updatedEnrollment = await enrollmentService.updateCourseProgress(userId, courseId, progress)
+    const updatedEnrollment = await enrollmentService.updateCourseProgress(
+      userId,
+      courseId,
+      progress,
+    )
 
     return NextResponse.json({ success: true, enrollment: updatedEnrollment }, { status: 200 })
   } catch (error) {
     console.error('Error updating course progress:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to update course progress' 
-      }, 
-      { status: 500 }
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update course progress',
+      },
+      { status: 500 },
     )
   }
 }

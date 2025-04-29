@@ -1604,6 +1604,14 @@ export interface Post {
   id: string;
   title: string;
   heroImage?: (string | null) | Media;
+  /**
+   * A short summary of the post (max 160 characters).
+   */
+  excerpt?: string | null;
+  /**
+   * Square image for post cards and previews.
+   */
+  thumbnail?: (string | null) | Media;
   content: {
     root: {
       type: string;
@@ -17084,6 +17092,8 @@ export interface CourseAnalyticsSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
+  excerpt?: T;
+  thumbnail?: T;
   content?: T;
   readingTime?: T;
   relatedPosts?: T;

@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import fs from 'fs'
 import path from 'path'
 
@@ -21,7 +21,9 @@ async function addRewardEmailCampaign() {
     })
 
     if (templates.docs.length < 3) {
-      console.error('Required email templates not found. Please run add-reward-email-templates.ts first.')
+      console.error(
+        'Required email templates not found. Please run add-reward-email-templates.ts first.',
+      )
       return
     }
 
@@ -41,18 +43,18 @@ async function addRewardEmailCampaign() {
       },
       emailSequence: [
         {
-          template: templates.docs.find(t => t.slug === 'reward-generic')?.id,
+          template: templates.docs.find((t) => t.slug === 'reward-generic')?.id,
           delay: 0,
         },
         {
-          template: templates.docs.find(t => t.slug === 'reward-reminder-1')?.id,
+          template: templates.docs.find((t) => t.slug === 'reward-reminder-1')?.id,
           delay: 72, // 3 days
           condition: {
             rewardStatus: 'active',
           },
         },
         {
-          template: templates.docs.find(t => t.slug === 'reward-reminder-2')?.id,
+          template: templates.docs.find((t) => t.slug === 'reward-reminder-2')?.id,
           delay: 168, // 7 days
           condition: {
             rewardStatus: 'active',
@@ -99,7 +101,7 @@ async function addRewardEmailCampaign() {
       },
       emailSequence: [
         {
-          template: templates.docs.find(t => t.slug === 'reward-expiring')?.id,
+          template: templates.docs.find((t) => t.slug === 'reward-expiring')?.id,
           delay: 0,
         },
       ],

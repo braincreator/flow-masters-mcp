@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 import crypto from 'crypto'
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
 export async function GET(request: NextRequest) {

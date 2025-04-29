@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { getLocale } from '@/utilities/i18n'
 

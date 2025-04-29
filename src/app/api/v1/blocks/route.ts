@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { blocks } from '@/blocks'
 import { verifyApiKey } from '@/utilities/auth'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 // Define block usage types for better MCP integration
 type BlockUsage =

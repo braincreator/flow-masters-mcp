@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { Comment } from '@/payload-types'

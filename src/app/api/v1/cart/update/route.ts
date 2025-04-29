@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
 // PATCH /api/cart/update - обновление количества товара в корзине

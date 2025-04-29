@@ -88,6 +88,24 @@ export const Posts: CollectionConfig<'posts'> = {
               relationTo: 'media',
             },
             {
+              name: 'excerpt',
+              type: 'textarea',
+              maxLength: 160,
+              label: 'Excerpt (short description)',
+              admin: {
+                description: 'A short summary of the post (max 160 characters).',
+              },
+            },
+            {
+              name: 'thumbnail',
+              type: 'upload',
+              relationTo: 'media',
+              label: 'Thumbnail Image',
+              admin: {
+                description: 'Square image for post cards and previews.',
+              },
+            },
+            {
               name: 'content',
               type: 'richText',
               editor: lexicalEditor({
@@ -145,13 +163,6 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
-              filterOptions: {
-                where: {
-                  categoryType: {
-                    equals: 'blog',
-                  },
-                },
-              },
             },
             {
               name: 'tags',

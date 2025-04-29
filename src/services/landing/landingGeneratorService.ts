@@ -1,4 +1,4 @@
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
 import type { Payload } from 'payload'
 
@@ -132,7 +132,10 @@ export class LandingGeneratorService {
       }
 
       // Добавляем форму для сбора лидов в середине, если указано
-      if (options.includeLeadForm && ['middle', 'multiple'].includes(options.leadFormPosition || '')) {
+      if (
+        options.includeLeadForm &&
+        ['middle', 'multiple'].includes(options.leadFormPosition || '')
+      ) {
         blocks.push(this.createLeadForm(options, 'middle'))
       }
 
@@ -178,7 +181,10 @@ export class LandingGeneratorService {
       }
 
       // Добавляем форму для сбора лидов в нижней части, если указано
-      if (options.includeLeadForm && ['bottom', 'multiple'].includes(options.leadFormPosition || '')) {
+      if (
+        options.includeLeadForm &&
+        ['bottom', 'multiple'].includes(options.leadFormPosition || '')
+      ) {
         blocks.push(this.createLeadForm(options, 'bottom'))
       }
 
@@ -193,7 +199,8 @@ export class LandingGeneratorService {
           layout: blocks,
           meta: {
             title: options.title,
-            description: options.description || `${options.title} - Узнайте больше о нашем предложении`,
+            description:
+              options.description || `${options.title} - Узнайте больше о нашем предложении`,
             keywords: options.keywords?.join(', ') || '',
           },
         },

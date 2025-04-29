@@ -1,7 +1,7 @@
 'use server'
 
 import { Metadata } from 'next'
-import { getPayloadClient, retryOnSessionExpired } from '@/utilities/payload'
+import { getPayloadClient, retryOnSessionExpired } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'

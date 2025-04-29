@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload'
+import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
 // DELETE /api/cart/remove/[productId] - удаление товара из корзины
@@ -15,12 +15,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { productId
     const payload = await getPayloadClient()
 
     // Определяем, авторизован ли пользователь
-    let user = null;
+    let user = null
     try {
       // Безопасно пытаемся получить пользователя
-      const userReq = { headers: { authorization: req.headers.get('authorization') } };
-      const userRes = await payload.verify(userReq);
-      user = userRes?.user;
+      const userReq = { headers: { authorization: req.headers.get('authorization') } }
+      const userRes = await payload.verify(userReq)
+      user = userRes?.user
     } catch (error) {
       // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
     }
