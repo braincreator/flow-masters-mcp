@@ -128,13 +128,36 @@ export default async function BlogPage(props: PageParams) {
       categories = { docs: [] }
     }
 
-    // Format categories
-    const formattedCategories = categories.docs.map((cat: any) => ({
-      id: cat.id,
-      title: cat.title,
-      slug: cat.slug || '',
-      count: 0, // We don't have this info
-    }))
+    // Fetch and format categories with post counts
+    const formattedCategories = await Promise.all(
+      categories.docs.map(async (cat: any) => {
+        try {
+          const postsInCategory = await payload.find({
+            collection: 'posts',
+            where: {
+              _status: { equals: 'published' },
+              categories: { equals: cat.id },
+            },
+            limit: 0, // We only need the count, not the documents
+            locale: locale,
+          })
+          return {
+            id: cat.id,
+            title: cat.title,
+            slug: cat.slug || '',
+            count: postsInCategory.totalDocs,
+          }
+        } catch (error) {
+          console.error(`Error fetching posts for category ${cat.id}:`, error)
+          return {
+            id: cat.id,
+            title: cat.title,
+            slug: cat.slug || '',
+            count: 0, // Default to 0 if fetching fails
+          }
+        }
+      }),
+    )
 
     // Try to fetch tags (this might not work if tags collection doesn't exist)
     let formattedTags: BlogTag[] = []
@@ -145,12 +168,36 @@ export default async function BlogPage(props: PageParams) {
         locale: locale,
       })
 
-      formattedTags = tagsResponse.docs.map((tagItem: any) => ({
-        id: tagItem.id,
-        title: tagItem.title || '',
-        slug: tagItem.slug || '',
-        count: 0,
-      }))
+      // Fetch and format tags with post counts
+      formattedTags = await Promise.all(
+        tagsResponse.docs.map(async (tagItem: any) => {
+          try {
+            const postsWithTag = await payload.find({
+              collection: 'posts',
+              where: {
+                _status: { equals: 'published' },
+                tags: { equals: tagItem.id },
+              },
+              limit: 0, // We only need the count
+              locale: locale,
+            })
+            return {
+              id: tagItem.id,
+              title: tagItem.title || '',
+              slug: tagItem.slug || '',
+              count: postsWithTag.totalDocs,
+            }
+          } catch (error) {
+            console.error(`Error fetching posts for tag ${tagItem.id}:`, error)
+            return {
+              id: tagItem.id,
+              title: tagItem.title || '',
+              slug: tagItem.slug || '',
+              count: 0, // Default to 0 if fetching fails
+            }
+          }
+        }),
+      )
     } catch (err) {
       console.error('Error fetching tags:', err)
       // Continue with empty tags array
@@ -225,9 +272,15 @@ export default async function BlogPage(props: PageParams) {
       }
     })
 
+    // Create a new PaginatedDocs object with formatted posts
+    const initialBlogPosts = {
+      ...posts, // Copy pagination info (page, totalDocs, limit, etc.)
+      docs: formattedPosts, // Use the formatted posts array
+    }
+
     return (
       <BlogPageClient
-        initialPosts={posts}
+        initialPosts={initialBlogPosts}
         categories={formattedCategories}
         tags={formattedTags}
         locale={locale}
