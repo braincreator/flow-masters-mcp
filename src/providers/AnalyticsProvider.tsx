@@ -78,7 +78,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     if (pathname) {
       trackPageView(pathname)
     }
-  }, [pathname, searchParams])
+  }, [pathname])
 
   // Identify user when they log in
   useEffect(() => {

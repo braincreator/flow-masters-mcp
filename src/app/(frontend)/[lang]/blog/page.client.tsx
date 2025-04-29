@@ -133,6 +133,15 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
   }, [locale]); // Depend only on locale, as initialPosts is static
 
+  // Effect to send blog view analytics event on initial mount
+  useEffect(() => {
+    if (isInitialMount.current) {
+      // TODO: Replace with actual analytics event emission code
+      console.log('Analytics: Blog page viewed (initial load)');
+      isInitialMount.current = false;
+    }
+  }, []); // Empty dependency array ensures this runs only on mount
+
   // Effect to fetch posts when state changes (filters, pagination, or search becomes empty)
   useEffect(() => {
     // Prevent fetching on initial mount
