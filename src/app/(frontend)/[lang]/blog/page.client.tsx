@@ -248,63 +248,69 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
           <div className="blog-fade-in visible lg:w-2/3">
             {/* Tools panel with filters and search */}
             {/* Tools panel: Search and Layout Toggle */}
-            <div className="mb-8 flex flex-row items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
-              {/* Search Input */}
-              <div className="flex-1">
-                <BlogSearch
-                  placeholder={t('searchPlaceholder')}
-                  onSearch={handleSearchChange} // Use client-side handler
-                  initialQuery={searchTerm} // Pass initial search term
-                  variant="default"
-                  size="default"
-                  className="w-full"
-                  showClearButton={true}
-                />
-              </div>
+            {/* Row 1: Search, Layout Toggle, and Active Filters */}
+            {/* Parent Container for Controls */}
+            <div className="mb-8 flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm"> {/* Changed to flex-col, kept other styles */}
+              {/* Row 1: Search and Layout Toggle */}
+              <div className="flex flex-row items-center justify-between gap-4"> {/* New row div */}
+                {/* Search Input */}
+                <div className="flex-1">
+                  <BlogSearch
+                    placeholder={t('searchPlaceholder')}
+                    onSearch={handleSearchChange} // Use client-side handler
+                    initialQuery={searchTerm} // Pass initial search term
+                    variant="default"
+                    size="default"
+                    className="w-full"
+                    showClearButton={true}
+                  />
+                </div>
 
-              {/* Layout Switcher Buttons */}
-              <div className="flex-none flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setLayout('grid')}
-                  aria-label="Grid Layout"
-                  aria-pressed={layout === 'grid'}
-                  className={cn(
-                    'relative z-20',
-                    'h-10 px-3',
-                    'flex items-center justify-center',
-                    'transition-all duration-200',
-                    'border-r border-border/30', // Separator for grid button
-                    layout === 'grid'
-                      ? 'bg-accent text-accent-foreground font-medium' // Active state
-                      : 'hover:bg-accent/20', // Inactive hover state
-                  )}
-                >
-                  <GridIcon className="h-4 w-4 mr-1.5" />
-                  <span className="text-xs sm:text-sm">{t('viewToggleGrid')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLayout('list')}
-                  aria-label="List Layout"
-                  aria-pressed={layout === 'list'}
-                  className={cn(
-                    'relative z-20',
-                    'h-10 px-3',
-                    'flex items-center justify-center',
-                    'transition-all duration-200',
-                    layout === 'list'
-                      ? 'bg-accent text-accent-foreground font-medium' // Active state
-                      : 'hover:bg-accent/20', // Inactive hover state
-                  )}
-                >
-                  <ListIcon className="h-4 w-4 mr-1.5" />
-                  <span className="text-xs sm:text-sm">{t('viewToggleList')}</span>
-                </button>
-              </div>
+                {/* Layout Switcher Buttons */}
+                <div className="flex-none flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setLayout('grid')}
+                    aria-label="Grid Layout"
+                    aria-pressed={layout === 'grid'}
+                    className={cn(
+                      'relative z-20',
+                      'h-10 px-3',
+                      'flex items-center justify-center',
+                      'transition-all duration-200',
+                      'border-r border-border/30', // Separator for grid button
+                      layout === 'grid'
+                        ? 'bg-accent text-accent-foreground font-medium' // Active state
+                        : 'hover:bg-accent/20', // Inactive hover state
+                    )}
+                  >
+                    <GridIcon className="h-4 w-4 mr-1.5" />
+                    <span className="text-xs sm:text-sm">{t('viewToggleGrid')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLayout('list')}
+                    aria-label="List Layout"
+                    aria-pressed={layout === 'list'}
+                    className={cn(
+                      'relative z-20',
+                      'h-10 px-3',
+                      'flex items-center justify-center',
+                      'transition-all duration-200',
+                      layout === 'list'
+                        ? 'bg-accent text-accent-foreground font-medium' // Active state
+                        : 'hover:bg-accent/20', // Inactive hover state
+                    )}
+                  >
+                    <ListIcon className="h-4 w-4 mr-1.5" />
+                    <span className="text-xs sm:text-sm">{t('viewToggleList')}</span>
+                  </button>
+                </div>
+              </div> {/* End of Row 1 */}
 
+              {/* Row 2: Active Filters (conditionally rendered, moved outside row 1) */}
               {hasActiveFilters && (
-                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
+                <div className="mt-4 flex flex-wrap items-center gap-2"> {/* Added mt-4 for spacing */}
                   <span className="text-sm text-muted-foreground">{t('activeFilters')}:</span>
                   <div className="flex flex-wrap gap-2">
                     {currentCategory && activeCategory && (

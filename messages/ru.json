@@ -438,7 +438,16 @@
   },
 "blogPage": {
     "viewToggleGrid": "Сетка",
-    "viewToggleList": "Список"
+    "viewToggleList": "Список",
+    "title": "Блог",
+    "description": "Читайте наши последние статьи и обновления.",
+    "searchPlaceholder": "Поиск постов...",
+    "activeFilters": "Активные фильтры",
+    "clearFilters": "Сбросить фильтры",
+    "noPostsFound": "Посты не найдены.",
+    "tryChangingFilters": "Попробуйте изменить фильтры или поисковый запрос.",
+    "categories": "Категории",
+    "tags": "Теги"
   },
   "errors": {
     "notFound": "Страница не найдена",
