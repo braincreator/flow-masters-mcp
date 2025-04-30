@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import debounce from 'lodash.debounce'
 import { PaginatedDocs } from 'payload'
+import { cn } from '@/lib/utils' // Added cn import
 import { BlogPost, BlogTag } from '@/types/blocks'
 import { Locale } from '@/constants'
 import { BlogSearch } from '@/components/blog/BlogSearch'
@@ -149,28 +150,6 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     }
   }, []); // Empty dependency array ensures this runs only on mount
 
-  // Effect to fetch posts when state changes (filters, pagination, or search becomes empty)
-  useEffect(() => {
-    // Prevent fetching on initial mount
-    if (isInitialMount.current) {
-      return;
-    }
-
-    // Create a new AbortController for this immediate fetch
-    const controller = new AbortController();
-
-    // Only fetch immediately if searchTerm is empty or state changes other than searchTerm
-    // If searchTerm is not empty, the debounced function handles the fetch
-    if (!searchTerm) {
-       fetchPosts(currentPage, currentCategory, currentTag, searchTerm, controller.signal);
-    }
-
-    return () => {
-      // Abort the request initiated by this effect
-      controller.abort();
-    };
-  }, [currentPage, currentCategory, currentTag, searchTerm, locale, fetchPosts]); // Dependencies
-
   // Effect to update URL based on state changes
   useEffect(() => {
     const params = new URLSearchParams()
@@ -183,43 +162,61 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     window.history.pushState({}, '', newUrl)
   }, [currentPage, currentCategory, currentTag, searchTerm, locale])
 
-  // Effect to debounce fetchPosts when searchTerm, currentPage, currentCategory, or currentTag changes
+  // Debounced effect to fetch posts when filters, search, or page change
   useEffect(() => {
+    // Prevent fetching on initial mount if state hasn't been set from URL yet
+    if (isInitialMount.current) {
+      // Check if URL params have been processed. If not, wait.
+      // This simple check assumes URL params are processed quickly.
+      // A more robust solution might involve another state variable.
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('page') || params.get('category') || params.get('tag') || params.get('search')) {
+         // If params exist, allow fetch, otherwise wait for the initial param processing effect
+      } else {
+          return;
+      }
+    }
+
+    // Re-added type assertion for debounce result
     const debouncedFetch = debounce(async (page: number, category?: string, tag?: string, search?: string) => {
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+        abortControllerRef.current.abort(); // Abort previous debounced request
       }
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
+      // setLoading(true); // Set loading before fetch starts (moved inside fetchPosts)
+
       try {
+        // Pass the signal to fetchPosts
         await fetchPosts(page, category, tag, search, controller.signal);
       } catch (error: any) {
+        // Error handling is now primarily within fetchPosts
         if (error.name !== 'AbortError') {
-          console.error('Error fetching posts:', error);
+           console.error('Debounced fetch error (should be handled in fetchPosts):', error);
         }
       } finally {
+        // Clear the ref if this controller is still the active one
         if (abortControllerRef.current === controller) {
           abortControllerRef.current = null;
         }
+        // setLoading(false); // Loading is set to false inside fetchPosts
       }
-    }, 300) as  typeof fetchPosts & { cancel: () => void }; // Debounce for 300ms and cast to include cancel method
+    }, 300) as typeof fetchPosts & { cancel: () => void }; // Re-added type assertion
 
-    // Initial fetch on mount or when dependencies change
-    if (!isInitialMount.current) {
-      debouncedFetch(currentPage, currentCategory, currentTag, searchTerm);
-    }
+    // Trigger the debounced fetch
+    debouncedFetch(currentPage, currentCategory, currentTag, searchTerm);
 
-
-    // Cleanup: cancel the debounced function and abort any pending request
+    // Cleanup function: cancel the debounced call and abort the fetch if it's running
     return () => {
       debouncedFetch.cancel();
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
-        abortControllerRef.current = null;
+        abortControllerRef.current = null; // Clear ref on cleanup
       }
     };
-  }, [searchTerm, currentPage, currentCategory, currentTag, fetchPosts]); // Dependencies for the effect
+    // Dependencies: Fetch when page, filters, search term, or locale changes
+  }, [currentPage, currentCategory, currentTag, searchTerm, locale, fetchPosts]);
 
 
   // Find active category details if we have a category filter
@@ -314,59 +311,65 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
               )}
             </div>
 
-            {/* Articles section */}
-            {loading ? (
-              <div>Loading...</div> // Basic loading indicator
-            ) : posts.docs.length > 0 ? (
-              <div className="blog-fade-in visible space-y-8">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  {posts.docs.map((post, index) => {
-                    // Add a check to ensure the post object is valid before rendering
-                    if (!post || !post.id) {
-                      console.warn('Skipping rendering for invalid post object:', post);
-                      return null; // Skip rendering if post is null, undefined, or missing an id
-                    }
-                    return (
-                      <BlogPostCard
-                        key={post.id}
-                        post={post}
-                        locale={locale}
-                        layout="grid"
-                        imagePriority={index < 2}
-                        className="blog-fade-in visible"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Pagination */}
-                {posts.totalPages > 1 && (
-                  <div className="mt-12 flex justify-center">
-                    <Pagination
-                      page={currentPage}
-                      totalPages={posts.totalPages}
-                      onPageChange={handlePageChange} // Use client-side handler
-                      // baseUrl and searchParams are no longer needed for client-side pagination
-                    />
+            {/* Articles section - Render grid/message based on posts, add opacity if loading */}
+            <div
+              className={cn(
+                'transition-opacity duration-300 ease-in-out', // Added transition classes
+                loading && 'opacity-50', // Reduce opacity when loading
+              )}
+            >
+              {posts.docs.length > 0 ? (
+                <div className="blog-fade-in visible space-y-8">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {posts.docs.map((post, index) => {
+                      // Add a check to ensure the post object is valid before rendering
+                      if (!post || !post.id) {
+                        console.warn('Skipping rendering for invalid post object:', post);
+                        return null; // Skip rendering if post is null, undefined, or missing an id
+                      }
+                      return (
+                        <BlogPostCard
+                          key={post.id} // Use post ID as key
+                          post={post}
+                          locale={locale}
+                          layout="grid"
+                          imagePriority={index < 2} // Prioritize loading images for first few cards
+                          className="blog-fade-in visible" // Keep existing animation class
+                          style={{ animationDelay: `${index * 0.05}s` }} // Keep existing style
+                        />
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            ) : (
-              // "No results found" message
-              <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-muted/20 py-16 text-center">
-                <div className="h-16 w-16 rounded-full bg-muted/50 p-4">
-                  <Search className="h-8 w-8 text-muted-foreground" />
+
+                  {/* Pagination */}
+                  {posts.totalPages > 1 && (
+                    <div className="mt-12 flex justify-center">
+                      <Pagination
+                        page={currentPage}
+                        totalPages={posts.totalPages}
+                        onPageChange={handlePageChange} // Use client-side handler
+                      />
+                    </div>
+                  )}
                 </div>
-                <h3 className="mt-4 text-xl font-medium">{t.noPostsFound}</h3>
-                <p className="mt-2 max-w-md text-muted-foreground">{t.tryChangingFilters}</p>
-                <Button className="mt-4" onClick={() => {
-                  handleCategoryChange(undefined)
-                  handleTagChange(undefined)
-                  handleSearchChange(undefined)
-                }}>{t.clearFilters}</Button>
-              </div>
-            )}
+              ) : (
+                 // "No results found" message - Only show if NOT loading and no posts
+                 !loading && (
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-muted/20 py-16 text-center">
+                      <div className="h-16 w-16 rounded-full bg-muted/50 p-4">
+                        <Search className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="mt-4 text-xl font-medium">{t.noPostsFound}</h3>
+                      <p className="mt-2 max-w-md text-muted-foreground">{t.tryChangingFilters}</p>
+                      <Button className="mt-4" onClick={() => {
+                        handleCategoryChange(undefined)
+                        handleTagChange(undefined)
+                        handleSearchChange(undefined)
+                      }}>{t.clearFilters}</Button>
+                    </div>
+                 )
+              )}
+            </div>
           </div>
 
           {/* Sidebar */}
