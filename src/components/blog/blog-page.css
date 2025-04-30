@@ -718,3 +718,5 @@ html[data-theme='dark'] .sidebar-card .action-button:hover {
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* Layout Switcher Button Styles - Removed as styling is now handled by Tailwind in the component */

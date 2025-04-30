@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl' // Import useTranslations
 import debounce from 'lodash.debounce'
 import { PaginatedDocs } from 'payload'
 import { cn } from '@/lib/utils' // Added cn import
@@ -11,7 +12,7 @@ import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
-import { X, Search } from 'lucide-react'
+import { X, Search, GridIcon, ListIcon } from 'lucide-react' // Added GridIcon, ListIcon
 import { Button } from '@/components/ui/button'
 import Link from 'next/link' // Although client component, Link is still useful for navigation
 
@@ -42,8 +43,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   categories,
   tags,
   locale,
-  texts: t,
+  // texts: t, // Remove the passed texts prop alias if using the hook directly
 }) => {
+  const t = useTranslations('blogPage'); // Initialize useTranslations
   // State for managing posts, pagination, filters, and search
   const [posts, setPosts] = useState(initialPosts)
   const [currentPage, setCurrentPage] = useState(initialPosts.page || 1)
@@ -51,6 +53,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   const [currentTag, setCurrentTag] = useState<string | undefined>(undefined)
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid') // Add layout state
 
   // Function to fetch posts from the API route
   const fetchPosts = useCallback(async (page: number, category?: string, tag?: string, search?: string, signal?: AbortSignal) => {
@@ -235,8 +238,8 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
       <div className="container mx-auto px-4 py-12">
         {/* Hero section with title and description */}
         <div className="relative mx-auto mb-12 text-center">
-          <h1 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t.title}</h1>
-          <p className="mx-auto max-w-xl text-lg text-muted-foreground">{t.description}</p>
+          <h1 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h1>
+          <p className="mx-auto max-w-xl text-lg text-muted-foreground">{t('description')}</p>
         </div>
 
         {/* Main content */}
@@ -244,10 +247,12 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
           {/* Main column with articles */}
           <div className="blog-fade-in visible lg:w-2/3">
             {/* Tools panel with filters and search */}
-            <div className="mb-8 flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+            {/* Tools panel: Search and Layout Toggle */}
+            <div className="mb-8 flex flex-row items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+              {/* Search Input */}
               <div className="flex-1">
                 <BlogSearch
-                  placeholder={t.searchPlaceholder}
+                  placeholder={t('searchPlaceholder')}
                   onSearch={handleSearchChange} // Use client-side handler
                   initialQuery={searchTerm} // Pass initial search term
                   variant="default"
@@ -257,9 +262,50 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                 />
               </div>
 
+              {/* Layout Switcher Buttons */}
+              <div className="flex-none flex h-10 bg-background/80 backdrop-blur-sm rounded-lg relative border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setLayout('grid')}
+                  aria-label="Grid Layout"
+                  aria-pressed={layout === 'grid'}
+                  className={cn(
+                    'relative z-20',
+                    'h-10 px-3',
+                    'flex items-center justify-center',
+                    'transition-all duration-200',
+                    'border-r border-border/30', // Separator for grid button
+                    layout === 'grid'
+                      ? 'bg-accent text-accent-foreground font-medium' // Active state
+                      : 'hover:bg-accent/20', // Inactive hover state
+                  )}
+                >
+                  <GridIcon className="h-4 w-4 mr-1.5" />
+                  <span className="text-xs sm:text-sm">{t('viewToggleGrid')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLayout('list')}
+                  aria-label="List Layout"
+                  aria-pressed={layout === 'list'}
+                  className={cn(
+                    'relative z-20',
+                    'h-10 px-3',
+                    'flex items-center justify-center',
+                    'transition-all duration-200',
+                    layout === 'list'
+                      ? 'bg-accent text-accent-foreground font-medium' // Active state
+                      : 'hover:bg-accent/20', // Inactive hover state
+                  )}
+                >
+                  <ListIcon className="h-4 w-4 mr-1.5" />
+                  <span className="text-xs sm:text-sm">{t('viewToggleList')}</span>
+                </button>
+              </div>
+
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
-                  <span className="text-sm text-muted-foreground">{t.activeFilters}:</span>
+                  <span className="text-sm text-muted-foreground">{t('activeFilters')}:</span>
                   <div className="flex flex-wrap gap-2">
                     {currentCategory && activeCategory && (
                       <Button
@@ -305,7 +351,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                     }}
                     className="ml-auto text-xs text-muted-foreground hover:text-foreground"
                   >
-                    {t.clearFilters}
+                    {t('clearFilters')}
                   </Button>
                 </div>
               )}
@@ -320,7 +366,13 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
             >
               {posts.docs.length > 0 ? (
                 <div className="blog-fade-in visible space-y-8">
-                  <div className="grid gap-6 sm:grid-cols-2">
+                  {/* Apply grid or list classes based on layout state */}
+                  <div
+                    className={cn(
+                      'gap-6', // Common gap
+                      layout === 'grid' ? 'grid sm:grid-cols-2' : 'flex flex-col', // Conditional classes
+                    )}
+                  >
                     {posts.docs.map((post, index) => {
                       // Add a check to ensure the post object is valid before rendering
                       if (!post || !post.id) {
@@ -332,7 +384,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                           key={post.id} // Use post ID as key
                           post={post}
                           locale={locale}
-                          layout="grid"
+                          layout={layout} // Pass the layout state
                           imagePriority={index < 2} // Prioritize loading images for first few cards
                           className="blog-fade-in visible" // Keep existing animation class
                           style={{ animationDelay: `${index * 0.05}s` }} // Keep existing style
@@ -359,13 +411,13 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                       <div className="h-16 w-16 rounded-full bg-muted/50 p-4">
                         <Search className="h-8 w-8 text-muted-foreground" />
                       </div>
-                      <h3 className="mt-4 text-xl font-medium">{t.noPostsFound}</h3>
-                      <p className="mt-2 max-w-md text-muted-foreground">{t.tryChangingFilters}</p>
+                      <h3 className="mt-4 text-xl font-medium">{t('noPostsFound')}</h3>
+                      <p className="mt-2 max-w-md text-muted-foreground">{t('tryChangingFilters')}</p>
                       <Button className="mt-4" onClick={() => {
                         handleCategoryChange(undefined)
                         handleTagChange(undefined)
                         handleSearchChange(undefined)
-                      }}>{t.clearFilters}</Button>
+                      }}>{t('clearFilters')}</Button>
                     </div>
                  )
               )}
@@ -377,7 +429,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
             {/* Categories */}
             {categories.length > 0 && (
               <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
-                <h3 className="mb-4 text-lg font-medium">{t.categories}</h3>
+                <h3 className="mb-4 text-lg font-medium">{t('categories')}</h3>
                 <BlogTagCloud
                   tags={categories}
                   activeTag={currentCategory}
@@ -392,7 +444,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
             {/* Tags */}
             {tags.length > 0 && (
               <div className="mb-8 rounded-xl border border-border p-6 shadow-sm bg-card">
-                <h3 className="mb-4 text-lg font-medium">{t.tags}</h3>
+                <h3 className="mb-4 text-lg font-medium">{t('tags')}</h3>
                 <BlogTagCloud
                   tags={tags}
                   activeTag={currentTag}

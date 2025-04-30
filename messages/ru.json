@@ -436,6 +436,10 @@
     "by": "автор",
     "relatedPosts": "Похожие статьи"
   },
+"blogPage": {
+    "viewToggleGrid": "Сетка",
+    "viewToggleList": "Список"
+  },
   "errors": {
     "notFound": "Страница не найдена",
     "serverError": "Ошибка сервера",

@@ -433,6 +433,10 @@
     "by": "by",
     "relatedPosts": "Related Posts"
   },
+"blogPage": {
+    "viewToggleGrid": "Grid",
+    "viewToggleList": "List"
+  },
   "errors": {
     "notFound": "Page not found",
     "serverError": "Server error",

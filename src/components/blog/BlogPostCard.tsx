@@ -128,7 +128,8 @@ export function BlogPostCard({
           href={postLink}
           className={cn(
             'blog-image-container relative block',
-            layout === 'grid' ? 'aspect-[16/9] w-full' : 'aspect-[1/1] w-1/3 flex-none',
+            // Adjust image size for list view
+            layout === 'grid' ? 'aspect-[16/9] w-full' : 'aspect-[4/3] w-40 flex-none',
           )}
         >
           <Image
@@ -139,7 +140,8 @@ export function BlogPostCard({
             priority={imagePriority}
             className={cn(
               'blog-image object-cover transition-opacity',
-              layout === 'grid' ? 'rounded-t-xl' : 'rounded-l-xl',
+              // Adjust image rounding for list view
+              layout === 'grid' ? 'rounded-t-xl' : 'rounded-l-xl rounded-r-none',
             )}
           />
           {post.categories?.[0] && (
@@ -206,7 +208,8 @@ export function BlogPostCard({
 
         {/* Author - if available */}
         {showAuthor && post.author && (
-          <div className="mt-auto flex items-center pt-4">
+          // Conditionally apply mt-auto only for grid layout
+          <div className={cn('flex items-center pt-4', layout === 'grid' && 'mt-auto')}>
             {post.author.avatar ? (
               <Image
                 src={post.author.avatar}
