@@ -59,8 +59,15 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     try {
       const params = new URLSearchParams()
       params.set('page', page.toString())
-      if (category) params.set('categories', category)
-      if (tag) params.set('tags', tag)
+
+      // Find category ID from slug if a category filter is active
+      const categoryObj = category ? categories.find(cat => cat.slug === category) : undefined;
+      if (categoryObj) params.set('categories', categoryObj.id); // Use ID for the API query
+
+      // Find tag ID from slug if a tag filter is active
+      const tagObj = tag ? tags.find(t => t.slug === tag) : undefined;
+      if (tagObj) params.set('tags', tagObj.id); // Use ID for the API query
+
       if (search) params.set('search', search)
       params.set('locale', locale)
       // Exclude draft posts
