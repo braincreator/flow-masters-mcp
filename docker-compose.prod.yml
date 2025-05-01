@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  payload:
+    build:
+      context: .
+      dockerfile: Dockerfile # Uses the multi-stage build for production
+    container_name: flow-masters-payload-prod
+    ports:
+      # Expose port 3000 within the Docker network
+      # A reverse proxy (like Nginx or Traefik) should handle external access on 80/443
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      mongodb:
+        condition: service_healthy # Wait for DB to be ready
+    env_file:
+      - .env # Load environment variables from .env file
+    environment:
+      NODE_ENV: production
+      DATABASE_URI: mongodb://mongodb:27017/flow-masters # Internal DB connection
+      # PAYLOAD_SECRET should be set in .env
+      # NEXT_PUBLIC_SERVER_URL should be set in .env to the public domain
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:6 # Use a specific stable version
+    container_name: flow-masters-mongodb-prod
+    # ports:
+    #   - '127.0.0.1:27017:27017' # Expose only to host if needed for direct access/debugging, not recommended for external exposure
+    command:
+      - --storageEngine=wiredTiger
+    volumes:
+      - mongodb_data:/data/db # Persistent data volume
+    environment:
+      MONGO_INITDB_DATABASE: flow-masters
+      # Production Recommendation: Set MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD
+      # via the .env file for security. Update DATABASE_URI in payload service accordingly.
+      # e.g., DATABASE_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/flow-masters?authSource=admin
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    healthcheck:
+      # Basic healthcheck to ensure mongo is responsive
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: flow-masters-mcp-prod
+    ports:
+      # Expose port 3030 within the Docker network
+      # Access might be proxied if needed externally
+      - '127.0.0.1:3030:3030'
+    depends_on:
+      - payload
+      - mongodb
+    env_file:
+      - .env # Load environment variables from .env file
+    environment:
+      # Ensure these are correctly set in .env for production
+      PORT: 3030
+      HOST: 0.0.0.0
+      API_URL: http://payload:3000 # Internal communication
+      API_KEY: ${PAYLOAD_SECRET} # Use the same secret as Payload, loaded from .env
+      # Other MCP specific variables can be set here or in .env
+    volumes:
+      - mcp_data:/app/data # Persistent data volume
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    driver: local
+  mcp_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
