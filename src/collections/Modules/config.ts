@@ -7,7 +7,8 @@ export const Modules: CollectionConfig = {
   admin: {
     group: 'Learning Management',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'course', 'status', 'updatedAt'],
+    listSearchableFields: ['title'],
+    defaultColumns: ['title', 'course', 'order', 'status', 'updatedAt'],
     description: 'Коллекция для модулей внутри курсов.',
   },
   versions: {
@@ -49,17 +50,31 @@ export const Modules: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    // NEW: Order field for sequencing within the course
     {
-      name: 'layout',
-      label: 'Содержимое модуля',
-      type: 'blocks',
-      minRows: 1,
-      blocks: availableBlocks,
+      name: 'order',
+      type: 'number',
+      label: 'Порядок',
       required: true,
-      localized: true,
+      admin: {
+        description: 'Порядковый номер модуля в курсе.',
+        position: 'sidebar',
+      },
+    },
+    // NEW: Optional prerequisites (other modules)
+    {
+      name: 'prerequisites',
+      type: 'relationship',
+      relationTo: 'modules',
+      hasMany: true,
+      label: 'Предварительные модули',
+      required: false,
+      admin: {
+        description: 'Модули, которые должны быть завершены перед началом этого.',
+      },
     },
   ],
-  // Хук для генерации уникального slug вида course-slug/module-slug
+  // TODO: Implement hook for unique slug within course if needed
   // hooks: {
   //   beforeValidate: [
   //     async ({ data, req, originalDoc }) => {

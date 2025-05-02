@@ -24,7 +24,7 @@ interface Course {
   description: string
   rating: number
   students: number
-  duration: number
+  estimatedDuration?: string // Changed from duration: number
   level: 'beginner' | 'intermediate' | 'advanced'
   trending?: boolean
   new?: boolean
@@ -86,11 +86,6 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
     fetchCourses()
   }, [userId, locale, limit, refreshAuth])
 
-  // Format duration
-  const formatDuration = (hours: number) => {
-    return `${hours} ${hours === 1 ? t('hour') : t('hours')}`
-  }
-
   // Get level badge color
   const getLevelColor = (level: Course['level']) => {
     switch (level) {
@@ -131,9 +126,9 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
             <CardTitle>{t('title')}</CardTitle>
             <CardDescription>{t('description')}</CardDescription>
           </div>
-          <Link href="/courses" className="text-sm text-primary hover:underline">
-            {t('viewAll')}
-          </Link>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/courses">{t('viewAll')}</Link>
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -147,7 +142,7 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
             >
               <Link href={`/courses/${course.slug}`} className="block group h-full">
                 <div className="bg-card rounded-lg overflow-hidden border border-border h-full flex flex-col transition-all duration-200 hover:shadow-md hover:border-primary/20">
-                  <div className="relative h-40 w-full">
+                  <div className="relative aspect-[4/3] w-full">
                     {course.featuredImage ? (
                       <Image
                         src={course.featuredImage.url}
@@ -200,7 +195,7 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4 text-muted-foreground" />
-                        <span>{formatDuration(course.duration)}</span>
+                        <span>{course.estimatedDuration || '-'}</span>
                       </div>
                     </div>
                   </div>

@@ -1,8 +1,9 @@
+'use client'
 import React, { useState } from 'react'
 import NextImage, { ImageProps as NextImageProps } from 'next/image'
 import { cn } from '@/lib/utils'
 import { formatImageSize } from '@/lib/utils'
-import AnimateInView from '@/components/AnimateInView'
+// import AnimateInView from '@/components/AnimateInView' // Component is empty
 
 interface ImageProps extends Omit<NextImageProps, 'width' | 'height'> {
   width: number
@@ -60,9 +61,9 @@ export const Image = ({
     </div>
   )
 
-  if (animate) {
-    return <AnimateInView>{image}</AnimateInView>
-  }
+  // if (animate) { // AnimateInView component is empty
+  //   return <AnimateInView>{image}</AnimateInView>
+  // }
 
   return image
 }

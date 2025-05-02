@@ -6,6 +6,7 @@ export const Certificates: CollectionConfig = {
   slug: 'certificates',
   admin: {
     useAsTitle: 'certificateId',
+    listSearchableFields: ['certificateId', 'user', 'course'],
     defaultColumns: ['certificateId', 'user', 'course', 'completionDate', 'status'],
     group: 'Learning Management',
     description: 'Course completion certificates',

@@ -1,5 +1,7 @@
 import { Payload } from 'payload'
 import { BaseService } from '../base.service'
+import { ServiceRegistry } from '../service.registry' // Added import
+import { Lesson, LessonProgress } from '@/payload-types' // Import types
 
 export class LessonProgressService extends BaseService {
   private static instance: LessonProgressService | null = null
@@ -16,118 +18,222 @@ export class LessonProgressService extends BaseService {
   }
 
   /**
-   * Отмечает урок как просмотренный
-   * @param userId ID пользователя
-   * @param lessonId ID урока
-   * @param courseId ID курса
+   * Marks a lesson as completed based on its criteria, or updates access time.
+   * @param userId User ID
+   * @param lessonId Lesson ID
+   * @param courseId Course ID (for context and progress update)
+   * @param forceComplete Optional flag to bypass criteria check (e.g., admin action or assessment completion)
    */
-  async markLessonAsViewed(userId: string, lessonId: string, courseId: string): Promise<any> {
+  async markLessonCompleted(
+    userId: string,
+    lessonId: string,
+    courseId: string,
+    forceComplete: boolean = false,
+  ): Promise<LessonProgress | null> { // Return type could be LessonProgress | null
     try {
-      // Проверяем, есть ли уже запись о прогрессе
+      // 1. Fetch Lesson details to check completionCriteria
+      const lesson: any = await this.payload.findByID({ // Using any temporarily
+        collection: 'lessons',
+        id: lessonId,
+        depth: 0,
+      })
+
+      if (!lesson) {
+        throw new Error(`Lesson with ID ${lessonId} not found.`)
+      }
+
+      // 2. Find existing progress record
       const existingProgress = await this.payload.find({
         collection: 'lesson-progress',
         where: {
           and: [
-            {
-              user: {
-                equals: userId,
-              },
-            },
-            {
-              lesson: {
-                equals: lessonId,
-              },
-            },
+            { user: { equals: userId } },
+            { lesson: { equals: lessonId } },
           ],
         },
+        limit: 1,
       })
 
-      // Если запись уже существует, обновляем её
-      if (existingProgress.docs.length > 0) {
-        const progress = existingProgress.docs[0]
-        
-        // Если урок уже отмечен как просмотренный, просто возвращаем запись
-        if (progress.status === 'completed') {
-          return progress
+      let progressRecord: LessonProgress | null = existingProgress.docs[0] ?? null // Use nullish coalescing directly
+
+      // If already completed, just update lastAccessedAt and return
+      if (progressRecord?.status === 'completed') {
+        if (progressRecord.id) { // Ensure ID exists before update
+           await this.payload.update({
+            collection: 'lesson-progress',
+            id: progressRecord.id,
+            data: { lastAccessedAt: new Date().toISOString() },
+          })
         }
-        
-        // Обновляем статус
-        return await this.payload.update({
-          collection: 'lesson-progress',
-          id: progress.id,
-          data: {
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-            lastAccessedAt: new Date().toISOString(),
-          },
-        })
+        return progressRecord
       }
 
-      // Создаем новую запись о прогрессе
-      const newProgress = await this.payload.create({
-        collection: 'lesson-progress',
-        data: {
+      // 3. Determine if completion should happen now
+      // Using any temporarily for lesson type
+      const shouldComplete = forceComplete || lesson?.completionCriteria === 'viewed'
+
+      // 4. Create or Update progress record
+      if (progressRecord) {
+        // Update existing record
+        const updateData: Partial<LessonProgress> = {
+          lastAccessedAt: new Date().toISOString(),
+        }
+        if (shouldComplete) {
+          updateData.status = 'completed'
+          updateData.completedAt = new Date().toISOString()
+        }
+        progressRecord = await this.payload.update({
+          collection: 'lesson-progress',
+          id: progressRecord.id,
+          data: updateData,
+        })
+      } else {
+        // Create new record - Ensure all required fields are present
+        const createData: Omit<LessonProgress, 'id' | 'createdAt' | 'updatedAt' | 'sizes'> = { // Exclude generated fields
           user: userId,
           lesson: lessonId,
           course: courseId,
-          status: 'completed',
-          completedAt: new Date().toISOString(),
+          status: shouldComplete ? 'completed' : 'in_progress',
           lastAccessedAt: new Date().toISOString(),
-        },
-      })
-
-      // Отслеживаем событие в системе достижений
-      try {
-        const serviceRegistry = this.payload.services
-        if (serviceRegistry) {
-          const achievementService = serviceRegistry.getAchievementService()
-          await achievementService.processEvent({
-            userId,
-            lessonId,
-            courseId,
-            eventType: 'lesson.completed',
-          })
+          completedAt: shouldComplete ? new Date().toISOString() : undefined, // Set completedAt only if completing
+          // timeSpent and metadata can be added later if needed
         }
-      } catch (error) {
-        console.error('Error tracking lesson completion event:', error)
+        progressRecord = await this.payload.create({
+          collection: 'lesson-progress',
+          data: createData as any, // Use 'as any' to bypass strict type check until regeneration
+        })
       }
 
-      // Обновляем общий прогресс по курсу
-      await this.updateCourseProgress(userId, courseId)
+      // 5. Trigger events only if lesson is newly completed
+      if (shouldComplete) {
+        try {
+          const serviceRegistry = ServiceRegistry.getInstance(this.payload)
+          if (serviceRegistry) {
+            // Trigger achievement event
+            const achievementService = serviceRegistry.getAchievementService()
+            await achievementService.processEvent({
+              userId,
+              lessonId,
+              courseId,
+              eventType: 'lesson_completed', // Use underscore
+            })
 
-      return newProgress
+            // Trigger notification
+            const notificationService = serviceRegistry.getNotificationService()
+            await notificationService.sendNotification({
+              userId,
+              type: 'lesson_completed',
+              title: `Lesson Completed: ${lesson.title}`,
+              message: `You've completed the lesson "${lesson.title}". Keep going!`,
+              link: `/courses/${courseId}/learn/${lessonId}`, // Adjust link as needed
+              metadata: { courseId, lessonId, lessonTitle: lesson.title },
+            })
+
+            // Check for Module Completion
+            if (lesson.module) { // Ensure the lesson is part of a module
+              const moduleId = typeof lesson.module === 'string' ? lesson.module : lesson.module.id;
+              if (moduleId) {
+                // Fetch all published lessons in this module
+                const moduleLessons = await this.payload.find({
+                  collection: 'lessons',
+                  where: {
+                    module: { equals: moduleId },
+                    status: { equals: 'published' },
+                  },
+                  limit: 0, // Just need the count
+                  depth: 0,
+                });
+                const totalModuleLessons = moduleLessons.totalDocs;
+
+                if (totalModuleLessons > 0) {
+                  // Fetch IDs of all lessons in the module
+                  const moduleLessonIds = (await this.payload.find({
+                    collection: 'lessons',
+                    where: { module: { equals: moduleId }, status: { equals: 'published' } },
+                    limit: totalModuleLessons,
+                    depth: 0,
+                  })).docs.map(l => l.id);
+
+                  // Fetch all completed lesson progress for the user for lessons in this module
+                  const completedModuleLessonsProgress = await this.payload.find({
+                    collection: 'lesson-progress',
+                    where: {
+                      user: { equals: userId },
+                      lesson: { in: moduleLessonIds }, // Check if lesson is in the module
+                      status: { equals: 'completed' },
+                    },
+                    limit: 0, // Just need the count
+                    depth: 0,
+                  });
+                  const completedModuleLessonsCount = completedModuleLessonsProgress.totalDocs;
+
+                  // If all lessons in the module are complete
+                  if (completedModuleLessonsCount >= totalModuleLessons) {
+                    // Fetch module details for the notification title (renamed variable)
+                    const moduleDoc = await this.payload.findByID({
+                      collection: 'modules',
+                      id: moduleId,
+                      depth: 0,
+                    });
+                    const moduleTitle = moduleDoc?.title || 'the module'; // Use renamed variable
+
+                    await notificationService.sendNotification({
+                      userId,
+                      type: 'module_completed',
+                      title: `Module Completed: ${moduleTitle}`, // Use renamed variable
+                      message: `Congratulations! You've completed all lessons in the module "${moduleTitle}".`, // Use renamed variable
+                      link: `/courses/${courseId}`, // Link to the course page or next module?
+                      metadata: { courseId, moduleId, moduleTitle }, // Use renamed variable
+                    });
+
+                    // Trigger module completion achievement
+                    await achievementService.processEvent({
+                      userId,
+                      courseId,
+                      moduleId,
+                      eventType: 'module_completed',
+                    });
+                  }
+                }
+              }
+            }
+
+            // Update overall course progress (asynchronously, don't wait)
+            this.updateCourseProgress(userId, courseId).catch((err) =>
+              console.error('Background course progress update failed:', err),
+            )
+          }
+        } catch (eventError) {
+          console.error('Error processing lesson completion events:', eventError)
+        }
+      }
+
+      return progressRecord
     } catch (error) {
-      console.error('Error marking lesson as viewed:', error)
+      console.error(`Error marking lesson ${lessonId} progress for user ${userId}:`, error)
       throw error
     }
   }
 
   /**
-   * Получает прогресс пользователя по уроку
-   * @param userId ID пользователя
-   * @param lessonId ID урока
+   * Gets progress for a specific lesson for a user.
+   * @param userId User ID
+   * @param lessonId Lesson ID
    */
-  async getLessonProgress(userId: string, lessonId: string): Promise<any> {
+  async getLessonProgress(userId: string, lessonId: string): Promise<LessonProgress | null> {
     try {
       const progress = await this.payload.find({
         collection: 'lesson-progress',
         where: {
           and: [
-            {
-              user: {
-                equals: userId,
-              },
-            },
-            {
-              lesson: {
-                equals: lessonId,
-              },
-            },
+            { user: { equals: userId } },
+            { lesson: { equals: lessonId } },
           ],
         },
+        limit: 1,
       })
 
-      return progress.docs.length > 0 ? progress.docs[0] : null
+      return progress.docs[0] ?? null // Use nullish coalescing directly
     } catch (error) {
       console.error('Error getting lesson progress:', error)
       return null
@@ -135,9 +241,9 @@ export class LessonProgressService extends BaseService {
   }
 
   /**
-   * Получает все просмотренные уроки пользователя в курсе
-   * @param userId ID пользователя
-   * @param courseId ID курса
+   * Gets IDs of all completed lessons for a user in a specific course.
+   * @param userId User ID
+   * @param courseId Course ID
    */
   async getCompletedLessonsInCourse(userId: string, courseId: string): Promise<string[]> {
     try {
@@ -145,26 +251,20 @@ export class LessonProgressService extends BaseService {
         collection: 'lesson-progress',
         where: {
           and: [
-            {
-              user: {
-                equals: userId,
-              },
-            },
-            {
-              course: {
-                equals: courseId,
-              },
-            },
-            {
-              status: {
-                equals: 'completed',
-              },
-            },
+            { user: { equals: userId } },
+            { course: { equals: courseId } },
+            { status: { equals: 'completed' } },
           ],
         },
+        limit: 10000, // High limit to get all
+        depth: 0, // Only need lesson IDs
       })
 
-      return progress.docs.map((p) => p.lesson)
+      // Ensure only lesson IDs (strings) are returned, handle potential object relation
+      return progress.docs.map((p) => {
+         const lessonRef = p.lesson;
+         return typeof lessonRef === 'string' ? lessonRef : lessonRef?.id;
+      }).filter((id): id is string => !!id); // Filter out undefined/null IDs and ensure string array
     } catch (error) {
       console.error('Error getting completed lessons:', error)
       return []
@@ -172,38 +272,30 @@ export class LessonProgressService extends BaseService {
   }
 
   /**
-   * Обновляет общий прогресс по курсу на основе просмотренных уроков
-   * @param userId ID пользователя
-   * @param courseId ID курса
+   * Triggers an update of the overall course progress in the EnrollmentService.
+   * This method itself doesn't calculate progress anymore to avoid circular dependencies.
+   * @param userId User ID
+   * @param courseId Course ID
    */
   async updateCourseProgress(userId: string, courseId: string): Promise<void> {
     try {
-      // Получаем все уроки курса
-      const lessons = await this.payload.find({
-        collection: 'lessons',
-        where: {
-          course: {
-            equals: courseId,
-          },
-        },
-      })
-
-      // Получаем все просмотренные уроки пользователя в курсе
-      const completedLessons = await this.getCompletedLessonsInCourse(userId, courseId)
-
-      // Вычисляем процент прогресса
-      const totalLessons = lessons.docs.length
-      const completedCount = completedLessons.length
-      const progressPercentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0
-
-      // Обновляем прогресс в записи о зачислении на курс
-      const serviceRegistry = this.payload.services
+      // Simply call the enrollment service to handle the progress update logic
+      const serviceRegistry = ServiceRegistry.getInstance(this.payload)
       if (serviceRegistry) {
         const enrollmentService = serviceRegistry.getEnrollmentService()
-        await enrollmentService.updateCourseProgress(userId, courseId, progressPercentage)
+        // Let enrollmentService recalculate progress based on the latest completed lesson count
+        await enrollmentService.updateCourseProgress(userId, courseId)
+      } else {
+         console.error('ServiceRegistry not available in LessonProgressService.updateCourseProgress')
       }
     } catch (error) {
-      console.error('Error updating course progress:', error)
+      console.error(`Error triggering course progress update for user ${userId}, course ${courseId}:`, error)
+      // Don't re-throw, let the primary action (e.g., marking lesson complete) succeed
     }
   }
+
+  // TODO: Add method `markLessonCompletedByAssessment(userId, assessmentSubmissionId)`
+  // This method would be called after an assessment is successfully graded.
+  // It should find the related lesson, check if completionCriteria is 'pass_assessment',
+  // and if so, call markLessonCompleted(userId, lessonId, courseId, true) with forceComplete = true.
 }

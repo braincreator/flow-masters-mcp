@@ -33,16 +33,16 @@ import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloa
 import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { RowLabel as RowLabel_17c6ef4bfe47bfa29d923fb5718170b7 } from '@/globals/Header/RowLabel'
 import { default as default_e5f2ea2a3ff3620de63526e885e3b034 } from '@/globals/Footer/RowLabel'
-import { default as default_e326ed21cd50a036eb26e6c6f3f1a443 } from '@/components/admin/CustomHeader'
-import { default as default_ba9060f4c494c97aadfe659b12482a78 } from '@/components/admin/CustomIcon'
-import { default as default_04f33bae1170ea37c330dd6513255547 } from '@/components/admin/CustomLogo'
-import { default as default_43ed5d69fd41cc18f5cf53396d56aa23 } from '@/components/admin/CustomAction'
-import { default as default_78fee3f07c954eeed365465c1fb74876 } from '@/components/admin/CustomNavigation'
-import { default as default_bff5a882fa66ab8185114b0a616ede47 } from '@/components/admin/CustomDashboard'
-import { default as default_178573d03f6770dc02623ce208ab5479 } from '@/components/admin/CustomLoginMessage'
-import { default as default_186ac6378030bc8dda0d2e0fa2ee4fd3 } from '@/components/admin/CustomProvider'
+import { default as default_6125169d63e0940c5a943f5eff630ff4 } from '@/components/admin/CustomHeader'
+import { default as default_3cbd65d11a223d349af508a309e169b3 } from '@/components/admin/CustomIcon'
+import { default as default_57ed2342ea1d8b2b1e8c752d6158ebca } from '@/components/admin/CustomLogo'
+import { default as default_3f5c057efee1274183c573118b671d42 } from '@/components/admin/CustomAction'
+import { default as default_1f56ca4708dc0ba2fe467cf576adf225 } from '@/components/admin/CustomNavigation'
+import { default as default_c72149161cf6fec538030bf0afce1a49 } from '@/components/admin/CustomDashboard'
+import { default as default_92d02578f52e44c498ba7ce7dd3605b0 } from '@/components/admin/CustomLoginMessage'
+import { default as default_504d7c9bebc0fbc8a347afe55daaf5f8 } from '@/components/admin/CustomProvider'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
-import { default as default_9e4ae6b9c4b927ad9c76f7445116c5d9 } from '@/components/admin/MetricsDashboard'
+import { default as default_67daec3269613a31a72d37965011da0b } from '@/components/admin/MetricsDashboard'
 import { default as default_754efcc4049ddfb5281eb09039a99f31 } from '@/components/admin/LandingGeneratorView'
 import { default as default_9c58daee1019d2b16a85f752ba4ac54a } from '@/app/(admin)/admin/setup-rewards/page'
 import { default as default_5992542806ab9cef50fb76fc74ad1754 } from '@/components/admin/CourseCreatorView'
@@ -53,7 +53,8 @@ import { default as default_85ca7c4380a572cebad055c1b4566637 } from '@/app/admin
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
-    "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
+  "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#HeadingFeatureClient": HeadingFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ParagraphFeatureClient": ParagraphFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
@@ -85,16 +86,16 @@ export const importMap = {
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@/globals/Header/RowLabel#RowLabel": RowLabel_17c6ef4bfe47bfa29d923fb5718170b7,
   "@/globals/Footer/RowLabel#default": default_e5f2ea2a3ff3620de63526e885e3b034,
-  "/components/admin/CustomHeader#default": default_e326ed21cd50a036eb26e6c6f3f1a443,
-  "/components/admin/CustomIcon#default": default_ba9060f4c494c97aadfe659b12482a78,
-  "/components/admin/CustomLogo#default": default_04f33bae1170ea37c330dd6513255547,
-  "/components/admin/CustomAction#default": default_43ed5d69fd41cc18f5cf53396d56aa23,
-  "/components/admin/CustomNavigation#default": default_78fee3f07c954eeed365465c1fb74876,
-  "/components/admin/CustomDashboard#default": default_bff5a882fa66ab8185114b0a616ede47,
-  "/components/admin/CustomLoginMessage#default": default_178573d03f6770dc02623ce208ab5479,
-  "/components/admin/CustomProvider#default": default_186ac6378030bc8dda0d2e0fa2ee4fd3,
+  "@/components/admin/CustomHeader#default": default_6125169d63e0940c5a943f5eff630ff4,
+  "@/components/admin/CustomIcon#default": default_3cbd65d11a223d349af508a309e169b3,
+  "@/components/admin/CustomLogo#default": default_57ed2342ea1d8b2b1e8c752d6158ebca,
+  "@/components/admin/CustomAction#default": default_3f5c057efee1274183c573118b671d42,
+  "@/components/admin/CustomNavigation#default": default_1f56ca4708dc0ba2fe467cf576adf225,
+  "@/components/admin/CustomDashboard#default": default_c72149161cf6fec538030bf0afce1a49,
+  "@/components/admin/CustomLoginMessage#default": default_92d02578f52e44c498ba7ce7dd3605b0,
+  "@/components/admin/CustomProvider#default": default_504d7c9bebc0fbc8a347afe55daaf5f8,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
-  "/components/admin/MetricsDashboard#default": default_9e4ae6b9c4b927ad9c76f7445116c5d9,
+  "@/components/admin/MetricsDashboard#default": default_67daec3269613a31a72d37965011da0b,
   "@/components/admin/LandingGeneratorView#default": default_754efcc4049ddfb5281eb09039a99f31,
   "@/app/(admin)/admin/setup-rewards/page#default": default_9c58daee1019d2b16a85f752ba4ac54a,
   "@/components/admin/CourseCreatorView#default": default_5992542806ab9cef50fb76fc74ad1754,

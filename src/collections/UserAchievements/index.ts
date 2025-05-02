@@ -5,7 +5,8 @@ import { isAdminOrSelf } from '@/access/isAdminOrSelf'
 export const UserAchievements: CollectionConfig = {
   slug: 'user-achievements',
   admin: {
-    useAsTitle: 'id',
+    useAsTitle: 'id', // TODO: Consider hook/component for better title (User - Achievement)
+    listSearchableFields: ['user', 'achievement'],
     defaultColumns: ['user', 'achievement', 'awardedAt', 'status'],
     group: 'Learning Management',
     description: 'User achievements tracking',
@@ -66,6 +67,7 @@ export const UserAchievements: CollectionConfig = {
       type: 'json',
       admin: {
         description: 'Additional metadata for the achievement',
+        hidden: true, // Hide raw JSON from admin UI
       },
     },
   ],

@@ -127,10 +127,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const limit = parseInt(url.searchParams.get('limit') || '10')
 
     // Initialize empty results for each collection
-    let userAchievements = { docs: [], totalDocs: 0 } as PayloadResponse<UserAchievement>
-    let courseEnrollments = { docs: [], totalDocs: 0 } as PayloadResponse<CourseEnrollment>
-    let lessonProgress = { docs: [], totalDocs: 0 } as PayloadResponse<LessonProgress>
-    let userRewards = { docs: [], totalDocs: 0 } as PayloadResponse<UserReward>
+    let userAchievements: PayloadResponse<UserAchievement> | null = null
+    let courseEnrollments: PayloadResponse<CourseEnrollment> | null = null
+    let lessonProgress: PayloadResponse<LessonProgress> | null = null
+    let userRewards: PayloadResponse<UserReward> | null = null
 
     // Fetch each collection separately with error handling
     try {
@@ -179,8 +179,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           user: {
             equals: userId,
           },
-          completed: {
-            equals: true,
+          status: {
+            equals: 'completed',
           },
         },
         sort: '-updatedAt',
@@ -231,7 +231,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const activities = [
       // Map achievements to activity items
-      ...safeMap(userAchievements.docs || [], (item) => {
+      ...safeMap(userAchievements?.docs || [], (item) => {
         if (!item || !item.id) return null
 
         return {
@@ -249,7 +249,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }),
 
       // Map course enrollments to activity items
-      ...safeMap(courseEnrollments.docs || [], (item) => {
+      ...safeMap(courseEnrollments?.docs || [], (item) => {
         if (!item || !item.id) return null
 
         const timestamp =
@@ -271,7 +271,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }),
 
       // Map lesson progress to activity items
-      ...safeMap(lessonProgress.docs || [], (item) => {
+      ...safeMap(lessonProgress?.docs || [], (item) => {
         if (!item || !item.id) return null
 
         return {
@@ -290,7 +290,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }),
 
       // Map user rewards to activity items
-      ...safeMap(userRewards.docs || [], (item) => {
+      ...safeMap(userRewards?.docs || [], (item) => {
         if (!item || !item.id) return null
 
         return {

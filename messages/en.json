@@ -223,8 +223,7 @@
     },
     "trending": "Trending",
     "new": "New",
-    "hour": "hour",
-    "hours": "hours",
+    "durationHours": "{count, plural, one {# hour} other {# hours}}",
     "students": "students",
     "noImage": "No image"
   },
@@ -398,6 +397,17 @@
       "and": "and",
       "privacyPolicy": "Privacy Policy"
     }
+  },
+"CoursesPage": {
+    "title": "Courses Catalog",
+    "noCourses": "No courses available at the moment.",
+    "metaTitle": "Courses Catalog",
+    "metaDescription": "Browse our available courses."
+  },
+"CourseCard": {
+    "viewCourse": "View Course",
+    "viewCourseAria": "View course: {title}",
+    "courseImageAlt": "Featured image for {title}"
   },
   "courses": {
     "all": "All Courses",

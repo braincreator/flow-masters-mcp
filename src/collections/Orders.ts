@@ -119,6 +119,30 @@ export const Orders: CollectionConfig = {
         ],
       },
     },
+    {
+      name: 'paymentId',
+      type: 'text',
+      label: 'Payment ID (from Provider)',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
+      name: 'paymentProvider',
+      type: 'text',
+      label: 'Payment Provider',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
+      name: 'paymentData',
+      type: 'json', // Store raw webhook/callback data
+      label: 'Payment Data (Raw)',
+      admin: { readOnly: true },
+    },
+    {
+      name: 'paidAt',
+      type: 'date',
+      label: 'Paid At',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
     // No shipping fields needed for digital products
     {
       name: 'orderType',

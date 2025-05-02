@@ -1,4 +1,12 @@
-declare module 'payload/types' {
+import type { ServiceRegistry } from '@/services/service.registry' // Import ServiceRegistry
+
+// Try augmenting 'payload' directly
+declare module 'payload' {
+  // Augment the existing Payload interface
+  export interface Payload {
+    services?: ServiceRegistry;
+  }
+
   export interface GlobalConfig {
     slug: string
     label: string

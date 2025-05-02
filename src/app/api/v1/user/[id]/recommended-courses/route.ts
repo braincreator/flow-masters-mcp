@@ -137,7 +137,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       description: course.description || '',
       rating: course.rating || 4.5,
       students: course.enrollmentCount || 0,
-      duration: course.estimatedDuration || 10, // hours
+      estimatedDuration: course.estimatedDuration || '', // Use correct field name and string fallback
       level: course.level || 'beginner',
       trending: course.trending || false,
       new: new Date(course.createdAt).getTime() > Date.now() - 14 * 24 * 60 * 60 * 1000, // If created in the last 14 days

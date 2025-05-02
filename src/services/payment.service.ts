@@ -8,6 +8,10 @@ import {
 import { BaseService } from './base.service'
 import { NotificationService } from './notification.service'
 import { ServiceRegistry } from './service.registry'
+import { EnrollmentService } from './courses/enrollmentService' // Added
+import type { Course, Order, Product, User } from '@/payload-types' // Added
+import { add } from 'date-fns' // Added for date calculation
+import type { Duration } from 'date-fns' // Added Duration type
 
 interface PaymentCreateParams {
   orderId: string
@@ -155,7 +159,7 @@ export class PaymentService extends BaseService {
   private transformPaymentProviders(paymentProviders: any) {
     // Transform the payment-providers global structure to our expected format
     const providers = []
-    const providersConfig = {}
+    const providersConfig: Partial<Record<PaymentProviderKey, any>> = {} // Typed providersConfig
 
     // Process YooMoney settings
     if (paymentProviders.yoomoney?.yoomoney_enabled) {
@@ -278,7 +282,9 @@ export class PaymentService extends BaseService {
     return {
       providers,
       providersConfig,
-      defaultProvider: providers.length > 0 ? providers[0].id : 'yoomoney',
+      // Safer default provider handling
+      // Safer default provider handling, added non-null assertion assuming providers[0] exists if length > 0
+      defaultProvider: providers.find(p => p.enabled)?.id || (providers.length > 0 ? providers[0]!.id : 'robokassa'),
     }
   }
 
@@ -339,10 +345,11 @@ export class PaymentService extends BaseService {
     }
   }
 
-  async processPayment(params: ProcessPaymentParams): Promise<PaymentResult> {
+  // Corrected provider type
+  async processPayment(params: Omit<ProcessPaymentParams, 'provider'> & { provider: PaymentProviderKey }): Promise<PaymentResult> {
     try {
       const { provider, ...paymentData } = params
-      const paymentProvider = this.getPaymentProvider(provider)
+      const paymentProvider = this.getPaymentProvider(provider) // Now provider is PaymentProviderKey
 
       const result = await paymentProvider.processPayment(paymentData)
 
@@ -366,8 +373,9 @@ export class PaymentService extends BaseService {
   // Другая функциональность платежной системы
 
   // Check status of payment with provider
+  // Corrected provider type
   async checkPaymentStatus(
-    provider: IPaymentProvider,
+    provider: PaymentProviderKey,
     paymentId: string,
   ): Promise<{
     status: string
@@ -375,6 +383,7 @@ export class PaymentService extends BaseService {
   }> {
     try {
       // Delegate to provider-specific status check
+      // No need for cast now, provider is PaymentProviderKey
       switch (provider) {
         case 'yoomoney':
           return await this.checkYooMoneyPaymentStatus(paymentId)
@@ -390,9 +399,11 @@ export class PaymentService extends BaseService {
           console.warn(`No status check method for provider: ${provider}`)
           return { status: 'unknown' }
       }
-    } catch (error) {
+    } catch (error: unknown) { // Catch as unknown
       console.error(`Error checking payment status with ${provider}:`, error)
-      return { status: 'error', details: { error: error.message } }
+      // Check if error is an instance of Error before accessing message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      return { status: 'error', details: { error: errorMessage } }
     }
   }
 
@@ -460,7 +471,7 @@ export class PaymentService extends BaseService {
   /**
    * Обнаруживает провайдера платежей из данных вебхука
    */
-  private detectProviderFromWebhook(webhookData: any): IPaymentProvider | null {
+  private detectProviderFromWebhook(webhookData: any): PaymentProviderKey | null {
     // Проверяем YooMoney
     if (
       webhookData?.notification_type === 'p2p-incoming' ||
@@ -861,7 +872,10 @@ export class PaymentService extends BaseService {
         collection: 'orders',
         id: orderId,
         data: {
-          status: update.status,
+          // Cast status to the expected enum type
+          status: update.status as Order['status'],
+          // NOTE: paymentId, paymentProvider, paymentData might be missing from Order type in payload-types.ts
+          // Add these fields to src/collections/Orders.ts if they are intended to be stored.
           paymentId: update.paymentId,
           paymentProvider: update.paymentProvider,
           paymentData: update.paymentData,
@@ -875,17 +889,26 @@ export class PaymentService extends BaseService {
           const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           const notificationService = serviceRegistry.getNotificationService()
           const emailService = serviceRegistry.getEmailService()
+          const enrollmentService = serviceRegistry.getEnrollmentService() // Added
 
-          // Get order details with items
+          // Get order details with items (ensure customer is populated if it's an object)
           const orderWithItems = await this.payload.findByID({
             collection: 'orders',
             id: orderId,
-            depth: 2, // Include product details
+            // Depth 3 might be needed if customer is an object and product->course is needed
+            depth: 3, // Increase depth to ensure product.course is populated
           })
 
-          // Format order items
+          // Format order items and handle customer type
+          const customerField = orderWithItems.customer
+          const customerIsObject = typeof customerField === 'object' && customerField !== null && 'id' in customerField // More robust check for populated User
+          // Access properties only if it's a populated User object
+          const customerName = customerIsObject ? customerField.name : 'Customer' // Provide a default name
+          const customerEmail = customerIsObject ? customerField.email : String(customerField || '') // Email might be the ID if not populated
+          const customerLocale = customerIsObject ? (customerField as User).locale || 'ru' : 'ru' // Cast to User to access locale if needed
+
           const items = (orderWithItems.items || []).map((item) => {
-            const product = typeof item.product === 'object' ? item.product : null
+            const product = typeof item.product === 'object' ? (item.product as Product) : null
             return {
               product: typeof item.product === 'string' ? item.product : product?.id || '',
               quantity: item.quantity || 1,
@@ -895,11 +918,16 @@ export class PaymentService extends BaseService {
             }
           })
 
-          // Send order confirmation email
+          // Send order confirmation email using extracted customer details and total
           try {
+            // Assuming 'en' locale for price display, adjust if needed
+            const displayTotal = orderWithItems.total?.en?.amount ?? orderWithItems.total?.ru?.amount ?? 0
+            const displayCurrency = orderWithItems.total?.en?.currency ?? orderWithItems.total?.ru?.currency ?? 'USD'
+            const displaySubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0) // Subtotal might need locale conversion too
+
             await emailService.sendOrderConfirmationEmail({
-              userName: orderWithItems.customer?.name || orderWithItems.customer || '',
-              email: orderWithItems.customer?.email || orderWithItems.customer || '',
+              userName: customerName, // Use extracted name
+              email: customerEmail, // Use extracted email
               orderNumber: orderWithItems.orderNumber || orderId,
               orderDate: orderWithItems.createdAt || new Date().toISOString(),
               items: items.map((item) => ({
@@ -907,33 +935,97 @@ export class PaymentService extends BaseService {
                 quantity: item.quantity,
                 price: item.price,
                 total: item.price * item.quantity,
+                // Cast type to satisfy the stricter email function type
                 type: item.type as 'course' | 'product' | 'subscription' | 'other',
                 id: item.product,
               })),
-              subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-              total:
-                orderWithItems.total ||
-                items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-              currency: orderWithItems.currency || 'RUB',
+              subtotal: displaySubtotal, // Use calculated subtotal
+              total: displayTotal, // Use locale-specific total
+              currency: displayCurrency, // Use locale-specific currency
               paymentMethod: update.paymentProvider,
               paymentStatus: 'paid',
-              locale: orderWithItems.customer?.locale || 'ru',
+              locale: customerLocale, // Use extracted locale
             })
           } catch (emailError) {
             console.error('Failed to send order confirmation email:', emailError)
           }
 
-          // Send payment confirmation notification
+          // Send payment confirmation notification using extracted details
+          // Assuming 'en' locale for price display, adjust if needed
+          const displayTotalNotif = orderWithItems.total?.en?.amount ?? orderWithItems.total?.ru?.amount ?? 0
+          const displayCurrencyNotif = orderWithItems.total?.en?.currency ?? orderWithItems.total?.ru?.currency ?? 'USD'
+
           await notificationService.sendPaymentConfirmation({
             orderId,
             orderNumber: orderWithItems.orderNumber || orderId,
-            customerEmail: orderWithItems.customer?.email || orderWithItems.customer || '',
-            total: orderWithItems.total || 0,
-            currency: orderWithItems.currency || 'RUB',
-            items,
+            customerEmail: customerEmail, // Use extracted email
+            total: displayTotalNotif, // Use locale-specific total
+            currency: displayCurrencyNotif, // Use locale-specific currency
+            // Cast item type for notification service if needed
+            items: items.map(item => ({ ...item, type: item.type as any })),
             paymentMethod: update.paymentProvider,
             paymentId: update.paymentId,
           })
+
+          // --- Course Enrollment Logic ---
+          if (enrollmentService && orderWithItems.items && Array.isArray(orderWithItems.items)) {
+            const customerField = orderWithItems.customer
+            const userId = typeof customerField === 'object' && customerField !== null ? customerField.id : typeof customerField === 'string' ? customerField : null
+
+            if (!userId) {
+              console.error(`Cannot enroll in course: User ID not found for order ${orderId}.`)
+            } else {
+              for (const item of orderWithItems.items) {
+                const product = typeof item.product === 'object' ? (item.product as Product) : null
+                if (product && product.isCourse && product.course) {
+                  const courseRef = product.course
+                  const courseId = typeof courseRef === 'object' && courseRef !== null ? courseRef.id : typeof courseRef === 'string' ? courseRef : null
+
+                  if (courseId) {
+                    try {
+                      // Fetch the full course details (removed explicit generic)
+                      // Using 'any' temporarily for course due to potential outdated types
+                      const course: any = await this.payload.findByID({
+                        collection: 'courses',
+                        id: courseId,
+                        depth: 0, // Keep depth 0, accessDuration should be top-level
+                      })
+
+                      let expiresAt: string | undefined = undefined
+                      // Use optional chaining extensively due to potential type issues
+                      if (course?.accessDuration?.type === 'limited' && course?.accessDuration?.duration && course?.accessDuration?.unit) {
+                        const durationOptions: Duration = {}
+                        // Ensure unit is a valid key for Duration and cast
+                        const unit = course.accessDuration.unit as keyof Duration
+                        if (['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'].includes(unit)) {
+                           durationOptions[unit] = course.accessDuration.duration
+                           expiresAt = add(new Date(), durationOptions).toISOString()
+                        } else {
+                          console.warn(`Invalid duration unit '${course.accessDuration.unit}' for course ${courseId}`)
+                        }
+                      }
+
+                      await enrollmentService.enrollUserInCourse({
+                        userId: userId,
+                        courseId: courseId,
+                        source: 'purchase',
+                        orderId: orderId,
+                        expiresAt: expiresAt,
+                      })
+                      console.log(`Successfully enrolled user ${userId} in course ${courseId} from order ${orderId}.`)
+
+                    } catch (enrollmentError) {
+                      console.error(`Failed to enroll user ${userId} in course ${courseId} for order ${orderId}:`, enrollmentError)
+                      // Decide if this error should be surfaced or just logged
+                    }
+                  } else {
+                     console.warn(`Product ${product.id} in order ${orderId} is marked as course but has no valid course linked.`)
+                  }
+                }
+              }
+            }
+          }
+          // --- End Course Enrollment Logic ---
         } catch (notifError) {
           console.error('Failed to send payment notification:', notifError)
         }
@@ -1013,9 +1105,9 @@ export class PaymentService extends BaseService {
     orderId: string,
     amount: number,
     description: string,
-    provider: IPaymentProvider,
+    providerKey: PaymentProviderKey, // Changed parameter name and type
   ): Promise<string> {
-    switch (provider) {
+    switch (providerKey) { // Use the key directly
       case 'yoomoney':
         return this.generateYooMoneyPaymentLink(orderId, amount, description)
       case 'robokassa':
@@ -1027,10 +1119,10 @@ export class PaymentService extends BaseService {
         // TODO: Implement PayPal payment link generation
         throw new Error('PayPal payment links not implemented yet')
       case 'crypto':
-        // TODO: Implement Crypto payment link generation
-        throw new Error('Crypto payment links not implemented yet')
+        // TODO: Implement Crypto payment links not implemented yet')
       default:
-        throw new Error(`Unsupported payment provider: ${provider}`)
+        // Use the correct variable name 'providerKey'
+        throw new Error(`Unsupported payment provider: ${providerKey}`)
     }
   }
 

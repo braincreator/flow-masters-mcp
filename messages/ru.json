@@ -223,8 +223,7 @@
     },
     "trending": "Популярное",
     "new": "Новое",
-    "hour": "час",
-    "hours": "часов",
+    "durationHours": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}",
     "students": "студентов",
     "noImage": "Нет изображения"
   },
@@ -401,6 +400,17 @@
       "and": "и",
       "privacyPolicy": "Политикой конфиденциальности"
     }
+  },
+"CoursesPage": {
+    "title": "Каталог курсов",
+    "noCourses": "На данный момент курсы отсутствуют.",
+    "metaTitle": "Каталог курсов",
+    "metaDescription": "Просмотрите наши доступные курсы."
+  },
+"CourseCard": {
+    "viewCourse": "Посмотреть курс",
+    "viewCourseAria": "Посмотреть курс: {title}",
+    "courseImageAlt": "Изображение для курса {title}"
   },
   "courses": {
     "all": "Все курсы",

@@ -6,8 +6,9 @@ export const Notifications: CollectionConfig = {
   slug: 'notifications',
   admin: {
     useAsTitle: 'title',
+    listSearchableFields: ['title', 'user', 'type'],
     defaultColumns: ['title', 'user', 'type', 'isRead', 'createdAt'],
-    group: 'User Management',
+    group: 'System', // Group with other system collections
     description: 'User notifications',
   },
   access: {
@@ -48,12 +49,21 @@ export const Notifications: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
-        { label: 'Achievement', value: 'achievement' },
-        { label: 'Level Up', value: 'level_up' },
-        { label: 'Course Completed', value: 'course_completed' },
-        { label: 'Certificate', value: 'certificate' },
-        { label: 'System', value: 'system' },
-        { label: 'Other', value: 'other' },
+        // Course Related
+        { label: 'Course Enrolled', value: 'course_enrolled' }, // NEW
+        { label: 'Lesson Completed', value: 'lesson_completed' }, // NEW
+        { label: 'Module Completed', value: 'module_completed' }, // NEW
+        { label: 'Assessment Submitted', value: 'assessment_submitted' }, // NEW (Useful for assignments)
+        { label: 'Assessment Graded', value: 'assessment_graded' }, // NEW
+        { label: 'Course Completed', value: 'course_completed' }, // Existing
+        { label: 'Certificate Issued', value: 'certificate_issued' }, // Renamed/Clarified from 'certificate'
+        // Gamification
+        { label: 'Achievement Unlocked', value: 'achievement_unlocked' }, // Renamed/Clarified from 'achievement'
+        { label: 'Level Up', value: 'level_up' }, // Existing
+        // General
+        { label: 'System Alert', value: 'system_alert' }, // Renamed/Clarified from 'system'
+        { label: 'General Info', value: 'general_info' }, // Renamed/Clarified from 'other'
+        // Add more specific types as needed (e.g., 'review_approved', 'new_comment')
       ],
       admin: {
         position: 'sidebar',
@@ -81,6 +91,7 @@ export const Notifications: CollectionConfig = {
       type: 'json',
       admin: {
         description: 'Additional metadata for the notification',
+        hidden: true, // Hide raw JSON from admin UI
       },
     },
   ],

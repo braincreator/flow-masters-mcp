@@ -20,6 +20,7 @@ import { UserLevelService } from './user-level.service'
 import { LeaderboardService } from './leaderboard.service'
 import { RewardService } from './reward.service'
 import { RewardDiscountService } from './reward-discount.service'
+import { CourseAnalyticsService } from './analytics/courseAnalyticsService' // Import CourseAnalyticsService
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry
@@ -73,10 +74,11 @@ export class ServiceRegistry {
     this.getLeaderboardService()
     this.getRewardService()
     this.getRewardDiscountService()
-    this.getNotificationService()
+    // Note: Duplicate getNotificationService call removed here
 
     // Интеграции с внешними сервисами
     this.getCalendlyService()
+    this.getCourseAnalyticsService() // Initialize CourseAnalyticsService
   }
 
   getProductService(): ProductService {
@@ -119,7 +121,7 @@ export class ServiceRegistry {
     return this.services.get(key)
   }
 
-  getNotificationService(): NotificationService {
+  getNotificationService(): NotificationService { // Keep only one implementation
     const key = 'notification'
     if (!this.services.has(key)) {
       this.services.set(key, NotificationService.getInstance(this.payload))
@@ -231,21 +233,22 @@ export class ServiceRegistry {
     return this.services.get(key)
   }
 
-  getNotificationService(): any {
-    const key = 'notification'
-    if (!this.services.has(key)) {
-      const NotificationService = require('./notification.service').NotificationService
-      this.services.set(key, NotificationService.getInstance(this.payload))
-    }
-    return this.services.get(key)
-  }
-
   getServiceService(): ServiceService {
     const key = 'service'
     if (!this.services.has(key)) {
       this.services.set(key, new ServiceService(this.payload))
     }
     return this.services.get(key)
+  }
+
+  // Added method for CourseAnalyticsService
+  getCourseAnalyticsService(): CourseAnalyticsService {
+    const key = 'courseAnalytics'
+    if (!this.services.has(key)) {
+      // Instantiate using the constructor
+      this.services.set(key, new CourseAnalyticsService(this.payload));
+    }
+    return this.services.get(key);
   }
 
   getAutoAccountService(): AutoAccountService {

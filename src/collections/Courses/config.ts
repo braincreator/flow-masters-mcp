@@ -8,6 +8,7 @@ export const Courses: CollectionConfig = {
   admin: {
     group: 'Learning Management',
     useAsTitle: 'title',
+    listSearchableFields: ['title'],
     defaultColumns: ['title', 'author', 'status', 'updatedAt'],
     description: 'Коллекция для учебных курсов платформы.',
   },
@@ -65,6 +66,53 @@ export const Courses: CollectionConfig = {
       localized: true,
     },
     {
+      name: 'learningObjectives',
+      type: 'richText',
+      label: 'Чему вы научитесь',
+      localized: true,
+      editor: lexicalEditor({}), // Assuming lexical editor is configured
+    },
+    {
+      name: 'liveSessions',
+      type: 'array',
+      label: 'Живые сессии / Вебинары',
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          label: 'Название сессии',
+          required: true,
+        },
+        {
+          name: 'dateTime',
+          type: 'date',
+          label: 'Дата и время',
+          required: true,
+          admin: {
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+        },
+        {
+          name: 'durationMinutes',
+          type: 'number',
+          label: 'Длительность (минуты)',
+          min: 15,
+        },
+        {
+          name: 'meetingLink',
+          type: 'text', // Changed from 'url' to 'text'
+          label: 'Ссылка на встречу (Zoom, Google Meet и т.д.)',
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          label: 'Краткое описание сессии',
+        },
+      ],
+    },
+    {
       name: 'difficulty',
       type: 'select',
       label: 'Уровень сложности',
@@ -74,7 +122,7 @@ export const Courses: CollectionConfig = {
         { label: 'Продвинутый', value: 'advanced' },
       ],
       admin: {
-        position: 'sidebar',
+        position: 'sidebar' as const, // Explicitly type as literal 'sidebar'
       },
     },
     {
@@ -97,6 +145,17 @@ export const Courses: CollectionConfig = {
       },
     },
     {
+      name: 'prerequisites',
+      type: 'relationship',
+      relationTo: 'courses',
+      hasMany: true,
+      label: 'Предварительные курсы',
+      admin: {
+        description: 'Курсы, которые необходимо пройти перед началом этого.',
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'layout',
       label: 'Содержимое страницы курса',
       type: 'blocks',
@@ -104,6 +163,32 @@ export const Courses: CollectionConfig = {
       blocks: availableBlocks,
       required: true,
       localized: true,
+    },
+    {
+      name: 'seo',
+      type: 'group',
+      label: 'SEO Настройки',
+      fields: [
+        {
+          name: 'metaTitle',
+          type: 'text',
+          label: 'Meta Title',
+          localized: true,
+          admin: {
+            description: 'Оптимальная длина 50-60 символов.',
+          },
+        },
+        {
+          name: 'metaDescription',
+          type: 'textarea',
+          label: 'Meta Description',
+          localized: true,
+          admin: {
+            description: 'Оптимальная длина 150-160 символов.',
+          },
+        },
+        // Можно добавить metaImage, keywords и т.д. при необходимости
+      ],
     },
     {
       name: 'product',
@@ -171,6 +256,39 @@ export const Courses: CollectionConfig = {
           },
         },
       ],
+    },
+    {
+      name: 'enrollmentCapacity',
+      type: 'number',
+      label: 'Лимит мест',
+      min: 0,
+      admin: {
+        description: 'Максимальное количество студентов. Оставьте 0 или пустым для неограниченного.',
+        position: 'sidebar',
+        step: 1,
+      },
+    },
+    // NEW: Optional relationship to a final assessment for the course
+    { // Uncommented field
+      name: 'finalAssessment',
+      type: 'relationship',
+      relationTo: 'assessments',
+      label: 'Итоговая оценка',
+      required: false,
+      admin: {
+        description: 'Необязательная итоговая оценка для завершения курса.',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'discussionForum',
+      type: 'relationship',
+      relationTo: 'forum-categories', // Corrected slug
+      label: 'Связанный форум',
+      admin: {
+        description: 'Выберите категорию форума для этого курса.',
+        position: 'sidebar',
+      },
     },
   ],
 }

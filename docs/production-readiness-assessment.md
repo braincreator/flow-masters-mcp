@@ -21,7 +21,7 @@ graph TD
             C --> C3["Clarify progress tracking logic implementation"];
             C --> C4["Verify implementation of Course Forum & Lesson Q&A"];
 
-            D --> D1["Confirm specific payment gateway integration details (e.g., Stripe/PayPal)"];
+            D --> D1["Confirm specific payment gateway integration details (e.g., Robokassa/YooMoney)"];
             D --> D2["Verify robustness of subscription lifecycle management (renewals, cancellations, dunning)"];
             D --> D3["Confirm checkout UI components and flow"];
             D --> D4["Assess error handling in payment processes"];

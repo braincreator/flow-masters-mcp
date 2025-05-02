@@ -23,6 +23,16 @@ import updateItemHandler from './endpoints/cart/updateItemHandler'
 import removeItemHandler from './endpoints/cart/removeItemHandler'
 import clearCartHandler from './endpoints/cart/clearCartHandler'
 import triggerNewsletterBroadcastHandler from './endpoints/triggerNewsletterBroadcast'
+// Course Feature Handlers
+import enrollFreeHandler from './endpoints/courses/enrollFreeHandler'
+import markCompleteHandler from './endpoints/lessons/markCompleteHandler'
+import submitHandler from './endpoints/assessments/submitHandler'
+import submitReviewHandler from './endpoints/reviews/submitHandler' // Import review submit handler
+import getCourseReviewsHandler from './endpoints/reviews/getCourseReviewsHandler'
+import getAverageRatingHandler from './endpoints/reviews/getAverageRatingHandler'
+import cancelEnrollmentHandler from './endpoints/enrollments/cancelHandler' // Import cancellation handler
+import profileDataHandler from './endpoints/users/profileDataHandler'
+// Other API Handlers
 import { previewEmailTemplate } from './api/preview-email-template'
 import { previewEmail } from './api/preview-email'
 
@@ -36,6 +46,11 @@ const __dirname = path.dirname(__filename)
 // Import consolidated lists
 import globalsList from '@/globals'
 import collections from '@/collections/collectionList'
+import { Assessments } from './collections/Assessments/config'
+import { CourseReviews } from './collections/CourseReviews/config'
+import { AssessmentSubmissions } from './collections/AssessmentSubmissions/config' // Import AssessmentSubmissions
+import { LearningPaths } from './collections/LearningPaths/config' // Import LearningPaths
+import { WaitingListEntries } from './collections/WaitingListEntries/config' // Import WaitingListEntries
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
@@ -71,7 +86,7 @@ const mongooseConfig = {
 
 // Use a string path for the MetricsDashboard component
 // This ensures compatibility with the importMap generation
-const dashboardPath = '/components/admin/MetricsDashboard'
+const dashboardPath = '@/components/admin/MetricsDashboard'
 
 // --- Определяем интерфейс для входных данных задачи --- //
 interface RecalculateSegmentsInput {
@@ -121,21 +136,21 @@ export default buildConfig({
         },
       },
       // Custom navigation components
-      afterNavLinks: ['/components/admin/CustomNavigation'],
+      afterNavLinks: ['@/components/admin/CustomNavigation'],
       // Custom branding
       graphics: {
-        Logo: '/components/admin/CustomLogo',
-        Icon: '/components/admin/CustomIcon',
+        Logo: '@/components/admin/CustomLogo',
+        Icon: '@/components/admin/CustomIcon',
       },
       // Custom header
-      header: ['/components/admin/CustomHeader'],
+      header: ['@/components/admin/CustomHeader'],
       // Custom actions in the header
-      actions: ['/components/admin/CustomAction'],
+      actions: ['@/components/admin/CustomAction'],
       // Other component overrides
-      beforeLogin: ['/components/admin/CustomLoginMessage'],
-      beforeDashboard: ['/components/admin/CustomDashboard'],
+      beforeLogin: ['@/components/admin/CustomLoginMessage'],
+      beforeDashboard: ['@/components/admin/CustomDashboard'],
       // Custom providers
-      providers: ['/components/admin/CustomProvider'],
+      providers: ['@/components/admin/CustomProvider'],
     },
 
     // Custom navigation is implemented through afterNavLinks component
@@ -215,7 +230,7 @@ export default buildConfig({
   },
 
   cors: [getServerSideURL()].filter(Boolean),
-  collections: [...collections],
+  collections: [...collections, Assessments, CourseReviews, AssessmentSubmissions, LearningPaths, WaitingListEntries], // Add WaitingListEntries
   globals: [...globalsList],
   email: nodemailerAdapter({
     defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'admin@flow-masters.ru',
@@ -610,6 +625,50 @@ export default buildConfig({
       path: '/api/preview-email',
       method: 'get',
       handler: previewEmail,
+    },
+    // Course Feature Endpoints
+    {
+      path: '/api/courses/:courseId/enroll-free',
+      method: 'post',
+      handler: enrollFreeHandler,
+    },
+    {
+      path: '/api/lessons/:lessonId/complete',
+      method: 'post',
+      handler: markCompleteHandler,
+    },
+    {
+      path: '/api/assessments/:assessmentId/submit',
+      method: 'post',
+      handler: submitHandler,
+    },
+    // User Profile Data Endpoint
+    {
+      path: '/api/users/profile-data',
+      method: 'get',
+      handler: profileDataHandler,
+    },
+    // Review Endpoints
+    {
+      path: '/api/reviews', // Endpoint to submit a review
+      method: 'post',
+      handler: submitReviewHandler,
+    },
+    {
+      path: '/api/courses/:courseId/reviews', // Endpoint to get reviews for a course
+      method: 'get',
+      handler: getCourseReviewsHandler,
+    },
+    {
+      path: '/api/courses/:courseId/average-rating', // Endpoint to get average rating for a course
+      method: 'get',
+      handler: getAverageRatingHandler,
+    },
+    // Enrollment Cancellation Endpoint
+    {
+      path: '/api/enrollments/:enrollmentId/cancel', // Endpoint to request cancellation
+      method: 'post', // Or 'patch'/'put' depending on preference
+      handler: cancelEnrollmentHandler,
     },
   ],
   graphQL: {
