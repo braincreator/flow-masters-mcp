@@ -3,6 +3,7 @@ import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrSelf } from '@/access/isAdminOrSelf'
 import { ServiceRegistry } from '@/services/service.registry' // Import ServiceRegistry
 import { handleWaitingList } from './hooks/handleWaitingList' // Import the hook
+import { notifyWaitingListOnStatusChange, notifyWaitingListOnDelete } from './hooks/notifyWaitingListOnVacancy' // Import new hooks
 
 // Module augmentation moved to src/types/payload.d.ts
 
@@ -62,6 +63,7 @@ export const CourseEnrollments: CollectionConfig = {
   hooks: {
     beforeChange: [handleWaitingList], // Add beforeChange hook
     afterChange: [
+      // Existing afterChange hook for analytics
       async ({ doc, req, operation }) => {
         // If enrollment status changes to completed, update analytics
         if (operation === 'update' && doc.status === 'completed' && doc.completedAt) {
@@ -83,7 +85,10 @@ export const CourseEnrollments: CollectionConfig = {
           }
         }
       },
+      // Add the new afterChange hook for waiting list notification
+      notifyWaitingListOnStatusChange,
     ],
+    afterDelete: [notifyWaitingListOnDelete], // Add afterDelete hook
   },
   timestamps: true,
 }

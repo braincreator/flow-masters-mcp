@@ -8,6 +8,7 @@
     "build": "node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_JEST_WORKER_THREADS=false next build --no-lint",
     "analyze": "cross-env ANALYZE=true next build",
     "build:prod": "node fix-importmap.js && cross-env NODE_ENV=production NEXT_JEST_WORKER_THREADS=false next build",
+    "build:scripts": "tsc -p tsconfig.scripts.json",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "rebuild": "pnpm clean && pnpm install && pnpm build",
     "postbuild": "next-sitemap --config next-sitemap.config.cjs",

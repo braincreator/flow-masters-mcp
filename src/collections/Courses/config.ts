@@ -6,7 +6,7 @@ import { availableBlocks } from '../../blocks'
 export const Courses: CollectionConfig = {
   slug: 'courses',
   admin: {
-    group: 'Learning Management',
+    group: 'Управление Обучением', // Translated group name
     useAsTitle: 'title',
     listSearchableFields: ['title'],
     defaultColumns: ['title', 'author', 'status', 'updatedAt'],
@@ -172,7 +172,7 @@ export const Courses: CollectionConfig = {
         {
           name: 'metaTitle',
           type: 'text',
-          label: 'Meta Title',
+          label: 'Meta Заголовок (Title)', // Translated label
           localized: true,
           admin: {
             description: 'Оптимальная длина 50-60 символов.',
@@ -181,7 +181,7 @@ export const Courses: CollectionConfig = {
         {
           name: 'metaDescription',
           type: 'textarea',
-          label: 'Meta Description',
+          label: 'Meta Описание (Description)', // Translated label
           localized: true,
           admin: {
             description: 'Оптимальная длина 150-160 символов.',

@@ -1,7 +1,8 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
-import { isAdminOrOwner } from '@/access/isAdminOrOwner'
+import { isAdminOrSelf } from '@/access/isAdminOrSelf' // Corrected import
 import { PAYMENT_CONFIG } from '@/constants/payment'
+import { grantCourseAccess } from './hooks/grantCourseAccess' // Import the hook
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -12,7 +13,7 @@ export const Orders: CollectionConfig = {
   },
   access: {
     create: () => true,
-    read: isAdminOrOwner,
+    read: isAdminOrSelf, // Corrected usage
     update: isAdmin,
     delete: isAdmin,
   },
@@ -111,5 +112,8 @@ export const Orders: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [grantCourseAccess], // Add the hook
+  },
   timestamps: true,
 }

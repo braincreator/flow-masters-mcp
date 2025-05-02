@@ -216,6 +216,19 @@ const templates: TemplateDefinition[] = [
       locale: 'en',
     },
   },
+  {
+    slug: 'waiting-list-vacancy', // Use kebab-case for slugs
+    name: 'Waiting List Vacancy Notification',
+    description: 'Sent when a spot opens up for a user on the waiting list',
+    codeTemplatePath: '../utilities/emailTemplates/courses/waitingListVacancy.ts',
+    sampleData: {
+      userName: 'Jane Doe',
+      email: 'waitlist@example.com', // Sample email
+      courseName: 'Advanced Flow Techniques',
+      courseLink: 'https://flow-masters.ru/courses/advanced-flow', // Example link
+      locale: 'en',
+    },
+  },
 ]
 
 // Function to generate HTML from a code template
@@ -260,7 +273,10 @@ function extractPlaceholders(html: string): string[] {
   let match
 
   while ((match = placeholderRegex.exec(html)) !== null) {
-    placeholders.push(match[1])
+    // Ensure the capture group exists before pushing
+    if (match[1]) {
+      placeholders.push(match[1])
+    }
   }
 
   return [...new Set(placeholders)] // Remove duplicates
@@ -294,8 +310,8 @@ async function syncTemplates() {
     // Initialize Payload
     payload = await import('payload').then(async (module) => {
       await module.default.init({
-        secret: process.env.PAYLOAD_SECRET || 'your-secret-here',
-        mongoURL: process.env.MONGODB_URI || 'mongodb://localhost/payload',
+        // secret is usually defined in the config, not here
+        mongoURL: process.env.MONGODB_URI || 'mongodb://localhost/flow-masters',
         config: payloadConfig,
         local: true,
       })
@@ -303,6 +319,11 @@ async function syncTemplates() {
     })
 
     console.log('Connected to Payload CMS')
+
+    // Add a null check for payload after initialization
+    if (!payload) {
+      throw new Error('Payload failed to initialize.');
+    }
 
     // Get default sender email
     const senderEmails = await payload.find({
@@ -321,6 +342,12 @@ async function syncTemplates() {
       console.log(`Processing template: ${template.name} (${template.slug})`)
 
       try {
+        // Add null check before using payload in loop
+        if (!payload) {
+          console.error(`Payload instance is null, skipping template ${template.slug}`);
+          continue; // Skip this iteration
+        }
+
         // Check if template already exists
         const existingTemplate = await payload.find({
           collection: 'email-templates',
@@ -388,10 +415,11 @@ async function syncTemplates() {
     console.error('Error syncing templates:', error)
   } finally {
     // Cleanup
-    if (payload) {
-      console.log('Closing Payload connection')
-      await payload.disconnect()
-    }
+    // The disconnect method might be deprecated or unnecessary with local init
+    // if (payload) {
+    //   console.log('Closing Payload connection')
+    //   await payload.disconnect()
+    // }
   }
 }
 

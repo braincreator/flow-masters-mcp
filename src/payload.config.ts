@@ -26,6 +26,7 @@ import triggerNewsletterBroadcastHandler from './endpoints/triggerNewsletterBroa
 // Course Feature Handlers
 import enrollFreeHandler from './endpoints/courses/enrollFreeHandler'
 import markCompleteHandler from './endpoints/lessons/markCompleteHandler'
+import { accessLessonHandler } from './endpoints/lessons/accessLessonHandler' // Import the new handler
 import submitHandler from './endpoints/assessments/submitHandler'
 import submitReviewHandler from './endpoints/reviews/submitHandler' // Import review submit handler
 import getCourseReviewsHandler from './endpoints/reviews/getCourseReviewsHandler'
@@ -636,6 +637,12 @@ export default buildConfig({
       path: '/api/lessons/:lessonId/complete',
       method: 'post',
       handler: markCompleteHandler,
+    },
+    // Add the new lesson access endpoint
+    {
+      path: '/api/lessons/:lessonId/access',
+      method: 'get',
+      handler: accessLessonHandler,
     },
     {
       path: '/api/assessments/:assessmentId/submit',

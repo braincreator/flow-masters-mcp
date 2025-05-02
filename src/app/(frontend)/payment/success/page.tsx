@@ -1,23 +1,34 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import PaymentResult from '@/components/PaymentResult'
+import PaymentResult, { PaymentResultProps } from '@/components/PaymentResult' // Import the type
+import { Locale } from '@/constants' // Assuming Locale type exists
 
-export default function PaymentSuccessPage() {
+interface PaymentSuccessPageProps {
+  params: { lang: Locale }
+}
+
+export default function PaymentSuccessPage({ params }: PaymentSuccessPageProps) {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
   const transactionId = searchParams.get('transactionId')
+  const locale = params.lang
 
-  const result = {
+  // The old 'result' object is removed as it's not needed
+
+  // Explicitly type the props object
+  const paymentResultProps: PaymentResultProps = {
     success: true,
-    orderId: orderId || 'unknown',
-    transactionId,
+    orderId: orderId,
+    transactionId: transactionId,
+    locale: locale,
   }
 
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-lg mx-auto">
-        <PaymentResult lang="en" successText="Payment successful!" errorText="Payment failed" />
+        {/* Pass correct props to PaymentResult using spread */}
+        <PaymentResult {...paymentResultProps} />
       </div>
     </div>
   )

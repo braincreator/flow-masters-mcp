@@ -2,7 +2,8 @@ import type { CollectionConfig, Validate } from 'payload' // Import Validate
 import { slugField } from '@/fields/slug'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { availableBlocks } from '../../blocks' // Import available blocks
-import { filterAvailableLessons } from './hooks/filterAvailableLessons' // Import the hook
+import { filterAvailableLessons } from './hooks/filterAvailableLessons' // Import the read hook
+import { populateAvailableOn } from './hooks/populateAvailableOn' // Import the change hook
 
 // Define interface for drip content data shape
 interface DripContentData {
@@ -41,6 +42,7 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     beforeRead: [filterAvailableLessons],
+    beforeChange: [populateAvailableOn], // Add beforeChange hook
   },
   labels: {
     singular: 'Урок',
@@ -115,6 +117,17 @@ export const Lessons: CollectionConfig = {
           validate: validateReleaseDate, // Use typed validate function
         },
       ],
+    },
+    {
+      name: 'availableOn',
+      type: 'date',
+      label: 'Дата Доступности (Авто)',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Рассчитывается автоматически на основе настроек Drip Content.',
+      },
+      // This field will be populated by a beforeChange hook
     },
     {
       name: 'module',

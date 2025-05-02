@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const LearningPaths: CollectionConfig = {
   slug: 'learning-paths',
   admin: {
-    group: 'Learning Management',
+    group: 'Управление Обучением', // Translated group name
     useAsTitle: 'title',
     description: 'Определите последовательности курсов для пользователей.',
     defaultColumns: ['title', 'updatedAt'],

@@ -22,6 +22,7 @@ const LOCALIZED_TEXTS = {
     removedFromCart: (productName: string) => `${productName} removed from cart`,
     ariaLabelAdd: 'Add to cart',
     ariaLabelRemove: 'Remove from cart',
+    enrollNow: 'Enroll Now', // New text
   },
   ru: {
     addToCart: 'В корзину',
@@ -34,6 +35,7 @@ const LOCALIZED_TEXTS = {
     removedFromCart: (productName: string) => `${productName} удален из корзины`,
     ariaLabelAdd: 'Добавить в корзину',
     ariaLabelRemove: 'Удалить из корзины',
+    enrollNow: 'Записаться сейчас', // New text
   },
   // Add other languages here following the same pattern
 }
@@ -49,6 +51,7 @@ interface AddToCartButtonProps {
   showToast?: boolean
   successMessage?: string
   removeMessage?: string
+  isWaitingListEnrollment?: boolean // Add new prop
 }
 
 export function AddToCartButton({
@@ -62,6 +65,7 @@ export function AddToCartButton({
   showToast = true,
   successMessage,
   removeMessage,
+  isWaitingListEnrollment = false, // Destructure with default
 }: AddToCartButtonProps) {
   const { cart, addItem, removeItem, isLoading: isCartLoading } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -109,10 +113,32 @@ export function AddToCartButton({
   const ButtonIcon = buttonConfig.icon
 
   const getProductTitle = () => {
-    if (!product?.title) return 'Product'
-    return typeof product.title === 'object'
-      ? product.title[locale] || product.title.en || 'Product'
-      : product.title
+    const title = product?.title
+    if (!title) return 'Product'
+
+    if (typeof title === 'string') {
+      return title
+    }
+
+    // Explicitly check if title is an object and has the locale key
+    if (typeof title === 'object' && title !== null && locale in title) {
+      // Ensure the value is a string before returning
+      const localizedTitle = title[locale as keyof typeof title]
+      if (typeof localizedTitle === 'string') {
+        return localizedTitle
+      }
+    }
+
+    // Fallback to 'en' if locale title is not found or not a string
+    if (typeof title === 'object' && title !== null && 'en' in title) {
+      const enTitle = title['en' as keyof typeof title]
+      if (typeof enTitle === 'string') {
+        return enTitle
+      }
+    }
+
+    // Final fallback
+    return 'Product'
   }
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -146,8 +172,19 @@ export function AddToCartButton({
     }
   }
 
-  const currentButtonText = isInCartState ? texts.inCart : buttonConfig.text
+  // Determine button text based on state, including waiting list enrollment
+  const currentButtonText = isWaitingListEnrollment
+    ? texts.enrollNow // Use enroll text if applicable
+    : isInCartState
+      ? texts.inCart // Otherwise, use in cart text
+      : buttonConfig.text // Otherwise, use default text based on product type
+
   const CurrentIcon = isInCartState ? Check : ButtonIcon
+
+  // Ensure button is enabled for waiting list enrollment, unless explicitly disabled by parent
+  const isDisabled = isWaitingListEnrollment
+    ? disabled // Respect parent disabled prop
+    : disabled || isCartLoading || isProcessing // Normal disabled conditions
 
   return (
     <Button
@@ -160,7 +197,7 @@ export function AddToCartButton({
         className,
       )}
       onClick={handleClick}
-      disabled={disabled || isCartLoading || isProcessing}
+      disabled={isDisabled} // Use calculated disabled state
       aria-label={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
       title={isInCartState ? texts.ariaLabelRemove : texts.ariaLabelAdd}
     >

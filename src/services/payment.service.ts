@@ -48,7 +48,7 @@ interface IPaymentProvider {
   processPayment(params: Omit<ProcessPaymentParams, 'provider'>): Promise<PaymentResult>
 }
 
-type PaymentProviderKey = 'yoomoney' | 'robokassa' | 'stripe' | 'paypal' | 'crypto'
+type PaymentProviderKey = 'yoomoney' | 'robokassa' | 'crypto'
 
 interface PaymentProviders extends Record<PaymentProviderKey, IPaymentProvider> {}
 
@@ -205,50 +205,6 @@ export class PaymentService extends BaseService {
       }
     }
 
-    // Process Stripe settings
-    if (paymentProviders.stripe?.stripe_enabled) {
-      providers.push({
-        id: 'stripe',
-        name: paymentProviders.stripe?.stripe_displayName?.en || 'Stripe',
-        enabled: true,
-      })
-
-      // Get config based on test mode
-      const stripeConfig = paymentProviders.stripe?.stripe_config || {}
-      const isTestMode = stripeConfig.testMode !== false
-      const configSource = isTestMode ? stripeConfig.test : stripeConfig.production
-
-      providersConfig.stripe = {
-        publishableKey:
-          configSource?.publishable_key ||
-          process.env.STRIPE_PUBLISHABLE_KEY ||
-          'your_publishable_key',
-        secretKey: configSource?.secret_key || process.env.STRIPE_SECRET_KEY || 'your_secret_key',
-        testMode: isTestMode,
-      }
-    }
-
-    // Process PayPal settings
-    if (paymentProviders.paypal?.paypal_enabled) {
-      providers.push({
-        id: 'paypal',
-        name: paymentProviders.paypal?.paypal_displayName?.en || 'PayPal',
-        enabled: true,
-      })
-
-      // Get config based on test mode
-      const paypalConfig = paymentProviders.paypal?.paypal_config || {}
-      const isTestMode = paypalConfig.testMode !== false
-      const configSource = isTestMode ? paypalConfig.test : paypalConfig.production
-
-      providersConfig.paypal = {
-        clientId: configSource?.client_id || process.env.PAYPAL_CLIENT_ID || 'your_client_id',
-        clientSecret:
-          configSource?.client_secret || process.env.PAYPAL_CLIENT_SECRET || 'your_client_secret',
-        testMode: isTestMode,
-      }
-    }
-
     // Process Crypto payment settings
     if (paymentProviders.crypto?.crypto_enabled) {
       providers.push({
@@ -389,10 +345,6 @@ export class PaymentService extends BaseService {
           return await this.checkYooMoneyPaymentStatus(paymentId)
         case 'robokassa':
           return await this.checkRobokassaPaymentStatus(paymentId)
-        case 'stripe':
-          return await this.checkStripePaymentStatus(paymentId)
-        case 'paypal':
-          return await this.checkPayPalPaymentStatus(paymentId)
         case 'crypto':
           return await this.checkCryptoPaymentStatus(paymentId)
         default:
@@ -418,16 +370,6 @@ export class PaymentService extends BaseService {
     return { status: 'failed', paymentId: '', error: 'Not implemented' }
   }
 
-  private async createStripePayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    // Реализация из payment.ts
-    return { status: 'failed', paymentId: '', error: 'Not implemented' }
-  }
-
-  private async createPayPalPayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    // Реализация из payment.ts
-    return { status: 'failed', paymentId: '', error: 'Not implemented' }
-  }
-
   private async createCryptoPayment(params: PaymentCreateParams): Promise<PaymentResult> {
     // Реализация из payment.ts
     return { status: 'failed', paymentId: '', error: 'Not implemented' }
@@ -435,30 +377,23 @@ export class PaymentService extends BaseService {
 
   private async checkYooMoneyPaymentStatus(
     paymentId: string,
-  ): Promise<{ status: string; details?: any }> {
-    // Реализация из payment.ts
-    return { status: 'unknown' }
+  ): Promise<{ status: PaymentStatus; details?: any }> {
+    // TODO: Implement YooMoney API call to check payment status
+    // Example: Fetch payment details from YooMoney using paymentId and secretKey
+    // Map YooMoney status to PaymentStatus enum (e.g., 'succeeded' -> PaymentStatus.COMPLETED)
+    console.warn(`checkYooMoneyPaymentStatus for ${paymentId} not implemented. Returning UNKNOWN.`)
+    return { status: PaymentStatus.PENDING } // Default to PENDING or another appropriate status
   }
 
   private async checkRobokassaPaymentStatus(
-    paymentId: string,
-  ): Promise<{ status: string; details?: any }> {
-    // Реализация из payment.ts
-    return { status: 'unknown' }
-  }
-
-  private async checkStripePaymentStatus(
-    paymentId: string,
-  ): Promise<{ status: string; details?: any }> {
-    // Реализация из payment.ts
-    return { status: 'unknown' }
-  }
-
-  private async checkPayPalPaymentStatus(
-    paymentId: string,
-  ): Promise<{ status: string; details?: any }> {
-    // Реализация из payment.ts
-    return { status: 'unknown' }
+    // Robokassa uses InvId (orderId) for identification in many contexts
+    orderId: string,
+  ): Promise<{ status: PaymentStatus; details?: any }> {
+    // TODO: Implement Robokassa API call to check payment status
+    // Example: Use Robokassa's XML interface (OpState) with MerchantLogin, InvId, Signature
+    // Map Robokassa status code to PaymentStatus enum (e.g., 100 -> PaymentStatus.COMPLETED)
+    console.warn(`checkRobokassaPaymentStatus for ${orderId} not implemented. Returning UNKNOWN.`)
+    return { status: PaymentStatus.PENDING } // Default to PENDING or another appropriate status
   }
 
   private async checkCryptoPaymentStatus(
@@ -484,16 +419,6 @@ export class PaymentService extends BaseService {
     // Проверяем Robokassa
     if (webhookData?.InvId && webhookData?.OutSum && webhookData?.SignatureValue) {
       return 'robokassa'
-    }
-
-    // Проверяем Stripe
-    if (webhookData?.type && webhookData?.data?.object?.object === 'payment_intent') {
-      return 'stripe'
-    }
-
-    // Проверяем PayPal
-    if (webhookData?.event_type && webhookData?.resource?.id) {
-      return 'paypal'
     }
 
     // Проверяем Crypto
@@ -624,22 +549,6 @@ export class PaymentService extends BaseService {
   }
 
   /**
-   * Проверяет подлинность вебхука Stripe
-   */
-  private verifyStripeWebhook(webhookData: any): boolean {
-    // Здесь должна быть реализация проверки подписи Stripe
-    return true
-  }
-
-  /**
-   * Проверяет подлинность вебхука PayPal
-   */
-  private verifyPayPalWebhook(webhookData: any): boolean {
-    // Здесь должна быть реализация проверки подписи PayPal
-    return true
-  }
-
-  /**
    * Проверяет подлинность вебхука по данным платежной системы
    */
   async verifyWebhook(webhookData: any): Promise<boolean> {
@@ -655,10 +564,6 @@ export class PaymentService extends BaseService {
           return this.verifyYooMoneyWebhook(webhookData)
         case 'robokassa':
           return this.verifyRobokassaWebhook(webhookData)
-        case 'stripe':
-          return this.verifyStripeWebhook(webhookData)
-        case 'paypal':
-          return this.verifyPayPalWebhook(webhookData)
         case 'crypto':
           return true // Временная заглушка для crypto
         default:
@@ -690,15 +595,11 @@ export class PaymentService extends BaseService {
           return this.processYooMoneyWebhook(webhookData)
         case 'robokassa':
           return this.processRobokassaWebhook(webhookData)
-        case 'stripe':
-          return this.processStripeWebhook(webhookData)
-        case 'paypal':
-          return this.processPayPalWebhook(webhookData)
         case 'crypto':
           // Временная заглушка для crypto
           return {
             orderId: webhookData.order_id || 'unknown',
-            status: 'paid',
+            status: PaymentStatus.COMPLETED, // Use enum
             transactionId: webhookData.transaction_id,
           }
         default:
@@ -731,7 +632,7 @@ export class PaymentService extends BaseService {
     } else if (isProtected) {
       status = 'hold'
     } else {
-      status = 'paid'
+      status = PaymentStatus.COMPLETED // Use enum
     }
 
     return {
@@ -746,100 +647,33 @@ export class PaymentService extends BaseService {
    */
   private processRobokassaWebhook(webhookData: any): {
     orderId: string
-    status: string
+    status: PaymentStatus // Use the enum type
     transactionId?: string
   } {
-    return {
-      orderId: webhookData.InvId.toString(),
-      status: 'paid', // Robokassa отправляет вебхук только при успешной оплате
-      transactionId: webhookData.InvId.toString(),
-    }
-  }
-
-  /**
-   * Обрабатывает вебхук Stripe
-   */
-  private processStripeWebhook(webhookData: any): {
-    orderId: string
-    status: string
-    transactionId?: string
-  } {
-    // Извлекаем данные из объекта события Stripe
-    const stripeEvent = webhookData
-    const paymentIntent = stripeEvent.data.object
-
-    // Извлекаем orderId из метаданных
-    const orderId = paymentIntent.metadata?.orderId || 'unknown'
-
-    // Определяем статус на основе статуса Stripe
-    let status = 'processing'
-
-    switch (paymentIntent.status) {
-      case 'succeeded':
-        status = 'paid'
-        break
-      case 'processing':
-        status = 'processing'
-        break
-      case 'requires_payment_method':
-      case 'requires_confirmation':
-      case 'requires_action':
-        status = 'waiting'
-        break
-      case 'canceled':
-        status = 'canceled'
-        break
-      default:
-        status = 'processing'
+    const orderId = webhookData.InvId
+    if (!orderId) {
+       console.error('Robokassa Webhook Error: Missing orderId (InvId)')
+       throw new Error('Missing orderId in Robokassa webhook data')
     }
 
+    // Robokassa typically sends webhooks only for successful payments (ResultURL).
+    // SuccessURL is a redirect, FailureURL is a redirect.
+    // We rely on the verification step to ensure this is a valid success notification.
+    const status = PaymentStatus.COMPLETED // Use enum
+
+    // Optional: Verify OutSum matches the order total
+    // const expectedAmount = ... fetch order amount ...
+    // if (parseFloat(webhookData.OutSum) >= expectedAmount) {
+    //    status = PaymentStatus.PAID
+    // } else {
+    //    console.warn(`Robokassa Webhook: Amount mismatch for order ${orderId}. Received ${webhookData.OutSum}, expected ${expectedAmount}`)
+    //    status = PaymentStatus.FAILED // Or handle partial payment
+    // }
+
     return {
-      orderId,
+      orderId: String(orderId), // Ensure it's a string
       status,
-      transactionId: paymentIntent.id,
-    }
-  }
-
-  /**
-   * Обрабатывает вебхук PayPal
-   */
-  private processPayPalWebhook(webhookData: any): {
-    orderId: string
-    status: string
-    transactionId?: string
-  } {
-    // Извлекаем данные из объекта события PayPal
-    const paypalEvent = webhookData
-    const resource = paypalEvent.resource
-
-    // Извлекаем orderId из метаданных или custom_id
-    const orderId = resource.custom_id || resource.purchase_units?.[0]?.custom_id || 'unknown'
-
-    // Определяем статус на основе типа события PayPal
-    let status
-
-    switch (paypalEvent.event_type) {
-      case 'PAYMENT.CAPTURE.COMPLETED':
-      case 'CHECKOUT.ORDER.APPROVED':
-        status = 'paid'
-        break
-      case 'PAYMENT.CAPTURE.PENDING':
-      case 'CHECKOUT.ORDER.PROCESSING':
-        status = 'processing'
-        break
-      case 'PAYMENT.CAPTURE.DENIED':
-      case 'PAYMENT.CAPTURE.REFUNDED':
-      case 'CHECKOUT.ORDER.CANCELLED':
-        status = 'canceled'
-        break
-      default:
-        status = 'processing'
-    }
-
-    return {
-      orderId,
-      status,
-      transactionId: resource.id,
+      transactionId: String(orderId), // Robokassa uses InvId as the transaction identifier
     }
   }
 
@@ -879,12 +713,13 @@ export class PaymentService extends BaseService {
           paymentId: update.paymentId,
           paymentProvider: update.paymentProvider,
           paymentData: update.paymentData,
-          ...(update.status === 'paid' && { paidAt: new Date().toISOString() }),
+          // Use PaymentStatus enum for comparison
+          ...(update.status === PaymentStatus.COMPLETED && { paidAt: new Date().toISOString() }),
         },
       })
 
-      // Если заказ оплачен, отправляем уведомление
-      if (update.status === 'paid') {
+      // Если заказ оплачен (COMPLETED), отправляем уведомление
+      if (update.status === PaymentStatus.COMPLETED) {
         try {
           const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           const notificationService = serviceRegistry.getNotificationService()
@@ -943,7 +778,7 @@ export class PaymentService extends BaseService {
               total: displayTotal, // Use locale-specific total
               currency: displayCurrency, // Use locale-specific currency
               paymentMethod: update.paymentProvider,
-              paymentStatus: 'paid',
+              paymentStatus: 'paid', // Use literal string 'paid' as expected by email service
               locale: customerLocale, // Use extracted locale
             })
           } catch (emailError) {
@@ -1112,14 +947,9 @@ export class PaymentService extends BaseService {
         return this.generateYooMoneyPaymentLink(orderId, amount, description)
       case 'robokassa':
         return this.generateRobokassaPaymentLink(orderId, amount, description)
-      case 'stripe':
-        // TODO: Implement Stripe payment link generation
-        throw new Error('Stripe payment links not implemented yet')
-      case 'paypal':
-        // TODO: Implement PayPal payment link generation
-        throw new Error('PayPal payment links not implemented yet')
       case 'crypto':
         // TODO: Implement Crypto payment links not implemented yet')
+        throw new Error('Crypto payment links not implemented yet')
       default:
         // Use the correct variable name 'providerKey'
         throw new Error(`Unsupported payment provider: ${providerKey}`)
@@ -1136,8 +966,6 @@ export class PaymentService extends BaseService {
     const providers = {
       yoomoney: defaultProvider,
       robokassa: defaultProvider,
-      stripe: defaultProvider,
-      paypal: defaultProvider,
       crypto: defaultProvider,
     } as const
 

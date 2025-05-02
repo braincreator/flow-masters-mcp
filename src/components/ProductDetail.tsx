@@ -6,6 +6,7 @@ import { Download, Shield, Truck } from 'lucide-react'
 import RichText from '@/components/RichText'
 import { useTranslations } from '@/hooks/useTranslations'
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation' // Import useSearchParams
 import { ImageGallery } from '@/components/ProductDetail/ImageGallery'
 import './ProductDetail/styles.css'
 import { useFavorites } from '@/providers/FavoritesProvider'
@@ -39,6 +40,11 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
   const t = useTranslations(lang)
   const { isFavorite } = useFavorites()
   const [isFav, setIsFav] = useState(false)
+  const searchParams = useSearchParams() // Get search params
+
+  // Check for waiting list enrollment token
+  const enrollToken = searchParams.get('enrollToken')
+  const isWaitingListEnrollment = !!enrollToken // True if token exists
 
   // Determine if product is new (published within last 14 days)
   const isNew = product.publishedAt
@@ -141,6 +147,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
               showToast={true}
               successMessage={getAddToCartMessage()}
               removeMessage={getRemoveFromCartMessage()}
+              isWaitingListEnrollment={isWaitingListEnrollment} // Pass the prop
             />
 
             <FavoriteButton
@@ -189,7 +196,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                 <div className="features-grid">
                   {product.features.map((feature, index) => (
                     <div key={index} className="feature-item">
-                      <span>{typeof feature === 'string' ? feature : feature.feature || ''}</span>
+                      <span>{typeof feature === 'string' ? feature : (feature as { name: string }).name || ''}</span>
                     </div>
                   ))}
                 </div>

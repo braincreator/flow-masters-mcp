@@ -13,8 +13,10 @@ export const handleWaitingList: CollectionBeforeChangeHook<CourseEnrollment> = a
     return data
   }
 
-  const courseId = data.course // Assuming 'course' field holds the ID
-  const userId = data.user // Assuming 'user' field holds the ID
+  // Ensure courseId is just the ID string/number
+  const courseId = typeof data.course === 'object' && data.course !== null ? data.course.id : data.course;
+  const userId = typeof data.user === 'object' && data.user !== null ? data.user.id : data.user;
+
 
   if (!courseId || !userId) {
     // Should not happen if fields are required, but good practice to check
@@ -82,17 +84,17 @@ export const handleWaitingList: CollectionBeforeChangeHook<CourseEnrollment> = a
               overrideAccess: true, // Allow system to create waiting list entry
             })
             payload.logger.info(`User ${userId} added to waiting list for course ${courseId}.`)
-            // Throw Forbidden error to prevent enrollment and inform user
-            throw new Forbidden('This course is currently full. You have been added to the waiting list.')
+            // Wrap error message in a function for i18n compatibility
+            throw new Forbidden(() => 'Курс заполнен. Вы добавлены в список ожидания. / This course is currently full. You have been added to the waiting list.')
           } catch (createError) {
              payload.logger.error(`Failed to add user ${userId} to waiting list for course ${courseId}: ${createError instanceof Error ? createError.message : createError}`)
-             // If adding to waiting list fails, still prevent enrollment
-             throw new Forbidden('This course is currently full, and there was an error adding you to the waiting list. Please contact support.')
+             // Wrap error message in a function
+             throw new Forbidden(() => 'Курс заполнен, и произошла ошибка при добавлении вас в список ожидания. Пожалуйста, свяжитесь с поддержкой. / This course is currently full, and there was an error adding you to the waiting list. Please contact support.')
           }
         } else {
           payload.logger.info(`User ${userId} is already on the waiting list for course ${courseId}.`)
-          // User is already on the list, still prevent duplicate enrollment attempt
-          throw new Forbidden('This course is currently full. You are already on the waiting list.')
+          // Wrap error message in a function
+          throw new Forbidden(() => 'Курс заполнен. Вы уже находитесь в списке ожидания. / This course is currently full. You are already on the waiting list.')
         }
       }
     }
@@ -110,7 +112,7 @@ export const handleWaitingList: CollectionBeforeChangeHook<CourseEnrollment> = a
       throw error;
     }
 
-    // For other unexpected errors, throw a generic error to prevent enrollment
-    throw new Error('An unexpected error occurred while checking course capacity. Please try again later.')
+    // For other unexpected errors, throw a generic error to prevent enrollment (bilingual)
+    throw new Error('Произошла непредвиденная ошибка при проверке наличия мест на курсе. Пожалуйста, попробуйте позже. / An unexpected error occurred while checking course capacity. Please try again later.')
   }
 }

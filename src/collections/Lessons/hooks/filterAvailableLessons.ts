@@ -66,13 +66,8 @@ export const filterAvailableLessons: CollectionBeforeReadHook<Lesson> = async ({
     const availableLessonConditions: any[] = [
       // Condition 1: Immediately available lessons
       { 'dripContent.dripType': { equals: 'immediate' } },
-      // Condition 2: Lessons available after a specific date
-      {
-        and: [
-          { 'dripContent.dripType': { equals: 'specificDate' } },
-          { 'dripContent.releaseDate': { less_than_equal: now.toISOString() } },
-        ],
-      },
+      // Condition 2: Lessons available based on the calculated availableOn date (for specificDate drips)
+      { 'availableOn': { less_than_equal: now.toISOString() } },
     ]
 
     // Condition 3: Lessons available N days after enrollment (requires matching enrollment)

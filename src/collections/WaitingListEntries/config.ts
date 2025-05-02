@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const WaitingListEntries: CollectionConfig = {
   slug: 'waiting-list-entries',
   admin: {
-    group: 'Learning Management',
+    group: 'Управление Обучением', // Translated group name
     useAsTitle: 'user', // Maybe combine user and course for title? Needs custom component.
     defaultColumns: ['user', 'course', 'createdAt'],
     description: 'Записи пользователей в списке ожидания для курсов.',

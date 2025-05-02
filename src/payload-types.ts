@@ -8099,6 +8099,10 @@ export interface Lesson {
     dripDelayDays?: number | null;
     releaseDate?: string | null;
   };
+  /**
+   * Рассчитывается автоматически на основе настроек Drip Content.
+   */
+  availableOn?: string | null;
   module: string | Module;
   description?: string | null;
   layout: (
@@ -18308,6 +18312,7 @@ export interface LessonsSelect<T extends boolean = true> {
         dripDelayDays?: T;
         releaseDate?: T;
       };
+  availableOn?: T;
   module?: T;
   description?: T;
   layout?:
