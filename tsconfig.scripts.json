@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json", // Inherit base settings
+  "compilerOptions": {
+    "module": "CommonJS", // Output CommonJS for Node.js
+    "moduleResolution": "Node", // Use Node.js module resolution
+    "outDir": "./dist", // Output compiled JS to ./dist
+    "noEmit": false, // Ensure JS files are emitted
+    "jsx": "react", // Keep react for consistency, though scripts might not use JSX
+    "isolatedModules": false, // Disable isolatedModules check for script compilation
+    "sourceMap": true, // Generate source maps for debugging
+    // Paths are inherited from the base tsconfig.json and should work with baseUrl: "."
+    "skipLibCheck": true // Keep skipping lib checks for faster compilation
+  },
+  "include": [
+    "src/scripts/**/*.ts" // Only include files in the scripts directory
+  ],
+  "exclude": [
+    "node_modules",
+    "dist" // Exclude the output directory itself
+    // Add other specific exclusions if needed, e.g., test files
+  ]
+}
