@@ -231,7 +231,16 @@ export default buildConfig({
   },
 
   cors: [getServerSideURL()].filter(Boolean),
-  collections: [...collections, Assessments, CourseReviews, AssessmentSubmissions, LearningPaths, WaitingListEntries], // Add WaitingListEntries
+  collections: [
+    // Restore the main list
+    ...collections,
+    // Keep the directly added ones
+    Assessments,
+    CourseReviews,
+    AssessmentSubmissions,
+    LearningPaths,
+    WaitingListEntries
+  ], // Add WaitingListEntries (comment seems misplaced, but keeping structure)
   globals: [...globalsList],
   email: nodemailerAdapter({
     defaultFromAddress: ENV.PAYLOAD_DEFAULT_SENDER_EMAIL || 'admin@flow-masters.ru',

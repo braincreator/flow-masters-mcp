@@ -1,5 +1,5 @@
-import { CollectionConfig } from 'payload/types'
-import { isAdmin, isAdminOrEditor } from '../access/isAdmin'
+import { CollectionConfig } from 'payload'
+import { isAdmin } from '../access/isAdmin'
 
 const AutomationJobs: CollectionConfig = {
   slug: 'automation-jobs',
@@ -9,9 +9,9 @@ const AutomationJobs: CollectionConfig = {
     group: 'Automation & System',
   },
   access: {
-    read: isAdminOrEditor,
-    create: isAdminOrEditor,
-    update: isAdminOrEditor,
+    read: isAdmin,
+    create: isAdmin,
+    update: isAdmin,
     delete: isAdmin,
   },
   fields: [
@@ -347,7 +347,9 @@ const AutomationJobs: CollectionConfig = {
           type: 'number',
           min: 0,
           max: 1,
-          step: 0.1,
+          admin: {
+            step: 0.1,
+          },
           defaultValue: 0.7,
           label: 'Температура',
         },

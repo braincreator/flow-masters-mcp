@@ -69,6 +69,7 @@ import { Solutions } from './Solutions' // Needs clarification
 import { Events } from './Events' // Needs clarification
 import { CalendlySettings } from './CalendlySettings'
 import { Bookings } from './Bookings'
+import ExpertiseTags from './ExpertiseTags' // Import the new collection
 
 const collections = [
   // Core / Site
@@ -145,6 +146,7 @@ const collections = [
   Events,
   CalendlySettings,
   Bookings,
+  ExpertiseTags, // Add the new collection to the array
 ]
 
 export default collections

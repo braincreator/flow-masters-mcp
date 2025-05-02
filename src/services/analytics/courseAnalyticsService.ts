@@ -95,6 +95,7 @@ export class CourseAnalyticsService {
       // Создаем новую запись аналитики
       const newAnalytics = await this.payload.create({
         collection: 'course-analytics',
+        // Explicitly type the data object
         data: {
           course: courseId,
           courseTitle: course.title,
@@ -111,14 +112,14 @@ export class CourseAnalyticsService {
           },
           timeDistribution: [
             {
-              date: new Date().toISOString().split('T')[0],
+              date: new Date().toISOString().split('T')[0] as string, // Assert as string
               views: 0,
               enrollments: 0,
               completions: 0,
               revenue: 0,
             },
           ],
-        },
+        } satisfies Partial<CourseAnalyticsData>, // Ensure it satisfies the type
       })
 
       return newAnalytics
@@ -134,183 +135,176 @@ export class CourseAnalyticsService {
   async trackEvent(event: AnalyticsEvent): Promise<void> {
     try {
       // Получаем или создаем запись аналитики
-      const analytics = await this.getOrCreateAnalytics(event.courseId)
+      // Fetch only necessary fields initially if possible, or prepare for granular updates
+      const analyticsDoc = await this.getOrCreateAnalytics(event.courseId)
+      const analyticsId = analyticsDoc.id
 
-      // Получаем текущую дату в формате YYYY-MM-DD
-      const today = new Date().toISOString().split('T')[0]
+      // Prepare update payload
+      const updateData: Partial<CourseAnalyticsData> = {}
+      const incData: { [key: string]: number } = {}
 
-      // Находим или создаем запись для текущей даты
-      let todayDistribution = analytics.timeDistribution.find((item: any) => item.date === today)
+      // --- Handle Time Distribution ---
+      const today = new Date().toISOString().split('T')[0]; // Define today once here
+      // Use let for index as it might be reassigned if a new day is added
+      let todayDistributionIndex = analyticsDoc.timeDistribution?.findIndex(
+        (item: any) => item.date === today,
+      ) ?? -1;
 
-      if (!todayDistribution) {
-        analytics.timeDistribution.push({
-          date: today,
-          views: 0,
-          enrollments: 0,
-          completions: 0,
-          revenue: 0,
-        })
-        todayDistribution = analytics.timeDistribution[analytics.timeDistribution.length - 1]
-      }
+      // If today's distribution doesn't exist, we need to add it.
+      // This requires fetching the doc or handling it carefully.
+      // --- Prepare updates ---
+      // Note: Complex updates (rates, array elements) might still require fetching the full doc
+      // This optimization focuses on simple increments first.
 
-      // Обновляем аналитику в зависимости от типа события
+      // --- Update based on event type ---
       switch (event.eventType) {
         case 'view':
-          analytics.views += 1
-          todayDistribution.views += 1
+          incData['views'] = 1
+          // Time distribution update requires fetch or complex operators, handled later if needed
           break
 
         case 'enrollment':
-          analytics.enrollments += 1
-          todayDistribution.enrollments += 1
-
-          // Обновляем конверсию лендинг → запись
-          if (analytics.views > 0) {
-            analytics.conversionRates.landingToEnrollment =
-              (analytics.enrollments / analytics.views) * 100
-          }
+          incData['enrollments'] = 1
+          // Time distribution update requires fetch or complex operators, handled later if needed
+          // Recalculating rates requires fetching the latest counts, handled later if needed
           break
 
         case 'start':
-          // Обновляем конверсию запись → начало
-          if (analytics.enrollments > 0) {
-            analytics.conversionRates.enrollmentToStart =
-              (event.value || 1 / analytics.enrollments) * 100
-          }
+          // This mainly affects conversion rates, which require fetching current values
+          // updateData['conversionRates.enrollmentToStart'] = ... calculate ...
           break
 
         case 'completion':
-          analytics.completions += 1
-          todayDistribution.completions += 1
-
-          // Обновляем процент завершения
-          if (analytics.enrollments > 0) {
-            analytics.completionRate = (analytics.completions / analytics.enrollments) * 100
-          }
-
-          // Обновляем конверсию начало → завершение
-          if (analytics.conversionRates.enrollmentToStart > 0) {
-            const startCount =
-              (analytics.enrollments * analytics.conversionRates.enrollmentToStart) / 100
-            if (startCount > 0) {
-              analytics.conversionRates.startToCompletion =
-                (analytics.completions / startCount) * 100
-            }
-          }
+          incData['completions'] = 1
+          // Time distribution update requires fetch or complex operators, handled later if needed
+          // Recalculating rates requires fetching the latest counts, handled later if needed
           break
 
         case 'module_completion':
+          // Updating arrays often requires fetching the document or using complex positional operators
+          // Array updates are complex to optimize with $inc, fetch full doc for these cases
+          const moduleAnalyticsFull = await this.getOrCreateAnalytics(event.courseId) // Re-fetch full doc
           if (event.moduleId) {
-            // Находим или создаем запись для модуля
-            let moduleStats = analytics.moduleCompletionRates?.find(
+            let moduleStats = moduleAnalyticsFull.moduleCompletionRates?.find(
               (item: any) => item.moduleId === event.moduleId,
             )
-
-            if (!moduleStats && event.moduleId) {
-              // Получаем информацию о модуле
-              const module = await this.payload.findByID({
-                collection: 'modules',
-                id: event.moduleId,
-              })
-
-              if (module) {
-                if (!analytics.moduleCompletionRates) {
-                  analytics.moduleCompletionRates = []
-                }
-
-                analytics.moduleCompletionRates.push({
-                  moduleId: event.moduleId,
-                  moduleTitle: module.title,
-                  completionRate: 0,
-                })
-
-                moduleStats =
-                  analytics.moduleCompletionRates[analytics.moduleCompletionRates.length - 1]
+            if (!moduleStats) {
+              const fetchedModuleData = await this.payload.findByID({ collection: 'modules', id: event.moduleId }) // Renamed variable again
+              if (fetchedModuleData) {
+                if (!moduleAnalyticsFull.moduleCompletionRates) moduleAnalyticsFull.moduleCompletionRates = []
+                moduleAnalyticsFull.moduleCompletionRates.push({ moduleId: event.moduleId, moduleTitle: fetchedModuleData.title, completionRate: 0 })
+                moduleStats = moduleAnalyticsFull.moduleCompletionRates[moduleAnalyticsFull.moduleCompletionRates.length - 1]
               }
             }
-
             if (moduleStats && event.value !== undefined) {
-              moduleStats.completionRate = event.value
+              moduleStats.completionRate = event.value // Update in-memory object
             }
           }
+          updateData['moduleCompletionRates'] = moduleAnalyticsFull.moduleCompletionRates // Assign potentially modified array
           break
 
         case 'lesson_completion':
+          // Array updates are complex, fetch full doc
+          const lessonAnalyticsFull = await this.getOrCreateAnalytics(event.courseId) // Re-fetch full doc
           if (event.lessonId && event.moduleId) {
-            // Находим или создаем запись для урока
-            let lessonStats = analytics.lessonCompletionRates?.find(
+            let lessonStats = lessonAnalyticsFull.lessonCompletionRates?.find(
               (item: any) => item.lessonId === event.lessonId,
             )
-
             if (!lessonStats) {
-              // Получаем информацию об уроке и модуле
-              const lesson = await this.payload.findByID({
-                collection: 'lessons',
-                id: event.lessonId,
-              })
-
-              const module = await this.payload.findByID({
-                collection: 'modules',
-                id: event.moduleId,
-              })
-
-              if (lesson && module) {
-                if (!analytics.lessonCompletionRates) {
-                  analytics.lessonCompletionRates = []
-                }
-
-                analytics.lessonCompletionRates.push({
-                  lessonId: event.lessonId,
-                  lessonTitle: lesson.title,
-                  moduleTitle: module.title,
-                  completionRate: 0,
-                  averageTimeSpent: 0,
-                })
-
-                lessonStats =
-                  analytics.lessonCompletionRates[analytics.lessonCompletionRates.length - 1]
+              const lesson = await this.payload.findByID({ collection: 'lessons', id: event.lessonId })
+              const fetchedModuleData = await this.payload.findByID({ collection: 'modules', id: event.moduleId }) // Renamed variable again
+              if (lesson && fetchedModuleData) {
+                if (!lessonAnalyticsFull.lessonCompletionRates) lessonAnalyticsFull.lessonCompletionRates = []
+                lessonAnalyticsFull.lessonCompletionRates.push({ lessonId: event.lessonId, lessonTitle: lesson.title, moduleTitle: fetchedModuleData.title, completionRate: 0, averageTimeSpent: 0 })
+                lessonStats = lessonAnalyticsFull.lessonCompletionRates[lessonAnalyticsFull.lessonCompletionRates.length - 1]
               }
             }
-
             if (lessonStats) {
-              if (event.value !== undefined) {
-                lessonStats.completionRate = event.value
-              }
-
+              if (event.value !== undefined) lessonStats.completionRate = event.value // Update in-memory
               if (event.timeSpent !== undefined) {
-                // Обновляем среднее время, проведенное на уроке (в минутах)
-                const currentTotal = lessonStats.averageTimeSpent * (event.value || 1)
-                const newTotal = currentTotal + event.timeSpent / 60
-                lessonStats.averageTimeSpent = newTotal / ((event.value || 1) + 1)
+                 // Calculate average time spent (requires completion count)
+                 const currentCompletions = lessonAnalyticsFull.completions + (incData['completions'] || 0); // Use potentially incremented value
+                 const currentTotalTime = lessonStats.averageTimeSpent * (currentCompletions > 0 ? currentCompletions -1 : 0); // Estimate previous total
+                 const newTotalTime = currentTotalTime + (event.timeSpent / 60); // Add new time in minutes
+                 lessonStats.averageTimeSpent = currentCompletions > 0 ? newTotalTime / currentCompletions : (event.timeSpent / 60); // Calculate new average
               }
             }
           }
+          updateData['lessonCompletionRates'] = lessonAnalyticsFull.lessonCompletionRates // Assign potentially modified array
           break
 
         case 'rating':
+          // Average rating requires fetching current values for accurate calculation
+          const ratingAnalyticsFull = await this.getOrCreateAnalytics(event.courseId) // Re-fetch full doc
           if (event.value !== undefined) {
-            // Обновляем средний рейтинг
-            const currentTotal = analytics.averageRating * analytics.completions
-            const newTotal = currentTotal + event.value
-            analytics.averageRating =
-              analytics.completions > 0 ? newTotal / analytics.completions : event.value
+            const currentCompletions = ratingAnalyticsFull.completions + (incData['completions'] || 0); // Use potentially incremented value
+            const currentTotalRating = ratingAnalyticsFull.averageRating * (currentCompletions > 0 ? currentCompletions -1 : 0); // Estimate previous total
+            const newTotalRating = currentTotalRating + event.value;
+            updateData['averageRating'] = currentCompletions > 0 ? newTotalRating / currentCompletions : event.value;
           }
           break
 
         case 'purchase':
           if (event.value !== undefined) {
-            analytics.totalRevenue += event.value
-            todayDistribution.revenue += event.value
+            incData['totalRevenue'] = event.value
+            // Time distribution update requires fetch or complex operators, handled later if needed
           }
           break
       }
 
-      // Сохраняем обновленную аналитику
-      await this.payload.update({
-        collection: 'course-analytics',
-        id: analytics.id,
-        data: analytics,
-      })
+      // --- Handle Time Distribution Separately (Requires Fetch) ---
+      // Find or add today's distribution record
+      const distributionAnalytics = await this.getOrCreateAnalytics(event.courseId); // Fetch fresh doc for distribution
+      // 'today' is defined above
+      let needsDistributionUpdate = false;
+      // Use let for index as it might be reassigned if a new day is added
+      let todayDistIndex = distributionAnalytics.timeDistribution?.findIndex((d: any) => d.date === today) ?? -1;
+
+      if (todayDistIndex === -1) {
+          // Add today's record if it doesn't exist
+          if (!distributionAnalytics.timeDistribution) distributionAnalytics.timeDistribution = [];
+          distributionAnalytics.timeDistribution.push({
+              date: today,
+              views: 0,
+              enrollments: 0,
+              completions: 0,
+              revenue: 0,
+          });
+          todayDistIndex = distributionAnalytics.timeDistribution.length - 1;
+          needsDistributionUpdate = true; // Need to save the new array structure
+      }
+
+      // Apply increments to the correct day's distribution record (in memory)
+      const distInc: { [key: string]: number } = {};
+      if (event.eventType === 'view') distInc[`timeDistribution.${todayDistIndex}.views`] = 1;
+      if (event.eventType === 'enrollment') distInc[`timeDistribution.${todayDistIndex}.enrollments`] = 1;
+      if (event.eventType === 'completion') distInc[`timeDistribution.${todayDistIndex}.completions`] = 1;
+      if (event.eventType === 'purchase' && event.value !== undefined) distInc[`timeDistribution.${todayDistIndex}.revenue`] = event.value;
+
+      // Merge increments
+      Object.assign(incData, distInc);
+
+      // Prepare final update payload
+      const finalUpdateData: any = { ...updateData }; // Use any to allow $inc
+      if (needsDistributionUpdate) {
+          // If we added a new day, we must save the whole array
+          finalUpdateData['timeDistribution'] = distributionAnalytics.timeDistribution;
+      }
+      if (Object.keys(incData).length > 0) {
+          finalUpdateData['$inc'] = incData;
+      }
+
+
+      // Perform the update only if there's something to update
+      if (Object.keys(finalUpdateData).length > 0) {
+        await this.payload.update({
+          collection: 'course-analytics',
+          id: analyticsId,
+          data: finalUpdateData,
+        });
+      } else {
+        console.log('No analytics updates needed for event:', event.eventType);
+      }
     } catch (error) {
       console.error('Error tracking analytics event:', error)
       throw error

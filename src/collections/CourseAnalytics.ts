@@ -1,5 +1,5 @@
-import { CollectionConfig } from 'payload/types'
-import { isAdmin, isAdminOrEditor } from '../access/isAdmin'
+import { CollectionConfig } from 'payload'
+import { isAdmin } from '../access/isAdmin'
 
 const CourseAnalytics: CollectionConfig = {
   slug: 'course-analytics',
@@ -9,9 +9,9 @@ const CourseAnalytics: CollectionConfig = {
     group: 'Analytics & Reporting',
   },
   access: {
-    read: isAdminOrEditor,
-    create: isAdminOrEditor,
-    update: isAdminOrEditor,
+    read: isAdmin,
+    create: isAdmin,
+    update: isAdmin,
     delete: isAdmin,
   },
   fields: [

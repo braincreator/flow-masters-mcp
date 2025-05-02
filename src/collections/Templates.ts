@@ -1,5 +1,5 @@
-import { CollectionConfig } from 'payload/types'
-import { isAdmin, isAdminOrEditor } from '../access/isAdmin'
+import { CollectionConfig } from 'payload'
+import { isAdmin } from '../access/isAdmin'
 
 const Templates: CollectionConfig = {
   slug: 'templates',
@@ -10,8 +10,8 @@ const Templates: CollectionConfig = {
   },
   access: {
     read: () => true,
-    create: isAdminOrEditor,
-    update: isAdminOrEditor,
+    create: isAdmin,
+    update: isAdmin,
     delete: isAdmin,
   },
   fields: [

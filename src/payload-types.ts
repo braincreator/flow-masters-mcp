@@ -150,6 +150,7 @@ export interface Config {
     events: Event;
     'calendly-settings': CalendlySetting;
     bookings: Booking;
+    'expertise-tags': ExpertiseTag;
     assessments: Assessment;
     'course-reviews': CourseReview;
     'assessment-submissions': AssessmentSubmission;
@@ -221,6 +222,7 @@ export interface Config {
     events: EventsSelect<false> | EventsSelect<true>;
     'calendly-settings': CalendlySettingsSelect<false> | CalendlySettingsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    'expertise-tags': ExpertiseTagsSelect<false> | ExpertiseTagsSelect<true>;
     assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
     'course-reviews': CourseReviewsSelect<false> | CourseReviewsSelect<true>;
     'assessment-submissions': AssessmentSubmissionsSelect<false> | AssessmentSubmissionsSelect<true>;
@@ -1818,7 +1820,41 @@ export interface Tag {
 export interface User {
   id: string;
   name: string;
-  role: 'admin' | 'customer';
+  /**
+   * Determines user capabilities within the platform.
+   */
+  roles: ('admin' | 'instructor' | 'customer')[];
+  instructorBio?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Select relevant expertise tags (managed by Admins).
+   */
+  expertiseAreas?: (string | ExpertiseTag)[] | null;
+  qualifications?: string | null;
+  instructorProfilePicture?: (string | null) | Media;
+  /**
+   * Add links to relevant social media profiles (e.g., LinkedIn, Twitter, Personal Website).
+   */
+  socialMediaLinks?:
+    | {
+        platform: 'linkedin' | 'twitter' | 'github' | 'website' | 'other';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
   locale?: ('ru' | 'en') | null;
   /**
    * Email notification preferences
@@ -1870,6 +1906,18 @@ export interface User {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
+}
+/**
+ * Tags to categorize instructor areas of expertise.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expertise-tags".
+ */
+export interface ExpertiseTag {
+  id: string;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Определение правил для сегментации пользователей.
@@ -8053,6 +8101,21 @@ export interface Assessment {
    * The lesson this assessment belongs to.
    */
   lesson?: (string | null) | Lesson;
+  questions?:
+    | {
+        questionText: string;
+        questionType: 'mcq' | 'scq' | 'text';
+        options?:
+          | {
+              text: string;
+              isCorrect?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        points?: number | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Minimum score required to pass (0-100).
    */
@@ -13957,6 +14020,10 @@ export interface PayloadLockedDocument {
         value: string | Booking;
       } | null)
     | ({
+        relationTo: 'expertise-tags';
+        value: string | ExpertiseTag;
+      } | null)
+    | ({
         relationTo: 'assessments';
         value: string | Assessment;
       } | null)
@@ -17207,7 +17274,18 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
-  role?: T;
+  roles?: T;
+  instructorBio?: T;
+  expertiseAreas?: T;
+  qualifications?: T;
+  instructorProfilePicture?: T;
+  socialMediaLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
   locale?: T;
   emailNotifications?: T;
   pushNotifications?: T;
@@ -19955,6 +20033,15 @@ export interface BookingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expertise-tags_select".
+ */
+export interface ExpertiseTagsSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "assessments_select".
  */
 export interface AssessmentsSelect<T extends boolean = true> {
@@ -19962,6 +20049,21 @@ export interface AssessmentsSelect<T extends boolean = true> {
   description?: T;
   type?: T;
   lesson?: T;
+  questions?:
+    | T
+    | {
+        questionText?: T;
+        questionType?: T;
+        options?:
+          | T
+          | {
+              text?: T;
+              isCorrect?: T;
+              id?: T;
+            };
+        points?: T;
+        id?: T;
+      };
   passingScore?: T;
   submissionInstructions?: T;
   maxAttempts?: T;

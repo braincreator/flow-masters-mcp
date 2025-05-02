@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
-import { isAdmin } from '@/access/isAdmin'
+import { isAdmin, isAdminAccessCheck } from '@/access/isAdmin' // Import the new function
 import { ServiceRegistry } from '@/services/service.registry'
 
 export const Users: CollectionConfig = {
@@ -13,7 +13,7 @@ export const Users: CollectionConfig = {
     lockTime: 600 * 1000, // 10 minutes
   },
   access: {
-    admin: isAdmin,
+    admin: isAdminAccessCheck, // Use the correctly typed function
     read: authenticated,
     create: authenticated,
     update: authenticated,
@@ -24,23 +24,25 @@ export const Users: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'role'],
   },
-  hooks: {
-    afterChange: [
-      async ({ doc, req, operation }) => {
-        if (operation === 'create' || operation === 'update') {
-          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
-          const integrationService = serviceRegistry.getIntegrationService()
-          await integrationService.processEvent('user.registered', {
-            id: doc.id,
-            email: doc.email,
-            name: doc.name,
-            role: doc.role,
-            createdAt: doc.createdAt,
-          })
-        }
-      },
-    ],
-  },
+  // hooks: {
+  //   afterChange: [
+  //     async ({ doc, req, operation }) => {
+  //       if (operation === 'create' || operation === 'update') {
+  //         // Temporarily commented out to debug generate:types hang
+  //         // const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+  //         // const integrationService = serviceRegistry.getIntegrationService()
+  //         // await integrationService.processEvent('user.registered', {
+  //         //   id: doc.id,
+  //         //   email: doc.email,
+  //         //   name: doc.name,
+  //         //   role: doc.role, // Note: This might need updating to doc.roles if used
+  //         //   createdAt: doc.createdAt,
+  //         // })
+  //         req.payload.logger.info(`User hook triggered for ${operation} on doc ${doc.id} - Logic commented out.`);
+  //       }
+  //     },
+  //   ],
+  // },
   fields: [
     {
       name: 'name',
@@ -48,14 +50,20 @@ export const Users: CollectionConfig = {
       required: true,
     },
     {
-      name: 'role',
+      name: 'roles', // Renamed to plural
+      label: 'Roles',
       type: 'select',
+      hasMany: true, // Changed to allow multiple roles
       required: true,
-      defaultValue: 'customer',
+      defaultValue: ['customer'], // Default as array
       options: [
         {
           label: 'Admin',
           value: 'admin',
+        },
+        {
+          label: 'Instructor', // Added Instructor role
+          value: 'instructor',
         },
         {
           label: 'Customer',
@@ -63,9 +71,83 @@ export const Users: CollectionConfig = {
         },
       ],
       access: {
-        update: ({ req: { user } }) => Boolean(user?.role === 'admin'),
+        // Only Admins should be able to change roles directly
+        update: isAdminAccessCheck, // Use the correctly typed function
+        create: isAdminAccessCheck, // Use the correctly typed function
+      },
+      admin: {
+        description: 'Determines user capabilities within the platform.',
       },
     },
+    // --- NEW Instructor-Specific Fields ---
+    {
+      name: 'instructorBio',
+      label: 'Instructor Biography',
+      type: 'richText',
+      admin: {
+        condition: (_, siblingData) => siblingData.roles?.includes('instructor'),
+      },
+    },
+    {
+      name: 'expertiseAreas', // Using the relationship approach
+      label: 'Areas of Expertise',
+      type: 'relationship',
+      relationTo: 'expertise-tags', // Ensure ExpertiseTags collection exists and is registered
+      hasMany: true,
+      admin: {
+        condition: (_, siblingData) => siblingData.roles?.includes('instructor'),
+        description: 'Select relevant expertise tags (managed by Admins).',
+        // allowCreate: false (default) - Admins manage tags
+      },
+    },
+    {
+      name: 'qualifications',
+      label: 'Qualifications/Credentials',
+      type: 'textarea',
+      admin: {
+        condition: (_, siblingData) => siblingData.roles?.includes('instructor'),
+      },
+    },
+    {
+      name: 'instructorProfilePicture',
+      label: 'Instructor Profile Picture',
+      type: 'upload',
+      relationTo: 'media', // Assuming 'media' collection exists
+      admin: {
+        condition: (_, siblingData) => siblingData.roles?.includes('instructor'),
+      },
+    },
+    {
+      name: 'socialMediaLinks',
+      label: 'Social Media Links',
+      type: 'array',
+      admin: {
+        condition: (_, siblingData) => siblingData.roles?.includes('instructor'),
+        description:
+          'Add links to relevant social media profiles (e.g., LinkedIn, Twitter, Personal Website).',
+      },
+      fields: [
+        {
+          name: 'platform',
+          type: 'select',
+          options: [
+            // Add more platforms as needed
+            { label: 'LinkedIn', value: 'linkedin' },
+            { label: 'Twitter / X', value: 'twitter' },
+            { label: 'GitHub', value: 'github' },
+            { label: 'Personal Website', value: 'website' },
+            { label: 'Other', value: 'other' },
+          ],
+          required: true,
+        },
+        {
+          name: 'url',
+          type: 'text', // Consider using 'url' type for validation
+          required: true,
+        },
+      ],
+    },
+    // --- End of Instructor Fields ---
     {
       name: 'locale',
       label: 'Preferred Language',

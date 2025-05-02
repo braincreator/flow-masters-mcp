@@ -1,31 +1,24 @@
-import { Access } from 'payload'
-import { User } from '../payload-types'
+import type { Access } from 'payload'
+import type { PayloadRequest } from 'payload' // Import PayloadRequest
+import type { User } from '../payload-types'
 
-export const isAdmin: Access = ({ req: { user } }) => {
-  // Check if there is a logged-in user
-  if (!user) return false
-
-  // Cast the user to the correct type
-  const typedUser = user as User
-
-  // Use the checkIsAdmin helper function
-  return checkIsAdmin(typedUser)
+// Helper function to check for admin role in the roles array
+const checkUserIsAdmin = (user: any): boolean => {
+  // Check the 'roles' array which should exist on the user object
+  return Boolean(user?.roles?.includes('admin'))
 }
 
-// You can also use this function directly
-export const checkIsAdmin = (user: any) => {
-  // Check for role property which is used in the Users collection
-  return Boolean(user?.role === 'admin')
+export const isAdmin: Access = ({ req }) => {
+  // Directly use the helper function with req.user
+  // req.user might be null or the user object
+  return checkUserIsAdmin(req.user)
 }
 
-export const isAdminOrEditor: Access = ({ req: { user } }) => {
-  if (!user) return false
-
-  const typedUser = user as User
-
-  return checkIsAdminOrEditor(typedUser)
+// New export specifically for CollectionConfig.access.admin
+export const isAdminAccessCheck = ({ req }: { req: PayloadRequest }): boolean => {
+  // Type assertion might be needed if req.user isn't guaranteed to be User type here
+  return checkUserIsAdmin(req.user as User | undefined)
 }
 
-export const checkIsAdminOrEditor = (user: any) => {
-  return Boolean(user?.role === 'admin' || user?.role === 'editor')
-}
+// Removed the redundant isAdminUser and checkIsAdminOrEditor functions
+// If editor logic is needed, add an 'editor' role to Users and create a specific check function.

@@ -43,7 +43,7 @@ export const Assessments: CollectionConfig = {
         description: 'The lesson this assessment belongs to.',
       },
     },
-    /* // Temporarily commented out to debug type generation hang
+    // Restore the questions field
     {
       name: 'questions',
       type: 'array',
@@ -103,7 +103,7 @@ export const Assessments: CollectionConfig = {
         },
       ],
     },
-    */ // Temporarily commented out to debug type generation hang
+    // End restore
     {
       name: 'passingScore',
       type: 'number',

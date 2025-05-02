@@ -1,4 +1,5 @@
 import type { Plugin } from 'payload'
+import type { Field } from 'payload' // Correct import path for Field
 import type { Page, Post } from '@/payload-types'
 
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
@@ -30,23 +31,28 @@ const generateURL = ({ doc }: { doc: Partial<Page> | Partial<Post> | null }) => 
 
 export const plugins: Plugin[] = [
   redirectsPlugin({
-    collections: ['pages', 'posts'],
+    collections: ['pages', 'posts'], // Restore 'posts'
+    // Restore admin config
     admin: {
       group: 'Admin'
     },
+    // Restore overrides
     overrides: {
       fields: ({ defaultFields }) => {
+        // Remove explicit Field types and let TS infer
         return defaultFields.map((field) => {
           if ('name' in field && field.name === 'from') {
+            // Return the modified field directly
             return {
               ...field,
               admin: {
+                ...(field.admin || {}), // Safely merge existing admin properties
                 description: 'You will need to rebuild the website when changing this field.',
               },
-            }
+            };
           }
-          return field
-        })
+          return field;
+        });
       },
       hooks: {
         afterChange: [revalidateRedirects],
@@ -88,23 +94,10 @@ export const plugins: Plugin[] = [
     },
   }),
   searchPlugin({
-    collections: ['posts'],
-    searchOverrides: {
-      fields: [
-        {
-          name: 'title',
-          weight: 2,
-        },
-        {
-          name: 'description',
-          weight: 1,
-        },
-        {
-          name: 'slug',
-          weight: 1,
-        },
-      ],
-    },
+    collections: ['posts'], // Ensure 'posts' is here if searchPlugin uses it
+    // Remove the incorrect top-level 'fields' array.
+    // Configuring which 'posts' fields are indexed is done elsewhere.
+    // searchOverrides: {}, // Keep if other search collection overrides are needed
   }),
   payloadCloudPlugin(),
   s3Storage({
