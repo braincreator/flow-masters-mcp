@@ -159,19 +159,6 @@ export const Courses: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    {
-      name: 'layout',
-      label: 'Содержимое страницы курса',
-      type: 'blocks',
-      minRows: 1,
-      blocks: availableBlocks,
-      required: true,
-      localized: true,
-      admin: { // Added admin for deprecation
-        readOnly: true,
-        description: 'DEPRECATED: Use new dedicated fields instead.',
-      },
-    },
 {
       name: 'subtitle',
       type: 'text',
