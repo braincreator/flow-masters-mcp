@@ -60,7 +60,7 @@ export const CoursePricing: React.FC<CoursePricingProps> = ({ product, locale })
 
 
   return (
-    <div className="course-pricing p-4 border rounded-lg shadow-md bg-card text-card-foreground">
+    <div className="p-4 border rounded-lg shadow-md bg-card text-card-foreground">
       {/* Consider adding a title like "Get Access" or similar */}
       <p className="text-2xl font-bold mb-4">{formattedPrice}</p>
       <AddToCartButton product={product} locale={locale} />

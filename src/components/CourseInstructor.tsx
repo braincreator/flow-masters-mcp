@@ -35,9 +35,10 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
   }
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-background"> {/* Use theme background */}
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-10">{t('instructorsHeading')}</h2>
+        {/* Heading color likely handled by global styles or parent, assuming it adapts */}
+        <h2 className="text-3xl font-bold text-center mb-10 text-foreground">{t('instructorsHeading')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {validInstructors.map((instructor) => {
             // Ensure expertise tags are populated objects
@@ -56,8 +57,8 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
               : null;
 
             return (
-              <div key={instructor.id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden transition-shadow duration-300 hover:shadow-xl p-8 flex flex-col space-y-5">
-                {/* Improved Card Styling - Comment moved inside */}
+              <div key={instructor.id} className="bg-card text-card-foreground rounded-xl shadow-lg border overflow-hidden transition-shadow duration-300 hover:shadow-xl p-8 flex flex-col space-y-5">
+                {/* Use card styles from theme */}
                 {/* Profile Picture - Centered */}
                 <div className="mx-auto"> {/* Center the container */}
                   {profilePicture && profilePicture.url ? (
@@ -66,23 +67,25 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
                       alt={profilePicture.alt ?? instructor.name ?? t('instructorsImageAltFallback')}
                       width={120} // Keep size or adjust as needed
                       height={120}
-                      className="rounded-full object-cover border border-gray-200" // Ensure avatar is round
+                      className="rounded-full object-cover border" // Use theme border
                     />
                   ) : (
-                    <div className="w-30 h-30 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 text-4xl font-bold mx-auto"> {/* Ensure fallback is centered */}
+                    // Use muted theme colors for fallback
+                    <div className="w-30 h-30 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-4xl font-bold mx-auto">
                       {instructor.name?.charAt(0) ?? '?'}
                     </div>
                   )}
                 </div>
 
                 {/* Name - Centered */}
-                <h3 className="text-xl font-bold text-gray-900 text-center">{instructor.name}</h3>
+                <h3 className="text-xl font-bold text-foreground text-center">{instructor.name}</h3> {/* Use theme text */}
                 {/* Optional: Title/Role */}
-                {/* {instructor.title && <p className="text-sm text-blue-600 font-medium mb-3 text-center">{instructor.title}</p>} */}
+                {/* {instructor.title && <p className="text-sm text-primary font-medium mb-3 text-center">{instructor.title}</p>} */} {/* Example if using primary color */}
 
                 {/* Biography - Left Aligned */}
                 {instructor.instructorBio && (
-                   <div className="prose dark:prose-invert text-gray-700 max-w-none"> {/* Removed text-left, prose-sm, changed color */}
+                   <div className="prose dark:prose-invert text-foreground max-w-none">
+                     {/* Use theme text, prose handles dark mode */}
                      <RichText data={instructor.instructorBio} />
                    </div>
                 )}
@@ -90,10 +93,11 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
                 {/* Expertise Areas - Left Aligned */}
                 {expertiseTags.length > 0 && (
                   <div className="w-full">
-                    <h4 className="font-semibold text-base text-gray-800 mb-3">{t('instructorsExpertiseLabel')}</h4> {/* Removed text-left, increased size/weight */}
+                    <h4 className="font-semibold text-base text-foreground mb-3">{t('instructorsExpertiseLabel')}</h4> {/* Use theme text */}
                     <ul className="flex flex-wrap gap-2 justify-start">
                       {expertiseTags.map((tag) => (
-                        <li key={tag.id} className="bg-gray-100 text-gray-700 text-sm font-medium px-3 py-1 rounded-full"> {/* Neutral colors, larger text */}
+                        <li key={tag.id} className="bg-muted text-muted-foreground text-sm font-medium px-3 py-1 rounded-full">
+                          {/* Use muted theme colors for tags */}
                           {tag.name}
                         </li>
                       ))}
@@ -103,8 +107,8 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
 
                 {/* Social Media Links - Left Aligned */}
                 {socialLinks.length > 0 && (
-                  <div className="mt-auto w-full pt-6 border-t border-gray-200"> {/* Increased pt */}
-                    <h4 className="font-semibold text-base text-gray-800 mb-3">{t('instructorsConnectLabel')}</h4> {/* Removed text-left, increased size/weight */}
+                  <div className="mt-auto w-full pt-6 border-t border"> {/* Use theme border */}
+                    <h4 className="font-semibold text-base text-foreground mb-3">{t('instructorsConnectLabel')}</h4> {/* Use theme text */}
                     <ul className="flex flex-wrap gap-x-4 gap-y-2 justify-start">
                       {socialLinks.map((link) => (
                         <li key={link.id || link.url}>
@@ -112,7 +116,8 @@ const CourseInstructor: React.FC<CourseInstructorProps> = ({ instructors }) => {
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-gray-600 hover:text-gray-900 hover:underline transition-colors duration-200" // Neutral colors, removed capitalize
+                            // Use muted theme colors for links, foreground on hover
+                            className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors duration-200"
                           >
                             {/* TODO: Replace with icons if available */}
                             {link.platform || t('instructorsSocialLinkFallback')}

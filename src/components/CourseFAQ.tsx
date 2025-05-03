@@ -27,17 +27,17 @@ const CourseFAQ: React.FC = () => {
   const t = useTranslations('CoursePage');
 
   return (
-    <section className="py-12 bg-gray-50 dark:bg-gray-800">
+    <section className="py-12 bg-muted">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">
           {t('course.faq.title')}
         </h2>
         {/* Placeholder FAQ data - should be dynamic */}
         <div className="space-y-4 max-w-3xl mx-auto">
           {faqData.map((item, index) => (
-            <div key={index} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">{item.question}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{item.answer}</p>
+            <div key={index} className="bg-card p-6 rounded-lg shadow">
+              <h3 className="text-lg font-semibold mb-2 text-card-foreground">{item.question}</h3>
+              <p className="text-muted-foreground">{item.answer}</p>
             </div>
           ))}
         </div>
