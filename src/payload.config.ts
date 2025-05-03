@@ -104,7 +104,8 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
-    components: {
+    // Conditionally load complex components to avoid issues during type generation
+    components: process.env.IS_GENERATING_TYPES === 'true' ? {} : {
       // Define custom views
       views: {
         monitoring: {
@@ -117,7 +118,8 @@ export default buildConfig({
         },
         setupRewards: {
           path: '/admin/setup-rewards',
-          Component: '@/app/(admin)/admin/setup-rewards/page',
+          // Use placeholder during type generation
+          Component: process.env.IS_GENERATING_TYPES === 'true' ? '@/components/admin/CustomAction' : '@/app/(admin)/admin/setup-rewards/page',
         },
         courseCreator: {
           path: '/course-creator',
@@ -133,7 +135,8 @@ export default buildConfig({
         },
         endpoints: {
           path: '/endpoints',
-          Component: '@/app/admin/endpoints/page',
+          // Use placeholder during type generation
+          Component: process.env.IS_GENERATING_TYPES === 'true' ? '@/components/admin/CustomAction' : '@/app/admin/endpoints/page',
         },
       },
       // Custom navigation components
@@ -599,19 +602,19 @@ export default buildConfig({
             id: id,
             depth: 0,
           })
-
+    
           if (!result) {
             return res.status(404).send('Template not found')
           }
-
+    
           // Cast to a simple object with html property
           const template = result as unknown as { html?: string }
-
+    
           if (typeof template.html !== 'string') {
             req.payload.logger.warn(`Template ${id} has no generated HTML content for preview.`)
             return res.status(500).send('<p>Error: Template HTML not generated.</p>')
           }
-
+    
           res.setHeader('Content-Type', 'text/html')
           res.status(200).send(template.html)
         } catch (error: unknown) {

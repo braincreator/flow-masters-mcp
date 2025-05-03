@@ -29,27 +29,22 @@ const generateURL = ({ doc }: { doc: Partial<Page> | Partial<Post> | null }) => 
   return doc?.slug ? `${url}/${doc.slug}` : url
 }
 
-export const plugins: Plugin[] = [
-  redirectsPlugin({
-    collections: ['pages', 'posts'], // Restore 'posts'
-    // Restore admin config
-    admin: {
-      group: 'Admin'
-    },
-    // Restore overrides
+// Conditionally return an empty array during type generation
+export const plugins: Plugin[] = process.env.IS_GENERATING_TYPES === 'true' ? [] : [
+  redirectsPlugin({ // Restore redirectsPlugin
+    collections: ['pages', 'posts'],
     overrides: {
-      fields: ({ defaultFields }) => {
-        // Remove explicit Field types and let TS infer
+      admin: { group: 'Admin' },
+      fields: ({ defaultFields }): Field[] => {
         return defaultFields.map((field) => {
           if ('name' in field && field.name === 'from') {
-            // Return the modified field directly
             return {
               ...field,
               admin: {
-                ...(field.admin || {}), // Safely merge existing admin properties
+                ...(field.admin || {}),
                 description: 'You will need to rebuild the website when changing this field.',
               },
-            };
+            } as Field;
           }
           return field;
         });
@@ -94,10 +89,7 @@ export const plugins: Plugin[] = [
     },
   }),
   searchPlugin({
-    collections: ['posts'], // Ensure 'posts' is here if searchPlugin uses it
-    // Remove the incorrect top-level 'fields' array.
-    // Configuring which 'posts' fields are indexed is done elsewhere.
-    // searchOverrides: {}, // Keep if other search collection overrides are needed
+    collections: ['posts'],
   }),
   payloadCloudPlugin(),
   s3Storage({
@@ -108,8 +100,6 @@ export const plugins: Plugin[] = [
         generateFileURL: ({ collection, filename, prefix, size }) => {
           const sizeName = size?.name || ''
           const sizePrefix = sizeName ? `${sizeName}/` : ''
-
-          // Construct the correct S3 URL with the full bucket path
           return `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
         },
       },
@@ -120,9 +110,9 @@ export const plugins: Plugin[] = [
         accessKeyId: process.env.S3_ACCESS_KEY_ID!,
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
       },
-      endpoint: `https://${process.env.S3_ENDPOINT}`,  // Make sure to include https://
-      forcePathStyle: false,  // Set this to false for virtual-hosted style URLs
+      endpoint: `https://${process.env.S3_ENDPOINT}`,
+      forcePathStyle: false,
       region: process.env.S3_REGION,
     },
   }),
-]
+];

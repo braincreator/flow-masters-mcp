@@ -70,6 +70,7 @@ import { Events } from './Events' // Needs clarification
 import { CalendlySettings } from './CalendlySettings'
 import { Bookings } from './Bookings'
 import ExpertiseTags from './ExpertiseTags' // Import the new collection
+import { Forms } from './Forms' // Removed custom Forms collection import
 
 const collections = [
   // Core / Site
@@ -147,6 +148,7 @@ const collections = [
   CalendlySettings,
   Bookings,
   ExpertiseTags, // Add the new collection to the array
+  Forms, // Removed custom Forms collection
 ]
 
 export default collections

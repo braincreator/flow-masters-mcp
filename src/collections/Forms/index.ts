@@ -1,5 +1,5 @@
 import { CollectionConfig } from 'payload'
-import { anyone } from '../../access/authenticated'
+import { anyone } from '../../access/anyone' // Corrected import path
 import { authenticated } from '../../access/authenticated'
 import { ServiceRegistry } from '@/services/service.registry'
 

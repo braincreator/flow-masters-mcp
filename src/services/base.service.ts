@@ -1,21 +1,23 @@
 import type { Payload } from 'payload'
-import type { ServiceOptions } from '@/types/service'
+import type { ServiceQueryOptions } from '@/types/service' // Changed from ServiceOptions
 
 import { logger } from '@/utilities/logger'
-import { ErrorHandler } from '@/utilities/errorHandler'
-import { ServiceRegistry } from './service.registry'
+// import { ErrorHandler } from '@/utilities/errorHandling' // Removed unused import
+// import { ServiceRegistry } from './service.registry' // Remove top-level import
 
 export abstract class BaseService {
   protected payload: Payload
-  protected serviceRegistry: ServiceRegistry | null = null
+  protected serviceRegistry: import('./service.registry').ServiceRegistry | null = null // Use import type
 
   constructor(payload: Payload) {
     this.payload = payload
   }
 
-  protected getServiceRegistry(): ServiceRegistry {
+  protected async getServiceRegistry(): Promise<import('./service.registry').ServiceRegistry> { // Make async
     if (!this.serviceRegistry) {
-      this.serviceRegistry = ServiceRegistry.getInstance(this.payload)
+      // Dynamically import ServiceRegistry only when needed
+      const { ServiceRegistry } = await import('./service.registry')
+      this.serviceRegistry = ServiceRegistry.getInstance(this.payload);
     }
     return this.serviceRegistry
   }

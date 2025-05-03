@@ -11,12 +11,13 @@ export const FormBlock: Block = {
   slug: 'formBlock',
   interfaceName: 'FormBlock',
   fields: [
+    // Conditionally exclude the 'form' relationship during type generation
     {
-      name: 'form',
-      type: 'relationship',
-      relationTo: 'forms',
-      required: true,
-    },
+        name: 'form',
+        type: 'relationship',
+        relationTo: 'forms' as const,
+        required: true,
+      } as const, // Use 'as const' for better type inference if needed
     {
       name: 'enableIntro',
       type: 'checkbox',

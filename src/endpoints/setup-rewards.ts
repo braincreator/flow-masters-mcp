@@ -1,10 +1,11 @@
-import { Endpoint } from 'payload/config'
-import { PayloadRequest } from 'payload/types'
-import { Response } from 'express'
+import { Endpoint, Payload, PayloadRequest } from 'payload'
+// PayloadHandler import removed as Endpoint interface defines the handler type
+import { Response, NextFunction } from 'express'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { isAdmin } from '@/access/isAdmin'
+import { EmailTemplate, EmailCampaign } from '../payload-types'
 
 // Get the directory name
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -12,10 +13,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * Endpoint to set up the reward system
  */
-const setupRewardsEndpoint: Endpoint = {
+// Removed : Endpoint type annotation to allow inference
+const setupRewardsEndpoint = {
   path: '/api/v1/setup-rewards',
   method: 'post',
-  handler: async (req: PayloadRequest, res: Response) => {
+  handler: (async (req: PayloadRequest, res: Response, next: NextFunction) => {
     try {
       // Проверяем, что пользователь авторизован и является администратором
       if (!req.user) {
@@ -49,7 +51,7 @@ const setupRewardsEndpoint: Endpoint = {
         })
       }
 
-      const defaultSender = senders.docs[0].id
+      const defaultSender = senders.docs[0]!.id
 
       // Templates to add
       const templates = [
@@ -110,7 +112,7 @@ const setupRewardsEndpoint: Endpoint = {
       ]
 
       // Add each template
-      const createdTemplates = []
+      const createdTemplates: EmailTemplate[] = []
       const results = {
         templates: {
           created: 0,
@@ -135,7 +137,7 @@ const setupRewardsEndpoint: Endpoint = {
 
         if (existingTemplate.docs.length > 0) {
           console.log(`Template ${template.slug} already exists, skipping...`)
-          createdTemplates.push(existingTemplate.docs[0])
+          createdTemplates.push(existingTemplate.docs[0]!)
           results.templates.existing++
           continue
         }
@@ -176,37 +178,41 @@ const setupRewardsEndpoint: Endpoint = {
       const awardedCampaign = {
         name: 'Награда получена - последовательность писем',
         description: 'Отправляет серию писем после получения награды для повышения вовлеченности',
-        status: 'active',
-        triggerType: 'event',
+        status: 'active' as const,
+        triggerType: 'event' as const,
         eventTrigger: {
-          eventType: 'reward.awarded',
+          eventType: 'reward.awarded' as any, // TODO: Add to EmailCampaign event types
           delay: 0,
           conditions: {},
         },
         targetAudience: {
-          audienceType: 'event_related',
+          audienceType: 'event_related' as const,
         },
-        emailSequence: [
-          {
-            template: createdTemplates.find((t) => t.slug === 'reward-generic')?.id,
-            delay: 0,
-          },
-          {
-            template: createdTemplates.find((t) => t.slug === 'reward-reminder-1')?.id,
-            delay: 72, // 3 days
-            condition: {
-              rewardStatus: 'active',
-            },
-          },
-          {
-            template: createdTemplates.find((t) => t.slug === 'reward-reminder-2')?.id,
-            delay: 168, // 7 days
-            condition: {
-              rewardStatus: 'active',
-            },
-          },
-        ],
+        emailSequence: [] as EmailCampaign['emailSequence'], // Initialize empty, will populate after checks
       }
+
+      // Find templates and add to sequence, ensuring they exist
+      const genericTemplate = createdTemplates.find((t) => t.slug === 'reward-generic')
+      const reminder1Template = createdTemplates.find((t) => t.slug === 'reward-reminder-1')
+      const reminder2Template = createdTemplates.find((t) => t.slug === 'reward-reminder-2')
+
+      if (!genericTemplate || !reminder1Template || !reminder2Template) {
+        throw new Error('Could not find all required templates for the awarded campaign sequence.')
+      }
+
+      awardedCampaign.emailSequence = [
+        { template: genericTemplate.id, delay: 0 },
+        {
+          template: reminder1Template.id,
+          delay: 72, // 3 days
+          condition: { rewardStatus: 'active' },
+        },
+        {
+          template: reminder2Template.id,
+          delay: 168, // 7 days
+          condition: { rewardStatus: 'active' },
+        },
+      ]
 
       // Check if campaign already exists
       const existingCampaign = await payload.find({
@@ -236,23 +242,25 @@ const setupRewardsEndpoint: Endpoint = {
       const expiringCampaign = {
         name: 'Награда истекает - напоминание',
         description: 'Отправляет письмо, когда награда скоро истечет',
-        status: 'active',
-        triggerType: 'event',
+        status: 'active' as const,
+        triggerType: 'event' as const,
         eventTrigger: {
-          eventType: 'reward.expiring',
+          eventType: 'reward.expiring' as any, // TODO: Add to EmailCampaign event types
           delay: 0,
           conditions: {},
         },
         targetAudience: {
-          audienceType: 'event_related',
+          audienceType: 'event_related' as const,
         },
-        emailSequence: [
-          {
-            template: createdTemplates.find((t) => t.slug === 'reward-expiring')?.id,
-            delay: 0,
-          },
-        ],
+        emailSequence: [] as EmailCampaign['emailSequence'], // Initialize empty, will populate after checks
       }
+
+      // Find template and add to sequence, ensuring it exists
+      const expiringTemplate = createdTemplates.find((t) => t.slug === 'reward-expiring')
+      if (!expiringTemplate) {
+        throw new Error('Could not find the required template for the expiring campaign sequence.')
+      }
+      expiringCampaign.emailSequence = [{ template: expiringTemplate.id, delay: 0 }]
 
       // Check if campaign already exists
       const existingExpiringCampaign = await payload.find({
@@ -294,7 +302,7 @@ const setupRewardsEndpoint: Endpoint = {
         message: `Error setting up reward system: ${errorMessage}`,
       })
     }
-  },
+  }),
 }
 
 export default setupRewardsEndpoint
