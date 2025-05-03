@@ -1,4 +1,5 @@
-import type { Block } from 'payload'
+import type { Block, RelationshipField } from 'payload'
+import { Forms } from '@/collections/Forms' // Added import
 
 import {
   FixedToolbarFeature,
@@ -7,17 +8,20 @@ import {
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
+// Define the form field with explicit typing
+const formField: RelationshipField = {
+  name: 'form',
+  type: 'relationship',
+  relationTo: Forms.slug, // Changed from 'forms'
+  required: true,
+}
+
 export const FormBlock: Block = {
   slug: 'formBlock',
   interfaceName: 'FormBlock',
   fields: [
-    // Conditionally exclude the 'form' relationship during type generation
-    {
-        name: 'form',
-        type: 'relationship',
-        relationTo: 'forms' as const,
-        required: true,
-      } as const, // Use 'as const' for better type inference if needed
+    // Use the explicitly typed constant for the form relationship
+    formField,
     {
       name: 'enableIntro',
       type: 'checkbox',
@@ -27,7 +31,8 @@ export const FormBlock: Block = {
       name: 'introContent',
       type: 'richText',
       admin: {
-        condition: (_, { enableIntro }) => Boolean(enableIntro),
+        // Add explicit types for condition parameters
+        condition: (_: any, { enableIntro }: { enableIntro?: boolean }) => Boolean(enableIntro),
       },
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {

@@ -8,7 +8,7 @@ import { Hero } from './Hero/config'
 import { MediaBlock } from './MediaBlock/config'
 import { Code } from './Code/config'
 import { Banner } from './Banner/config'
-import { FormBlock } from './Form/config'
+// import { FormBlock } from './Form/config'
 import { Video } from './Video/config'
 import { Audio } from './Audio/config'
 import { FAQ } from './FAQ/config'
@@ -153,7 +153,7 @@ const basicBlocks: Record<string, Block> = {
   productsList: ProductsList,
 
   // Функциональные блоки
-  form: FormBlock,
+  // form: FormBlock,
   newsletter: Newsletter,
   feedback: Feedback,
   poll: Poll,
