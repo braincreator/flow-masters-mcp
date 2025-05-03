@@ -434,12 +434,15 @@
     "detailsDurationLabel": "Estimated Duration:",
     "detailsFormatLabel": "Format:",
     "detailsPrerequisitesLabel": "Prerequisites:",
+    "formatOnline": "Online",
+    "formatInPerson": "In-Person",
+    "formatHybrid": "Hybrid",
     "timerClosesIn": "Enrollment closes in:",
     "timerOpensIn": "Enrollment opens in:",
     "timerClosed": "Enrollment closed.",
     "timerOpen": "Enrollment open.",
     "timerNotSet": "Enrollment dates not set."
-  },
+},
   "courses": {
     "all": "All Courses",
     "popular": "Popular Courses",
@@ -449,6 +452,27 @@
     "enroll": "Enroll Now",
     "continue": "Continue Learning",
     "completed": "Completed",
+"course": {
+    "targetAudience": {
+      "title": "Who is this course for?"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions"
+    },
+    "relatedCourses": {
+      "title": "You might also like"
+    },
+    "certificate": {
+      "title": "Certificate of Completion",
+      "description": "Upon successful completion of this course, you will receive a shareable certificate to showcase your new skills and knowledge."
+    },
+    "community": {
+      "title": "Community & Support",
+      "description": "Join our student community forum or reach out to support for assistance. We're here to help you succeed!",
+      "forumLink": "Community Forum",
+      "supportLink": "Contact Support"
+    }
+  },
     "level": "Level",
     "duration": "Duration",
     "lessons": "Lessons",

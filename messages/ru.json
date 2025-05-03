@@ -437,11 +437,75 @@
     "detailsDurationLabel": "Примерная продолжительность:",
     "detailsFormatLabel": "Формат:",
     "detailsPrerequisitesLabel": "Требования:",
+    "formatOnline": "Онлайн",
+    "formatInPerson": "Очно",
+    "formatHybrid": "Смешанный",
     "timerClosesIn": "Запись закроется через:",
     "timerOpensIn": "Запись откроется через:",
     "timerClosed": "Запись закрыта.",
     "timerOpen": "Запись открыта.",
-    "timerNotSet": "Даты записи не установлены."
+    "timerNotSet": "Даты записи не установлены.",
+    "difficultyBeginner": "Начинающий",
+    "difficultyIntermediate": "Средний",
+    "difficultyAdvanced": "Продвинутый",
+    "course": {
+      "targetAudience": {
+        "title": "Целевая аудитория"
+      },
+      "community": {
+        "title": "Сообщество",
+        "description": "Описание"
+      }
+,
+      "certificate": {
+        "title": "Сертификат",
+        "description": "Описание"
+      },
+      "faq": {
+        "title": "Часто задаваемые вопросы"
+      },
+      "relatedCourses": {
+        "title": "Похожие курсы"
+      }
+    }
+  },
+  "DurationUnits": {
+    "day": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
+    "hour": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}",
+    "month": "{count, plural, one {# месяц} few {# месяца} many {# месяцев} other {# месяца}}",
+    "week": "{count, plural, one {# неделя} few {# недели} many {# недель} other {# недели}}"
+  },
+"RelativeTime": {
+    "justNow": "Только что",
+    "minuteAgo": "минуту назад",
+"course": {
+    "targetAudience": {
+      "title": "Для кого этот курс?"
+    },
+    "faq": {
+      "title": "Часто задаваемые вопросы"
+    },
+    "relatedCourses": {
+      "title": "Вам также может понравиться"
+    },
+    "certificate": {
+      "title": "Сертификат о прохождении",
+      "description": "После успешного завершения этого курса вы получите сертификат, которым можно поделиться, чтобы продемонстрировать свои новые навыки и знания."
+    },
+    "community": {
+      "title": "Сообщество и поддержка",
+      "description": "Присоединяйтесь к нашему студенческому форуму или обратитесь в службу поддержки за помощью. Мы здесь, чтобы помочь вам добиться успеха!",
+      "forumLink": "Форум сообщества",
+      "supportLink": "Связаться с поддержкой"
+    }
+  },
+    "minutesAgo": "{count, plural, one {# минуту назад} few {# минуты назад} many {# минут назад} other {# минуты назад}}",
+    "hourAgo": "час назад",
+    "hoursAgo": "{count, plural, one {# час назад} few {# часа назад} many {# часов назад} other {# часа назад}}",
+    "dayAgo": "день назад",
+    "daysAgo": "{count, plural, one {# день назад} few {# дня назад} many {# дней назад} other {# дня назад}}",
+    "yesterday": "Вчера",
+    "today": "Сегодня"
   },
   "courses": {
     "all": "Все курсы",

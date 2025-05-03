@@ -13,6 +13,11 @@ import CourseOutcomes from '@/components/CourseOutcomes'; // Import the outcomes
 import CourseDetails from '@/components/CourseDetails'; // Import the details component
 import { Locale } from '@/components/CoursePricing'; // Import Locale type
 import CourseTimer from '@/components/CourseTimer'; // Import the timer component
+import CourseTargetAudience from '@/components/CourseTargetAudience'; // Import the target audience component
+import CourseFAQ from '@/components/CourseFAQ'; // Import the FAQ component
+import CourseRelatedCourses from '@/components/CourseRelatedCourses'; // Import the related courses component
+import CourseCertificateInfo from '@/components/CourseCertificateInfo'; // Import the certificate info component
+import CourseCommunitySupport from '@/components/CourseCommunitySupport'; // Import the community/support component
 
 interface CoursePageProps {
   params: {
@@ -81,53 +86,67 @@ export default async function CoursePage({ params }: CoursePageProps) {
     notFound(); // Use Next.js notFound helper to render 404 page
   }
 
-  // Render course details
+  // Render course details with updated structure and components
   return (
-    <div className="course-page-content">
-      {/* Placeholder for Course Hero */}
+    <main> {/* Use main tag for semantic structure */}
+      {/* Course Hero Section */}
       <CourseHero
         title={course.title}
         subtitle={course.subtitle}
-        featuredImage={course.featuredImage} // Assuming featuredImage is fetched
+        featuredImage={course.featuredImage}
       />
 
-      {/* Render Course Timer */}
+      {/* Timer Section (conditionally rendered inside component) */}
       <CourseTimer
         enrollmentStartDate={course.enrollmentStartDate}
         enrollmentEndDate={course.enrollmentEndDate}
       />
 
-      {/* Render Course Pricing */}
-      <CoursePricing product={course.product} locale={lang as Locale} />
-{/* Render Course Outcomes */}
-      <CourseOutcomes learningObjectives={course.learningObjectives} />
+      {/* Main Content Area */}
+      <div className="container mx-auto px-4 py-8 md:py-12 space-y-12 md:space-y-16">
 
-      {/* Render Course Details */}
-      <CourseDetails
-        difficulty={course.difficulty}
-        estimatedDuration={course.estimatedDuration}
-        courseFormat={course.courseFormat}
-        prerequisites={course.prerequisites}
-      />
+        {/* Pricing Section */}
+        {/* Assuming CoursePricing is styled appropriately */}
+        <CoursePricing product={course.product} locale={lang as Locale} />
 
-      <h1>{course.title}</h1>
-      <p>{course.subtitle}</p>
-      {/* Instructor placeholder removed */}
-      {/* Add more basic structure or placeholders for other sections as needed */}
+        {/* Outcomes Section */}
+        <CourseOutcomes learningObjectives={course.learningObjectives} />
 
-      {/* Render the Course Curriculum */}
-      <CourseCurriculum modules={course.modules} />
+        {/* Details Section */}
+        <CourseDetails
+          difficulty={course.difficulty}
+          estimatedDuration={course.estimatedDuration}
+          courseFormat={course.courseFormat}
+          prerequisites={course.prerequisites}
+        />
+{/* Target Audience Section */}
+        <CourseTargetAudience />
 
-      {/* Render the Course Instructors */}
-      <CourseInstructor instructors={course.instructors} />
+        {/* Curriculum Section */}
+        <CourseCurriculum modules={course.modules} />
+{/* Certificate Info Section */}
+        <CourseCertificateInfo />
 
-      {/* Render the Course Reviews */}
-      <CourseReviews
-        averageRating={course.averageRating}
-        totalReviews={course.totalReviews}
-        reviews={reviews}
-      />
-    </div>
+        {/* Instructors Section */}
+        <CourseInstructor instructors={course.instructors} />
+
+        {/* Reviews Section */}
+        <CourseReviews
+          averageRating={course.averageRating}
+          totalReviews={course.totalReviews}
+          reviews={reviews}
+        />
+
+        {/* FAQ Section */}
+        <CourseFAQ />
+
+        {/* Related Courses Section */}
+{/* Community/Support Section */}
+        <CourseCommunitySupport />
+        <CourseRelatedCourses />
+
+      </div>
+    </main>
   );
 }
 
