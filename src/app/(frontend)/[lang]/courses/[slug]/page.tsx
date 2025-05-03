@@ -120,12 +120,20 @@ export default async function CoursePage({ params }: CoursePageProps) {
           prerequisites={course.prerequisites}
         />
 {/* Target Audience Section */}
-        <CourseTargetAudience />
+        <CourseTargetAudience
+          title={course.targetAudienceTitle}
+          description={course.targetAudienceDescription}
+        />
 
         {/* Curriculum Section */}
         <CourseCurriculum modules={course.modules} />
 {/* Certificate Info Section */}
-        <CourseCertificateInfo />
+        <CourseCertificateInfo
+          title={course.certificateTitle}
+          offersCertificate={course.offersCertificate}
+          description={course.certificateDescription}
+          preview={course.certificatePreview}
+        />
 
         {/* Instructors Section */}
         <CourseInstructor instructors={course.instructors} />
@@ -138,12 +146,19 @@ export default async function CoursePage({ params }: CoursePageProps) {
         />
 
         {/* FAQ Section */}
-        <CourseFAQ />
+        <CourseFAQ title={course.faqTitle} faqs={course.faqs} />
 
         {/* Related Courses Section */}
 {/* Community/Support Section */}
-        <CourseCommunitySupport />
-        <CourseRelatedCourses />
+        <CourseCommunitySupport
+          title={course.communitySupportTitle}
+          description={course.communitySupportDescription}
+          links={course.communitySupportLinks}
+        />
+        <CourseRelatedCourses
+          title={course.relatedCoursesTitle}
+          courses={course.relatedCourses}
+        />
 
       </div>
     </main>

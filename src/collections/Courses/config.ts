@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Field } from 'payload'
 import { slugField } from '@/fields/slug'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { availableBlocks } from '../../blocks'
@@ -223,6 +223,142 @@ export const Courses: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    // Section: Target Audience
+    {
+      name: 'targetAudienceTitle',
+      type: 'text',
+      label: 'Целевая аудитория (Заголовок)', // Placeholder Label
+      localized: true,
+    },
+    {
+      name: 'targetAudienceDescription',
+      type: 'richText',
+      label: 'Описание целевой аудитории', // Placeholder Label
+      localized: true,
+      editor: lexicalEditor({}),
+    },
+
+    // Section: Community Support
+    {
+      name: 'communitySupportTitle',
+      type: 'text',
+      label: 'Поддержка сообщества (Заголовок)', // Placeholder Label
+      localized: true,
+    },
+    {
+      name: 'communitySupportDescription',
+      type: 'richText',
+      label: 'Описание поддержки сообщества', // Placeholder Label
+      localized: true,
+      editor: lexicalEditor({}),
+    },
+    {
+      name: 'communitySupportLinks',
+      type: 'array',
+      label: 'Ссылки сообщества', // Placeholder Label
+      localized: true,
+      fields: [
+        {
+          name: 'label',
+          type: 'text',
+          label: 'Текст ссылки', // Placeholder Label
+          required: true,
+        },
+        {
+          name: 'url',
+          type: 'text', // Using text for flexibility (e.g., mailto:, discord://)
+          label: 'URL',
+          required: true,
+        },
+      ],
+    },
+
+    // Section: FAQ
+    {
+      name: 'faqTitle',
+      type: 'text',
+      label: 'FAQ (Заголовок)', // Placeholder Label
+      localized: true,
+    },
+    {
+      name: 'faqs',
+      type: 'array',
+      label: 'Часто задаваемые вопросы (FAQ)', // Placeholder Label
+      localized: true,
+      fields: [
+        {
+          name: 'question',
+          type: 'text',
+          label: 'Вопрос', // Placeholder Label
+          required: true,
+        },
+        {
+          name: 'answer',
+          type: 'richText',
+          label: 'Ответ', // Placeholder Label
+          required: true,
+          editor: lexicalEditor({}),
+        },
+      ],
+    },
+
+    // Section: Certificate Info
+    {
+      name: 'certificateTitle',
+      type: 'text',
+      label: 'Информация о сертификате (Заголовок)', // Placeholder Label
+      localized: true,
+    },
+    {
+      name: 'offersCertificate',
+      type: 'checkbox',
+      label: 'Предлагается сертификат?', // Placeholder Label
+      defaultValue: false,
+    },
+    {
+      name: 'certificateDescription',
+      type: 'richText',
+      label: 'Описание сертификата', // Placeholder Label
+      localized: true,
+      editor: lexicalEditor({}),
+      admin: {
+        condition: (data) => data?.offersCertificate === true,
+      },
+    },
+    {
+      name: 'certificatePreview',
+      type: 'relationship',
+      relationTo: 'media',
+      label: 'Предпросмотр сертификата', // Placeholder Label
+      admin: {
+        condition: (data) => data?.offersCertificate === true,
+      },
+    },
+
+    // Section: Related Courses
+    {
+      name: 'relatedCoursesTitle',
+      type: 'text',
+      label: 'Связанные курсы (Заголовок)', // Placeholder Label
+      localized: true,
+    },
+    {
+      name: 'relatedCourses',
+      type: 'relationship',
+      relationTo: 'courses',
+      hasMany: true,
+      label: 'Связанные курсы', // Placeholder Label
+      filterOptions: ({ id }) => { // Prevent relating a course to itself
+        if (id) {
+          return {
+            id: { not_equals: id },
+          }
+        }
+        return true // Return true to include all options when no ID
+      },
+    },
+
+    // Existing SEO Section starts here
     {
       name: 'seo',
       type: 'group',
@@ -236,7 +372,7 @@ export const Courses: CollectionConfig = {
           admin: {
             description: 'Оптимальная длина 50-60 символов.',
           },
-        },
+        } as Field, // Add type assertion
         {
           name: 'metaDescription',
           type: 'textarea',
@@ -245,7 +381,7 @@ export const Courses: CollectionConfig = {
           admin: {
             description: 'Оптимальная длина 150-160 символов.',
           },
-        },
+        } as Field, // Add type assertion
         // Можно добавить metaImage, keywords и т.д. при необходимости
       ],
     },

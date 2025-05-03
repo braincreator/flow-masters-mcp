@@ -1,45 +1,52 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import type { Course } from '@/payload-types'; // Import Course type
+import RichText from '@/components/RichText'; // Import the RichText renderer
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'; // Import Accordion components
 
-interface FAQItem {
-  question: string;
-  answer: string;
+interface CourseFAQProps {
+  title?: Course['faqTitle'];
+  faqs?: Course['faqs'];
 }
 
-// Placeholder data - this will eventually come from props or context
-const faqData: FAQItem[] = [
-  {
-    question: 'Is this course suitable for beginners?',
-    answer: 'Yes, this course starts with the fundamentals and progressively covers more advanced topics. No prior experience is required.',
-  },
-  {
-    question: 'What do I get after completing the course?',
-    answer: 'Upon successful completion, you will receive a certificate of completion and access to all course materials indefinitely.',
-  },
-  {
-    question: 'How long do I have access to the course?',
-    answer: 'You have lifetime access to the course materials, including any future updates.',
-  },
-];
-
-const CourseFAQ: React.FC = () => {
-  // Assuming 'CoursePage' namespace or create a specific 'FAQ' namespace if preferred
+const CourseFAQ: React.FC<CourseFAQProps> = ({ title, faqs }) => {
   const t = useTranslations('CoursePage');
+
+  // Don't render if no FAQs are provided
+  if (!faqs || faqs.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-12 bg-muted">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-8 text-foreground">
-          {t('course.faq.title')}
+          {title || t('course.faq.title')}
         </h2>
-        {/* Placeholder FAQ data - should be dynamic */}
-        <div className="space-y-4 max-w-3xl mx-auto">
-          {faqData.map((item, index) => (
-            <div key={index} className="bg-card p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-2 text-card-foreground">{item.question}</h3>
-              <p className="text-muted-foreground">{item.answer}</p>
-            </div>
-          ))}
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((item) => (
+              // Ensure item and item.id exist before rendering
+              item && item.id && (
+                <AccordionItem key={item.id} value={`item-${item.id}`}>
+                  <AccordionTrigger className="text-left text-lg font-semibold">
+                    {item.question}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {/* Render answer using RichText */}
+                    <div className="prose dark:prose-invert max-w-none">
+                      <RichText data={item.answer} />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>
