@@ -43,11 +43,15 @@ export const Courses: CollectionConfig = {
       },
     },
     {
-      name: 'author',
+      name: 'instructors', // Renamed from 'author'
       type: 'relationship',
-      relationTo: 'users', // Или 'authors', если есть отдельная коллекция
-      label: 'Автор/Инструктор',
+      relationTo: 'users',
+      label: 'Инструкторы', // Updated label
       required: true,
+      hasMany: true, // Added hasMany
+      filterOptions: { // Moved filterOptions to top level
+        roles: { contains: 'instructor' },
+      },
       admin: {
         position: 'sidebar',
       },
@@ -163,6 +167,74 @@ export const Courses: CollectionConfig = {
       blocks: availableBlocks,
       required: true,
       localized: true,
+      admin: { // Added admin for deprecation
+        readOnly: true,
+        description: 'DEPRECATED: Use new dedicated fields instead.',
+      },
+    },
+{
+      name: 'subtitle',
+      type: 'text',
+      label: 'Подзаголовок',
+      localized: true,
+    },
+    {
+      name: 'modules',
+      type: 'relationship',
+      relationTo: 'modules',
+      hasMany: true,
+      label: 'Модули курса',
+    },
+    {
+      name: 'courseDescription',
+      type: 'richText',
+      label: 'Основное описание курса',
+      localized: true,
+      editor: lexicalEditor({}),
+    },
+    {
+      name: 'courseFormat',
+      type: 'select',
+      label: 'Формат курса',
+      options: ['Online Self-paced', 'Online Cohort-based', 'Hybrid', 'In-person'],
+    },
+    {
+      name: 'enrollmentStartDate',
+      type: 'date',
+      label: 'Дата начала записи',
+      admin: {
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'enrollmentEndDate',
+      type: 'date',
+      label: 'Дата окончания записи',
+      admin: {
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'averageRating',
+      type: 'number',
+      label: 'Средний рейтинг',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'totalReviews',
+      type: 'number',
+      label: 'Всего отзывов',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
     },
     {
       name: 'seo',

@@ -2506,7 +2506,7 @@ export interface Course {
   slug?: string | null;
   slugLock?: boolean | null;
   status?: ('draft' | 'published' | 'archived') | null;
-  author: string | User;
+  instructors: (string | User)[];
   featuredImage: string | Media;
   excerpt?: string | null;
   learningObjectives?: {
@@ -2544,6 +2544,9 @@ export interface Course {
    * Курсы, которые необходимо пройти перед началом этого.
    */
   prerequisites?: (string | Course)[] | null;
+  /**
+   * DEPRECATED: Use new dedicated fields instead.
+   */
   layout: (
     | ContentBlock
     | CallToActionBlock
@@ -3718,6 +3721,28 @@ export interface Course {
     | ReportEmbedBlock
     | ChatBlock
   )[];
+  subtitle?: string | null;
+  modules?: (string | Module)[] | null;
+  courseDescription?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  courseFormat?: ('Online Self-paced' | 'Online Cohort-based' | 'Hybrid' | 'In-person') | null;
+  enrollmentStartDate?: string | null;
+  enrollmentEndDate?: string | null;
+  averageRating?: number | null;
+  totalReviews?: number | null;
   seo?: {
     /**
      * Оптимальная длина 50-60 символов.
@@ -6184,26 +6209,42 @@ export interface QuizAssessmentBlock {
   blockType: 'quizAssessment';
 }
 /**
- * Коллекция для модулей внутри курсов.
- *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "modules".
  */
 export interface Module {
   id: string;
-  title: string;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  status?: ('draft' | 'published') | null;
+  name: string;
+  description?: string | null;
+  lessons?: (string | Lesson)[] | null;
   course: string | Course;
-  /**
-   * Порядковый номер модуля в курсе.
-   */
-  order: number;
-  /**
-   * Модули, которые должны быть завершены перед началом этого.
-   */
-  prerequisites?: (string | Module)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons".
+ */
+export interface Lesson {
+  id: string;
+  title: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  videoUrl?: string | null;
+  module: string | Module;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -7998,1241 +8039,6 @@ export interface Assessment {
   maxAttempts?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * Коллекция для уроков внутри модулей курсов.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "lessons".
- */
-export interface Lesson {
-  id: string;
-  title: string;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  status?: ('draft' | 'published') | null;
-  /**
-   * Когда этот урок станет доступен студентам.
-   */
-  dripContent: {
-    dripType: 'immediate' | 'daysAfterEnrollment' | 'specificDate';
-    dripDelayDays?: number | null;
-    releaseDate?: string | null;
-  };
-  /**
-   * Рассчитывается автоматически на основе настроек Drip Content.
-   */
-  availableOn?: string | null;
-  module: string | Module;
-  description?: string | null;
-  layout: (
-    | ContentBlock
-    | CallToActionBlock
-    | UrgencyCTABlock
-    | HeroBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Список фич
-         */
-        features: {
-          title: string;
-          description?: {
-            root: {
-              type: string;
-              children: {
-                type: string;
-                version: number;
-                [k: string]: unknown;
-              }[];
-              direction: ('ltr' | 'rtl') | null;
-              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-              indent: number;
-              version: number;
-            };
-            [k: string]: unknown;
-          } | null;
-          /**
-           * Имя иконки из коллекции
-           */
-          icon?: string | null;
-          id?: string | null;
-        }[];
-        layout?: ('grid' | 'list' | 'carousel') | null;
-        columns?: (2 | 3 | 4) | null;
-        id?: string | null;
-        blockType: 'features';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Стиль разделителя
-         */
-        style?: ('solid' | 'dashed' | 'dotted') | null;
-        /**
-         * Ширина разделителя
-         */
-        width?: ('narrow' | 'medium' | 'wide' | 'full') | null;
-        /**
-         * Внешний отступ
-         */
-        spacing?: ('sm' | 'md' | 'lg') | null;
-        id?: string | null;
-        blockType: 'divider';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Шаги процесса
-         */
-        steps: {
-          /**
-           * Заголовок шага
-           */
-          title: string;
-          /**
-           * Описание шага
-           */
-          description?: {
-            root: {
-              type: string;
-              children: {
-                type: string;
-                version: number;
-                [k: string]: unknown;
-              }[];
-              direction: ('ltr' | 'rtl') | null;
-              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-              indent: number;
-              version: number;
-            };
-            [k: string]: unknown;
-          } | null;
-          /**
-           * Имя иконки из коллекции (опционально)
-           */
-          icon?: string | null;
-          /**
-           * Изображение или видео (опционально)
-           */
-          media?: (string | null) | Media;
-          id?: string | null;
-        }[];
-        /**
-         * Стиль отображения шагов
-         */
-        layout?: ('vertical' | 'horizontal' | 'zigzag') | null;
-        /**
-         * Показывать номера шагов
-         */
-        showNumbers?: boolean | null;
-        /**
-         * Показывать соединительные линии
-         */
-        showLines?: boolean | null;
-        id?: string | null;
-        blockType: 'steps';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Добавьте элементы аккордеона
-         */
-        items: {
-          /**
-           * Заголовок элемента
-           */
-          label: string;
-          /**
-           * Содержимое элемента
-           */
-          content: {
-            root: {
-              type: string;
-              children: {
-                type: string;
-                version: number;
-                [k: string]: unknown;
-              }[];
-              direction: ('ltr' | 'rtl') | null;
-              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-              indent: number;
-              version: number;
-            };
-            [k: string]: unknown;
-          };
-          /**
-           * Вложенные элементы (опционально)
-           */
-          items?:
-            | {
-                label: string;
-                content: {
-                  root: {
-                    type: string;
-                    children: {
-                      type: string;
-                      version: number;
-                      [k: string]: unknown;
-                    }[];
-                    direction: ('ltr' | 'rtl') | null;
-                    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                    indent: number;
-                    version: number;
-                  };
-                  [k: string]: unknown;
-                };
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[];
-        /**
-         * Выберите стиль отображения
-         */
-        style?: ('default' | 'separated' | 'boxed') | null;
-        /**
-         * Выберите размер
-         */
-        size?: ('sm' | 'md' | 'lg') | null;
-        /**
-         * Выберите вариант отображения
-         */
-        variant?: ('default' | 'separated' | 'boxed') | null;
-        /**
-         * Разрешить открытие нескольких элементов одновременно
-         */
-        allowMultiple?: boolean | null;
-        /**
-         * Индексы элементов, открытых по умолчанию (начиная с 0)
-         */
-        defaultOpen?:
-          | {
-              /**
-               * Индекс элемента
-               */
-              index: number;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-        blockType: 'accordion';
-      }
-    | CardBlock
-    | MediaBlock
-    | CodeBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Выберите тип видео
-         */
-        videoType: 'youtube' | 'vimeo' | 'rutube' | 'vk' | 'mp4';
-        /**
-         * ID видео (для YouTube, Vimeo, RuTube, VK)
-         */
-        videoId?: string | null;
-        /**
-         * URL видео (опционально)
-         */
-        videoUrl?: string | null;
-        /**
-         * Загрузите MP4 файл
-         */
-        videoFile?: (string | null) | Media;
-        /**
-         * Превью изображение для видео
-         */
-        poster?: (string | null) | Media;
-        /**
-         * Соотношение сторон видео
-         */
-        aspectRatio?: ('16/9' | '4/3' | '1/1' | '9/16') | null;
-        /**
-         * Автоматическое воспроизведение
-         */
-        autoPlay?: boolean | null;
-        /**
-         * Без звука по умолчанию
-         */
-        muted?: boolean | null;
-        /**
-         * Зациклить воспроизведение
-         */
-        loop?: boolean | null;
-        /**
-         * Показывать элементы управления
-         */
-        controls?: boolean | null;
-        /**
-         * Подпись к видео
-         */
-        caption?: string | null;
-        /**
-         * Стиль отображения
-         */
-        style?: ('default' | 'shadow' | 'bordered') | null;
-        /**
-         * Размер блока
-         */
-        size?: ('sm' | 'md' | 'lg') | null;
-        id?: string | null;
-        blockType: 'video';
-      }
-    | AudioBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока (опционально)
-         */
-        heading?: string | null;
-        /**
-         * Подзаголовок (опционально)
-         */
-        subheading?: string | null;
-        /**
-         * Описание карусели (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Элементы карусели
-         */
-        items: {
-          /**
-           * Изображение или видео
-           */
-          media: string | Media;
-          /**
-           * Заголовок элемента (опционально)
-           */
-          heading?: string | null;
-          /**
-           * Подпись к элементу (опционально)
-           */
-          caption?: string | null;
-          /**
-           * Текстовое содержимое (опционально)
-           */
-          content?: {
-            root: {
-              type: string;
-              children: {
-                type: string;
-                version: number;
-                [k: string]: unknown;
-              }[];
-              direction: ('ltr' | 'rtl') | null;
-              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-              indent: number;
-              version: number;
-            };
-            [k: string]: unknown;
-          } | null;
-          /**
-           * Кнопки или ссылки (опционально)
-           */
-          actions?:
-            | {
-                label: string;
-                url: string;
-                style?: ('primary' | 'secondary' | 'outline' | 'link') | null;
-                /**
-                 * Открыть в новой вкладке
-                 */
-                newTab?: boolean | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[];
-        /**
-         * Автоматическое прокручивание карусели
-         */
-        autoplay?: boolean | null;
-        /**
-         * Интервал прокрутки в миллисекундах
-         */
-        interval?: number | null;
-        /**
-         * Показывать кнопки управления
-         */
-        showControls?: boolean | null;
-        /**
-         * Показывать индикаторы слайдов
-         */
-        showIndicators?: boolean | null;
-        id?: string | null;
-        blockType: 'carousel';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок галереи (опционально)
-         */
-        heading?: string | null;
-        /**
-         * Изображения для галереи
-         */
-        items: {
-          /**
-           * Выберите изображение
-           */
-          media: string | Media;
-          /**
-           * Подпись к изображению (опционально)
-           */
-          caption?: string | null;
-          id?: string | null;
-        }[];
-        /**
-         * Выберите тип отображения
-         */
-        layout?: ('grid' | 'masonry' | 'carousel') | null;
-        /**
-         * Количество колонок
-         */
-        columns?: (2 | 3 | 4) | null;
-        /**
-         * Расстояние между изображениями
-         */
-        spacing?: ('sm' | 'md' | 'lg') | null;
-        id?: string | null;
-        blockType: 'gallery';
-      }
-    | VideoLessonsBlock
-    | BannerBlock
-    | FAQBlock
-    | CourseFAQBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Тарифные планы
-         */
-        plans: {
-          /**
-           * Название тарифа
-           */
-          name: string;
-          /**
-           * Цена (например, "9900" или "Бесплатно")
-           */
-          price: string;
-          /**
-           * Интервал оплаты (например, "/месяц", "/год")
-           */
-          interval?: string | null;
-          /**
-           * Краткое описание тарифа
-           */
-          description?: string | null;
-          /**
-           * Список функций
-           */
-          features?:
-            | {
-                text: string;
-                /**
-                 * Функция включена в тариф
-                 */
-                included?: boolean | null;
-                id?: string | null;
-              }[]
-            | null;
-          /**
-           * Отметить как популярный тариф
-           */
-          isPopular?: boolean | null;
-          /**
-           * Кнопки
-           */
-          actions?:
-            | {
-                label: string;
-                url: string;
-                style?: ('primary' | 'secondary' | 'outline' | 'link') | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[];
-        layout?: ('default' | 'grid' | 'compact') | null;
-        id?: string | null;
-        blockType: 'pricingTable';
-      }
-    | CoursePricingComparisonBlock
-    | StatsBlock
-    | TabsBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * События таймлайна
-         */
-        items: {
-          /**
-           * Заголовок события
-           */
-          title: string;
-          /**
-           * Дата события (текстовый формат, например "Июнь 2023")
-           */
-          date?: string | null;
-          /**
-           * Описание события
-           */
-          description?: {
-            root: {
-              type: string;
-              children: {
-                type: string;
-                version: number;
-                [k: string]: unknown;
-              }[];
-              direction: ('ltr' | 'rtl') | null;
-              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-              indent: number;
-              version: number;
-            };
-            [k: string]: unknown;
-          } | null;
-          /**
-           * Изображение для события (опционально)
-           */
-          media?: (string | null) | Media;
-          id?: string | null;
-        }[];
-        /**
-         * Стиль отображения таймлайна
-         */
-        layout?: ('vertical' | 'horizontal' | 'zigzag') | null;
-        /**
-         * Показывать даты
-         */
-        showDates?: boolean | null;
-        /**
-         * Показывать соединительные линии
-         */
-        showLines?: boolean | null;
-        id?: string | null;
-        blockType: 'timeline';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока (опционально)
-         */
-        title?: string | null;
-        /**
-         * Автоматически генерировать оглавление на основе заголовков страницы
-         */
-        autoGenerate?: boolean | null;
-        /**
-         * Элементы оглавления (используется, если автогенерация отключена)
-         */
-        items?:
-          | {
-              /**
-               * Текст пункта оглавления
-               */
-              title: string;
-              /**
-               * Якорь (ID элемента, например "about-section")
-               */
-              anchor: string;
-              /**
-               * Уровень вложенности
-               */
-              level?: (1 | 2 | 3) | null;
-              id?: string | null;
-            }[]
-          | null;
-        /**
-         * Фиксировать оглавление при прокрутке
-         */
-        sticky?: boolean | null;
-        /**
-         * Показывать нумерацию пунктов
-         */
-        showNumbers?: boolean | null;
-        /**
-         * Максимальный уровень заголовков для отображения
-         */
-        maxDepth?: (1 | 2 | 3) | null;
-        id?: string | null;
-        blockType: 'tableOfContents';
-      }
-    | RoadmapBlock
-    | BenefitsOutcomesBlock
-    | TargetAudienceBlock
-    | GuaranteeBlock
-    | SocialProofAdvancedBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Члены команды
-         */
-        members: {
-          /**
-           * Имя участника команды
-           */
-          name: string;
-          /**
-           * Должность или роль
-           */
-          role?: string | null;
-          /**
-           * Краткая биография (опционально)
-           */
-          bio?: string | null;
-          /**
-           * Фото участника команды
-           */
-          avatar?: (string | null) | Media;
-          /**
-           * Ссылки на социальные сети (опционально)
-           */
-          social?: {
-            /**
-             * Ссылка на Twitter
-             */
-            twitter?: string | null;
-            /**
-             * Ссылка на LinkedIn
-             */
-            linkedin?: string | null;
-            /**
-             * Ссылка на GitHub
-             */
-            github?: string | null;
-            /**
-             * Ссылка на персональный сайт
-             */
-            website?: string | null;
-          };
-          id?: string | null;
-        }[];
-        /**
-         * Стиль отображения
-         */
-        layout?: ('grid' | 'list') | null;
-        /**
-         * Количество колонок
-         */
-        columns?: (2 | 3 | 4) | null;
-        id?: string | null;
-        blockType: 'teamMembers';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Список отзывов
-         */
-        items: {
-          /**
-           * Имя автора отзыва
-           */
-          author: string;
-          /**
-           * Должность или роль автора (опционально)
-           */
-          role?: string | null;
-          /**
-           * Название компании автора (опционально)
-           */
-          company?: string | null;
-          /**
-           * Фото автора (опционально)
-           */
-          avatar?: (string | null) | Media;
-          /**
-           * Текст отзыва
-           */
-          content: string;
-          /**
-           * Рейтинг (опционально)
-           */
-          rating?: (1 | 2 | 3 | 4 | 5) | null;
-          id?: string | null;
-        }[];
-        /**
-         * Стиль отображения отзывов
-         */
-        layout?: ('grid' | 'carousel' | 'featured') | null;
-        /**
-         * Стиль отображения
-         */
-        style?: ('card' | 'minimal' | 'quote') | null;
-        id?: string | null;
-        blockType: 'testimonials';
-      }
-    | InstructorProfileBlock
-    | HeaderBlock
-    | FooterBlock
-    | ServicesBlock
-    | CaseStudiesBlock
-    | TechStackBlock
-    | PlansComparisonBlock
-    | CourseBlock
-    | CurriculumBlock
-    | UserProgressBlock
-    | CertificatesBlock
-    | ResourceLibraryBlock
-    | AiToolsBlock
-    | LeaderboardBlock
-    | CourseOverviewBlock
-    | QuizAssessmentBlock
-    | AssignmentsBlock
-    | AchievementsBlockType
-    | ProjectShowcaseBlock
-    | FunnelStepBlock
-    | RecommendationsBlock
-    | PopupTriggerConfigBlock
-    | ProductsFilterBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        heading?: string | null;
-        /**
-         * Описание блока (опционально)
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Выберите продукты для отображения
-         */
-        products?: (string | Product)[] | null;
-        /**
-         * Использовать динамический источник продуктов
-         */
-        enableDynamicSource?: boolean | null;
-        /**
-         * Источник продуктов
-         */
-        source?: ('new' | 'popular' | 'sale' | 'featured') | null;
-        /**
-         * Максимальное количество продуктов
-         */
-        limit?: number | null;
-        /**
-         * Включить фильтрацию продуктов
-         */
-        enableFiltering?: boolean | null;
-        /**
-         * Стиль отображения продуктов
-         */
-        layout?: ('grid' | 'list' | 'carousel') | null;
-        /**
-         * Количество колонок
-         */
-        columns?: (2 | 3 | 4) | null;
-        id?: string | null;
-        blockType: 'productsList';
-      }
-    | FormBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока подписки
-         */
-        heading?: string | null;
-        /**
-         * Описание блока подписки
-         */
-        description?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        /**
-         * Текст кнопки подписки
-         */
-        buttonText?: string | null;
-        layout?: ('default' | 'compact' | 'withImage') | null;
-        /**
-         * Изображение для блока (опционально)
-         */
-        image?: (string | null) | Media;
-        /**
-         * Placeholder для поля ввода email
-         */
-        placeholder?: string | null;
-        /**
-         * Сообщение об успешной подписке
-         */
-        successMessage?: string | null;
-        id?: string | null;
-        blockType: 'newsletter';
-      }
-    | FeedbackBlock
-    | PollBlock
-    | AiAssistantBlock
-    | LeadMagnetOfferBlock
-    | DiscussionForumBlock
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок статьи
-         */
-        title: string;
-        /**
-         * Подзаголовок (опционально)
-         */
-        subtitle?: string | null;
-        /**
-         * Краткое описание статьи (опционально)
-         */
-        description?: string | null;
-        /**
-         * Обложка статьи
-         */
-        coverImage?: (string | null) | Media;
-        /**
-         * Дата публикации
-         */
-        publishDate?: string | null;
-        /**
-         * Информация об авторе
-         */
-        author: {
-          /**
-           * Имя автора
-           */
-          name: string;
-          /**
-           * Аватар автора (опционально)
-           */
-          avatar?: (string | null) | Media;
-          /**
-           * Должность автора (опционально)
-           */
-          role?: string | null;
-        };
-        /**
-         * Категории статьи (опционально)
-         */
-        categories?:
-          | {
-              category: string;
-              id?: string | null;
-            }[]
-          | null;
-        /**
-         * Стиль отображения заголовка статьи
-         */
-        layout?: ('standard' | 'large' | 'minimal') | null;
-        id?: string | null;
-        blockType: 'articleHeader';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Информация об авторе
-         */
-        author: {
-          /**
-           * Имя автора
-           */
-          name: string;
-          /**
-           * Аватар автора
-           */
-          avatar?: (string | null) | Media;
-          /**
-           * Биография автора
-           */
-          bio?: string | null;
-          /**
-           * Должность автора
-           */
-          role?: string | null;
-          /**
-           * Название компании
-           */
-          company?: string | null;
-          /**
-           * Социальные сети
-           */
-          socialLinks?:
-            | {
-                /**
-                 * Платформа
-                 */
-                platform: 'twitter' | 'facebook' | 'linkedin' | 'github' | 'instagram' | 'website';
-                /**
-                 * URL профиля
-                 */
-                url: string;
-                id?: string | null;
-              }[]
-            | null;
-        };
-        /**
-         * Стиль отображения
-         */
-        layout?: ('card' | 'inline') | null;
-        id?: string | null;
-        blockType: 'authorBio';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Текст цитаты
-         */
-        quote: string;
-        /**
-         * Автор цитаты (опционально)
-         */
-        author?: string | null;
-        /**
-         * Источник цитаты или должность автора (опционально)
-         */
-        source?: string | null;
-        /**
-         * Изображение автора (опционально)
-         */
-        avatar?: (string | null) | Media;
-        /**
-         * Стиль оформления цитаты
-         */
-        style?: ('default' | 'highlight' | 'minimal') | null;
-        /**
-         * Выравнивание текста
-         */
-        align?: ('left' | 'center' | 'right') | null;
-        id?: string | null;
-        blockType: 'blockquote';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок секции комментариев
-         */
-        title?: string | null;
-        /**
-         * Система комментариев
-         */
-        provider?: ('native' | 'disqus' | 'facebook') | null;
-        /**
-         * Shortname для Disqus (если выбран Disqus)
-         */
-        disqusShortname?: string | null;
-        /**
-         * Facebook App ID (если выбран Facebook)
-         */
-        facebookAppId?: string | null;
-        /**
-         * Показывать количество комментариев
-         */
-        showCount?: boolean | null;
-        /**
-         * Количество комментариев на странице (для встроенных комментариев)
-         */
-        commentsPerPage?: number | null;
-        /**
-         * Разрешить ответы на комментарии
-         */
-        allowReplies?: boolean | null;
-        /**
-         * Требовать авторизацию для комментирования
-         */
-        requireAuth?: boolean | null;
-        /**
-         * Включить модерацию комментариев
-         */
-        moderationEnabled?: boolean | null;
-        id?: string | null;
-        blockType: 'comments';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок секции похожих статей
-         */
-        title?: string | null;
-        /**
-         * Метод выбора похожих статей
-         */
-        selectionMethod?: ('automatic' | 'manual') | null;
-        /**
-         * Выбрать статьи вручную
-         */
-        posts?: (string | Post)[] | null;
-        /**
-         * Максимальное количество статей для отображения
-         */
-        maxPosts?: number | null;
-        /**
-         * Критерии для автоматического подбора похожих статей
-         */
-        criteria?: ('category' | 'tags' | 'author' | 'popularity')[] | null;
-        /**
-         * Стиль отображения похожих статей
-         */
-        layout?: ('grid' | 'list' | 'carousel') | null;
-        /**
-         * Показывать обложку статьи
-         */
-        showFeaturedImage?: boolean | null;
-        /**
-         * Показывать краткое описание
-         */
-        showExcerpt?: boolean | null;
-        /**
-         * Показывать дату публикации
-         */
-        showDate?: boolean | null;
-        /**
-         * Показывать автора
-         */
-        showAuthor?: boolean | null;
-        id?: string | null;
-        blockType: 'relatedPosts';
-      }
-    | {
-        blockName?: string | null;
-        /**
-         * Заголовок блока
-         */
-        title?: string | null;
-        /**
-         * Выберите платформы для шеринга
-         */
-        platforms?:
-          | (
-              | 'x'
-              | 'facebook'
-              | 'linkedin'
-              | 'pinterest'
-              | 'vk'
-              | 'instagram'
-              | 'threads'
-              | 'tenchat'
-              | 'whatsapp'
-              | 'telegram'
-              | 'email'
-              | 'copy'
-            )[]
-          | null;
-        /**
-         * Выберите расположение кнопок
-         */
-        layout?: ('horizontal' | 'vertical') | null;
-        /**
-         * Показывать количество шерингов (если поддерживается)
-         */
-        showShareCount?: boolean | null;
-        id?: string | null;
-        blockType: 'socialShare';
-      }
-    | InteractiveDemoBlock
-    | CalendarBlock
-    | EventTrackerBlock
-    | ReportEmbedBlock
-    | ChatBlock
-  )[];
-  type?: ('video' | 'text' | 'quiz' | 'assignment') | null;
-  /**
-   * Например: "30 минут" или "1 час"
-   */
-  duration?: string | null;
-  /**
-   * Порядковый номер урока в модуле
-   */
-  order?: number | null;
-  /**
-   * Связанная оценка, если тип урока "Тест" или "Задание".
-   */
-  assessment?: (string | null) | Assessment;
-  /**
-   * Уроки, которые должны быть завершены перед началом этого.
-   */
-  prerequisites?: (string | Lesson)[] | null;
-  /**
-   * Как определяется, что урок завершен.
-   */
-  completionCriteria: 'viewed' | 'pass_assessment';
-  /**
-   * Файлы, прикрепленные к уроку
-   */
-  attachments?:
-    | {
-        title: string;
-        file: string | Media;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -11075,58 +9881,10 @@ export interface Promotion {
  */
 export interface Review {
   id: string;
-  clientName: string;
-  companyName?: string | null;
+  course: string | Course;
+  user?: (string | null) | User;
   rating: number;
-  reviewText: string;
-  clientPhoto?: (string | null) | Media;
-  project?: (string | null) | Solution;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "solutions".
- */
-export interface Solution {
-  id: string;
-  name: string;
-  description: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  featuredImage?: (string | null) | Media;
-  tags?:
-    | {
-        tag?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  toolsUsed?:
-    | {
-        tool?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  pricing: {
-    basePrice: number;
-    /**
-     * Discount percentage (0-100)
-     */
-    discountPercentage?: number | null;
-    finalPrice?: number | null;
-  };
+  comment: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -13334,6 +12092,52 @@ export interface SubscriptionPayment {
     | number
     | boolean
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "solutions".
+ */
+export interface Solution {
+  id: string;
+  name: string;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  featuredImage?: (string | null) | Media;
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  toolsUsed?:
+    | {
+        tool?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  pricing: {
+    basePrice: number;
+    /**
+     * Discount percentage (0-100)
+     */
+    discountPercentage?: number | null;
+    finalPrice?: number | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -17624,12 +16428,10 @@ export interface PromotionsSelect<T extends boolean = true> {
  * via the `definition` "reviews_select".
  */
 export interface ReviewsSelect<T extends boolean = true> {
-  clientName?: T;
-  companyName?: T;
+  course?: T;
+  user?: T;
   rating?: T;
-  reviewText?: T;
-  clientPhoto?: T;
-  project?: T;
+  comment?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -17642,7 +16444,7 @@ export interface CoursesSelect<T extends boolean = true> {
   slug?: T;
   slugLock?: T;
   status?: T;
-  author?: T;
+  instructors?: T;
   featuredImage?: T;
   excerpt?: T;
   learningObjectives?: T;
@@ -18112,6 +16914,14 @@ export interface CoursesSelect<T extends boolean = true> {
         reportEmbed?: T | ReportEmbedBlockSelect<T>;
         chat?: T | ChatBlockSelect<T>;
       };
+  subtitle?: T;
+  modules?: T;
+  courseDescription?: T;
+  courseFormat?: T;
+  enrollmentStartDate?: T;
+  enrollmentEndDate?: T;
+  averageRating?: T;
+  totalReviews?: T;
   seo?:
     | T
     | {
@@ -18139,16 +16949,12 @@ export interface CoursesSelect<T extends boolean = true> {
  * via the `definition` "modules_select".
  */
 export interface ModulesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  slugLock?: T;
-  status?: T;
+  name?: T;
+  description?: T;
+  lessons?: T;
   course?: T;
-  order?: T;
-  prerequisites?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -18156,484 +16962,9 @@ export interface ModulesSelect<T extends boolean = true> {
  */
 export interface LessonsSelect<T extends boolean = true> {
   title?: T;
-  slug?: T;
-  slugLock?: T;
-  status?: T;
-  dripContent?:
-    | T
-    | {
-        dripType?: T;
-        dripDelayDays?: T;
-        releaseDate?: T;
-      };
-  availableOn?: T;
+  content?: T;
+  videoUrl?: T;
   module?: T;
-  description?: T;
-  layout?:
-    | T
-    | {
-        content?: T | ContentBlockSelect<T>;
-        cta?: T | CallToActionBlockSelect<T>;
-        urgencyCTA?: T | UrgencyCTABlockSelect<T>;
-        hero?: T | HeroBlockSelect<T>;
-        features?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              features?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    icon?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              id?: T;
-            };
-        divider?:
-          | T
-          | {
-              blockName?: T;
-              style?: T;
-              width?: T;
-              spacing?: T;
-              id?: T;
-            };
-        steps?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              steps?:
-                | T
-                | {
-                    title?: T;
-                    description?: T;
-                    icon?: T;
-                    media?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              showNumbers?: T;
-              showLines?: T;
-              id?: T;
-            };
-        accordion?:
-          | T
-          | {
-              blockName?: T;
-              items?:
-                | T
-                | {
-                    label?: T;
-                    content?: T;
-                    items?:
-                      | T
-                      | {
-                          label?: T;
-                          content?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              style?: T;
-              size?: T;
-              variant?: T;
-              allowMultiple?: T;
-              defaultOpen?:
-                | T
-                | {
-                    index?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        card?: T | CardBlockSelect<T>;
-        mediaBlock?: T | MediaBlockSelect<T>;
-        code?: T | CodeBlockSelect<T>;
-        video?:
-          | T
-          | {
-              blockName?: T;
-              videoType?: T;
-              videoId?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              poster?: T;
-              aspectRatio?: T;
-              autoPlay?: T;
-              muted?: T;
-              loop?: T;
-              controls?: T;
-              caption?: T;
-              style?: T;
-              size?: T;
-              id?: T;
-            };
-        audio?: T | AudioBlockSelect<T>;
-        carousel?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              subheading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    media?: T;
-                    heading?: T;
-                    caption?: T;
-                    content?: T;
-                    actions?:
-                      | T
-                      | {
-                          label?: T;
-                          url?: T;
-                          style?: T;
-                          newTab?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              autoplay?: T;
-              interval?: T;
-              showControls?: T;
-              showIndicators?: T;
-              id?: T;
-            };
-        gallery?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              items?:
-                | T
-                | {
-                    media?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              spacing?: T;
-              id?: T;
-            };
-        videoLessons?: T | VideoLessonsBlockSelect<T>;
-        banner?: T | BannerBlockSelect<T>;
-        faq?: T | FAQBlockSelect<T>;
-        courseFAQ?: T | CourseFAQBlockSelect<T>;
-        pricingTable?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              plans?:
-                | T
-                | {
-                    name?: T;
-                    price?: T;
-                    interval?: T;
-                    description?: T;
-                    features?:
-                      | T
-                      | {
-                          text?: T;
-                          included?: T;
-                          id?: T;
-                        };
-                    isPopular?: T;
-                    actions?:
-                      | T
-                      | {
-                          label?: T;
-                          url?: T;
-                          style?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
-              layout?: T;
-              id?: T;
-            };
-        coursePricingComparison?: T | CoursePricingComparisonBlockSelect<T>;
-        stats?: T | StatsBlockSelect<T>;
-        tabs?: T | TabsBlockSelect<T>;
-        timeline?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    title?: T;
-                    date?: T;
-                    description?: T;
-                    media?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              showDates?: T;
-              showLines?: T;
-              id?: T;
-            };
-        tableOfContents?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              autoGenerate?: T;
-              items?:
-                | T
-                | {
-                    title?: T;
-                    anchor?: T;
-                    level?: T;
-                    id?: T;
-                  };
-              sticky?: T;
-              showNumbers?: T;
-              maxDepth?: T;
-              id?: T;
-            };
-        roadmap?: T | RoadmapBlockSelect<T>;
-        benefitsOutcomes?: T | BenefitsOutcomesBlockSelect<T>;
-        targetAudience?: T | TargetAudienceBlockSelect<T>;
-        guarantee?: T | GuaranteeBlockSelect<T>;
-        socialProofAdvanced?: T | SocialProofAdvancedBlockSelect<T>;
-        teamMembers?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              members?:
-                | T
-                | {
-                    name?: T;
-                    role?: T;
-                    bio?: T;
-                    avatar?: T;
-                    social?:
-                      | T
-                      | {
-                          twitter?: T;
-                          linkedin?: T;
-                          github?: T;
-                          website?: T;
-                        };
-                    id?: T;
-                  };
-              layout?: T;
-              columns?: T;
-              id?: T;
-            };
-        testimonials?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              items?:
-                | T
-                | {
-                    author?: T;
-                    role?: T;
-                    company?: T;
-                    avatar?: T;
-                    content?: T;
-                    rating?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              style?: T;
-              id?: T;
-            };
-        instructorProfile?: T | InstructorProfileBlockSelect<T>;
-        header?: T | HeaderBlockSelect<T>;
-        footer?: T | FooterBlockSelect<T>;
-        services?: T | ServicesBlockSelect<T>;
-        caseStudies?: T | CaseStudiesBlockSelect<T>;
-        techStack?: T | TechStackBlockSelect<T>;
-        plansComparison?: T | PlansComparisonBlockSelect<T>;
-        course?: T | CourseBlockSelect<T>;
-        curriculum?: T | CurriculumBlockSelect<T>;
-        userProgress?: T | UserProgressBlockSelect<T>;
-        certificates?: T | CertificatesBlockSelect<T>;
-        resourceLibrary?: T | ResourceLibraryBlockSelect<T>;
-        aiTools?: T | AiToolsBlockSelect<T>;
-        leaderboard?: T | LeaderboardBlockSelect<T>;
-        courseOverview?: T | CourseOverviewBlockSelect<T>;
-        quizAssessment?: T | QuizAssessmentBlockSelect<T>;
-        assignments?: T | AssignmentsBlockSelect<T>;
-        achievementsBlock?: T | AchievementsBlockTypeSelect<T>;
-        projectShowcase?: T | ProjectShowcaseBlockSelect<T>;
-        funnelStep?: T | FunnelStepBlockSelect<T>;
-        recommendations?: T | RecommendationsBlockSelect<T>;
-        popupTriggerConfig?: T | PopupTriggerConfigBlockSelect<T>;
-        productsFilter?: T | ProductsFilterBlockSelect<T>;
-        productsList?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              products?: T;
-              enableDynamicSource?: T;
-              source?: T;
-              limit?: T;
-              enableFiltering?: T;
-              layout?: T;
-              columns?: T;
-              id?: T;
-            };
-        formBlock?: T | FormBlockSelect<T>;
-        newsletter?:
-          | T
-          | {
-              blockName?: T;
-              heading?: T;
-              description?: T;
-              buttonText?: T;
-              layout?: T;
-              image?: T;
-              placeholder?: T;
-              successMessage?: T;
-              id?: T;
-            };
-        feedback?: T | FeedbackBlockSelect<T>;
-        poll?: T | PollBlockSelect<T>;
-        aiAssistant?: T | AiAssistantBlockSelect<T>;
-        leadMagnetOffer?: T | LeadMagnetOfferBlockSelect<T>;
-        discussionForum?: T | DiscussionForumBlockSelect<T>;
-        articleHeader?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              subtitle?: T;
-              description?: T;
-              coverImage?: T;
-              publishDate?: T;
-              author?:
-                | T
-                | {
-                    name?: T;
-                    avatar?: T;
-                    role?: T;
-                  };
-              categories?:
-                | T
-                | {
-                    category?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              id?: T;
-            };
-        authorBio?:
-          | T
-          | {
-              blockName?: T;
-              author?:
-                | T
-                | {
-                    name?: T;
-                    avatar?: T;
-                    bio?: T;
-                    role?: T;
-                    company?: T;
-                    socialLinks?:
-                      | T
-                      | {
-                          platform?: T;
-                          url?: T;
-                          id?: T;
-                        };
-                  };
-              layout?: T;
-              id?: T;
-            };
-        blockquote?:
-          | T
-          | {
-              blockName?: T;
-              quote?: T;
-              author?: T;
-              source?: T;
-              avatar?: T;
-              style?: T;
-              align?: T;
-              id?: T;
-            };
-        comments?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              provider?: T;
-              disqusShortname?: T;
-              facebookAppId?: T;
-              showCount?: T;
-              commentsPerPage?: T;
-              allowReplies?: T;
-              requireAuth?: T;
-              moderationEnabled?: T;
-              id?: T;
-            };
-        relatedPosts?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              selectionMethod?: T;
-              posts?: T;
-              maxPosts?: T;
-              criteria?: T;
-              layout?: T;
-              showFeaturedImage?: T;
-              showExcerpt?: T;
-              showDate?: T;
-              showAuthor?: T;
-              id?: T;
-            };
-        socialShare?:
-          | T
-          | {
-              blockName?: T;
-              title?: T;
-              platforms?: T;
-              layout?: T;
-              showShareCount?: T;
-              id?: T;
-            };
-        interactiveDemo?: T | InteractiveDemoBlockSelect<T>;
-        calendar?: T | CalendarBlockSelect<T>;
-        eventTracker?: T | EventTrackerBlockSelect<T>;
-        reportEmbed?: T | ReportEmbedBlockSelect<T>;
-        chat?: T | ChatBlockSelect<T>;
-      };
-  type?: T;
-  duration?: T;
-  order?: T;
-  assessment?: T;
-  prerequisites?: T;
-  completionCriteria?: T;
-  attachments?:
-    | T
-    | {
-        title?: T;
-        file?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
