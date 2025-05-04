@@ -6,7 +6,7 @@ import { Assessment, Lesson, CourseEnrollment } from '@/payload-types' // Import
 
 // Define expected request body structure (adjust based on frontend)
 interface AssessmentSubmissionPayload {
-  answers?: Record<string, any> // For quizzes: { questionId: answerValue }
+  answers?: Record<string, any> // For quizzes: { [question.id]: answerValue }
   files?: string[] // For assignments: Array of media IDs
 }
 
@@ -33,7 +33,7 @@ export async function submitHandler(req: PayloadRequest, res: Response, next: Ne
     const assessment: any = await payload.findByID({ // Using any temporarily
       collection: 'assessments', // Reverted to lowercase slug
       id: assessmentId,
-      depth: 1, // Populate lesson
+      depth: 2, // Populate lesson and potentially questions/options
     })
 
     if (!assessment) {
@@ -73,24 +73,43 @@ export async function submitHandler(req: PayloadRequest, res: Response, next: Ne
     }
     const enrollment = enrollments.docs[0] as CourseEnrollment // Cast to type
 
-    // 3. Check Max Attempts (if implemented)
-    // TODO: Add logic to count previous submissions for this user/assessment/enrollment
-    // and compare against assessment.maxAttempts if > 0
+    // 3. Check Max Attempts
+    const previousSubmissions = await payload.find({
+        collection: 'assessment-submissions', // Corrected slug
+        where: {
+            user: { equals: user.id },
+            assessment: { equals: assessmentId },
+        },
+        // limit: 0, // Removed limit: 0
+        // count: true, // Removed count: true - use totalDocs from result
+    })
+    const attemptNumber = previousSubmissions.totalDocs + 1;
+
+    if (assessment.maxAttempts > 0 && attemptNumber > assessment.maxAttempts) {
+        return res.status(403).json({ message: `Maximum attempts (${assessment.maxAttempts}) reached for this assessment.` });
+    }
 
     // 4. Create AssessmentSubmission record
-    const submissionStatus = assessment.type === 'quiz' ? 'grading' : 'submitted' // Auto-grade quizzes later
+    // Initial status - will be updated after grading if applicable
+    let submissionStatus: 'submitted' | 'grading' | 'graded' = 'submitted';
+    if (assessment.type === 'quiz') {
+        // Default to grading, might change to graded if fully auto-gradable
+        submissionStatus = 'grading';
+    } else if (assessment.type === 'assignment') {
+        submissionStatus = 'submitted'; // Assignments always need manual review initially
+    }
+    // Removed unused @ts-expect-error
     const newSubmission = await payload.create({
-        collection: 'assessmentSubmissions', // Reverted to lowercase slug
+        collection: 'assessment-submissions', // Corrected slug
         data: {
             assessment: assessmentId,
             user: user.id,
             enrollment: enrollment.id,
             submittedAt: new Date().toISOString(),
-            // @ts-expect-error // Status type mismatch until types regenerated
             status: submissionStatus,
             answers: submissionData.answers, // Store raw answers for quizzes
             files: submissionData.files,     // Store file IDs for assignments
-            // attemptNumber: calculatedAttemptNumber, // TODO
+            attemptNumber: attemptNumber,
         },
     })
 
@@ -118,36 +137,95 @@ export async function submitHandler(req: PayloadRequest, res: Response, next: Ne
     }
     // --- End Notification ---
 
-    // 5. Process Quiz Grading (Simplified - Full logic might be in a separate service/job)
-    let score: number | null = null
-    let passed = false
-    if (assessment.type === 'quiz' && submissionData.answers) {
-        // TODO: Implement quiz grading logic here or in AssessmentService
-        // Compare submissionData.answers with assessment.questions
-        // Calculate score based on points
-        score = 0 // Placeholder
-        passed = score >= (assessment.passingScore ?? 0) // Placeholder
+    // 5. Process Quiz Grading
+    let score: number | null = null;
+    let passed = false;
+    let needsManualGrading = false; // Flag for text questions
+
+    // Define an interface for option structure outside the loop
+    interface QuestionOption { id: string; text: string; isCorrect?: boolean | null }
+    // Define an interface for question structure (assuming Payload adds 'id' to array items)
+    interface AssessmentQuestion { id: string; questionText: string; questionType: 'mcq' | 'scq' | 'text'; options?: QuestionOption[]; points?: number | null }
+
+    if (assessment.type === 'quiz' && submissionData.answers && assessment.questions && Array.isArray(assessment.questions)) {
+        let totalPointsAwarded = 0;
+        let totalPossiblePoints = 0;
+
+        for (const question of assessment.questions as AssessmentQuestion[]) { // Iterate through questions
+            // Use question.id (Payload's auto-generated ID for array items) as the key
+            const userAnswer = submissionData.answers[question.id];
+            const questionPoints = question.points ?? 1;
+            totalPossiblePoints += questionPoints;
+
+            if (!question.id) {
+                payload.logger.warn(`Grading: Skipping question without ID: ${question.questionText}`);
+                continue; // Skip if question ID is missing for some reason
+            }
+
+            if (question.questionType === 'scq' || question.questionType === 'mcq') {
+                // Ensure options exist and is an array
+                if (!question.options || !Array.isArray(question.options)) {
+                    payload.logger.warn(`Grading: Skipping question ${question.id} due to missing or invalid options.`);
+                    continue;
+                }
+
+                // Ensure userAnswer is provided for grading this question type
+                if (userAnswer == null) {
+                    // No points if answer is missing
+                    continue;
+                }
+
+                const correctOptions = question.options
+                    .filter((opt: QuestionOption) => opt.isCorrect)
+                    .map((opt: QuestionOption) => opt.text);
+
+                if (question.questionType === 'scq') {
+                    // Single choice: userAnswer should match the single correct option text
+                    if (correctOptions.length === 1 && userAnswer === correctOptions[0]) {
+                        totalPointsAwarded += questionPoints;
+                    }
+                } else { // mcq
+                    // Multiple choice: userAnswer should be an array matching all correct option texts
+                    if (Array.isArray(userAnswer) &&
+                        userAnswer.length === correctOptions.length &&
+                        userAnswer.every((ans: string) => correctOptions.includes(ans)) &&
+                        correctOptions.every((correct: string) => userAnswer.includes(correct)))
+                    {
+                        totalPointsAwarded += questionPoints;
+                    }
+                }
+            } else if (question.questionType === 'text') {
+                needsManualGrading = true; // Mark for manual review
+                // Skip auto-grading points for text questions
+            }
+        }
+
+        // Calculate score percentage
+        score = totalPossiblePoints > 0 ? Math.round((totalPointsAwarded / totalPossiblePoints) * 100) : 0;
+        passed = score >= (assessment.passingScore ?? 70); // Use default 70 if not set
+
+        // Determine final status
+        submissionStatus = needsManualGrading ? 'grading' : 'graded';
 
         // Update submission status and score
         await payload.update({
-            collection: 'assessmentSubmissions', // Reverted to lowercase slug
+            collection: 'assessment-submissions', // Corrected slug
             id: newSubmission.id,
-            // Using 'as any' for status temporarily
-            data: { status: 'graded' as any, score },
+            data: { status: submissionStatus, score },
         })
     }
 
-    // --- Send 'assessment_graded' Notification (for auto-graded quizzes) ---
-    if (assessment.type === 'quiz' && score !== null) { // Check if grading happened
+    // --- Send 'assessment_graded' or 'assessment_needs_grading' Notification ---
+    if (submissionStatus === 'graded') { // Only send 'graded' if fully auto-graded
         try {
             const serviceRegistry = ServiceRegistry.getInstance(payload)
             const notificationService = serviceRegistry.getNotificationService()
             await notificationService.sendNotification({
                 userId: user.id,
                 type: 'assessment_graded',
-                title: `Assessment Graded: ${assessment.title}`,
-                message: `Your submission for "${assessment.title}" has been graded. Score: ${score}/${assessment.questions?.length || '?'}. ${passed ? 'You passed!' : 'Review required.'}`,
-                link: `/courses/${courseId}/learn/${lessonId}`, // Link back to the lesson to see results?
+                title: `Assessment Graded: ${assessment.title}`, // Simplified title
+                message: `Your submission for "${assessment.title}" has been graded. Score: ${score}%. ${passed ? 'You passed!' : 'Passing score not met.'}`, // Assumes score is not null here
+                link: `/courses/${courseId}/learn/${lessonId}`, // Link back to the lesson
                 metadata: {
                     courseId,
                     lessonId,
@@ -162,6 +240,29 @@ export async function submitHandler(req: PayloadRequest, res: Response, next: Ne
             })
         } catch (notifError) {
             payload.logger.error(`Failed to send assessment graded notification: ${notifError}`)
+        }
+    } else if (submissionStatus === 'grading' || assessment.type === 'assignment') {
+        // Send 'needs_grading' notification if manual review is required
+        try {
+            const serviceRegistry = ServiceRegistry.getInstance(payload)
+            const notificationService = serviceRegistry.getNotificationService()
+            await notificationService.sendNotification({
+                userId: user.id,
+                type: 'assessment_needs_grading', // New notification type
+                title: `Assessment Submitted: ${assessment.title}`,
+                message: `Your submission for "${assessment.title}" has been received and requires manual review. You will be notified when it's graded.`,
+                link: `/courses/${courseId}/learn/${lessonId}`, // Link back to the lesson
+                metadata: {
+                    courseId,
+                    lessonId,
+                    assessmentId,
+                    submissionId: newSubmission.id,
+                    assessmentTitle: assessment.title,
+                    lessonTitle: lesson.title,
+                },
+            })
+        } catch (notifError) {
+            payload.logger.error(`Failed to send assessment needs grading notification: ${notifError}`)
         }
     }
     // --- End Notification ---
@@ -179,9 +280,9 @@ export async function submitHandler(req: PayloadRequest, res: Response, next: Ne
     return res.status(201).json({
         message: 'Assessment submitted successfully.',
         submissionId: newSubmission.id,
-        status: submissionStatus, // Initial status
-        score: score, // Include score if graded immediately
-        passed: passed, // Include pass status if graded immediately
+        status: submissionStatus, // Final status after grading attempt
+        score: score, // Include score if calculated
+        passed: passed, // Include pass status if calculated
     })
 
   } catch (error: unknown) {

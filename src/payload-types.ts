@@ -2577,6 +2577,11 @@ export interface Course {
   courseFormat?: ('Online Self-paced' | 'Online Cohort-based' | 'Hybrid' | 'In-person') | null;
   enrollmentStartDate?: string | null;
   enrollmentEndDate?: string | null;
+  courseStartDate: string;
+  /**
+   * Обновляется автоматически.
+   */
+  bookingStatus?: ('not_yet_open' | 'open' | 'closed' | 'in_progress' | 'completed') | null;
   averageRating?: number | null;
   totalReviews?: number | null;
   targetAudienceTitle?: string | null;
@@ -9178,7 +9183,13 @@ export interface AutomationJob {
   name: string;
   description?: string | null;
   status: 'active' | 'paused' | 'completed' | 'error';
-  jobType: 'create_course' | 'update_course' | 'create_landing' | 'create_funnel' | 'full_package';
+  jobType:
+    | 'create_course'
+    | 'update_course'
+    | 'create_landing'
+    | 'create_funnel'
+    | 'full_package'
+    | 'update_course_booking_statuses';
   triggerType: 'schedule' | 'event' | 'manual';
   schedule?: {
     frequency: 'daily' | 'weekly' | 'monthly' | 'custom';
@@ -15555,6 +15566,8 @@ export interface CoursesSelect<T extends boolean = true> {
   courseFormat?: T;
   enrollmentStartDate?: T;
   enrollmentEndDate?: T;
+  courseStartDate?: T;
+  bookingStatus?: T;
   averageRating?: T;
   totalReviews?: T;
   targetAudienceTitle?: T;

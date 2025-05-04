@@ -206,6 +206,37 @@ export const Courses: CollectionConfig = {
       },
     },
     {
+      name: 'courseStartDate',
+      type: 'date',
+      label: 'Дата начала курса',
+      required: true,
+      admin: {
+        date: {
+          pickerAppearance: 'dayOnly', // Assuming only date is needed, not time
+          displayFormat: 'dd.MM.yyyy',
+        },
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'bookingStatus',
+      type: 'select',
+      label: 'Статус бронирования',
+      options: [
+        { label: 'Еще не открыто', value: 'not_yet_open' },
+        { label: 'Открыто', value: 'open' },
+        { label: 'Закрыто (до начала)', value: 'closed' },
+        { label: 'В процессе', value: 'in_progress' },
+        { label: 'Завершено', value: 'completed' },
+      ],
+      defaultValue: 'not_yet_open',
+      admin: {
+        position: 'sidebar',
+        readOnly: true, // Status should be updated by the endpoint, not manually
+        description: 'Обновляется автоматически.',
+      },
+    },
+    {
       name: 'averageRating',
       type: 'number',
       label: 'Средний рейтинг',

@@ -6,6 +6,7 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import path from 'path'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
+import cron from 'node-cron' // Added for job scheduling
 
 import { getServerSideURL } from './utilities/getURL'
 import { defaultLexical } from '@/fields/defaultLexical'
@@ -65,6 +66,7 @@ import setupRewardsEndpoint from './endpoints/setup-rewards'
 // Используем строковый путь к компоненту для настройки наград
 
 import { ServiceRegistry } from '@/services/service.registry'
+import { CourseService } from '@/services/courses/courseService' // Added for job logic
 
 // Import blocks from central index
 import { availableBlocks } from './blocks'
@@ -694,4 +696,181 @@ export default buildConfig({
     schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
   },
   blocks: availableBlocks,
+
+  // Function executed after Payload initializes
+  onInit: async (payload: Payload): Promise<void> => {
+    payload.logger.info('Initializing job scheduler...')
+
+    try {
+      // Fetch active, scheduled automation jobs
+      // Increase limit significantly or implement pagination if many jobs are expected
+      const automationJobsQuery = await payload.find({
+        collection: 'automation-jobs',
+        where: {
+          and: [
+            { status: { equals: 'active' } },
+            { triggerType: { equals: 'schedule' } },
+          ],
+        },
+        limit: 1000, // Adjust limit as needed
+        overrideAccess: true,
+        depth: 0, // Only need top-level fields
+      })
+
+      const jobs = automationJobsQuery.docs
+
+      payload.logger.info(`Found ${jobs.length} active scheduled jobs to initialize.`)
+
+      jobs.forEach(async (job) => {
+        let cronExpression: string | undefined
+
+        // Determine cron expression based on frequency or custom schedule
+        // Access schedule properties via job.schedule?.propertyName
+        if (job.schedule?.frequency === 'custom' && typeof job.schedule?.cronExpression === 'string' && cron.validate(job.schedule.cronExpression)) {
+          cronExpression = job.schedule.cronExpression
+        } else if (job.schedule?.frequency === 'daily') {
+          // Example: Run daily at a specific time (e.g., 2 AM)
+          cronExpression = '0 2 * * *' // Default daily schedule
+          if (typeof job.schedule?.time === 'string' && /^\d{1,2}:\d{2}$/.test(job.schedule.time)) {
+             const [hour, minute] = job.schedule.time.split(':')
+             cronExpression = `${minute} ${hour} * * *`
+          } else if (job.schedule?.time) { // Check if time property exists
+             payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time format for daily schedule: '${job.schedule.time}'. Using default 2 AM.`)
+          }
+        } else if (job.schedule?.frequency === 'weekly') {
+          // Example: Run weekly on Sunday at 3 AM
+          cronExpression = '0 3 * * 0' // Default weekly schedule (Sunday 3 AM)
+           // Check if schedule object and required properties exist
+           if (typeof job.schedule === 'object' && job.schedule && typeof job.schedule.dayOfWeek === 'number' && typeof job.schedule.time === 'string') {
+             const { dayOfWeek, time } = job.schedule
+             if (/^\d{1,2}:\d{2}$/.test(time) && dayOfWeek >= 0 && dayOfWeek <= 6) {
+               const [hour, minute] = time.split(':')
+               cronExpression = `${minute} ${hour} * * ${dayOfWeek}`
+             } else {
+               payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfWeek ('${dayOfWeek}') for weekly schedule. Using default Sunday 3 AM.`)
+             }
+           } else if (job.schedule) { // Check if schedule group exists at all
+             payload.logger.warn(`Job '${job.name}' (${job.id}): Missing or invalid dayOfWeek/time for weekly schedule. Using default Sunday 3 AM.`)
+           }
+        } else if (job.schedule?.frequency === 'monthly') {
+          // Example: Run monthly on the 1st day at 4 AM
+          cronExpression = '0 4 1 * *' // Default monthly schedule (1st day 4 AM)
+           // Check if schedule object and required properties exist
+          if (typeof job.schedule === 'object' && job.schedule && typeof job.schedule.dayOfMonth === 'number' && typeof job.schedule.time === 'string') {
+            const { dayOfMonth, time } = job.schedule
+            if (/^\d{1,2}:\d{2}$/.test(time) && dayOfMonth >= 1 && dayOfMonth <= 31) {
+              const [hour, minute] = time.split(':')
+              cronExpression = `${minute} ${hour} ${dayOfMonth} * *`
+            } else {
+              payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfMonth ('${dayOfMonth}') for monthly schedule. Using default 1st day 4 AM.`)
+            }
+          } else if (job.schedule) { // Check if schedule group exists at all
+            payload.logger.warn(`Job '${job.name}' (${job.id}): Missing or invalid dayOfMonth/time for monthly schedule. Using default 1st day 4 AM.`)
+          }
+        }
+
+        if (cronExpression && cron.validate(cronExpression)) {
+          payload.logger.info(`Scheduling job '${job.name}' (${job.id}) with schedule: ${cronExpression}`)
+
+          cron.schedule(
+            cronExpression,
+            async () => {
+              payload.logger.info(`Executing job: ${job.name} (${job.id})`)
+              const jobStartTime = Date.now()
+              let jobStatus: 'success' | 'error' = 'error' // Default to error
+
+              try {
+                const serviceRegistry = ServiceRegistry.getInstance(payload)
+
+                switch (job.jobType) {
+                  case 'update_course_booking_statuses' as string: { // Assert type to handle potentially outdated generated types
+                    const courseService = new CourseService(payload) // Instantiate CourseService directly
+                    await courseService.updateAllCourseBookingStatuses()
+                    payload.logger.info(`Job '${job.name}' (${job.id}): Successfully updated course booking statuses.`)
+                    jobStatus = 'success'
+                    break
+                  }
+                  // Add cases for other job types here
+                  // case 'another_job_type':
+                  //   // ... logic for another job
+                  //   break;
+                  default:
+                    payload.logger.warn(`Job '${job.name}' (${job.id}): Unimplemented job type '${job.jobType}'.`)
+                    // Mark as success even if unimplemented to avoid repeated errors for unknown types
+                    // Or potentially mark as 'skipped' if you add such a status
+                    jobStatus = 'success'
+                    break
+                }
+              } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error during job execution'
+                payload.logger.error(`Job '${job.name}' (${job.id}) failed: ${errorMessage}`, error)
+                // Optionally update the job status to 'error' in the DB
+                try {
+                  await payload.update({
+                    collection: 'automation-jobs',
+                    id: job.id,
+                    data: {
+                      status: 'error', // Set status to error
+                      // Optionally add error details to a log field if it exists
+                      // jobLogs: (job.jobLogs || []).concat([{ timestamp: new Date(), level: 'error', message: errorMessage }]),
+                    },
+                    overrideAccess: true,
+                  })
+                } catch (updateError) {
+                  payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update job status to error after execution failure.`, updateError)
+                }
+              } finally {
+                // Always update lastRun, regardless of success or failure, unless it failed to update status above
+                if (jobStatus === 'success') { // Only update lastRun if the main logic succeeded or was skipped
+                   try {
+                     await payload.update({
+                       collection: 'automation-jobs',
+                       id: job.id,
+                       data: {
+                         lastRun: new Date().toISOString(), // Convert Date to ISO string
+                         // Optionally clear error status if it succeeded now
+                         // status: 'active',
+                       },
+                       overrideAccess: true,
+                     })
+                     const duration = Date.now() - jobStartTime
+                     payload.logger.info(`Job '${job.name}' (${job.id}) finished. Duration: ${duration}ms. Updated lastRun.`)
+                   } catch (updateError) {
+                     payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update lastRun timestamp after successful execution.`, updateError)
+                   }
+                } else {
+                    const duration = Date.now() - jobStartTime
+                    payload.logger.info(`Job '${job.name}' (${job.id}) finished with errors. Duration: ${duration}ms.`)
+                }
+              }
+            },
+            {
+              scheduled: true,
+              timezone: 'Europe/Moscow', // Consider making this configurable
+            },
+          )
+        } else {
+          payload.logger.warn(
+            `Job '${job.name}' (${job.id}): Could not determine a valid cron schedule from frequency '${job.schedule?.frequency}' and schedule data. Job will not be scheduled.`,
+          )
+          // Optionally update the job status to 'inactive' or 'error' if schedule is invalid
+           try {
+             await payload.update({
+               collection: 'automation-jobs',
+               id: job.id,
+               data: {
+                 status: 'error', // Or 'inactive'
+                 // jobLogs: (job.jobLogs || []).concat([{ timestamp: new Date(), level: 'warn', message: 'Invalid or missing schedule configuration.' }]),
+               },
+               overrideAccess: true,
+             })
+           } catch (updateError) {
+             payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update job status to error due to invalid schedule.`, updateError)
+           }
+        }
+      })
+    } catch (error) {
+      payload.logger.error('Failed to initialize job scheduler:', error)
+    }
+  },
 })

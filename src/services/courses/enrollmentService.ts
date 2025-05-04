@@ -739,17 +739,43 @@ export class EnrollmentService {
         // }
       }
 
-      // 7. Send Notification/Email (Optional)
-      // try {
-      //   const serviceRegistry = ServiceRegistry.getInstance(this.payload);
-      //   const notificationService = serviceRegistry?.getNotificationService();
-      //   const emailService = serviceRegistry?.getEmailService();
-      //   const user = await this.payload.findByID({ collection: 'users', id: userId });
-      //   const course = enrollment.course as Course; // Assuming depth: 1 populated course
-      //   // ... send cancellation confirmation ...
-      // } catch (notificationError) {
-      //   console.error('Error sending cancellation notification/email:', notificationError);
-      // }
+      // 7. Send Notification/Email
+      try {
+        const serviceRegistry = ServiceRegistry.getInstance(this.payload);
+        const notificationService = serviceRegistry?.getNotificationService();
+        const emailService = serviceRegistry?.getEmailService(); // Keep email service logic if needed later
+
+        // Fetch user data if not already available (needed for email/name)
+        const user = await this.payload.findByID({ collection: 'users', id: userId, depth: 0 });
+        // Course data should be populated from the initial enrollment fetch (depth: 1)
+        const course = enrollment.course as Course;
+
+        if (notificationService && user && course) {
+          await notificationService.sendNotification({
+            userId: userId,
+            type: 'enrollment_cancelled', // Specific notification type
+            title: `Enrollment Cancelled: ${course.title}`,
+            message: `Your enrollment in the course "${course.title}" has been successfully cancelled.`,
+            link: `/courses/${course.id}`, // Link to the course page or user dashboard
+            metadata: {
+              courseId: course.id,
+              courseTitle: course.title,
+              enrollmentId: enrollmentId,
+              cancelledAt: updatedEnrollment.updatedAt || new Date().toISOString(), // Use update timestamp
+            },
+          });
+        } else {
+           if (!notificationService) console.warn('NotificationService not available for cancellation notification.');
+           if (!user) console.warn(`User ${userId} not found for cancellation notification.`);
+           if (!course) console.warn(`Course data not populated for cancellation notification (Enrollment ID: ${enrollmentId}).`);
+        }
+
+        // TODO: Add email sending logic here if required, similar to enrollment confirmation
+        // if (emailService && user && course) { ... }
+
+      } catch (notificationError) {
+        console.error('Error sending cancellation notification/email:', notificationError);
+      }
 
       // Re-fetch the updated enrollment to ensure correct return type
       const finalEnrollment = await this.payload.findByID({

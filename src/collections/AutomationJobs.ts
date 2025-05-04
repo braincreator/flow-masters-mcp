@@ -76,6 +76,10 @@ const AutomationJobs: CollectionConfig = {
           label: 'Полный комплект',
           value: 'full_package',
         },
+        {
+          label: 'Обновление статусов бронирования курсов',
+          value: 'update_course_booking_statuses',
+        },
       ],
       defaultValue: 'create_course',
       label: 'Тип задания',

@@ -9,24 +9,24 @@ export interface LessonData {
   title: string
   description?: string
   // content?: string // REMOVED
-  layout?: any[] // NEW: Replaces content, uses block structure
+  // layout?: any[] // REMOVED: Property removed as requested
   duration?: string
   type?: 'video' | 'text' | 'quiz' | 'assignment'
-  order?: number
+  // order?: number // REMOVED: Field does not exist in config
   assessment?: string // NEW: Optional ID of related Assessment
-  prerequisites?: string[] // NEW: Optional array of Lesson IDs
-  completionCriteria?: 'viewed' | 'pass_assessment' // NEW
+  // prerequisites?: string[] // REMOVED: Field does not exist in config
+  // completionCriteria?: 'viewed' | 'pass_assessment' // REMOVED: Field does not exist in config
 }
 
 export interface ModuleData {
   id?: string // Added for updates
-  title: string
+  name: string // Use 'name' instead of 'title'
   description?: string
   // content?: string // REMOVED
   // layout?: any[] // REMOVED
   lessons: LessonData[]
-  order?: number
-  prerequisites?: string[] // NEW: Optional array of Module IDs
+  // order?: number // REMOVED: Field does not exist in config
+  // prerequisites?: string[] // REMOVED: Field does not exist in config
 }
 
 export interface CourseData {
@@ -42,8 +42,8 @@ export interface CourseData {
   // targetAudience?: string[] // These seem to be custom fields not in the base config
   modules: ModuleData[]
   featuredImage?: string // ID медиа-файла
-  author?: string // ID автора
-  layout?: any[] // Содержимое страницы курса (landing page)
+  instructors?: string[] // Use 'instructors' (array) instead of 'author'
+  // layout?: any[] // REMOVED: Property removed as requested
   product?: string // NEW: ID of linked product
   accessType?: 'paid' | 'free' | 'subscription' // NEW
   accessDuration?: { // NEW
@@ -52,6 +52,7 @@ export interface CourseData {
     unit?: 'days' | 'weeks' | 'months' | 'years'
   }
   finalAssessment?: string // NEW: Optional ID of related Assessment
+  courseStartDate: string | Date // Added required field
 }
 
 // NEW: Interface for findCourses parameters
@@ -94,13 +95,15 @@ export class CourseService {
           difficulty: courseData.difficulty || 'beginner',
           estimatedDuration: courseData.estimatedDuration,
           status: courseData.status || 'draft',
-          layout: courseData.layout,
+          // layout: courseData.layout, // REMOVED: Property removed as requested
           product: courseData.product,
           accessType: courseData.accessType,
           accessDuration: courseData.accessDuration,
           // finalAssessment: courseData.finalAssessment, // Commented out due to TS error / type generation issue
           ...(courseData.featuredImage && { featuredImage: courseData.featuredImage }),
-          ...(courseData.author && { author: courseData.author }),
+          // Assuming courseData.author is actually the instructor ID(s)
+          // If courseData.author is a single ID, wrap it in an array
+          ...(courseData.instructors && { instructors: courseData.instructors }), // Use instructors directly
         },
         ...(locale && { locale }),
       })
@@ -183,9 +186,9 @@ export class CourseService {
         collection: 'modules',
         id: moduleId,
         data: {
-          title: moduleData.title,
-          // order: moduleData.order, // Commented out due to TS error / type generation issue
-          prerequisites: moduleData.prerequisites,
+          name: moduleData.name, // Corrected access to use 'name'
+          // order: moduleData.order, // REMOVED: Field does not exist in config
+          // prerequisites: moduleData.prerequisites, // REMOVED: Field does not exist in config
           ...(moduleData.description && { description: moduleData.description }),
         },
         ...(locale && { locale }),
@@ -269,8 +272,8 @@ export class CourseService {
         id: lessonId,
         data: {
           title: lessonData.title,
-          // layout: lessonData.layout, // Commented out due to TS error / type generation issue
-          order: lessonData.order,
+          // layout: lessonData.layout, // REMOVED: Property removed as requested
+          // order: lessonData.order, // REMOVED: Field does not exist in config
           // assessment: lessonData.assessment, // Commented out due to TS error / type generation issue
           // prerequisites: lessonData.prerequisites, // Commented out due to TS error / type generation issue
           // completionCriteria: lessonData.completionCriteria, // Commented out due to TS error / type generation issue
@@ -293,14 +296,15 @@ export class CourseService {
   async createCourse(courseData: CourseData, locale?: 'ru' | 'en'): Promise<any> { // Correct locale type
     try {
       // Генерируем slug, если он не предоставлен
-      const slug = courseData.slug || slugify(courseData.title)
+      const slug = courseData.slug || slugify(courseData.title) // Slug generation still uses title, which is correct for CourseData
 
       // Создаем курс
       // Получаем или создаем необходимые объекты для обязательных полей
 
-      // 1. Получаем или создаем автора
-      let authorId = courseData.author
-      if (!authorId) {
+      // 1. Получаем или создаем автора (now instructors)
+      let instructorIds = courseData.instructors
+      // If instructors is not provided or empty, find a default admin
+      if (!instructorIds || instructorIds.length === 0) {
         // Получаем первого администратора в системе
         const admins = await this.payload.find({
           collection: 'users',
@@ -314,14 +318,14 @@ export class CourseService {
         if (admins?.docs?.length > 0) {
           const firstAdmin = admins.docs[0] // Assign to variable
           if (firstAdmin) { // Explicit check on the element
-            authorId = firstAdmin.id
+            instructorIds = [firstAdmin.id] // Assign as an array
           } else {
             // Should not happen if length > 0, but satisfies TS
             throw new Error('Admin user data is unexpectedly missing.')
           }
         } else {
           throw new Error(
-            'Не найден автор для курса. Укажите автора или создайте пользователя с ролью администратора.',
+            'Не найден инструктор для курса. Укажите инструктора или создайте пользователя с ролью администратора.',
           )
         }
       }
@@ -369,73 +373,40 @@ export class CourseService {
         }
       }
 
-      // 3. Создаем базовое содержимое страницы курса
-      const layout = courseData.layout || [
-        {
-          blockType: 'content',
-          content: {
-            root: {
-              children: [
-                {
-                  children: [
-                    {
-                      detail: 0,
-                      format: 0,
-                      mode: 'normal',
-                      style: '',
-                      text: courseData.description || `Описание курса "${courseData.title}"`,
-                      type: 'text',
-                      version: 1,
-                    },
-                  ],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  type: 'paragraph',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              type: 'root',
-              version: 1,
-            },
-          },
-        },
-      ]
-
-      // Создаем курс
-      // Note: Errors might persist until payload-types.ts is correctly generated
-      // The 'finalAssessment' field might cause a TS error if types are outdated.
-      const course = await this.payload.create({
-        collection: 'courses',
-        data: {
-          title: courseData.title,
-          slug,
-          excerpt: courseData.excerpt,
-          difficulty: courseData.difficulty || 'beginner',
-          estimatedDuration: courseData.estimatedDuration,
-          status: courseData.status || 'draft',
-          product: courseData.product,
-          accessType: courseData.accessType,
-          accessDuration: courseData.accessDuration,
-          // finalAssessment: courseData.finalAssessment, // Commented out due to TS error / type generation issue
-          author: authorId,
-          featuredImage: featuredImageId,
-          layout: layout,
-        },
-        ...(locale && { locale }),
-      })
-
+      
+            // 3. Создаем базовое содержимое страницы курса - REMOVED layout logic
+            // const layout = courseData.layout || [ ... default block ... ] // REMOVED
+      
+            // Создаем курс
+            // Note: Errors might persist until payload-types.ts is correctly generated
+            // The 'finalAssessment' field might cause a TS error if types are outdated.
+            const course = await this.payload.create({
+              collection: 'courses',
+              data: {
+                title: courseData.title,
+                slug,
+                excerpt: courseData.excerpt,
+                difficulty: courseData.difficulty || 'beginner',
+                estimatedDuration: courseData.estimatedDuration,
+                status: courseData.status || 'draft',
+                product: courseData.product,
+                accessType: courseData.accessType,
+                accessDuration: courseData.accessDuration,
+                // finalAssessment: courseData.finalAssessment, // Commented out due to TS error / type generation issue
+                instructors: instructorIds, // Use the determined instructor IDs
+                featuredImage: featuredImageId,
+                courseStartDate: typeof courseData.courseStartDate === 'string' ? courseData.courseStartDate : courseData.courseStartDate.toISOString(), // Ensure ISO string
+              },
+              ...(locale && { locale }),
+            })
       // Создаем модули и уроки
       const createdModulesData = [] // Renamed to avoid conflict
-      for (const [moduleIndex, moduleData] of courseData.modules.entries()) {
-        const moduleOrder = moduleData.order !== undefined ? moduleData.order : moduleIndex + 1
+      for (const moduleData of courseData.modules) { // Removed index as order is removed
+        // const moduleOrder = moduleData.order !== undefined ? moduleData.order : moduleIndex + 1 // REMOVED order logic
 
         const moduleDoc = await this.createModule({ // Renamed from 'module'
           courseId: course.id,
-          moduleData: { ...moduleData, order: moduleOrder }, // Ensure order is passed
+          moduleData: moduleData, // Pass moduleData directly
           locale,
         })
 
@@ -472,10 +443,10 @@ export class CourseService {
       const moduleDoc = await this.payload.create({ // Renamed from 'module'
         collection: 'modules',
         data: {
-          title: moduleData.title,
+          name: moduleData.name, // Corrected access to use 'name'
           course: courseId,
-          order: moduleData.order ?? 0, // Provide default value if undefined
-          prerequisites: moduleData.prerequisites,
+          // order: moduleData.order ?? 0, // REMOVED: Field does not exist in config
+          // prerequisites: moduleData.prerequisites, // REMOVED: Field does not exist in config
           ...(moduleData.description && { description: moduleData.description }),
         },
         ...(locale && { locale }),
@@ -483,12 +454,12 @@ export class CourseService {
 
       // Создаем уроки для модуля
       const lessons = []
-      for (const [lessonIndex, lessonData] of moduleData.lessons.entries()) {
-        const lessonOrder = lessonData.order !== undefined ? lessonData.order : lessonIndex + 1
+      for (const lessonData of moduleData.lessons) { // Removed index as order is removed
+        // const lessonOrder = lessonData.order !== undefined ? lessonData.order : lessonIndex + 1 // REMOVED order logic
 
         const lesson = await this.createLesson({
           moduleId: moduleDoc.id, // Use renamed variable
-          lessonData: { ...lessonData, order: lessonOrder }, // Ensure order is passed
+          lessonData: lessonData, // Pass lessonData directly
           locale,
         })
 
@@ -526,11 +497,11 @@ export class CourseService {
         data: {
           title: lessonData.title,
           module: moduleId,
-          layout: lessonData.layout ?? [], // Provide default empty array if undefined
-          order: lessonData.order ?? 0, // Provide default value if undefined
+          // layout: lessonData.layout ?? [], // REMOVED: Property removed as requested
+          // order: lessonData.order ?? 0, // REMOVED: Field does not exist in config
           // assessment: lessonData.assessment, // Still commented out - related to hang
-          prerequisites: lessonData.prerequisites, // Uncommented
-          completionCriteria: lessonData.completionCriteria ?? 'viewed', // Provide default value if undefined
+          // prerequisites: lessonData.prerequisites, // REMOVED: Field does not exist in config
+          // completionCriteria: lessonData.completionCriteria ?? 'viewed', // REMOVED: Field does not exist in config
           ...(lessonData.description && { description: lessonData.description }),
           ...(lessonData.duration && { duration: lessonData.duration }),
           ...(lessonData.type && { type: lessonData.type }),
@@ -600,6 +571,86 @@ export class CourseService {
     } catch (error) {
       console.error('Error finding courses:', error)
       throw error
+    }
+  }
+
+  /**
+   * Updates the bookingStatus of all relevant courses based on their dates.
+   * Intended for use by scheduled jobs or administrative actions.
+   */
+  async updateAllCourseBookingStatuses(): Promise<{ updatedCount: number; errors: { courseId: string; error: any }[] }> {
+    console.log('Starting course status update job...');
+    let updatedCount = 0;
+    const errors: { courseId: string; error: any }[] = [];
+    type BookingStatus = 'not_yet_open' | 'open' | 'closed' | 'in_progress'; // Keep type local
+
+    try {
+      // Fetch all relevant courses
+      // Ensure Course type includes necessary date fields and bookingStatus
+      const { docs: courses } = await this.payload.find({
+        collection: 'courses',
+        limit: 10000, // Increased limit for potentially many courses
+        depth: 0,
+        overrideAccess: true,
+        pagination: false,
+        // Consider adding a 'where' clause if only specific courses need checking
+        // e.g., where: { status: { equals: 'published' } }
+      });
+
+      const now = new Date();
+      console.log(`Found ${courses.length} courses to check.`);
+
+      for (const course of courses as Course[]) { // Added type assertion for clarity
+        // Ensure date fields exist before comparison
+        const bookingStartDate = course.enrollmentStartDate ? new Date(course.enrollmentStartDate) : null;
+        const bookingEndDate = course.enrollmentEndDate ? new Date(course.enrollmentEndDate) : null;
+        const courseStartDate = course.courseStartDate ? new Date(course.courseStartDate) : null;
+
+        let expectedStatus: BookingStatus = 'not_yet_open'; // Default
+
+        // Determine the expected status based on dates
+        if (bookingStartDate && now < bookingStartDate) {
+          expectedStatus = 'not_yet_open';
+        } else if (bookingStartDate && bookingEndDate && now >= bookingStartDate && now < bookingEndDate) {
+          expectedStatus = 'open';
+        } else if (bookingEndDate && courseStartDate && now >= bookingEndDate && now < courseStartDate) {
+          expectedStatus = 'closed';
+        } else if (courseStartDate && now >= courseStartDate) {
+          // Assuming 'in_progress' until a course end date is considered
+          expectedStatus = 'in_progress';
+        }
+        // Add 'completed' logic here later if needed (e.g., based on courseEndDate)
+
+        // Update if the status differs
+        if (course.bookingStatus !== expectedStatus) {
+          try {
+            await this.payload.update({
+              collection: 'courses',
+              id: course.id,
+              data: {
+                bookingStatus: expectedStatus,
+              },
+              overrideAccess: true,
+              depth: 0,
+            });
+            updatedCount++;
+            console.log(`Updated course ${course.id} status to ${expectedStatus}`);
+          } catch (updateError) {
+            console.error(`Failed to update course ${course.id}:`, updateError);
+            errors.push({ courseId: course.id, error: updateError });
+            // Continue processing other courses even if one fails
+          }
+        }
+      }
+
+      console.log(`Course status update finished. Updated ${updatedCount} courses. Encountered ${errors.length} errors.`);
+      return { updatedCount, errors };
+
+    } catch (fetchError) {
+      console.error('Fatal error fetching courses for status update:', fetchError);
+      // Re-throw or handle as appropriate for the job context
+      // Consider returning a specific error structure instead of throwing for job context
+      return { updatedCount: 0, errors: [{ courseId: 'N/A', error: fetchError }] };
     }
   }
 }
