@@ -312,6 +312,19 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password"
   },
+"Services": {
+    "metaTitle": "Our Services",
+    "metaDescription": "Explore the services we offer.",
+    "title": "Services",
+    "description": "Browse our available services below.",
+    "noServices": "No services available at the moment.",
+    "serviceTypes": {
+      "consulting": "Consulting",
+      "development": "Development",
+      "support": "Support",
+      "other": "Other Services"
+    }
+  },
   "home": {
     "title": "Flow Masters",
     "subtitle": "Master your workflow with automation",
@@ -1304,6 +1317,181 @@
       "tutorials": "Tutorials",
       "blog": "Blog",
       "community": "Community Forum"
+    }
+  }
+,
+  "servicesPage": {
+    "hero": {
+      "title": "Selling product descriptions in minutes, not hours",
+      "subtitle": "We use AI to generate unique, SEO-friendly descriptions that turn your website visitors into buyers.",
+      "ctaText": "Turn visitors into buyers"
+    },
+    "advantages": {
+      "sectionTitle": "Key Benefits for Your Business",
+      "item1": {
+        "title": "🚀 Speed up catalog population by 5-10x",
+        "description": "Generate hundreds of descriptions in the time it used to take for a dozen."
+      },
+      "item2": {
+        "title": "📈 Increase product card conversion",
+        "description": "Unique and compelling texts sell better and increase trust."
+      },
+      "item3": {
+        "title": "💰 Reduce costs on copywriters",
+        "description": "Automating routine tasks saves your budget."
+      },
+      "item4": {
+        "title": "🔍 Improve SEO positions",
+        "description": "Generating unique content positively affects ranking."
+      },
+      "item5": {
+        "title": "✨ Consistency in style and quality",
+        "description": "Maintain a consistent brand voice across all descriptions."
+      }
+    },
+    "workProcess": {
+      "sectionTitle": "How It Works",
+      "step1": {
+        "title": "Request and Analysis",
+        "description": "You provide data about the products and your target audience."
+      },
+      "step2": {
+        "title": "Setup and Generation",
+        "description": "We configure the AI model and generate draft versions of the descriptions."
+      },
+      "step3": {
+        "title": "Review and Refinement",
+        "description": "We coordinate the results and make necessary edits based on your comments."
+      },
+      "step4": {
+        "title": "Integration",
+        "description": "We deliver the finished descriptions to you in a convenient format (CSV, API, etc.)."
+      }
+    },
+    "caseStudies": {
+      "sectionTitle": "Reviews and Case Studies",
+      "item1": {
+        "clientName": "E-commerce Client X",
+        "industry": "Electronics",
+        "challenge": "Slow addition of new products due to writing descriptions.",
+        "solution": "Used AI to generate 1000+ descriptions.",
+        "result": "Accelerated product launch to the site by 7 times."
+      },
+      "item2": {
+        "clientName": "Marketer Y",
+        "reviewerTitle": "Clothing Store",
+        "reviewText": "AI descriptions helped us standardize content and improve SEO. Very happy with the speed!"
+      }
+    },
+    "faq": {
+      "sectionTitle": "Frequently Asked Questions (FAQ)",
+      "item1": {
+        "question": "How unique are the texts?",
+        "answer": "We use advanced AI models and conduct plagiarism checks, ensuring a high level of uniqueness (usually 90%+)."
+      },
+      "item2": {
+        "question": "How is SEO considered?",
+        "answer": "The AI is trained to include relevant keywords (provided by you or selected by us) and follow best practices for SEO content optimization."
+      },
+      "item3": {
+        "question": "What data do you need from me?",
+        "answer": "Basic product characteristics (name, attributes, material, etc.), information about the target audience, and the desired style/tone of the descriptions."
+      },
+      "item4": {
+        "question": "What are the turnaround times?",
+        "answer": "Depends on the catalog size and setup complexity, but significantly faster than manual writing. For example, 1000 descriptions can be ready in a few days."
+      },
+      "item5": {
+        "question": "Is there a trial period/examples?",
+        "answer": "Yes, we can provide generation examples for several of your products. Contact us to discuss the details."
+      }
+    },
+    "cta": {
+      "title": "Ready to turn more visitors into buyers?",
+      "text": "Submit a request to discuss how AI descriptions can increase your sales! Get a cost estimate and examples for your products.",
+      "buttonText": "Discuss Project"
+    }
+,
+    "problemSolution": {
+      "problemTitle": "Facing these problems?",
+      "problem1": "Spending hours on routine writing?",
+      "problem2": "Descriptions sound generic and don't sell?",
+      "problem3": "Low search rankings due to non-unique content?",
+      "solutionTitle": "Our AI solution helps!",
+      "solution1": "Automated generation using AI",
+      "solution2": "Unique and engaging content",
+      "solution3": "SEO optimization out-of-the-box"
+    }
+,
+    "serviceDetails": {
+      "title": "What's included?",
+      "item1": {
+        "title": "Data-Driven Generation",
+        "description": "We create descriptions considering your product characteristics and target audience."
+      },
+      "item2": {
+        "title": "Uniqueness & Plagiarism Check",
+        "description": "We guarantee text uniqueness and perform plagiarism checks."
+      },
+      "item3": {
+        "title": "SEO Adaptation",
+        "description": "We optimize descriptions for current search engine requirements."
+      },
+      "item4": {
+        "title": "Tone of Voice Selection",
+        "description": "We adapt the text style to your brand and audience."
+      },
+      "item5": {
+        "title": "Flexible Export Formats",
+        "description": "We provide finished descriptions in a convenient format (CSV, JSON, etc.)."
+      }
+    }
+,
+    "portfolio": {
+      "title": "Our Work Examples",
+      "beforeLabel": "Before:",
+      "afterLabel": "After (with AI):",
+      "comparisonTitle": "Before/After Comparison",
+      "sliderPlaceholder": "[Interactive Before/After slider will be here]",
+      "demoTitle": "Try the Demo Generator",
+      "demoDescription": "Enter a product name to see a description example:",
+      "demoInputPlaceholder": "e.g., 'Wireless headphones'",
+      "demoButton": "Generate Example"
+    }
+,
+    "pricing": {
+      "title": "Pricing",
+      "tier1": {
+        "name": "Start",
+        "description": "Ideal for small shops or testing the service.",
+        "feature1": "Up to 100 product descriptions",
+        "feature2": "Basic SEO optimization",
+        "feature3": "Standard support",
+        "ctaText": "Get Started"
+      },
+      "tier2": {
+        "name": "Business",
+        "description": "For growing stores with a larger catalog.",
+        "feature1": "Up to 1000 product descriptions",
+        "feature2": "Advanced SEO optimization",
+        "feature3": "Tone of voice selection",
+        "feature4": "Priority support",
+        "ctaText": "Choose Business"
+      },
+      "tier3": {
+        "name": "Custom",
+        "description": "For large projects or special requirements.",
+        "feature1": "1000+ product descriptions",
+        "feature2": "Full customization",
+        "feature3": "API integration",
+        "feature4": "Personal manager",
+        "ctaText": "Discuss Project"
+      },
+      "footnote": {
+        "text": "Need a custom approach?",
+        "link": "Contact us",
+        "end": "for a quote."
+      }
     }
   }
 }

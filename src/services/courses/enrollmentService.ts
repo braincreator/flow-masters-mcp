@@ -169,48 +169,101 @@ export class EnrollmentService {
    */
   async hasAccessToCourse(userId: string, courseId: string): Promise<boolean> {
     try {
-      const user = await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })
-      if (user?.role === 'admin') return true
+      // --- 1. Fetch User and Course data concurrently (Performance) ---
+      // Fetching user and course details in parallel improves performance slightly.
+      const [userResult, courseResult] = await Promise.all([
+        this.payload.findByID({ collection: 'users', id: userId, depth: 0 }),
+        this.payload.findByID({ collection: 'courses', id: courseId, depth: 0 }),
+      ]);
 
-      const course: any = await this.payload.findByID({
-        collection: 'courses',
-        id: courseId,
-        depth: 0,
-      })
-      if (!course) return false
-      if (course.accessType === 'free') return true
+      // Explicitly type results for better type safety (Best Practices)
+      // Assuming findByID returns the document or null if not found. Adjust if it throws.
+      const user: User | null = userResult as User | null;
+      const course: Course | null = courseResult as Course | null;
 
-      if (course.accessType === 'subscription') {
-        console.warn('Subscription access check not implemented yet.')
-        // TODO: Add subscription check logic here
+      // --- 2. Check Admin Access (Readability & Best Practices) ---
+      // Admins have universal access. Check this first for a quick exit.
+      if (user?.roles?.includes('admin')) {
+        // console.log(`User ${userId} has admin access to course ${courseId}.`); // Optional: uncomment for debugging
+        return true;
       }
 
-      const enrollments = await this.payload.find({
+      // --- 3. Check Course Existence and Free Access (Readability & Best Practices) ---
+      // If the course doesn't exist, access is impossible.
+      if (!course) {
+        console.warn(`Course ${courseId} not found during access check for user ${userId}. Access denied.`);
+        return false;
+      }
+      // If the course is free, grant access immediately.
+      if (course.accessType === 'free') {
+        // console.log(`Course ${courseId} is free. Granting access to user ${userId}.`); // Optional: uncomment for debugging
+        return true;
+      }
+
+      // --- 4. Placeholder for Subscription Check (Readability & Maintainability) ---
+      // Structure allows easy addition of subscription logic later without disrupting flow.
+      if (course.accessType === 'subscription') {
+        console.warn(`Subscription access check for course ${courseId} (user ${userId}) is not implemented yet.`);
+        // TODO: Implement subscription check logic here.
+        // This might involve checking user subscriptions against course requirements.
+        // For now, we assume no access via subscription if not implemented.
+        // Example future call: return await this.checkSubscriptionAccess(userId, course);
+      }
+
+      // --- 5. Check Active Enrollment (Readability & Best Practices) ---
+      // Query for an active enrollment for this specific user and course.
+      // Using limit: 1 and depth: 0 is efficient.
+      const enrollmentResult = await this.payload.find({
         collection: 'course-enrollments',
         where: {
           and: [
             { user: { equals: userId } },
             { course: { equals: courseId } },
-            { status: { equals: 'active' } },
+            { status: { equals: 'active' } }, // Only consider 'active' enrollments
           ],
         },
         limit: 1,
-        depth: 0,
-      })
+        depth: 0, // No need for related data (user/course) here
+      });
 
-      if (enrollments.docs.length > 0) {
-        const enrollment = enrollments.docs[0]
+      if (enrollmentResult.docs.length > 0) {
+        // Explicitly type the enrollment for clarity (Best Practices)
+        const enrollment: CourseEnrollment = enrollmentResult.docs[0] as CourseEnrollment;
+
+        // Check if the enrollment is valid and hasn't expired.
         if (enrollment) {
-          if (!enrollment.expiresAt) return true
-          const now = new Date()
-          const expiresAt = new Date(enrollment.expiresAt)
-          return now < expiresAt
+          // If expiresAt is null/undefined, access is considered permanent for this enrollment.
+          if (!enrollment.expiresAt) {
+            // console.log(`User ${userId} has an active, non-expiring enrollment for course ${courseId}.`); // Optional: uncomment for debugging
+            return true;
+          }
+          // Compare current time with expiration date. new Date() handles ISO strings.
+          const now = new Date();
+          const expiresAt = new Date(enrollment.expiresAt);
+          if (now < expiresAt) {
+            // console.log(`User ${userId} has an active, valid enrollment for course ${courseId} (expires: ${enrollment.expiresAt}).`); // Optional: uncomment for debugging
+            return true;
+          } else {
+            // console.log(`User ${userId}'s enrollment for course ${courseId} has expired (expired: ${enrollment.expiresAt}).`); // Optional: uncomment for debugging
+            // Note: Consider updating expired enrollments status via a separate job/process.
+          }
         }
       }
-      return false
-    } catch (error) {
-      console.error(`Error checking course access for user ${userId}, course ${courseId}:`, error)
-      return false
+
+      // --- 6. No Access Found ---
+      // If none of the above conditions (admin, free, active/valid enrollment) are met.
+      // console.log(`User ${userId} does not have access to course ${courseId}.`); // Optional: uncomment for debugging
+      return false;
+
+    } catch (error: unknown) { // Explicitly type error (Best Practices)
+      // --- 7. Error Handling (Robustness & Error Handling) ---
+      // Log the error for debugging purposes. Using error.message if it's an Error instance.
+      console.error(
+        `Error checking course access for user ${userId}, course ${courseId}:`,
+        error instanceof Error ? error.message : error,
+      );
+      // Return false as a fail-safe mechanism. Prevents granting access due to unexpected errors.
+      return false;
     }
   }
 
@@ -392,7 +445,7 @@ export class EnrollmentService {
               if (assessment?.passingScore != null) {
                 // Using lowercase slug 'assessmentSubmissions' - adjust if incorrect based on actual config
                 const submissions = await this.payload.find({
-                  collection: 'assessmentSubmissions', // Reverted to lowercase slug
+                  collection: 'assessment-submissions', // Corrected slug to kebab-case
                   where: {
                     and: [
                       { user: { equals: userId } },
