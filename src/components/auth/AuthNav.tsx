@@ -48,11 +48,11 @@ export function AuthNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          className="relative h-8 w-8 rounded-full"
+          variant="outline"
+          className="group relative h-8 w-8 rounded-full p-0 hover:bg-accent hover:text-foreground hover:ring-2 hover:ring-accent"
           aria-label={t('userMenuLabel')}
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 group-hover:bg-transparent">
             {user?.avatar ? (
               <AvatarImage src={user.avatar} alt={user.name || 'User Avatar'} />
             ) : (
@@ -119,7 +119,7 @@ export function AuthNav() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
+          className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
           onClick={() => logout()}
         >
           <LogOut className="h-4 w-4" />
