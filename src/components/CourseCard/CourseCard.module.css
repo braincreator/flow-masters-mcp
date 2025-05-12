@@ -1,0 +1,47 @@
+/* For the image container */
+.courseCardImageContainer {
+  height: 300px; /* Default height, can be adjusted */
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* Added to ensure Next/Image fill works as expected */
+}
+
+/* For the image element */
+.courseCardImage {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+
+.courseCardRoot {
+  min-height: 480px; /* Increased overall card height */
+  display: flex;
+  flex-direction: column;
+  background-color: white; /* Replaces bg-white */
+  border-radius: 0.5rem; /* Replaces rounded-lg */
+  overflow: hidden; /* Replaces overflow-hidden */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Replaces shadow-md */
+}
+
+.courseCardContentArea {
+  padding: 1rem; /* Equivalent to p-4 */
+  flex-grow: 1; /* Allows this section to expand */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Helps push CourseAccess to the bottom if content is short */
+}
+
+.courseExcerpt {
+  /* Replaces text-gray-600 text-sm mb-3 */
+  color: #4B5563; /* text-gray-600 */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem; /* Assuming typical line-height for text-sm */
+  min-height: calc(5 * 1.25rem); /* Approx 5 lines (5 * 20px = 100px) */
+  margin-bottom: 0.75rem; /* mb-3 */
+}

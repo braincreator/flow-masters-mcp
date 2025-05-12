@@ -320,13 +320,19 @@
     "metaDescription": "Ознакомьтесь с услугами, которые мы предлагаем.",
     "title": "Услуги",
     "description": "Просмотрите наши доступные услуги ниже.",
+    "minutes": "минут",
     "noServices": "На данный момент услуги отсутствуют.",
     "serviceTypes": {
       "consulting": "Консалтинг",
+      "consultation": "Консультация",
       "development": "Разработка",
       "support": "Поддержка",
       "other": "Прочие Услуги"
-    }
+    },
+    "details": "Подробнее",
+    "book": "Забронировать",
+    "bookService": "Забронировать услугу",
+    "backToServiceDetails": "Вернуться к деталям услуги"
   },
   "home": {
     "title": "Flow Masters",
@@ -903,7 +909,11 @@
     "pendingBookingsDescription": "У вас есть услуги, требующие планирования",
     "noPendingBookings": "У вас нет ожидающих бронирований",
     "completeYourBooking": "Завершите ваше бронирование",
-    "paidOn": "Оплачено"
+    "paidOn": "Оплачено",
+    "emailLabel": "Ваш Email",
+    "emailPlaceholder": "Введите ваш email адрес",
+    "emailRequiredError": "Email обязателен для продолжения оплаты.",
+    "emailInvalidError": "Пожалуйста, введите корректный email адрес."
   },
   "Settings": {
     "metadata": {

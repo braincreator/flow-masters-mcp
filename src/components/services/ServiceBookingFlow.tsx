@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, FormEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import CalendlyBooking from '@/components/chat/CalendlyBooking'
 import AdditionalInfoForm from '@/components/services/AdditionalInfoForm'
 import type { BookingSettings, AdditionalInfoField } from '@/types/service'
@@ -46,6 +48,8 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   const [orderId, setOrderId] = useState<string | null>(initialOrderId || null)
   const [paymentVerified, setPaymentVerified] = useState(false)
   const [bookingComplete, setBookingComplete] = useState(!requiresBooking)
+  const [customerEmail, setCustomerEmail] = useState(prefill?.email || '')
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   // Если указано пропустить шаг оплаты, сразу переходим к следующему шагу
   useEffect(() => {
@@ -109,7 +113,22 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   }, [orderId, paymentVerified, requiresBooking, skipPayment, bookingSettings])
 
   // Обработчик инициализации оплаты
-  const handleInitiatePayment = async () => {
+  const handleInitiatePayment = async (event?: FormEvent<HTMLFormElement>) => {
+    if (event) event.preventDefault()
+    setEmailError(null)
+
+    const emailToUse = prefill?.email || customerEmail
+
+    if (!emailToUse) {
+      setEmailError(t('emailRequiredError'))
+      return
+    }
+    // Basic email validation
+    if (!/\S+@\S+\.\S+/.test(emailToUse)) {
+      setEmailError(t('emailInvalidError'))
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -123,8 +142,8 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         body: JSON.stringify({
           serviceId,
           customer: {
-            email: prefill?.email || '',
-            name: prefill?.name || '',
+            email: emailToUse,
+            name: prefill?.name || '', // Consider adding a name field if not prefilled
             locale: 'en', // Можно сделать динамическим
           },
           provider: { id: 'yoomoney' }, // Провайдер по умолчанию, можно сделать настраиваемым
@@ -338,9 +357,30 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   // В противном случае показываем шаг оплаты
   return (
     <div className={className}>
-      <div className="p-6 border rounded-lg shadow-sm">
+      <form onSubmit={handleInitiatePayment} className="p-6 border rounded-lg shadow-sm">
         <h3 className="text-lg font-medium mb-2">{t('paymentTitle')}</h3>
         <p className="mb-4">{t('paymentDescription')}</p>
+
+        {!prefill?.email && (
+          <div className="mb-4">
+            <Label htmlFor="customer-email" className="mb-1 block">
+              {t('emailLabel')} <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="customer-email"
+              type="email"
+              value={customerEmail}
+              onChange={(e) => {
+                setCustomerEmail(e.target.value)
+                if (emailError) setEmailError(null)
+              }}
+              placeholder={t('emailPlaceholder')}
+              required
+              className={emailError ? 'border-red-500' : ''}
+            />
+            {emailError && <p className="text-sm text-red-500 mt-1">{emailError}</p>}
+          </div>
+        )}
 
         <div className="flex justify-between items-center mb-6">
           <span className="font-medium">{t('price')}</span>
@@ -355,10 +395,10 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
           </Alert>
         )}
 
-        <Button onClick={handleInitiatePayment} disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? t('processing') : t('payNow')}
         </Button>
-      </div>
+      </form>
     </div>
   )
 }

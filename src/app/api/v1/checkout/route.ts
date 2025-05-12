@@ -1,61 +1,30 @@
-import { NextResponse } from 'next/server'
-import { getPayloadClient } from '@/utilities/payload/index'
-import { ServiceRegistry } from '@/services/service.registry'
+// DEPRECATED: This endpoint has been replaced by /api/v1/orders
+// Please update any clients to use the new unified endpoint.
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  try {
-    const requestData = await req.json()
-    const { products, customer, paymentMethod } = requestData
+  // Construct new URL based on current request
+  const newUrl = new URL('/api/v1/orders', req.url);
+  return NextResponse.redirect(newUrl.toString(), {
+    status: 308,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    // Including a body with NextResponse.redirect requires a workaround or custom Response.
+    // For simplicity and standard compliance, a redirect typically doesn't have a body.
+    // If a body is strictly needed with the redirect status, a custom Response is better:
+    // return new Response(JSON.stringify({ message: "This endpoint is deprecated. Please use /api/v1/orders.", newEndpoint: "/api/v1/orders" }), {
+    //   status: 308,
+    //   headers: {
+    //     'Location': newUrl.toString(),
+    //     'Content-Type': 'application/json',
+    //   },
+    // });
+  });
 
-    if (!products || products.length === 0) {
-      return NextResponse.json({ error: 'No products in cart' }, { status: 400 })
-    }
-
-    if (!customer || !customer.email) {
-      return NextResponse.json({ error: 'Customer information is required' }, { status: 400 })
-    }
-
-    if (!paymentMethod) {
-      return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
-    }
-
-    // Initialize payload client
-    const payload = await getPayloadClient()
-
-    // Получаем PaymentService через ServiceRegistry
-    const serviceRegistry = ServiceRegistry.getInstance(payload)
-    const paymentService = serviceRegistry.getPaymentService()
-
-    // Create order in database
-    const order = await payload.create({
-      collection: 'orders',
-      data: {
-        products: products.map((p) => ({ product: p.id, quantity: p.quantity })),
-        customer: customer.email,
-        total: products.reduce((sum, p) => sum + p.price * p.quantity, 0),
-        status: 'pending',
-        paymentMethod,
-      },
-    })
-
-    // Generate payment link
-    const paymentLink = await paymentService.generatePaymentLink(
-      order.id,
-      order.total,
-      `Order #${order.id}`,
-      paymentMethod,
-    )
-
-    return NextResponse.json({
-      success: true,
-      order: order.id,
-      paymentLink,
-    })
-  } catch (error) {
-    console.error('Checkout error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An unknown error occurred' },
-      { status: 500 },
-    )
-  }
+  // Alternative: Return 410 Gone with a JSON body
+  // return NextResponse.json(
+  //   { message: "This endpoint is deprecated and has been removed. Please use /api/v1/orders.", newEndpoint: "/api/v1/orders" },
+  //   { status: 410 }
+  // );
 }

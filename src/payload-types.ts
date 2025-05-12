@@ -2839,10 +2839,6 @@ export interface Product {
    */
   isCourse?: boolean | null;
   /**
-   * Is this product a consulting service?
-   */
-  isConsulting?: boolean | null;
-  /**
    * Related course (if this is a course product)
    */
   course?: (string | null) | Course;
@@ -8465,13 +8461,88 @@ export interface Order {
   id: string;
   orderNumber: string;
   customer: string | User;
-  status: 'pending' | 'processing' | 'delivered' | 'cancelled';
+  status:
+    | 'pending'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'completed'
+    | 'cancelled'
+    | 'refunded'
+    | 'partially_refunded'
+    | 'pending_manual_review';
   items: {
-    product: string | Product;
+    product?: (string | null) | Product;
+    service?: (string | null) | Service;
     quantity: number;
+    /**
+     * Price per unit at the time of order. Should be pre-filled or validated based on selected product/service.
+     */
     price: number;
     id?: string | null;
   }[];
+  /**
+   * The total amount before taxes and discounts. Calculated automatically.
+   */
+  subtotal: {
+    en: {
+      amount: number;
+      currency: string;
+    };
+    ru: {
+      amount: number;
+      currency: string;
+    };
+  };
+  /**
+   * Applied taxes. Amounts are calculated automatically based on rate and subtotal.
+   */
+  taxes?:
+    | {
+        name: string;
+        rate: number;
+        amount: {
+          en: {
+            amount: number;
+            currency: string;
+          };
+          ru: {
+            amount: number;
+            currency: string;
+          };
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Applied discounts. Amounts are calculated automatically.
+   */
+  discounts?:
+    | {
+        code?: string | null;
+        description: string;
+        amount: {
+          en: {
+            /**
+             * Enter a positive value for the discount.
+             */
+            amount: number;
+            currency: string;
+          };
+          ru: {
+            /**
+             * Enter a positive value for the discount.
+             */
+            amount: number;
+            currency: string;
+          };
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The final total amount to be paid. Calculated automatically.
+   */
   total: {
     en: {
       amount: number;
@@ -8495,7 +8566,11 @@ export interface Order {
     | null;
   paidAt?: string | null;
   /**
-   * Type of order
+   * Истинно, если автоматическая верификация платежа (например, расхождение суммы/валюты) завершилась ошибкой.
+   */
+  paymentVerificationFailed?: boolean | null;
+  /**
+   * Type of order. Determines how fulfillment is handled.
    */
   orderType?: ('product' | 'service' | 'subscription') | null;
   /**
@@ -8503,18 +8578,126 @@ export interface Order {
    */
   serviceData?: {
     /**
-     * ID of the service
+     * ID of the service (if applicable, usually populated from items)
      */
     serviceId?: string | null;
     /**
-     * Type of service
+     * Type of service (if applicable)
      */
     serviceType?: string | null;
     /**
-     * Whether this service requires booking
+     * Whether this service requires booking (usually determined by the service itself)
      */
     requiresBooking?: boolean | null;
   };
+  /**
+   * Indicates if a payment token has been stored for this subscription order.
+   */
+  subscriptionProcessedToken?: boolean | null;
+  /**
+   * Link to the subscription if this order is a renewal.
+   */
+  renewalForSubscription?: (string | null) | Subscription;
+  cancellationDetails?: {
+    cancelledAt?: string | null;
+    reason?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User subscriptions.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  user: string | User;
+  plan: string | SubscriptionPlan;
+  status: 'active' | 'paused' | 'canceled' | 'expired' | 'failed' | 'pending';
+  paymentMethod?: string | null;
+  paymentId?: string | null;
+  startedAt: string;
+  expiresAt: string;
+  renewedAt?: string | null;
+  canceledAt?: string | null;
+  pausedAt?: string | null;
+  /**
+   * Number of payment retry attempts made for the current billing cycle.
+   */
+  paymentRetryAttempt?: number | null;
+  /**
+   * Indicates if the last payment attempt for this subscription failed.
+   */
+  lastPaymentAttemptFailed?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscription-plans".
+ */
+export interface SubscriptionPlan {
+  id: string;
+  /**
+   * Name of the subscription plan
+   */
+  name: string;
+  /**
+   * Description of the subscription plan
+   */
+  description?: string | null;
+  /**
+   * List of features included in this plan
+   */
+  features?:
+    | {
+        feature: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Price of the subscription
+   */
+  price: number;
+  currency: 'RUB' | 'USD' | 'EUR';
+  /**
+   * Billing period
+   */
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  /**
+   * Number of days in trial period (0 for no trial)
+   */
+  trialPeriodDays?: number | null;
+  /**
+   * Maximum number of months for subscription (0 for unlimited)
+   */
+  maxSubscriptionMonths?: number | null;
+  /**
+   * Whether the subscription auto-renews
+   */
+  autoRenew?: boolean | null;
+  /**
+   * Whether users can cancel the subscription
+   */
+  allowCancel?: boolean | null;
+  /**
+   * Whether this plan is active and available for purchase
+   */
+  isActive?: boolean | null;
+  /**
+   * Additional metadata for this plan
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -10772,134 +10955,6 @@ export interface UserFavorite {
    * List of favorite products for this user.
    */
   products?: (string | Product)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscription-plans".
- */
-export interface SubscriptionPlan {
-  id: string;
-  /**
-   * Name of the subscription plan
-   */
-  name: string;
-  /**
-   * Description of the subscription plan
-   */
-  description?: string | null;
-  /**
-   * List of features included in this plan
-   */
-  features?:
-    | {
-        feature: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Price of the subscription
-   */
-  price: number;
-  currency: 'RUB' | 'USD' | 'EUR';
-  /**
-   * Billing period
-   */
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
-  /**
-   * Number of days in trial period (0 for no trial)
-   */
-  trialPeriodDays?: number | null;
-  /**
-   * Maximum number of months for subscription (0 for unlimited)
-   */
-  maxSubscriptionMonths?: number | null;
-  /**
-   * Whether the subscription auto-renews
-   */
-  autoRenew?: boolean | null;
-  /**
-   * Whether users can cancel the subscription
-   */
-  allowCancel?: boolean | null;
-  /**
-   * Whether this plan is active and available for purchase
-   */
-  isActive?: boolean | null;
-  /**
-   * Additional metadata for this plan
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscriptions".
- */
-export interface Subscription {
-  id: string;
-  /**
-   * ID пользователя
-   */
-  userId: string;
-  /**
-   * План подписки
-   */
-  planId: string | SubscriptionPlan;
-  status: 'active' | 'paused' | 'canceled' | 'expired' | 'failed' | 'pending';
-  paymentProvider: 'yoomoney' | 'robokassa' | 'stripe' | 'paypal';
-  /**
-   * Метод оплаты (например, card, wallet)
-   */
-  paymentMethod?: string | null;
-  /**
-   * Токен платежного метода для рекуррентных платежей
-   */
-  paymentToken?: string | null;
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
-  /**
-   * Сумма платежа
-   */
-  amount: number;
-  currency: 'RUB' | 'USD' | 'EUR';
-  /**
-   * Дата начала подписки
-   */
-  startDate: string;
-  /**
-   * Дата следующего платежа
-   */
-  nextPaymentDate: string;
-  /**
-   * Дата окончания подписки (если есть)
-   */
-  endDate?: string | null;
-  /**
-   * Дата отмены подписки (если отменена)
-   */
-  canceledAt?: string | null;
-  /**
-   * Дополнительные метаданные
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -15245,7 +15300,6 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   productType?: T;
   isCourse?: T;
-  isConsulting?: T;
   course?: T;
   downloadLink?: T;
   subscriptionDetails?:
@@ -15386,8 +15440,71 @@ export interface OrdersSelect<T extends boolean = true> {
     | T
     | {
         product?: T;
+        service?: T;
         quantity?: T;
         price?: T;
+        id?: T;
+      };
+  subtotal?:
+    | T
+    | {
+        en?:
+          | T
+          | {
+              amount?: T;
+              currency?: T;
+            };
+        ru?:
+          | T
+          | {
+              amount?: T;
+              currency?: T;
+            };
+      };
+  taxes?:
+    | T
+    | {
+        name?: T;
+        rate?: T;
+        amount?:
+          | T
+          | {
+              en?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+              ru?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+            };
+        id?: T;
+      };
+  discounts?:
+    | T
+    | {
+        code?: T;
+        description?: T;
+        amount?:
+          | T
+          | {
+              en?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+              ru?:
+                | T
+                | {
+                    amount?: T;
+                    currency?: T;
+                  };
+            };
         id?: T;
       };
   total?:
@@ -15410,6 +15527,7 @@ export interface OrdersSelect<T extends boolean = true> {
   paymentProvider?: T;
   paymentData?: T;
   paidAt?: T;
+  paymentVerificationFailed?: T;
   orderType?: T;
   serviceData?:
     | T
@@ -15417,6 +15535,14 @@ export interface OrdersSelect<T extends boolean = true> {
         serviceId?: T;
         serviceType?: T;
         requiresBooking?: T;
+      };
+  subscriptionProcessedToken?: T;
+  renewalForSubscription?: T;
+  cancellationDetails?:
+    | T
+    | {
+        cancelledAt?: T;
+        reason?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -16598,20 +16724,18 @@ export interface SubscriptionPlansSelect<T extends boolean = true> {
  * via the `definition` "subscriptions_select".
  */
 export interface SubscriptionsSelect<T extends boolean = true> {
-  userId?: T;
-  planId?: T;
+  user?: T;
+  plan?: T;
   status?: T;
-  paymentProvider?: T;
   paymentMethod?: T;
-  paymentToken?: T;
-  period?: T;
-  amount?: T;
-  currency?: T;
-  startDate?: T;
-  nextPaymentDate?: T;
-  endDate?: T;
+  paymentId?: T;
+  startedAt?: T;
+  expiresAt?: T;
+  renewedAt?: T;
   canceledAt?: T;
-  metadata?: T;
+  pausedAt?: T;
+  paymentRetryAttempt?: T;
+  lastPaymentAttemptFailed?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -33,7 +33,7 @@ export default async function CoursesPage({ params: { lang } }: CoursesPageProps
       {courses && courses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course: Course) => (
-            <CourseCard key={course.id} course={course as Course} locale={lang} /> // Pass lang as locale
+            <CourseCard key={course.id}  course={course as Course} locale={lang} /> // Pass lang as locale
           ))}
         </div>
       ) : (

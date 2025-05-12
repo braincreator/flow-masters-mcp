@@ -1,6 +1,6 @@
 import React from 'react'
-import { getTranslations, unstable_setRequestLocale } from 'next-intl/server'
-import { Container } from '@/components/Container'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { GridContainer as Container } from '@/components/GridContainer'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
@@ -62,7 +62,7 @@ export async function generateMetadata({
 }
 
 export default async function ServicePage({ params }: { params: ServicePageParams }) {
-  unstable_setRequestLocale(params.lang)
+  setRequestLocale(params.lang)
 
   const t = await getTranslations({ locale: params.lang, namespace: 'Services' })
 
@@ -117,7 +117,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
               )}
 
               <div className="prose max-w-none">
-                <RichText content={description} />
+                <RichText data={description} />
               </div>
 
               {serviceData.features && serviceData.features.length > 0 && (

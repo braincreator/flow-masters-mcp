@@ -1047,7 +1047,11 @@
     "pendingBookingsDescription": "You have services that require scheduling",
     "noPendingBookings": "You have no pending bookings",
     "completeYourBooking": "Complete your booking",
-    "paidOn": "Paid on"
+    "paidOn": "Paid on",
+    "emailLabel": "Your Email",
+    "emailPlaceholder": "Enter your email address",
+    "emailRequiredError": "Email is required to proceed with payment.",
+    "emailInvalidError": "Please enter a valid email address."
   },
   "Settings": {
     "metadata": {

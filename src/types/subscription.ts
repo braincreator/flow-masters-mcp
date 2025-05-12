@@ -8,6 +8,15 @@ export type SubscriptionStatus =
   | 'failed' // неудачный платеж
   | 'pending' // ожидает первого платежа
 
+export enum SubscriptionStatusEnum {
+  ACTIVE = 'active',
+  PAUSED = 'paused',
+  CANCELED = 'canceled',
+  EXPIRED = 'expired',
+  FAILED = 'failed',
+  PENDING = 'pending',
+}
+
 export type SubscriptionPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
 
 export interface Subscription {
@@ -26,9 +35,10 @@ export interface Subscription {
 
   // Даты
   startDate: string
-  nextPaymentDate: string
+  nextPaymentDate: string | undefined
   endDate?: string
   canceledAt?: string
+  pausedAt?: string
 
   // Метаданные
   metadata?: Record<string, any>
@@ -40,7 +50,7 @@ export interface SubscriptionPlan {
   description: string
   price: number
   currency: string
-  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'yearly'
   features: string[]
   isActive: boolean
   trialDays?: number
@@ -73,12 +83,19 @@ export interface CreateSubscriptionParams {
 
 export interface UpdateSubscriptionParams {
   status?: SubscriptionStatus
+  plan?: string
   paymentMethod?: string
   paymentToken?: string
   period?: SubscriptionPeriod
   amount?: number
+  currency?: 'RUB' | 'USD' | 'EUR'
   nextPaymentDate?: string
   endDate?: string
+  canceledAt?: string
+  pausedAt?: string
+  lastPaymentDate?: string
+  paymentRetryAttempt?: number
+  lastPaymentAttemptFailed?: boolean
   metadata?: Record<string, any>
 }
 

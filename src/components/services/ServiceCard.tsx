@@ -23,7 +23,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, locale = 'ru'
       : service.shortDescription
 
   // Формируем URL услуги
-  const serviceUrl = `/${locale}/services/${service.slug}`
+  const serviceUrl = `/${locale}/services/${service.slug || service.id}`
 
   return (
     <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -44,7 +44,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, locale = 'ru'
         <p className="text-sm text-gray-600 mb-3 line-clamp-2">{shortDescription}</p>
 
         <div className="flex justify-between items-center mb-4">
-          <span className="text-lg font-bold">{formatPrice(service.price, 'USD', locale)}</span>
+          <span className="text-lg font-bold">{formatPrice(service.price, locale)}</span>
           <span className="text-sm text-gray-500">
             {service.duration ? `${service.duration} ${t('minutes')}` : t('flexible')}
           </span>

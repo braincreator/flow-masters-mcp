@@ -4,6 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CourseAccess } from '@/components/CourseAccess'
+import styles from './CourseCard.module.css'
 
 interface CourseCardProps {
   id: string
@@ -50,15 +51,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   }
 
   return (
-    <div className={`course-card rounded-lg overflow-hidden shadow-md bg-white ${className}`}>
+    <div className={`course-card ${styles.courseCardRoot} ${className}`}>
       <Link href={`/courses/${slug}`} className="block">
-        <div className="relative h-48 w-full">
+        <div className={styles.courseCardImageContainer}>
+          {' '}
+          {/* Adjusted height from h-48 to use CSS module, but kept h-48 as a fallback/override if needed */}
           {featuredImage ? (
             <Image
               src={featuredImage.url}
               alt={featuredImage.alt || title}
               fill
-              className="object-cover"
+              className={styles.courseCardImage}
             />
           ) : (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -68,12 +71,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
       </Link>
 
-      <div className="p-4">
+      <div className={styles.courseCardContentArea}>
         <div className="flex justify-between items-start mb-2">
           <Link href={`/courses/${slug}`} className="block">
             <h3 className="text-lg font-semibold hover:text-blue-600 transition-colors">{title}</h3>
           </Link>
-          
+
           {difficulty && (
             <span className={`text-xs px-2 py-1 rounded ${difficultyColors[difficulty]}`}>
               {difficultyLabels[difficulty]}
@@ -81,7 +84,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           )}
         </div>
 
-        {excerpt && <p className="text-gray-600 text-sm mb-3">{excerpt}</p>}
+        {excerpt && <p className={styles.courseExcerpt}>{excerpt}</p>}
 
         <div className="flex justify-between items-center mb-4">
           {estimatedDuration && (
@@ -93,21 +96,18 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
           {product?.pricing?.finalPrice !== undefined && (
             <div className="text-right">
-              {product.pricing.compareAtPrice && product.pricing.compareAtPrice > product.pricing.finalPrice && (
-                <span className="text-gray-400 line-through text-sm mr-2">
-                  ${product.pricing.compareAtPrice.toFixed(2)}
-                </span>
-              )}
+              {product.pricing.compareAtPrice &&
+                product.pricing.compareAtPrice > product.pricing.finalPrice && (
+                  <span className="text-gray-400 line-through text-sm mr-2">
+                    ${product.pricing.compareAtPrice.toFixed(2)}
+                  </span>
+                )}
               <span className="font-bold text-lg">${product.pricing.finalPrice.toFixed(2)}</span>
             </div>
           )}
         </div>
 
-        <CourseAccess 
-          courseId={id} 
-          productId={product?.id} 
-          title={title} 
-        />
+        <CourseAccess courseId={id} productId={product?.id} title={title} />
       </div>
     </div>
   )

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Container } from '@/components/Container'
+import { GridContainer as Container } from '@/components/GridContainer'
 import { useParams } from 'next/navigation'
 import { ServiceBookingFlow } from '@/components/services/ServiceBookingFlow'
 import { Alert, AlertDescription } from '@/components/ui/alert'

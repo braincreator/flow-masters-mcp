@@ -1,193 +1,127 @@
-import { CollectionConfig } from 'payload/types'
+import { CollectionConfig, PayloadRequest } from 'payload'
+import { SubscriptionService } from '../services/subscription.service'
+import { NotificationService } from '../services/notification.service'
+import { Subscription as PayloadSubscription, SubscriptionPlan } from '../payload-types'
+import {
+  Subscription as AppSubscription,
+  SubscriptionStatus,
+  SubscriptionStatusEnum,
+} from '../types/subscription'
+import { anyone } from '@/access/anyone'
+import { isAdmin } from '@/access/isAdmin'
+import { checkRole } from '@/access/checkRole'
 
 export const Subscriptions: CollectionConfig = {
   slug: 'subscriptions',
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['status', 'userId', 'planId', 'period', 'amount', 'nextPaymentDate'],
-    group: 'Subscriptions',
+    description: 'User subscriptions.',
+    defaultColumns: ['id', 'user', 'plan', 'status', 'expiresAt', 'updatedAt'],
+    group: 'Orders & Subscriptions',
   },
   access: {
-    read: () => true,
-    create: () => true,
-    update: () => true,
-    delete: () => true,
+    read: ({ req }) => {
+      if (isAdmin({ req })) {
+        return true
+      }
+      // Allow users to read their own subscriptions
+      return {
+        user: {
+          equals: req.user?.id,
+        },
+      }
+    },
+    create: ({ req }) => checkRole(['admin'], req.user ?? undefined),
+    update: ({ req }) => checkRole(['admin'], req.user ?? undefined),
+    delete: ({ req }) => checkRole(['admin'], req.user ?? undefined),
   },
   fields: [
     {
-      name: 'userId',
-      type: 'text',
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
       required: true,
+      hasMany: false,
+      index: true,
       admin: {
-        description: 'ID пользователя',
+        readOnly: true, // Usually set on creation
       },
     },
     {
-      name: 'planId',
+      name: 'plan',
       type: 'relationship',
       relationTo: 'subscription-plans',
       required: true,
+      hasMany: false,
+      index: true,
       admin: {
-        description: 'План подписки',
+        position: 'sidebar',
       },
     },
     {
       name: 'status',
       type: 'select',
+      options: Object.values(SubscriptionStatusEnum).map((statusValue: SubscriptionStatusEnum) => ({
+        label: statusValue.charAt(0).toUpperCase() + statusValue.slice(1),
+        value: statusValue,
+      })),
       required: true,
-      options: [
-        {
-          label: 'Активна',
-          value: 'active',
-        },
-        {
-          label: 'Приостановлена',
-          value: 'paused',
-        },
-        {
-          label: 'Отменена',
-          value: 'canceled',
-        },
-        {
-          label: 'Истекла',
-          value: 'expired',
-        },
-        {
-          label: 'Ошибка платежа',
-          value: 'failed',
-        },
-        {
-          label: 'Ожидает оплаты',
-          value: 'pending',
-        },
-      ],
-      defaultValue: 'pending',
-    },
-    {
-      name: 'paymentProvider',
-      type: 'select',
-      required: true,
-      options: [
-        {
-          label: 'YooMoney',
-          value: 'yoomoney',
-        },
-        {
-          label: 'Robokassa',
-          value: 'robokassa',
-        },
-        {
-          label: 'Stripe',
-          value: 'stripe',
-        },
-        {
-          label: 'PayPal',
-          value: 'paypal',
-        },
-      ],
-      defaultValue: 'yoomoney',
-    },
-    {
-      name: 'paymentMethod',
-      type: 'text',
+      defaultValue: SubscriptionStatusEnum.PENDING,
+      index: true,
       admin: {
-        description: 'Метод оплаты (например, card, wallet)',
-      },
-    },
-    {
-      name: 'paymentToken',
-      type: 'text',
-      admin: {
-        description: 'Токен платежного метода для рекуррентных платежей',
         position: 'sidebar',
       },
     },
     {
-      name: 'period',
-      type: 'select',
-      required: true,
-      options: [
-        {
-          label: 'Ежедневно',
-          value: 'daily',
-        },
-        {
-          label: 'Еженедельно',
-          value: 'weekly',
-        },
-        {
-          label: 'Ежемесячно',
-          value: 'monthly',
-        },
-        {
-          label: 'Ежеквартально',
-          value: 'quarterly',
-        },
-        {
-          label: 'Ежегодно',
-          value: 'annual',
-        },
-      ],
-      defaultValue: 'monthly',
-    },
-    {
-      name: 'amount',
-      type: 'number',
-      required: true,
+      name: 'paymentMethod', // e.g., 'yoomoney', 'robokassa', 'crypto'
+      type: 'text',
       admin: {
-        description: 'Сумма платежа',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
     {
-      name: 'currency',
-      type: 'select',
-      required: true,
-      options: [
-        {
-          label: 'Российский рубль (RUB)',
-          value: 'RUB',
-        },
-        {
-          label: 'Доллар США (USD)',
-          value: 'USD',
-        },
-        {
-          label: 'Евро (EUR)',
-          value: 'EUR',
-        },
-      ],
-      defaultValue: 'RUB',
+      name: 'paymentId', // ID from the payment provider
+      type: 'text',
+      index: true,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
     },
     {
-      name: 'startDate',
+      name: 'startedAt',
       type: 'date',
       required: true,
       admin: {
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        description: 'Дата начала подписки',
+        position: 'sidebar',
+        readOnly: true, // Usually set on activation
       },
     },
     {
-      name: 'nextPaymentDate',
+      name: 'expiresAt',
       type: 'date',
       required: true,
       admin: {
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        description: 'Дата следующего платежа',
+        position: 'sidebar',
       },
+      index: true,
     },
     {
-      name: 'endDate',
+      name: 'renewedAt', // Last renewal date
       type: 'date',
       admin: {
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        description: 'Дата окончания подписки (если есть)',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
     {
@@ -197,18 +131,75 @@ export const Subscriptions: CollectionConfig = {
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        description: 'Дата отмены подписки (если отменена)',
         position: 'sidebar',
+        readOnly: true,
       },
     },
     {
-      name: 'metadata',
-      type: 'json',
+      name: 'pausedAt',
+      type: 'date',
       admin: {
-        description: 'Дополнительные метаданные',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
         position: 'sidebar',
+        readOnly: true,
       },
     },
+    // Поля для отслеживания попыток оплаты и статуса последней попытки
+    {
+      name: 'paymentRetryAttempt',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Number of payment retry attempts made for the current billing cycle.',
+      },
+    },
+    {
+      name: 'lastPaymentAttemptFailed',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'Indicates if the last payment attempt for this subscription failed.',
+      },
+    },
+    // Potentially add a field for cancellation reason or pause reason
   ],
   timestamps: true,
+  hooks: {
+    beforeChange: [
+      ({ data, originalDoc, req }) => {
+        if (data.status === SubscriptionStatusEnum.CANCELED && data.status !== originalDoc.status) {
+          data.canceledAt = new Date()
+          if (data.pausedAt) {
+            data.pausedAt = null
+          }
+        }
+        if (data.status === SubscriptionStatusEnum.PAUSED && data.status !== originalDoc.status) {
+          data.pausedAt = new Date()
+          if (data.canceledAt) {
+            data.canceledAt = null
+          }
+        }
+        if (
+          originalDoc.status === SubscriptionStatusEnum.PAUSED &&
+          data.status !== SubscriptionStatusEnum.PAUSED
+        ) {
+          data.pausedAt = null
+        }
+        if (
+          originalDoc.status === SubscriptionStatusEnum.CANCELED &&
+          data.status !== SubscriptionStatusEnum.CANCELED
+        ) {
+          data.canceledAt = null
+        }
+        return data
+      },
+    ],
+    afterChange: [],
+  },
 }

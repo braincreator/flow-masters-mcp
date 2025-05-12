@@ -244,4 +244,66 @@ export const Bookings: CollectionConfig = {
     },
   ],
   timestamps: true,
+hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, operation, req }) => {
+        const { payload } = req
+        const logger = payload.logger || console // Fallback to console
+
+        if (operation !== 'update') {
+          return
+        }
+
+        const orderId = doc.order && typeof doc.order === 'object' ? doc.order.id : doc.order
+
+        if (!orderId) {
+          logger.info(`Booking ${doc.id} updated, but no related order ID found. Skipping order update.`)
+          return
+        }
+
+        try {
+          // Scenario: Booking status changes to 'completed'
+          if (doc.status === 'completed' && previousDoc.status !== 'completed') {
+            logger.info(
+              `Booking ${doc.id} completed. Attempting to update Order ${orderId} to 'completed'.`,
+            )
+            await payload.update({
+              collection: 'orders',
+              id: orderId,
+              data: {
+                status: 'completed',
+              },
+              req,
+            })
+            logger.info(`Order ${orderId} updated to 'completed' successfully.`)
+          }
+
+          // Scenario: Booking status changes to 'canceled'
+          if (doc.status === 'canceled' && previousDoc.status !== 'canceled') {
+            logger.info(
+              `Booking ${doc.id} canceled. Attempting to update Order ${orderId} to 'cancelled'.`,
+            )
+            // Optional: Check if the order should indeed be cancelled or if there are other bookings/items.
+            // For now, direct propagation as per simplified requirement.
+            await payload.update({
+              collection: 'orders',
+              id: orderId,
+              data: {
+                status: 'cancelled',
+              },
+              req,
+            })
+            logger.info(`Order ${orderId} updated to 'cancelled' successfully.`)
+          }
+        } catch (error: any) {
+          logger.error(
+            `Error processing status propagation from Booking ${doc.id} to Order ${orderId}: ${
+              error?.message || String(error)
+            }`,
+          )
+          // Do not re-throw to avoid failing the booking update operation
+        }
+      },
+    ],
+  },
 }
