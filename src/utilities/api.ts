@@ -157,8 +157,18 @@ type PayloadCollectionResponse<T> = {
 // Нужно либо передавать user ID, либо session ID, либо реализовать кастомный эндпоинт
 // Пока что сделаем кастомный эндпоинт (предполагаем, что он будет создан)
 export const getCart = (): Promise<CartSession | null> => {
-  // Предполагаем кастомный эндпоинт '/api/cart'
-  return fetchPayloadAPI<CartSession>('/cart', { method: 'GET' })
+  console.log('API: Fetching cart data')
+  // Используем правильный путь, соответствующий API-роуту
+  return fetchPayloadAPI<CartSession>('/v1/cart', { method: 'GET' })
+    .then((response) => {
+      console.log('API: Cart data received:', response)
+      return response
+    })
+    .catch((err) => {
+      console.error('API: Error fetching cart:', err)
+      // Возвращаем null вместо выбрасывания исключения для запросов к корзине
+      return null
+    })
 }
 
 // Добавить товар в корзину
@@ -167,10 +177,19 @@ export const addToCart = (
   itemType: 'product' | 'service',
   quantity: number = 1,
 ): Promise<CartSession> => {
-  return fetchPayloadAPI<CartSession>('/cart/add', {
+  console.log('API: Sending request to add to cart:', { itemId, itemType, quantity })
+  return fetchPayloadAPI<CartSession>('/v1/cart/add', {
     method: 'POST',
     body: JSON.stringify({ itemId, itemType, quantity }),
   })
+    .then((response) => {
+      console.log('API: Cart updated successfully:', response)
+      return response
+    })
+    .catch((error) => {
+      console.error('API: Error updating cart with API:', error)
+      throw error
+    })
 }
 
 // Обновить количество товара

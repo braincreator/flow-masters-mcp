@@ -56,7 +56,7 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
     if (!services || services.docs.length === 0) {
       return (
         <Container>
-          <div className="py-12 md:py-16 lg:py-20">
+          <div className="py-3 md:py-4 lg:py-5">
             {/* Хлебные крошки */}
             <Breadcrumbs
               items={[{ label: commonT('services'), active: true }]}
@@ -141,7 +141,7 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
     return (
       <>
         {/* Улучшенная героическая секция */}
-        <div className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
+        <div className="relative py-5 md:py-7 lg:py-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background z-0"></div>
 
           {/* Декоративные элементы */}

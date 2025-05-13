@@ -3,7 +3,7 @@
 import React, { useState, useEffect, FormEvent, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation' // Added for redirection
-import { useCart } from '@/providers/CartProvider' // Импортируем из провайдера
+import { useCart } from '@/providers/CartProvider' // Используем хук для обновления корзины
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import CalendlyBooking from '@/components/chat/CalendlyBooking'
 import AdditionalInfoForm from '@/components/services/AdditionalInfoForm'
 import type { BookingSettings, AdditionalInfoField } from '@/types/service'
+import ServicePrice from '@/components/services/ServicePrice'
 // import type { Locale } from '@/config/i18n.config' // Assuming you have a Locale type - Commenting out due to error
 
 // Define Locale type based on linter error
@@ -36,7 +37,7 @@ type ServiceBookingFlowProps = {
 export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
   serviceId,
   price,
-  currency = 'USD',
+  currency,
   requiresBooking = false,
   bookingSettings,
   prefill,
@@ -47,7 +48,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 }) => {
   const t = useTranslations('ServiceBooking')
   const router = useRouter()
-  const { add: addItemToCart, cart } = useCart(locale) // Pass locale to useCart, should now match type
+  const { addItem, refreshCart } = useCart() // Используем оба метода из хука
 
   const [step, setStep] = useState<'payment' | 'additionalInfo' | 'booking' | 'complete'>(
     skipPayment && initialOrderId
@@ -102,20 +103,49 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       return
     }
 
+    if (!serviceId) {
+      setError('Ошибка: ID услуги не указан')
+      return
+    }
+
+    console.log('ServiceBookingFlow: Attempting to add to cart:', {
+      serviceId,
+      type: 'service',
+      locale,
+    })
+
     setIsLoading(true)
     setError(null)
 
     try {
-      // Добавляем услугу в корзину с правильными параметрами
-      await addItemToCart(serviceId, 'service')
+      // Последовательные шаги для гарантированного добавления в корзину
+      console.log('ServiceBookingFlow: 1. Calling addItem with params:', serviceId, 'service', 1)
+      await addItem(serviceId, 'service', 1)
 
-      // Редирект на страницу оформления заказа
-      router.push(`/${locale}/checkout`)
+      console.log('ServiceBookingFlow: 2. Explicitly refreshing cart')
+      await refreshCart()
+
+      // Проверка данных корзины
+      console.log('ServiceBookingFlow: 3. Waiting for state to settle')
+      await new Promise((resolve) => setTimeout(resolve, 800))
+
+      console.log('ServiceBookingFlow: 4. Redirect preparation complete, redirecting to checkout')
+
+      // Сохраняем ID услуги в sessionStorage для дополнительной проверки при загрузке чекаута
+      sessionStorage.setItem('last_added_service', serviceId)
+
+      // Сохраняем email пользователя для автозаполнения на странице чекаута
+      if (emailToUse) {
+        sessionStorage.setItem('checkout_email', emailToUse)
+      }
+
+      // Используем window.location для полной перезагрузки страницы
+      window.location.href = `/${locale}/checkout`
     } catch (err) {
+      console.error('ServiceBookingFlow: Error adding to cart:', err)
       setError(err instanceof Error ? err.message : 'Failed to add service to cart or redirect.')
       setIsLoading(false) // Ensure loading is stopped on error
     }
-    // No finally setIsLoading(false) here, as redirection should occur on success
   }
 
   // Обработчик отправки формы дополнительной информации
@@ -333,7 +363,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         <div className="flex justify-between items-center mb-6">
           <span className="font-medium">{t('price')}</span>
           <span className="text-xl font-bold">
-            {price} {currency}
+            <ServicePrice price={price || 0} locale={locale} />
           </span>
         </div>
 

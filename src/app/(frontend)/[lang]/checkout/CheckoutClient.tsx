@@ -46,8 +46,65 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     total = 0,
     clear: clearCart = () => {},
     remove: removeFromCart = () => {},
+    refreshCart,
   } = useCart()
   // const t = useTranslations(locale); // Temporarily using hardcoded strings
+
+  const [isCheckingCart, setIsCheckingCart] = useState(true)
+
+  useEffect(() => {
+    const checkCart = async () => {
+      setIsCheckingCart(true)
+      console.log('CheckoutClient: Checking cart state on page load')
+
+      const lastAddedService = sessionStorage.getItem('last_added_service')
+
+      try {
+        await refreshCart()
+
+        if (cart && cart.items && cart.items.length > 0) {
+          console.log('CheckoutClient: Cart has items:', cart.items)
+
+          if (lastAddedService) {
+            const serviceFound = cart.items.some((item) => {
+              if (item.itemType === 'service') {
+                const serviceId = typeof item.service === 'string' ? item.service : item.service?.id
+                return serviceId === lastAddedService
+              }
+              return false
+            })
+
+            console.log('CheckoutClient: Last added service found in cart:', serviceFound)
+
+            if (!serviceFound) {
+              console.log('CheckoutClient: Service not found, retrying fetch...')
+              await new Promise((resolve) => setTimeout(resolve, 500))
+              await refreshCart()
+            }
+          }
+        } else {
+          console.log('CheckoutClient: Cart is empty, retrying fetch...')
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          await refreshCart()
+        }
+      } catch (err) {
+        console.error('CheckoutClient: Error checking cart:', err)
+      } finally {
+        setIsCheckingCart(false)
+        sessionStorage.removeItem('last_added_service')
+      }
+    }
+
+    checkCart()
+
+    // Подгружаем email из sessionStorage если он есть
+    const savedEmail = sessionStorage.getItem('checkout_email')
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setIsEmailValid(isValidEmail(savedEmail))
+      console.log('CheckoutClient: Email loaded from session storage:', savedEmail)
+    }
+  }, [refreshCart])
 
   const [email, setEmail] = useState('')
   const [isEmailValid, setIsEmailValid] = useState(false)
@@ -321,6 +378,22 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
     }
     return null
+  }
+
+  if (isCheckingCart) {
+    return (
+      <div className="text-center py-12">
+        <div className="mb-4 flex justify-center">
+          <Loader2 className="h-16 w-16 text-primary animate-spin" />
+        </div>
+        <h2 className="text-xl font-medium mb-2">
+          {locale === 'ru' ? 'Загрузка корзины...' : 'Loading cart...'}
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          {locale === 'ru' ? 'Пожалуйста, подождите...' : 'Please wait...'}
+        </p>
+      </div>
+    )
   }
 
   if (currentCartItems.length === 0) {

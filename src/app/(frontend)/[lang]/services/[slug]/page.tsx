@@ -179,7 +179,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
 
     return (
       <Container>
-        <div className="py-12 md:py-16 lg:py-20">
+        <div className="py-3 md:py-4 lg:py-5">
           {/* Хлебные крошки */}
           <Breadcrumbs
             items={[

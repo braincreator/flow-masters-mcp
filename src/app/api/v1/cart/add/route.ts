@@ -7,10 +7,23 @@ export async function POST(req: NextRequest) {
   try {
     // Получаем данные из тела запроса
     const body = await req.json()
-    const { productId, quantity = 1 } = body
+    const { productId, itemId, itemType = 'product', quantity = 1 } = body
 
-    if (!productId || typeof productId !== 'string') {
-      return Response.json({ message: 'Product ID is required' }, { status: 400 })
+    // Поддержка двух форматов: старого (productId) и нового (itemId, itemType)
+    const actualItemId = itemId || productId
+    const actualItemType = itemId ? itemType : 'product'
+
+    console.log('Cart API request received:', {
+      productId,
+      itemId,
+      itemType,
+      quantity,
+      actualItemId,
+      actualItemType,
+    })
+
+    if (!actualItemId || typeof actualItemId !== 'string') {
+      return Response.json({ message: 'Item ID is required' }, { status: 400 })
     }
 
     if (typeof quantity !== 'number' || quantity <= 0 || !Number.isInteger(quantity)) {
@@ -99,33 +112,82 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Получаем информацию о продукте
-    const product = await payload.findByID({
-      collection: 'products',
-      id: productId,
-      depth: 0,
-    })
+    let price = 0
+    let title = ''
 
-    if (!product?.pricing?.finalPrice) {
-      return Response.json({ message: 'Product not found or price unavailable' }, { status: 404 })
+    // Получаем информацию о продукте или услуге
+    if (actualItemType === 'product') {
+      const product = await payload.findByID({
+        collection: 'products',
+        id: actualItemId,
+        depth: 0,
+      })
+
+      if (!product?.pricing?.finalPrice) {
+        return Response.json({ message: 'Product not found or price unavailable' }, { status: 404 })
+      }
+
+      price = product.pricing.finalPrice
+      title = product.title
+    } else if (actualItemType === 'service') {
+      const service = await payload.findByID({
+        collection: 'services',
+        id: actualItemId,
+        depth: 0,
+      })
+
+      if (!service?.price) {
+        return Response.json({ message: 'Service not found or price unavailable' }, { status: 404 })
+      }
+
+      price = service.price
+      title = service.title
+    } else {
+      return Response.json({ message: 'Invalid item type' }, { status: 400 })
     }
 
-    const price = product.pricing.finalPrice
-
     // Обновляем массив items
-    const existingItemIndex = cart.items?.findIndex(
-      (item) => (typeof item.product === 'string' ? item.product : item.product?.id) === productId,
-    )
+    const existingItemIndex = cart.items?.findIndex((item) => {
+      if (item.itemType === actualItemType) {
+        if (
+          actualItemType === 'product' &&
+          (typeof item.product === 'string' ? item.product : item.product?.id) === actualItemId
+        ) {
+          return true
+        }
+        if (
+          actualItemType === 'service' &&
+          (typeof item.service === 'string' ? item.service : item.service?.id) === actualItemId
+        ) {
+          return true
+        }
+      }
+      return false
+    })
 
     let updatedItems = [...(cart.items || [])]
 
     if (existingItemIndex > -1) {
       // Обновить количество существующего товара
       updatedItems[existingItemIndex].quantity += quantity
-      updatedItems[existingItemIndex].price = price
+      // Price snapshot может быть обновлен при желании
+      // updatedItems[existingItemIndex].priceSnapshot = price
     } else {
       // Добавить новый товар
-      updatedItems.push({ product: productId, quantity, price })
+      const newItem = {
+        itemType: actualItemType,
+        quantity,
+        priceSnapshot: price,
+        titleSnapshot: title,
+      }
+
+      if (actualItemType === 'product') {
+        newItem.product = actualItemId
+      } else {
+        newItem.service = actualItemId
+      }
+
+      updatedItems.push(newItem)
     }
 
     // Обновляем CartSession

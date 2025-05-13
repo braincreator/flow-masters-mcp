@@ -98,18 +98,54 @@ export function CartProvider({
   const fetchCart = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true)
+      console.log('CartProvider: Fetching cart data...')
       const data = await getCart()
+      console.log('CartProvider: Cart data received:', data)
+      console.log('CartProvider: Cart items:', data?.items || [])
       setCart(data)
       setError(null)
     } catch (err) {
       // Don't set error for 404 (no cart) or 401 (not authenticated)
       if (err instanceof Error && !err.message.includes('404') && !err.message.includes('401')) {
-        console.error('Error fetching cart:', err)
+        console.error('CartProvider: Error fetching cart:', err)
         setError(err)
       }
     } finally {
       setIsLoading(false)
     }
+  }, [])
+
+  // Добавим функцию для повторных попыток обновления корзины
+  const retryFetchCart = useCallback(async (maxRetries = 3): Promise<void> => {
+    let retries = 0
+    let success = false
+
+    while (retries < maxRetries && !success) {
+      try {
+        console.log(`CartProvider: Attempting to fetch cart (attempt ${retries + 1}/${maxRetries})`)
+        const data = await getCart()
+        if (data && data.items) {
+          console.log(`CartProvider: Cart successfully fetched on attempt ${retries + 1}`, data)
+          setCart(data)
+          setError(null)
+          success = true
+        } else {
+          console.log(`CartProvider: Empty cart data on attempt ${retries + 1}`, data)
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          retries++
+        }
+      } catch (err) {
+        console.error(`CartProvider: Error fetching cart on attempt ${retries + 1}:`, err)
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        retries++
+      }
+    }
+
+    if (!success) {
+      console.error('CartProvider: Failed to fetch cart after multiple attempts')
+    }
+
+    setIsLoading(false)
   }, [])
 
   // Fetch cart on mount and when auth state changes
@@ -133,6 +169,11 @@ export function CartProvider({
       maybeQuantity?: number,
     ): Promise<void> => {
       try {
+        console.log('CartProvider: addItem called with params:', {
+          itemId,
+          itemTypeOrQuantity,
+          maybeQuantity,
+        })
         setIsLoading(true)
 
         // Определение типа элемента и количества на основе сигнатуры
@@ -156,15 +197,25 @@ export function CartProvider({
           quantity = itemTypeOrQuantity
         }
 
+        console.log('CartProvider: Calling addToCart with params:', { itemId, itemType, quantity })
+
+        if (!itemId) {
+          throw new Error('Item ID is required')
+        }
+
         await addToCart(itemId, itemType, quantity)
-        await fetchCart() // Refresh cart after adding
+        console.log('CartProvider: Item successfully added to cart, now refreshing cart data')
+
+        // Используем улучшенную функцию с повторными попытками обновления корзины
+        await retryFetchCart()
 
         toast({
           title: 'Item added to cart',
           description: `${quantity} item(s) added to your cart.`,
         })
+        console.log('CartProvider: addItem complete, toast notification shown')
       } catch (err) {
-        console.error('Error adding item to cart:', err)
+        console.error('CartProvider: Error adding item to cart:', err)
         toast({
           title: 'Error adding item',
           description: err instanceof Error ? err.message : 'Failed to add item to cart',
@@ -175,7 +226,7 @@ export function CartProvider({
         setIsLoading(false)
       }
     },
-    [fetchCart],
+    [retryFetchCart],
   )
 
   // Update item quantity - обновляем с поддержкой типа элемента
