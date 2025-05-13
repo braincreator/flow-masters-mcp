@@ -1,42 +1,44 @@
 'use client'
 
 import useSWR, { mutate, MutatorOptions } from 'swr'
-import { CartSession, Product } from '@/payload-types'
+import { CartSession, Product, Service } from '@/payload-types'
 import {
   getCart,
-  addToCart,
-  updateCartItemQuantity,
-  removeFromCart,
+  addToCart, 
+  updateCartItemQuantity, 
+  removeFromCart, 
   clearCart,
 } from '@/utilities/api'
 import { useCallback } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import { Locale } from '@/constants' // Предполагаем, что Locale импортируется
+import { Locale } from '@/constants'
 
-// Ключ для SWR
 export const CART_KEY = '/api/cart'
 
-// Тип возвращаемого значения хука
 interface UseCartReturn {
-  cart: CartSession | null | undefined // undefined во время загрузки, null если корзины нет
-  items: CartSession['items'] // Удобный доступ к товарам
+  cart: CartSession | null | undefined
+  items: CartSession['items']
   itemCount: number
   total: number
   isLoading: boolean
   error: any
-  add: (productId: string, quantity?: number) => Promise<void>
-  update: (productId: string, quantity: number) => Promise<void>
-  remove: (productId: string) => Promise<void>
+  add: (
+    itemId: string,
+    itemType: 'product' | 'service',
+    quantity?: number,
+  ) => Promise<void>
+  update: (itemId: string, itemType: 'product' | 'service', quantity: number) => Promise<void>
+  remove: (itemId: string, itemType: 'product' | 'service') => Promise<void>
   clear: () => Promise<void>
   mutateCart: (
     data?: CartSession | Promise<CartSession | null> | null,
     opts?: boolean | MutatorOptions<CartSession | null>,
-  ) => Promise<CartSession | null | undefined> // Функция ревалидации
+  ) => Promise<CartSession | null | undefined>
 }
 
 export const useCart = (locale: Locale = 'en'): UseCartReturn => {
-  // Принимаем locale для расчета total
-  // Используем SWR для получения корзины
+  type CartItem = NonNullable<CartSession['items']>[0];
+
   const {
     data: cart,
     error,
@@ -44,45 +46,33 @@ export const useCart = (locale: Locale = 'en'): UseCartReturn => {
     mutate: revalidate,
   } = useSWR<CartSession | null>(
     CART_KEY,
-    getCart, // Функция для запроса данных
+    getCart,
     {
-      fallbackData: null, // Начальное значение - null (нет корзины)
+      fallbackData: null,
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       onError: (err) => {
         console.error('SWR Cart Error:', err)
-        // Не показываем тост, т.к. может быть 404 (нет корзины) или 401 (не авторизован)
       },
     },
   )
 
-  // --- Функции-обертки для изменения корзины ---
-
-  // Обобщенная функция для оптимистичного обновления
   const performCartUpdate = useCallback(
     async (
-      action: () => Promise<CartSession | void | null>, // API вызов
-      optimisticDataGenerator: (currentCart: CartSession | null) => CartSession | null, // Функция для генерации оптимистичных данных
+      action: () => Promise<CartSession | void | null>,
+      optimisticDataGenerator: (currentCart: CartSession | null) => CartSession | null,
       successMessage: string,
       errorMessage: string,
     ) => {
-      // Генерируем оптимистичное состояние
       const optimisticCart = optimisticDataGenerator(cart ?? null)
-
-      // Выполняем оптимистичное обновление
       await mutate(CART_KEY, optimisticCart, {
         optimisticData: optimisticCart,
         rollbackOnError: true,
         populateCache: true,
-        revalidate: false, // Не перезапрашиваем сразу
+        revalidate: false,
       })
-
       try {
-        await action() // Выполняем реальный API запрос
-        // toast({ title: successMessage });
-        // Опционально ревалидируем после успешного запроса, чтобы убедиться в консистентности
-        // Хотя обычно не требуется, если API возвращает актуальное состояние
-        // await revalidate();
+        await action()
       } catch (err: any) {
         console.error(`${errorMessage}:`, err)
         toast({
@@ -90,114 +80,34 @@ export const useCart = (locale: Locale = 'en'): UseCartReturn => {
           description: err.message || 'Please try again.',
           variant: 'destructive',
         })
-        // SWR автоматически откатит изменения
       }
     },
     [cart, revalidate],
   )
 
-  // Добавление товара
-  const add = useCallback(
-    async (productId: string, quantity: number = 1) => {
-      await performCartUpdate(
-        () => addToCart(productId, quantity),
-        (currentCart) => {
-          // Логика генерации оптимистичного состояния для добавления
-          const newCart = structuredClone(
-            currentCart ?? {
-              id: 'optimistic',
-              items: [],
-      itemCount: 0,
-              total: 0,
-              sessionId: 'optimistic',
-            },
-          )
-          if (!newCart.items) newCart.items = []
-
-          const existingIndex = newCart.items.findIndex(
-            (item) =>
-              (typeof item.product === 'string' ? item.product : item.product?.id) === productId,
-          )
-
-          // Нужна информация о продукте (хотя бы цена) для оптимистичного обновления
-          // Это ограничение - откуда взять цену продукта на клиенте перед добавлением?
-          // Возможно, ProductCard должен передавать продукт целиком, или цена должна быть передана в add
-          // Пока что добавим без цены или с ценой 0 для примера
-          const TEMP_PRICE = 0 // ЗАГЛУШКА!
-
-          if (existingIndex > -1) {
-            newCart.items[existingIndex].quantity += quantity
-            newCart.items[existingIndex].price = TEMP_PRICE // Обновляем цену
-          } else {
-            newCart.items.push({ product: productId, quantity, price: TEMP_PRICE })
-          }
-          // Пересчитываем itemCount и total (оптимистично)
-          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
-          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-          return newCart
-        },
-        'Item added to cart',
-        'Failed to add item',
-      )
-    },
-    [performCartUpdate],
-  )
-
-  // Обновление количества
-  const update = useCallback(
-    async (productId: string, quantity: number) => {
-      if (quantity < 0) {
-        console.warn('Attempted to update with negative quantity. Use remove instead.')
-        return // Не допускаем отрицательное количество
-      }
-      if (quantity === 0) {
-        console.warn('Attempted to update with quantity 0. Use remove instead.')
-        // Можно либо ничего не делать, либо все же удалить, но лучше пусть компонент решает
-        return
-      }
-
-      await performCartUpdate(
-        () => updateCartItemQuantity(productId, quantity),
-        (currentCart) => {
-          // Логика генерации оптимистичного состояния для обновления
-          if (!currentCart?.items) return currentCart
-          const newCart = structuredClone(currentCart)
-          const itemIndex = newCart.items.findIndex(
-            (item) =>
-              (typeof item.product === 'string' ? item.product : item.product?.id) === productId,
-          )
-          if (itemIndex > -1) {
-            newCart.items[itemIndex].quantity = quantity
-          }
-          // Пересчитываем itemCount и total
-          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
-          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-          return newCart
-        },
-        'Cart quantity updated',
-        'Failed to update quantity',
-      )
-    },
-    [performCartUpdate],
-  )
-
-  // Удаление товара
   const remove = useCallback(
-    async (productId: string) => {
+    async (itemId: string, itemType: 'product' | 'service') => {
       await performCartUpdate(
-        () => removeFromCart(productId),
-        (currentCart) => {
-          // Логика генерации оптимистичного состояния для удаления
-          if (!currentCart?.items) return currentCart
-          const newCart = structuredClone(currentCart)
-          newCart.items = newCart.items.filter(
-            (item) =>
-              (typeof item.product === 'string' ? item.product : item.product?.id) !== productId,
-          )
-          // Пересчитываем itemCount и total
-          newCart.itemCount = newCart.items.reduce((sum, i) => sum + i.quantity, 0)
-          newCart.total = newCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-          return newCart
+        () => removeFromCart(itemId, itemType),
+        (currentCart): CartSession | null => {
+          if (!currentCart) return null;
+          const newCart = structuredClone(currentCart);
+          if (!newCart.items) {
+            newCart.items = [] as NonNullable<CartSession['items']>;
+          } else {
+            newCart.items = newCart.items.filter(
+              (item) =>
+                !(
+                  item.itemType === itemType &&
+                  (itemType === 'product'
+                    ? (typeof item.product === 'string' ? item.product : item.product?.id) === itemId
+                    : (typeof item.service === 'string' ? item.service : item.service?.id) === itemId)
+                ),
+            );
+          }
+          newCart.itemCount = (newCart.items || []).reduce((sum, i) => sum + (i.quantity || 0), 0);
+          newCart.total = (newCart.items || []).reduce((sum, i: CartItem) => sum + (i.priceSnapshot || 0) * (i.quantity || 0), 0);
+          return newCart;
         },
         'Item removed from cart',
         'Failed to remove item',
@@ -206,12 +116,109 @@ export const useCart = (locale: Locale = 'en'): UseCartReturn => {
     [performCartUpdate],
   )
 
-  // Очистка корзины
+  const add = useCallback(
+    async (itemId: string, itemType: 'product' | 'service', quantity: number = 1) => {
+      await performCartUpdate(
+        () => addToCart(itemId, itemType, quantity),
+        (currentCart): CartSession | null => { 
+          const newCart = structuredClone(
+            currentCart ?? {
+              id: 'optimistic-cart',
+              items: [] as NonNullable<CartSession['items']>, 
+              itemCount: 0,
+              total: 0,
+              sessionId: 'optimistic-session', 
+              currency: 'USD', 
+              updatedAt: new Date().toISOString(), 
+              createdAt: new Date().toISOString(),
+              reminderSent: false,
+              convertedToOrder: false, 
+            },
+          )
+          if (!newCart.items) { 
+            newCart.items = [] as NonNullable<CartSession['items']>;
+          }
+
+          const existingIndex = newCart.items.findIndex(
+            (item) =>
+              item.itemType === itemType &&
+              (itemType === 'product'
+                ? (typeof item.product === 'string' ? item.product : item.product?.id) === itemId
+                : (typeof item.service === 'string' ? item.service : item.service?.id) === itemId),
+          )
+
+          const TEMP_PRICE = 0 
+
+          if (existingIndex > -1) {
+            if (newCart.items && newCart.items[existingIndex]) { 
+              newCart.items[existingIndex].quantity += quantity
+            }
+          } else {
+            const newItem: CartItem = {
+              itemType,
+              quantity,
+              priceSnapshot: TEMP_PRICE,
+            };
+            if (itemType === 'product') {
+              newItem.product = itemId as any; 
+            } else {
+              newItem.service = itemId as any;
+            }
+            newCart.items.push(newItem);
+          }
+          newCart.itemCount = newCart.items.reduce((sum, i) => sum + (i.quantity || 0), 0);
+          newCart.total = newCart.items.reduce((sum, i: CartItem) => sum + (i.priceSnapshot || 0) * (i.quantity || 0), 0);
+          return newCart;
+        },
+        'Item added to cart',
+        'Failed to add item',
+      )
+    },
+    [performCartUpdate],
+  )
+  
+  const update = useCallback(
+    async (itemId: string, itemType: 'product' | 'service', quantity: number) => {
+      if (quantity < 0) {
+        console.warn('Attempted to update with negative quantity. Use remove instead.')
+        return
+      }
+      if (quantity === 0) {
+        await remove(itemId, itemType) 
+        return
+      }
+      await performCartUpdate(
+        () => updateCartItemQuantity(itemId, itemType, quantity),
+        (currentCart): CartSession | null => {
+          if (!currentCart) return null;
+          const newCart = structuredClone(currentCart);
+          if (!newCart.items) newCart.items = [] as NonNullable<CartSession['items']>;
+
+          const itemIndex = newCart.items.findIndex(
+            (item) =>
+              item.itemType === itemType &&
+              (itemType === 'product'
+                ? (typeof item.product === 'string' ? item.product : item.product?.id) === itemId
+                : (typeof item.service === 'string' ? item.service : item.service?.id) === itemId),
+          );
+          if (itemIndex > -1 && newCart.items && newCart.items[itemIndex]) { 
+            newCart.items[itemIndex].quantity = quantity;
+          }
+          newCart.itemCount = (newCart.items || []).reduce((sum, i) => sum + (i.quantity || 0), 0);
+          newCart.total = (newCart.items || []).reduce((sum, i: CartItem) => sum + (i.priceSnapshot || 0) * (i.quantity || 0), 0);
+          return newCart;
+        },
+        'Cart quantity updated',
+        'Failed to update quantity',
+      )
+    },
+    [performCartUpdate, remove], 
+  )
+
   const clear = useCallback(async () => {
     await performCartUpdate(
       clearCart,
       (currentCart) => {
-        // Оптимистично возвращаем пустую корзину (или null)
         if (!currentCart) return null
         return { ...currentCart, items: [], itemCount: 0, total: 0 }
       },
@@ -220,18 +227,11 @@ export const useCart = (locale: Locale = 'en'): UseCartReturn => {
     )
   }, [performCartUpdate])
 
-  // Рассчитываем itemCount и total на основе данных SWR
-  // Используем locale для корректного расчета total, если цены локализованы
-  // Примечание: total рассчитывается на клиенте, серверный total используется как fallback
   const items = cart?.items ?? []
-  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
-  const total = items.reduce((sum, item) => {
-    // Пытаемся получить цену из загруженного продукта (если depth=1)
-    const product = (typeof item.product === 'object' ? item.product : null) as Product | null
-    // Нужна функция для получения цены с учетом локали
-    // const price = getLocalePrice(product, locale, item.price); // Используем item.price как fallback
-    const price = item.price // Пока используем цену, сохраненную в корзине
-    return sum + (price || 0) * item.quantity
+  const itemCount = items.reduce((count, item) => count + (item.quantity || 0), 0)
+  const total = items.reduce((sum, item: CartItem) => {
+    const price = item.priceSnapshot
+    return sum + (price || 0) * (item.quantity || 0)
   }, 0)
 
   return {

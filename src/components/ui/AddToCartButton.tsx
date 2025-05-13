@@ -157,7 +157,8 @@ export function AddToCartButton({
           toast.success(removeMessage || texts.removedFromCart(productName))
         }
       } else {
-        await addItem(product.id, 1)
+        const itemTypeForCart = product.productType === 'service' ? 'service' : 'product';
+        await addItem(product.id, itemTypeForCart, 1)
         if (showToast) {
           toast.success(successMessage || texts.addedToCart(productName))
         }

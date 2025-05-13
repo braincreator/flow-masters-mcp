@@ -189,18 +189,66 @@ export const Users: CollectionConfig = {
       },
     },
     {
-      name: 'emailNotifications',
-      type: 'json',
+      name: 'notificationPreferences',
+      label: 'Notification Preferences',
+      type: 'group',
       admin: {
-        description: 'Email notification preferences',
+        description: 'Manage your notification settings.',
       },
-    },
-    {
-      name: 'pushNotifications',
-      type: 'json',
-      admin: {
-        description: 'Push notification preferences',
-      },
+      fields: [
+        {
+          name: 'email',
+          label: 'Email Notifications',
+          type: 'group',
+          fields: [
+            {
+              name: 'orderUpdates',
+              label: 'Order Updates',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description: 'Receive updates about your orders (e.g., confirmation, shipping, cancellation).',
+              },
+            },
+            {
+              name: 'subscriptionUpdates',
+              label: 'Subscription Updates',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description: 'Receive updates about your subscriptions (e.g., activation, renewal, payment issues).',
+              },
+            },
+            {
+              name: 'accountActivity',
+              label: 'Account Activity',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description: 'Receive notifications for important account activities (e.g., welcome email, security alerts).',
+              },
+            },
+            {
+              name: 'marketingAndPromotions',
+              label: 'Marketing and Promotions',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description: 'Receive promotional offers, news about new products, and special deals.',
+              },
+            },
+            {
+              name: 'productNewsAndTips',
+              label: 'Product News and Tips',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description: 'Receive updates about new features, platform improvements, and helpful tips.',
+              },
+            },
+          ],
+        },
+      ],
     },
     {
       name: 'notificationFrequency',

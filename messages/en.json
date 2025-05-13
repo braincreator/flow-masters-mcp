@@ -20,6 +20,201 @@
         "heading": "Choose a Subscription Plan",
         "description": "Select a plan that matches your needs"
       }
+    },
+    "OrderHistory": {
+      "metadata": {
+        "title": "Order History",
+        "description": "View your past orders"
+      },
+      "title": "My Orders",
+      "noOrders": "You have not placed any orders yet.",
+      "orderNumber": "Order #",
+      "date": "Date",
+      "total": "Total",
+      "status": "Status",
+      "actions": "Actions",
+      "viewDetails": "View Details"
+    },
+    "OrderDetail": {
+      "metadata": {
+        "title": "Order Details",
+        "description": "View details for a specific order"
+      },
+      "title": "Order Details for #{orderNumber}",
+      "backToOrders": "Back to Orders",
+      "placedOn": "Placed on {date}",
+      "status": "Status",
+      "trackShipment": "Track Shipment",
+      "itemsOrdered": "Items Ordered",
+      "quantity": "Qty",
+      "each": "each",
+      "orderSummary": "Order Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "discount": "Discount",
+      "total": "Total",
+      "paymentInformation": "Payment Information",
+      "paymentMethod": "Payment Method",
+      "shippingAddress": "Shipping Address",
+      "billingAddress": "Billing Address",
+      "statusHistory": "Order Status History",
+      "reorder": "Reorder",
+      "contactSupport": "Contact Support",
+      "notFound": "Order not found"
+    },
+    "SubscriptionList": {
+      "metadata": {
+        "title": "My Subscriptions",
+        "description": "View and manage your subscriptions"
+      },
+      "title": "My Subscriptions",
+      "noSubscriptionsTitle": "No Subscriptions Yet",
+      "noSubscriptionsDescription": "You do not have any active or past subscriptions.",
+      "browsePlansButton": "Browse Plans",
+      "planName": "Plan Name",
+      "status": "Status",
+      "renewalDate": "Next Renewal / Expires",
+      "cost": "Cost",
+      "actions": "Actions",
+      "manage": "Manage"
+    },
+    "SubscriptionDetail": {
+      "metadata": {
+        "title": "Subscription Details",
+        "description": "Manage your subscription details"
+      },
+      "title": "Subscription Details",
+      "backToSubscriptions": "Back to Subscriptions",
+      "planName": "Plan",
+      "status": "Status",
+      "startDate": "Start Date",
+      "nextRenewalDate": "Next Renewal Date",
+      "pausedOn": "Paused On",
+      "cost": "Cost",
+      "month": "month",
+      "paymentMethod": "Payment Method",
+      "planFeatures": "Plan Features",
+      "manageSubscription": "Manage Subscription",
+      "changePlan": "Change Plan",
+      "pauseSubscription": "Pause Subscription",
+      "resumeSubscription": "Resume Subscription",
+      "cancelSubscription": "Cancel Subscription",
+      "updatePaymentMethod": "Update Payment Method",
+      "billingHistory": "Billing History",
+      "billingDate": "Date",
+      "billingAmount": "Amount",
+      "billingStatus": "Status",
+      "invoiceId": "Invoice ID",
+      "notFound": "Subscription not found"
+    },
+    "PaymentHistory": {
+      "metadata": {
+        "title": "Payment History",
+        "description": "View your past payment transactions"
+      },
+      "title": "Payment History",
+      "managePaymentMethods": "Manage Payment Methods",
+      "noTransactionsTitle": "No Transactions Yet",
+      "noTransactionsDescription": "You have not made any payments.",
+      "date": "Date",
+      "description": "Description",
+      "amount": "Amount",
+      "method": "Method",
+      "status": "Status",
+      "reference": "Reference",
+      "orderRef": "Order: {orderId}",
+      "subscriptionRef": "Sub: {subscriptionId}"
+    },
+    "PaymentMethods": {
+      "metadata": {
+        "title": "Saved Payment Methods",
+        "description": "Manage your saved payment methods"
+      },
+      "title": "Saved Payment Methods",
+      "description": "Manage your saved cards and other payment methods for faster checkout.",
+      "addNewMethod": "Add New Method",
+      "noMethodsTitle": "No Saved Methods",
+      "noMethodsDescription": "You have not saved any payment methods yet.",
+      "endingIn": "ending in",
+      "expires": "Expires",
+      "default": "Default",
+      "setDefault": "Set as Default",
+      "delete": "Delete",
+      "unknownMethod": "Unknown Payment Method",
+      "backToPaymentHistory": "Back to Payment History"
+    },
+    "Profile": {
+      "metadata": {
+        "title": "Account Profile",
+        "description": "Manage your profile and password"
+      },
+      "title": "Account Profile",
+      "notAuthenticated": "Please log in to view your profile.",
+      "profileInformation": {
+        "title": "Profile Information",
+        "nameLabel": "Full Name",
+        "emailLabel": "Email Address (cannot be changed)",
+        "updateButton": "Update Profile"
+      },
+      "changePassword": {
+        "title": "Change Password",
+        "currentPasswordLabel": "Current Password",
+        "newPasswordLabel": "New Password",
+        "confirmPasswordLabel": "Confirm New Password",
+        "updateButton": "Update Password"
+      },
+      "updateSuccess": "Profile updated successfully.",
+      "passwordChangeSuccess": "Password changed successfully.",
+      "updateError": "Failed to update profile. Please try again.",
+      "passwordChangeError": "Failed to change password. Please check your current password and try again.",
+      "passwordsDoNotMatch": "New passwords do not match."
+    },
+    "NotificationPreferences": {
+      "metadata": {
+        "title": "Notification Preferences",
+        "description": "Manage your notification settings"
+      },
+      "title": "Notification Preferences",
+      "description": "Choose what updates you receive and how often.",
+      "loadingError": "Could not load notification preferences. Please try again later.",
+      "emailNotifications": {
+        "title": "Email Notifications",
+        "orderUpdates": {
+          "label": "Order Updates",
+          "description": "Receive updates on your order status, shipping, and delivery."
+        },
+        "subscriptionUpdates": {
+          "label": "Subscription Updates",
+          "description": "Get notified about subscription activation, renewals, and payment issues."
+        },
+        "accountActivity": {
+          "label": "Account Activity",
+          "description": "Receive welcome emails, security alerts, and other important account notices."
+        },
+        "marketingAndPromotions": {
+          "label": "Marketing and Promotions",
+          "description": "Get news about our latest offers, discounts, and new products."
+        },
+        "productNewsAndTips": {
+          "label": "Product News and Tips",
+          "description": "Receive helpful tips, feature updates, and news about our products."
+        }
+      },
+      "notificationFrequency": {
+        "title": "Notification Frequency",
+        "selectLabel": "How often to receive notifications:",
+        "description": "Choose how frequently you want to receive general notifications. Critical alerts will always be sent immediately."
+      },
+      "frequencyOptions": {
+        "immediately": "Immediately",
+        "daily": "Daily Digest",
+        "weekly": "Weekly Digest",
+        "never": "Never (except critical alerts)"
+      },
+      "saveButton": "Save Preferences",
+      "saveSuccess": "Notification preferences updated successfully.",
+      "saveError": "Failed to update notification preferences. Please try again."
     }
   },
   "Subscription": {
@@ -310,9 +505,13 @@
     "leaderboard": "Leaderboard",
     "userMenuLabel": "User menu",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "services": "Services"
   },
-"Services": {
+  "Services": {
     "metaTitle": "Our Services",
     "metaDescription": "Explore the services we offer.",
     "title": "Services",
@@ -320,10 +519,58 @@
     "noServices": "No services available at the moment.",
     "serviceTypes": {
       "consulting": "Consulting",
+      "consultation": "Consultation",
       "development": "Development",
       "support": "Support",
       "other": "Other Services"
-    }
+    },
+    "features": "Features",
+    "serviceDetails": "Service Details",
+    "price": "Price",
+    "duration": "Duration",
+    "minutes": "minutes",
+    "type": "Type",
+    "book": "Book Now",
+    "order": "Order Now",
+    "details": "Details",
+    "allServices": "All Services",
+    "backToServices": "Back to Services",
+    "relatedServices": "Related Services",
+    "paymentRequired": "Payment required at booking",
+    "noPaymentRequired": "No upfront payment required",
+    "haveQuestions": "Have Questions?",
+    "description": "Description",
+    "flexible": "Flexible time",
+    "searchServices": "Search services...",
+    "filterServices": "Filter services",
+    "filterByCategory": "Filter by category",
+    "filterByPrice": "Filter by price",
+    "filterByDuration": "Filter by duration",
+    "applyFilters": "Apply filters",
+    "resetFilters": "Reset filters",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "priceAsc": "Price (lowest first)",
+      "priceDesc": "Price (highest first)",
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "newest": "Newest first"
+    },
+    "heroTitle": "Professional services for your business",
+    "heroSubtitle": "Find the right solution from our catalog of specialized services",
+    "showAllServices": "Show all services",
+    "servicesNotFound": "Services not found",
+    "tryAnotherSearch": "Try another search query or reset filters",
+    "popularServices": "Popular services",
+    "featuredServices": "Featured services",
+    "newServices": "New services",
+    "findService": "Find your service",
+    "findServiceDescription": "Use search or choose a category for faster lookup",
+    "serviceCategories": "Service categories",
+    "priceRange": "Price range",
+    "availability": "Availability",
+    "showResults": "Show results",
+    "clearAll": "Clear all"
   },
   "home": {
     "title": "Flow Masters",
@@ -374,9 +621,6 @@
         "invalidToken": "Invalid reset token"
       }
     },
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
     "name": "Full Name",
     "forgotPasswordLink": "Forgot Password?",
     "noAccount": "Don't have an account?",
@@ -411,18 +655,18 @@
       "privacyPolicy": "Privacy Policy"
     }
   },
-"CoursesPage": {
+  "CoursesPage": {
     "title": "Courses Catalog",
     "noCourses": "No courses available at the moment.",
     "metaTitle": "Courses Catalog",
     "metaDescription": "Browse our available courses."
   },
-"CourseCard": {
+  "CourseCard": {
     "viewCourse": "View Course",
     "viewCourseAria": "View course: {title}",
     "courseImageAlt": "Featured image for {title}"
   },
-"CoursePage": {
+  "CoursePage": {
     "featuredImageAltFallback": "Course image",
     "curriculumNoData": "No curriculum data available.",
     "curriculumHeading": "Course Curriculum",
@@ -455,7 +699,7 @@
     "timerClosed": "Enrollment closed.",
     "timerOpen": "Enrollment open.",
     "timerNotSet": "Enrollment dates not set."
-},
+  },
   "courses": {
     "all": "All Courses",
     "popular": "Popular Courses",
@@ -465,27 +709,27 @@
     "enroll": "Enroll Now",
     "continue": "Continue Learning",
     "completed": "Completed",
-"course": {
-    "targetAudience": {
-      "title": "Who is this course for?"
+    "course": {
+      "targetAudience": {
+        "title": "Who is this course for?"
+      },
+      "faq": {
+        "title": "Frequently Asked Questions"
+      },
+      "relatedCourses": {
+        "title": "You might also like"
+      },
+      "certificate": {
+        "title": "Certificate of Completion",
+        "description": "Upon successful completion of this course, you will receive a shareable certificate to showcase your new skills and knowledge."
+      },
+      "community": {
+        "title": "Community & Support",
+        "description": "Join our student community forum or reach out to support for assistance. We're here to help you succeed!",
+        "forumLink": "Community Forum",
+        "supportLink": "Contact Support"
+      }
     },
-    "faq": {
-      "title": "Frequently Asked Questions"
-    },
-    "relatedCourses": {
-      "title": "You might also like"
-    },
-    "certificate": {
-      "title": "Certificate of Completion",
-      "description": "Upon successful completion of this course, you will receive a shareable certificate to showcase your new skills and knowledge."
-    },
-    "community": {
-      "title": "Community & Support",
-      "description": "Join our student community forum or reach out to support for assistance. We're here to help you succeed!",
-      "forumLink": "Community Forum",
-      "supportLink": "Contact Support"
-    }
-  },
     "level": "Level",
     "duration": "Duration",
     "lessons": "Lessons",
@@ -511,7 +755,7 @@
     "by": "by",
     "relatedPosts": "Related Posts"
   },
-"blogPage": {
+  "blogPage": {
     "viewToggleGrid": "Grid",
     "viewToggleList": "List",
     "title": "Blog",
@@ -1322,8 +1566,7 @@
       "blog": "Blog",
       "community": "Community Forum"
     }
-  }
-,
+  },
   "servicesPage": {
     "hero": {
       "title": "Selling product descriptions in minutes, not hours",
@@ -1414,8 +1657,7 @@
       "title": "Ready to turn more visitors into buyers?",
       "text": "Submit a request to discuss how AI descriptions can increase your sales! Get a cost estimate and examples for your products.",
       "buttonText": "Discuss Project"
-    }
-,
+    },
     "problemSolution": {
       "problemTitle": "Facing these problems?",
       "problem1": "Spending hours on routine writing?",
@@ -1425,8 +1667,7 @@
       "solution1": "Automated generation using AI",
       "solution2": "Unique and engaging content",
       "solution3": "SEO optimization out-of-the-box"
-    }
-,
+    },
     "serviceDetails": {
       "title": "What's included?",
       "item1": {
@@ -1449,8 +1690,7 @@
         "title": "Flexible Export Formats",
         "description": "We provide finished descriptions in a convenient format (CSV, JSON, etc.)."
       }
-    }
-,
+    },
     "portfolio": {
       "title": "Our Work Examples",
       "beforeLabel": "Before:",
@@ -1461,8 +1701,7 @@
       "demoDescription": "Enter a product name to see a description example:",
       "demoInputPlaceholder": "e.g., 'Wireless headphones'",
       "demoButton": "Generate Example"
-    }
-,
+    },
     "pricing": {
       "title": "Pricing",
       "tier1": {

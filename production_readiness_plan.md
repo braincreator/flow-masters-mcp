@@ -229,11 +229,11 @@ This plan outlines the remaining tasks to achieve 100% production readiness for 
 **VI. User Interface (UI) / User Experience (UX)**
 
 - **A. Customer Facing (Frontend Application):**
-  1.  **Order Management:** Clean and intuitive UI for viewing order history (list with status, date, total), order details (items, pricing, shipping info, status history), tracking shipments (link to carrier if applicable).
+  1.  **Order Management:** Clean and intuitive UI for viewing order history (list with status, date, total), order details (items, pricing, shipping info, status history).
   2.  **Subscription Management:** UI for viewing active/past subscriptions (plan details, status, renewal date, cost), changing plans (clear comparison, proration info), pausing/resuming (confirming effects), cancelling subscriptions (retention flows?), updating payment methods linked to subscriptions.
   3.  **Payment Management:** UI for selecting payment methods during checkout, inputting payment details securely (likely via provider-hosted fields/redirects/iframes), viewing payment history (transaction list linked to orders/subscriptions), managing saved payment methods (adding new, deleting old, setting default - requires robust security and backend support).
   4.  **Account Management:** Standard UI for profile updates (name, email), password changes, managing notification preferences (linking to V.D).
-  5.  **Checkout Process:** Streamlined, multi-step or single-page checkout flow optimized for conversion. Clear display of items, costs (subtotal, taxes, shipping, total), payment options. Address entry/validation. Clear feedback on success or failure.
+  5.  **Checkout Process:** Streamlined, multi-step or single-page checkout flow optimized for conversion. Clear display of items, costs (subtotal, taxes, shipping, total), payment options. Clear feedback on success or failure.
 - **B. Administrator Facing (Payload Admin Panel & Custom UIs if any):**
   1.  **Order Management:** Enhanced Payload list view for orders (filtering, sorting, searching). Detail view showing all order data, related customer/subscription/payment info. Actions for manual status updates (e.g., mark as shipped), triggering refunds (linking to III.C.3), handling cancellations.
   2.  **Subscription Management:** Payload list view for subscriptions (filtering by status, plan, user). Detail view showing subscription history, linked orders, payment token status. Tools for viewing/editing subscription details, manually triggering lifecycle events (e.g., activate, cancel, pause), managing dunning process manually if needed.

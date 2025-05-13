@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react' 
 import Image from 'next/image'
-import { useCart } from '@/hooks/useCart'
-import { useTranslations } from '@/hooks/useTranslations'
-import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
+import { useCart } from '@/hooks/useCart' 
+// import { useTranslations } from '@/hooks/useTranslations' // Temporarily remove to isolate issues
+import { formatPrice } from '@/utilities/formatPrice' 
 import { Locale } from '@/constants'
 import { Button } from '@/components/ui/button'
 import { X, CreditCard, Wallet, ArrowRight, ShoppingBag, Loader2, Bitcoin } from 'lucide-react'
@@ -16,17 +16,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/utilities/ui'
-import { PaymentProvider } from '@/types/payment'
 import React from 'react'
-import { loadStripe } from '@stripe/stripe-js'
 import CryptoCurrencySelector from '@/components/CryptoCurrencySelector'
+import { Product, Service, CartSession, Media } from '@/payload-types' 
 
-// Validate email format
 const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
@@ -35,20 +31,28 @@ interface CheckoutClientProps {
   locale: Locale
 }
 
+interface PaymentProviderOption {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  credentials?: {
+    supported_currencies?: string;
+  };
+}
+
 export default function CheckoutClient({ locale }: CheckoutClientProps) {
-  const { items, removeFromCart, clearCart, total } = useCart()
-  const t = useTranslations(locale)
+  const { cart, total, clear: clearCart, remove: removeFromCart } = useCart() 
+  // const t = useTranslations(locale); // Temporarily using hardcoded strings
 
   const [email, setEmail] = useState('')
   const [isEmailValid, setIsEmailValid] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
-  const [paymentProviders, setPaymentProviders] = useState<Array<{ id: string; name: string }>>([])
+  const [paymentProviders, setPaymentProviders] = useState<Array<PaymentProviderOption>>([])
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
   const [isLoadingProviders, setIsLoadingProviders] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Добавляем состояние для кода скидки
   const [discountCode, setDiscountCode] = useState('')
   const [appliedDiscount, setAppliedDiscount] = useState<{
     code: string
@@ -58,34 +62,27 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false)
   const [discountError, setDiscountError] = useState<string | null>(null)
 
-  // No shipping address fields needed for digital products
-
-  // Add state for selected crypto currency
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState('ETH')
 
   useEffect(() => {
-    // Fetch available payment providers
     const fetchProviders = async () => {
       setIsLoadingProviders(true)
       try {
         const response = await fetch('/api/v1/payment/providers')
         if (!response.ok) throw new Error('Failed to fetch payment providers')
         const data = await response.json()
-        let providersData = data.providers || []
+        let providersData: PaymentProviderOption[] = data.providers || []
         let defaultProviderId = data.defaultProvider
 
-        // Only use providers that exist and are enabled
-        providersData = providersData.filter((provider) => provider && provider.enabled !== false)
+        providersData = providersData.filter((provider: PaymentProviderOption) => provider && provider.enabled !== false)
 
-        // If API returned empty list, don't fall back to defaults since we only want to show enabled providers
         if (!providersData || providersData.length === 0) {
           console.warn('No enabled payment providers found')
           providersData = []
           defaultProviderId = null
         }
 
-        // Ensure all providers have valid IDs
-        providersData = providersData.map((provider, index) => ({
+        providersData = providersData.map((provider: any, index: number) => ({
           id: provider.id || `provider-${index}`,
           name: provider.name || `Provider ${index + 1}`,
           credentials: provider.credentials || {},
@@ -93,17 +90,15 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
         setPaymentProviders(providersData)
 
-        // Set default provider if it exists and is enabled
-        if (defaultProviderId && providersData.some((p) => p.id === defaultProviderId)) {
+        if (defaultProviderId && providersData.some((p: PaymentProviderOption) => p.id === defaultProviderId)) {
           setSelectedProvider(defaultProviderId)
-        } else if (providersData.length > 0) {
+        } else if (providersData.length > 0 && providersData[0]) {
           setSelectedProvider(providersData[0].id)
         } else {
           setSelectedProvider(null)
         }
-      } catch (error) {
-        console.error('Error fetching payment providers:', error)
-        // Don't use fallback providers - only show what's enabled
+      } catch (errCatch) { 
+        console.error('Error fetching payment providers:', errCatch)
         setPaymentProviders([])
         setSelectedProvider(null)
       } finally {
@@ -112,7 +107,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     }
 
     fetchProviders()
-  }, [])
+  }, [locale])
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value
@@ -133,7 +128,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) {
-      setDiscountError(locale === 'ru' ? 'Введите код скидки' : 'Enter a discount code')
+      setDiscountError('Enter a discount code')
       return
     }
 
@@ -148,7 +143,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         },
         body: JSON.stringify({
           code: discountCode,
-          cartTotal: total,
+          cartTotal: total, 
         }),
       })
 
@@ -159,10 +154,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
 
       if (!data.isValid) {
-        setDiscountError(
-          data.message ||
-            (locale === 'ru' ? 'Недействительный код скидки' : 'Invalid discount code'),
-        )
+        setDiscountError(data.message || 'Invalid discount code')
         return
       }
 
@@ -171,17 +163,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         amount: data.discountAmount,
         percentage: data.discountPercentage,
       })
-
-      // Очищаем поле ввода после успешного применения
       setDiscountCode('')
-    } catch (err) {
-      console.error('Error applying discount:', err)
+    } catch (errCatch) { 
+      console.error('Error applying discount:', errCatch)
       setDiscountError(
-        err instanceof Error
-          ? err.message
-          : locale === 'ru'
-            ? 'Ошибка при применении скидки'
-            : 'Error applying discount',
+        errCatch instanceof Error
+          ? errCatch.message
+          : 'Error applying discount',
       )
     } finally {
       setIsApplyingDiscount(false)
@@ -193,66 +181,67 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   }
 
   const handleCheckout = async () => {
-    // Reset errors before checking
     setError(null)
     setEmailError(null)
 
-    // Check for email
     if (!email) {
-      setEmailError(locale === 'ru' ? 'Пожалуйста, укажите email' : 'Please enter your email')
+      setEmailError('Please enter your email')
       return
     }
-
-    // Check email format
     if (!isEmailValid) {
-      setEmailError(
-        locale === 'ru'
-          ? 'Пожалуйста, укажите корректный email (например, name@example.com)'
-          : 'Please enter a valid email address (e.g., name@example.com)',
-      )
+      setEmailError('Please enter a valid email address (e.g., name@example.com)')
       return
     }
-
-    // No shipping address validation needed for digital products
-
-    // Check if a payment provider is selected
     if (!selectedProvider) {
-      setError(
-        locale === 'ru' ? 'Пожалуйста, выберите способ оплаты' : 'Please select a payment method',
-      )
+      setError('Please select a payment method')
       return
     }
 
     try {
       setIsLoading(true)
-
-      // Find the selected provider object
       const provider = paymentProviders.find((p) => p.id === selectedProvider)
-
       if (!provider) {
-        throw new Error(
-          locale === 'ru'
-            ? 'Выбранный способ оплаты недоступен'
-            : 'Selected payment method is unavailable',
-        )
+        throw new Error('Selected payment method is unavailable')
       }
 
-      // Modify the paymentData to include crypto currency if crypto provider is selected
+      const paymentDataItems = cart?.items?.map((item) => {
+        if (item.itemType === 'service' && item.service) {
+          const serviceId = typeof item.service === 'string' ? item.service : item.service?.id;
+          if (!serviceId) return null;
+          return {
+            serviceId,
+            quantity: item.quantity,
+          };
+        }
+        if (item.itemType === 'product' && item.product) {
+          const productId = typeof item.product === 'string' ? item.product : item.product?.id;
+          if (!productId) return null;
+          return {
+            productId,
+            quantity: item.quantity,
+          };
+        }
+        return null; 
+      }).filter(Boolean);
+
+      if (!paymentDataItems || paymentDataItems.length === 0) {
+        throw new Error('Cart is empty');
+      }
+      
+      const cryptoSpecificData: { selectedCurrency?: string } = {};
+      if (provider.id === 'crypto') {
+        cryptoSpecificData.selectedCurrency = selectedCryptoCurrency;
+      }
+
       const paymentData = {
-        items: items.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
+        items: paymentDataItems,
         customer: {
           email,
           locale,
-          // No address needed for digital products
         },
-        provider: provider,
+        provider: provider, 
         returnUrl: `${window.location.origin}/${locale}/payment/success`,
-        ...(provider.id === 'crypto' && {
-          selectedCurrency: selectedCryptoCurrency,
-        }),
+        ...cryptoSpecificData,
         ...(appliedDiscount && {
           discount: {
             code: appliedDiscount.code,
@@ -274,33 +263,65 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         throw new Error(errorData.error || 'Checkout failed')
       }
 
-      const { paymentUrl, orderId, orderNumber } = await response.json()
-
-      // Clear cart and redirect to payment page
-      clearCart()
+      const { paymentUrl } = await response.json()
+      
+      if (clearCart) {
+        await clearCart();
+      }
       window.location.href = paymentUrl
-    } catch (err) {
-      console.error('Checkout error:', err)
+    } catch (errCatch) { 
+      console.error('Checkout error:', errCatch)
       setError(
-        err instanceof Error
-          ? err.message
-          : locale === 'ru'
-            ? 'Ошибка при оформлении заказа'
-            : 'Checkout error occurred',
+        errCatch instanceof Error
+          ? errCatch.message
+          : 'Checkout error occurred',
       )
     } finally {
       setIsLoading(false)
     }
   }
+  
+  const currentCartItems = cart?.items || [];
 
-  const getProductTitle = (product: any) => {
-    if (typeof product.title === 'object') {
-      return product.title[locale] || product.title.en || 'Product'
+  type CartItemType = NonNullable<CartSession['items']>[0];
+
+
+  const getItemTitle = (item: CartItemType): string => {
+    const entity = item.itemType === 'service' ? item.service : item.product;
+    if (entity && typeof entity !== 'string' && entity.title) {
+      if (typeof entity.title === 'object' && entity.title !== null) {
+        const localizedTitle = (entity.title as any)[locale] || (entity.title as any).en;
+        if (localizedTitle) return String(localizedTitle);
+      } else if (typeof entity.title === 'string') {
+        return entity.title;
+      }
     }
-    return product.title || 'Product'
+    return item.itemType === 'service' ? 'Service' : 'Product';
   }
 
-  if (items.length === 0) {
+  const getItemImageUrl = (item: CartItemType): string | null => {
+    if (item.itemType === 'service' && item.service && typeof item.service !== 'string') {
+      const service = item.service as Service; 
+      if (service.thumbnail && typeof service.thumbnail !== 'string') {
+        return (service.thumbnail as Media).url || null;
+      }
+    } else if (item.itemType === 'product' && item.product && typeof item.product !== 'string') {
+      const product = item.product as Product; 
+      if (product.thumbnail && typeof product.thumbnail !== 'string') {
+        return (product.thumbnail as Media).url || null;
+      }
+      if (product.gallery && product.gallery.length > 0 && product.gallery[0]?.image) {
+        const firstImageInGallery = product.gallery[0].image;
+        if (firstImageInGallery && typeof firstImageInGallery !== 'string') {
+          return (firstImageInGallery as Media).url || null;
+        }
+      }
+    }
+    return null; 
+  }
+
+
+  if (currentCartItems.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="mb-4 flex justify-center">
@@ -310,9 +331,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
           {locale === 'ru' ? 'Ваша корзина пуста' : 'Your cart is empty'}
         </h2>
         <p className="text-muted-foreground mb-6">
-          {locale === 'ru'
-            ? 'Добавьте товары в корзину, чтобы продолжить'
-            : 'Add some items to your cart to continue'}
+          {locale === 'ru' ? 'Добавьте товары в корзину, чтобы продолжить' : 'Add some items to your cart to continue'}
         </p>
         <Button asChild>
           <a href={`/${locale}/products`}>
@@ -325,32 +344,24 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left column - Cart items */}
       <div className="lg:col-span-2">
         <Card>
           <CardHeader>
             <CardTitle>{locale === 'ru' ? 'Корзина товаров' : 'Shopping Cart'}</CardTitle>
             <CardDescription>
-              {items.length === 0
-                ? locale === 'ru'
-                  ? 'Ваша корзина пуста'
-                  : 'Your cart is empty'
-                : locale === 'ru'
-                  ? `${items.length} ${
-                      items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'
-                    } в корзине`
-                  : `${items.length} ${items.length === 1 ? 'item' : 'items'} in your cart`}
+              {currentCartItems.length === 0
+                ? (locale === 'ru' ? 'Ваша корзина пуста' : 'Your cart is empty')
+                : `${currentCartItems.length} ${ currentCartItems.length === 1 ? (locale === 'ru' ? 'товар' : 'item') : (locale === 'ru' ? (currentCartItems.length < 5 ? 'товара' : 'товаров') : 'items')} ${locale === 'ru' ? 'в корзине' : 'in your cart'}`
+              }
             </CardDescription>
           </CardHeader>
 
           <CardContent>
-            {items.length === 0 ? (
+            {currentCartItems.length === 0 ? (
               <div className="text-center py-8">
                 <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
                 <p className="text-muted-foreground">
-                  {locale === 'ru'
-                    ? 'Ваша корзина пуста. Добавьте товары для оформления заказа.'
-                    : 'Your cart is empty. Add some products to proceed with checkout.'}
+                  {locale === 'ru' ? 'Ваша корзина пуста. Добавьте товары для оформления заказа.' : 'Your cart is empty. Add some products to proceed with checkout.'}
                 </p>
                 <Button className="mt-4" asChild>
                   <a href={`/${locale}`}>
@@ -360,44 +371,49 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
               </div>
             ) : (
               <div className="divide-y">
-                {/* Cart items */}
-                {items.map((item) => (
-                  <div key={`cart-item-${item.product.id}`} className="py-3 flex justify-between">
-                    <div className="flex items-start">
-                      <div className="mr-3 relative h-16 w-16 rounded-md overflow-hidden">
-                        {item.product.images?.[0]?.url ? (
-                          <Image
-                            src={item.product.images[0].url}
-                            alt={getProductTitle(item.product)}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-muted flex items-center justify-center">
-                            <ShoppingBag className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {getProductTitle(item.product)}
-                          {item.quantity > 1 && ` × ${item.quantity}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {locale === 'ru' ? 'Кол-во' : 'Qty'}: {item.quantity}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="font-medium">
-                      {formatPrice(
-                        item.product.price * item.quantity,
-                        locale === 'ru' ? 'RUB' : 'USD',
-                      )}
-                    </p>
-                  </div>
-                ))}
+                {currentCartItems.map((item: CartItemType) => { 
+                  const itemId = item.itemType === 'service' 
+                    ? (typeof item.service === 'string' ? item.service : item.service?.id) 
+                    : (typeof item.product === 'string' ? item.product : item.product?.id);
+                  const imageUrl = getItemImageUrl(item);
+                  const title = getItemTitle(item);
 
-                {/* Order summary */}
+                  return (
+                    <div key={`cart-item-${item.itemType}-${itemId}`} className="py-3 flex justify-between">
+                      <div className="flex items-start">
+                        <div className="mr-3 relative h-16 w-16 rounded-md overflow-hidden">
+                          {imageUrl ? (
+                            <Image
+                              src={imageUrl}
+                              alt={title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-muted flex items-center justify-center">
+                              <ShoppingBag className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {title}
+                            {(item.quantity || 0) > 1 && ` × ${item.quantity}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {locale === 'ru' ? 'Кол-во' : 'Qty'}: {item.quantity || 0}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="font-medium">
+                        {formatPrice(
+                          (item.price || 0) * (item.quantity || 0),
+                          locale === 'ru' ? 'RUB' : 'USD',
+                        )}
+                      </p>
+                    </div>
+                  )
+                })}
                 <div className="pt-3 space-y-2">
                   <div key="subtotal" className="flex justify-between">
                     <p className="text-muted-foreground">
@@ -406,7 +422,6 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     <p>{formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}</p>
                   </div>
 
-                  {/* Discount code input */}
                   <div className="mt-4 mb-2">
                     <Label htmlFor="discount-code" className="text-sm">
                       {locale === 'ru' ? 'Код скидки' : 'Discount code'}
@@ -415,7 +430,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                       <Input
                         id="discount-code"
                         type="text"
-                        placeholder={locale === 'ru' ? 'Введите код' : 'Enter code'}
+                        placeholder={locale === 'ru' ? 'Введите код' : 'Enter code'} 
                         value={discountCode}
                         onChange={handleDiscountCodeChange}
                         className="rounded-r-none"
@@ -430,11 +445,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                       >
                         {isApplyingDiscount ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : locale === 'ru' ? (
-                          'Применить'
-                        ) : (
-                          'Apply'
-                        )}
+                        ) : (locale === 'ru' ? 'Применить' : 'Apply')} 
                       </Button>
                     </div>
                     {discountError && (
@@ -442,7 +453,6 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     )}
                   </div>
 
-                  {/* Applied discount */}
                   {appliedDiscount && (
                     <div className="flex justify-between items-center text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded">
                       <div className="flex items-center">
@@ -468,13 +478,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                     </div>
                   )}
 
-                  {/* No shipping row needed for digital products */}
                   <div key="separator" className="border-t my-2" />
                   <div key="total" className="flex justify-between font-medium">
                     <p>{locale === 'ru' ? 'Итого' : 'Total'}</p>
                     <p>
                       {formatPrice(
-                        appliedDiscount ? total - appliedDiscount.amount : total,
+                        appliedDiscount && typeof appliedDiscount.amount === 'number' ? total - appliedDiscount.amount : total,
                         locale === 'ru' ? 'RUB' : 'USD',
                       )}
                     </p>
@@ -491,9 +500,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
               {locale === 'ru' ? 'Контактная информация' : 'Contact information'}
             </CardTitle>
             <CardDescription>
-              {locale === 'ru'
-                ? 'Укажите email для получения товара и чека'
-                : 'Enter your email to receive the product and receipt'}
+              {locale === 'ru' ? 'Укажите email для получения товара и чека' : 'Enter your email to receive the product and receipt'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -519,12 +526,9 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                 {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
               </div>
 
-              {/* Shipping address section removed - not needed for digital products */}
               <div className="pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  {locale === 'ru'
-                    ? 'Для цифровых продуктов адрес доставки не требуется'
-                    : 'No shipping address required for digital products'}
+                  {locale === 'ru' ? 'Для цифровых продуктов адрес доставки не требуется' : 'No shipping address required for digital products'}
                 </p>
               </div>
             </div>
@@ -532,15 +536,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         </Card>
       </div>
 
-      {/* Right column - Payment method and summary */}
       <div>
         <Card>
           <CardHeader>
             <CardTitle>{locale === 'ru' ? 'Способ оплаты' : 'Payment Method'}</CardTitle>
             <CardDescription>
-              {locale === 'ru'
-                ? 'Выберите удобный способ оплаты'
-                : 'Select your preferred payment method'}
+              {locale === 'ru' ? 'Выберите удобный способ оплаты' : 'Select your preferred payment method'}
             </CardDescription>
           </CardHeader>
 
@@ -555,18 +556,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                   {locale === 'ru' ? 'Способы оплаты недоступны' : 'Payment Methods Unavailable'}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  {locale === 'ru'
-                    ? 'В настоящее время способы оплаты недоступны. Пожалуйста, попробуйте позже или свяжитесь с поддержкой.'
-                    : 'Payment methods are currently unavailable. Please try again later or contact support.'}
+                  {locale === 'ru' ? 'В настоящее время способы оплаты недоступны. Пожалуйста, попробуйте позже или свяжитесь с поддержкой.' : 'Payment methods are currently unavailable. Please try again later or contact support.'}
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {paymentProviders.map((provider, index) => {
-                  // Ensure provider has unique ID
+                {paymentProviders.map((provider: PaymentProviderOption, index: number) => {
                   const providerId = provider.id || `provider-${index}`
-
-                  // Determine which icon to show based on provider ID
                   let providerIcon = null
                   if (providerId === 'yoomoney') {
                     providerIcon = <CreditCard className="mr-2 h-5 w-5 text-yellow-500" />
@@ -611,22 +607,19 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                   )
                 })}
 
-                {/* Show crypto currency selector when crypto payment is selected */}
                 {selectedProvider === 'crypto' && (
                   <div className="ml-8 mt-3">
                     <CryptoCurrencySelector
                       value={selectedCryptoCurrency}
                       onChange={setSelectedCryptoCurrency}
                       supportedCurrencies={
-                        paymentProviders.find((p) => p.id === 'crypto')?.credentials
+                        paymentProviders.find((p: PaymentProviderOption) => p.id === 'crypto')?.credentials
                           ?.supported_currencies || 'ETH,USDT,DAI'
                       }
                       className="mb-2"
                     />
                     <p className="text-sm text-muted-foreground">
-                      {locale === 'ru'
-                        ? 'Обратите внимание, что платеж будет в выбранной валюте'
-                        : 'Note: Payment will be in the selected currency'}
+                      {locale === 'ru' ? 'Обратите внимание, что платеж будет в выбранной валюте' : 'Note: Payment will be in the selected currency'}
                     </p>
                   </div>
                 )}
@@ -641,20 +634,18 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
               onClick={handleCheckout}
               disabled={
                 isLoading ||
-                items.length === 0 ||
+                currentCartItems.length === 0 ||
                 !isEmailValid ||
                 isLoadingProviders ||
                 !selectedProvider
               }
             >
               {isLoading ? (
-                /* Loading state */
                 <React.Fragment key="loading-state">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   <span>{locale === 'ru' ? 'Обработка...' : 'Processing...'}</span>
                 </React.Fragment>
               ) : (
-                /* Ready state */
                 <React.Fragment key="ready-state">
                   <span>{locale === 'ru' ? 'Оплатить заказ' : 'Pay now'}</span>
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -669,9 +660,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
             )}
 
             <p className="text-xs text-muted-foreground text-center">
-              {locale === 'ru'
-                ? 'Оплачивая заказ, вы соглашаетесь с условиями обслуживания и политикой конфиденциальности'
-                : 'By completing your purchase, you agree to our terms of service and privacy policy'}
+              {locale === 'ru' ? 'Оплачивая заказ, вы соглашаетесь с условиями обслуживания и политикой конфиденциальности' : 'By completing your purchase, you agree to our terms of service and privacy policy'}
             </p>
           </CardFooter>
         </Card>

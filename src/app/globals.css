@@ -162,6 +162,18 @@
     animation: badgePulse 2s infinite ease-in-out;
   }
 
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out forwards;
+  }
+
   .compact-badge {
     @apply text-[10px] md:text-xs py-0.5 px-1.5 whitespace-nowrap font-medium rounded-sm transition-all;
     @apply hover:shadow-sm hover:scale-105 cursor-default;
@@ -586,11 +598,33 @@
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(5px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 

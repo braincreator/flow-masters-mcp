@@ -36,14 +36,38 @@ export const CartSessions: CollectionConfig = {
       name: 'items',
       type: 'array',
       admin: {
-        description: 'Products in the cart',
+        description: 'Items in the cart (products or services)',
       },
       fields: [
+        {
+          name: 'itemType',
+          type: 'select', // Or radio
+          options: [
+            { label: 'Product', value: 'product' },
+            { label: 'Service', value: 'service' },
+          ],
+          required: true,
+          admin: {
+            description: 'The type of item added to the cart.',
+          },
+        },
         {
           name: 'product',
           type: 'relationship',
           relationTo: 'products',
-          required: true,
+          required: false,
+          admin: {
+            condition: ({ siblingData }) => siblingData?.itemType === 'product',
+          },
+        },
+        {
+          name: 'service',
+          type: 'relationship',
+          relationTo: 'services',
+          required: false,
+          admin: {
+            condition: ({ siblingData }) => siblingData?.itemType === 'service',
+          },
         },
         {
           name: 'quantity',
@@ -52,11 +76,19 @@ export const CartSessions: CollectionConfig = {
           min: 1,
         },
         {
-          name: 'price',
+          name: 'priceSnapshot', // Renamed from 'price'
           type: 'number',
           required: true,
           admin: {
-            description: 'Price at the time of adding to cart',
+            description: 'Price of the item at the time it was added to the cart.',
+          },
+        },
+        {
+          name: 'titleSnapshot', // New field
+          type: 'text',
+          required: false, // Optional, but good to have
+          admin: {
+            description: 'Title/name of the item at the time it was added to the cart.',
           },
         },
       ],
@@ -131,10 +163,12 @@ export const CartSessions: CollectionConfig = {
         // Calculate total item count and total price
         if (data.items && Array.isArray(data.items)) {
           data.itemCount = data.items.reduce((count, item) => count + (item.quantity || 0), 0)
-          data.total = data.items.reduce(
-            (total, item) => total + (item.price || 0) * (item.quantity || 0),
-            0,
-          )
+          data.total = data.items.reduce((currentTotal, item) => {
+            // Ensure priceSnapshot and quantity are valid numbers
+            const price = typeof item.priceSnapshot === 'number' ? item.priceSnapshot : 0;
+            const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
+            return currentTotal + price * quantity;
+          }, 0);
         }
 
         // Set expiration date if not set

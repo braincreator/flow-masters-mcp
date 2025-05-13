@@ -1,10 +1,10 @@
-import { CollectionConfig } from 'payload/types'
+import { CollectionConfig } from 'payload'
 
 export const SubscriptionPayments: CollectionConfig = {
   slug: 'subscription-payments',
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['subscriptionId', 'status', 'amount', 'paymentDate'],
+    defaultColumns: ['id', 'subscriptionId', 'status', 'amount', 'currency', 'paymentDate', 'paymentMethod', 'transactionId'],
     group: 'Subscriptions',
   },
   access: {

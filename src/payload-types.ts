@@ -1855,29 +1855,32 @@ export interface User {
     | null;
   locale?: ('ru' | 'en') | null;
   /**
-   * Email notification preferences
+   * Manage your notification settings.
    */
-  emailNotifications?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Push notification preferences
-   */
-  pushNotifications?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  notificationPreferences?: {
+    email?: {
+      /**
+       * Receive updates about your orders (e.g., confirmation, shipping, cancellation).
+       */
+      orderUpdates?: boolean | null;
+      /**
+       * Receive updates about your subscriptions (e.g., activation, renewal, payment issues).
+       */
+      subscriptionUpdates?: boolean | null;
+      /**
+       * Receive notifications for important account activities (e.g., welcome email, security alerts).
+       */
+      accountActivity?: boolean | null;
+      /**
+       * Receive promotional offers, news about new products, and special deals.
+       */
+      marketingAndPromotions?: boolean | null;
+      /**
+       * Receive updates about new features, platform improvements, and helpful tips.
+       */
+      productNewsAndTips?: boolean | null;
+    };
+  };
   /**
    * How often to receive notifications
    */
@@ -8764,16 +8767,25 @@ export interface CartSession {
    */
   sessionId: string;
   /**
-   * Products in the cart
+   * Items in the cart (products or services)
    */
   items?:
     | {
-        product: string | Product;
+        /**
+         * The type of item added to the cart.
+         */
+        itemType: 'product' | 'service';
+        product?: (string | null) | Product;
+        service?: (string | null) | Service;
         quantity: number;
         /**
-         * Price at the time of adding to cart
+         * Price of the item at the time it was added to the cart.
          */
-        price: number;
+        priceSnapshot: number;
+        /**
+         * Title/name of the item at the time it was added to the cart.
+         */
+        titleSnapshot?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -15020,8 +15032,19 @@ export interface UsersSelect<T extends boolean = true> {
         id?: T;
       };
   locale?: T;
-  emailNotifications?: T;
-  pushNotifications?: T;
+  notificationPreferences?:
+    | T
+    | {
+        email?:
+          | T
+          | {
+              orderUpdates?: T;
+              subscriptionUpdates?: T;
+              accountActivity?: T;
+              marketingAndPromotions?: T;
+              productNewsAndTips?: T;
+            };
+      };
   notificationFrequency?: T;
   segments?: T;
   xp?: T;
@@ -15587,9 +15610,12 @@ export interface CartSessionsSelect<T extends boolean = true> {
   items?:
     | T
     | {
+        itemType?: T;
         product?: T;
+        service?: T;
         quantity?: T;
-        price?: T;
+        priceSnapshot?: T;
+        titleSnapshot?: T;
         id?: T;
       };
   itemCount?: T;

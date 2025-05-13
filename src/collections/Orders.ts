@@ -16,6 +16,7 @@ import type {
 } from '../payload-types'
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
+import { NotificationService } from '../services/notification.service'
 import { convertPrice } from '@/utilities/formatPrice'
 
 // Interim type for the Order data within the hook, including new fields
@@ -337,6 +338,7 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
 }) => {
   const { payload } = req as PayloadRequest // Assert req to PayloadRequest
   const logger = payload.logger || console
+  const notificationService = NotificationService.getInstance(payload)
 
   // --- Integration Service Event ---
   try {
@@ -433,9 +435,9 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
           nextPaymentDate: nextPaymentDate.toISOString(),
           paymentProvider: doc.paymentProvider || 'unknown',
           // paymentToken: doc.paymentData?.token || null, // Extract token if available in paymentData structure
-          lastPaymentDate: shouldActivate
+          renewedAt: shouldActivate // Corrected field
             ? new Date().toISOString()
-            : existingSubscription?.lastPaymentDate,
+            : existingSubscription?.renewedAt, // Corrected field
           paymentRetryAttempt: 0, // Reset retries on activation/creation
         }
 
@@ -450,7 +452,7 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
               id: existingSubscription.id,
               data: {
                 status: 'active',
-                lastPaymentDate: new Date().toISOString(),
+                renewedAt: new Date().toISOString(), // Corrected field
                 // Optionally update other fields if they can change post-creation
                 // amount: subscriptionData.amount,
                 // currency: subscriptionData.currency,
@@ -492,9 +494,109 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
       (doc.status === 'refunded' || doc.status === 'partially_refunded') &&
       previousDoc?.status !== 'refunded' &&
       previousDoc?.status !== 'partially_refunded'
+    const isShippedOrDelivered =
+      (doc.status === 'shipped' || doc.status === 'delivered') &&
+      previousDoc?.status !== 'shipped' &&
+      previousDoc?.status !== 'delivered'
 
-    if ((isCancelled || isRefunded) && doc.orderType === 'subscription') {
-      const reason = isCancelled ? 'cancelled' : 'refunded'
+    // Handle Order Shipped/Delivered Notification for physical products
+    if (isShippedOrDelivered && doc.orderType === 'product') {
+      logger.info(
+        `Order ${doc.id} status changed to '${doc.status}'. Sending shipped/fulfilled notification.`,
+      )
+      try {
+        // TODO: Populate shipmentDetails if available from doc (e.g., doc.shipmentData)
+        await notificationService.sendOrderShippedFulfilledNotification(doc.id)
+      } catch (e: any) {
+        logger.error(
+          `Error sending order shipped/fulfilled notification for order ${doc.id}: ${e.message}`,
+        )
+      }
+    }
+
+    if (isCancelled) {
+      logger.info(
+        `Order ${doc.id} status changed to 'cancelled'. Processing related actions and sending notification.`,
+      )
+      try {
+        await notificationService.sendOrderCancelledNotification(
+          doc.id,
+          doc.cancellationDetails?.reason,
+        )
+      } catch (e: any) {
+        logger.error(`Error sending order cancelled notification for order ${doc.id}: ${e.message}`)
+      }
+
+      // Existing logic for subscription cancellation due to order cancellation
+      if (doc.orderType === 'subscription') {
+        const reason = 'cancelled'
+        logger.info(
+          `Order ${doc.id} (subscription) status changed to '${doc.status}'. Processing related subscription cancellation.`,
+        )
+        const cancellationTimestamp = new Date().toISOString()
+
+        try {
+          const { docs: subscriptionsToCancel } = await payload.find({
+            collection: 'subscriptions',
+            where: { order: { equals: doc.id } },
+            req: req as PayloadRequest,
+          })
+
+          for (const sub of (subscriptionsToCancel || []) as SubscriptionType[]) {
+            if (sub && sub.id && sub.status !== 'canceled') {
+              await payload.update({
+                collection: 'subscriptions',
+                id: sub.id,
+                data: {
+                  status: 'canceled',
+                  canceledAt: cancellationTimestamp,
+                },
+                req: req as PayloadRequest,
+              })
+              logger.info(
+                `Subscription ${sub.id} marked as 'canceled' due to order ${doc.id} being ${reason}.`,
+              )
+            } else if (sub && sub.status === 'canceled') {
+              logger.info(`Subscription ${sub.id} for order ${doc.id} was already cancelled.`)
+            } else if (!sub) {
+              logger.warn(`No valid subscription found to cancel for order ${doc.id}.`)
+            }
+          }
+        } catch (error: any) {
+          logger.error(
+            `Error cancelling subscription related to order ${doc.id}: ${error?.message || String(error)}`,
+          )
+        }
+
+        // Update cancellation details on the order itself
+        if (!doc.cancellationDetails?.cancelledAt) {
+          try {
+            await payload.update({
+              collection: 'orders',
+              id: doc.id,
+              data: {
+                cancellationDetails: {
+                  ...(doc.cancellationDetails || {}),
+                  cancelledAt: cancellationTimestamp,
+                  reason: doc.cancellationDetails?.reason || `Order cancelled via status change`,
+                },
+              } as any,
+              req: req as PayloadRequest,
+              overrideAccess: true,
+              depth: 0,
+            })
+          } catch (orderUpdateError: any) {
+            logger.error(
+              `Error updating order ${doc.id} cancellation details: ${orderUpdateError?.message || String(orderUpdateError)}`,
+            )
+          }
+        }
+      }
+    }
+
+    // Existing logic for subscription cancellation due to order refund
+    if (isRefunded && doc.orderType === 'subscription') {
+      const reason = 'refunded'
       logger.info(
         `Order ${doc.id} (subscription) status changed to '${doc.status}'. Processing related subscription cancellation.`,
       )
@@ -515,8 +617,6 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
               data: {
                 status: 'canceled',
                 canceledAt: cancellationTimestamp,
-                // Optionally add a note about the reason (order cancelled/refunded)
-                // metadata: { ...sub.metadata, cancellationReason: `Order ${reason}` }
               },
               req: req as PayloadRequest,
             })
@@ -531,32 +631,8 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
         }
       } catch (error: any) {
         logger.error(
-          `Error cancelling subscription related to order ${doc.id}: ${error?.message || String(error)}`,
+          `Error cancelling subscription related to order ${doc.id} (refund): ${error?.message || String(error)}`,
         )
-      }
-
-      // Update cancellation details on the order itself (if not already handled)
-      if (isCancelled && !doc.cancellationDetails?.cancelledAt) {
-        try {
-          await payload.update({
-            collection: 'orders',
-            id: doc.id,
-            data: {
-              cancellationDetails: {
-                ...(doc.cancellationDetails || {}),
-                cancelledAt: cancellationTimestamp,
-                reason: doc.cancellationDetails?.reason || `Order cancelled via status change`,
-              },
-            } as any, // Use 'as any' for conciseness and to bypass complex type checks
-            req: req as PayloadRequest, // Pass req
-            overrideAccess: true, // Ensure hook can update
-            depth: 0, // Avoid fetching relations again
-          })
-        } catch (orderUpdateError: any) {
-          logger.error(
-            `Error updating order ${doc.id} cancellation details: ${orderUpdateError?.message || String(orderUpdateError)}`,
-          )
-        }
       }
     }
   }

@@ -20,6 +20,201 @@
         "heading": "Выберите план подписки",
         "description": "Выберите план, соответствующий вашим потребностям"
       }
+    },
+    "OrderHistory": {
+      "metadata": {
+        "title": "История заказов",
+        "description": "Просмотр ваших прошлых заказов"
+      },
+      "title": "Мои заказы",
+      "noOrders": "Вы еще не разместили ни одного заказа.",
+      "orderNumber": "Заказ №",
+      "date": "Дата",
+      "total": "Сумма",
+      "status": "Статус",
+      "actions": "Действия",
+      "viewDetails": "Посмотреть детали"
+    },
+    "OrderDetail": {
+      "metadata": {
+        "title": "Детали заказа",
+        "description": "Просмотр деталей конкретного заказа"
+      },
+      "title": "Детали заказа №{orderNumber}",
+      "backToOrders": "Назад к заказам",
+      "placedOn": "Размещен {date}",
+      "status": "Статус",
+      "trackShipment": "Отследить посылку",
+      "itemsOrdered": "Заказанные товары",
+      "quantity": "Кол-во",
+      "each": "за шт.",
+      "orderSummary": "Сводка по заказу",
+      "subtotal": "Подытог",
+      "shipping": "Доставка",
+      "tax": "Налог",
+      "discount": "Скидка",
+      "total": "Итого",
+      "paymentInformation": "Платежная информация",
+      "paymentMethod": "Способ оплаты",
+      "shippingAddress": "Адрес доставки",
+      "billingAddress": "Платежный адрес",
+      "statusHistory": "История статусов заказа",
+      "reorder": "Повторить заказ",
+      "contactSupport": "Связаться с поддержкой",
+      "notFound": "Заказ не найден"
+    },
+    "SubscriptionList": {
+      "metadata": {
+        "title": "Мои подписки",
+        "description": "Просмотр и управление вашими подписками"
+      },
+      "title": "Мои подписки",
+      "noSubscriptionsTitle": "Подписок пока нет",
+      "noSubscriptionsDescription": "У вас нет активных или прошлых подписок.",
+      "browsePlansButton": "Посмотреть тарифы",
+      "planName": "Название тарифа",
+      "status": "Статус",
+      "renewalDate": "След. продление / Истекает",
+      "cost": "Стоимость",
+      "actions": "Действия",
+      "manage": "Управлять"
+    },
+    "SubscriptionDetail": {
+      "metadata": {
+        "title": "Детали подписки",
+        "description": "Управление деталями вашей подписки"
+      },
+      "title": "Детали подписки",
+      "backToSubscriptions": "Назад к подпискам",
+      "planName": "Тариф",
+      "status": "Статус",
+      "startDate": "Дата начала",
+      "nextRenewalDate": "Дата следующего продления",
+      "pausedOn": "Приостановлена",
+      "cost": "Стоимость",
+      "month": "месяц",
+      "paymentMethod": "Способ оплаты",
+      "planFeatures": "Возможности тарифа",
+      "manageSubscription": "Управление подпиской",
+      "changePlan": "Сменить тариф",
+      "pauseSubscription": "Приостановить подписку",
+      "resumeSubscription": "Возобновить подписку",
+      "cancelSubscription": "Отменить подписку",
+      "updatePaymentMethod": "Обновить способ оплаты",
+      "billingHistory": "История платежей",
+      "billingDate": "Дата",
+      "billingAmount": "Сумма",
+      "billingStatus": "Статус",
+      "invoiceId": "ID счета",
+      "notFound": "Подписка не найдена"
+    },
+    "PaymentHistory": {
+      "metadata": {
+        "title": "История платежей",
+        "description": "Просмотр ваших прошлых платежных транзакций"
+      },
+      "title": "История платежей",
+      "managePaymentMethods": "Управление способами оплаты",
+      "noTransactionsTitle": "Транзакций пока нет",
+      "noTransactionsDescription": "Вы еще не совершали никаких платежей.",
+      "date": "Дата",
+      "description": "Описание",
+      "amount": "Сумма",
+      "method": "Способ",
+      "status": "Статус",
+      "reference": "Ссылка",
+      "orderRef": "Заказ: {orderId}",
+      "subscriptionRef": "Подписка: {subscriptionId}"
+    },
+    "PaymentMethods": {
+      "metadata": {
+        "title": "Сохраненные способы оплаты",
+        "description": "Управление вашими сохраненными способами оплаты"
+      },
+      "title": "Сохраненные способы оплаты",
+      "description": "Управляйте сохраненными картами и другими способами оплаты для более быстрой оплаты.",
+      "addNewMethod": "Добавить новый способ",
+      "noMethodsTitle": "Нет сохраненных способов",
+      "noMethodsDescription": "Вы еще не сохранили ни одного способа оплаты.",
+      "endingIn": "заканчивается на",
+      "expires": "Истекает",
+      "default": "По умолчанию",
+      "setDefault": "Сделать по умолчанию",
+      "delete": "Удалить",
+      "unknownMethod": "Неизвестный способ оплаты",
+      "backToPaymentHistory": "Назад к истории платежей"
+    },
+    "Profile": {
+      "metadata": {
+        "title": "Профиль аккаунта",
+        "description": "Управление вашим профилем и паролем"
+      },
+      "title": "Профиль аккаунта",
+      "notAuthenticated": "Пожалуйста, войдите, чтобы просмотреть свой профиль.",
+      "profileInformation": {
+        "title": "Информация профиля",
+        "nameLabel": "Полное имя",
+        "emailLabel": "Email адрес (нельзя изменить)",
+        "updateButton": "Обновить профиль"
+      },
+      "changePassword": {
+        "title": "Изменить пароль",
+        "currentPasswordLabel": "Текущий пароль",
+        "newPasswordLabel": "Новый пароль",
+        "confirmPasswordLabel": "Подтвердите новый пароль",
+        "updateButton": "Обновить пароль"
+      },
+      "updateSuccess": "Профиль успешно обновлен.",
+      "passwordChangeSuccess": "Пароль успешно изменен.",
+      "updateError": "Не удалось обновить профиль. Пожалуйста, попробуйте еще раз.",
+      "passwordChangeError": "Не удалось изменить пароль. Пожалуйста, проверьте текущий пароль и попробуйте еще раз.",
+      "passwordsDoNotMatch": "Новые пароли не совпадают."
+    },
+    "NotificationPreferences": {
+      "metadata": {
+        "title": "Настройки уведомлений",
+        "description": "Управление вашими настройками уведомлений"
+      },
+      "title": "Настройки уведомлений",
+      "description": "Выберите, какие обновления вы получаете и как часто.",
+      "loadingError": "Не удалось загрузить настройки уведомлений. Пожалуйста, попробуйте позже.",
+      "emailNotifications": {
+        "title": "Email Уведомления",
+        "orderUpdates": {
+          "label": "Обновления заказов",
+          "description": "Получайте обновления о статусе вашего заказа, доставке."
+        },
+        "subscriptionUpdates": {
+          "label": "Обновления подписок",
+          "description": "Получайте уведомления об активации подписки, продлениях и проблемах с оплатой."
+        },
+        "accountActivity": {
+          "label": "Активность аккаунта",
+          "description": "Получайте приветственные письма, оповещения безопасности и другие важные уведомления аккаунта."
+        },
+        "marketingAndPromotions": {
+          "label": "Маркетинг и акции",
+          "description": "Получайте новости о наших последних предложениях, скидках и новых продуктах."
+        },
+        "productNewsAndTips": {
+          "label": "Новости о продуктах и советы",
+          "description": "Получайте полезные советы, обновления функций и новости о наших продуктах."
+        }
+      },
+      "notificationFrequency": {
+        "title": "Частота уведомлений",
+        "selectLabel": "Как часто получать уведомления:",
+        "description": "Выберите, как часто вы хотите получать общие уведомления. Критические оповещения всегда будут отправляться немедленно."
+      },
+      "frequencyOptions": {
+        "immediately": "Немедленно",
+        "daily": "Ежедневный дайджест",
+        "weekly": "Еженедельная сводка",
+        "never": "Никогда (кроме критических оповещений)"
+      },
+      "saveButton": "Сохранить настройки",
+      "saveSuccess": "Настройки уведомлений успешно обновлены.",
+      "saveError": "Не удалось обновить настройки уведомлений. Пожалуйста, попробуйте еще раз."
     }
   },
   "Subscription": {
@@ -313,9 +508,10 @@
     "hidePassword": "Скрыть пароль",
     "email": "Email",
     "password": "Пароль",
-    "confirmPassword": "Подтвердите пароль"
+    "confirmPassword": "Подтвердите пароль",
+    "services": "Услуги"
   },
-"Services": {
+  "Services": {
     "metaTitle": "Наши Услуги",
     "metaDescription": "Ознакомьтесь с услугами, которые мы предлагаем.",
     "title": "Услуги",
@@ -329,10 +525,53 @@
       "support": "Поддержка",
       "other": "Прочие Услуги"
     },
-    "details": "Подробнее",
+    "features": "Особенности",
+    "serviceDetails": "Детали услуги",
+    "price": "Цена",
+    "duration": "Продолжительность",
+    "type": "Тип",
+    "order": "Заказать",
     "book": "Забронировать",
-    "bookService": "Забронировать услугу",
-    "backToServiceDetails": "Вернуться к деталям услуги"
+    "details": "Подробнее",
+    "allServices": "Все услуги",
+    "backToServices": "Вернуться к списку услуг",
+    "relatedServices": "Похожие услуги",
+    "paymentRequired": "Требуется оплата при бронировании",
+    "noPaymentRequired": "Предоплата не требуется",
+    "haveQuestions": "Есть вопросы?",
+    "description": "Описание",
+    "flexible": "Гибкое время",
+    "searchServices": "Поиск услуг...",
+    "filterServices": "Фильтровать услуги",
+    "filterByCategory": "Фильтр по категории",
+    "filterByPrice": "Фильтр по цене",
+    "filterByDuration": "Фильтр по продолжительности",
+    "applyFilters": "Применить фильтры",
+    "resetFilters": "Сбросить фильтры",
+    "sortBy": "Сортировать по",
+    "sortOptions": {
+      "priceAsc": "Цена (по возрастанию)",
+      "priceDesc": "Цена (по убыванию)",
+      "nameAsc": "Название (А-Я)",
+      "nameDesc": "Название (Я-А)",
+      "newest": "Сначала новые"
+    },
+    "heroTitle": "Профессиональные услуги для вашего бизнеса",
+    "heroSubtitle": "Найдите подходящее решение из нашего каталога специализированных услуг",
+    "showAllServices": "Показать все услуги",
+    "servicesNotFound": "Услуги не найдены",
+    "tryAnotherSearch": "Попробуйте другой поисковый запрос или сбросьте фильтры",
+    "popularServices": "Популярные услуги",
+    "featuredServices": "Рекомендуемые услуги",
+    "newServices": "Новые услуги",
+    "findService": "Найдите нужную услугу",
+    "findServiceDescription": "Используйте поиск или выберите категорию для более быстрого поиска",
+    "serviceCategories": "Категории услуг",
+    "priceRange": "Ценовой диапазон",
+    "duration": "Продолжительность",
+    "availability": "Доступность",
+    "showResults": "Показать результаты",
+    "clearAll": "Очистить всё"
   },
   "home": {
     "title": "Flow Masters",
@@ -420,18 +659,18 @@
       "privacyPolicy": "Политикой конфиденциальности"
     }
   },
-"CoursesPage": {
+  "CoursesPage": {
     "title": "Каталог курсов",
     "noCourses": "На данный момент курсы отсутствуют.",
     "metaTitle": "Каталог курсов",
     "metaDescription": "Просмотрите наши доступные курсы."
   },
-"CourseCard": {
+  "CourseCard": {
     "viewCourse": "Посмотреть курс",
     "viewCourseAria": "Посмотреть курс: {title}",
     "courseImageAlt": "Изображение для курса {title}"
   },
-"CoursePage": {
+  "CoursePage": {
     "featuredImageAltFallback": "Изображение курса",
     "curriculumNoData": "Данные учебной программы отсутствуют.",
     "curriculumHeading": "Учебная программа курса",
@@ -474,8 +713,7 @@
       "community": {
         "title": "Сообщество",
         "description": "Описание"
-      }
-,
+      },
       "certificate": {
         "title": "Сертификат",
         "description": "Описание"
@@ -494,30 +732,30 @@
     "month": "{count, plural, one {# месяц} few {# месяца} many {# месяцев} other {# месяца}}",
     "week": "{count, plural, one {# неделя} few {# недели} many {# недель} other {# недели}}"
   },
-"RelativeTime": {
+  "RelativeTime": {
     "justNow": "Только что",
     "minuteAgo": "минуту назад",
-"course": {
-    "targetAudience": {
-      "title": "Для кого этот курс?"
+    "course": {
+      "targetAudience": {
+        "title": "Для кого этот курс?"
+      },
+      "faq": {
+        "title": "Часто задаваемые вопросы"
+      },
+      "relatedCourses": {
+        "title": "Вам также может понравиться"
+      },
+      "certificate": {
+        "title": "Сертификат о прохождении",
+        "description": "После успешного завершения этого курса вы получите сертификат, которым можно поделиться, чтобы продемонстрировать свои новые навыки и знания."
+      },
+      "community": {
+        "title": "Сообщество и поддержка",
+        "description": "Присоединяйтесь к нашему студенческому форуму или обратитесь в службу поддержки за помощью. Мы здесь, чтобы помочь вам добиться успеха!",
+        "forumLink": "Форум сообщества",
+        "supportLink": "Связаться с поддержкой"
+      }
     },
-    "faq": {
-      "title": "Часто задаваемые вопросы"
-    },
-    "relatedCourses": {
-      "title": "Вам также может понравиться"
-    },
-    "certificate": {
-      "title": "Сертификат о прохождении",
-      "description": "После успешного завершения этого курса вы получите сертификат, которым можно поделиться, чтобы продемонстрировать свои новые навыки и знания."
-    },
-    "community": {
-      "title": "Сообщество и поддержка",
-      "description": "Присоединяйтесь к нашему студенческому форуму или обратитесь в службу поддержки за помощью. Мы здесь, чтобы помочь вам добиться успеха!",
-      "forumLink": "Форум сообщества",
-      "supportLink": "Связаться с поддержкой"
-    }
-  },
     "minutesAgo": "{count, plural, one {# минуту назад} few {# минуты назад} many {# минут назад} other {# минуты назад}}",
     "hourAgo": "час назад",
     "hoursAgo": "{count, plural, one {# час назад} few {# часа назад} many {# часов назад} other {# часа назад}}",
@@ -560,7 +798,7 @@
     "by": "автор",
     "relatedPosts": "Похожие статьи"
   },
-"blogPage": {
+  "blogPage": {
     "viewToggleGrid": "Сетка",
     "viewToggleList": "Список",
     "title": "Блог",
@@ -879,41 +1117,44 @@
   },
   "ServiceBooking": {
     "paymentTitle": "Оплата услуги",
-    "paymentDescription": "Завершите оплату, чтобы продолжить с этой услугой.",
-    "bookingTitle": "Запланируйте вашу сессию",
-    "bookingDescription": "Выберите удобное время для вашей сессии.",
-    "successTitle": "Успех!",
-    "successDescription": "Ваша услуга была успешно забронирована и оплачена. Мы свяжемся с вами в ближайшее время с дополнительной информацией.",
+    "paymentDescription": "Пожалуйста, подтвердите детали и перейдите к оплате.",
     "price": "Цена",
-    "payNow": "Оплатить сейчас",
-    "processing": "Обработка...",
-    "paymentComplete": "Оплата завершена! Теперь вы можете запланировать вашу сессию.",
-    "completeBooking": "Завершить бронирование",
-    "viewOrders": "Посмотреть мои заказы",
-    "orderNumber": "Номер заказа",
-    "additionalInfoTitle": "Дополнительная информация",
-    "additionalInfoDescription": "Пожалуйста, предоставьте дополнительную информацию, чтобы помочь нам подготовиться к вашей сессии.",
-    "additionalInfoRequired": "Эта информация необходима для завершения бронирования.",
-    "additionalInfoOptional": "Эта информация не обязательна, но помогает нам предоставить лучший сервис.",
-    "skipAdditionalInfo": "Пропустить этот шаг",
-    "submitAdditionalInfo": "Отправить информацию",
-    "submittingInfo": "Отправка...",
-    "bookingConfirmed": "Бронирование подтверждено",
-    "bookingConfirmedDescription": "Ваше бронирование подтверждено. Мы с нетерпением ждем встречи с вами!",
-    "bookingDetails": "Детали бронирования",
-    "date": "Дата",
-    "time": "Время",
-    "resumeBookingTitle": "Завершите ваше бронирование",
-    "resumeBookingDescription": "Вы уже оплатили эту услугу. Пожалуйста, завершите бронирование, выбрав время.",
-    "pendingBookingsTitle": "Ожидающие бронирования",
-    "pendingBookingsDescription": "У вас есть услуги, требующие планирования",
-    "noPendingBookings": "У вас нет ожидающих бронирований",
-    "completeYourBooking": "Завершите ваше бронирование",
-    "paidOn": "Оплачено",
     "emailLabel": "Ваш Email",
-    "emailPlaceholder": "Введите ваш email адрес",
-    "emailRequiredError": "Email обязателен для продолжения оплаты.",
-    "emailInvalidError": "Пожалуйста, введите корректный email адрес."
+    "emailPlaceholder": "you@example.com",
+    "emailRequiredError": "Email обязателен для продолжения.",
+    "emailInvalidError": "Пожалуйста, введите корректный email адрес.",
+    "addToCartAndCheckout": "В корзину и к оплате",
+    "processing": "Обработка...",
+    "successTitle": "Успешно!",
+    "successDescription": "Ваша заявка на услугу принята. Мы свяжемся с вами в ближайшее время.",
+    "orderNumber": "Номер вашего заказа",
+    "viewOrders": "Посмотреть мои заказы",
+    "bookingTitle": "Запланируйте вашу сессию",
+    "bookingDescription": "Пожалуйста, выберите удобное время для получения услуги.",
+    "completeBooking": "Завершить бронирование",
+    "additionalInfoTitle": "Дополнительная информация",
+    "additionalInfoDescription": "Пожалуйста, предоставьте некоторую дополнительную информацию.",
+    "paymentComplete": "Оплата прошла успешно. Пожалуйста, завершите следующие шаги."
+  },
+  "ServiceCustomFields": {
+    "metadata": {
+      "title": "Настройки услуги",
+      "description": "Дополнительные поля для настройки услуги"
+    },
+    "title": "Настройки",
+    "description": "Настройте дополнительные поля для вашей услуги",
+    "tabs": {
+      "general": "Основные",
+      "advanced": "Расширенные"
+    },
+    "general": {
+      "title": "Основные настройки",
+      "description": "Настройте основные параметры вашей услуги"
+    },
+    "advanced": {
+      "title": "Расширенные настройки",
+      "description": "Настройте дополнительные параметры вашей услуги"
+    }
   },
   "Settings": {
     "metadata": {
@@ -1184,8 +1425,7 @@
       "blog": "Блог",
       "community": "Форум сообщества"
     }
-  }
-,
+  },
   "servicesPage": {
     "hero": {
       "title": "Продающие описания товаров за минуты, а не часы",
@@ -1276,8 +1516,7 @@
       "title": "Готовы превращать больше посетителей в покупателей?",
       "text": "Оставьте заявку, чтобы обсудить, как ИИ-описания увеличат ваши продажи! Получите расчет стоимости и примеры для ваших товаров.",
       "buttonText": "Обсудить проект"
-    }
-,
+    },
     "problemSolution": {
       "problemTitle": "Сталкиваетесь с этими проблемами?",
       "problem1": "Тратите часы на рутинное написание?",
@@ -1287,8 +1526,7 @@
       "solution1": "Автоматизированная генерация с помощью ИИ",
       "solution2": "Уникальный и вовлекающий контент",
       "solution3": "SEO-оптимизация \"из коробки\""
-    }
-,
+    },
     "serviceDetails": {
       "title": "Что входит в услугу?",
       "item1": {
@@ -1311,8 +1549,7 @@
         "title": "Гибкие Форматы Выгрузки",
         "description": "Предоставляем готовые описания в удобном для вас формате (CSV, JSON, etc.)."
       }
-    }
-,
+    },
     "portfolio": {
       "title": "Примеры Наших Работ",
       "beforeLabel": "До:",
@@ -1323,8 +1560,7 @@
       "demoDescription": "Введите название товара, чтобы увидеть пример описания:",
       "demoInputPlaceholder": "Например, 'Беспроводные наушники'",
       "demoButton": "Сгенерировать Пример"
-    }
-,
+    },
     "pricing": {
       "title": "Тарифы",
       "tier1": {

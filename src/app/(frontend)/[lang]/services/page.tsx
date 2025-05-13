@@ -1,11 +1,18 @@
 import React from 'react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Container } from '@/components/ui/container'
+import { GridContainer as Container } from '@/components/GridContainer'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { Service } from '@/types/service'
+import AnimateInView from '@/components/AnimateInView'
+import { ArrowRight, Filter, Search, X } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import ServiceList from '@/components/services/ServiceList'
 
 // Define the PageParams type for this page
 type PageParams = {
@@ -13,7 +20,8 @@ type PageParams = {
 }
 
 export async function generateMetadata({ params }: { params: PageParams }): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.lang, namespace: 'Services' })
+  const { lang } = await params
+  const t = await getTranslations({ locale: lang, namespace: 'Services' })
 
   return {
     title: t('metaTitle'),
@@ -22,9 +30,11 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
 }
 
 export default async function ServicesPage({ params }: { params: PageParams }) {
-  setRequestLocale(params.lang)
+  const { lang } = await params
+  setRequestLocale(lang)
 
-  const t = await getTranslations({ locale: params.lang, namespace: 'Services' })
+  const t = await getTranslations({ locale: lang, namespace: 'Services' })
+  const commonT = await getTranslations({ locale: lang, namespace: 'common' })
 
   try {
     const payload = await getPayloadClient()
@@ -44,9 +54,27 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
     if (!services || services.docs.length === 0) {
       return (
         <Container>
-          <div className="py-12">
-            <h1 className="text-3xl font-bold mb-6">{t('title')}</h1>
-            <p>{t('noServices')}</p>
+          <div className="py-12 md:py-16 lg:py-20">
+            {/* Хлебные крошки */}
+            <AnimateInView direction="right" className="mb-6">
+              <nav className="flex items-center text-sm mb-8">
+                <Link
+                  href={`/${lang}`}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {commonT('home')}
+                </Link>
+                <span className="mx-2 text-muted-foreground">/</span>
+                <span className="text-foreground font-medium">{commonT('services')}</span>
+              </nav>
+            </AnimateInView>
+
+            <AnimateInView direction="up">
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {t('title')}
+              </h1>
+              <p className="text-xl text-muted-foreground">{t('noServices')}</p>
+            </AnimateInView>
           </div>
         </Container>
       )
@@ -77,37 +105,100 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
       } as Service
     })
 
-    // Группируем услуги по типу
-    const servicesByType: Record<string, Service[]> = {}
+    // Получаем все уникальные типы услуг
+    const serviceTypes = Array.from(
+      new Set(adaptedServices.map((service) => service.serviceType || 'other')),
+    )
 
-    adaptedServices.forEach((service) => {
-      const type = service.serviceType || 'other'
+    // Преобразуем переводы в объект для передачи клиентскому компоненту
+    const servicesTranslations: Record<string, string> = {
+      // Базовые переводы
+      title: t('title'),
+      description: t('description'),
+      heroTitle: t('heroTitle'),
+      heroSubtitle: t('heroSubtitle'),
+      searchServices: t('searchServices'),
+      filterServices: t('filterServices'),
+      resetFilters: t('resetFilters'),
+      servicesNotFound: t('servicesNotFound'),
+      tryAnotherSearch: t('tryAnotherSearch'),
+      showAllServices: t('showAllServices'),
+      // Типы услуг
+      'serviceTypes.consulting': t('serviceTypes.consulting'),
+      'serviceTypes.consultation': t('serviceTypes.consultation'),
+      'serviceTypes.development': t('serviceTypes.development'),
+      'serviceTypes.support': t('serviceTypes.support'),
+      'serviceTypes.other': t('serviceTypes.other'),
+      // Дополнительные переводы для карточек услуг
+      minutes: t('minutes'),
+      book: t('book'),
+      order: t('order'),
+      details: t('details'),
+    }
 
-      if (!servicesByType[type]) {
-        servicesByType[type] = []
-      }
-
-      servicesByType[type].push(service)
-    })
+    const commonTranslations: Record<string, string> = {
+      home: commonT('home'),
+      services: commonT('services'),
+      back: commonT('back'),
+      search: commonT('search'),
+    }
 
     return (
-      <Container>
-        <div className="py-12">
-          <h1 className="text-3xl font-bold mb-6">{t('title')}</h1>
-          <p className="text-lg mb-8">{t('description')}</p>
+      <>
+        {/* Улучшенная героическая секция */}
+        <div className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background z-0"></div>
 
-          {Object.entries(servicesByType).map(([type, services]) => (
-            <div key={type} className="mb-12">
-              <h2 className="text-2xl font-semibold mb-4">{t(`serviceTypes.${type}`)}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {services.map((service) => (
-                  <ServiceCard key={service.id} service={service} locale={params.lang} />
-                ))}
-              </div>
+          {/* Декоративные элементы */}
+          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-3xl rounded-full"></div>
+          <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-primary/5 blur-3xl rounded-full"></div>
+
+          {/* Паттерн на фоне */}
+          <div
+            className="absolute inset-0 opacity-5"
+            style={{
+              backgroundImage:
+                'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            }}
+          ></div>
+
+          <Container className="relative z-10">
+            {/* Хлебные крошки */}
+            <AnimateInView direction="right" className="mb-6">
+              <nav className="flex items-center text-sm mb-8">
+                <Link
+                  href={`/${lang}`}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {commonT('home')}
+                </Link>
+                <span className="mx-2 text-muted-foreground">/</span>
+                <span className="text-foreground font-medium">{commonT('services')}</span>
+              </nav>
+            </AnimateInView>
+
+            <div className="text-center max-w-3xl mx-auto">
+              <AnimateInView direction="up">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {t('heroTitle')}
+                </h1>
+                <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12">
+                  {t('heroSubtitle')}
+                </p>
+              </AnimateInView>
             </div>
-          ))}
+
+            {/* Клиентский компонент для фильтрации и отображения услуг */}
+            <ServiceList
+              services={adaptedServices}
+              serviceTypes={serviceTypes}
+              translations={servicesTranslations}
+              commonTranslations={commonTranslations}
+              locale={lang}
+            />
+          </Container>
         </div>
-      </Container>
+      </>
     )
   } catch (error) {
     console.error('Error fetching services:', error)

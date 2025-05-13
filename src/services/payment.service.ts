@@ -1,23 +1,49 @@
 import crypto from 'crypto'
 import type { Payload } from 'payload'
 import {
-  PaymentProvider as PaymentProviderType,
+  PaymentProvider as PaymentProviderType, 
   PaymentMethod,
   PaymentStatus,
 } from '../types/payment'
 import { BaseService } from './base.service'
 import { NotificationService } from './notification.service'
 import { ServiceRegistry } from './service.registry'
-import { EnrollmentService } from './courses/enrollmentService' // Added
-// Ensure Subscription is imported if not already, or adjust if it's part of a combined type
-import type { Course, Order, Product, Subscription, User } from '@/payload-types' // Added Subscription
-import { add } from 'date-fns' // Added for date calculation
-import type { Duration } from 'date-fns' // Added Duration type
+import { EnrollmentService } from './courses/enrollmentService' 
+import type { Course, Order, Product, Service, Subscription, User } from '@/payload-types' 
+import { Locale as AppLocale } from '@/constants' 
+import { add } from 'date-fns' 
+import type { Duration } from 'date-fns' 
 import { v4 as uuidv4 } from 'uuid'
+
+// Local definition for EmailOrderConfirmationArgs
+interface LocalEmailOrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+  type: 'course' | 'product' | 'subscription' | 'other'; // 'service' will be mapped to 'other'
+  url?: string;
+  description?: string;
+}
+interface LocalEmailOrderConfirmationArgs {
+  userName: string;
+  email: string;
+  orderNumber: string;
+  orderDate: string;
+  items: LocalEmailOrderItem[];
+  subtotal: number;
+  total: number;
+  currency: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  locale: AppLocale;
+}
+
 
 interface PaymentCreateParams {
   orderId: string
-  amount: number
+  amount: number 
   description: string
   customer: {
     email: string
@@ -25,42 +51,56 @@ interface PaymentCreateParams {
     phone?: string
   }
   currency: string
-  locale: string
-  provider?: PaymentProviderType
-  metadata?: Record<string, any>
+  locale: string 
+  provider?: PaymentProviderType 
+  metadata?: Record<string, any> & { 
+    items?: Array<{ productId?: string; serviceId?: string; quantity: number; itemType?: 'product' | 'service'}>; 
+    customerEmail?: string; 
+    description?: string; 
+    returnUrl?: string; 
+    savePaymentMethod?: boolean; 
+    paymentMethodType?: PaymentMethod; 
+  }
   returnUrl?: string
 }
 
 interface ProcessPaymentParams {
-  amount: number
+  amount: number 
   currency: string
-  provider: string
-  paymentMethod: string
-  paymentToken: string
-  metadata: Record<string, any>
+  paymentMethod: PaymentMethod 
+  paymentToken: string 
+  metadata: Record<string, any> & { 
+    orderId: string; 
+    items?: Array<{ productId?: string; serviceId?: string; quantity: number; itemType?: 'product' | 'service'}>;
+    description?: string; 
+    returnUrl?: string;
+    savePaymentMethod?: boolean;
+    customerEmail?: string;
+    locale?: string;
+  };
 }
 
 export interface PaymentResult {
-  // Added export
-  status: 'succeeded' | 'failed' | 'pending' | 'refunded' | 'voided' // Updated status values
-  paymentId?: string // Made optional, will hold transactionId (original or new for refund)
-  errorMessage?: string // Changed from error
-  provider?: PaymentProviderKey // Added provider
-  rawResponse?: any // Added rawResponse
+  status: 'succeeded' | 'failed' | 'pending' | 'refunded' | 'voided'
+  paymentId?: string 
+  errorMessage?: string 
+  provider?: PaymentProviderKey 
+  rawResponse?: any 
+  confirmationUrl?: string; 
 }
 
 interface RefundParams {
   originalTransactionId: string
-  amount: number // Amount to refund
+  amount: number 
   currency: string
   reason?: string
-  orderId: string // Associated order ID for logging/reference
+  orderId: string 
 }
 
 interface VoidParams {
   originalTransactionId: string
   reason?: string
-  orderId: string // Associated order ID for logging/reference
+  orderId: string 
 }
 
 interface IPaymentProvider {
@@ -78,8 +118,6 @@ interface IPaymentProvider {
 
 export type PaymentProviderKey = 'yoomoney' | 'robokassa' | 'crypto' | 'genericGateway'
 
-interface PaymentProviders extends Record<PaymentProviderKey, IPaymentProvider> {}
-
 interface GlobalSettings {
   providers: Array<{
     id: PaymentProviderKey
@@ -94,9 +132,11 @@ export class PaymentService extends BaseService {
   private static instance: PaymentService | null = null
   private settings: GlobalSettings | null = null
   private settingsLoaded = false
+  private paymentProviders: Record<PaymentProviderKey, IPaymentProvider>;
 
   private constructor(payload: Payload) {
     super(payload)
+    this.paymentProviders = this.initializePaymentProviders(); 
     this.loadSettings().catch((err) =>
       console.error('Failed to load settings during initialization:', err),
     )
@@ -109,28 +149,24 @@ export class PaymentService extends BaseService {
     return PaymentService.instance
   }
 
-  /**
-   * Загружает настройки асинхронно при инициализации
-   */
   private async loadSettings(): Promise<void> {
     try {
-      // Try to get payment providers from global
       try {
-        const paymentProviders = await this.payload.findGlobal({
+        const paymentProvidersGlobal = await this.payload.findGlobal({
           slug: 'payment-providers',
         })
 
-        if (paymentProviders) {
+        if (paymentProvidersGlobal) {
           console.log('Retrieved payment-providers global')
-          this.settings = this.transformPaymentProviders(paymentProviders) as GlobalSettings
+          this.settings = this.transformPaymentProviders(paymentProvidersGlobal)
           this.settingsLoaded = true
+          this.paymentProviders = this.initializePaymentProviders(); 
           return
         }
       } catch (error) {
         console.warn('Failed to retrieve payment-providers global:', error)
       }
 
-      // Set default settings if all attempts failed
       this.settings = {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
@@ -144,6 +180,7 @@ export class PaymentService extends BaseService {
         },
       }
       this.settingsLoaded = true
+      this.paymentProviders = this.initializePaymentProviders();
     } catch (error) {
       console.error('Error in loadSettings:', error)
       this.settings = {
@@ -159,15 +196,24 @@ export class PaymentService extends BaseService {
         },
       }
       this.settingsLoaded = true
+      this.paymentProviders = this.initializePaymentProviders();
+    }
+  }
+  
+  private async ensureSettingsLoaded(): Promise<void> {
+    if (!this.settingsLoaded || !this.settings) {
+      this.payload.logger.info('Settings not loaded, attempting to load now in ensureSettingsLoaded...');
+      await this.loadSettings();
+      if (!this.settingsLoaded || !this.settings) {
+        throw new Error('Failed to load payment settings after explicit attempt.');
+      }
     }
   }
 
-  /**
-   * Получает настройки платежных систем
-   */
+
   getSettings(): GlobalSettings {
     if (!this.settingsLoaded || !this.settings) {
-      console.warn('Settings not loaded yet, returning default settings')
+      console.warn('Settings not loaded yet, returning default settings. This should have been handled by ensureSettingsLoaded.')
       return {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
@@ -184,24 +230,19 @@ export class PaymentService extends BaseService {
     return this.settings
   }
 
-  private transformPaymentProviders(paymentProviders: any) {
-    // Transform the payment-providers global structure to our expected format
-    const providers = []
-    const providersConfig: Partial<Record<PaymentProviderKey, any>> = {} // Typed providersConfig
+  private transformPaymentProviders(paymentProvidersGlobal: any): GlobalSettings {
+    const providers: Array<{ id: PaymentProviderKey; name: string; enabled: boolean }> = []
+    const providersConfig: Partial<Record<PaymentProviderKey, any>> = {} 
 
-    // Process YooMoney settings
-    if (paymentProviders.yoomoney?.yoomoney_enabled) {
+    if (paymentProvidersGlobal.yoomoney?.yoomoney_enabled) {
       providers.push({
         id: 'yoomoney',
-        name: paymentProviders.yoomoney?.yoomoney_displayName?.en || 'YooMoney',
+        name: paymentProvidersGlobal.yoomoney?.yoomoney_displayName?.en || 'YooMoney',
         enabled: true,
       })
-
-      // Get config based on test mode
-      const yoomoneyConfig = paymentProviders.yoomoney?.yoomoney_config || {}
+      const yoomoneyConfig = paymentProvidersGlobal.yoomoney?.yoomoney_config || {}
       const isTestMode = yoomoneyConfig.testMode !== false
       const configSource = isTestMode ? yoomoneyConfig.test : yoomoneyConfig.production
-
       providersConfig.yoomoney = {
         shopId: configSource?.shop_id || process.env.YOOMONEY_SHOP_ID || 'your_shop_id',
         secretKey: configSource?.secret_key || process.env.YOOMONEY_SECRET_KEY || 'your_secret_key',
@@ -209,117 +250,101 @@ export class PaymentService extends BaseService {
       }
     }
 
-    // Process Robokassa settings
-    if (paymentProviders.robokassa?.robokassa_enabled) {
+    if (paymentProvidersGlobal.robokassa?.robokassa_enabled) {
       providers.push({
         id: 'robokassa',
-        name: paymentProviders.robokassa?.robokassa_displayName?.en || 'Robokassa',
+        name: paymentProvidersGlobal.robokassa?.robokassa_displayName?.en || 'Robokassa',
         enabled: true,
       })
-
-      // Get config based on test mode
-      const robokassaConfig = paymentProviders.robokassa?.robokassa_config || {}
+      const robokassaConfig = paymentProvidersGlobal.robokassa?.robokassa_config || {}
       const isTestMode = robokassaConfig.testMode !== false
       const configSource = isTestMode ? robokassaConfig.test : robokassaConfig.production
-
       providersConfig.robokassa = {
-        merchantLogin:
-          configSource?.merchant_login ||
-          process.env.ROBOKASSA_MERCHANT_LOGIN ||
-          'your_merchant_login',
+        merchantLogin: configSource?.merchant_login || process.env.ROBOKASSA_MERCHANT_LOGIN || 'your_merchant_login',
         password1: configSource?.password1 || process.env.ROBOKASSA_PASSWORD1 || 'your_password1',
         password2: configSource?.password2 || process.env.ROBOKASSA_PASSWORD2 || 'your_password2',
         testMode: isTestMode,
       }
     }
 
-    // Process Crypto payment settings
-    if (paymentProviders.crypto?.crypto_enabled) {
+    if (paymentProvidersGlobal.crypto?.crypto_enabled) {
       providers.push({
         id: 'crypto',
-        name: paymentProviders.crypto?.crypto_displayName?.en || 'Cryptocurrency',
+        name: paymentProvidersGlobal.crypto?.crypto_displayName?.en || 'Cryptocurrency',
         enabled: true,
       })
-
-      // Get config based on test mode
-      const cryptoConfig = paymentProviders.crypto?.crypto_config || {}
+      const cryptoConfig = paymentProvidersGlobal.crypto?.crypto_config || {}
       const isTestMode = cryptoConfig.testMode !== false
       const configSource = isTestMode ? cryptoConfig.test : cryptoConfig.production
-
       providersConfig.crypto = {
         apiKey: configSource?.api_key || process.env.CRYPTO_API_KEY || 'your_api_key',
-        webhookSecret:
-          configSource?.webhook_secret ||
-          process.env.CRYPTO_WEBHOOK_SECRET ||
-          'your_webhook_secret',
-        supportedCurrencies: configSource?.supported_currencies?.split(',') || [
-          'BTC',
-          'ETH',
-          'USDT',
-        ],
+        webhookSecret: configSource?.webhook_secret || process.env.CRYPTO_WEBHOOK_SECRET || 'your_webhook_secret',
+        supportedCurrencies: configSource?.supported_currencies?.split(',') || ['BTC', 'ETH', 'USDT'],
         testMode: isTestMode,
-        walletConnectProjectId:
-          configSource?.wallet_connect_project_id || process.env.WALLET_CONNECT_PROJECT_ID,
+        walletConnectProjectId: configSource?.wallet_connect_project_id || process.env.WALLET_CONNECT_PROJECT_ID,
       }
     }
+    
+    const defaultProviderId = providers.find((p) => p.enabled)?.id || (providers.length > 0 ? providers[0]!.id : 'robokassa');
 
     return {
       providers,
       providersConfig,
-      // Safer default provider handling
-      // Safer default provider handling, added non-null assertion assuming providers[0] exists if length > 0
-      defaultProvider:
-        providers.find((p) => p.enabled)?.id ||
-        (providers.length > 0 ? providers[0]!.id : 'robokassa'),
+      defaultProvider: defaultProviderId as PaymentProviderKey,
     }
   }
 
   async getEnabledProviders(): Promise<
     Array<{ id: PaymentProviderKey; name: string; enabled: boolean }>
   > {
-    try {
-      const settings = this.getSettings()
-      return settings.providers.filter((p) => p.enabled)
-    } catch (error) {
-      console.error('Error getting enabled providers:', error)
-      return []
-    }
+    await this.ensureSettingsLoaded();
+    return this.settings!.providers.filter((p) => p.enabled)
   }
 
   async getDefaultProvider(): Promise<PaymentProviderKey> {
-    try {
-      const settings = this.getSettings()
-      const defaultProvider = settings.defaultProvider
-
-      if (!defaultProvider) {
-        throw new Error('Default payment provider not found')
-      }
-
-      return defaultProvider
-    } catch (error) {
-      console.error('Error getting default provider:', error)
-      return 'robokassa'
+    await this.ensureSettingsLoaded();
+    const defaultProvider = this.settings!.defaultProvider
+    if (!defaultProvider) {
+      throw new Error('Default payment provider not found')
     }
+    return defaultProvider
   }
 
   async createPayment(
-    provider: PaymentProviderKey,
+    providerKey: PaymentProviderKey, 
     params: PaymentCreateParams,
   ): Promise<PaymentResult> {
     try {
-      const paymentProvider = this.getPaymentProvider(provider)
-      const result = await paymentProvider.processPayment({
-        amount: params.amount,
-        currency: params.currency,
-        paymentMethod: params.provider ? String(params.provider) : 'card',
-        paymentToken: '',
-        metadata: params.metadata || {},
-      })
+      await this.ensureSettingsLoaded();
+      const paymentProviderInstance = this.paymentProviders[providerKey];
+      if (!paymentProviderInstance) {
+        throw new Error(`Payment provider ${providerKey} not found or not initialized.`);
+      }
+      
+      const metadataForProvider: ProcessPaymentParams['metadata'] = {
+        orderId: params.orderId,
+        items: params.metadata?.items || [],
+        description: params.description, 
+        returnUrl: params.returnUrl,
+        savePaymentMethod: params.metadata?.savePaymentMethod,
+        customerEmail: params.customer.email,
+        locale: params.locale,
+        ...(params.metadata || {}),
+      };
 
+      const result = await paymentProviderInstance.processPayment({
+        amount: params.amount, 
+        currency: params.currency,
+        paymentMethod: (params.metadata?.paymentMethodType || 'bank_card') as PaymentMethod, 
+        paymentToken: '', 
+        metadata: metadataForProvider,
+      })
+      
       return {
         status: result.status,
         paymentId: result.paymentId,
-        errorMessage: result.errorMessage, // Changed error to errorMessage
+        errorMessage: result.errorMessage,
+        confirmationUrl: result.confirmationUrl, 
       }
     } catch (error) {
       console.error('Payment creation error:', error)
@@ -327,12 +352,11 @@ export class PaymentService extends BaseService {
         status: 'failed',
         paymentId: '',
         errorMessage:
-          error instanceof Error ? error.message : 'Unknown error during payment creation', // Changed error to errorMessage
+          error instanceof Error ? error.message : 'Unknown error during payment creation',
       }
     }
   }
-
-  // Corrected provider type
+  
   async processPayment(
     paymentToken: string,
     amount: number,
@@ -341,7 +365,8 @@ export class PaymentService extends BaseService {
     paymentProviderId: PaymentProviderKey,
   ): Promise<PaymentResult> {
     try {
-      const providerService = this.getPaymentProvider(paymentProviderId) // Using getPaymentProvider as per existing code
+      await this.ensureSettingsLoaded();
+      const providerService = this.paymentProviders[paymentProviderId]; 
       if (!providerService) {
         console.error(
           `Payment provider ${paymentProviderId} not found or not configured for recurring payments.`,
@@ -352,8 +377,6 @@ export class PaymentService extends BaseService {
           provider: paymentProviderId,
         }
       }
-
-      // Ensure chargeWithToken exists on the providerService instance
       if (
         !('chargeWithToken' in providerService) ||
         typeof providerService.chargeWithToken !== 'function'
@@ -378,7 +401,7 @@ export class PaymentService extends BaseService {
       if (chargeResponse.success) {
         return {
           status: 'succeeded',
-          paymentId: chargeResponse.transactionId, // Mapped to paymentId
+          paymentId: chargeResponse.transactionId, 
           provider: paymentProviderId,
           rawResponse: chargeResponse.rawResponse,
         }
@@ -404,13 +427,6 @@ export class PaymentService extends BaseService {
     }
   }
 
-  // Здесь идет реализация других методов из payment.ts
-  // Методы для создания платежей через различные провайдеры
-  // Методы для проверки статуса платежей
-  // Другая функциональность платежной системы
-
-  // Check status of payment with provider
-  // Corrected provider type
   async checkPaymentStatus(
     provider: PaymentProviderKey,
     paymentId: string,
@@ -419,8 +435,7 @@ export class PaymentService extends BaseService {
     details?: any
   }> {
     try {
-      // Delegate to provider-specific status check
-      // No need for cast now, provider is PaymentProviderKey
+      await this.ensureSettingsLoaded();
       switch (provider) {
         case 'yoomoney':
           return await this.checkYooMoneyPaymentStatus(paymentId)
@@ -433,22 +448,17 @@ export class PaymentService extends BaseService {
           return { status: 'unknown' }
       }
     } catch (error: unknown) {
-      // Catch as unknown
       console.error(`Error checking payment status with ${provider}:`, error)
-      // Check if error is an instance of Error before accessing message
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return { status: 'error', details: { error: errorMessage } }
     }
   }
 
-  // Заглушки для методов, которые должны быть реализованы
   private async createRobokassaPayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    // Реализация из payment.ts
     return { status: 'failed', paymentId: '', errorMessage: 'Not implemented' }
   }
 
   private async createCryptoPayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    // Реализация из payment.ts
     return { status: 'failed', paymentId: '', errorMessage: 'Not implemented' }
   }
 
@@ -504,14 +514,14 @@ export class PaymentService extends BaseService {
         case 'pending':
           mappedStatus = PaymentStatus.PENDING
           break
-        case 'waiting_for_capture': // Typically means payment authorized, needs capture
-          mappedStatus = PaymentStatus.PENDING // Or a more specific status like 'requires_action' or 'processing'
+        case 'waiting_for_capture': 
+          mappedStatus = PaymentStatus.PENDING 
           break
         case 'canceled':
           mappedStatus = PaymentStatus.CANCELLED
           break
         default:
-          mappedStatus = PaymentStatus.PENDING // Default to PENDING if status is truly unknown or unhandled
+          mappedStatus = PaymentStatus.PENDING 
           break
       }
       return { status: mappedStatus, details: responseData }
@@ -528,12 +538,12 @@ export class PaymentService extends BaseService {
   }
 
   private async checkRobokassaPaymentStatus(
-    orderId: string, // This is InvId for Robokassa
+    orderId: string, 
   ): Promise<{ status: PaymentStatus; details?: any }> {
     const robokassaConfig = this.settings?.providersConfig?.robokassa
     if (
       !robokassaConfig?.merchantLogin ||
-      !robokassaConfig?.password2 // Password2 is typically used for API operations like OpState
+      !robokassaConfig?.password2 
     ) {
       this.payload.logger.error(
         'Robokassa configuration (merchantLogin/password2) is missing for checkPaymentStatus.',
@@ -548,10 +558,9 @@ export class PaymentService extends BaseService {
     const password2 = robokassaConfig.password2
     const isTestMode = robokassaConfig.testMode === true
 
-    // Robokassa OpState URL
     const opStateUrl = isTestMode
-      ? 'https://test.robokassa.ru/WebAPI/api/OpState' // Test OpState URL
-      : 'https://auth.robokassa.ru/WebAPI/api/OpState' // Production OpState URL
+      ? 'https://test.robokassa.ru/WebAPI/api/OpState' 
+      : 'https://auth.robokassa.ru/WebAPI/api/OpState' 
 
     const signatureString = `${merchantLogin}:${orderId}:${password2}`
     const signatureValue = crypto
@@ -594,23 +603,23 @@ export class PaymentService extends BaseService {
 
       let mappedStatus: PaymentStatus
       switch (stateCode) {
-        case 100: // Payment successful
+        case 100: 
           mappedStatus = PaymentStatus.COMPLETED
           break
-        case 5: // Payment initiated
-        case 10: // Payment accepted by Robokassa, user not yet redirected to payment system
-        case 50: // Payment initiated, waiting for user action on payment system side
-        case 60: // Payment authorized, waiting for confirmation from payment system (e.g., for cards)
-        case 80: // Payment confirmed by payment system, waiting for Robokassa to process
+        case 5: 
+        case 10: 
+        case 50: 
+        case 60: 
+        case 80: 
           mappedStatus = PaymentStatus.PENDING
           break
-        case 0: // Payment cancelled by user or timeout
-        case 1000: // Generic error or payment rejected
-          mappedStatus = PaymentStatus.CANCELLED // Or FAILED depending on context
+        case 0: 
+        case 1000: 
+          mappedStatus = PaymentStatus.CANCELLED 
           break
         default:
           this.payload.logger.warn(`Unknown Robokassa StateCode ${stateCode} for InvId ${orderId}`)
-          mappedStatus = PaymentStatus.PENDING // Default to PENDING for unknown states
+          mappedStatus = PaymentStatus.PENDING 
           break
       }
       return { status: mappedStatus, details: responseData }
@@ -629,49 +638,22 @@ export class PaymentService extends BaseService {
   private async checkCryptoPaymentStatus(
     paymentId: string,
   ): Promise<{ status: string; details?: any }> {
-    // TODO: Implement crypto payment status check
     return { status: 'unknown' }
   }
 
-  /**
-   * Обнаруживает провайдера платежей из данных вебхука
-   */
   private detectProviderFromWebhook(webhookData: any): PaymentProviderKey | null {
-    // Example detection logic:
-    // Check for YooMoney specific fields
     if (webhookData.notification_type && webhookData.operation_id) {
       return 'yoomoney'
     }
-    // Check for Robokassa specific fields
     if (webhookData.InvId && webhookData.OutSum && webhookData.SignatureValue) {
       return 'robokassa'
     }
-    // Add checks for other providers (Crypto, etc.) if necessary
-    // if (webhookData.crypto_specific_field) {
-    //   return 'crypto';
-    // }
-
     console.warn('Could not detect payment provider from webhook data:', webhookData)
     return null
   }
 
-  /**
-   * Проверяет подлинность вебхука YooMoney, включая криптографическую подпись.
-   */
   private async isValidAndVerifyYooMoneySignature(req: any): Promise<boolean> {
-    // --- ВАЖНО: НАСТРОЙКА RAW BODY ---
-    // Этот метод требует доступа к необработанному телу запроса (req.rawBody).
-    // Убедитесь, что для эндпоинта, принимающего вебхуки YooMoney, настроен соответствующий middleware.
-    // В Express это может быть bodyParser.raw({ type: 'application/json' }).
-    // В Payload CMS v3 это может потребовать настройки на уровне сервера или использования beforeOperation хука
-    // для кастомного эндпоинта вебхуков, чтобы сохранить rawBody в req.
-    // --- КОНЕЦ ВАЖНОГО ЗАМЕЧАНИЯ ---
-
-    // req должен содержать необработанное тело запроса (rawBody) и заголовки (headers).
-    // Убедитесь, что middleware для обработки rawBody (например, bodyParser.raw()) используется для эндпоинта вебхуков.
-    // В Payload CMS это можно настроить в server.ts или через beforeOperation хук эндпоинта.
     const notificationBody = req.rawBody
-    // Используем правильное имя заголовка согласно документации Yoomoney
     const signatureHeader = req.headers['sha1_hash']
 
     if (!notificationBody) {
@@ -685,7 +667,7 @@ export class PaymentService extends BaseService {
       return false
     }
 
-    await this.ensureSettingsLoaded() // Убедимся, что настройки загружены
+    await this.ensureSettingsLoaded() 
     const providerConfig = this.settings?.providersConfig?.yoomoney
     const secretKey = providerConfig?.secretKey
 
@@ -693,7 +675,7 @@ export class PaymentService extends BaseService {
       console.error(
         'YooMoney Webhook Error: Secret key is not configured in Payment Provider settings.',
       )
-      return false // Не можем проверить подпись без ключа
+      return false 
     }
 
     try {
@@ -702,7 +684,6 @@ export class PaymentService extends BaseService {
         .update(notificationBody)
         .digest('hex')
 
-      // Use timingSafeEqual for security
       const signaturesMatch = crypto.timingSafeEqual(
         Buffer.from(signatureHeader as string),
         Buffer.from(expectedSignature),
@@ -723,9 +704,6 @@ export class PaymentService extends BaseService {
     }
   }
 
-  /**
-   * Проверяет подлинность вебхука Robokassa
-   */
   private verifyRobokassaWebhook(webhookData: any): boolean {
     if (!webhookData || !webhookData.InvId || !webhookData.OutSum || !webhookData.SignatureValue) {
       console.error('Invalid Robokassa notification format')
@@ -734,10 +712,8 @@ export class PaymentService extends BaseService {
 
     const { InvId, OutSum, SignatureValue } = webhookData
 
-    // Получаем настройки
     const settings = this.getSettings()
     const providersConfig = settings?.providersConfig || {}
-    // Используем Non-Null Assertion Operator '!', так как мы уверены, что password2 есть, если Robokassa включена и настроена
     const config = providersConfig.robokassa
 
     if (!config?.password2) {
@@ -745,16 +721,13 @@ export class PaymentService extends BaseService {
       return false
     }
 
-    // Формируем строку для проверки и вычисляем хэш
-    // Убеждаемся, что параметры добавлены в правильном порядке и с нужными разделителями
-    const signatureString = `${OutSum}:${InvId}:${config.password2}` // Порядок важен!
+    const signatureString = `${OutSum}:${InvId}:${config.password2}` 
     const expectedSignature = crypto
       .createHash('md5')
       .update(signatureString)
       .digest('hex')
       .toUpperCase()
 
-    // Сравниваем хэши, используя безопасное сравнение по времени, чтобы предотвратить атаки по времени
     const signaturesMatch = crypto.timingSafeEqual(
       Buffer.from(SignatureValue.toUpperCase()),
       Buffer.from(expectedSignature),
@@ -771,14 +744,7 @@ export class PaymentService extends BaseService {
     return true
   }
 
-  /**
-   * Проверяет подлинность вебхука по данным платежной системы
-   * @param req - Объект запроса (предположительно Express Request), должен содержать rawBody и headers
-   */
   async verifyWebhook(req: any): Promise<boolean> {
-    // Обнаружение провайдера может потребовать анализа тела или заголовков
-    // req.body может быть уже распарсенным JSON/формой, используем его для детекции
-    // req.rawBody используется для проверки подписи YooMoney
     const provider = this.detectProviderFromWebhook(req.body)
 
     if (!provider) {
@@ -791,32 +757,16 @@ export class PaymentService extends BaseService {
 
     switch (provider) {
       case 'yoomoney':
-        // Передаем весь объект req для доступа к rawBody и headers
         return await this.isValidAndVerifyYooMoneySignature(req)
       case 'robokassa':
-        // Robokassa использует параметры запроса (тело) для подписи
         return this.verifyRobokassaWebhook(req.body)
-      // case 'crypto':
-      //     return await this.isValidAndVerifyCryptoSignature(req); // Пример для крипто
       default:
         console.warn(`Webhook Verification: Provider ${provider} not supported for verification.`)
-        return false // Или true, если не хотим блокировать неподдерживаемые, но это рискованно
+        return false 
     }
   }
 
-  private async ensureSettingsLoaded(): Promise<void> {
-    if (!this.settingsLoaded) {
-      console.log('Settings not loaded, attempting to load now...')
-      await this.loadSettings()
-      if (!this.settingsLoaded) {
-        throw new Error('Failed to load payment settings.')
-      }
-    }
-  }
 
-  /**
-   * Обрабатывает данные вебхука и извлекает нужную информацию
-   */
   async processWebhookData(webhookData: any): Promise<{
     orderId: string
     status: string
@@ -834,8 +784,6 @@ export class PaymentService extends BaseService {
         case 'robokassa':
           return this.processRobokassaWebhook(webhookData)
         case 'crypto':
-          // Временная заглушка для crypto
-          // TODO: Implement proper crypto webhook processing
           this.payload.logger.info(
             '[processWebhookData] Processing crypto webhook (stub)',
             webhookData,
@@ -843,26 +791,21 @@ export class PaymentService extends BaseService {
           return {
             orderId:
               webhookData.order_id || webhookData.metadata?.order_id || 'unknown_crypto_order',
-            status: PaymentStatus.COMPLETED, // Предполагаем COMPLETED для заглушки
+            status: PaymentStatus.COMPLETED, 
             transactionId: webhookData.transaction_id || webhookData.id || undefined,
           }
         default:
-          // Эта ошибка будет поймана в общем catch блоке ниже
           throw new Error(`Обработка вебхука для провайдера ${provider} не реализована`)
       }
     } catch (error: any) {
-      // Улучшенное логирование
-      // Попытаемся определить провайдера еще раз для лога, если он не был определен ранее или ошибка произошла до этого
       const detectedProviderForLog = this.detectProviderFromWebhook(webhookData)
       this.payload.logger.error(
         `[processWebhookData] Error processing webhook data: ${error?.message || 'Unknown error'}`,
         {
           providerAttempted: detectedProviderForLog || 'unknown_or_failed_detection',
           method: 'processWebhookData',
-          // Осторожно с логированием всего webhookData, может содержать PII или быть очень большим.
-          // Логируем только наличие или ключевые нечувствительные идентификаторы, если это безопасно.
           webhookReceived: true,
-          webhookKeys: webhookData ? Object.keys(webhookData) : [], // Логируем ключи для понимания структуры
+          webhookKeys: webhookData ? Object.keys(webhookData) : [], 
           errorDetails: {
             message: error?.message,
             name: error?.name,
@@ -871,32 +814,24 @@ export class PaymentService extends BaseService {
           rawErrorObject: error,
         },
       )
-      throw error // Перебрасываем ошибку, чтобы она была обработана выше, если это необходимо
+      throw error 
     }
   }
 
-  /**
-   * Обрабатывает вебхук YooMoney
-   */
   private processYooMoneyWebhook(webhookData: any): {
     orderId: string
     status: string
     transactionId?: string
   } {
-    // Извлекаем orderId из label (где мы его сохраняли при создании платежа)
     const orderId = webhookData.label || 'unknown'
-
-    // Проверяем, был ли платеж защищен (codepro)
     const isProtected = webhookData.codepro === 'true' || webhookData.codepro === true
-
-    // Определяем статус платежа
     let status = 'processing'
     if (webhookData.unaccepted === 'true' || webhookData.unaccepted === true) {
       status = 'waiting'
     } else if (isProtected) {
       status = 'hold'
     } else {
-      status = PaymentStatus.COMPLETED // Use enum
+      status = PaymentStatus.COMPLETED 
     }
 
     return {
@@ -906,12 +841,9 @@ export class PaymentService extends BaseService {
     }
   }
 
-  /**
-   * Обрабатывает вебхук Robokassa
-   */
   private processRobokassaWebhook(webhookData: any): {
     orderId: string
-    status: PaymentStatus // Use the enum type
+    status: PaymentStatus 
     transactionId?: string
   } {
     const orderId = webhookData.InvId
@@ -919,25 +851,11 @@ export class PaymentService extends BaseService {
       console.error('Robokassa Webhook Error: Missing orderId (InvId)')
       throw new Error('Missing orderId in Robokassa webhook data')
     }
-
-    // Robokassa typically sends webhooks only for successful payments (ResultURL).
-    // SuccessURL is a redirect, FailureURL is a redirect.
-    // We rely on the verification step to ensure this is a valid success notification.
-    const status = PaymentStatus.COMPLETED // Use enum
-
-    // Optional: Verify OutSum matches the order total
-    // const expectedAmount = ... fetch order amount ...
-    // if (parseFloat(webhookData.OutSum) >= expectedAmount) {
-    //    status = PaymentStatus.PAID
-    // } else {
-    //    console.warn(`Robokassa Webhook: Amount mismatch for order ${orderId}. Received ${webhookData.OutSum}, expected ${expectedAmount}`)
-    //    status = PaymentStatus.FAILED // Or handle partial payment
-    // }
-
+    const status = PaymentStatus.COMPLETED 
     return {
-      orderId: String(orderId), // Ensure it's a string
+      orderId: String(orderId), 
       status,
-      transactionId: String(orderId), // Robokassa uses InvId as the transaction identifier
+      transactionId: String(orderId), 
     }
   }
 
@@ -949,9 +867,6 @@ export class PaymentService extends BaseService {
       console.warn(`No paymentData provided to extract token for provider: ${provider}`)
       return null
     }
-
-    // Provider-specific logic to extract token. This is highly dependent on provider's response structure.
-    // Add more cases as new providers are integrated or existing ones change.
     console.log(
       `Attempting to extract payment token for provider: ${provider} from data:`,
       JSON.stringify(paymentData, null, 2),
@@ -959,29 +874,20 @@ export class PaymentService extends BaseService {
 
     let potentialToken: string | undefined | null = null
 
-    // General common patterns - prioritize more specific provider logic if available
-    // These are common field names for reusable tokens or payment method identifiers.
     potentialToken =
-      paymentData?.recurring_token || // Common in some custom integrations
-      paymentData?.payment_method_id || // Common in Stripe (PaymentIntent, SetupIntent)
-      paymentData?.token || // Generic token field
-      paymentData?.id // Sometimes the ID of a payment method object itself is the token
+      paymentData?.recurring_token || 
+      paymentData?.payment_method_id || 
+      paymentData?.token || 
+      paymentData?.id 
 
-    // Check nested structures, e.g., Stripe's card details within payment_method_details
     if (paymentData?.payment_method_details?.card?.token) {
       potentialToken = paymentData.payment_method_details.card.token
     } else if (paymentData?.card?.token) {
-      // Some providers might nest card token directly
       potentialToken = paymentData.card.token
     }
 
-    // Placeholder for specific provider logic, e.g., YooMoney, Robokassa, Crypto
-    // This section should be expanded based on how each provider returns reusable tokens.
     switch (provider) {
       case 'yoomoney':
-        // YooMoney might require a specific call to save a payment method or use a token from `save_payment_method: true` flow.
-        // If a token is directly in webhook data (e.g. `payment_method_data.id` if it's a saved method), extract it here.
-        // For now, relying on generic patterns.
         console.log(
           'YooMoney: Check paymentData for a recurring token if applicable for their API (e.g., saved payment method ID).',
         )
@@ -990,10 +896,6 @@ export class PaymentService extends BaseService {
         }
         break
       case 'robokassa':
-        // Robokassa's standard flow might not directly provide a reusable token in the webhook for recurring.
-        // It often involves a separate "recurring payment" setup or specific parameters.
-        // If a token is available, extract it here.
-        // For Robokassa, the InvId from the initial payment notification often serves as the identifier for recurring setups.
         console.log(
           'Robokassa: Check if InvId (initial order ID) is available in paymentData to be used as a token for recurring.',
         )
@@ -1002,10 +904,8 @@ export class PaymentService extends BaseService {
         }
         break
       case 'crypto':
-        // Crypto payments are less likely to have traditional "tokens" unless it's a specific service.
         console.log('Crypto: Unlikely to have standard payment tokens for recurring billing.')
         break
-      // Add other specific provider handlers here
       default:
         console.log(
           `No specific token extraction logic for provider: ${provider}. Relying on generic patterns.`,
@@ -1031,7 +931,7 @@ export class PaymentService extends BaseService {
       status: string
       paymentId: string
       paymentProvider: string
-      paymentData: any // This is the raw data from the provider's webhook/callback
+      paymentData: any 
     },
   ) {
     if (!this.payload) {
@@ -1039,20 +939,16 @@ export class PaymentService extends BaseService {
     }
 
     try {
-      // Fetch the order first. Ensure depth is sufficient for orderType and paymentProvider.
-      // The existing depth: 3 in the successful payment block should be fine.
-      // However, we need the order object *before* the main update to check its current state for token processing.
       let order = await this.payload.findByID({
         collection: 'orders',
         id: orderId,
-        depth: 1, // Minimal depth for initial checks, will re-fetch with more depth later if needed
-      })
+        depth: 1, 
+      }) as Order; 
 
       if (!order) {
         throw new Error(`Order ${orderId} not found`)
       }
 
-      // Обновляем статус заказа
       await this.payload.update({
         collection: 'orders',
         id: orderId,
@@ -1060,90 +956,97 @@ export class PaymentService extends BaseService {
           status: update.status as Order['status'],
           paymentId: update.paymentId,
           paymentProvider: update.paymentProvider,
-          // Storing raw paymentData might be too verbose or contain sensitive info not meant for long-term storage in order.
-          // Consider if this is necessary or if specific fields should be extracted.
-          // For now, keeping as per existing structure.
           paymentData: update.paymentData,
           ...(update.status === PaymentStatus.COMPLETED && { paidAt: new Date().toISOString() }),
         },
       })
 
-      // Re-fetch order after update to have the latest state for subsequent operations, including paidAt
       order = await this.payload.findByID({
         collection: 'orders',
         id: orderId,
-        depth: 3, // Depth for notifications, enrollments, and token processing
-      })
+        depth: 3, 
+      }) as Order; 
       if (!order) {
-        // Should not happen if previous find and update succeeded, but good practice
         throw new Error(`Order ${orderId} not found after update`)
       }
 
-      // Если заказ оплачен (COMPLETED), отправляем уведомление и обрабатываем подписку
       if (update.status === PaymentStatus.COMPLETED) {
-        // --- Existing Notification and Enrollment Logic ---
         try {
           const serviceRegistry = ServiceRegistry.getInstance(this.payload)
           const notificationService = serviceRegistry.getNotificationService()
           const emailService = serviceRegistry.getEmailService()
           const enrollmentService = serviceRegistry.getEnrollmentService()
 
-          const orderWithItems = order // Use the already fetched and updated order
+          const orderWithItems = order 
 
           const customerField = orderWithItems.customer
           const customerIsObject =
             typeof customerField === 'object' && customerField !== null && 'id' in customerField
-          const customerName = customerIsObject ? customerField.name : 'Customer'
-          const customerEmail = customerIsObject ? customerField.email : String(customerField || '')
+          const customerName = customerIsObject ? (customerField as User).name : 'Customer' 
+          const customerEmail = customerIsObject ? (customerField as User).email : String(customerField || '') 
           const customerLocale = customerIsObject ? (customerField as User).locale || 'ru' : 'ru'
 
-          const items = (orderWithItems.items || []).map((item) => {
-            const product = typeof item.product === 'object' ? (item.product as Product) : null
+          const items: LocalEmailOrderItem[] = (orderWithItems.items || []).map((orderItem: any): LocalEmailOrderItem => { 
+            const product = typeof orderItem.product === 'object' ? (orderItem.product as Product) : null
+            const service = typeof orderItem.service === 'object' ? (orderItem.service as Service) : null 
+            
+            let name = 'Item';
+            let type: LocalEmailOrderItem['type'] = 'other'; 
+            let entityId = '';
+            // Infer itemType if not present on orderItem, or use it if present
+            const itemType = orderItem.itemType || (product ? 'product' : (service ? 'service' : 'other'));
+
+
+            if (itemType === 'product' && product) {
+              name = product.title || 'Product'; 
+              type = product.isCourse ? 'course' : 'product';
+              entityId = product.id;
+            } else if (itemType === 'service' && service) {
+              name = service.title || 'Service'; 
+              type = 'other'; // Map 'service' to 'other' for email items
+              entityId = service.id;
+            }
+
+
             return {
-              product: typeof item.product === 'string' ? item.product : product?.id || '',
-              quantity: item.quantity || 1,
-              price: item.price || 0,
-              name: product?.title || 'Product',
-              type: product?.isCourse ? 'course' : 'product',
+              id: entityId, 
+              name: name,
+              quantity: orderItem.quantity || 1,
+              price: orderItem.price || 0,
+              total: (orderItem.price || 0) * (orderItem.quantity || 1),
+              type: type,
             }
           })
 
           try {
             const displayTotal =
-              orderWithItems.total?.en?.amount ?? orderWithItems.total?.ru?.amount ?? 0
+              (orderWithItems.total as any)?.en?.amount ?? (orderWithItems.total as any)?.ru?.amount ?? 0
             const displayCurrency =
-              orderWithItems.total?.en?.currency ?? orderWithItems.total?.ru?.currency ?? 'USD'
-            const displaySubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+              (orderWithItems.total as any)?.en?.currency ?? (orderWithItems.total as any)?.ru?.currency ?? 'USD'
+            const displaySubtotal = items.reduce((sum: number, currentItem: LocalEmailOrderItem) => sum + currentItem.price * currentItem.quantity, 0) 
 
             await emailService.sendOrderConfirmationEmail({
               userName: customerName,
               email: customerEmail,
               orderNumber: orderWithItems.orderNumber || orderId,
               orderDate:
-                orderWithItems.paidAt || orderWithItems.createdAt || new Date().toISOString(), // Prefer paidAt
-              items: items.map((item) => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                total: item.price * item.quantity,
-                type: item.type as 'course' | 'product' | 'subscription' | 'other',
-                id: item.product,
-              })),
+                orderWithItems.paidAt || orderWithItems.createdAt || new Date().toISOString(), 
+              items: items,
               subtotal: displaySubtotal,
               total: displayTotal,
               currency: displayCurrency,
               paymentMethod: update.paymentProvider,
               paymentStatus: 'paid',
-              locale: customerLocale,
+              locale: customerLocale as AppLocale, 
             })
           } catch (emailError) {
             console.error('Failed to send order confirmation email:', emailError)
           }
 
           const displayTotalNotif =
-            orderWithItems.total?.en?.amount ?? orderWithItems.total?.ru?.amount ?? 0
+            (orderWithItems.total as any)?.en?.amount ?? (orderWithItems.total as any)?.ru?.amount ?? 0
           const displayCurrencyNotif =
-            orderWithItems.total?.en?.currency ?? orderWithItems.total?.ru?.currency ?? 'USD'
+            (orderWithItems.total as any)?.en?.currency ?? (orderWithItems.total as any)?.ru?.currency ?? 'USD'
 
           await notificationService.sendPaymentConfirmation({
             orderId,
@@ -1151,7 +1054,13 @@ export class PaymentService extends BaseService {
             customerEmail: customerEmail,
             total: displayTotalNotif,
             currency: displayCurrencyNotif,
-            items: items.map((item) => ({ ...item, type: item.type as any })),
+            items: items.map((notifItem: LocalEmailOrderItem) => ({ 
+              product: notifItem.id, 
+              name: notifItem.name,
+              quantity: notifItem.quantity,
+              price: notifItem.price,
+              type: notifItem.type as any, 
+            })), 
             paymentMethod: update.paymentProvider,
             paymentId: update.paymentId,
           })
@@ -1159,7 +1068,7 @@ export class PaymentService extends BaseService {
           if (enrollmentService && orderWithItems.items && Array.isArray(orderWithItems.items)) {
             const userId =
               typeof customerField === 'object' && customerField !== null
-                ? customerField.id
+                ? (customerField as User).id 
                 : typeof customerField === 'string'
                   ? customerField
                   : null
@@ -1167,74 +1076,78 @@ export class PaymentService extends BaseService {
             if (!userId) {
               console.error(`Cannot enroll in course: User ID not found for order ${orderId}.`)
             } else {
-              for (const item of orderWithItems.items) {
-                const product = typeof item.product === 'object' ? (item.product as Product) : null
-                if (product && product.isCourse && product.course) {
-                  const courseRef = product.course
-                  const courseId =
-                    typeof courseRef === 'object' && courseRef !== null
-                      ? courseRef.id
-                      : typeof courseRef === 'string'
-                        ? courseRef
-                        : null
+              for (const orderItem of orderWithItems.items) { 
+                const mappedItem = items.find(i => i.id === (typeof orderItem.product === 'string' ? orderItem.product : (orderItem.product as Product)?.id) || i.id === (typeof orderItem.service === 'string' ? orderItem.service : (orderItem.service as Service)?.id) );
 
-                  if (courseId) {
-                    try {
-                      const courseDetails: any = await this.payload.findByID({
-                        collection: 'courses',
-                        id: courseId,
-                        depth: 0,
-                      })
+                if (mappedItem?.type === 'course') {
+                    const product = typeof orderItem.product === 'object' ? (orderItem.product as Product) : null; 
+                    if (product && product.isCourse && product.course) {
+                      const courseRef = product.course
+                      const courseId =
+                        typeof courseRef === 'object' && courseRef !== null
+                          ? (courseRef as Course).id 
+                          : typeof courseRef === 'string'
+                            ? courseRef
+                            : null
 
-                      let expiresAt: string | undefined = undefined
-                      if (
-                        courseDetails?.accessDuration?.type === 'limited' &&
-                        courseDetails?.accessDuration?.duration &&
-                        courseDetails?.accessDuration?.unit
-                      ) {
-                        const durationOptions: Duration = {}
-                        const unit = courseDetails.accessDuration.unit as keyof Duration
-                        if (
-                          [
-                            'years',
-                            'months',
-                            'weeks',
-                            'days',
-                            'hours',
-                            'minutes',
-                            'seconds',
-                          ].includes(unit)
-                        ) {
-                          durationOptions[unit] = courseDetails.accessDuration.duration
-                          expiresAt = add(new Date(), durationOptions).toISOString()
-                        } else {
-                          console.warn(
-                            `Invalid duration unit '${courseDetails.accessDuration.unit}' for course ${courseId}`,
+                      if (courseId) {
+                        try {
+                          const courseDetails = await this.payload.findByID({
+                            collection: 'courses',
+                            id: courseId,
+                            depth: 0,
+                          }) as Course 
+
+                          let expiresAt: string | undefined = undefined
+                          if (
+                            courseDetails?.accessDuration?.type === 'limited' &&
+                            courseDetails?.accessDuration?.duration &&
+                            courseDetails?.accessDuration?.unit
+                          ) {
+                            const durationOptions: Duration = {}
+                            const unit = courseDetails.accessDuration.unit as keyof Duration
+                            if (
+                              [
+                                'years',
+                                'months',
+                                'weeks',
+                                'days',
+                                'hours',
+                                'minutes',
+                                'seconds',
+                              ].includes(unit)
+                            ) {
+                              durationOptions[unit] = courseDetails.accessDuration.duration
+                              expiresAt = add(new Date(), durationOptions).toISOString()
+                            } else {
+                              console.warn(
+                                `Invalid duration unit '${courseDetails.accessDuration.unit}' for course ${courseId}`,
+                              )
+                            }
+                          }
+
+                          await enrollmentService.enrollUserInCourse({
+                            userId: userId,
+                            courseId: courseId,
+                            source: 'purchase',
+                            orderId: orderId,
+                            expiresAt: expiresAt,
+                          })
+                          console.log(
+                            `Successfully enrolled user ${userId} in course ${courseId} from order ${orderId}.`,
+                          )
+                        } catch (enrollmentError) {
+                          console.error(
+                            `Failed to enroll user ${userId} in course ${courseId} for order ${orderId}:`,
+                            enrollmentError,
                           )
                         }
+                      } else {
+                        console.warn(
+                          `Product ${product.id} in order ${orderId} is marked as course but has no valid course linked.`,
+                        )
                       }
-
-                      await enrollmentService.enrollUserInCourse({
-                        userId: userId,
-                        courseId: courseId,
-                        source: 'purchase',
-                        orderId: orderId,
-                        expiresAt: expiresAt,
-                      })
-                      console.log(
-                        `Successfully enrolled user ${userId} in course ${courseId} from order ${orderId}.`,
-                      )
-                    } catch (enrollmentError) {
-                      console.error(
-                        `Failed to enroll user ${userId} in course ${courseId} for order ${orderId}:`,
-                        enrollmentError,
-                      )
                     }
-                  } else {
-                    console.warn(
-                      `Product ${product.id} in order ${orderId} is marked as course but has no valid course linked.`,
-                    )
-                  }
                 }
               }
             }
@@ -1243,16 +1156,13 @@ export class PaymentService extends BaseService {
           console.error('Failed to send payment notification or enroll user:', notifError)
         }
 
-        // --- New Subscription Payment Token Logic ---
-        // Ensure order.orderType and order.subscriptionProcessedToken are available in your Order type.
-        // These fields need to be defined in src/collections/Orders.ts
         if (
           order.orderType === 'subscription' &&
-          !order.subscriptionProcessedToken // Check if token has already been processed for this order
+          !order.subscriptionProcessedToken 
         ) {
           console.log(`Processing token for initial subscription payment for order ${order.id}`)
           const paymentToken = this.extractPaymentTokenFromProviderData(
-            update.paymentData, // Raw data from provider
+            update.paymentData, 
             order.paymentProvider as PaymentProviderKey,
           )
 
@@ -1268,37 +1178,32 @@ export class PaymentService extends BaseService {
                       },
                     },
                   ],
-                }, // Assumes 'order' field in Subscription links to Order ID
+                }, 
                 limit: 1,
-                depth: 0, // Not much depth needed to update subscription
+                depth: 0, 
               })
 
               if (subscriptionsResult.docs.length > 0) {
-                const subscription = subscriptionsResult.docs[0] as Subscription // Cast to Subscription type
-
-                // Additional check: ensure this subscription is still in a state expecting a token (e.g., 'pending')
-                // This prevents overwriting a token if, for some reason, this logic runs multiple times for an active sub.
-                if (subscription.status === 'pending' || !subscription.paymentToken) {
+                const subscription = subscriptionsResult.docs[0] as Subscription 
+                if (subscription.status === 'pending' || !subscription.paymentId) { 
                   await this.payload.update({
                     collection: 'subscriptions',
                     id: subscription.id,
                     data: {
-                      paymentToken: paymentToken,
-                      // Use the correct field name 'paymentProvider' and cast to the Subscription's paymentProvider type
-                      paymentProvider: order.paymentProvider as Subscription['paymentProvider'],
-                      status: 'active', // Update subscription status
+                      paymentId: paymentToken,
+                      paymentMethod: order.paymentProvider as Subscription['paymentMethod'], 
+                      status: 'active', 
                     },
                   })
                   console.log(
                     `Stored payment token and set status to 'active' for subscription ${subscription.id} (order ${order.id})`,
                   )
 
-                  // Mark the order to prevent reprocessing token for this specific order
                   await this.payload.update({
                     collection: 'orders',
                     id: order.id,
                     data: {
-                      subscriptionProcessedToken: true, // This field must exist in the Order collection
+                      subscriptionProcessedToken: true, 
                     },
                   })
                   console.log(`Marked order ${order.id} as subscription token processed.`)
@@ -1324,7 +1229,6 @@ export class PaymentService extends BaseService {
             )
           }
         }
-        // --- End Subscription Payment Token Logic ---
       }
 
       return true
@@ -1334,9 +1238,6 @@ export class PaymentService extends BaseService {
     }
   }
 
-  /**
-   * Создает ссылку для оплаты через YooMoney
-   */
   generateYooMoneyPaymentLink(orderId: string, amount: number, description: string): string {
     const settings = this.getSettings()
     const providersConfig = settings.providersConfig || {}
@@ -1359,9 +1260,6 @@ export class PaymentService extends BaseService {
     return `https://yoomoney.ru/quickpay/confirm.xml?${queryString}`
   }
 
-  /**
-   * Создает ссылку для оплаты через Robokassa
-   */
   generateRobokassaPaymentLink(orderId: string, amount: number, description: string): string {
     const settings = this.getSettings()
     const providersConfig = settings.providersConfig || {}
@@ -1394,24 +1292,20 @@ export class PaymentService extends BaseService {
     return `${baseUrl}?${params.toString()}`
   }
 
-  /**
-   * Генерирует ссылку на оплату в зависимости от выбранного провайдера
-   */
   async generatePaymentLink(
     orderId: string,
     amount: number,
     description: string,
-    providerKey: PaymentProviderKey, // Changed parameter name and type
+    providerKey: PaymentProviderKey, 
   ): Promise<string> {
     switch (
-      providerKey // Use the key directly
+      providerKey 
     ) {
       case 'yoomoney':
         return this.generateYooMoneyPaymentLink(orderId, amount, description)
       case 'robokassa':
         return this.generateRobokassaPaymentLink(orderId, amount, description)
       case 'crypto':
-        // TODO: Implement Crypto payment links
         const cryptoErrorMsg = `[generatePaymentLink] Crypto payment links not implemented yet for order ${orderId}.`
         this.payload.logger.error(cryptoErrorMsg, {
           provider: 'crypto',
@@ -1420,35 +1314,32 @@ export class PaymentService extends BaseService {
         })
         throw new Error('Crypto payment links not implemented yet')
       default:
-        // Логируем ошибку перед throw
         const unsupportedErrorMsg = `[generatePaymentLink] Unsupported payment provider requested: ${providerKey} for order ${orderId}.`
         this.payload.logger.error(unsupportedErrorMsg, {
           provider: providerKey,
           method: 'generatePaymentLink',
           orderId,
         })
-        // Use the correct variable name 'providerKey'
         throw new Error(`Unsupported payment provider: ${providerKey}`)
     }
   }
 
-  // Method to process a refund
-  async refundPayment(
+  public async refundPayment( 
     orderId: string,
-    currency: string, // <<< ДОБАВЛЕН ПАРАМЕТР ВАЛЮТЫ
-    amountToRefund?: number, // Optional: if not provided, attempt full refund
+    currency: string, 
+    amountToRefund?: number, 
     reason?: string,
   ): Promise<PaymentResult> {
+    await this.ensureSettingsLoaded();
     this.payload.logger.info(
       `Attempting to refund payment for orderId: ${orderId}, currency: ${currency}, amount: ${amountToRefund}, reason: ${reason}`,
     )
     try {
-      // УДАЛЯЕМ ЯВНЫЙ ТИП <Order>
       const order = await this.payload.findByID({
         collection: 'orders',
         id: orderId,
-        depth: 1, // Увеличим depth, чтобы точно получить customer и total
-      })
+        depth: 1, 
+      }) as Order; 
 
       if (!order) {
         this.payload.logger.error(`Order ${orderId} not found for refund.`)
@@ -1463,24 +1354,20 @@ export class PaymentService extends BaseService {
       }
 
       const providerKey = order.paymentProvider as PaymentProviderKey
-      const paymentProvider = this.getPaymentProvider(providerKey)
-
-      if (!paymentProvider.refundPayment) {
+      const paymentProvider = this.paymentProviders[providerKey];
+      if (!paymentProvider || !paymentProvider.refundPayment) {
         this.payload.logger.error(
           `Refund functionality not implemented for provider: ${providerKey}`,
         )
         return { status: 'failed', errorMessage: `Refunds not supported by ${providerKey}.` }
       }
 
-      // Определяем сумму возврата: если не указана, используем order.total в ПЕРЕДАННОЙ валюте.
-      // Извлекаем локаль из запрошенной валюты (простое предположение: 'rub' -> 'ru', остальное -> 'en')
-      // В РЕАЛЬНОСТИ: Локаль должна определяться более надежно, например, по локали пользователя заказа.
+
       const orderLocale = currency.toLowerCase() === 'rub' ? 'ru' : 'en'
       const orderTotalForCurrency = (order.total as any)?.[orderLocale]?.amount
 
-      const finalAmountToRefund = amountToRefund ?? orderTotalForCurrency ?? 0 // Используем сумму заказа в нужной валюте
+      const finalAmountToRefund = amountToRefund ?? orderTotalForCurrency ?? 0 
 
-      // Используем переданную валюту
       const finalCurrency = currency
 
       if (finalAmountToRefund <= 0) {
@@ -1493,7 +1380,7 @@ export class PaymentService extends BaseService {
       const refundResult = await paymentProvider.refundPayment({
         originalTransactionId: order.paymentId,
         amount: finalAmountToRefund,
-        currency: finalCurrency, // <<< ПЕРЕДАЕМ ПРАВИЛЬНУЮ ВАЛЮТУ
+        currency: finalCurrency, 
         reason: reason || `Refund for order ${orderId}`,
         orderId: orderId,
       })
@@ -1502,22 +1389,27 @@ export class PaymentService extends BaseService {
         this.payload.logger.info(
           `Refund successful for order ${orderId}, new transactionId: ${refundResult.paymentId}`,
         )
-        // Update order status to 'refunded' or a similar status
         await this.payload.update({
           collection: 'orders',
           id: orderId,
           data: {
-            // TODO: Change status to 'refunded' once payload-types.ts is updated to reflect Orders.ts
-            status: 'cancelled', // Or a more specific status like 'partially_refunded' if applicable
-            // Potentially store refund transaction ID or details
-            // refundDetails: {
-            //   refundTransactionId: refundResult.paymentId,
-            //   refundedAt: new Date().toISOString(),
-            //   amount: finalAmountToRefund,
-            //   reason: reason,
-            // },
+            status: 'refunded', 
           },
         })
+
+        try {
+          const notificationService = ServiceRegistry.getInstance(this.payload).getNotificationService();
+          await notificationService.sendRefundProcessedNotification(orderId, {
+            amount: finalAmountToRefund,
+            currency: finalCurrency,
+            processedAt: new Date().toISOString(),
+          })
+          this.payload.logger.info(`Refund processed notification sent for order ${orderId}.`)
+        } catch (notificationError: any) {
+          this.payload.logger.error(
+            `Failed to send refund processed notification for order ${orderId}: ${notificationError.message}`,
+          )
+        }
       } else {
         this.payload.logger.error(
           `Refund failed for order ${orderId}: ${refundResult.errorMessage}`,
@@ -1534,8 +1426,8 @@ export class PaymentService extends BaseService {
     }
   }
 
-  // Method to void a payment
-  async voidPayment(orderId: string, reason?: string): Promise<PaymentResult> {
+  public async voidPayment(orderId: string, reason?: string): Promise<PaymentResult> { 
+    await this.ensureSettingsLoaded();
     this.payload.logger.info(
       `Attempting to void payment for orderId: ${orderId}, reason: ${reason}`,
     )
@@ -1544,7 +1436,7 @@ export class PaymentService extends BaseService {
         collection: 'orders',
         id: orderId,
         depth: 0,
-      })
+      }) as Order; 
 
       if (!order) {
         this.payload.logger.error(`Order ${orderId} not found for void.`)
@@ -1559,9 +1451,9 @@ export class PaymentService extends BaseService {
       }
 
       const providerKey = order.paymentProvider as PaymentProviderKey
-      const paymentProvider = this.getPaymentProvider(providerKey)
+      const paymentProvider = this.paymentProviders[providerKey];
 
-      if (!paymentProvider.voidPayment) {
+      if (!paymentProvider || !paymentProvider.voidPayment) {
         this.payload.logger.error(`Void functionality not implemented for provider: ${providerKey}`)
         return { status: 'failed', errorMessage: `Voids not supported by ${providerKey}.` }
       }
@@ -1574,17 +1466,11 @@ export class PaymentService extends BaseService {
 
       if (voidResult.status === 'succeeded' || voidResult.status === 'voided') {
         this.payload.logger.info(`Void successful for order ${orderId}`)
-        // Update order status to 'cancelled' or 'voided'
         await this.payload.update({
           collection: 'orders',
           id: orderId,
           data: {
-            status: 'cancelled', // Or 'voided'
-            // Potentially store void details
-            // voidDetails: {
-            //   voidedAt: new Date().toISOString(),
-            //   reason: reason,
-            // },
+            status: 'cancelled', 
           },
         })
       } else {
@@ -1601,8 +1487,8 @@ export class PaymentService extends BaseService {
     }
   }
 
-  private getPaymentProvider(provider: PaymentProviderKey): IPaymentProvider {
-    const defaultProvider: IPaymentProvider = {
+  private initializePaymentProviders(): Record<PaymentProviderKey, IPaymentProvider> {
+    const defaultProviderImpl: IPaymentProvider = {
       processPayment: async (params) => {
         this.payload.logger.warn(
           `Default provider processPayment STUB called for amount: ${params.amount}`,
@@ -1634,10 +1520,9 @@ export class PaymentService extends BaseService {
         this.payload.logger.warn(
           `STUB: DefaultProvider.refundPayment called for order ${params.orderId}, originalTx: ${params.originalTransactionId}, amount: ${params.amount} ${params.currency}. Real API integration needed.`,
         )
-        // Simulate a successful refund
         return {
-          status: 'refunded', // Use the new status
-          paymentId: `stub_refund_${Date.now()}_${params.originalTransactionId}`, // New ID for the refund transaction
+          status: 'refunded', 
+          paymentId: `stub_refund_${Date.now()}_${params.originalTransactionId}`, 
           provider: 'genericGateway',
           rawResponse: { stubbed: true, ...params },
         }
@@ -1646,10 +1531,9 @@ export class PaymentService extends BaseService {
         this.payload.logger.warn(
           `STUB: DefaultProvider.voidPayment called for order ${params.orderId}, originalTx: ${params.originalTransactionId}. Real API integration needed.`,
         )
-        // Simulate a successful void
         return {
-          status: 'voided', // Use the new status
-          paymentId: params.originalTransactionId, // Void usually refers to the original transaction
+          status: 'voided', 
+          paymentId: params.originalTransactionId, 
           provider: 'genericGateway',
           rawResponse: { stubbed: true, ...params },
         }
@@ -1680,36 +1564,89 @@ export class PaymentService extends BaseService {
           'Content-Type': 'application/json',
         }
 
-        // Extract orderId from metadata if available, otherwise generate a reference
         const orderId = params.metadata?.orderId || `order_${Date.now()}`
-        const description = params.metadata?.description || `Payment for order ${orderId}`
+        let calculatedAmount = 0;
+        let paymentDescription = `Payment for order ${orderId}. Items: `;
+        const itemDetailsForProvider: any[] = [];
+
+        if (params.metadata?.items && Array.isArray(params.metadata.items)) {
+          for (const item of params.metadata.items) {
+            if (item.serviceId) {
+              try {
+                const service = await this.payload.findByID({
+                  collection: 'services',
+                  id: item.serviceId,
+                  depth: 0,
+                }) as Service;
+                if (service && service.price) {
+                  calculatedAmount += (service.price * (item.quantity || 1));
+                  const serviceName = service.title || 'Service'; 
+                  paymentDescription += `${serviceName} (x${item.quantity || 1}), `;
+                  itemDetailsForProvider.push({ description: serviceName, quantity: (item.quantity||1).toString(), amount: { value: service.price.toFixed(2), currency: params.currency }, vat_code: 1 });
+                }
+              } catch (e) { this.payload.logger.error(`Error fetching service ${item.serviceId}: ${e}`); }
+            } else if (item.productId) {
+              try {
+                const product = await this.payload.findByID({
+                  collection: 'products',
+                  id: item.productId,
+                  depth: 0,
+                }) as Product;
+                if (product && product.pricing?.finalPrice) {
+                  calculatedAmount += (product.pricing.finalPrice * (item.quantity || 1));
+                  const productName = product.title || 'Product'; 
+                  paymentDescription += `${productName} (x${item.quantity || 1}), `;
+                  itemDetailsForProvider.push({ description: productName, quantity: (item.quantity||1).toString(), amount: { value: product.pricing.finalPrice.toFixed(2), currency: params.currency }, vat_code: 1 });
+                }
+              } catch (e) { this.payload.logger.error(`Error fetching product ${item.productId}: ${e}`); }
+            }
+          }
+        }
+        
+        if (calculatedAmount <= 0 && params.metadata?.items && params.metadata.items.length > 0) { 
+            this.payload.logger.error(`Calculated amount for order ${orderId} is zero or negative. Original amount: ${params.amount}. Items: ${JSON.stringify(params.metadata.items)}`);
+            calculatedAmount = params.amount; 
+        } else if (calculatedAmount <= 0) { 
+            calculatedAmount = params.amount;
+        }
+
+        paymentDescription = paymentDescription.length > 128 ? paymentDescription.substring(0, 125) + '...' : paymentDescription.slice(0, -2);
+
+
         const returnUrl =
           params.metadata?.returnUrl ||
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/payment/callback/yoomoney`
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/payment/yoomoney/callback`
 
-        const body = {
+        const body: any = {
           amount: {
-            value: params.amount.toFixed(2),
+            value: calculatedAmount.toFixed(2), 
             currency: params.currency,
           },
           confirmation: {
             type: 'redirect',
             return_url: returnUrl,
           },
-          description: description,
+          description: paymentDescription, 
           metadata: {
-            // Pass all metadata, ensuring orderId is present
             ...params.metadata,
-            order_id: orderId, // Ensure order_id is explicitly in metadata for YooMoney
+            order_id: orderId, 
           },
-          capture: true, // Auto-capture payment
-          // payment_method_data: params.paymentMethod ? { type: params.paymentMethod } : undefined, // e.g. 'bank_card', 'yoo_money'
-          save_payment_method: params.metadata?.savePaymentMethod === true, // For recurring payments
+          capture: true, 
+          save_payment_method: params.metadata?.savePaymentMethod === true,
+        };
+
+        if (itemDetailsForProvider.length > 0 && params.metadata?.customerEmail) {
+          body.receipt = {
+            customer: {
+              email: params.metadata.customerEmail,
+            },
+            items: itemDetailsForProvider,
+          };
         }
 
         try {
           this.payload.logger.info(
-            `Creating YooMoney payment for order ${orderId}, amount: ${params.amount} ${params.currency}. Idempotence-Key: ${idempotenceKey}`,
+            `Creating YooMoney payment for order ${orderId}, amount: ${calculatedAmount} ${params.currency}. Idempotence-Key: ${idempotenceKey}`,
           )
           const response = await fetch(YOOMONEY_API_PAYMENTS_ENDPOINT, {
             method: 'POST',
@@ -1734,14 +1671,14 @@ export class PaymentService extends BaseService {
           this.payload.logger.info(
             `YooMoney payment created successfully for order ${orderId}: PaymentID ${responseData.id}, Status ${responseData.status}`,
           )
-          // Return confirmation URL if available
           const confirmationUrl = responseData.confirmation?.confirmation_url
 
           return {
-            status: responseData.status === 'succeeded' ? 'succeeded' : 'pending', // Map YooMoney status
+            status: responseData.status === 'succeeded' ? 'succeeded' : 'pending', 
             paymentId: responseData.id,
             provider: 'yoomoney',
-            rawResponse: { ...responseData, confirmationUrl }, // Include confirmationUrl in rawResponse
+            rawResponse: { ...responseData, confirmationUrl }, 
+            confirmationUrl,
           }
         } catch (apiError: any) {
           this.payload.logger.error(
@@ -1757,7 +1694,7 @@ export class PaymentService extends BaseService {
         }
       },
       chargeWithToken: async (
-        token: string, // This is payment_method_id from YooMoney
+        token: string, 
         amount: number,
         currency: string,
         description: string,
@@ -1902,7 +1839,7 @@ export class PaymentService extends BaseService {
           )
           return {
             status: 'refunded',
-            paymentId: responseData.id, // This is the refund_id
+            paymentId: responseData.id, 
             provider: 'yoomoney',
             rawResponse: responseData,
           }
@@ -1944,15 +1881,13 @@ export class PaymentService extends BaseService {
           this.payload.logger.info(
             `Voiding/Cancelling YooMoney payment ${params.originalTransactionId} for order ${params.orderId}. Idempotence-Key: ${idempotenceKey}`,
           )
-          // YooMoney cancel API might not require a body, or a minimal one.
           const response = await fetch(YOOMONEY_API_CANCEL_ENDPOINT, {
             method: 'POST',
             headers,
-            body: JSON.stringify({}), // Empty body or specific if required by YooMoney for cancel
+            body: JSON.stringify({}), 
           })
           const responseData = await response.json()
 
-          // YooMoney cancellation returns the payment object with status 'canceled'
           if (!response.ok || responseData.status !== 'canceled') {
             this.payload.logger.error(
               `YooMoney API error voiding payment for order ${params.orderId}: ${response.status}`,
@@ -1970,8 +1905,8 @@ export class PaymentService extends BaseService {
             `YooMoney void/cancel successful for order ${params.orderId}: PaymentID ${responseData.id} now Canceled`,
           )
           return {
-            status: 'voided', // Our internal status
-            paymentId: responseData.id, // Original payment_id
+            status: 'voided', 
+            paymentId: responseData.id, 
             provider: 'yoomoney',
             rawResponse: responseData,
           }
@@ -1997,7 +1932,7 @@ export class PaymentService extends BaseService {
         const robokassaConfig = this.settings?.providersConfig?.robokassa
         if (
           !robokassaConfig?.merchantLogin ||
-          !robokassaConfig?.password1 // Password1 for payment link generation
+          !robokassaConfig?.password1 
         ) {
           this.payload.logger.error(
             'Robokassa configuration (merchantLogin/password1) is missing for processPayment.',
@@ -2010,10 +1945,51 @@ export class PaymentService extends BaseService {
         }
 
         const orderId = params.metadata?.orderId || `order_${Date.now()}`
-        const description = params.metadata?.description || `Payment for order ${orderId}`
-        const amount = params.amount
+        let calculatedAmount = 0;
+        let paymentDescription = `Payment for order ${orderId}. Items: `;
 
-        const paymentUrl = this.generateRobokassaPaymentLink(orderId, amount, description)
+        if (params.metadata?.items && Array.isArray(params.metadata.items)) {
+          for (const item of params.metadata.items) {
+            if (item.serviceId) {
+              try {
+                const service = await this.payload.findByID({
+                  collection: 'services',
+                  id: item.serviceId,
+                  depth: 0,
+                }) as Service;
+                if (service && service.price) {
+                  calculatedAmount += (service.price * (item.quantity || 1));
+                  const serviceName = service.title || 'Service'; 
+                  paymentDescription += `${serviceName} (x${item.quantity || 1}), `;
+                }
+              } catch (e) { this.payload.logger.error(`Error fetching service ${item.serviceId} for Robokassa: ${e}`); }
+            } else if (item.productId) {
+              try {
+                const product = await this.payload.findByID({
+                  collection: 'products',
+                  id: item.productId,
+                  depth: 0,
+                }) as Product;
+                if (product && product.pricing?.finalPrice) {
+                  calculatedAmount += (product.pricing.finalPrice * (item.quantity || 1));
+                  const productName = product.title || 'Product'; 
+                  paymentDescription += `${productName} (x${item.quantity || 1}), `;
+                }
+              } catch (e) { this.payload.logger.error(`Error fetching product ${item.productId} for Robokassa: ${e}`); }
+            }
+          }
+        }
+        
+        if (calculatedAmount <= 0 && params.metadata?.items && params.metadata.items.length > 0) {
+             this.payload.logger.error(`Calculated amount for order ${orderId} is zero or negative for Robokassa. Original amount: ${params.amount}. Items: ${JSON.stringify(params.metadata.items)}`);
+            calculatedAmount = params.amount; 
+        } else if (calculatedAmount <= 0) {
+            calculatedAmount = params.amount;
+        }
+        paymentDescription = paymentDescription.length > 100 ? paymentDescription.substring(0, 97) + '...' : paymentDescription.slice(0, -2);
+
+
+        const paymentUrl = this.generateRobokassaPaymentLink(orderId, calculatedAmount, paymentDescription)
 
         this.payload.logger.info(
           `Robokassa payment link generated for order ${orderId}: ${paymentUrl}`,
@@ -2021,20 +1997,21 @@ export class PaymentService extends BaseService {
 
         return {
           status: 'pending',
-          paymentId: orderId,
+          paymentId: orderId, 
           provider: 'robokassa',
           rawResponse: {
             confirmationUrl: paymentUrl,
             message: 'Redirect user to Robokassa to complete payment.',
           },
+          confirmationUrl: paymentUrl,
         }
       },
       chargeWithToken: async (
-        initialInvoiceId: string, // Renamed token to initialInvoiceId for clarity
+        initialInvoiceId: string, 
         amount: number,
-        currency: string, // Currency might not be needed for Robokassa recurring, but kept for interface consistency
-        description: string, // Description might not be needed for Robokassa recurring
-        orderId: string, // This is the NEW order ID for the current renewal attempt
+        currency: string, 
+        description: string, 
+        orderId: string, 
       ): Promise<{
         success: boolean
         transactionId?: string
@@ -2044,7 +2021,7 @@ export class PaymentService extends BaseService {
         const robokassaConfig = this.settings?.providersConfig?.robokassa
         if (
           !robokassaConfig?.merchantLogin ||
-          !robokassaConfig?.password2 // Password2 is needed for recurring API calls
+          !robokassaConfig?.password2 
         ) {
           this.payload.logger.error(
             'Robokassa configuration (merchantLogin/password2) is missing for chargeWithToken (recurring).',
@@ -2056,81 +2033,58 @@ export class PaymentService extends BaseService {
         const password2 = robokassaConfig.password2
         const isTestMode = robokassaConfig.testMode === true
 
-        // Robokassa Recurring Payment API Endpoint (Confirm this endpoint from official docs)
-        // This might be the same endpoint as initial payment but with different parameters,
-        // or a dedicated recurring/subscription endpoint. Assuming a common endpoint for now.
         const RECURRING_API_URL = isTestMode
-          ? 'https://test.robokassa.ru/Merchant/Recurring' // Example Test URL - VERIFY
-          : 'https://auth.robokassa.ru/Merchant/Recurring' // Example Prod URL - VERIFY
+          ? 'https://test.robokassa.ru/Merchant/Recurring' 
+          : 'https://auth.robokassa.ru/Merchant/Recurring' 
 
-        // Parameters for recurring payment (These might vary based on Robokassa's specific API)
-        // - MerchantLogin
-        // - PreviousInvoiceID (or similar identifier from the initial payment)
-        // - InvoiceID (The NEW ID for this specific recurring charge attempt - using orderId)
-        // - OutSum (Amount for this charge)
-        // - SignatureValue (Calculated using Password2)
-        // - Potentially other parameters like Receipt, Description etc.
-
-        const newInvoiceId = orderId // Use the new order ID for this specific charge attempt
-        const signatureString = `${merchantLogin}:${amount}:${newInvoiceId}:${password2}` // Signature based on NEW InvoiceID and amount
+        const newInvoiceId = orderId 
+        const signatureString = `${merchantLogin}:${amount}:${newInvoiceId}:${password2}` 
         const signatureValue = crypto
           .createHash('md5')
           .update(signatureString)
           .digest('hex')
           .toUpperCase()
 
-        const params = new URLSearchParams({
+        const queryParams = new URLSearchParams({
           MerchantLogin: merchantLogin,
-          PreviousInvoiceID: initialInvoiceId, // Link to the initial payment
-          InvoiceID: newInvoiceId, // ID for this specific charge
+          PreviousInvoiceID: initialInvoiceId, 
+          InvoiceID: newInvoiceId, 
           OutSum: amount.toFixed(2),
           SignatureValue: signatureValue,
-          // Description: description, // Optional, might not be used in recurring
-          // Receipt: JSON.stringify({...}), // Optional: If receipt details are needed
           IsTest: isTestMode ? '1' : '0',
         })
 
-        const requestUrl = `${RECURRING_API_URL}?${params.toString()}`
+        const requestUrl = `${RECURRING_API_URL}?${queryParams.toString()}`
 
         try {
           this.payload.logger.info(
             `Attempting Robokassa recurring charge for new order ${newInvoiceId} (linked to initial ${initialInvoiceId}), amount: ${amount}. URL: ${requestUrl}`,
           )
-          // IMPORTANT: Robokassa recurring might be a POST request or require specific headers. Adjust fetch call accordingly.
-          // Assuming GET for simplicity based on some Robokassa API patterns, but VERIFY THIS.
-          const response = await fetch(requestUrl, { method: 'GET' }) // VERIFY METHOD (GET/POST)
+          const response = await fetch(requestUrl, { method: 'GET' }) 
 
-          // Robokassa API response format for recurring needs verification.
-          // It might return XML or JSON. Assuming JSON for now.
-          // Success might be indicated by ResultCode=0 or a specific success message.
-          const responseText = await response.text() // Read as text first to handle potential non-JSON
+          const responseText = await response.text() 
           let responseData: any = {}
           try {
-            responseData = JSON.parse(responseText) // Try parsing as JSON
+            responseData = JSON.parse(responseText) 
           } catch (e) {
-            // If not JSON, maybe XML or plain text success/error code?
             this.payload.logger.warn(
               `Robokassa recurring response for ${newInvoiceId} was not valid JSON: ${responseText}`,
             )
-            // Attempt to parse common success indicators if not JSON
             if (
               responseText.includes('OK') ||
               responseText.includes('Success') ||
               responseText.match(/^0$/)
             ) {
-              // Example checks
-              responseData = { ResultCode: 0, RawText: responseText } // Simulate success structure
+              responseData = { ResultCode: 0, RawText: responseText } 
             } else {
               responseData = {
                 ResultCode: -1,
                 Description: 'Failed to parse response or unknown format.',
                 RawText: responseText,
-              } // Simulate failure
+              } 
             }
           }
-
-          // Check for success based on Robokassa's recurring API response structure
-          // (e.g., ResultCode === 0 or specific success status) - VERIFY THIS
+          
           if (!response.ok || responseData.ResultCode !== 0) {
             const errorMessage =
               responseData.Description || `Robokassa Recurring API Error: ${response.status}`
@@ -2150,7 +2104,7 @@ export class PaymentService extends BaseService {
           )
           return {
             success: true,
-            transactionId: newInvoiceId, // The new InvoiceID acts as the transaction ID for this charge
+            transactionId: newInvoiceId, 
             rawResponse: responseData,
           }
         } catch (apiError: any) {
@@ -2167,58 +2121,62 @@ export class PaymentService extends BaseService {
       },
       refundPayment: async (params: RefundParams): Promise<PaymentResult> => {
         this.payload.logger.warn(
-          `Robokassa.refundPayment called for order ${params.orderId}. Robokassa refunds often require manual processing via their merchant panel or a separate, specific API for refunds if available. Direct refund via this generic method is not implemented.`,
-        )
+          `Robokassa.refundPayment called for order ${params.orderId}, amount ${params.amount} ${params.currency}. Based on available information, Robokassa refunds are typically handled manually via their merchant panel. A direct programmatic refund API is not clearly documented or may not be generally available. Please verify with Robokassa's official documentation or support if an API for refunds exists.`,
+        );
         return {
           status: 'failed',
           errorMessage:
-            'Automated refunds for Robokassa are not implemented. Please process manually or integrate specific Robokassa refund API.',
+            'Programmatic refunds for Robokassa are not implemented due to lack of clear public API. Please process manually via Robokassa merchant panel or verify API availability.',
           provider: 'robokassa',
-          rawResponse: { message: 'Robokassa refund not implemented in this provider.' },
-        }
+          rawResponse: { message: 'Robokassa refund API details needed for implementation.' },
+        };
       },
       voidPayment: async (params: VoidParams): Promise<PaymentResult> => {
         this.payload.logger.warn(
-          `Robokassa.voidPayment called for order ${params.orderId}. Robokassa may not support direct voids for uncaptured payments in the same way as other gateways, as payments are typically captured immediately or handled by their system. Cancellation might be the closer equivalent if payment is not yet final.`,
-        )
+          `Robokassa.voidPayment called for order ${params.orderId}. Robokassa generally does not support a 'void' operation for processed payments like other gateways. If a payment is completed, a refund is the standard procedure. If an invoice is unpaid, it typically expires. This 'void' operation is considered not applicable or not supported via a standard API.`,
+        );
         return {
           status: 'failed',
           errorMessage:
-            'Automated void/cancellation for Robokassa are not implemented. Please process manually or integrate specific Robokassa API.',
+            'Automated void for Robokassa is not implemented as it is generally not applicable or supported. For completed payments, use refund. For unpaid invoices, they typically expire.',
           provider: 'robokassa',
-          rawResponse: { message: 'Robokassa void not implemented in this provider.' },
-        }
+          rawResponse: { message: 'Robokassa void operation not applicable/supported here.' },
+        };
       },
     }
 
     const cryptoProvider: IPaymentProvider = {
-      ...defaultProvider, // Start with default stubs
-      // TODO: Implement Crypto specific refund/void. This is highly dependent on the crypto payment gateway used.
-      // Refunds in crypto can be complex (sending crypto back). Voids might not be applicable post-confirmation.
+      ...defaultProviderImpl, 
       refundPayment: async (params: RefundParams): Promise<PaymentResult> => {
         this.payload.logger.warn(
           `STUB: CryptoProvider.refundPayment called for order ${params.orderId}. Crypto refunds are complex and gateway-specific.`,
         )
-        return defaultProvider.refundPayment(params) // Fallback to default stub
+        return defaultProviderImpl.refundPayment(params) 
       },
       voidPayment: async (params: VoidParams): Promise<PaymentResult> => {
         this.payload.logger.warn(
           `STUB: CryptoProvider.voidPayment called for order ${params.orderId}. Voids may not be applicable for most crypto transactions post-confirmation.`,
         )
-        return defaultProvider.voidPayment(params) // Fallback to default stub
+        return defaultProviderImpl.voidPayment(params) 
       },
     }
 
-    // A generic provider for future use or as a more explicit default
-    const genericGatewayProvider: IPaymentProvider = { ...defaultProvider }
+    const genericGatewayProvider: IPaymentProvider = { ...defaultProviderImpl }
 
-    const providers: Record<PaymentProviderKey, IPaymentProvider> = {
+    return { 
       yoomoney: yoomoneyProvider,
       robokassa: robokassaProvider,
-      crypto: cryptoProvider, // Use the more specific cryptoProvider
-      genericGateway: genericGatewayProvider, // Added genericGateway
-    }
+      crypto: cryptoProvider, 
+      genericGateway: genericGatewayProvider, 
+    };
+  }
 
-    return providers[provider] || genericGatewayProvider // Fallback to genericGatewayProvider
+  private getPaymentProvider(providerKey: PaymentProviderKey): IPaymentProvider {
+    const providerInstance = this.paymentProviders[providerKey];
+    if (!providerInstance) {
+      this.payload.logger.error(`Payment provider ${providerKey} not found or not initialized correctly. Falling back to genericGateway.`);
+      return this.paymentProviders.genericGateway; 
+    }
+    return providerInstance;
   }
 }

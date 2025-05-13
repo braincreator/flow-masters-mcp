@@ -16,7 +16,7 @@ export const Subscriptions: CollectionConfig = {
   admin: {
     useAsTitle: 'id',
     description: 'User subscriptions.',
-    defaultColumns: ['id', 'user', 'plan', 'status', 'expiresAt', 'updatedAt'],
+    defaultColumns: ['id', 'user', 'plan', 'status', 'startedAt', 'expiresAt', 'paymentMethod', 'updatedAt'],
     group: 'Orders & Subscriptions',
   },
   access: {

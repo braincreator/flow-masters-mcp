@@ -162,29 +162,30 @@ export const getCart = (): Promise<CartSession | null> => {
 }
 
 // Добавить товар в корзину
-export const addToCart = (productId: string, quantity: number = 1): Promise<CartSession> => {
+export const addToCart = (itemId: string, itemType: 'product' | 'service', quantity: number = 1): Promise<CartSession> => {
   return fetchPayloadAPI<CartSession>('/cart/add', {
     method: 'POST',
-    body: JSON.stringify({ productId, quantity }),
+    body: JSON.stringify({ itemId, itemType, quantity }),
   })
 }
 
 // Обновить количество товара
 export const updateCartItemQuantity = (
-  productId: string,
+  itemId: string,
+  itemType: 'product' | 'service',
   quantity: number,
 ): Promise<CartSession> => {
   return fetchPayloadAPI<CartSession>('/cart/update', {
     method: 'PATCH', // Или PUT
-    body: JSON.stringify({ productId, quantity }),
+    body: JSON.stringify({ itemId, itemType, quantity }),
   })
 }
 
 // Удалить товар из корзины
-export const removeFromCart = (productId: string): Promise<CartSession> => {
-  return fetchPayloadAPI<CartSession>(`/cart/remove/${productId}`, {
-    // Используем ID в URL
+export const removeFromCart = (itemId: string, itemType: 'product' | 'service'): Promise<CartSession> => {
+  return fetchPayloadAPI<CartSession>(`/cart/remove`, {
     method: 'DELETE',
+    body: JSON.stringify({ itemId, itemType }),
   })
 }
 

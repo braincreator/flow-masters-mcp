@@ -97,8 +97,12 @@ interface RecalculateSegmentsInput {
 }
 // ----------------------------------------------------- //
 
+import { PaymentService } from './services/payment.service'; // Import PaymentService
+import { isAdmin } from './access/isAdmin'; // Import isAdmin for access control
+
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
+  // Removed the duplicate endpoints array from here
   secret: ENV.PAYLOAD_SECRET,
   auth: authConfig,
   admin: {
@@ -533,6 +537,74 @@ export default buildConfig({
     tempFileDir: '/tmp',
   },
   endpoints: [
+    // Custom endpoints for refund and void
+    {
+      path: '/orders/:id/refund',
+      method: 'post',
+      handler: async (req: PayloadRequest, res: Response) => { // Added types for req and res
+        if (!isAdmin({ req })) {
+          return res.status(403).json({ error: 'Forbidden' });
+        }
+        try {
+          const orderId = req.routeParams?.id as string; // Try expressRequest first, then fallback to req
+          const { amount, currency, reason } = req.body as { amount?: string | number; currency?: string; reason?: string };
+
+          if (!orderId || !currency) {
+            return res.status(400).json({ error: 'Order ID and currency are required.' });
+          }
+          
+          let amountToRefund: number | undefined = undefined;
+          if (amount !== undefined && amount !== null) {
+            amountToRefund = parseFloat(String(amount)); // Convert amount to string before parseFloat
+            if (isNaN(amountToRefund)) {
+              return res.status(400).json({ error: 'Invalid amount provided.' });
+            }
+          }
+
+          const paymentService = PaymentService.getInstance(req.payload);
+          const result = await paymentService.refundPayment(orderId, currency, amountToRefund, reason);
+          
+          if (result.status === 'succeeded' || result.status === 'refunded') {
+            return res.status(200).json({ success: true, message: 'Refund processed successfully.', details: result });
+          } else {
+            return res.status(400).json({ success: false, message: 'Refund processing failed.', details: result });
+          }
+        } catch (error: any) {
+          req.payload.logger.error(`Error in /orders/:id/refund endpoint: ${error.message}`);
+          return res.status(500).json({ error: 'Internal server error during refund.' });
+        }
+      },
+    },
+    {
+      path: '/orders/:id/void',
+      method: 'post',
+      handler: async (req: PayloadRequest, res: Response) => { // Added types for req and res
+        if (!isAdmin({ req })) {
+          return res.status(403).json({ error: 'Forbidden' });
+        }
+        try {
+          const orderId = req.routeParams?.id as string; // Try expressRequest first, then fallback to req
+          const { reason } = req.body as { reason?: string };
+
+          if (!orderId) {
+            return res.status(400).json({ error: 'Order ID is required.' });
+          }
+
+          const paymentService = PaymentService.getInstance(req.payload);
+          const result = await paymentService.voidPayment(orderId, reason);
+
+          if (result.status === 'succeeded' || result.status === 'voided') {
+            return res.status(200).json({ success: true, message: 'Void processed successfully.', details: result });
+          } else {
+            return res.status(400).json({ success: false, message: 'Void processing failed.', details: result });
+          }
+        } catch (error: any) {
+          req.payload.logger.error(`Error in /orders/:id/void endpoint: ${error.message}`);
+          return res.status(500).json({ error: 'Internal server error during void.' });
+        }
+      },
+    },
+    // Existing endpoints continue below
     {
       path: '/api/add-products',
       method: 'post',

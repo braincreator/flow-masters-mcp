@@ -47,7 +47,8 @@ export const AddToCart: React.FC<AddToCartProps> = ({
   const handleAddToCart = async () => {
     setIsAdding(true)
     try {
-      await add(productId, 1)
+      const itemTypeForCart = productType === 'service' ? 'service' : 'product';
+      await add(productId, itemTypeForCart, 1)
     } catch (error) {
       console.error('Failed to add to cart from component:', error)
     } finally {

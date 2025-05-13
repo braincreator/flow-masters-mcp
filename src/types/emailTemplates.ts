@@ -27,6 +27,22 @@ export interface UnsubscribeConfirmationEmailData extends BaseEmailTemplateData 
   // No additional fields needed
 }
 
+export interface PasswordChangedEmailData extends BaseEmailTemplateData {
+  userName: string;
+  // No other specific fields needed, just a confirmation
+}
+
+export interface EmailAddressChangedEmailData extends BaseEmailTemplateData {
+  userName: string;
+  newEmail: string;
+  oldEmail?: string; // Optional, for notifying the old address
+}
+
+export interface AccountUpdatedEmailData extends BaseEmailTemplateData {
+  userName: string;
+  updatedFieldsText: string; // A summary of what was updated
+}
+
 // Course email templates
 export interface CourseEnrollmentEmailData extends BaseEmailTemplateData {
   userName: string
@@ -115,6 +131,82 @@ export interface PaymentConfirmationEmailData extends BaseEmailTemplateData {
   }>
 }
 
+export interface OrderCompletedEmailData extends BaseEmailTemplateData {
+  userName: string
+  orderNumber: string
+  orderDate: string
+  items?: Array<{ // Items are optional as we might just link to the order
+    name: string
+    quantity: number
+    // Other item details if needed for the email
+  }>
+  // No financial details usually, as it's about fulfillment complete
+}
+
+export interface OrderCancelledEmailData extends BaseEmailTemplateData {
+  userName: string
+  orderNumber: string
+  cancellationDate?: string // Optional: date of cancellation
+  cancellationReason?: string // Optional: reason for cancellation
+  // You might want to include a summary of items if relevant, or link to order details
+}
+
+export interface RefundProcessedEmailData extends BaseEmailTemplateData {
+  userName: string
+  orderNumber: string
+  refundAmount: number
+  currency: string
+  processedAt: string
+  // refundMethod?: string; // Optional: e.g., "to original payment method"
+}
+
+export interface InitialPaymentFailedEmailData extends BaseEmailTemplateData {
+  userName: string
+  orderNumber: string
+  failureReason?: string
+  // Include payment amount/currency if helpful
+  // paymentAmount?: number;
+  // currency?: string;
+}
+
+export interface OrderShippedFulfilledEmailData extends BaseEmailTemplateData {
+  userName: string;
+  orderNumber: string;
+  shippedAt?: string; // Date of shipment/fulfillment
+  trackingNumber?: string;
+  carrier?: string;
+  items?: Array<{ // Optional, but good to list what was shipped/fulfilled
+    name: string;
+    quantity: number;
+  }>;
+  // deliveryEstimate?: string; // Optional
+}
+
+export interface DigitalProductReadyEmailData extends BaseEmailTemplateData {
+  userName: string;
+  orderNumber: string;
+  items?: Array<{ // Optional, but good to list what was fulfilled
+    name: string;
+    // quantity?: number; // Quantity might not be relevant if it's about access
+  }>;
+  downloadLinks?: string[]; // Array of direct download links if applicable
+  accessInstructions?: string; // Or general instructions on how to access
+}
+
+export interface AbandonedCartEmailData extends BaseEmailTemplateData {
+  userName: string;
+  items: Array<{
+    title: string;
+    quantity: number;
+    price: number;
+    // imageUrl?: string; // Optional
+  }>;
+  total: number;
+  currency: string;
+  lastUpdated: string; // ISO date string
+  cartUrl: string;
+}
+
 // Reward email templates
 export interface RewardEmailData extends BaseEmailTemplateData {
   userName: string
@@ -138,6 +230,66 @@ export interface RewardFreeCourseEmailData extends RewardEmailData {
   courseUrl?: string
   courseDuration?: string
   courseLevel?: string
+}
+
+// Subscription email templates
+export interface SubscriptionActivatedEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  startDate: string
+  nextPaymentDate: string
+}
+
+export interface SubscriptionCancelledEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  endDate: string
+}
+
+export interface SubscriptionPaymentFailedEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  nextPaymentDate: string
+  amount?: number // Optional, as plan might not always have price directly
+  currency?: string // Optional
+}
+
+export interface SubscriptionPlanChangedEmailData extends BaseEmailTemplateData {
+  userName: string
+  oldPlanName: string
+  newPlanName: string
+  effectiveDate: string
+}
+
+export interface SubscriptionPausedEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  pausedAt: string
+}
+
+export interface SubscriptionResumedEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  resumedAt: string
+  nextPaymentDate: string
+}
+
+export interface SubscriptionExpiredEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  expiredAt: string
+}
+
+export interface SubscriptionRenewalReminderEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  renewalDate: string
+}
+
+export interface SubscriptionRenewedSuccessfullyEmailData extends BaseEmailTemplateData {
+  userName: string
+  planName: string
+  newExpiryDate: string
 }
 
 // Newsletter email templates
@@ -177,7 +329,31 @@ export enum EmailTemplateSlug {
   
   // Newsletters
   NEWSLETTER = 'newsletter',
-  ADMIN_NEW_SUBSCRIBER = 'admin-new-subscriber'
+  ADMIN_NEW_SUBSCRIBER = 'admin-new-subscriber',
+
+  // Subscriptions
+  SUBSCRIPTION_ACTIVATED = 'subscription-activated',
+  SUBSCRIPTION_CANCELLED = 'subscription-cancelled',
+  SUBSCRIPTION_PAYMENT_FAILED = 'subscription-payment-failed',
+  SUBSCRIPTION_PLAN_CHANGED = 'subscription-plan-changed',
+  SUBSCRIPTION_PAUSED = 'subscription-paused',
+  SUBSCRIPTION_RESUMED = 'subscription-resumed',
+  SUBSCRIPTION_EXPIRED = 'subscription-expired',
+  SUBSCRIPTION_RENEWAL_REMINDER = 'subscription-renewal-reminder',
+  SUBSCRIPTION_RENEWED_SUCCESSFULLY = 'subscription-renewed', // or 'subscription-renewed-successfully'
+
+  // More Order Statuses
+  ORDER_COMPLETED = 'order_completed', // For digital fulfillment, etc.
+  ORDER_CANCELLED = 'order-cancelled',
+  REFUND_PROCESSED = 'refund-processed',
+  INITIAL_PAYMENT_FAILED = 'initial-payment-failed',
+  PASSWORD_CHANGED = 'password-changed',
+  EMAIL_ADDRESS_CHANGED = 'email-address-changed', // For the new email address
+  EMAIL_ADDRESS_CHANGE_SECURITY_ALERT = 'email-address-change-security-alert', // For the old email address
+  ACCOUNT_UPDATED = 'account-updated',
+  ORDER_SHIPPED_FULFILLED = 'order-shipped-fulfilled',
+  DIGITAL_PRODUCT_READY = 'digital_product_ready',
+  ABANDONED_CART = 'abandoned-cart',
 }
 
 // Map template slugs to their data types
@@ -196,5 +372,25 @@ export interface TemplateDataMap {
   [EmailTemplateSlug.REWARD_FREE_COURSE]: RewardFreeCourseEmailData
   [EmailTemplateSlug.NEWSLETTER]: NewsletterEmailData
   [EmailTemplateSlug.ADMIN_NEW_SUBSCRIBER]: AdminNewSubscriberNotificationEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_ACTIVATED]: SubscriptionActivatedEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_CANCELLED]: SubscriptionCancelledEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_PAYMENT_FAILED]: SubscriptionPaymentFailedEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_PLAN_CHANGED]: SubscriptionPlanChangedEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_PAUSED]: SubscriptionPausedEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_RESUMED]: SubscriptionResumedEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_EXPIRED]: SubscriptionExpiredEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_RENEWAL_REMINDER]: SubscriptionRenewalReminderEmailData
+  [EmailTemplateSlug.SUBSCRIPTION_RENEWED_SUCCESSFULLY]: SubscriptionRenewedSuccessfullyEmailData
+  [EmailTemplateSlug.ORDER_COMPLETED]: OrderCompletedEmailData
+  [EmailTemplateSlug.ORDER_CANCELLED]: OrderCancelledEmailData
+  [EmailTemplateSlug.REFUND_PROCESSED]: RefundProcessedEmailData
+  [EmailTemplateSlug.INITIAL_PAYMENT_FAILED]: InitialPaymentFailedEmailData
+  [EmailTemplateSlug.PASSWORD_CHANGED]: PasswordChangedEmailData
+  [EmailTemplateSlug.EMAIL_ADDRESS_CHANGED]: EmailAddressChangedEmailData
+  [EmailTemplateSlug.EMAIL_ADDRESS_CHANGE_SECURITY_ALERT]: EmailAddressChangedEmailData // Uses the same data structure
+  [EmailTemplateSlug.ACCOUNT_UPDATED]: AccountUpdatedEmailData
+  [EmailTemplateSlug.ORDER_SHIPPED_FULFILLED]: OrderShippedFulfilledEmailData
+  [EmailTemplateSlug.DIGITAL_PRODUCT_READY]: DigitalProductReadyEmailData
+  [EmailTemplateSlug.ABANDONED_CART]: AbandonedCartEmailData
   [key: string]: Record<string, any> // Allow custom templates
 }
