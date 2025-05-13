@@ -21,13 +21,20 @@ export default function RelatedServiceCard({
   // Получаем локализованные данные
   const title =
     typeof service.title === 'object' && service.title !== null
-      ? service.title[locale as keyof typeof service.title] || String(service.title)
+      ? service.title[locale as keyof typeof service.title] || 
+        // Если нет перевода для текущей локали, берем первое доступное значение
+        (typeof service.title === 'object' ? 
+          Object.values(service.title)[0] || String(service.title) : 
+          String(service.title))
       : service.title
 
   const shortDescription =
     typeof service.shortDescription === 'object' && service.shortDescription !== null
       ? service.shortDescription[locale as keyof typeof service.shortDescription] ||
-        String(service.shortDescription)
+        // Если нет перевода для текущей локали, берем первое доступное значение
+        (typeof service.shortDescription === 'object' ? 
+          Object.values(service.shortDescription)[0] || String(service.shortDescription) : 
+          String(service.shortDescription))
       : service.shortDescription || ''
 
   // Преобразуем URL изображения

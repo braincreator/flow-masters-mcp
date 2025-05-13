@@ -38,6 +38,7 @@ export async function generateMetadata({
           equals: slug,
         },
       },
+      locale: lang as 'en' | 'ru', // Приводим к правильному типу
     })
 
     if (!service || service.docs.length === 0) {
@@ -112,6 +113,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
           equals: 'published',
         },
       },
+      locale: lang as 'en' | 'ru', // Приводим к правильному типу
       depth: 2,
     })
 
@@ -153,8 +155,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
         status: {
           equals: 'published',
         },
-        // Можно добавить доп. фильтры, например, по категории
       },
+      locale: lang as 'en' | 'ru', // Приводим к правильному типу
       limit: 3,
     })
 

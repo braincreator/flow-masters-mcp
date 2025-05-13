@@ -47,6 +47,7 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
           equals: 'published',
         },
       },
+      locale: lang as 'en' | 'ru',
       sort: '-createdAt',
       depth: 1,
     })
