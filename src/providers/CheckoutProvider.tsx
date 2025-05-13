@@ -157,7 +157,7 @@ export const CheckoutContext = createContext<CheckoutContextType | undefined>(un
 // Provider component
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   // Get cart and auth state
-  const { cart, total: cartTotal, itemCount } = useCart()
+  const { cart = null, total: cartTotal = 0, itemCount = 0 } = useCart()
   const { user, isAuthenticated } = useAuth()
 
   // Checkout state

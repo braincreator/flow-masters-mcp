@@ -1,6 +1,6 @@
 'use client'
 
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { Product } from '@/payload-types'
 import { useI18n } from '@/providers/I18n'
 import { translations } from '@/app/(frontend)/[lang]/products/translations'
@@ -47,7 +47,7 @@ export const AddToCart: React.FC<AddToCartProps> = ({
   const handleAddToCart = async () => {
     setIsAdding(true)
     try {
-      const itemTypeForCart = productType === 'service' ? 'service' : 'product';
+      const itemTypeForCart = productType === 'service' ? 'service' : 'product'
       await add(productId, itemTypeForCart, 1)
     } catch (error) {
       console.error('Failed to add to cart from component:', error)

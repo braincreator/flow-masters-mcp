@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utilities/ui'
@@ -15,7 +15,7 @@ interface FloatingCartButtonProps {
 }
 
 export default function FloatingCartButton({ locale, className }: FloatingCartButtonProps) {
-  const { items, itemCount, isLoading, error } = useCart(locale)
+  const { items = [], itemCount = 0, isLoading, error } = useCart(locale)
   const [visible, setVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [animate, setAnimate] = useState(false)

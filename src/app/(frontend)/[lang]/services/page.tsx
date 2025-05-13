@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import ServiceList from '@/components/services/ServiceList'
+import Breadcrumbs from '@/components/Breadcrumbs'
 
 // Define the PageParams type for this page
 type PageParams = {
@@ -57,18 +58,11 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
         <Container>
           <div className="py-12 md:py-16 lg:py-20">
             {/* Хлебные крошки */}
-            <AnimateInView direction="right" className="mb-6">
-              <nav className="flex items-center text-sm mb-8">
-                <Link
-                  href={`/${lang}`}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {commonT('home')}
-                </Link>
-                <span className="mx-2 text-muted-foreground">/</span>
-                <span className="text-foreground font-medium">{commonT('services')}</span>
-              </nav>
-            </AnimateInView>
+            <Breadcrumbs
+              items={[{ label: commonT('services'), active: true }]}
+              homeLabel={commonT('home')}
+              variant="cards"
+            />
 
             <AnimateInView direction="up">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -165,18 +159,11 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
 
           <Container className="relative z-10">
             {/* Хлебные крошки */}
-            <AnimateInView direction="right" className="mb-6">
-              <nav className="flex items-center text-sm mb-8">
-                <Link
-                  href={`/${lang}`}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {commonT('home')}
-                </Link>
-                <span className="mx-2 text-muted-foreground">/</span>
-                <span className="text-foreground font-medium">{commonT('services')}</span>
-              </nav>
-            </AnimateInView>
+            <Breadcrumbs
+              items={[{ label: commonT('services'), active: true }]}
+              homeLabel={commonT('home')}
+              variant="cards"
+            />
 
             <div className="text-center max-w-3xl mx-auto">
               <AnimateInView direction="up">

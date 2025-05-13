@@ -9,12 +9,15 @@ import { Image } from '@/components/Image' // Use custom Image component
 import Link from 'next/link'
 import { RichText } from '@/components/RichText'
 import { ArrowLeft, CheckCircle2, Clock, MapPin, Tag, Calendar, ArrowRight } from 'lucide-react' // Добавлены иконки
-import { formatPrice, convertPrice, getLocaleCurrency } from '@/utilities/formatPrice'
+import { formatPrice } from '@/utilities/formatPrice'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge' // Добавляем Badge для визуальных акцентов
 import AnimateInView from '@/components/AnimateInView' // Импортируем компонент для анимаций
 import RelatedServiceCard from '@/components/services/RelatedServiceCard' // Исправленный путь импорта
+import Breadcrumbs from '@/components/Breadcrumbs'
+import ServiceHero from '@/components/services/ServiceHero'
+import ServicePrice from '@/components/services/ServicePrice'
 
 type ServicePageParams = {
   lang: string
@@ -129,7 +132,6 @@ export default async function ServicePage({ params }: { params: ServicePageParam
 
     // Получаем локализованные данные
     const title = serviceData.title // title is a direct string
-
     const description = serviceData.description
 
     let thumbnailUrl: string | undefined = undefined
@@ -160,91 +162,47 @@ export default async function ServicePage({ params }: { params: ServicePageParam
       limit: 3,
     })
 
-    const LocalizedPrice = async () => {
-      await getLocaleCurrency(lang)
-      const sourceLocaleForPrice = 'en'
-      const priceInTargetCurrency = convertPrice(serviceData.price, sourceLocaleForPrice, lang)
-      return formatPrice(priceInTargetCurrency, lang)
+    // Подготавливаем переводы для клиентских компонентов
+    const serviceTranslations = {
+      book: t('book'),
+      order: t('order'),
+      minutes: t('minutes'),
+      paymentRequired: t('paymentRequired'),
+      noPaymentRequired: t('noPaymentRequired'),
+      haveQuestions: t('haveQuestions'),
+      price: t('price'),
+      duration: t('duration'),
+      type: t('type'),
+      details: t('details'),
+      serviceType: t(`serviceTypes.${serviceData.serviceType}`),
     }
 
     return (
       <Container>
         <div className="py-12 md:py-16 lg:py-20">
           {/* Хлебные крошки */}
-          <AnimateInView direction="right" className="mb-6">
-            <nav className="flex items-center text-sm mb-8">
-              <Link
-                href={`/${lang}`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {commonT('home')}
-              </Link>
-              <span className="mx-2 text-muted-foreground">/</span>
-              <Link
-                href={`/${lang}/services`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {commonT('services')}
-              </Link>
-              <span className="mx-2 text-muted-foreground">/</span>
-              <span className="text-foreground font-medium truncate max-w-[200px]">{title}</span>
-            </nav>
-          </AnimateInView>
+          <Breadcrumbs
+            items={[
+              { label: commonT('services'), url: `/${lang}/services` },
+              { label: title, active: true },
+            ]}
+            homeLabel={commonT('home')}
+            variant="cards"
+          />
 
           {/* Геройская секция с заголовком поверх изображения */}
           <AnimateInView direction="up" className="mb-12">
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-              {thumbnailUrl && (
-                <div className="relative aspect-[21/9] w-full">
-                  <Image
-                    src={thumbnailUrl}
-                    alt={title}
-                    fill={true}
-                    className="object-cover"
-                    sizes="100vw"
-                    priority
-                  />
-                  {/* Градиентный оверлей для читаемости текста */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
-
-                  {/* Контент поверх изображения */}
-                  <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12">
-                    <div className="max-w-2xl">
-                      <Badge className="mb-4 px-3 py-1 text-sm bg-primary/90 border-none">
-                        {t(`serviceTypes.${serviceData.serviceType}`)}
-                      </Badge>
-                      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white animate-fade-in">
-                        {title}
-                      </h1>
-                      {serviceData.shortDescription && (
-                        <p className="text-white/90 text-lg md:text-xl max-w-xl animate-slide-up">
-                          {serviceData.shortDescription}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-3 mt-6">
-                        <Button
-                          size="lg"
-                          className="bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
-                          asChild
-                        >
-                          <Link href={`/${lang}/services/${slug}/book`}>
-                            {serviceData.requiresBooking ? t('book') : t('order')}
-                          </Link>
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white"
-                          asChild
-                        >
-                          <Link href={`/${lang}/contact`}>{t('haveQuestions')}</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ServiceHero
+              title={title}
+              shortDescription={serviceData.shortDescription}
+              thumbnailUrl={thumbnailUrl}
+              serviceType={serviceData.serviceType}
+              serviceTypeLabel={t(`serviceTypes.${serviceData.serviceType}`)}
+              locale={lang}
+              slug={slug}
+              requiresBooking={serviceData.requiresBooking}
+              translations={serviceTranslations}
+            />
           </AnimateInView>
 
           {/* Декоративные элементы */}
@@ -277,9 +235,11 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                       <Tag className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="text-muted-foreground text-sm">{t('price')}</span>
                     </div>
-                    <span className="font-bold text-lg text-primary">
-                      <LocalizedPrice />
-                    </span>
+                    <ServicePrice
+                      price={serviceData.price}
+                      locale={lang}
+                      className="font-bold text-lg text-primary"
+                    />
                   </div>
                   {serviceData.duration && (
                     <div className="flex justify-between items-center py-3 border-t border-border/20">
@@ -329,7 +289,6 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                 <div className="h-full">
                   <div className="flex items-center mb-6">
                     <h2 className="text-2xl md:text-3xl font-semibold">{t('description')}</h2>
-                    <div className="ml-4 h-1 flex-grow bg-gradient-to-r from-primary/30 to-transparent rounded-full"></div>
                   </div>
                   <div className="prose dark:prose-invert max-w-none">
                     <RichText data={description} />
@@ -343,20 +302,21 @@ export default async function ServicePage({ params }: { params: ServicePageParam
           {serviceData.features && serviceData.features.length > 0 && (
             <AnimateInView direction="up" className="mb-16">
               <div className="mb-8">
-                <h2 className="text-2xl md:text-3xl font-semibold mb-2">{t('features')}</h2>
-                <div className="h-1 w-24 bg-gradient-to-r from-primary to-primary/30 rounded-full"></div>
+                <h2 className="text-2xl md:text-3xl font-semibold">{t('features')}</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {serviceData.features.map((feature: any, index: number) => (
                   <AnimateInView key={index} direction="up" delay={index * 100}>
-                    <div className="bg-card p-6 rounded-xl shadow-md border border-border/10 hover:shadow-lg hover:border-primary/20 transition-all h-full">
+                    <div className="bg-card p-6 rounded-xl shadow-md border border-border/10 hover:shadow-lg hover:border-primary/20 transition-all h-full group">
                       <div className="flex items-start">
-                        <div className="shrink-0 mr-4 bg-primary/10 p-3 rounded-full">
+                        <div className="shrink-0 mr-4 bg-primary/10 p-3 rounded-full group-hover:bg-primary/20 transition-colors">
                           <CheckCircle2 className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg mb-2">{feature.name}</h3>
+                          <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                            {feature.name}
+                          </h3>
                           {feature.description && (
                             <p className="text-muted-foreground">{feature.description}</p>
                           )}
@@ -388,13 +348,14 @@ export default async function ServicePage({ params }: { params: ServicePageParam
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {relatedServices.docs.map((service: any, index: number) => (
                   <AnimateInView key={service.id} direction="up" delay={index * 100}>
-                    {/* Используем новый компонент для связанных услуг */}
+                    {/* Чередуем стили карточек для визуального разнообразия */}
                     <RelatedServiceCard
                       service={service}
                       locale={lang}
                       translations={{
                         details: t('details'),
                       }}
+                      variant={index % 3 === 0 ? 'accent' : index % 2 === 0 ? 'minimal' : 'default'}
                     />
                   </AnimateInView>
                 ))}

@@ -5,7 +5,7 @@ import type { Header as HeaderType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/utilities/ui'
 
@@ -17,7 +17,7 @@ interface HeaderNavProps {
 export const HeaderNav: React.FC<HeaderNavProps> = ({ data, mobile = false }) => {
   // Ensure navItems is an array with proper type checking
   const navItems = Array.isArray(data?.navItems) ? data.navItems : []
-  const { itemCount } = useCart()
+  const { itemCount = 0 } = useCart()
   const pathname = usePathname()
   const currentLocale = pathname?.split('/')[1] || 'en'
 

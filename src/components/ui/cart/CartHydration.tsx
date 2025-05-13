@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 
 /**
  * This component manually hydrates the cart state from localStorage
  * due to using skipHydration: true in the Zustand store configuration
  */
 export function CartHydration() {
-  const { addToCart, setLocale, clearCart, updateItemCount } = useCart()
+  const { addItem, clearCart, mutateCart } = useCart()
 
   useEffect(() => {
     // Get cart data from localStorage
@@ -25,23 +25,18 @@ export function CartHydration() {
 
           state.items.forEach((item: any) => {
             if (item.product && item.quantity) {
-              addToCart(item.product, item.quantity)
+              addItem(item.product, item.quantity)
             }
           })
-          
-          // Make sure itemCount is updated after adding items
-          updateItemCount()
-        }
 
-        // Restore locale if available
-        if (state?.locale) {
-          setLocale(state.locale)
+          // Обновляем корзину после добавления элементов
+          mutateCart()
         }
       }
     } catch (error) {
       console.error('Error hydrating cart from localStorage:', error)
     }
-  }, [addToCart, setLocale, clearCart, updateItemCount])
+  }, [addItem, clearCart, mutateCart])
 
   // This component doesn't render anything
   return null

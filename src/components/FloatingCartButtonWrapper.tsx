@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import FloatingCartButton from '@/components/ui/cart/FloatingCartButton'
 import { Locale } from '@/constants'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 
 interface FloatingCartButtonWrapperProps {
   locale: Locale
@@ -12,7 +12,7 @@ interface FloatingCartButtonWrapperProps {
 
 export default function FloatingCartButtonWrapper({ locale }: FloatingCartButtonWrapperProps) {
   const pathname = usePathname()
-  const { items } = useCart()
+  const { items = [] } = useCart()
   const [shouldRender, setShouldRender] = useState(false)
 
   // Don't show on checkout or payment pages

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, FormEvent, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation' // Added for redirection
-import { useCart } from '@/hooks/useCart' // Added for cart operations
+import { useCart } from '@/providers/CartProvider' // Импортируем из провайдера
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
@@ -106,16 +106,10 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     setError(null)
 
     try {
-      // Add service to cart
-      // Note: The addToCart utility in useCart.ts might need adjustment if it doesn't
-      // correctly fetch service price or details for the cart item.
-      // For now, assuming it handles adding a service correctly.
-      await addItemToCart(serviceId, 'service', 1)
+      // Добавляем услугу в корзину с правильными параметрами
+      await addItemToCart(serviceId, 'service')
 
-      // Redirect to the main checkout page
-      // The locale should be part of the path, e.g., /en/checkout
-      // Assuming `locale` prop is one of your supported locales like 'en', 'ru'
-      // Assuming `locale` prop is one of your supported locales like 'en', 'ru'
+      // Редирект на страницу оформления заказа
       router.push(`/${locale}/checkout`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add service to cart or redirect.')

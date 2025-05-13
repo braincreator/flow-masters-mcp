@@ -1,9 +1,9 @@
 'use client'
 
 import { useContext } from 'react'
-import { CartContext } from '@/providers/CartProvider'
+import { CartContext, CartItemType } from '@/providers/CartProvider'
 import type { CartContextType } from '@/providers/CartProvider'
-import type { CartSession, Product } from '@/payload-types'
+import type { CartSession, Product, Service } from '@/payload-types'
 
 /**
  * Custom hook to select specific parts of the cart context
@@ -73,14 +73,24 @@ export function useCartStatus() {
 }
 
 /**
- * Get a specific item from the cart by product ID
+ * Get a specific item from the cart by ID and optionally type
  */
-export function useCartItem(productId: string) {
+export function useCartItem(itemId: string, itemType?: CartItemType) {
   return useCartSelector((context) => {
     const items = context.cart?.items || []
     const item = items.find((item) => {
-      const product = (typeof item.product === 'object' ? item.product : null) as Product | null
-      return product?.id === productId
+      // Если указан тип элемента, проверяем соответствие
+      if (itemType && item.itemType !== itemType) return false
+      
+      // Проверяем идентификатор в зависимости от типа элемента
+      if (item.itemType === 'product') {
+        const productId = typeof item.product === 'object' ? item.product?.id : item.product
+        return productId === itemId
+      } else if (item.itemType === 'service') {
+        const serviceId = typeof item.service === 'object' ? item.service?.id : item.service
+        return serviceId === itemId
+      }
+      return false
     })
 
     return {
@@ -88,8 +98,12 @@ export function useCartItem(productId: string) {
       quantity: item?.quantity || 0,
       isInCart: !!item,
       addItem: context.addItem,
-      updateItem: item ? context.updateItem.bind(null, item.id) : null,
-      removeItem: item ? context.removeItem.bind(null, item.id) : null,
+      updateItem: item ? 
+        ((quantity: number) => context.updateItem(itemId, item.itemType as CartItemType, quantity)) : 
+        null,
+      removeItem: item ? 
+        (() => context.removeItem(itemId, item.itemType as CartItemType)) : 
+        null,
     }
   })
 }

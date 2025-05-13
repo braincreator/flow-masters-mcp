@@ -157,8 +157,9 @@ export function AddToCartButton({
           toast.success(removeMessage || texts.removedFromCart(productName))
         }
       } else {
-        const itemTypeForCart = product.productType === 'service' ? 'service' : 'product';
-        await addItem(product.id, itemTypeForCart, 1)
+        // Определяем тип элемента для корзины
+        const itemType = product.productType === 'service' ? 'service' : 'product'
+        await addItem(product.id, itemType)
         if (showToast) {
           toast.success(successMessage || texts.addedToCart(productName))
         }

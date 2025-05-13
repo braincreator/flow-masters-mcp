@@ -7,7 +7,7 @@ import { CheckCircle2, Download, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Locale } from '@/constants'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 
 interface PaymentSuccessClientProps {
   locale: Locale
@@ -15,7 +15,7 @@ interface PaymentSuccessClientProps {
 }
 
 export default function PaymentSuccessClient({ locale, orderId }: PaymentSuccessClientProps) {
-  const { items, clearCart } = useCart()
+  const { items = [], clearCart = () => {} } = useCart()
 
   // Clear cart on successful payment
   useEffect(() => {

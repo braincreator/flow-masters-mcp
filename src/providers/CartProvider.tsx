@@ -10,7 +10,7 @@ import React, {
   useCallback,
 } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { CartSession, Product } from '@/payload-types'
+import { CartSession, Product, Service } from '@/payload-types'
 import {
   getCart,
   addToCart,
@@ -24,17 +24,61 @@ import { Locale } from '@/constants'
 // Key for SWR
 export const CART_KEY = '/api/cart'
 
+// Экспортируем типы для переиспользования
+export type CartItemType = 'product' | 'service'
+
+// Определяем типы для элементов корзины
+interface BaseCartItem {
+  itemType: CartItemType
+  quantity: number
+  priceSnapshot: number
+  titleSnapshot?: string
+  id?: string
+}
+
+export interface CartProductItem extends BaseCartItem {
+  itemType: 'product'
+  product: string | Product | null
+  service?: undefined
+}
+
+export interface CartServiceItem extends BaseCartItem {
+  itemType: 'service'
+  service: string | Service | null
+  product?: undefined
+}
+
+export type CartItem = CartProductItem | CartServiceItem
+
 export interface CartContextType {
   cart: CartSession | null
+  items: CartItem[]
   itemCount: number
   total: number
   isLoading: boolean
   error: Error | null
-  addItem: (productId: string, quantity?: number) => Promise<void>
-  updateItem: (itemId: string, quantity: number) => Promise<void>
-  removeItem: (itemId: string) => Promise<void>
+
+  // Основные методы для работы с корзиной
+  addItem: (
+    itemId: string,
+    itemTypeOrQuantity?: CartItemType | number,
+    quantity?: number,
+  ) => Promise<void>
+  updateItem: (itemId: string, itemType: CartItemType, quantity: number) => Promise<void>
+  removeItem: (itemId: string, itemType?: CartItemType) => Promise<void>
   emptyCart: () => Promise<void>
   refreshCart: () => Promise<void>
+
+  // Алиасы для обратной совместимости
+  add: (
+    itemId: string,
+    itemTypeOrQuantity?: CartItemType | number,
+    quantity?: number,
+  ) => Promise<void>
+  // Алиас для emptyCart
+  clear: () => Promise<void>
+  // Алиас для removeItem
+  remove: (itemId: string, itemType?: CartItemType) => Promise<void>
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -75,20 +119,46 @@ export function CartProvider({
 
   // Calculate itemCount and total
   const items = cart?.items ?? []
-  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
+  const itemCount = items.reduce((count, item) => count + (item.quantity || 1), 0)
   const total = items.reduce((sum, item) => {
-    const product = (typeof item.product === 'object' ? item.product : null) as Product | null
-    const price = item.price
-    return sum + price * item.quantity
+    const price = item.priceSnapshot || 0
+    return sum + price * (item.quantity || 1)
   }, 0)
 
-  // Add item to cart
+  // Add item to cart - универсальный метод с поддержкой разных сигнатур
   const addItem = useCallback(
-    async (productId: string, quantity: number = 1): Promise<void> => {
+    async (
+      itemId: string,
+      itemTypeOrQuantity?: CartItemType | number,
+      maybeQuantity?: number,
+    ): Promise<void> => {
       try {
         setIsLoading(true)
-        await addToCart({ productId, quantity })
+
+        // Определение типа элемента и количества на основе сигнатуры
+        let itemType: CartItemType = 'product'
+        let quantity: number = 1
+
+        // Вариант 1: addItem(id) - тип по умолчанию продукт, количество 1
+        // Вариант 2: addItem(id, 'product'|'service') - указан тип, количество 1
+        // Вариант 3: addItem(id, 5) - тип по умолчанию продукт, указано количество
+        // Вариант 4: addItem(id, 'product'|'service', 5) - указаны и тип и количество
+
+        if (typeof itemTypeOrQuantity === 'string') {
+          // Вариант 2 или 4: указан тип
+          itemType = itemTypeOrQuantity as CartItemType
+          if (typeof maybeQuantity === 'number') {
+            // Вариант 4: указаны и тип и количество
+            quantity = maybeQuantity
+          }
+        } else if (typeof itemTypeOrQuantity === 'number') {
+          // Вариант 3: указано только количество
+          quantity = itemTypeOrQuantity
+        }
+
+        await addToCart(itemId, itemType, quantity)
         await fetchCart() // Refresh cart after adding
+
         toast({
           title: 'Item added to cart',
           description: `${quantity} item(s) added to your cart.`,
@@ -108,12 +178,19 @@ export function CartProvider({
     [fetchCart],
   )
 
-  // Update item quantity
+  // Update item quantity - обновляем с поддержкой типа элемента
   const updateItem = useCallback(
-    async (itemId: string, quantity: number): Promise<void> => {
+    async (itemId: string, itemType: CartItemType, quantity: number): Promise<void> => {
       try {
         setIsLoading(true)
-        await updateCartItemQuantity({ itemId, quantity })
+
+        // Если количество 0 или меньше, удаляем товар из корзины
+        if (quantity <= 0) {
+          await removeItem(itemId, itemType)
+          return
+        }
+
+        await updateCartItemQuantity(itemId, itemType, quantity)
         await fetchCart() // Refresh cart after updating
       } catch (err) {
         console.error('Error updating cart item:', err)
@@ -130,12 +207,12 @@ export function CartProvider({
     [fetchCart],
   )
 
-  // Remove item from cart
+  // Remove item from cart - обновляем с поддержкой типа элемента
   const removeItem = useCallback(
-    async (itemId: string): Promise<void> => {
+    async (itemId: string, itemType?: CartItemType): Promise<void> => {
       try {
         setIsLoading(true)
-        await removeFromCart({ itemId })
+        await removeFromCart(itemId, itemType)
         await fetchCart() // Refresh cart after removing
       } catch (err) {
         console.error('Error removing cart item:', err)
@@ -175,6 +252,7 @@ export function CartProvider({
   const value = useMemo(
     () => ({
       cart,
+      items: items as CartItem[],
       itemCount,
       total,
       isLoading,
@@ -184,6 +262,10 @@ export function CartProvider({
       removeItem,
       emptyCart,
       refreshCart: fetchCart,
+      // Алиасы для обратной совместимости
+      add: addItem,
+      clear: emptyCart,
+      remove: removeItem,
     }),
     [
       cart,
@@ -203,7 +285,7 @@ export function CartProvider({
 }
 
 // Custom hook to use the cart context
-export function useCart() {
+export function useCart(locale?: Locale) {
   const context = useContext(CartContext)
 
   if (context === undefined) {

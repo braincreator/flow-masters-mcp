@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCart } from '@/hooks/useCart'
+import { useCart } from '@/providers/CartProvider'
 import { Locale } from '@/constants'
 import { formatPrice } from '@/utilities/formatPrice'
 import { Card } from '@/components/ui/card'
@@ -29,7 +29,7 @@ interface PaymentFormProps {
 export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
   const t = useTranslations('PaymentForm')
   const router = useRouter()
-  const { items, total, clearCart } = useCart()
+  const { items = [], total = 0, clearCart = () => {} } = useCart()
   const [providers, setProviders] = useState<PaymentProvider[]>([])
   const [email, setEmail] = useState(initialEmail || '')
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
