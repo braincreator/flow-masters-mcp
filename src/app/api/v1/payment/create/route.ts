@@ -1,8 +1,43 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
-import { PaymentProvider } from '@/types/payment'
+import { PaymentProvider, PaymentResult } from '@/types/payment'
 import { ServiceRegistry } from '@/services/service.registry'
 import { generateSecurePassword } from '@/utilities/generatePassword'
+
+// Определяем интерфейсы для типизации
+interface CartItem {
+  productId?: string
+  serviceId?: string
+  quantity: number
+}
+
+interface Product {
+  id: string
+  price?: number
+  pricing?: {
+    finalPrice?: number
+  }
+}
+
+interface Service {
+  id: string
+  price?: number
+}
+
+// Расширяем существующий тип PaymentResult для наших нужд
+interface ExtendedPaymentResult extends PaymentResult {
+  paymentUrl?: string
+}
+
+// Определяем типы для скидок
+interface DiscountData {
+  code: string
+  description: string
+  amount: {
+    en: { amount: number; currency: string }
+    ru: { amount: number; currency: string }
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -58,15 +93,15 @@ export async function POST(req: Request) {
     }
 
     // Отдельные массивы для продуктов и услуг
-    const productItems = items.filter((item) => item.productId)
-    const serviceItems = items.filter((item) => item.serviceId)
+    const productItems = items.filter((item: CartItem) => item.productId)
+    const serviceItems = items.filter((item: CartItem) => item.serviceId)
 
     // Получаем продукты из базы данных
-    let productsData = { docs: [] }
+    let productsData: { docs: Product[] } = { docs: [] }
     if (productItems.length > 0) {
       try {
-        const productIds = productItems.map((item) => item.productId).filter(Boolean)
-        productsData = await payload.find({
+        const productIds = productItems.map((item: CartItem) => item.productId).filter(Boolean)
+        const result = await payload.find({
           collection: 'products',
           where: {
             id: {
@@ -74,6 +109,7 @@ export async function POST(req: Request) {
             },
           },
         })
+        productsData = result as { docs: Product[] }
       } catch (error) {
         console.error('Failed to fetch products:', error)
         return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
@@ -81,11 +117,11 @@ export async function POST(req: Request) {
     }
 
     // Получаем услуги из базы данных
-    let servicesData = { docs: [] }
+    let servicesData: { docs: Service[] } = { docs: [] }
     if (serviceItems.length > 0) {
       try {
-        const serviceIds = serviceItems.map((item) => item.serviceId).filter(Boolean)
-        servicesData = await payload.find({
+        const serviceIds = serviceItems.map((item: CartItem) => item.serviceId).filter(Boolean)
+        const result = await payload.find({
           collection: 'services',
           where: {
             id: {
@@ -93,6 +129,7 @@ export async function POST(req: Request) {
             },
           },
         })
+        servicesData = result as { docs: Service[] }
       } catch (error) {
         console.error('Failed to fetch services:', error)
         return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
@@ -112,7 +149,7 @@ export async function POST(req: Request) {
     let total = 0
 
     // Добавляем стоимость продуктов
-    productItems.forEach((item) => {
+    productItems.forEach((item: CartItem) => {
       const product = productsData.docs.find((p) => p.id === item.productId)
       if (product) {
         // Используем finalPrice из pricing если доступен, иначе обычную цену
@@ -125,7 +162,7 @@ export async function POST(req: Request) {
     })
 
     // Добавляем стоимость услуг
-    serviceItems.forEach((item) => {
+    serviceItems.forEach((item: CartItem) => {
       const service = servicesData.docs.find((s) => s.id === item.serviceId)
       if (service) {
         const price = service.price || 0
@@ -160,7 +197,7 @@ export async function POST(req: Request) {
           },
         })
 
-        if (userResult.docs.length > 0) {
+        if (userResult.docs.length > 0 && userResult.docs[0]) {
           user = userResult.docs[0].id
         } else {
           // Create a new user if not found
@@ -203,10 +240,16 @@ export async function POST(req: Request) {
       const rubTotal = total * conversionRate
 
       // Prepare order items - комбинируем продукты и услуги
-      const orderItems = []
+      const orderItems: Array<{
+        itemType: string
+        product?: string
+        service?: string
+        quantity: number
+        price: number
+      }> = []
 
       // Добавляем продукты в заказ
-      productItems.forEach((item) => {
+      productItems.forEach((item: CartItem) => {
         const product = productsData.docs.find((p) => p.id === item.productId)
         if (product) {
           const price =
@@ -224,7 +267,7 @@ export async function POST(req: Request) {
       })
 
       // Добавляем услуги в заказ
-      serviceItems.forEach((item) => {
+      serviceItems.forEach((item: CartItem) => {
         const service = servicesData.docs.find((s) => s.id === item.serviceId)
         if (service) {
           orderItems.push({
@@ -255,15 +298,37 @@ export async function POST(req: Request) {
                 currency: 'RUB',
               },
             },
+            // Добавляем обязательное поле subtotal
+            subtotal: {
+              en: {
+                amount: usdTotal,
+                currency: 'USD',
+              },
+              ru: {
+                amount: rubTotal,
+                currency: 'RUB',
+              },
+            },
             // Сохраняем информацию о скидке, если она была применена
-            discount: discount
-              ? {
-                  code: discount.code,
-                  amount: discountAmount,
-                }
+            discounts: discount
+              ? [
+                  {
+                    code: discount.code || '',
+                    description: 'Applied discount',
+                    amount: {
+                      en: { amount: discountAmount, currency: 'USD' },
+                      ru: {
+                        amount: discountAmount * (customer.locale === 'ru' ? 90 : 1),
+                        currency: 'RUB',
+                      },
+                    },
+                  },
+                ]
               : undefined,
             status: 'pending',
             paymentProvider: provider,
+            // Добавляем orderType
+            orderType: serviceItems.length > 0 ? 'service' : 'product',
             // No shipping address needed for digital products
           },
         })
@@ -272,7 +337,11 @@ export async function POST(req: Request) {
 
         // Special case for integration errors - if it's just an integration error,
         // we should still be able to access the created order
-        if (orderError.message && orderError.message.includes('integrations')) {
+        if (
+          orderError instanceof Error &&
+          orderError.message &&
+          orderError.message.includes('integrations')
+        ) {
           console.warn('Integration error during order creation, but order might have been created')
           // Try to retrieve the just-created order by orderNumber
           try {
@@ -313,7 +382,10 @@ export async function POST(req: Request) {
     }
 
     // Generate payment URL
-    let paymentResult
+    let paymentResult: ExtendedPaymentResult = {
+      success: false,
+      orderId: order?.id || '',
+    }
     try {
       // Build payment metadata with additional parameters
       const metadata: Record<string, any> = {}
@@ -336,9 +408,9 @@ export async function POST(req: Request) {
 
       // Create the payment using the provider object directly
       paymentResult = await paymentService.createPayment(provider, {
-        orderId: order.id,
+        orderId: order?.id,
         amount: total,
-        description: `Order ${order.orderNumber}`,
+        description: `Order ${order?.orderNumber || 'Unknown'}`,
         customer: {
           email: customer.email,
           name: customer.name || '',
@@ -354,14 +426,19 @@ export async function POST(req: Request) {
 
       // If payment creation failed, update order status
       try {
-        await payload.update({
-          collection: 'orders',
-          id: order.id,
-          data: {
-            status: 'failed',
-            paymentError: error instanceof Error ? error.message : 'Unknown payment error',
-          },
-        })
+        if (order?.id) {
+          await payload.update({
+            collection: 'orders',
+            id: order.id,
+            data: {
+              status: 'cancelled',
+              cancellationDetails: {
+                cancelledAt: new Date().toISOString(),
+                reason: error instanceof Error ? error.message : 'Unknown payment error',
+              },
+            },
+          })
+        }
       } catch (updateError) {
         console.error('Failed to update order status after payment failure:', updateError)
       }
@@ -377,14 +454,19 @@ export async function POST(req: Request) {
     if (!paymentResult.success || !paymentResult.paymentUrl) {
       // If payment creation failed, update order status
       try {
-        await payload.update({
-          collection: 'orders',
-          id: order.id,
-          data: {
-            status: 'failed',
-            paymentError: paymentResult.error || 'Payment creation failed with no specific error',
-          },
-        })
+        if (order?.id) {
+          await payload.update({
+            collection: 'orders',
+            id: order.id,
+            data: {
+              status: 'cancelled',
+              cancellationDetails: {
+                cancelledAt: new Date().toISOString(),
+                reason: paymentResult.error || 'Payment creation failed with no specific error',
+              },
+            },
+          })
+        }
       } catch (updateError) {
         console.error('Failed to update order status after payment failure:', updateError)
       }
@@ -400,8 +482,8 @@ export async function POST(req: Request) {
     // Return payment URL for redirect
     return NextResponse.json({
       success: true,
-      orderId: order.id,
-      orderNumber: order.orderNumber,
+      orderId: order?.id || '',
+      orderNumber: order?.orderNumber || '',
       paymentUrl: paymentResult.paymentUrl,
     })
   } catch (error) {

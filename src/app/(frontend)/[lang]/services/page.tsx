@@ -4,14 +4,8 @@ import { GridContainer as Container } from '@/components/GridContainer'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { ServiceCard } from '@/components/services/ServiceCard'
 import { Service } from '@/types/service'
 import AnimateInView from '@/components/AnimateInView'
-import { ArrowRight, Filter, Search, X } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import ServiceList from '@/components/services/ServiceList'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
@@ -97,6 +91,12 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
         publishedAt: payloadService.publishedAt,
         createdAt: payloadService.createdAt,
         updatedAt: payloadService.updatedAt,
+        // Добавляем поддержку isPriceStartingFrom, включаем его по умолчанию
+        // для демонстрационных целей, если в данных Payload это поле не задано
+        isPriceStartingFrom:
+          typeof payloadService.isPriceStartingFrom !== 'undefined'
+            ? payloadService.isPriceStartingFrom
+            : true, // По умолчанию показываем "от" для всех услуг
       } as Service
     })
 
@@ -125,10 +125,16 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
       'serviceTypes.support': t('serviceTypes.support'),
       'serviceTypes.other': t('serviceTypes.other'),
       // Дополнительные переводы для карточек услуг
-      minutes: t('minutes'),
       book: t('book'),
       order: t('order'),
       details: t('details'),
+      startingFrom: t('startingFrom', { fallback: 'от' }),
+      featured: t('featured', { fallback: 'Рекомендуем' }),
+      newService: t('newService', { fallback: 'Новинка' }),
+      popular: t('popular', { fallback: 'Популярно' }),
+      flexible: t('flexible', { fallback: 'Гибкий график' }),
+      paymentRequired: t('paymentRequired', { fallback: 'Требуется оплата' }),
+      noPaymentRequired: t('noPaymentRequired', { fallback: 'Без предоплаты' }),
     }
 
     const commonTranslations: Record<string, string> = {

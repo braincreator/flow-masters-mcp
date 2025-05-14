@@ -1,6 +1,15 @@
 import type { Media, User } from '../payload-types'
 
-export type ServiceType = 'consultation' | 'training' | 'development' | 'support' | 'other'
+export type ServiceType =
+  | 'consultation'
+  | 'training'
+  | 'development'
+  | 'support'
+  | 'audit'
+  | 'integration'
+  | 'content_creation'
+  | 'automation'
+  | 'other'
 
 export type BookingProvider = 'calendly' | 'internal' | 'other'
 
@@ -59,6 +68,23 @@ export interface Service {
   publishedAt?: string
   createdAt: string
   updatedAt: string
+
+  // Дополнительные свойства для улучшенного отображения
+  isBookable?: boolean
+  isFeatured?: boolean
+  isPopular?: boolean
+  isNew?: boolean
+  isPriceStartingFrom?: boolean
+  rating?: number
+  flexible?: boolean
+  paymentRequired?: boolean
+
+  // Локализованные цены
+  localizedPrices?: {
+    ru?: number
+    en?: number
+    [key: string]: number | undefined
+  }
 }
 
 export interface ServiceCreateInput {
@@ -75,6 +101,23 @@ export interface ServiceCreateInput {
   requiresPayment?: boolean
   paymentSettings?: PaymentSettings
   status?: 'draft' | 'published' | 'archived'
+
+  // Дополнительные свойства
+  isBookable?: boolean
+  isFeatured?: boolean
+  isPopular?: boolean
+  isNew?: boolean
+  isPriceStartingFrom?: boolean
+  rating?: number
+  flexible?: boolean
+  paymentRequired?: boolean
+
+  // Локализованные цены
+  localizedPrices?: {
+    ru?: number
+    en?: number
+    [key: string]: number | undefined
+  }
 }
 
 export interface ServiceUpdateInput extends Partial<ServiceCreateInput> {

@@ -6,7 +6,7 @@ import { ArrowRight, Filter, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ServiceCard } from '@/components/services/ServiceCard'
+import ServiceCard from '@/components/services/ServiceCard'
 
 type ServiceListProps = {
   services: Service[]
@@ -195,7 +195,7 @@ export default function ServiceList({
                 delay={(serviceIndex % 3) * 100}
                 className="h-full"
               >
-                <ServiceCard service={service} locale={locale} translations={translations} />
+                <ServiceCard service={service} locale={locale} />
               </AnimateInView>
             ))}
           </div>

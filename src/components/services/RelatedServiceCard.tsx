@@ -2,12 +2,38 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatPrice, convertPrice, getLocaleCurrency } from '@/utilities/formatPrice'
-import { ArrowRight, Clock, Tag } from 'lucide-react'
+import {
+  ArrowRight,
+  Clock,
+  Tag,
+  Sparkles,
+  Star,
+  Award,
+  Check,
+  Shield,
+  TrendingUp,
+} from 'lucide-react'
 import { Image } from '@/components/Image'
 import { Badge } from '@/components/ui/badge'
+import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
+import { Service } from '@/types/service'
+
+// Константы стилей для компонента
+const CARD_VARIANT_STYLES = {
+  default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-md',
+  minimal: 'bg-gray-50 dark:bg-gray-900/60 border-gray-100 dark:border-gray-800 hover:shadow-sm',
+  accent: 'bg-primary/5 border-primary/20 dark:border-primary/30 hover:shadow-md',
+}
+
+const TITLE_VARIANT_STYLES = {
+  default: 'text-gray-800 dark:text-gray-200',
+  minimal: 'text-gray-700 dark:text-gray-300',
+  accent: 'text-primary dark:text-primary-foreground',
+}
 
 type RelatedServiceCardProps = {
-  service: any
+  service: Service,
   locale: string
   translations?: Record<string, string>
   variant?: 'default' | 'minimal' | 'accent'
@@ -21,207 +47,274 @@ export default function RelatedServiceCard({
 }: RelatedServiceCardProps) {
   const [localizedPrice, setLocalizedPrice] = useState<string>('')
   const [isLoaded, setIsLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
-  // Получаем локализованные данные
-  const title =
-    typeof service.title === 'object' && service.title !== null
-      ? service.title[locale as keyof typeof service.title] || 
-        // Если нет перевода для текущей локали, берем первое доступное значение
-        (typeof service.title === 'object' ? 
-          Object.values(service.title)[0] || String(service.title) : 
-          String(service.title))
-      : service.title
+  // Используем хук useTranslations для получения переводов
+  const servicesT = useTranslations('Services')
 
-  const shortDescription =
-    typeof service.shortDescription === 'object' && service.shortDescription !== null
-      ? service.shortDescription[locale as keyof typeof service.shortDescription] ||
-        // Если нет перевода для текущей локали, берем первое доступное значение
-        (typeof service.shortDescription === 'object' ? 
-          Object.values(service.shortDescription)[0] || String(service.shortDescription) : 
-          String(service.shortDescription))
-      : service.shortDescription || ''
-
-  // Преобразуем URL изображения
-  let thumbnailUrl = '/images/placeholder-service.jpg'
-  if (service.thumbnail) {
-    if (typeof service.thumbnail === 'string') {
-      thumbnailUrl = service.thumbnail
-    } else if (
-      typeof service.thumbnail === 'object' &&
-      service.thumbnail !== null &&
-      'url' in service.thumbnail
-    ) {
-      thumbnailUrl = service.thumbnail.url || thumbnailUrl
-    }
-  }
-
-  // Локализация цены с конвертацией валюты
   useEffect(() => {
     const fetchLocalizedPrice = async () => {
       try {
-        await getLocaleCurrency(locale) 
+        await getLocaleCurrency(locale)
         const sourceLocaleForPrice = 'en'
         const priceInTargetCurrency = convertPrice(service.price, sourceLocaleForPrice, locale)
         setLocalizedPrice(formatPrice(priceInTargetCurrency, locale))
       } catch (error) {
         console.error('Error formatting price:', error)
-        setLocalizedPrice(formatPrice(service.price, locale))
+        // Используем запасной вариант форматирования
+        setLocalizedPrice(formatPrice(service.price || 0, locale))
       } finally {
         setIsLoaded(true)
       }
     }
-    
+
     fetchLocalizedPrice()
-  }, [service.price, locale])
+  }, [service, locale])
 
-  // Получаем переводы из пропсов или используем дефолтные значения
-  const t = (key: string): string => {
-    return translations[key] || key
+  // Безопасное получение URL изображения с проверкой типа
+  const thumbnailUrl = service.thumbnail
+    ? typeof service.thumbnail === 'string'
+      ? service.thumbnail
+      : service.thumbnail.url || ''
+    : ''
+
+  // Локализованное название и описание
+  const title =
+    typeof service.title === 'object' && service.title !== null
+      ? (service.title as any)[locale] || (service.title as any).en || 'Service'
+      : service.title || 'Service'
+
+  const shortDescription =
+    typeof service.shortDescription === 'object' && service.shortDescription !== null
+      ? (service.shortDescription as any)[locale] || (service.shortDescription as any).en || ''
+      : service.shortDescription || ''
+
+  // Функция для форматирования продолжительности услуги
+  const formatDuration = (duration: number) => {
+    if (!duration) return ''
+
+    try {
+      if (duration === 60) {
+        return servicesT('duration.hour')
+      } else if (duration > 60) {
+        const hours = Math.floor(duration / 60)
+        const minutes = duration % 60
+
+        if (minutes === 0) {
+          return servicesT('duration.hours', { hours })
+        } else {
+          // Если есть и часы, и минуты
+          return servicesT('duration.hoursAndMinutes', {
+            hours,
+            minutes,
+            hoursText: servicesT('duration.hours', { hours }),
+            minutesText: servicesT('duration.minutes', { minutes }),
+          })
+        }
+      } else {
+        return servicesT('duration.minutes', { minutes: duration })
+      }
+    } catch (error) {
+      // Резервный вариант, если переводы не работают
+      if (duration === 60) {
+        return '1 час'
+      } else if (duration > 60) {
+        const hours = Math.floor(duration / 60)
+        const minutes = duration % 60
+        return minutes === 0 ? `${hours} ч.` : `${hours} ч. ${minutes} мин.`
+      } else {
+        return `${duration} мин.`
+      }
+    }
   }
 
-  // Минимальный вариант карточки связанной услуги
-  if (variant === 'minimal') {
-    return (
-      <Link
-        href={`/${locale}/services/${service.slug}`}
-        className="group flex items-start gap-4 p-3 rounded-lg border border-border/10 hover:border-primary/20 bg-card hover:bg-card/80 transition-all duration-300 hover:shadow-md"
-      >
-        <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0">
-          <Image
-            src={thumbnailUrl}
-            alt={title as string}
-            fill={true}
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="64px"
-          />
-        </div>
-        <div className="flex-grow min-w-0">
-          <h3 className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          {service.price > 0 && (
-            <div className="text-primary font-semibold text-sm mt-1">
-              {isLoaded ? localizedPrice : 
-                <span className="inline-block w-16 h-4 bg-primary/10 animate-pulse rounded"></span>}
+  // Безопасное получение переводов с поддержкой пользовательских переводов
+  const getTranslation = (key: string, fallback: string) => {
+    // Сначала проверяем переводы, переданные через props
+    if (translations && key in translations && translations[key]) {
+      return translations[key]
+    }
+
+    // Затем пытаемся использовать глобальные переводы
+    try {
+      return servicesT(key, { fallback })
+    } catch (error) {
+      return fallback
+    }
+  }
+
+  // Обработчик ошибки загрузки изображения
+  const handleImageError = () => {
+    setImageError(true)
+  }
+
+  // Определяем флаги для бейджей
+  const isFeatured = service.isFeatured || service.isPopular
+  const isNew =
+    service.isNew ||
+    (service.createdAt &&
+      new Date(service.createdAt).getTime() > Date.now() - 1000 * 60 * 60 * 24 * 30)
+
+  // Получение типа услуги с локализацией
+  const getServiceTypeName = (type: string): string => {
+    try {
+      return servicesT(`serviceTypes.${type}`)
+    } catch (error) {
+      return type.replace('_', ' ')
+    }
+  }
+
+  const serviceType = service.serviceType
+    ? getServiceTypeName(service.serviceType)
+    : getServiceTypeName('other')
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -5 }}
+      className={`rounded-xl overflow-hidden border group transition-all duration-300 flex flex-col h-full relative shadow-sm ${CARD_VARIANT_STYLES[variant]}`}
+    >
+      {/* Декоративная линия сверху */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/60 to-secondary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+      {/* Основной контент карточки */}
+      <div className="flex flex-col h-full">
+        {/* Изображение с градиентом */}
+        {thumbnailUrl && !imageError ? (
+          <div className="relative h-44 w-full overflow-hidden">
+            <Image
+              src={thumbnailUrl}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={handleImageError}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-80"></div>
+
+            {/* Бейджи и метки */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
+              {service.serviceType && (
+                <Badge className="bg-primary/90 text-white border-none px-2.5 py-1 text-xs tracking-wider font-medium shadow-sm">
+                  {serviceType}
+                </Badge>
+              )}
+
+              {isFeatured && (
+                <Badge className="bg-amber-500/90 text-white border-none px-2.5 py-1 text-xs flex items-center gap-1 shadow-sm">
+                  <Sparkles className="h-3 w-3" />
+                  <span>{getTranslation('featured', 'Featured')}</span>
+                </Badge>
+              )}
+
+              {isNew && (
+                <Badge className="bg-green-500/90 text-white border-none px-2.5 py-1 text-xs shadow-sm">
+                  {getTranslation('newService', 'New')}
+                </Badge>
+              )}
             </div>
-          )}
-          <div className="flex justify-between items-center mt-1.5">
-            <span className="text-xs text-muted-foreground line-clamp-1">{shortDescription}</span>
-            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-          </div>
-        </div>
-      </Link>
-    )
-  }
 
-  // Вариант с акцентом
-  if (variant === 'accent') {
-    return (
-      <Link
-        href={`/${locale}/services/${service.slug}`}
-        className="group block relative overflow-hidden bg-card rounded-xl shadow-md border border-primary/20 hover:shadow-lg hover:border-primary/60 transition-all"
-      >
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-        
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <Image
-            src={thumbnailUrl}
-            alt={title as string}
-            fill={true}
-            className="object-cover transition-transform duration-700 group-hover:scale-110 z-0"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
-          
-          {service.serviceType && (
-            <Badge 
-              className="absolute top-3 right-3 z-20 bg-primary/90 text-white border-none px-2.5 py-1 text-xs uppercase tracking-wider font-medium shadow-sm"
+            {/* Продолжительность */}
+            {service.duration && (
+              <motion.div
+                initial={{ opacity: 0.8 }}
+                whileHover={{ opacity: 1, scale: 1.05 }}
+                className="absolute top-3 right-3 flex items-center bg-black/50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm z-10"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                <span>{formatDuration(service.duration)}</span>
+              </motion.div>
+            )}
+
+            {/* Цена */}
+            <div className="absolute bottom-3 left-3 z-10">
+              {isLoaded ? (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-primary/80 backdrop-blur-sm px-3 py-1.5 rounded-md inline-block text-white text-sm font-medium shadow-sm"
+                >
+                  {service.isPriceStartingFrom && (
+                    <span className="text-xs text-white/80 mr-1">
+                      {getTranslation('startingFrom', 'from')}
+                    </span>
+                  )}
+                  {localizedPrice}
+                </motion.div>
+              ) : (
+                <div className="inline-block w-20 h-7 bg-primary/40 animate-pulse rounded-md"></div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="relative h-44 w-full bg-gradient-to-r from-primary/10 to-secondary/10 flex items-center justify-center">
+            <span className="text-4xl text-primary/40">{title.charAt(0)}</span>
+
+            {service.serviceType && (
+              <Badge className="absolute top-3 left-3 bg-primary/80 text-white border-none px-2.5 py-1 text-xs uppercase tracking-wider font-medium shadow-sm">
+                {serviceType}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Текстовый контент */}
+        <div className="p-4 flex flex-col flex-grow">
+          <Link href={`/${locale}/services/${service.slug}`} className="group block">
+            <h3
+              className={`text-lg font-semibold mb-2 group-hover:text-primary transition-colors ${TITLE_VARIANT_STYLES[variant]}`}
             >
-              {service.serviceType}
-            </Badge>
-          )}
-        </div>
-        
-        <div className="relative z-20 p-5">
-          <h3 className="font-bold text-lg mb-2 text-foreground group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          
+              {title}
+            </h3>
+          </Link>
+
           {shortDescription && (
-            <p className="text-muted-foreground line-clamp-2 text-sm mb-3 group-hover:text-foreground/80 transition-colors">
+            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
               {shortDescription}
             </p>
           )}
-          
-          <div className="flex items-center justify-between">
-            {service.price > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Tag className="h-4 w-4 text-primary" />
-                <span className="font-bold text-primary">
-                  {isLoaded ? localizedPrice : 
-                    <span className="inline-block w-16 h-5 bg-primary/10 animate-pulse rounded"></span>}
-                </span>
+
+          {/* Метки характеристик */}
+          <div className="flex flex-wrap gap-1.5 mt-auto">
+            {service.rating && (
+              <div className="text-xs flex items-center px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                <Star className="h-3 w-3 mr-1 fill-current" />
+                <span>{service.rating}/5</span>
               </div>
             )}
-            
-            <div className="flex items-center text-primary font-medium text-sm ml-auto group-hover:translate-x-1 transition-transform duration-300">
-              {t('details')}
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </div>
-          </div>
-          
-          {service.duration && (
-            <div className="absolute top-5 left-5 flex items-center bg-black/40 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-              <Clock className="h-3 w-3 mr-1" />
-              <span>{service.duration} мин</span>
-            </div>
-          )}
-        </div>
-      </Link>
-    )
-  }
 
-  // Стандартный вариант (default)
-  return (
-    <Link
-      href={`/${locale}/services/${service.slug}`}
-      className="block bg-card rounded-xl shadow-md border border-border/10 hover:shadow-lg hover:border-primary/20 transition-all group overflow-hidden relative"
-    >
-      {/* Декоративный градиент при наведении */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-      
-      <div className="relative aspect-[4/3]">
-        <Image
-          src={thumbnailUrl}
-          alt={title as string}
-          fill={true}
-          className="object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70 group-hover:opacity-80 transition-opacity"></div>
-        <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="font-semibold text-lg text-white group-hover:text-primary-foreground transition-colors">{title}</h3>
-          {service.price > 0 && isLoaded && (
-            <div className="mt-1 bg-primary/80 backdrop-blur-sm px-2 py-1 rounded-md inline-block text-white text-sm">
-              {localizedPrice}
-            </div>
-          )}
-          {service.price > 0 && !isLoaded && (
-            <div className="mt-1 inline-block w-20 h-7 bg-primary/40 animate-pulse rounded-md"></div>
-          )}
+            {service.isPopular && (
+              <div className="text-xs flex items-center px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                <span>{getTranslation('popular', 'Popular')}</span>
+              </div>
+            )}
+
+            {service.flexible && (
+              <div className="text-xs flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
+                <Check className="h-3 w-3 mr-1" />
+                <span>{getTranslation('flexible', 'Flexible')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Ссылка на детали */}
+          <motion.div
+            whileHover={{ x: 4 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+            className="flex justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-800"
+          >
+            <Link
+              href={`/${locale}/services/${service.slug}`}
+              className="text-primary hover:text-primary-dark text-sm font-medium flex items-center group"
+            >
+              {getTranslation('details', 'Details')}
+              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1 duration-300" />
+            </Link>
+          </motion.div>
         </div>
       </div>
-      <div className="p-4">
-        {shortDescription && (
-          <p className="text-muted-foreground line-clamp-2 group-hover:text-foreground/80 transition-colors">
-            {shortDescription}
-          </p>
-        )}
-        <div className="mt-4 text-primary flex items-center justify-end text-sm font-medium">
-          {t('details')}
-          <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1.5 duration-300" />
-        </div>
-      </div>
-    </Link>
+    </motion.div>
   )
-} 
+}

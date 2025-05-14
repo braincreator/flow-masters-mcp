@@ -166,12 +166,18 @@ export default async function ServicePage({ params }: { params: ServicePageParam
     const serviceTranslations = {
       book: t('book'),
       order: t('order'),
-      minutes: t('minutes'),
+      durationMinutes: t('duration.minutes', { minutes: '{minutes}' }),
+      durationHour: t('duration.hour'),
+      durationHours: t('duration.hours', { hours: '{hours}' }),
+      durationHoursAndMinutes: t('duration.hoursAndMinutes', {
+        hours: '{hours}',
+        minutes: '{minutes}',
+      }),
       paymentRequired: t('paymentRequired'),
       noPaymentRequired: t('noPaymentRequired'),
       haveQuestions: t('haveQuestions'),
       price: t('price'),
-      duration: t('duration'),
+      durationLabel: t('durationLabel'),
       type: t('type'),
       details: t('details'),
       serviceType: t(`serviceTypes.${serviceData.serviceType}`),
@@ -245,10 +251,10 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                     <div className="flex justify-between items-center py-3 border-t border-border/20">
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="text-muted-foreground text-sm">{t('duration')}</span>
+                        <span className="text-muted-foreground text-sm">{t('durationLabel')}</span>
                       </div>
                       <span className="font-medium">
-                        {serviceData.duration} {t('minutes')}
+                        {t('duration.minutes', { minutes: serviceData.duration })}
                       </span>
                     </div>
                   )}

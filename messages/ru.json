@@ -198,7 +198,7 @@
         },
         "productNewsAndTips": {
           "label": "Новости о продуктах и советы",
-          "description": "Получайте полезные советы, обновления функций и новости о наших продуктах."
+          "description": "Получайте советы по использованию, обновления и новости о наших продуктах."
         }
       },
       "notificationFrequency": {
@@ -515,32 +515,43 @@
     "metaTitle": "Наши Услуги",
     "metaDescription": "Ознакомьтесь с услугами, которые мы предлагаем.",
     "title": "Услуги",
-    "description": "Просмотрите наши доступные услуги ниже.",
-    "minutes": "минут",
+    "description": "Описание",
     "noServices": "На данный момент услуги отсутствуют.",
     "serviceTypes": {
       "consulting": "Консалтинг",
       "consultation": "Консультация",
       "development": "Разработка",
       "support": "Поддержка",
-      "other": "Прочие Услуги"
+      "audit": "Аудит",
+      "integration": "Интеграция",
+      "content_creation": "Создание контента",
+      "automation": "Автоматизация",
+      "other": "Прочие Услуги",
+      "corporate": "Корпоративные",
+      "personal": "Персональные",
+      "training": "Обучение",
+      "creative": "Креативные",
+      "technical": "Технические"
     },
     "features": "Особенности",
     "serviceDetails": "Детали услуги",
     "price": "Цена",
-    "duration": "Продолжительность",
+    "durationLabel": "Продолжительность",
     "type": "Тип",
     "order": "Заказать",
-    "book": "Забронировать",
+    "book": "Записаться",
     "details": "Подробнее",
+    "all": "Все услуги",
     "allServices": "Все услуги",
-    "backToServices": "Вернуться к списку услуг",
+    "backToServices": "Назад к услугам",
     "relatedServices": "Похожие услуги",
-    "paymentRequired": "Требуется оплата при бронировании",
-    "noPaymentRequired": "Предоплата не требуется",
+    "paymentRequired": "Требуется оплата",
+    "noPaymentRequired": "Без предоплаты",
     "haveQuestions": "Есть вопросы?",
-    "description": "Описание",
-    "flexible": "Гибкое время",
+    "flexible": "Гибкий график",
+    "categories": "Категории",
+    "search": "Поиск услуг",
+    "searchPlaceholder": "Поиск услуг...",
     "searchServices": "Поиск услуг...",
     "filterServices": "Фильтровать услуги",
     "filterByCategory": "Фильтр по категории",
@@ -556,6 +567,12 @@
       "nameDesc": "Название (Я-А)",
       "newest": "Сначала новые"
     },
+    "duration": {
+      "hour": "1 час",
+      "hours": "{hours} ч.",
+      "minutes": "{minutes} мин.",
+      "hoursAndMinutes": "{hours} ч. {minutes} мин."
+    },
     "heroTitle": "Профессиональные услуги для вашего бизнеса",
     "heroSubtitle": "Найдите подходящее решение из нашего каталога специализированных услуг",
     "showAllServices": "Показать все услуги",
@@ -565,16 +582,19 @@
     "popularServices": "Популярные услуги",
     "featuredServices": "Рекомендуемые услуги",
     "newServices": "Новые услуги",
-    "findService": "Найдите нужную услугу",
-    "findServiceDescription": "Используйте поиск или выберите категорию для более быстрого поиска",
+    "newService": "Новая",
+    "featured": "Рекомендуемая",
+    "popular": "Популярная",
+    "startingFrom": "от",
+    "findService": "Найдите свою услугу",
+    "findServiceDescription": "Используйте поиск или выберите категорию для быстрого поиска",
     "serviceCategories": "Категории услуг",
     "priceRange": "Ценовой диапазон",
-    "duration": "Продолжительность",
     "availability": "Доступность",
     "showResults": "Показать результаты",
     "clearAll": "Очистить всё",
     "bookService": "Забронировать услугу",
-    "backToServiceDetails": "Вернуться к описанию услуги"
+    "backToServiceDetails": "Вернуться к деталям услуги"
   },
   "home": {
     "title": "Flow Masters",
@@ -1617,5 +1637,17 @@
         "end": "для расчета."
       }
     }
+  },
+  "productDetails": {
+    "instantDelivery": "Мгновенная доставка",
+    "fileSize": "Размер файла",
+    "billingInterval": "Интервал оплаты",
+    "autoRenewal": "Автопродление",
+    "location": "Местоположение",
+    "validity": "Действует {period} дней",
+    "unlimitedAccess": "Безлимитный доступ",
+    "features": "Основные характеристики",
+    "inStock": "В наличии",
+    "securePayment": "Безопасная оплата"
   }
 }
