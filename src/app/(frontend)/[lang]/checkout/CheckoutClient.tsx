@@ -316,6 +316,8 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     clear: clearCart = () => {},
     remove: removeFromCart = () => {},
     refreshCart,
+    updateItem,
+    itemsLoading,
   } = useCart()
   // const t = useTranslations(locale); // Temporarily using hardcoded strings
 
@@ -855,8 +857,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           size="sm"
                           onClick={() => clearCart()}
                           className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          disabled={isLoading}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 mr-2" />
+                          )}
                           {locale === 'ru' ? 'Очистить' : 'Clear'}
                         </Button>
                       )}
@@ -979,102 +986,35 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                       if (itemId && item.quantity > 1) {
                                         console.log('Decreasing quantity for item:', itemId)
 
-                                        // Создаем копию корзины
-                                        const updatedCart = [...currentCartItems]
-                                        const itemIndex = updatedCart.findIndex(
-                                          (i) =>
-                                            (i.itemType === 'service' &&
-                                              (typeof i.service === 'string'
-                                                ? i.service
-                                                : i.service?.id) === itemId) ||
-                                            (i.itemType === 'product' &&
-                                              (typeof i.product === 'string'
-                                                ? i.product
-                                                : i.product?.id) === itemId),
-                                        )
-
-                                        if (itemIndex !== -1 && updatedCart[itemIndex]) {
-                                          const currentItem = updatedCart[itemIndex]
-                                          const newItem = {
-                                            ...currentItem,
-                                            quantity: Math.max(1, (currentItem.quantity || 1) - 1),
-                                            itemType: currentItem.itemType as 'service' | 'product',
-                                            priceSnapshot: currentItem.priceSnapshot || 0,
-                                          }
-
-                                          updatedCart[itemIndex] = newItem
-
-                                          // Обновляем корзину
-                                          fetch('/api/v1/cart/update', {
-                                            method: 'PATCH',
-                                            headers: {
-                                              'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                              itemId: itemId,
-                                              itemType: item.itemType,
-                                              quantity: Math.max(
-                                                1,
-                                                (currentItem.quantity || 1) - 1,
-                                              ),
-                                            }),
-                                          })
-                                            .then(async (response) => {
-                                              if (!response.ok) {
-                                                if (response.status === 204) {
-                                                  // No content, но успешно
-                                                  return null
-                                                }
-                                                // Пытаемся прочитать ошибку, если возможно
-                                                try {
-                                                  const errorData = await response.json()
-                                                  throw new Error(
-                                                    errorData.error || 'Failed to update cart',
-                                                  )
-                                                } catch (jsonError) {
-                                                  throw new Error(
-                                                    `Failed to update cart: ${response.status}`,
-                                                  )
-                                                }
-                                              }
-
-                                              // Успешный ответ с контентом
-                                              try {
-                                                return response.status === 204
-                                                  ? null
-                                                  : await response.json()
-                                              } catch (jsonError) {
-                                                // Если JSON невалидный, возвращаем null
-                                                console.warn(
-                                                  'Response is not a valid JSON, but operation might have succeeded',
-                                                )
-                                                return null
-                                              }
-                                            })
-                                            .then((data) => {
-                                              console.log('Cart updated, refreshing...')
-                                              refreshCart()
-                                            })
-                                            .catch((error) => {
-                                              console.error('Error updating cart:', error)
-                                            })
+                                        // Используем оптимизированную функцию из контекста корзины
+                                        if (typeof updateItem === 'function') {
+                                          updateItem(
+                                            itemId,
+                                            item.itemType,
+                                            Math.max(1, (item.quantity || 1) - 1),
+                                          )
                                         }
                                       }
                                     }}
+                                    disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
                                   >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <path d="M5 12h14" />
-                                    </svg>
+                                    {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <path d="M5 12h14" />
+                                      </svg>
+                                    )}
                                   </Button>
                                   <span className="mx-2 font-medium text-sm min-w-[24px] text-center">
                                     {item.quantity || 0}
@@ -1096,98 +1036,36 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                       if (itemId) {
                                         console.log('Increasing quantity for item:', itemId)
 
-                                        // Создаем копию корзины
-                                        const updatedCart = [...currentCartItems]
-                                        const itemIndex = updatedCart.findIndex(
-                                          (i) =>
-                                            (i.itemType === 'service' &&
-                                              (typeof i.service === 'string'
-                                                ? i.service
-                                                : i.service?.id) === itemId) ||
-                                            (i.itemType === 'product' &&
-                                              (typeof i.product === 'string'
-                                                ? i.product
-                                                : i.product?.id) === itemId),
-                                        )
-
-                                        if (itemIndex !== -1 && updatedCart[itemIndex]) {
-                                          const currentItem = updatedCart[itemIndex]
-                                          updatedCart[itemIndex] = {
-                                            ...currentItem,
-                                            quantity: (currentItem.quantity || 1) + 1,
-                                            itemType: currentItem.itemType as 'service' | 'product',
-                                            priceSnapshot: currentItem.priceSnapshot || 0,
-                                          }
-
-                                          // Обновляем корзину
-                                          fetch('/api/v1/cart/update', {
-                                            method: 'PATCH',
-                                            headers: {
-                                              'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                              itemId: itemId,
-                                              itemType: item.itemType,
-                                              quantity: (currentItem.quantity || 1) + 1,
-                                            }),
-                                          })
-                                            .then(async (response) => {
-                                              if (!response.ok) {
-                                                if (response.status === 204) {
-                                                  // No content, но успешно
-                                                  return null
-                                                }
-                                                // Пытаемся прочитать ошибку, если возможно
-                                                try {
-                                                  const errorData = await response.json()
-                                                  throw new Error(
-                                                    errorData.error || 'Failed to update cart',
-                                                  )
-                                                } catch (jsonError) {
-                                                  throw new Error(
-                                                    `Failed to update cart: ${response.status}`,
-                                                  )
-                                                }
-                                              }
-
-                                              // Успешный ответ с контентом
-                                              try {
-                                                return response.status === 204
-                                                  ? null
-                                                  : await response.json()
-                                              } catch (jsonError) {
-                                                // Если JSON невалидный, возвращаем null
-                                                console.warn(
-                                                  'Response is not a valid JSON, but operation might have succeeded',
-                                                )
-                                                return null
-                                              }
-                                            })
-                                            .then((data) => {
-                                              console.log('Cart updated, refreshing...')
-                                              refreshCart()
-                                            })
-                                            .catch((error) => {
-                                              console.error('Error updating cart:', error)
-                                            })
+                                        // Используем оптимизированную функцию из контекста корзины
+                                        if (typeof updateItem === 'function') {
+                                          updateItem(
+                                            itemId,
+                                            item.itemType,
+                                            (item.quantity || 1) + 1,
+                                          )
                                         }
                                       }
                                     }}
+                                    disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
                                   >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <path d="M5 12h14" />
-                                      <path d="M12 5v14" />
-                                    </svg>
+                                    {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <path d="M5 12h14" />
+                                        <path d="M12 5v14" />
+                                      </svg>
+                                    )}
                                   </Button>
                                 </div>
                                 <Button
@@ -1207,8 +1085,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                       removeFromCart(itemId, item.itemType)
                                     }
                                   }}
+                                  disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
                                 >
-                                  <X className="h-4 w-4" />
+                                  {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
                                 </Button>
                               </div>
                             </motion.div>
