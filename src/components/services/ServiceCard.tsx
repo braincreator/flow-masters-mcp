@@ -6,6 +6,7 @@ import {
   convertPrice,
   getLocaleCurrency,
   formatItemPrice,
+  getConvertedPrice,
 } from '@/utilities/formatPrice'
 import { Button } from '@/components/ui/button'
 import { Service } from '@/types/service'
@@ -60,6 +61,7 @@ export default function ServiceCard({
   highlighted = false,
 }: ServiceCardProps) {
   const [localizedPrice, setLocalizedPrice] = useState<string>('')
+  const [convertedPriceValue, setConvertedPriceValue] = useState<number>(service.price)
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Получаем переводы на уровне компонента
@@ -81,8 +83,9 @@ export default function ServiceCard({
       try {
         await getLocaleCurrency(locale)
         const sourceLocaleForPrice = 'en'
-        const priceInTargetCurrency = convertPrice(service.price, sourceLocaleForPrice, locale)
-        setLocalizedPrice(formatPrice(priceInTargetCurrency, locale))
+        const priceData = await getConvertedPrice(service.price, sourceLocaleForPrice, locale)
+        setConvertedPriceValue(priceData.convertedPrice)
+        setLocalizedPrice(priceData.formattedPrice)
       } catch (error) {
         console.error('Error formatting price:', error)
         setLocalizedPrice(formatItemPrice(service, locale))

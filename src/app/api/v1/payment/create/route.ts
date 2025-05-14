@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { PaymentProvider, PaymentResult } from '@/types/payment'
 import { ServiceRegistry } from '@/services/service.registry'
 import { generateSecurePassword } from '@/utilities/generatePassword'
+import { PaymentService } from '@/services/payment.service'
 
 // Определяем интерфейсы для типизации
 interface CartItem {
@@ -27,6 +28,8 @@ interface Service {
 // Расширяем существующий тип PaymentResult для наших нужд
 interface ExtendedPaymentResult extends PaymentResult {
   paymentUrl?: string
+  success: boolean
+  orderId: string
 }
 
 // Определяем типы для скидок
@@ -329,7 +332,11 @@ export async function POST(req: Request) {
             paymentProvider: provider,
             // Добавляем orderType
             orderType: serviceItems.length > 0 ? 'service' : 'product',
-            // No shipping address needed for digital products
+            // Сохраняем локаль в paymentData
+            paymentData: {
+              customerLocale: customer.locale || 'en',
+              originalTotal: usdTotal,
+            },
           },
         })
       } catch (orderError) {
@@ -406,9 +413,12 @@ export async function POST(req: Request) {
       // Log the actual provider object being used
       console.log(`Creating payment with provider:`, JSON.stringify(provider, null, 2))
 
+      // Определяем целевую валюту на основе локали
+      const targetCurrency = customer.locale === 'ru' ? 'RUB' : 'USD'
+
       // Create the payment using the provider object directly
-      paymentResult = await paymentService.createPayment(provider, {
-        orderId: order?.id,
+      const paymentResultData = await paymentService.createPayment(provider, {
+        orderId: order?.id || '',
         amount: total,
         description: `Order ${order?.orderNumber || 'Unknown'}`,
         customer: {
@@ -416,11 +426,25 @@ export async function POST(req: Request) {
           name: customer.name || '',
           phone: customer.phone || '',
         },
-        currency: 'USD', // Default currency, can be made dynamic
+        currency: targetCurrency, // Используем валюту, соответствующую локали
         locale: customer.locale || 'en',
         returnUrl: returnUrl || successUrl || '/payment/success',
-        metadata,
+        metadata: {
+          ...metadata,
+          // Добавляем информацию о конвертации для аудита
+          originalAmount: total,
+          targetCurrency,
+          locale: customer.locale || 'en',
+        },
       })
+
+      // Совместимое преобразование для ExtendedPaymentResult
+      paymentResult = {
+        ...paymentResultData,
+        success: paymentResultData.status === 'succeeded',
+        orderId: order?.id || '',
+        paymentUrl: paymentResultData.confirmationUrl,
+      }
     } catch (error) {
       console.error('Failed to create payment:', error)
 

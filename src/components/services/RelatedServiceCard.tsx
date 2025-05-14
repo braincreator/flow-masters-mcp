@@ -33,7 +33,7 @@ const TITLE_VARIANT_STYLES = {
 }
 
 type RelatedServiceCardProps = {
-  service: Service,
+  service: Service
   locale: string
   translations?: Record<string, string>
   variant?: 'default' | 'minimal' | 'accent'

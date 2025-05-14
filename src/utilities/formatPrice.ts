@@ -446,3 +446,35 @@ export const convertPrice = (amount: number, fromLocale: string, toLocale: strin
     return Math.round(convertedAmount * 100) / 100
   }
 }
+
+// Функция для получения конвертированной цены и её форматированного представления
+export const getConvertedPrice = async (
+  amount: number,
+  fromLocale: string,
+  toLocale: string,
+): Promise<{ convertedPrice: number; formattedPrice: string }> => {
+  try {
+    // Получаем настройки валют для локалей
+    const fromCurrency = await getLocaleCurrency(fromLocale)
+    const toCurrency = await getLocaleCurrency(toLocale)
+
+    // Конвертируем цену
+    const convertedPrice = convertPrice(amount, fromLocale, toLocale)
+
+    // Форматируем конвертированную цену для отображения
+    const formattedPrice = formatPrice(convertedPrice, toLocale)
+
+    // Возвращаем и числовое, и форматированное значения
+    return {
+      convertedPrice,
+      formattedPrice,
+    }
+  } catch (error) {
+    console.error('Error converting price:', error)
+    // В случае ошибки возвращаем оригинальную цену и её форматированное представление
+    return {
+      convertedPrice: amount,
+      formattedPrice: formatPrice(amount, fromLocale),
+    }
+  }
+}
