@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { PaymentProvider } from '@/types/payment'
 import { ServiceRegistry } from '@/services/service.registry'
+import { generateSecurePassword } from '@/utilities/generatePassword'
 
 export async function POST(req: Request) {
   try {
@@ -168,9 +169,27 @@ export async function POST(req: Request) {
             data: {
               email: customer.email,
               name: customer.name || customer.email.split('@')[0],
+              // Используем существующую функцию для генерации безопасного пароля
+              password: generateSecurePassword(),
+              // Установить флаг для последующего сброса пароля
+              roles: ['customer'],
+              passwordResetRequired: true,
             },
           })
           user = newUser.id
+
+          // Отправляем ссылку для сброса пароля
+          try {
+            await payload.forgotPassword({
+              collection: 'users',
+              data: {
+                email: customer.email,
+              },
+            })
+          } catch (forgotPasswordError) {
+            console.error('Failed to send password reset email:', forgotPasswordError)
+            // Не блокируем создание заказа из-за проблем с отправкой email
+          }
         }
       } catch (userError) {
         console.error('Failed to find or create user:', userError)

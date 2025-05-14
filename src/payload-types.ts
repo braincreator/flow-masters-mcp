@@ -1886,6 +1886,10 @@ export interface User {
    */
   notificationFrequency?: ('immediately' | 'daily' | 'weekly' | 'never') | null;
   /**
+   * Указывает, что пользователю нужно сбросить пароль при следующем входе
+   */
+  passwordResetRequired?: boolean | null;
+  /**
    * Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.
    */
   segments?: (string | UserSegment)[] | null;
@@ -2783,17 +2787,21 @@ export interface Product {
      */
     compareAtPrice?: number | null;
     /**
-     * Localized prices (automatically updated)
+     * Price is a starting price (will be displayed as "from X")
      */
-    locales?: {
-      en?: {
-        amount?: number | null;
-        currency?: string | null;
-      };
-      ru?: {
-        amount?: number | null;
-        currency?: string | null;
-      };
+    isPriceStartingFrom?: boolean | null;
+    /**
+     * Localized prices (override base price for specific locales)
+     */
+    localizedPrices?: {
+      /**
+       * Price in rubles for Russian locale
+       */
+      ru?: number | null;
+      /**
+       * Price in USD for English locale (if different from base price)
+       */
+      en?: number | null;
     };
   };
   description: {
@@ -8317,6 +8325,23 @@ export interface Service {
    * Базовая цена в USD
    */
   price: number;
+  /**
+   * Цена является начальной (будет отображаться как "от X")
+   */
+  isPriceStartingFrom?: boolean | null;
+  /**
+   * Локализованные цены (переопределяют базовую цену для указанных локалей)
+   */
+  localizedPrices?: {
+    /**
+     * Цена в рублях для русской локали
+     */
+    ru?: number | null;
+    /**
+     * Цена в долларах для английской локали (если отличается от базовой)
+     */
+    en?: number | null;
+  };
   /**
    * Продолжительность в минутах (0 для неограниченной)
    */
@@ -15046,6 +15071,7 @@ export interface UsersSelect<T extends boolean = true> {
             };
       };
   notificationFrequency?: T;
+  passwordResetRequired?: T;
   segments?: T;
   xp?: T;
   level?: T;
@@ -15287,21 +15313,12 @@ export interface ProductsSelect<T extends boolean = true> {
         discountPercentage?: T;
         finalPrice?: T;
         compareAtPrice?: T;
-        locales?:
+        isPriceStartingFrom?: T;
+        localizedPrices?:
           | T
           | {
-              en?:
-                | T
-                | {
-                    amount?: T;
-                    currency?: T;
-                  };
-              ru?:
-                | T
-                | {
-                    amount?: T;
-                    currency?: T;
-                  };
+              ru?: T;
+              en?: T;
             };
       };
   description?: T;
@@ -15378,6 +15395,13 @@ export interface ServicesSelect<T extends boolean = true> {
   description?: T;
   shortDescription?: T;
   price?: T;
+  isPriceStartingFrom?: T;
+  localizedPrices?:
+    | T
+    | {
+        ru?: T;
+        en?: T;
+      };
   duration?: T;
   thumbnail?: T;
   features?:

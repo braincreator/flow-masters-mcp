@@ -1,9 +1,10 @@
 'use client'
+
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatPrice, formatItemPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Button } from '@/components/ui/button'
-import { Service } from '@/types/service'
+import { Service, Media } from '@/payload-types'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight, Clock, Tag } from 'lucide-react'
 import { Image } from '@/components/Image'
@@ -89,7 +90,7 @@ export default function ServiceCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <Badge
-            variant="primary"
+            variant="secondary"
             className="absolute top-4 left-4 bg-primary/80 backdrop-blur-sm text-primary-foreground"
           >
             {serviceType}

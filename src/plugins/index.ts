@@ -10,11 +10,7 @@ import { seoPlugin } from '@payloadcms/plugin-seo'
 import { searchPlugin } from '@payloadcms/plugin-search'
 import { s3Storage } from '@payloadcms/storage-s3'
 
-import { 
-  FixedToolbarFeature, 
-  HeadingFeature, 
-  lexicalEditor 
-} from '@payloadcms/richtext-lexical'
+import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 
 import { revalidateRedirects } from '@/hooks/revalidateRedirects'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -30,89 +26,92 @@ const generateURL = ({ doc }: { doc: Partial<Page> | Partial<Post> | null }) => 
 }
 
 // Conditionally return an empty array during type generation
-export const plugins: Plugin[] = process.env.IS_GENERATING_TYPES === 'true' ? [] : [
-  redirectsPlugin({ // Restore redirectsPlugin
-    collections: ['pages', 'posts'],
-    overrides: {
-      admin: { group: 'Admin' },
-      fields: ({ defaultFields }): Field[] => {
-        return defaultFields.map((field) => {
-          if ('name' in field && field.name === 'from') {
-            return {
-              ...field,
-              admin: {
-                ...(field.admin || {}),
-                description: 'You will need to rebuild the website when changing this field.',
+export const plugins: Plugin[] =
+  process.env.IS_GENERATING_TYPES === 'true'
+    ? []
+    : [
+        redirectsPlugin({
+          // Restore redirectsPlugin
+          collections: ['pages', 'posts'],
+          overrides: {
+            admin: { group: 'Admin' },
+            fields: ({ defaultFields }): Field[] => {
+              return defaultFields.map((field) => {
+                if ('name' in field && field.name === 'from') {
+                  return {
+                    ...field,
+                    admin: {
+                      ...(field.admin || {}),
+                      description: 'You will need to rebuild the website when changing this field.',
+                    },
+                  } as Field
+                }
+                return field
+              })
+            },
+            hooks: {
+              afterChange: [revalidateRedirects],
+            },
+          },
+        }),
+        nestedDocsPlugin({
+          collections: ['categories'],
+          generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
+        }),
+        seoPlugin({
+          generateTitle,
+          generateURL,
+        }),
+        formBuilderPlugin({
+          fields: {
+            payment: false,
+          },
+          formOverrides: {
+            fields: ({ defaultFields }) => {
+              return defaultFields.map((field) => {
+                if ('name' in field && field.name === 'confirmationMessage') {
+                  return {
+                    ...field,
+                    editor: lexicalEditor({
+                      features: ({ rootFeatures }) => {
+                        return [
+                          ...rootFeatures,
+                          FixedToolbarFeature(),
+                          HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
+                        ]
+                      },
+                    }),
+                  }
+                }
+                return field
+              })
+            },
+          },
+        }),
+        searchPlugin({
+          collections: ['posts'],
+        }),
+        payloadCloudPlugin(),
+        s3Storage({
+          collections: {
+            media: {
+              disableLocalStorage: true,
+              disablePayloadAccessControl: true,
+              generateFileURL: ({ collection, filename, prefix, size }) => {
+                const sizeName = size?.name || ''
+                const sizePrefix = sizeName ? `${sizeName}/` : ''
+                return `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
               },
-            } as Field;
-          }
-          return field;
-        });
-      },
-      hooks: {
-        afterChange: [revalidateRedirects],
-      },
-    },
-  }),
-  nestedDocsPlugin({
-    collections: ['categories'],
-    generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
-  }),
-  seoPlugin({
-    generateTitle,
-    generateURL,
-  }),
-  formBuilderPlugin({
-    fields: {
-      payment: false,
-    },
-    formOverrides: {
-      fields: ({ defaultFields }) => {
-        return defaultFields.map((field) => {
-          if ('name' in field && field.name === 'confirmationMessage') {
-            return {
-              ...field,
-              editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
-                  return [
-                    ...rootFeatures,
-                    FixedToolbarFeature(),
-                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                  ]
-                },
-              }),
-            }
-          }
-          return field
-        })
-      },
-    },
-  }),
-  searchPlugin({
-    collections: ['posts'],
-  }),
-  payloadCloudPlugin(),
-  s3Storage({
-    collections: {
-      media: {
-        disableLocalStorage: true,
-        disablePayloadAccessControl: true,
-        generateFileURL: ({ collection, filename, prefix, size }) => {
-          const sizeName = size?.name || ''
-          const sizePrefix = sizeName ? `${sizeName}/` : ''
-          return `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
-        },
-      },
-    },
-    bucket: process.env.S3_BUCKET!,
-    config: {
-      credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-      },
-      endpoint: `https://${process.env.S3_ENDPOINT}`,
-      forcePathStyle: false,
-      region: process.env.S3_REGION,
-    },
-  }),
-];
+            },
+          },
+          bucket: process.env.S3_BUCKET!,
+          config: {
+            credentials: {
+              accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+            },
+            endpoint: `https://${process.env.S3_ENDPOINT}`,
+            region: process.env.S3_REGION || 'ru-central-1',
+          },
+        }),
+      ]

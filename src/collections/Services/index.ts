@@ -85,6 +85,42 @@ export const Services: CollectionConfig = {
       },
     },
     {
+      name: 'isPriceStartingFrom',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Цена является начальной (будет отображаться как "от X")',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'localizedPrices',
+      type: 'group',
+      admin: {
+        description: 'Локализованные цены (переопределяют базовую цену для указанных локалей)',
+        position: 'sidebar',
+      },
+      fields: [
+        {
+          name: 'ru',
+          type: 'number',
+          min: 0,
+          admin: {
+            description: 'Цена в рублях для русской локали',
+          },
+        },
+        // Можно добавить другие локали при необходимости
+        {
+          name: 'en',
+          type: 'number',
+          min: 0,
+          admin: {
+            description: 'Цена в долларах для английской локали (если отличается от базовой)',
+          },
+        },
+      ],
+    },
+    {
       name: 'duration',
       type: 'number',
       min: 0,

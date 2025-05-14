@@ -200,18 +200,24 @@ export function CartProvider({
     [cart],
   )
 
-  // Получаем ID элемента в зависимости от типа
-  const getItemId = useCallback((item: CartItem): string | null => {
-    if (item.itemType === 'product') {
-      return typeof item.product === 'string' ? item.product : item.product?.id || null
-    } else {
-      return typeof item.service === 'string' ? item.service : item.service?.id || null
-    }
-  }, [])
-
   // Функция для создания ключа загрузки элемента
   const getItemLoadingKey = useCallback((itemId: string, itemType: CartItemType): string => {
     return `${itemType}-${itemId}`
+  }, [])
+
+  // Получаем ID элемента в зависимости от типа
+  const getItemId = useCallback((item: CartItem): string | null => {
+    try {
+      if (item.itemType === 'product' && item.product) {
+        return typeof item.product === 'string' ? item.product : item.product?.id || null
+      } else if (item.itemType === 'service' && item.service) {
+        return typeof item.service === 'string' ? item.service : item.service?.id || null
+      }
+      return null
+    } catch (err) {
+      console.error('Error in getItemId:', err)
+      return null
+    }
   }, [])
 
   // Локальное обновление количества элемента
@@ -302,6 +308,58 @@ export function CartProvider({
       return true
     },
     [cart, updateLocalCart],
+  )
+
+  // Update item quantity - обновляем с оптимистичным обновлением UI
+  const updateItem = useCallback(
+    async (itemId: string, itemType: CartItemType, quantity: number): Promise<void> => {
+      const loadingKey = getItemLoadingKey(itemId, itemType)
+      try {
+        // Оптимистичное обновление UI
+        const success = updateItemQuantityLocally(itemId, itemType, quantity)
+        if (!success) {
+          console.warn('Item not found in local cart for optimistic update')
+        }
+
+        // Устанавливаем состояние загрузки для конкретного товара
+        setItemsLoading((prev) => ({ ...prev, [loadingKey]: true }))
+
+        // Если количество 0 или меньше, удаляем товар из корзины через API (без вызова removeItem)
+        if (quantity <= 0) {
+          await removeFromCart(itemId, itemType)
+          // Получаем обновленную корзину
+          const updatedCart = await getCart()
+          if (updatedCart) {
+            setCart(updatedCart)
+          }
+          return
+        }
+
+        await updateCartItemQuantity(itemId, itemType, quantity)
+
+        // Получаем обновленную корзину, но без полной перезагрузки UI
+        const updatedCart = await getCart()
+        if (updatedCart) {
+          setCart(updatedCart)
+        }
+      } catch (err) {
+        console.error('Error updating cart item:', err)
+
+        // В случае ошибки возвращаем исходные данные
+        await fetchCart()
+
+        toast({
+          title: 'Error updating item',
+          description: err instanceof Error ? err.message : 'Failed to update item',
+          variant: 'destructive',
+        })
+        throw err
+      } finally {
+        // Убираем состояние загрузки для товара
+        setItemsLoading((prev) => ({ ...prev, [loadingKey]: false }))
+      }
+    },
+    [fetchCart, getItemLoadingKey, updateItemQuantityLocally],
   )
 
   // Remove item from cart - обновляем с оптимистичным обновлением UI
@@ -413,61 +471,12 @@ export function CartProvider({
     [retryFetchCart],
   )
 
-  // Update item quantity - обновляем с оптимистичным обновлением UI
-  const updateItem = useCallback(
-    async (itemId: string, itemType: CartItemType, quantity: number): Promise<void> => {
-      const loadingKey = getItemLoadingKey(itemId, itemType)
-      try {
-        // Оптимистичное обновление UI
-        const success = updateItemQuantityLocally(itemId, itemType, quantity)
-        if (!success) {
-          console.warn('Item not found in local cart for optimistic update')
-        }
-
-        // Устанавливаем состояние загрузки для конкретного товара
-        setItemsLoading((prev) => ({ ...prev, [loadingKey]: true }))
-
-        // Если количество 0 или меньше, удаляем товар из корзины
-        if (quantity <= 0) {
-          await removeItem(itemId, itemType)
-          return
-        }
-
-        await updateCartItemQuantity(itemId, itemType, quantity)
-
-        // Получаем обновленную корзину, но без полной перезагрузки UI
-        const updatedCart = await getCart()
-        if (updatedCart) {
-          setCart(updatedCart)
-        }
-      } catch (err) {
-        console.error('Error updating cart item:', err)
-
-        // В случае ошибки возвращаем исходные данные
-        await fetchCart()
-
-        toast({
-          title: 'Error updating item',
-          description: err instanceof Error ? err.message : 'Failed to update item',
-          variant: 'destructive',
-        })
-        throw err
-      } finally {
-        // Убираем состояние загрузки для товара
-        setItemsLoading((prev) => ({ ...prev, [loadingKey]: false }))
-      }
-    },
-    [fetchCart, getItemLoadingKey, updateItemQuantityLocally, removeItem],
-  )
-
   // Создаем дебаунсированную версию updateItem для предотвращения частых запросов
   const debouncedUpdateItem = useMemo(
     () =>
-      debounce(
-        (itemId: string, itemType: CartItemType, quantity: number) =>
-          updateItem(itemId, itemType, quantity),
-        500,
-      ),
+      debounce(async (itemId: string, itemType: CartItemType, quantity: number): Promise<void> => {
+        await updateItem(itemId, itemType, quantity)
+      }, 500),
     [updateItem],
   )
 

@@ -306,25 +306,73 @@ const getOriginalLocalePrice = (product: any, locale: string = 'en'): number => 
   return 0
 }
 
-// Enhanced version that applies currency conversion
-export const getLocalePrice = (product: any, targetLocale: string = 'en'): number => {
-  // First, determine if we have a base locale specified in the product
-  const baseLocale = product?.pricing?.baseLocale || 'en'
-  const basePrice = getOriginalLocalePrice(product, baseLocale)
+// Функция для получения цены продукта или услуги с учетом локали
+export const getLocalePrice = (item: any, targetLocale: string = 'en'): number => {
+  if (!item) return 0
 
-  // If the product has a price directly in the target locale, use that
-  if (product?.pricing?.[targetLocale]?.amount) {
-    return product.pricing[targetLocale].amount
+  try {
+    // Проверяем наличие локализованных цен для нужной локали
+    if (
+      item.localizedPrices &&
+      item.localizedPrices[targetLocale] &&
+      item.localizedPrices[targetLocale] > 0
+    ) {
+      return item.localizedPrices[targetLocale]
+    }
+
+    // Для продуктов работаем с pricing структурой
+    if (item.pricing) {
+      // Проверяем наличие локализованных цен в новом формате
+      if (
+        item.pricing.localizedPrices &&
+        item.pricing.localizedPrices[targetLocale] &&
+        item.pricing.localizedPrices[targetLocale] > 0
+      ) {
+        return item.pricing.localizedPrices[targetLocale]
+      }
+
+      // Используем finalPrice как основную цену
+      return item.pricing.finalPrice || item.pricing.basePrice || 0
+    }
+
+    // Для услуг используем поле price напрямую
+    return item.price || 0
+  } catch (error) {
+    console.error('Error in getLocalePrice:', error)
+    // Если что-то пошло не так, возвращаем 0
+    return 0
+  }
+}
+
+// Форматирование цены с учетом флага "от" (нефиксированная цена)
+export const formatPriceWithPrefix = (
+  price: number,
+  locale: string = 'en',
+  isStartingFrom: boolean = false,
+): string => {
+  const formattedPrice = formatPrice(price, locale)
+
+  if (isStartingFrom) {
+    // Добавляем префикс "от" в зависимости от локали
+    return locale === 'ru' ? `от ${formattedPrice}` : `from ${formattedPrice}`
   }
 
-  // If the product doesn't have the target locale price, convert from the base price
-  // Only convert if we have a non-zero base price and target locale is different
-  if (basePrice > 0 && baseLocale !== targetLocale) {
-    return convertPrice(basePrice, baseLocale, targetLocale)
-  }
+  return formattedPrice
+}
 
-  // If no base locale price or it's zero, fall back to original logic
-  return getOriginalLocalePrice(product, targetLocale)
+// Вспомогательная функция для форматирования цены с учетом всех параметров
+export const formatItemPrice = (item: any, locale: string = 'en'): string => {
+  if (!item) return ''
+
+  // Получаем цену в правильной локали
+  const price = getLocalePrice(item, locale)
+
+  // Проверяем, является ли цена нефиксированной
+  const isStartingFrom =
+    item.isPriceStartingFrom === true || (item.pricing && item.pricing.isPriceStartingFrom === true)
+
+  // Форматируем с учетом префикса
+  return formatPriceWithPrefix(price, locale, isStartingFrom)
 }
 
 // Инвалидация кеша при обновлении настроек

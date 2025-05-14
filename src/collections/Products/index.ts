@@ -189,40 +189,35 @@ export const Products: CollectionConfig = {
           },
         },
         {
-          name: 'locales',
+          name: 'isPriceStartingFrom',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Price is a starting price (will be displayed as "from X")',
+          },
+        },
+        {
+          name: 'localizedPrices',
           type: 'group',
           admin: {
-            description: 'Localized prices (automatically updated)',
-            condition: () => false,
+            description: 'Localized prices (override base price for specific locales)',
           },
           fields: [
             {
-              name: 'en',
-              type: 'group',
-              fields: [
-                {
-                  name: 'amount',
-                  type: 'number',
-                },
-                {
-                  name: 'currency',
-                  type: 'text',
-                },
-              ],
+              name: 'ru',
+              type: 'number',
+              min: 0,
+              admin: {
+                description: 'Price in rubles for Russian locale',
+              },
             },
             {
-              name: 'ru',
-              type: 'group',
-              fields: [
-                {
-                  name: 'amount',
-                  type: 'number',
-                },
-                {
-                  name: 'currency',
-                  type: 'text',
-                },
-              ],
+              name: 'en',
+              type: 'number',
+              min: 0,
+              admin: {
+                description: 'Price in USD for English locale (if different from base price)',
+              },
             },
           ],
         },

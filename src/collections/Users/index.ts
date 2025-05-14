@@ -207,7 +207,8 @@ export const Users: CollectionConfig = {
               type: 'checkbox',
               defaultValue: true,
               admin: {
-                description: 'Receive updates about your orders (e.g., confirmation, shipping, cancellation).',
+                description:
+                  'Receive updates about your orders (e.g., confirmation, shipping, cancellation).',
               },
             },
             {
@@ -216,7 +217,8 @@ export const Users: CollectionConfig = {
               type: 'checkbox',
               defaultValue: true,
               admin: {
-                description: 'Receive updates about your subscriptions (e.g., activation, renewal, payment issues).',
+                description:
+                  'Receive updates about your subscriptions (e.g., activation, renewal, payment issues).',
               },
             },
             {
@@ -225,7 +227,8 @@ export const Users: CollectionConfig = {
               type: 'checkbox',
               defaultValue: true,
               admin: {
-                description: 'Receive notifications for important account activities (e.g., welcome email, security alerts).',
+                description:
+                  'Receive notifications for important account activities (e.g., welcome email, security alerts).',
               },
             },
             {
@@ -234,7 +237,8 @@ export const Users: CollectionConfig = {
               type: 'checkbox',
               defaultValue: false,
               admin: {
-                description: 'Receive promotional offers, news about new products, and special deals.',
+                description:
+                  'Receive promotional offers, news about new products, and special deals.',
               },
             },
             {
@@ -243,7 +247,8 @@ export const Users: CollectionConfig = {
               type: 'checkbox',
               defaultValue: false,
               admin: {
-                description: 'Receive updates about new features, platform improvements, and helpful tips.',
+                description:
+                  'Receive updates about new features, platform improvements, and helpful tips.',
               },
             },
           ],
@@ -262,6 +267,19 @@ export const Users: CollectionConfig = {
       ],
       admin: {
         description: 'How often to receive notifications',
+      },
+    },
+    {
+      name: 'passwordResetRequired',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Указывает, что пользователю нужно сбросить пароль при следующем входе',
+        position: 'sidebar',
+      },
+      access: {
+        read: isAdminAccessCheck,
+        update: isAdminAccessCheck,
       },
     },
     {
