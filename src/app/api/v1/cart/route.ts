@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
-// GET /api/cart - получение корзины
+// GET /api/v1/cart - получение корзины
 export async function GET(req: NextRequest) {
   try {
     // Получаем экземпляр Payload
@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     try {
       // Безопасно пытаемся получить пользователя
       const userReq = { headers: { authorization: req.headers.get('authorization') } }
+      // @ts-ignore - verify метод существует в Payload, но не определен в типах
       const userRes = await payload.verify(userReq)
       user = userRes?.user
     } catch (error) {
@@ -28,8 +29,7 @@ export async function GET(req: NextRequest) {
     } else {
       // Для анонимного пользователя ищем по sessionId из cookie
       const cookieStore = await cookies()
-      const sessionCookie = cookieStore.get('payload-cart-session')
-      const sessionId = sessionCookie?.value
+      const sessionId = (await cookieStore.get('payload-cart-session'))?.value
 
       // Если нет cookie сессии, возвращаем пустую корзину
       if (!sessionId) {
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       where,
       limit: 1,
       sort: '-updatedAt',
-      depth: 1,
+      depth: 2, // Увеличиваем глубину для получения информации о продуктах и услугах
     })
 
     if (result.docs.length === 0) {
@@ -56,11 +56,17 @@ export async function GET(req: NextRequest) {
     return Response.json(result.docs[0], { status: 200 })
   } catch (error) {
     console.error('Error fetching cart:', error)
-    return Response.json({ message: 'Failed to retrieve cart' }, { status: 500 })
+    return Response.json(
+      {
+        message: 'Failed to retrieve cart',
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
   }
 }
 
-// DELETE /api/cart - очистка корзины
+// DELETE /api/v1/cart - очистка корзины
 export async function DELETE(req: NextRequest) {
   try {
     // Получаем экземпляр Payload
@@ -71,6 +77,7 @@ export async function DELETE(req: NextRequest) {
     try {
       // Безопасно пытаемся получить пользователя
       const userReq = { headers: { authorization: req.headers.get('authorization') } }
+      // @ts-ignore - verify метод существует в Payload, но не определен в типах
       const userRes = await payload.verify(userReq)
       user = userRes?.user
     } catch (error) {
@@ -85,9 +92,8 @@ export async function DELETE(req: NextRequest) {
       where = { user: { equals: user.id }, convertedToOrder: { not_equals: true } }
     } else {
       // Для анонимного пользователя ищем по sessionId из cookie
-      const cookieStore = cookies()
-      const sessionCookie = cookieStore.get('payload-cart-session')
-      const sessionId = sessionCookie?.value
+      const cookieStore = await cookies()
+      const sessionId = (await cookieStore.get('payload-cart-session'))?.value
 
       // Если нет cookie сессии, нечего очищать
       if (!sessionId) {
@@ -120,6 +126,12 @@ export async function DELETE(req: NextRequest) {
     return Response.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error('Error clearing cart:', error)
-    return Response.json({ message: 'Failed to clear cart' }, { status: 500 })
+    return Response.json(
+      {
+        message: 'Failed to clear cart',
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
   }
 }

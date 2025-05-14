@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getPayloadClient } from '@/utilities/payload/index'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const payload = await getPayloadClient()
 
@@ -13,8 +13,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid cart data' }, { status: 400 })
     }
 
-    // No session in this version, using only sessionId
-    const userId = null
+    // Проверяем элементы корзины
+    for (const item of items) {
+      // Проверка на соответствие структуры элемента
+      if (!item.itemType || !['product', 'service'].includes(item.itemType)) {
+        return NextResponse.json(
+          { error: 'Invalid item type. Must be "product" or "service"' },
+          { status: 400 },
+        )
+      }
+
+      if (
+        (item.itemType === 'product' && !item.product) ||
+        (item.itemType === 'service' && !item.service)
+      ) {
+        return NextResponse.json(
+          { error: `Missing ${item.itemType} ID in cart item` },
+          { status: 400 },
+        )
+      }
+
+      if (typeof item.quantity !== 'number' || item.quantity <= 0) {
+        return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 })
+      }
+    }
+
+    // Определяем, авторизован ли пользователь
+    let user = null
+    try {
+      // Безопасно пытаемся получить пользователя
+      const userReq = { headers: { authorization: req.headers.get('authorization') } }
+      // @ts-ignore - verify метод существует в Payload, но не определен в типах
+      const userRes = await payload.verify(userReq)
+      user = userRes?.user
+    } catch (error) {
+      // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
+    }
 
     // Try to find existing cart session
     const existingCartSessions = await payload.find({
@@ -42,7 +76,7 @@ export async function POST(req: Request) {
           collection: 'cart-sessions',
           id: existingCartSession.id,
           data: {
-            user: userId || existingCartSession.user,
+            user: user?.id || existingCartSession.user,
             sessionId,
             items,
             total,
@@ -61,7 +95,7 @@ export async function POST(req: Request) {
       await payload.create({
         collection: 'cart-sessions',
         data: {
-          user: userId,
+          user: user?.id,
           sessionId,
           items,
           total,
@@ -72,9 +106,25 @@ export async function POST(req: Request) {
       })
     }
 
+    // Установка или обновление cookie сессии
+    const cookieStore = await cookies()
+    await cookieStore.set('payload-cart-session', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 дней в секундах
+      path: '/',
+    })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error syncing cart:', error)
-    return NextResponse.json({ error: 'Failed to sync cart' }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Failed to sync cart',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
   }
 }

@@ -1005,22 +1005,53 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                           updatedCart[itemIndex] = newItem
 
                                           // Обновляем корзину
-                                          fetch('/api/v1/cart', {
-                                            method: 'POST',
+                                          fetch('/api/v1/cart/update', {
+                                            method: 'PATCH',
                                             headers: {
                                               'Content-Type': 'application/json',
                                             },
                                             body: JSON.stringify({
-                                              items: updatedCart,
+                                              itemId: itemId,
+                                              itemType: item.itemType,
+                                              quantity: Math.max(
+                                                1,
+                                                (currentItem.quantity || 1) - 1,
+                                              ),
                                             }),
                                           })
-                                            .then((response) => {
+                                            .then(async (response) => {
                                               if (!response.ok) {
-                                                throw new Error('Failed to update cart')
+                                                if (response.status === 204) {
+                                                  // No content, но успешно
+                                                  return null
+                                                }
+                                                // Пытаемся прочитать ошибку, если возможно
+                                                try {
+                                                  const errorData = await response.json()
+                                                  throw new Error(
+                                                    errorData.error || 'Failed to update cart',
+                                                  )
+                                                } catch (jsonError) {
+                                                  throw new Error(
+                                                    `Failed to update cart: ${response.status}`,
+                                                  )
+                                                }
                                               }
-                                              return response.json()
+
+                                              // Успешный ответ с контентом
+                                              try {
+                                                return response.status === 204
+                                                  ? null
+                                                  : await response.json()
+                                              } catch (jsonError) {
+                                                // Если JSON невалидный, возвращаем null
+                                                console.warn(
+                                                  'Response is not a valid JSON, but operation might have succeeded',
+                                                )
+                                                return null
+                                              }
                                             })
-                                            .then(() => {
+                                            .then((data) => {
                                               console.log('Cart updated, refreshing...')
                                               refreshCart()
                                             })
@@ -1089,22 +1120,50 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                           }
 
                                           // Обновляем корзину
-                                          fetch('/api/v1/cart', {
-                                            method: 'POST',
+                                          fetch('/api/v1/cart/update', {
+                                            method: 'PATCH',
                                             headers: {
                                               'Content-Type': 'application/json',
                                             },
                                             body: JSON.stringify({
-                                              items: updatedCart,
+                                              itemId: itemId,
+                                              itemType: item.itemType,
+                                              quantity: (currentItem.quantity || 1) + 1,
                                             }),
                                           })
-                                            .then((response) => {
+                                            .then(async (response) => {
                                               if (!response.ok) {
-                                                throw new Error('Failed to update cart')
+                                                if (response.status === 204) {
+                                                  // No content, но успешно
+                                                  return null
+                                                }
+                                                // Пытаемся прочитать ошибку, если возможно
+                                                try {
+                                                  const errorData = await response.json()
+                                                  throw new Error(
+                                                    errorData.error || 'Failed to update cart',
+                                                  )
+                                                } catch (jsonError) {
+                                                  throw new Error(
+                                                    `Failed to update cart: ${response.status}`,
+                                                  )
+                                                }
                                               }
-                                              return response.json()
+
+                                              // Успешный ответ с контентом
+                                              try {
+                                                return response.status === 204
+                                                  ? null
+                                                  : await response.json()
+                                              } catch (jsonError) {
+                                                // Если JSON невалидный, возвращаем null
+                                                console.warn(
+                                                  'Response is not a valid JSON, but operation might have succeeded',
+                                                )
+                                                return null
+                                              }
                                             })
-                                            .then(() => {
+                                            .then((data) => {
                                               console.log('Cart updated, refreshing...')
                                               refreshCart()
                                             })
@@ -1145,7 +1204,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                           ? item.product
                                           : item.product?.id
                                     if (itemId) {
-                                      removeFromCart(itemId)
+                                      removeFromCart(itemId, item.itemType)
                                     }
                                   }}
                                 >

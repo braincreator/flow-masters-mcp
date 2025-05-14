@@ -32,8 +32,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request format' }, { status: 400 })
     }
 
-    const { items, customer, provider, returnUrl, selectedCurrency, successUrl, failUrl } =
-      requestData
+    const {
+      items,
+      customer,
+      provider,
+      returnUrl,
+      selectedCurrency,
+      successUrl,
+      failUrl,
+      discount,
+    } = requestData
 
     // Input validation
     if (!items || !items.length) {
@@ -48,35 +56,88 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Payment provider is required' }, { status: 400 })
     }
 
-    // Fetch products from Payload
-    let productsData
-    try {
-      const productIds = items.map((item) => item.productId)
-      productsData = await payload.find({
-        collection: 'products',
-        where: {
-          id: {
-            in: productIds,
+    // Отдельные массивы для продуктов и услуг
+    const productItems = items.filter((item) => item.productId)
+    const serviceItems = items.filter((item) => item.serviceId)
+
+    // Получаем продукты из базы данных
+    let productsData = { docs: [] }
+    if (productItems.length > 0) {
+      try {
+        const productIds = productItems.map((item) => item.productId).filter(Boolean)
+        productsData = await payload.find({
+          collection: 'products',
+          where: {
+            id: {
+              in: productIds,
+            },
           },
-        },
-      })
-    } catch (error) {
-      console.error('Failed to fetch products:', error)
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+        })
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+        return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+      }
     }
 
-    if (!productsData.docs.length) {
+    // Получаем услуги из базы данных
+    let servicesData = { docs: [] }
+    if (serviceItems.length > 0) {
+      try {
+        const serviceIds = serviceItems.map((item) => item.serviceId).filter(Boolean)
+        servicesData = await payload.find({
+          collection: 'services',
+          where: {
+            id: {
+              in: serviceIds,
+            },
+          },
+        })
+      } catch (error) {
+        console.error('Failed to fetch services:', error)
+        return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
+      }
+    }
+
+    // Проверяем, что нашли все товары и услуги
+    if (productItems.length > 0 && productsData.docs.length === 0) {
       return NextResponse.json({ error: 'Products not found' }, { status: 404 })
     }
 
-    // Calculate order total
-    const total = items.reduce((sum, item) => {
-      const product = productsData.docs.find((p) => p.id === item.productId)
-      if (!product) return sum
+    if (serviceItems.length > 0 && servicesData.docs.length === 0) {
+      return NextResponse.json({ error: 'Services not found' }, { status: 404 })
+    }
 
-      const price = product.price || 0
-      return sum + price * item.quantity
-    }, 0)
+    // Расчет общей стоимости заказа
+    let total = 0
+
+    // Добавляем стоимость продуктов
+    productItems.forEach((item) => {
+      const product = productsData.docs.find((p) => p.id === item.productId)
+      if (product) {
+        // Используем finalPrice из pricing если доступен, иначе обычную цену
+        const price =
+          product.pricing?.finalPrice !== undefined
+            ? product.pricing.finalPrice
+            : product.price || 0
+        total += price * item.quantity
+      }
+    })
+
+    // Добавляем стоимость услуг
+    serviceItems.forEach((item) => {
+      const service = servicesData.docs.find((s) => s.id === item.serviceId)
+      if (service) {
+        const price = service.price || 0
+        total += price * item.quantity
+      }
+    })
+
+    // Применяем скидку если есть
+    let discountAmount = 0
+    if (discount && discount.amount) {
+      discountAmount = discount.amount
+      total = Math.max(0, total - discountAmount)
+    }
 
     if (total <= 0) {
       return NextResponse.json({ error: 'Invalid order total' }, { status: 400 })
@@ -118,7 +179,43 @@ export async function POST(req: Request) {
 
       // Calculate prices in different currencies
       const usdTotal = total
-      const rubTotal = total * 90 // Simple conversion rate example, should use actual rates
+      // Используем более реалистичный курс конвертации
+      const conversionRate = customer.locale === 'ru' ? 90 : 1
+      const rubTotal = total * conversionRate
+
+      // Prepare order items - комбинируем продукты и услуги
+      const orderItems = []
+
+      // Добавляем продукты в заказ
+      productItems.forEach((item) => {
+        const product = productsData.docs.find((p) => p.id === item.productId)
+        if (product) {
+          const price =
+            product.pricing?.finalPrice !== undefined
+              ? product.pricing.finalPrice
+              : product.price || 0
+
+          orderItems.push({
+            itemType: 'product',
+            product: item.productId,
+            quantity: item.quantity,
+            price: price,
+          })
+        }
+      })
+
+      // Добавляем услуги в заказ
+      serviceItems.forEach((item) => {
+        const service = servicesData.docs.find((s) => s.id === item.serviceId)
+        if (service) {
+          orderItems.push({
+            itemType: 'service',
+            service: item.serviceId,
+            quantity: item.quantity,
+            price: service.price || 0,
+          })
+        }
+      })
 
       // Use try/catch to prevent integration service errors from failing order creation
       try {
@@ -127,14 +224,7 @@ export async function POST(req: Request) {
           data: {
             orderNumber: `ORD-${Date.now()}`,
             customer: user, // Link to the user ID
-            items: items.map((item) => {
-              const product = productsData.docs.find((p) => p.id === item.productId)
-              return {
-                product: item.productId,
-                quantity: item.quantity,
-                price: product?.price || 0,
-              }
-            }),
+            items: orderItems,
             // Format total according to the required structure
             total: {
               en: {
@@ -146,6 +236,13 @@ export async function POST(req: Request) {
                 currency: 'RUB',
               },
             },
+            // Сохраняем информацию о скидке, если она была применена
+            discount: discount
+              ? {
+                  code: discount.code,
+                  amount: discountAmount,
+                }
+              : undefined,
             status: 'pending',
             paymentProvider: provider,
             // No shipping address needed for digital products
@@ -205,6 +302,14 @@ export async function POST(req: Request) {
       // Add cryptocurrency selection if present
       if (provider.id === 'crypto' && selectedCurrency) {
         metadata.selectedCurrency = selectedCurrency
+      }
+
+      // Add discount info to metadata if present
+      if (discount) {
+        metadata.discount = {
+          code: discount.code,
+          amount: discountAmount,
+        }
       }
 
       // Log the actual provider object being used

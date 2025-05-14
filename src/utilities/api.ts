@@ -152,13 +152,12 @@ type PayloadCollectionResponse<T> = {
   nextPage: number | null
 }
 
-// Получить корзину пользователя (или анонимную)
-// Payload не имеет простого способа получить корзину "текущего" пользователя напрямую
-// Нужно либо передавать user ID, либо session ID, либо реализовать кастомный эндпоинт
-// Пока что сделаем кастомный эндпоинт (предполагаем, что он будет создан)
+/**
+ * Получить корзину пользователя (или анонимную)
+ */
 export const getCart = (): Promise<CartSession | null> => {
   console.log('API: Fetching cart data')
-  // Используем правильный путь, соответствующий API-роуту
+  // Используем правильный путь к API
   return fetchPayloadAPI<CartSession>('/v1/cart', { method: 'GET' })
     .then((response) => {
       console.log('API: Cart data received:', response)
@@ -171,10 +170,12 @@ export const getCart = (): Promise<CartSession | null> => {
     })
 }
 
-// Добавить товар в корзину
+/**
+ * Добавить товар или услугу в корзину
+ */
 export const addToCart = (
   itemId: string,
-  itemType: 'product' | 'service',
+  itemType: 'product' | 'service' = 'product',
   quantity: number = 1,
 ): Promise<CartSession> => {
   console.log('API: Sending request to add to cart:', { itemId, itemType, quantity })
@@ -192,34 +193,66 @@ export const addToCart = (
     })
 }
 
-// Обновить количество товара
+/**
+ * Обновить количество товара или услуги в корзине
+ */
 export const updateCartItemQuantity = (
   itemId: string,
-  itemType: 'product' | 'service',
+  itemType: 'product' | 'service' = 'product',
   quantity: number,
 ): Promise<CartSession> => {
-  return fetchPayloadAPI<CartSession>('/cart/update', {
-    method: 'PATCH', // Или PUT
+  console.log('API: Updating cart item quantity:', { itemId, itemType, quantity })
+  return fetchPayloadAPI<CartSession>('/v1/cart/update', {
+    method: 'PATCH',
     body: JSON.stringify({ itemId, itemType, quantity }),
   })
+    .then((response) => {
+      console.log('API: Cart item quantity updated successfully')
+      return response
+    })
+    .catch((error) => {
+      console.error('API: Error updating cart item quantity:', error)
+      throw error
+    })
 }
 
-// Удалить товар из корзины
+/**
+ * Удалить товар или услугу из корзины
+ */
 export const removeFromCart = (
   itemId: string,
-  itemType?: 'product' | 'service',
+  itemType: 'product' | 'service' = 'product',
 ): Promise<CartSession> => {
-  return fetchPayloadAPI<CartSession>(`/cart/remove`, {
+  console.log('API: Removing item from cart:', { itemId, itemType })
+  return fetchPayloadAPI<CartSession>('/v1/cart/remove', {
     method: 'DELETE',
     body: JSON.stringify({ itemId, itemType }),
   })
+    .then((response) => {
+      console.log('API: Cart item removed successfully')
+      return response
+    })
+    .catch((error) => {
+      console.error('API: Error removing cart item:', error)
+      throw error
+    })
 }
 
-// Очистить корзину
+/**
+ * Очистить корзину
+ */
 export const clearCart = (): Promise<void> => {
-  return fetchPayloadAPI<void>('/cart', {
+  console.log('API: Clearing cart')
+  return fetchPayloadAPI<void>('/v1/cart', {
     method: 'DELETE',
   })
+    .then(() => {
+      console.log('API: Cart cleared successfully')
+    })
+    .catch((error) => {
+      console.error('API: Error clearing cart:', error)
+      throw error
+    })
 }
 
 // --- Favorites API Functions ---

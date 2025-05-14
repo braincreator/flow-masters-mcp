@@ -1,69 +1,29 @@
 import { NextRequest } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
-import { Product, Service } from '@/payload-types'
 
-type CartItem = {
-  itemType: 'product' | 'service'
-  product?: string | Product | null
-  service?: string | Service | null
-  quantity: number
-  priceSnapshot: number
-  titleSnapshot?: string | null
-  id?: string | null
-}
-
-// PATCH /api/v1/cart/update - обновление количества товара или услуги в корзине
-export async function PATCH(req: NextRequest) {
+// DELETE /api/v1/cart/remove - удаление товара или услуги из корзины
+export async function DELETE(req: NextRequest) {
   try {
     // Получаем данные из тела запроса
     const body = await req.json()
     // Поддержка как старого формата (productId), так и нового (itemId, itemType)
-    const { productId, itemId, itemType = 'product', quantity } = body
+    const { productId, itemId, itemType = 'product' } = body
 
     // Определяем фактические значения
     const actualItemId = itemId || productId
     const actualItemType = itemId ? itemType : 'product'
 
-    console.log('Cart update request received:', {
+    console.log('Cart remove request received:', {
       productId,
       itemId,
       itemType,
-      quantity,
       actualItemId,
       actualItemType,
     })
 
     if (!actualItemId || typeof actualItemId !== 'string') {
       return Response.json({ message: 'Item ID is required' }, { status: 400 })
-    }
-
-    if (typeof quantity !== 'number' || quantity < 0 || !Number.isInteger(quantity)) {
-      return Response.json({ message: 'Invalid quantity' }, { status: 400 })
-    }
-
-    // Если количество 0, вызываем удаление товара через /api/cart/remove
-    if (quantity === 0) {
-      const removeResponse = await fetch(`${req.nextUrl.origin}/api/v1/cart/remove`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...req.headers,
-        },
-        body: JSON.stringify({ itemId: actualItemId, itemType: actualItemType }),
-      })
-
-      if (!removeResponse.ok) {
-        return Response.json(
-          { message: 'Failed to remove item with quantity 0' },
-          { status: removeResponse.status },
-        )
-      }
-
-      return new Response(await removeResponse.text(), {
-        status: removeResponse.status,
-        headers: removeResponse.headers,
-      })
     }
 
     // Получаем экземпляр Payload
@@ -118,7 +78,7 @@ export async function PATCH(req: NextRequest) {
       return Response.json({ message: 'Invalid cart structure' }, { status: 500 })
     }
 
-    // Обновляем количество товара или услуги в корзине
+    // Ищем и удаляем товар или услугу из корзины
     const itemIndex = cart.items.findIndex((item) => {
       if (item.itemType === actualItemType) {
         if (
@@ -141,27 +101,9 @@ export async function PATCH(req: NextRequest) {
       return Response.json({ message: 'Item not found in cart' }, { status: 404 })
     }
 
-    // Создаем копию элемента для обновления
-    const originalItem = cart.items[itemIndex]
-
-    if (!originalItem) {
-      return Response.json({ message: 'Invalid item in cart' }, { status: 500 })
-    }
-
-    // Создаем обновленный элемент с сохранением всех полей и обновлением quantity
-    const updatedItem: CartItem = {
-      itemType: originalItem.itemType as 'product' | 'service',
-      quantity,
-      product: originalItem.product,
-      service: originalItem.service,
-      priceSnapshot: originalItem.priceSnapshot || 0,
-      titleSnapshot: originalItem.titleSnapshot,
-      id: originalItem.id,
-    }
-
-    // Создаем обновленный список элементов
+    // Создаем обновленный список элементов без удаляемого элемента
     const updatedItems = [...cart.items]
-    updatedItems[itemIndex] = updatedItem
+    updatedItems.splice(itemIndex, 1)
 
     // Обновляем корзину
     const updatedCart = await payload.update({
@@ -175,10 +117,10 @@ export async function PATCH(req: NextRequest) {
 
     return Response.json(updatedCart, { status: 200 })
   } catch (error) {
-    console.error('Error updating cart item:', error)
+    console.error('Error removing cart item:', error)
     return Response.json(
       {
-        message: 'Failed to update cart item',
+        message: 'Failed to remove cart item',
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
