@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
 // import { useTranslations } from '@/hooks/useTranslations' // Temporarily remove to isolate issues
-import { formatPrice } from '@/utilities/formatPrice'
+import { formatPrice, convertPrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Button } from '@/components/ui/button'
 import {
@@ -953,8 +953,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                               <div className="flex items-center">
                                 <p className="font-medium mr-4 tabular-nums">
                                   {formatPrice(
-                                    (item.priceSnapshot || 0) * (item.quantity || 0),
-                                    locale === 'ru' ? 'RUB' : 'USD',
+                                    convertPrice(
+                                      (item.priceSnapshot || 0) * (item.quantity || 0),
+                                      'en',
+                                      locale,
+                                    ),
+                                    locale,
                                   )}
                                 </p>
                                 <div className="flex items-center mr-2">
@@ -1749,8 +1753,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             </div>
                             <div className="font-medium tabular-nums">
                               {formatPrice(
-                                (item.priceSnapshot || 0) * (item.quantity || 0),
-                                locale === 'ru' ? 'RUB' : 'USD',
+                                convertPrice(
+                                  (item.priceSnapshot || 0) * (item.quantity || 0),
+                                  'en',
+                                  locale,
+                                ),
+                                locale,
                               )}
                             </div>
                           </div>
@@ -1774,7 +1782,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           {locale === 'ru' ? 'Подытог' : 'Subtotal'}
                         </span>
                         <span className="font-medium tabular-nums">
-                          {formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}
+                          {formatPrice(convertPrice(total, 'en', locale), locale)}
                         </span>
                       </div>
 
@@ -1795,8 +1803,8 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                               <span className="font-medium text-green-700 dark:text-green-400 mr-2 tabular-nums">
                                 -
                                 {formatPrice(
-                                  appliedDiscount.amount,
-                                  locale === 'ru' ? 'RUB' : 'USD',
+                                  convertPrice(appliedDiscount.amount, 'en', locale),
+                                  locale,
                                 )}
                               </span>
                               <Button
@@ -1893,15 +1901,19 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           <div className="flex flex-col items-end">
                             {appliedDiscount && appliedDiscount.amount > 0 && (
                               <span className="text-sm line-through text-muted-foreground mb-1 tabular-nums">
-                                {formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}
+                                {formatPrice(convertPrice(total, 'en', locale), locale)}
                               </span>
                             )}
                             <span className="text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 tabular-nums font-bold">
                               {formatPrice(
                                 appliedDiscount && typeof appliedDiscount.amount === 'number'
-                                  ? Math.max(0, total - appliedDiscount.amount)
-                                  : total,
-                                locale === 'ru' ? 'RUB' : 'USD',
+                                  ? convertPrice(
+                                      Math.max(0, total - appliedDiscount.amount),
+                                      'en',
+                                      locale,
+                                    )
+                                  : convertPrice(total, 'en', locale),
+                                locale,
                               )}
                             </span>
                           </div>
