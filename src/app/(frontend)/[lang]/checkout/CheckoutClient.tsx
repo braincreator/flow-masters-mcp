@@ -59,7 +59,7 @@ interface PaymentProviderOption {
   }
 }
 
-// Адаптивный CheckoutProgress для мобильных устройств
+// Улучшаем дизайн прогресс-бара - выравниваем по центру иконок
 const CheckoutProgress = ({
   activeStep,
   goToStep,
@@ -136,11 +136,11 @@ const CheckoutProgress = ({
 
         {!isMobile && (
           <div className="relative flex-1 mx-4 flex items-center">
-            <div className="h-1.5 w-full rounded-full bg-muted/50" />
+            <div className="h-3 w-full rounded-full bg-muted/50" />
             <div
               className={cn(
-                'absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-primary transition-[width] duration-700 ease-out',
-                activeStep === 'cart' ? 'w-0' : activeStep === 'contact' ? 'w-1/2' : 'w-full',
+                'absolute left-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-primary transition-[width] duration-700 ease-out',
+                activeStep === 'cart' ? 'w-0' : activeStep === 'contact' ? 'w-full' : 'w-full',
               )}
             />
           </div>
@@ -203,10 +203,10 @@ const CheckoutProgress = ({
 
         {!isMobile && (
           <div className="relative flex-1 mx-4 flex items-center">
-            <div className="h-1.5 w-full rounded-full bg-muted/50" />
+            <div className="h-3 w-full rounded-full bg-muted/50" />
             <div
               className={cn(
-                'absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-primary transition-[width] duration-700 ease-out',
+                'absolute left-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-primary transition-[width] duration-700 ease-out',
                 activeStep === 'payment' ? 'w-full' : 'w-0',
               )}
             />
@@ -263,47 +263,43 @@ const CheckoutProgress = ({
 
       {/* Только для мобильной версии - прогресс индикатор */}
       {isMobile && (
-        <div className="relative w-full mt-4 h-2">
-          <div className="h-2 w-full rounded-full bg-muted/50" />
+        <div className="relative w-full mt-4 h-3">
+          <div className="h-3 w-full rounded-full bg-muted/50" />
           <div
             className={cn(
-              'absolute left-0 top-0 h-2 rounded-full bg-primary transition-[width] duration-700 ease-out',
-              activeStep === 'cart'
-                ? 'w-[16.66%]'
-                : activeStep === 'contact'
-                  ? 'w-[50%]'
-                  : 'w-full',
+              'absolute left-0 top-0 h-3 rounded-full bg-primary transition-[width] duration-700 ease-out',
+              activeStep === 'cart' ? 'w-[5%]' : activeStep === 'contact' ? 'w-[50%]' : 'w-full',
             )}
           />
-          <div className="absolute top-0 left-[16.66%] w-4 h-2 flex justify-center items-center">
+          <div className="absolute top-0 left-[16.66%] w-4 h-3 flex justify-center items-center">
             <div
               className={cn(
-                'w-2 h-2 rounded-full transform transition-colors duration-300',
+                'w-3 h-3 rounded-full transform transition-colors duration-300',
                 activeStep === 'cart'
-                  ? 'bg-primary scale-150'
+                  ? 'bg-primary scale-125'
                   : activeStep === 'contact' || activeStep === 'payment'
                     ? 'bg-primary'
                     : 'bg-muted',
               )}
             />
           </div>
-          <div className="absolute top-0 left-[50%] w-4 h-2 flex justify-center items-center">
+          <div className="absolute top-0 left-[50%] w-4 h-3 flex justify-center items-center">
             <div
               className={cn(
-                'w-2 h-2 rounded-full transform transition-colors duration-300',
+                'w-3 h-3 rounded-full transform transition-colors duration-300',
                 activeStep === 'contact'
-                  ? 'bg-primary scale-150'
+                  ? 'bg-primary scale-125'
                   : activeStep === 'payment'
                     ? 'bg-primary'
                     : 'bg-muted',
               )}
             />
           </div>
-          <div className="absolute top-0 left-[83.33%] w-4 h-2 flex justify-center items-center">
+          <div className="absolute top-0 left-[83.33%] w-4 h-3 flex justify-center items-center">
             <div
               className={cn(
-                'w-2 h-2 rounded-full transform transition-colors duration-300',
-                activeStep === 'payment' ? 'bg-primary scale-150' : 'bg-muted',
+                'w-3 h-3 rounded-full transform transition-colors duration-300',
+                activeStep === 'payment' ? 'bg-primary scale-125' : 'bg-muted',
               )}
             />
           </div>
@@ -476,7 +472,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) {
-      setDiscountError('Enter a discount code')
+      setDiscountError(locale === 'ru' ? 'Введите промокод' : 'Enter a discount code')
       return
     }
 
@@ -502,19 +498,35 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
 
       if (!data.isValid) {
-        setDiscountError(data.message || 'Invalid discount code')
+        setDiscountError(
+          data.message || (locale === 'ru' ? 'Недействительный промокод' : 'Invalid discount code'),
+        )
         return
       }
 
+      console.log('Discount applied successfully:', data)
+
+      // Применяем скидку
       setAppliedDiscount({
         code: discountCode,
         amount: data.discountAmount,
         percentage: data.discountPercentage,
       })
+
+      // Очищаем поле ввода
       setDiscountCode('')
+
+      // Показываем уведомление пользователю
+      // Здесь можно добавить код для показа сообщения об успешном применении скидки
     } catch (errCatch) {
       console.error('Error applying discount:', errCatch)
-      setDiscountError(errCatch instanceof Error ? errCatch.message : 'Error applying discount')
+      setDiscountError(
+        errCatch instanceof Error
+          ? errCatch.message
+          : locale === 'ru'
+            ? 'Ошибка применения скидки'
+            : 'Error applying discount',
+      )
     } finally {
       setIsApplyingDiscount(false)
     }
@@ -961,7 +973,9 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                             : item.product?.id
 
                                       if (itemId && item.quantity > 1) {
-                                        // Уменьшаем количество
+                                        console.log('Decreasing quantity for item:', itemId)
+
+                                        // Создаем копию корзины
                                         const updatedCart = [...currentCartItems]
                                         const itemIndex = updatedCart.findIndex(
                                           (i) =>
@@ -979,10 +993,11 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                           const currentItem = updatedCart[itemIndex]
                                           const newItem = {
                                             ...currentItem,
-                                            quantity: item.quantity - 1,
+                                            quantity: Math.max(1, (currentItem.quantity || 1) - 1),
                                             itemType: currentItem.itemType as 'service' | 'product',
                                             priceSnapshot: currentItem.priceSnapshot || 0,
                                           }
+
                                           updatedCart[itemIndex] = newItem
 
                                           // Обновляем корзину
@@ -994,7 +1009,20 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                             body: JSON.stringify({
                                               items: updatedCart,
                                             }),
-                                          }).then(() => refreshCart())
+                                          })
+                                            .then((response) => {
+                                              if (!response.ok) {
+                                                throw new Error('Failed to update cart')
+                                              }
+                                              return response.json()
+                                            })
+                                            .then(() => {
+                                              console.log('Cart updated, refreshing...')
+                                              refreshCart()
+                                            })
+                                            .catch((error) => {
+                                              console.error('Error updating cart:', error)
+                                            })
                                         }
                                       }
                                     }}
@@ -1031,7 +1059,9 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                             : item.product?.id
 
                                       if (itemId) {
-                                        // Увеличиваем количество
+                                        console.log('Increasing quantity for item:', itemId)
+
+                                        // Создаем копию корзины
                                         const updatedCart = [...currentCartItems]
                                         const itemIndex = updatedCart.findIndex(
                                           (i) =>
@@ -1049,10 +1079,11 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                           const currentItem = updatedCart[itemIndex]
                                           updatedCart[itemIndex] = {
                                             ...currentItem,
-                                            quantity: item.quantity + 1,
-                                            itemType: currentItem.itemType,
-                                            priceSnapshot: currentItem.priceSnapshot,
+                                            quantity: (currentItem.quantity || 1) + 1,
+                                            itemType: currentItem.itemType as 'service' | 'product',
+                                            priceSnapshot: currentItem.priceSnapshot || 0,
                                           }
+
                                           // Обновляем корзину
                                           fetch('/api/v1/cart', {
                                             method: 'POST',
@@ -1062,7 +1093,20 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                             body: JSON.stringify({
                                               items: updatedCart,
                                             }),
-                                          }).then(() => refreshCart())
+                                          })
+                                            .then((response) => {
+                                              if (!response.ok) {
+                                                throw new Error('Failed to update cart')
+                                              }
+                                              return response.json()
+                                            })
+                                            .then(() => {
+                                              console.log('Cart updated, refreshing...')
+                                              refreshCart()
+                                            })
+                                            .catch((error) => {
+                                              console.error('Error updating cart:', error)
+                                            })
                                         }
                                       }
                                     }}
@@ -1770,18 +1814,18 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           <motion.div
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            className="mb-3 bg-muted/30 rounded-md p-4 border border-muted/60"
+                            className="mb-5 bg-muted/40 rounded-lg p-5 border border-muted/60"
                           >
-                            <Label
-                              htmlFor="discount-code"
-                              className="text-sm mb-2 block font-medium"
-                            >
-                              <div className="flex items-center">
-                                <BadgePercent className="h-4 w-4 mr-2 text-primary" />
+                            <div className="flex items-center justify-between mb-3">
+                              <Label
+                                htmlFor="discount-code"
+                                className="text-base font-medium flex items-center"
+                              >
+                                <BadgePercent className="h-5 w-5 mr-2 text-primary" />
                                 {locale === 'ru' ? 'Есть промокод?' : 'Have a promo code?'}
-                              </div>
-                            </Label>
-                            <div className="flex mt-2 relative">
+                              </Label>
+                            </div>
+                            <div className="flex flex-col gap-3">
                               <Input
                                 id="discount-code"
                                 type="text"
@@ -1790,42 +1834,47 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                                 }
                                 value={discountCode}
                                 onChange={handleDiscountCodeChange}
-                                className="rounded-r-none h-10 text-sm border-r-0 bg-background pr-3 pl-3"
+                                className="h-12 text-base bg-background px-4 w-full rounded-md font-medium"
                                 disabled={isApplyingDiscount}
                               />
                               <Button
                                 type="button"
                                 variant="default"
-                                className="rounded-l-none h-10 px-4 text-sm bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md"
+                                className="h-10 px-4 text-base bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md w-full rounded-md"
                                 onClick={handleApplyDiscount}
                                 disabled={isApplyingDiscount || !discountCode.trim()}
                               >
                                 {isApplyingDiscount ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : locale === 'ru' ? (
-                                  'Применить'
+                                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
                                 ) : (
-                                  'Apply'
+                                  <BadgePercent className="h-5 w-5 mr-2" />
                                 )}
+                                {isApplyingDiscount
+                                  ? locale === 'ru'
+                                    ? 'Применение...'
+                                    : 'Applying...'
+                                  : locale === 'ru'
+                                    ? 'Применить промокод'
+                                    : 'Apply promo code'}
                               </Button>
                             </div>
                             {discountError && (
                               <motion.p
                                 initial={{ opacity: 0, y: -5 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="text-xs text-destructive mt-2 flex items-center bg-destructive/10 p-2 rounded"
+                                className="text-sm text-destructive mt-3 flex items-center bg-destructive/10 p-3 rounded"
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  width="12"
-                                  height="12"
+                                  width="16"
+                                  height="16"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="currentColor"
                                   strokeWidth="2"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  className="mr-1"
+                                  className="mr-2"
                                 >
                                   <circle cx="12" cy="12" r="10" />
                                   <line x1="12" x2="12" y1="8" y2="12" />
@@ -1841,14 +1890,21 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                       <div className="pt-2 border-t">
                         <div className="flex justify-between font-medium">
                           <span>{locale === 'ru' ? 'Итого' : 'Total'}</span>
-                          <span className="text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 tabular-nums font-bold">
-                            {formatPrice(
-                              appliedDiscount && typeof appliedDiscount.amount === 'number'
-                                ? total - appliedDiscount.amount
-                                : total,
-                              locale === 'ru' ? 'RUB' : 'USD',
+                          <div className="flex flex-col items-end">
+                            {appliedDiscount && appliedDiscount.amount > 0 && (
+                              <span className="text-sm line-through text-muted-foreground mb-1 tabular-nums">
+                                {formatPrice(total, locale === 'ru' ? 'RUB' : 'USD')}
+                              </span>
                             )}
-                          </span>
+                            <span className="text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 tabular-nums font-bold">
+                              {formatPrice(
+                                appliedDiscount && typeof appliedDiscount.amount === 'number'
+                                  ? Math.max(0, total - appliedDiscount.amount)
+                                  : total,
+                                locale === 'ru' ? 'RUB' : 'USD',
+                              )}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
