@@ -279,18 +279,44 @@ class StateLogger {
 // Export singleton instance
 export const stateLogger = StateLogger.getInstance()
 
+import { useCallback, useMemo } from 'react';
+
 // Create a hook for logging state changes in React components
 export function useStateLogger(componentName: string) {
-  return {
-    trace: (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
+  const trace = useCallback(
+    (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
       stateLogger.trace(componentName, action, prevState, nextState, payload, metadata),
-    debug: (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
+    [componentName],
+  );
+  const debug = useCallback(
+    (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
       stateLogger.debug(componentName, action, prevState, nextState, payload, metadata),
-    info: (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
+    [componentName],
+  );
+  const info = useCallback(
+    (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
       stateLogger.info(componentName, action, prevState, nextState, payload, metadata),
-    warn: (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
+    [componentName],
+  );
+  const warn = useCallback(
+    (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
       stateLogger.warn(componentName, action, prevState, nextState, payload, metadata),
-    error: (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
+    [componentName],
+  );
+  const error = useCallback(
+    (action: string, prevState?: any, nextState?: any, payload?: any, metadata?: Record<string, any>) =>
       stateLogger.error(componentName, action, prevState, nextState, payload, metadata),
-  }
+    [componentName],
+  );
+
+  return useMemo(
+    () => ({
+      trace,
+      debug,
+      info,
+      warn,
+      error,
+    }),
+    [trace, debug, info, warn, error],
+  );
 }

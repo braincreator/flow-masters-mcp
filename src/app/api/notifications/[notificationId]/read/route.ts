@@ -3,7 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 import { ServiceRegistry } from '@/services/service.registry'
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { notificationId: string } }) {
   try {
     const session = await getServerSession()
 
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const userId = session.user.id
-    const notificationId = params.id
+    const { notificationId } = params
 
     // Получаем payload client
     const payload = await getPayloadClient()
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     })
 
     // Проверяем, принадлежит ли уведомление пользователю
-    if (notification.user !== userId && session.user.role !== 'admin') {
+    if (notification.user !== userId && !session.user.isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

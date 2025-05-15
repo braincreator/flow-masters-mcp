@@ -30,6 +30,10 @@ interface ExtendedPaymentResult extends PaymentResult {
   paymentUrl?: string
   success: boolean
   orderId: string
+  status?: string
+  error?: string
+  confirmationUrl?: string
+  rawResponse?: any // Добавляем поле rawResponse, которое используется в коде
 }
 
 // Определяем типы для скидок
@@ -91,8 +95,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Customer email is required' }, { status: 400 })
     }
 
-    if (!provider || !provider.id) {
+    if (!provider) {
       return NextResponse.json({ error: 'Payment provider is required' }, { status: 400 })
+    }
+
+    // Получаем ID провайдера - теперь с клиента приходит строка, а не объект
+    const providerId = typeof provider === 'string' ? provider : provider.id
+
+    if (!providerId) {
+      return NextResponse.json({ error: 'Invalid payment provider' }, { status: 400 })
     }
 
     // Отдельные массивы для продуктов и услуг
@@ -329,7 +340,7 @@ export async function POST(req: Request) {
                 ]
               : undefined,
             status: 'pending',
-            paymentProvider: provider,
+            paymentProvider: providerId,
             // Добавляем orderType
             orderType: serviceItems.length > 0 ? 'service' : 'product',
             // Сохраняем локаль в paymentData
@@ -398,7 +409,7 @@ export async function POST(req: Request) {
       const metadata: Record<string, any> = {}
 
       // Add cryptocurrency selection if present
-      if (provider.id === 'crypto' && selectedCurrency) {
+      if (providerId === 'crypto' && selectedCurrency) {
         metadata.selectedCurrency = selectedCurrency
       }
 
@@ -410,14 +421,14 @@ export async function POST(req: Request) {
         }
       }
 
-      // Log the actual provider object being used
-      console.log(`Creating payment with provider:`, JSON.stringify(provider, null, 2))
+      // Используем ID провайдера из CMS
+      console.log(`Creating payment with providerId:`, providerId)
 
       // Определяем целевую валюту на основе локали
       const targetCurrency = customer.locale === 'ru' ? 'RUB' : 'USD'
 
       // Create the payment using the provider object directly
-      const paymentResultData = await paymentService.createPayment(provider, {
+      const paymentResultData = await paymentService.createPayment(providerId, {
         orderId: order?.id || '',
         amount: total,
         description: `Order ${order?.orderNumber || 'Unknown'}`,
@@ -451,6 +462,15 @@ export async function POST(req: Request) {
       // If payment creation failed, update order status
       try {
         if (order?.id) {
+          // Преобразуем информацию об ошибке в текстовый формат для поля reason
+          const detailedReason = `Ошибка платежа: ${error instanceof Error ? error.message : 'Unknown payment error'}${
+            error instanceof Error ? `. Детали: ${error.message}` : ''
+          }${
+            paymentResult.rawResponse
+              ? `. Данные провайдера: ${JSON.stringify(paymentResult.rawResponse)}`
+              : ''
+          }`
+
           await payload.update({
             collection: 'orders',
             id: order.id,
@@ -458,7 +478,7 @@ export async function POST(req: Request) {
               status: 'cancelled',
               cancellationDetails: {
                 cancelledAt: new Date().toISOString(),
-                reason: error instanceof Error ? error.message : 'Unknown payment error',
+                reason: detailedReason, // Используем строковое представление всех деталей ошибки
               },
             },
           })
@@ -476,9 +496,44 @@ export async function POST(req: Request) {
     }
 
     if (!paymentResult.success || !paymentResult.paymentUrl) {
+      // Получаем более детальную информацию об ошибке
+      let errorMessage = paymentResult.error || 'Payment creation failed with no specific error'
+      let errorDetails = null
+
+      // Если у нас есть rawResponse, извлекаем из него детали ошибки
+      if (paymentResult.rawResponse) {
+        console.log('Payment raw response:', JSON.stringify(paymentResult.rawResponse, null, 2))
+
+        // Проверяем, есть ли в ответе детальная информация об ошибке
+        if (typeof paymentResult.rawResponse === 'object') {
+          if (paymentResult.rawResponse.Description) {
+            // Для Robokassa часто ошибка содержится в поле Description
+            errorDetails = paymentResult.rawResponse.Description
+            errorMessage = `Robokassa: ${errorDetails}`
+          } else if (paymentResult.rawResponse.message) {
+            errorDetails = paymentResult.rawResponse.message
+            errorMessage = `Payment error: ${errorDetails}`
+          }
+
+          // Сохраняем код ошибки если он есть
+          if (paymentResult.rawResponse.ResultCode) {
+            errorMessage += ` (код: ${paymentResult.rawResponse.ResultCode})`
+          }
+        }
+      }
+
       // If payment creation failed, update order status
       try {
         if (order?.id) {
+          // Преобразуем информацию об ошибке в текстовый формат для поля reason
+          const detailedReason = `Ошибка платежа: ${errorMessage}${
+            errorDetails ? `. Детали: ${errorDetails}` : ''
+          }${
+            paymentResult.rawResponse
+              ? `. Данные провайдера: ${JSON.stringify(paymentResult.rawResponse)}`
+              : ''
+          }`
+
           await payload.update({
             collection: 'orders',
             id: order.id,
@@ -486,7 +541,7 @@ export async function POST(req: Request) {
               status: 'cancelled',
               cancellationDetails: {
                 cancelledAt: new Date().toISOString(),
-                reason: paymentResult.error || 'Payment creation failed with no specific error',
+                reason: detailedReason, // Используем строковое представление всех деталей ошибки
               },
             },
           })
@@ -495,9 +550,14 @@ export async function POST(req: Request) {
         console.error('Failed to update order status after payment failure:', updateError)
       }
 
+      console.error(
+        `Payment creation API returning 400. paymentResult.success: ${paymentResult.success}, paymentResult.status (from provider): ${paymentResult.status}, paymentResult.paymentUrl: ${paymentResult.paymentUrl}, orderId: ${order?.id}`,
+      );
       return NextResponse.json(
         {
-          error: paymentResult.error || 'Payment provider returned an error',
+          error: errorMessage,
+          errorDetails: errorDetails,
+          providerError: paymentResult.rawResponse ? true : false,
         },
         { status: 400 },
       )

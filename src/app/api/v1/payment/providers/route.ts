@@ -18,51 +18,35 @@ const DEFAULT_PROVIDERS = [
   },
 ]
 
-// Sample credentials for development environment only
-const DEV_ROBOKASSA_CREDENTIALS = {
-  merchant_login: 'your_test_merchant_login',
-  password1: 'your_test_password1',
-  password2: 'your_test_password2',
-  test_mode: true,
-}
-
 export async function GET() {
   try {
     const payload = await getPayloadClient()
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const paymentService = serviceRegistry.getPaymentService()
 
-    let settings = await paymentService.getSettings()
+    const settings = await paymentService.getSettings()
 
     // Filter out disabled providers
     const providers = (settings.providers || []).filter(
       (provider: any) => provider && provider.enabled !== false,
     )
 
-    // In development mode, add credentials to Robokassa provider if missing
-    if (process.env.NODE_ENV === 'development') {
-      const robokassaProvider = providers.find((p: any) => p.id === 'robokassa')
+    // Удаляем учетные данные перед отправкой клиенту
+    const safeProviders = providers.map((provider: any) => ({
+      id: provider.id,
+      name: provider.name,
+      enabled: provider.enabled !== false,
+    }))
 
-      if (
-        robokassaProvider &&
-        (!robokassaProvider.credentials ||
-          !robokassaProvider.credentials.merchant_login ||
-          !robokassaProvider.credentials.password1)
-      ) {
-        console.log('Adding sample Robokassa credentials for development')
-        robokassaProvider.credentials = DEV_ROBOKASSA_CREDENTIALS
-      }
-    }
-
-    // Return only enabled providers
+    // Return only enabled providers без учетных данных
     return NextResponse.json({
-      providers,
+      providers: safeProviders,
       defaultProvider: settings.defaultProvider || (providers.length > 0 ? providers[0]?.id : null),
     })
   } catch (error) {
     console.error('Error getting payment providers:', error)
 
-    // In development, return a sample Robokassa provider with test credentials
+    // In development, return a sample Robokassa provider without exposing credentials to client
     if (process.env.NODE_ENV === 'development') {
       return NextResponse.json({
         providers: [
@@ -70,7 +54,6 @@ export async function GET() {
             id: 'robokassa',
             name: 'Robokassa (Test)',
             enabled: true,
-            credentials: DEV_ROBOKASSA_CREDENTIALS,
           },
         ],
         defaultProvider: 'robokassa',

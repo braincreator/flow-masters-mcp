@@ -342,6 +342,37 @@ export class PaymentService extends BaseService {
   ): Promise<PaymentResult> {
     try {
       await this.ensureSettingsLoaded()
+
+      // Проверяем доступность провайдера в настройках
+      const settings = this.getSettings()
+      const providerConfig = settings?.providersConfig?.[providerKey]
+
+      // Проверяем наличие конфигурации для Robokassa
+      if (providerKey === 'robokassa') {
+        if (!providerConfig || !providerConfig.merchantLogin || !providerConfig.password1) {
+          this.payload.logger.error(
+            `Robokassa configuration is incomplete: ${JSON.stringify(providerConfig || {})}`,
+          )
+          return {
+            status: 'failed',
+            errorMessage: 'Robokassa configuration is incomplete. Please check payment settings.',
+            provider: providerKey,
+            rawResponse: {
+              error: 'configuration_incomplete',
+              details: 'Missing required credentials in Robokassa configuration',
+              missing: providerConfig
+                ? Object.entries({
+                    merchantLogin: !providerConfig.merchantLogin,
+                    password1: !providerConfig.password1,
+                  })
+                    .filter(([k, v]) => v)
+                    .map(([k]) => k)
+                : ['all configuration'],
+            },
+          }
+        }
+      }
+
       const paymentProviderInstance = this.paymentProviders[providerKey]
       if (!paymentProviderInstance) {
         throw new Error(`Payment provider ${providerKey} not found or not initialized.`)
@@ -549,14 +580,6 @@ export class PaymentService extends BaseService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return { status: 'error', details: { error: errorMessage } }
     }
-  }
-
-  private async createRobokassaPayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    return { status: 'failed', paymentId: '', errorMessage: 'Not implemented' }
-  }
-
-  private async createCryptoPayment(params: PaymentCreateParams): Promise<PaymentResult> {
-    return { status: 'failed', paymentId: '', errorMessage: 'Not implemented' }
   }
 
   private async checkYooMoneyPaymentStatus(
@@ -1379,35 +1402,88 @@ export class PaymentService extends BaseService {
   }
 
   generateRobokassaPaymentLink(orderId: string, amount: number, description: string): string {
-    const settings = this.getSettings()
-    const providersConfig = settings.providersConfig || {}
-    const config = providersConfig.robokassa || {
-      merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN!,
-      password1: process.env.ROBOKASSA_PASSWORD1!,
-      testMode: process.env.NODE_ENV !== 'production',
-      returnUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/payment/robokassa/callback`,
+    // Валидация входных параметров
+    if (!orderId) {
+      throw new Error('Order ID is required for Robokassa payment link generation')
     }
 
-    const baseUrl = config.testMode
+    if (!amount || amount <= 0) {
+      throw new Error(`Invalid amount for Robokassa payment link: ${amount}`)
+    }
+
+    if (!description || description.trim() === '') {
+      this.payload.logger.warn('Empty description for Robokassa payment - using default')
+      description = `Payment for order ${orderId}`
+    }
+
+    const settings = this.getSettings()
+    const providersConfig = settings.providersConfig || {}
+    const config = providersConfig.robokassa
+
+    // Проверяем наличие конфигурации
+    if (!config || !config.merchantLogin || !config.password1) {
+      this.payload.logger.error('Robokassa configuration missing for payment link generation')
+
+      // Пытаемся использовать переменные окружения как запасной вариант
+      if (!process.env.ROBOKASSA_MERCHANT_LOGIN || !process.env.ROBOKASSA_PASSWORD1) {
+        throw new Error('Robokassa credentials not found in settings or environment variables')
+      }
+
+      this.payload.logger.warn('Using Robokassa credentials from environment variables')
+    }
+
+    // Используем конфигурацию или значения из переменных окружения как запасной вариант
+    const merchantLogin = config?.merchantLogin || process.env.ROBOKASSA_MERCHANT_LOGIN!
+    const password1 = config?.password1 || process.env.ROBOKASSA_PASSWORD1!
+    const testMode =
+      config?.testMode !== undefined ? config.testMode : process.env.NODE_ENV !== 'production'
+    const returnUrl =
+      config?.returnUrl || `${process.env.NEXT_PUBLIC_SERVER_URL}/payment/robokassa/callback`
+
+    if (!merchantLogin || !password1) {
+      throw new Error('Robokassa credentials are required for payment link generation')
+    }
+
+    const baseUrl = testMode
       ? 'https://test.robokassa.ru/Index.aspx'
       : 'https://auth.robokassa.ru/Merchant/Index.aspx'
 
-    const signature = crypto
-      .createHash('md5')
-      .update(`${config.merchantLogin}:${amount}:${orderId}:${config.password1}`)
-      .digest('hex')
+    try {
+      const signature = crypto
+        .createHash('md5')
+        .update(`${merchantLogin}:${amount}:${orderId}:${password1}`)
+        .digest('hex')
 
-    const params = new URLSearchParams({
-      MerchantLogin: config.merchantLogin,
-      OutSum: amount.toString(),
-      InvId: orderId,
-      Description: description,
-      SignatureValue: signature,
-      IsTest: config.testMode ? '1' : '0',
-      SuccessURL: config.returnUrl,
-    })
+      const params = new URLSearchParams({
+        MerchantLogin: merchantLogin,
+        OutSum: amount.toString(),
+        InvId: orderId,
+        Description: description,
+        SignatureValue: signature,
+        IsTest: testMode ? '1' : '0',
+        SuccessURL: returnUrl,
+      })
 
-    return `${baseUrl}?${params.toString()}`
+      const paymentUrl = `${baseUrl}?${params.toString()}`
+
+      // Проверяем URL на валидность
+      try {
+        new URL(paymentUrl)
+      } catch (urlError: any) {
+        throw new Error(
+          `Invalid payment URL generated: ${urlError?.message || 'URL validation failed'}`,
+        )
+      }
+
+      return paymentUrl
+    } catch (error: any) {
+      this.payload.logger.error(
+        `Error generating Robokassa payment link: ${error?.message || 'Unknown error'}`,
+      )
+      throw new Error(
+        `Failed to generate Robokassa payment link: ${error?.message || 'Unknown error'}`,
+      )
+    }
   }
 
   async generatePaymentLink(
@@ -2074,8 +2150,42 @@ export class PaymentService extends BaseService {
           )
           return {
             status: 'failed',
-            errorMessage: 'Robokassa configuration missing.',
+            errorMessage: 'Robokassa configuration missing: merchant credentials not found.',
             provider: 'robokassa',
+            rawResponse: {
+              error: 'configuration_error',
+              description: 'Robokassa merchant credentials not configured properly',
+              solution: 'Check payment provider settings in admin panel',
+            },
+          }
+        }
+
+        // Дополнительная проверка параметров
+        if (!params.amount || params.amount <= 0) {
+          this.payload.logger.error(`Invalid amount for Robokassa payment: ${params.amount}`)
+          return {
+            status: 'failed',
+            errorMessage: 'Invalid payment amount',
+            provider: 'robokassa',
+            rawResponse: {
+              error: 'invalid_amount',
+              description: `Amount must be greater than 0, got: ${params.amount}`,
+              solution: 'Check cart total calculation',
+            },
+          }
+        }
+
+        // Проверяем наличие ID заказа
+        if (!params.metadata?.orderId) {
+          this.payload.logger.error('Missing orderId for Robokassa payment')
+          return {
+            status: 'failed',
+            errorMessage: 'Order ID is required for Robokassa payment',
+            provider: 'robokassa',
+            rawResponse: {
+              error: 'missing_order_id',
+              description: 'Order ID is required but was not provided',
+            },
           }
         }
 
@@ -2136,15 +2246,41 @@ export class PaymentService extends BaseService {
             ? paymentDescription.substring(0, 97) + '...'
             : paymentDescription.slice(0, -2)
 
-        const paymentUrl = this.generateRobokassaPaymentLink(
-          orderId,
-          calculatedAmount,
-          paymentDescription,
-        )
+        let paymentUrl
+        try {
+          paymentUrl = this.generateRobokassaPaymentLink(
+            orderId,
+            calculatedAmount,
+            paymentDescription,
+          )
 
-        this.payload.logger.info(
-          `Robokassa payment link generated for order ${orderId}: ${paymentUrl}`,
-        )
+          this.payload.logger.info(
+            `Robokassa payment link generated for order ${orderId}: ${paymentUrl}`,
+          )
+        } catch (linkError) {
+          const errorMessage = linkError instanceof Error ? linkError.message : 'Unknown error'
+          this.payload.logger.error(
+            `Failed to generate Robokassa payment link for order ${orderId}: ${errorMessage}`,
+          )
+
+          return {
+            status: 'failed',
+            paymentId: orderId,
+            provider: 'robokassa',
+            errorMessage: `Failed to generate payment link: ${errorMessage}`,
+            rawResponse: {
+              error: 'payment_link_generation_failed',
+              description: errorMessage,
+              technical_info:
+                linkError instanceof Error
+                  ? {
+                      name: linkError.name,
+                      stack: linkError.stack,
+                    }
+                  : undefined,
+            },
+          }
+        }
 
         return {
           status: 'pending',

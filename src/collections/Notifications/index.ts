@@ -1,6 +1,15 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrSelf } from '@/access/isAdminOrSelf'
+import { NotificationStoredType } from '@/types/notifications' // Import the enum
+
+// Helper to generate a more readable label from an enum value
+const generateLabel = (value: string): string => {
+  return value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
@@ -17,21 +26,37 @@ export const Notifications: CollectionConfig = {
     update: isAdminOrSelf,
     delete: isAdmin,
   },
+  indexes: [
+    {
+      fields: ['user', 'isRead', 'createdAt'],
+    },
+    {
+      fields: ['user', 'createdAt'],
+    },
+  ],
   fields: [
     {
       name: 'title',
       type: 'text',
       required: true,
       admin: {
-        description: 'Notification title',
+        description: 'Notification title (can be a translation key)',
       },
     },
     {
-      name: 'message',
-      type: 'textarea',
+      name: 'messageKey',
+      type: 'text', 
       required: true,
       admin: {
-        description: 'Notification message',
+        description: 'Translation key for the notification message body',
+      },
+    },
+    {
+      name: 'messageParams',
+      type: 'json', 
+      admin: {
+        description: 'JSON object containing parameters for message interpolation',
+        // hidden: true, // Optionally hide if it's too complex for direct admin input
       },
     },
     {
@@ -48,23 +73,10 @@ export const Notifications: CollectionConfig = {
       name: 'type',
       type: 'select',
       required: true,
-      options: [
-        // Course Related
-        { label: 'Course Enrolled', value: 'course_enrolled' }, // NEW
-        { label: 'Lesson Completed', value: 'lesson_completed' }, // NEW
-        { label: 'Module Completed', value: 'module_completed' }, // NEW
-        { label: 'Assessment Submitted', value: 'assessment_submitted' }, // NEW (Useful for assignments)
-        { label: 'Assessment Graded', value: 'assessment_graded' }, // NEW
-        { label: 'Course Completed', value: 'course_completed' }, // Existing
-        { label: 'Certificate Issued', value: 'certificate_issued' }, // Renamed/Clarified from 'certificate'
-        // Gamification
-        { label: 'Achievement Unlocked', value: 'achievement_unlocked' }, // Renamed/Clarified from 'achievement'
-        { label: 'Level Up', value: 'level_up' }, // Existing
-        // General
-        { label: 'System Alert', value: 'system_alert' }, // Renamed/Clarified from 'system'
-        { label: 'General Info', value: 'general_info' }, // Renamed/Clarified from 'other'
-        // Add more specific types as needed (e.g., 'review_approved', 'new_comment')
-      ],
+      options: Object.values(NotificationStoredType).map((value) => ({
+        label: generateLabel(value as string), 
+        value: value as string,
+      })),
       admin: {
         position: 'sidebar',
         description: 'Type of notification',
@@ -91,7 +103,7 @@ export const Notifications: CollectionConfig = {
       type: 'json',
       admin: {
         description: 'Additional metadata for the notification',
-        hidden: true, // Hide raw JSON from admin UI
+        hidden: true, 
       },
     },
   ],

@@ -8104,13 +8104,25 @@ export interface SocialShare {
 export interface Notification {
   id: string;
   /**
-   * Notification title
+   * Notification title (can be a translation key)
    */
   title: string;
   /**
-   * Notification message
+   * Translation key for the notification message body
    */
-  message: string;
+  messageKey: string;
+  /**
+   * JSON object containing parameters for message interpolation
+   */
+  messageParams?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * User who received the notification
    */
@@ -8129,7 +8141,12 @@ export interface Notification {
     | 'achievement_unlocked'
     | 'level_up'
     | 'system_alert'
-    | 'general_info';
+    | 'general_info'
+    | 'order_update'
+    | 'subscription_update'
+    | 'account_activity'
+    | 'promotional'
+    | 'social_interaction';
   /**
    * Whether the notification has been read
    */
@@ -15130,7 +15147,8 @@ export interface TagsSelect<T extends boolean = true> {
  */
 export interface NotificationsSelect<T extends boolean = true> {
   title?: T;
-  message?: T;
+  messageKey?: T;
+  messageParams?: T;
   user?: T;
   type?: T;
   isRead?: T;

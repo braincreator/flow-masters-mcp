@@ -20,7 +20,16 @@ export async function POST(req: Request) {
     const paymentService = serviceRegistry.getPaymentService()
 
     // Verify payment signature
-    if (!(await paymentService.verifyRobokassaPayment(invId, outSum, signatureValue))) {
+    if (
+      !(await paymentService.verifyWebhook({
+        provider: 'robokassa',
+        data: {
+          invId,
+          outSum,
+          signatureValue,
+        },
+      }))
+    ) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 

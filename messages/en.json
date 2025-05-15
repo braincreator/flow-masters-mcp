@@ -477,7 +477,8 @@
     "loading": "Loading notifications...",
     "errorLoading": "Failed to load notifications",
     "viewAll": "View All",
-    "markAllAsRead": "Mark all as read"
+    "markAllAsRead": "Mark all as read",
+    "showOnlyUnread": "Show only unread"
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",
@@ -1751,6 +1752,148 @@
         "link": "Contact us",
         "end": "for a quote."
       }
+    }
+  },
+  "NotificationTitles": {
+    "default": "New Notification",
+    "account_welcome": "Welcome to Flow Masters!",
+    "account_password_changed": "Password Changed",
+    "account_email_changed": "Email Address Updated",
+    "account_details_updated": "Account Details Updated",
+    "course_enrolled": "Course Enrollment Confirmed",
+    "lesson_completed": "Lesson Completed!",
+    "module_completed": "Module Completed!",
+    "assessment_submitted": "Assessment Submitted",
+    "assessment_graded": "Assessment Graded",
+    "course_completed": "Course Completed!",
+    "certificate_issued": "Certificate Issued!",
+    "achievement_unlocked": "Achievement Unlocked!",
+    "level_up": "Level Up!",
+    "order_created": "Order Created",
+    "order_paid": "Payment Successful - Order Paid",
+    "order_payment_failed": "Order Payment Failed",
+    "order_shipped_fulfilled": "Your Order Has Shipped/Been Fulfilled",
+    "order_completed": "Order Completed",
+    "order_cancelled": "Order Cancelled",
+    "order_refunded": "Order Refunded",
+    "download_ready": "Your Download is Ready",
+    "payment_confirmed": "Payment Confirmed",
+    "order_confirmation": "Order Confirmation",
+    "initial_payment_failed": "Initial Payment Failed",
+    "order_status": "Order Status Update",
+    "subscription_activated": "Subscription Activated",
+    "subscription_cancelled": "Subscription Cancelled",
+    "subscription_payment_failed": "Subscription Payment Failed",
+    "subscription_plan_changed": "Subscription Plan Changed",
+    "subscription_paused": "Subscription Paused",
+    "subscription_resumed": "Subscription Resumed",
+    "subscription_expired": "Subscription Expired",
+    "subscription_renewal_reminder": "Subscription Renewal Reminder",
+    "subscription_renewed_successfully": "Subscription Renewed Successfully",
+    "billing_alert": "Billing Alert",
+    "newsletter_subscribed": "Newsletter Subscription Confirmed",
+    "promotional_message": "Special Offer Just For You!",
+    "abandoned_cart": "Items Waiting in Your Cart",
+    "comment_new": "New Comment Received",
+    "comment_reply": "You Have a New Reply",
+    "comment_mention": "You Were Mentioned in a Comment",
+    "system_alert": "System Alert",
+    "general_info": "Important Information",
+    "payment_failed": "Payment Failed"
+  },
+  "NotificationBodies": {
+    "defaultPaymentFailedReason": "Please check your payment details and try again.",
+    "defaultCancellationReason": "Not specified",
+    "subscription_activated_detail": "Your subscription to {planName} is now active.",
+    "subscription_cancelled_detail": "Your subscription to {planName} has been cancelled.",
+    "subscription_payment_failed_detail": "We couldn't process the payment for your {planName} subscription. Please update your payment method.",
+    "subscription_plan_changed_detail": "Your subscription plan has been changed from {oldPlanName} to {newPlanName}.",
+    "subscription_paused_detail": "Your subscription to {planName} has been paused.",
+    "subscription_resumed_detail": "Your subscription to {planName} has been resumed and is now active.",
+    "subscription_expired_detail": "Your subscription to {planName} has expired.",
+    "payment_confirmed_detail": "Your payment for order #{orderNumber} has been confirmed.",
+    "order_status_update_detail": "Your order #{orderNumber} status has been updated to {status}.",
+    "download_ready_detail": "Your digital products from order #{orderNumber} are ready for download.",
+    "order_completed_detail": "Your order #{orderNumber} has been completed.",
+    "abandoned_cart_detail": "You have {itemCount, plural, one {# item} other {# items}} in your cart. Complete your purchase before they're gone!",
+    "order_confirmation_detail": "Your order #{orderNumber} has been successfully placed.",
+    "payment_failed_subscription_detail": "The payment for your subscription to {planName} failed. Please update your payment information.",
+    "order_cancelled_detail": "Your order #{orderNumber} has been cancelled. Reason: {reason}",
+    "refund_processed_detail": "A refund of {amount} {currency} for order #{orderNumber} has been processed.",
+    "subscription_renewal_reminder_detail": "Your subscription to {planName} is due for renewal on {renewalDate}.",
+    "subscription_renewed_successfully_detail": "Your subscription to {planName} has been successfully renewed. Next payment: {nextPaymentDate}.",
+    "initial_payment_failed_detail": "We were unable to process the payment for order #{orderNumber}. {reason}",
+    "welcome_detail": "Welcome, {userName}! We are glad to see you.",
+    "password_changed_detail": "Your password has been successfully changed.",
+    "email_address_changed_detail": "Your email address has been changed to {newEmail}.",
+    "account_updated_detail": "Your account details have been updated: {updatedFieldsText}.",
+    "order_shipped_fulfilled_detail_no_tracking": "Your order #{orderNumber} has been shipped/fulfilled.",
+    "order_shipped_fulfilled_detail_with_tracking": "Your order #{orderNumber} has been shipped/fulfilled. Tracking number: {trackingNumber}"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "description": "View and manage your notifications",
+    "confirmDelete": "Are you sure you want to delete this notification?",
+    "confirmDeleteAll": "Are you sure you want to delete ALL notifications? This action cannot be undone.",
+    "confirmDeleteRead": "Are you sure you want to delete all READ notifications?",
+    "errorTitle": "Error Loading Notifications",
+    "loadingMore": "Loading more notifications",
+    "noNotifications": "No notifications found.",
+    "controls": {
+      "filterByType": "Filter by Type",
+      "selectTypePlaceholder": "Select type",
+      "types": {
+        "all": "All Types",
+        "info": "Info",
+        "alert": "Alert",
+        "promo": "Promo",
+        "update": "Update",
+        "default": "Unknown Type"
+      },
+      "filterByStatus": "Filter by Status",
+      "selectStatusPlaceholder": "Select status",
+      "statuses": {
+        "all": "All Statuses",
+        "unread": "Unread",
+        "read": "Read",
+        "default": "Unknown Status"
+      },
+      "sortByLabel": "Sort By",
+      "selectSortFieldPlaceholder": "Select field",
+      "sortBy": {
+        "receivedAt": "Date Received",
+        "title": "Title"
+      },
+      "sortOrderLabel": "Order",
+      "sortOrder": {
+        "asc": "Ascending",
+        "desc": "Descending"
+      },
+      "markAllRead": "Mark All as Read",
+      "deleteRead": "Delete Read",
+      "deleteAll": "Delete All"
+    },
+    "item": {
+      "status": {
+        "read": "Read",
+        "unread": "Unread"
+      },
+      "type": {
+        "info": "Info",
+        "alert": "Alert",
+        "promo": "Promo",
+        "update": "Update",
+        "default": "General"
+      },
+      "showLess": "Show Less",
+      "showMore": "Show More",
+      "goToLink": "Go to Link",
+      "markingRead": "Marking...",
+      "markAsRead": "Mark as Read",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "markAsUnread": "Mark as Unread",
+      "markingUnread": "Marking as Unread..."
     }
   }
 }

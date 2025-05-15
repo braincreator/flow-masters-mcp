@@ -429,7 +429,7 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
           // ---------------------------------------------
           status: shouldActivate ? 'active' : existingSubscription?.status || 'pending', // Activate if token processed, else keep existing or pending
           amount: product.subscriptionDetails.recurringPrice,
-          currency: product.pricing?.locales?.en?.currency || 'USD', // Assuming USD as default currency source
+          currency: 'RUB', // Default currency for subscriptions
           period: period,
           startDate: startDate.toISOString(),
           nextPaymentDate: nextPaymentDate.toISOString(),
@@ -521,7 +521,7 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
       try {
         await notificationService.sendOrderCancelledNotification(
           doc.id,
-          doc.cancellationDetails?.reason,
+          doc.cancellationDetails?.reason || undefined,
         )
       } catch (e: any) {
         logger.error(`Error sending order cancelled notification for order ${doc.id}: ${e.message}`)

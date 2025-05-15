@@ -8,9 +8,12 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react'
-import { fetchNotifications, markNotificationAsRead } from '@/lib/api/notifications'
+import {
+  fetchNotifications,
+  markNotificationAsRead,
+} from '@/lib/api/notifications'
 import { useAuth } from '@/hooks/useAuth'
-import { tryCatch, AppError, ErrorType, ErrorSeverity } from '@/utilities/errorHandling'
+import { tryCatch, AppError, ErrorType, ErrorSeverity } from '@/utilities/errorHandling' 
 import { useStateLogger } from '@/utilities/stateLogger'
 import { toast } from 'sonner'
 
@@ -26,7 +29,7 @@ export type NotificationType =
 export interface Notification {
   id: string
   title: string
-  message: string
+  message: string // This will be changed to messageKey and messageParams later
   type: NotificationType
   isRead: boolean
   createdAt: string
@@ -57,16 +60,22 @@ export interface ToastOptions {
 }
 
 export interface NotificationsContextType {
-  // Persistent notifications
   notifications: Notification[]
   unreadCount: number
-  isLoading: boolean
-  error: Error | null
+  isLoadingInitial: boolean
+  isLoadingMore: boolean
+  isLoadingNew: boolean
+  error: AppError | null
   markAsRead: (notificationId: string) => Promise<void>
   markAllAsRead: () => Promise<void>
   refetchNotifications: () => Promise<void>
+  loadMoreNotifications: () => Promise<void>
+  hasMore: boolean
+  currentPage: number
+  showOnlyUnreadFilter: boolean
+  setShowOnlyUnreadFilter: (value: boolean) => void
+  lastFetchedTimestamp: string | null
 
-  // Toast notifications
   showToast: (
     type: NotificationType,
     title: string,
@@ -75,12 +84,10 @@ export interface NotificationsContextType {
   ) => void
   dismissToast: (toastId: string) => void
 
-  // Create and add a new notification
   addNotification: (
     notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>,
   ) => Promise<void>
 
-  // Filter notifications
   getNotificationsByType: (type: NotificationType) => Notification[]
   getUnreadNotifications: () => Notification[]
 }
@@ -89,55 +96,186 @@ export const NotificationsContext = createContext<NotificationsContextType | und
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [error, setError] = useState<AppError | null>(null)
   const logger = useStateLogger('NotificationsProvider')
 
-  const fetchUserNotifications = async (): Promise<void> => {
-    if (!isAuthenticated || !user) {
-      logger.debug('Skip fetching notifications', { reason: 'User not authenticated' })
-      setNotifications([])
-      setIsLoading(false)
-      return
-    }
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(false)
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
+  const [isLoadingNew, setIsLoadingNew] = useState<boolean>(false)
+  const [error, setError] = useState<AppError | null>(null)
 
-    logger.info('Fetching notifications', { userId: user.id })
-    setIsLoading(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [showOnlyUnreadFilter, setShowOnlyUnreadFilter] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
+  const [lastFetchedTimestamp, setLastFetchedTimestamp] = useState<string | null>(null)
 
-    const { data, error: fetchError } = await tryCatch(async () => {
-      return await fetchNotifications()
-    })
+  const NOTIFICATION_LIMIT = 20
+  const POLLING_INTERVAL = 30000 
 
-    if (fetchError) {
-      logger.error('Failed to fetch notifications', undefined, undefined, undefined, {
-        error: fetchError,
+  type FetchType = 'initial' | 'loadMore' | 'fetchNewer' | 'filterChange'
+
+  const fetchUserNotifications = useCallback(
+    async (fetchType: FetchType, pageToFetch: number = 1): Promise<void> => {
+      if (!isAuthenticated || !user?.id) {
+        logger.debug('Skip fetching notifications', { reason: 'User not authenticated or no user ID' })
+        setNotifications([])
+        setIsLoadingInitial(false)
+        setIsLoadingMore(false)
+        setIsLoadingNew(false)
+        setHasMore(false)
+        setCurrentPage(1)
+        setLastFetchedTimestamp(null)
+        return
+      }
+
+      logger.info(`Fetching notifications`, {
+        userId: user.id,
+        fetchType,
+        page: pageToFetch,
+        unreadOnly: showOnlyUnreadFilter,
+        lastTimestamp: fetchType === 'fetchNewer' ? lastFetchedTimestamp : undefined,
       })
-      setError(fetchError)
-    } else {
-      logger.info('Notifications fetched successfully', undefined, { count: data?.length || 0 })
-      setNotifications(data || [])
-      setError(null)
-    }
 
-    setIsLoading(false)
-  }
+      if (fetchType === 'initial' || fetchType === 'filterChange') setIsLoadingInitial(true)
+      if (fetchType === 'loadMore') setIsLoadingMore(true)
+      if (fetchType === 'fetchNewer') setIsLoadingNew(true)
+
+      const params: {
+        limit: number
+        page: number
+        unreadOnly: boolean
+        newerThanTimestamp?: string
+      } = {
+        limit: NOTIFICATION_LIMIT,
+        page: pageToFetch,
+        unreadOnly: showOnlyUnreadFilter,
+      }
+
+      if (fetchType === 'fetchNewer' && lastFetchedTimestamp) {
+        params.newerThanTimestamp = lastFetchedTimestamp
+        params.page = 1 
+      }
+
+      const { data, error: fetchError } = await tryCatch(async () => {
+        // @ts-ignore 
+        return fetchNotifications(params.limit, params.page, params.unreadOnly, params.newerThanTimestamp)
+      })
+
+      if (fetchError) {
+        logger.error('Failed to fetch notifications', undefined, undefined, undefined, {
+          error: fetchError,
+          fetchType,
+        })
+        setError(fetchError)
+        if (fetchType === 'initial' || fetchType === 'filterChange') {
+          setNotifications([])
+          setHasMore(false)
+          setLastFetchedTimestamp(null)
+        }
+      } else {
+        const newNotificationsData = data?.items || [] // Updated to use data.items
+        logger.info('Notifications fetched successfully', undefined, {
+          count: newNotificationsData.length,
+          fetchType,
+          page: data?.currentPage || params.page, // Use API's current page
+          totalPages: data?.totalPages, // Log total pages
+        })
+
+        let newestTimestampInBatch: string | null = null
+        if (newNotificationsData.length > 0) {
+          const sortedNew = [...newNotificationsData].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )
+          newestTimestampInBatch = sortedNew[0].createdAt
+        }
+
+        if (fetchType === 'initial' || fetchType === 'filterChange') {
+          setNotifications(newNotificationsData)
+          setCurrentPage(data?.currentPage || 1)
+          setHasMore(data ? data.currentPage < data.totalPages : false) // Updated hasMore logic
+          if (newestTimestampInBatch) {
+            setLastFetchedTimestamp(newestTimestampInBatch)
+          }
+        } else if (fetchType === 'loadMore') {
+          setNotifications((prev) => {
+            const existingIds = new Set(prev.map((n) => n.id))
+            const uniqueNewNotifications = newNotificationsData.filter(
+              (n: Notification) => !existingIds.has(n.id),
+            )
+            return [...prev, ...uniqueNewNotifications]
+          })
+          setCurrentPage(data?.currentPage || params.page)
+          setHasMore(data ? data.currentPage < data.totalPages : false) // Updated hasMore logic
+        } else if (fetchType === 'fetchNewer') {
+          if (newNotificationsData.length > 0) {
+            setNotifications((prev) => {
+              const existingIds = new Set(prev.map((n) => n.id))
+              const uniqueNewNotifications = newNotificationsData.filter(
+                (n: Notification) => !existingIds.has(n.id),
+              )
+              return [...uniqueNewNotifications, ...prev]
+            })
+            if (newestTimestampInBatch) {
+              setLastFetchedTimestamp(newestTimestampInBatch)
+            }
+          }
+        }
+        setError(null)
+      }
+
+      if (fetchType === 'initial' || fetchType === 'filterChange') setIsLoadingInitial(false)
+      if (fetchType === 'loadMore') setIsLoadingMore(false)
+      if (fetchType === 'fetchNewer') setIsLoadingNew(false)
+    },
+    [
+      isAuthenticated,
+      user?.id, 
+      logger, 
+      showOnlyUnreadFilter, 
+      lastFetchedTimestamp, 
+      NOTIFICATION_LIMIT, 
+    ],
+  )
 
   useEffect(() => {
-    fetchUserNotifications()
+    if (isAuthenticated && user?.id) {
+      logger.info('Auth or filter state changed, fetching initial notifications', {
+        unread: showOnlyUnreadFilter,
+      })
+      fetchUserNotifications('initial', 1)
+    } else if (!isAuthenticated) {
+      logger.info('User logged out, clearing notifications data')
+      setNotifications([])
+      setCurrentPage(1)
+      setHasMore(true) 
+      setError(null)
+      setIsLoadingInitial(false)
+      setIsLoadingMore(false)
+      setIsLoadingNew(false)
+      setLastFetchedTimestamp(null)
+    }
+  }, [isAuthenticated, user?.id, showOnlyUnreadFilter, logger, fetchUserNotifications])
 
-    // Set up polling for notifications (every 60 seconds)
-    const interval = setInterval(() => {
-      fetchUserNotifications()
-    }, 60000)
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) {
+      return () => {} 
+    }
 
-    return () => clearInterval(interval)
-  }, [isAuthenticated, user])
+    logger.info('Setting up polling for new notifications', { interval: POLLING_INTERVAL })
+    const intervalId = setInterval(() => {
+      logger.info('Polling for newer notifications')
+      fetchUserNotifications('fetchNewer')
+    }, POLLING_INTERVAL)
+
+    return () => {
+      logger.info('Clearing polling interval for new notifications')
+      clearInterval(intervalId)
+    }
+  }, [isAuthenticated, user?.id, logger, POLLING_INTERVAL, fetchUserNotifications])
 
   const markAsRead = async (notificationId: string): Promise<void> => {
     logger.info('Marking notification as read', undefined, undefined, { notificationId })
 
-    // Optimistically update UI
     const previousNotifications = [...notifications]
     setNotifications((prev) =>
       prev.map((notification) =>
@@ -150,13 +288,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     })
 
     if (markError) {
-      // Revert to previous state on error
       logger.error('Failed to mark notification as read', previousNotifications, notifications, {
         notificationId,
       })
       setNotifications(previousNotifications)
 
-      // Show error notification
       markError.notify({
         title: 'Failed to update notification',
       })
@@ -172,7 +308,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const markAllAsRead = async (): Promise<void> => {
     logger.info('Marking all notifications as read')
 
-    // Optimistically update UI
     const previousNotifications = [...notifications]
     setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })))
 
@@ -184,11 +319,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     })
 
     if (markAllError) {
-      // Revert to previous state on error
       logger.error('Failed to mark all notifications as read', previousNotifications, notifications)
       setNotifications(previousNotifications)
 
-      // Show error notification
       markAllError.notify({
         title: 'Failed to update notifications',
       })
@@ -199,10 +332,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Calculate unread count
   const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
-  // Show toast notification
   const showToast = useCallback(
     (type: NotificationType, title: string, message?: string, options?: ToastOptions) => {
       const toastOptions = {
@@ -230,51 +361,67 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  // Dismiss toast notification
   const dismissToast = useCallback((toastId: string) => {
     toast.dismiss(toastId)
   }, [])
 
-  // Add a new notification
   const addNotification = useCallback(
-    async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
-      logger.info('Adding new notification', undefined, undefined, { notification })
+    async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
+      logger.info('Attempting to add new notification via API', { notificationData })
 
-      try {
+      const { data: createdNotification, error: createError } = await tryCatch(async () => {
         const response = await fetch('/api/notifications', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(notification),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(notificationData),
           credentials: 'include',
         })
-
         if (!response.ok) {
-          throw new Error('Failed to add notification')
-        }
-
-        // Refresh notifications
-        await fetchUserNotifications()
-
-        // Show toast for high priority notifications
-        if (notification.priority === 'high' || notification.priority === 'urgent') {
-          showToast(notification.type, notification.title, notification.message, {
-            important: notification.priority === 'urgent',
+          const errorBody = await response.text()
+          throw new AppError({
+            message: `Server responded with ${response.status}: ${errorBody}`,
+            type: ErrorType.NETWORK, // Or a more specific type if determinable
+            severity: ErrorSeverity.ERROR,
+            statusCode: response.status,
           })
         }
-      } catch (err) {
-        logger.error('Failed to add notification', undefined, undefined, {
-          notification,
-          error: err,
+        return response.json()
+      })
+
+      if (createError) {
+        logger.error('Failed to add notification to server', undefined, undefined, undefined, {
+          error: createError,
         })
-        throw err
+        createError.notify({ title: 'Error Creating Notification' })
+        throw createError
+      }
+
+      logger.info('Notification created on server, now fetching newer notifications', {
+        createdNotificationId: createdNotification?.id,
+      })
+
+      await fetchUserNotifications('fetchNewer')
+
+      if (
+        notificationData.priority === 'high' ||
+        notificationData.priority === 'urgent' ||
+        createdNotification?.priority === 'high' ||
+        createdNotification?.priority === 'urgent'
+      ) {
+        showToast(
+          createdNotification?.type || notificationData.type,
+          createdNotification?.title || notificationData.title,
+          createdNotification?.message || notificationData.message,
+          {
+            important:
+              notificationData.priority === 'urgent' || createdNotification?.priority === 'urgent',
+          },
+        )
       }
     },
-    [logger, fetchUserNotifications, showToast],
+    [logger, showToast, fetchUserNotifications],
   )
 
-  // Get notifications by type
   const getNotificationsByType = useCallback(
     (type: NotificationType) => {
       return notifications.filter((notification) => notification.type === type)
@@ -282,19 +429,39 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     [notifications],
   )
 
-  // Get unread notifications
   const getUnreadNotifications = useCallback(() => {
     return notifications.filter((notification) => !notification.isRead)
   }, [notifications])
 
-  const value = {
+  const value: NotificationsContextType = {
     notifications,
     unreadCount,
-    isLoading,
+    isLoadingInitial,
+    isLoadingMore,
+    isLoadingNew,
     error,
     markAsRead,
     markAllAsRead,
-    refetchNotifications: fetchUserNotifications,
+    refetchNotifications: async () => {
+      logger.info('Manual refresh triggered (refetchNotifications)')
+      await fetchUserNotifications('initial', 1)
+    },
+    loadMoreNotifications: async () => {
+      if (hasMore && !isLoadingInitial && !isLoadingMore && !isLoadingNew) {
+        logger.info('Loading more notifications')
+        await fetchUserNotifications('loadMore', currentPage + 1)
+      } else {
+        logger.debug('Skipped loading more', { hasMore, isLoadingInitial, isLoadingMore, isLoadingNew })
+      }
+    },
+    hasMore,
+    currentPage,
+    showOnlyUnreadFilter,
+    setShowOnlyUnreadFilter: (newFilterValue: boolean) => {
+      logger.info('Filter changed', { newFilterValue })
+      setShowOnlyUnreadFilter(newFilterValue)
+    },
+    lastFetchedTimestamp,
     showToast,
     dismissToast,
     addNotification,

@@ -3,10 +3,31 @@ import { fetchFromAPI } from './api'
 /**
  * Получает уведомления пользователя
  * @param limit Максимальное количество уведомлений
+ * @param page Номер страницы для пагинации
+ * @param onlyUnread Флаг для получения только непрочитанных уведомлений
  */
-export async function fetchNotifications(limit: number = 20) {
+export async function fetchNotifications(
+  limit: number = 20,
+  page?: number,
+  onlyUnread?: boolean,
+) {
   try {
-    const response = await fetchFromAPI(`/api/notifications?limit=${limit}`)
+    let apiUrl = `/api/notifications?limit=${limit}`
+    if (page !== undefined) {
+      apiUrl += `&page=${page}`
+    }
+    if (onlyUnread !== undefined) {
+      apiUrl += `&onlyUnread=${onlyUnread}`
+    }
+    console.log(`fetchNotifications: Запрос к API: ${apiUrl}`)
+
+    const response = await fetchFromAPI(apiUrl)
+
+    console.log(
+      'fetchNotifications: Данные получены от API:',
+      Array.isArray(response) ? `Массив из ${response.length} уведомлений` : response,
+    )
+    
     return response
   } catch (error) {
     console.error('Error fetching notifications:', error)

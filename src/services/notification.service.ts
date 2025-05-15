@@ -8,14 +8,62 @@ import {
   User,
   SubscriptionPlan,
   Notification,
-  // Setting, // Закомментировано, т.к. тип не найден
 } from '../payload-types'
 import type { Where } from 'payload'
-// import { InitOptions } from 'payload/config' // Не используется
 import { getPayload } from 'payload'
+import { getTranslations } from 'next-intl/server'
+import { NotificationStoredType } from '../types/notifications'
 
-// Define notification categories type based on usage in checkUserNotificationPreferences
-export type NotificationCategory = // Export for use in channel
+export type NotificationEventType =
+  | 'account_welcome'
+  | 'welcome_email'
+  | 'account_password_changed'
+  | 'password_changed'
+  | 'account_email_changed'
+  | 'email_address_changed'
+  | 'account_details_updated'
+  | 'account_updated'
+  | 'course_enrolled'
+  | 'lesson_completed'
+  | 'module_completed'
+  | 'assessment_submitted'
+  | 'assessment_graded'
+  | 'course_completed'
+  | 'certificate_issued'
+  | 'achievement_unlocked'
+  | 'level_up'
+  | 'order_created'
+  | 'order_paid'
+  | 'order_payment_failed'
+  | 'payment_failed'
+  | 'order_shipped_fulfilled'
+  | 'order_cancelled'
+  | 'order_refunded'
+  | 'refund_processed'
+  | 'order_completed'
+  | 'download_ready'
+  | 'payment_confirmed'
+  | 'order_confirmation'
+  | 'initial_payment_failed'
+  | 'order_status'
+  | 'subscription_activated'
+  | 'subscription_cancelled'
+  | 'subscription_payment_failed'
+  | 'subscription_plan_changed'
+  | 'subscription_paused'
+  | 'subscription_resumed'
+  | 'subscription_expired'
+  | 'subscription_renewal_reminder'
+  | 'subscription_renewed_successfully'
+  | 'billing_alert'
+  | 'newsletter_subscribed'
+  | 'promotional_message'
+  | 'abandoned_cart'
+  | 'comment_new'
+  | 'comment_reply'
+  | 'comment_mention'
+  | 'system_alert'
+  | 'general_info'
   | 'account'
   | 'courses'
   | 'achievements'
@@ -25,34 +73,29 @@ export type NotificationCategory = // Export for use in channel
   | 'billing_alerts'
   | 'subscription_updates'
   | 'order_updates'
-  | 'refund_notifications' // For refund_processed
-  | 'renewal_reminders' // For subscription_renewal_reminder
-  | 'order_shipped_fulfilled' // For order shipped/fulfilled
-  | string // Allow other string types for flexibility
+  | 'refund_notifications'
+  | 'renewal_reminders';
 
 export interface NotificationPayload {
   userId: string
-  user?: User // Populated user object for locale, email, etc.
-  title: string
-  message: string
-  type: NotificationCategory
+  user?: User
+  title: string 
+  messageKey: string
+  messageParams?: Record<string, any>
+  type: NotificationEventType
   link?: string
   metadata?: Record<string, any>
-  locale?: string // Explicit locale, overrides user.locale if provided
-  // Channel-specific data can be added here or in metadata
-  // For example, for email:
+  locale?: string
   emailSpecific?: {
     templateSlug: string
     templateContext: Record<string, any>
   }
-  // For in-app:
   inAppSpecific?: {
-    // any specific fields for in-app if different from generic
   }
 }
 
 export interface INotificationChannel {
-  channelType: 'email' | 'inApp' | 'sms' | 'push' | string // Extensible
+  channelType: 'email' | 'inApp' | 'sms' | 'push' | string
   send(payload: NotificationPayload, serviceInstance: NotificationService): Promise<boolean>
 }
 
@@ -66,17 +109,97 @@ class InAppNotificationChannel implements INotificationChannel {
 
   async send(data: NotificationPayload): Promise<boolean> {
     try {
-      await this.payload.create<'notifications', any>({
+      let storedNotificationType: NotificationStoredType = NotificationStoredType.GENERAL_INFO
+
+      const eventToStoredTypeMap: Partial<Record<NotificationEventType, NotificationStoredType>> = {
+        course_enrolled: NotificationStoredType.COURSE_ENROLLED,
+        lesson_completed: NotificationStoredType.LESSON_COMPLETED,
+        module_completed: NotificationStoredType.MODULE_COMPLETED,
+        assessment_submitted: NotificationStoredType.ASSESSMENT_SUBMITTED,
+        assessment_graded: NotificationStoredType.ASSESSMENT_GRADED,
+        course_completed: NotificationStoredType.COURSE_COMPLETED,
+        certificate_issued: NotificationStoredType.CERTIFICATE_ISSUED,
+        achievement_unlocked: NotificationStoredType.ACHIEVEMENT_UNLOCKED,
+        level_up: NotificationStoredType.LEVEL_UP,
+        account_welcome: NotificationStoredType.ACCOUNT_ACTIVITY,
+        welcome_email: NotificationStoredType.ACCOUNT_ACTIVITY,
+        account_password_changed: NotificationStoredType.ACCOUNT_ACTIVITY,
+        password_changed: NotificationStoredType.ACCOUNT_ACTIVITY,
+        account_email_changed: NotificationStoredType.ACCOUNT_ACTIVITY,
+        email_address_changed: NotificationStoredType.ACCOUNT_ACTIVITY,
+        account_details_updated: NotificationStoredType.ACCOUNT_ACTIVITY,
+        account_updated: NotificationStoredType.ACCOUNT_ACTIVITY,
+        account: NotificationStoredType.ACCOUNT_ACTIVITY,
+        order_created: NotificationStoredType.ORDER_UPDATE,
+        order_paid: NotificationStoredType.ORDER_UPDATE,
+        order_payment_failed: NotificationStoredType.ORDER_UPDATE,
+        payment_failed: NotificationStoredType.ORDER_UPDATE,
+        order_shipped_fulfilled: NotificationStoredType.ORDER_UPDATE,
+        order_cancelled: NotificationStoredType.ORDER_UPDATE,
+        order_refunded: NotificationStoredType.ORDER_UPDATE,
+        refund_processed: NotificationStoredType.ORDER_UPDATE,
+        download_ready: NotificationStoredType.ORDER_UPDATE,
+        payment_confirmed: NotificationStoredType.ORDER_UPDATE,
+        order_confirmation: NotificationStoredType.ORDER_UPDATE,
+        initial_payment_failed: NotificationStoredType.ORDER_UPDATE,
+        order_status: NotificationStoredType.ORDER_UPDATE,
+        order_updates: NotificationStoredType.ORDER_UPDATE,
+        refund_notifications: NotificationStoredType.ORDER_UPDATE,
+        subscription_activated: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_cancelled: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_payment_failed: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_plan_changed: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_paused: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_resumed: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_expired: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_renewal_reminder: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_renewed_successfully: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        subscription_updates: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        renewal_reminders: NotificationStoredType.SUBSCRIPTION_UPDATE,
+        billing_alert: NotificationStoredType.SYSTEM_ALERT,
+        system_alert: NotificationStoredType.SYSTEM_ALERT,
+        billing_alerts: NotificationStoredType.SYSTEM_ALERT,
+        newsletter_subscribed: NotificationStoredType.PROMOTIONAL,
+        promotional_message: NotificationStoredType.PROMOTIONAL,
+        abandoned_cart: NotificationStoredType.PROMOTIONAL,
+        newsletter: NotificationStoredType.PROMOTIONAL,
+        marketing: NotificationStoredType.PROMOTIONAL,
+        general_info: NotificationStoredType.GENERAL_INFO,
+        comment_new: NotificationStoredType.SOCIAL_INTERACTION,
+        comment_reply: NotificationStoredType.SOCIAL_INTERACTION,
+        comment_mention: NotificationStoredType.SOCIAL_INTERACTION,
+        comments: NotificationStoredType.SOCIAL_INTERACTION,
+        courses: NotificationStoredType.GENERAL_INFO,
+        achievements: NotificationStoredType.ACHIEVEMENT_UNLOCKED,
+      }
+
+      const mappedType = eventToStoredTypeMap[data.type]
+      if (mappedType) {
+        storedNotificationType = mappedType
+      } else {
+        console.warn(
+          `InAppNotificationChannel: EventType "${data.type}" not explicitly mapped. Defaulting to "${storedNotificationType}". Consider adding it to eventToStoredTypeMap.`,
+        )
+      }
+
+      console.log(
+        `Creating notification: EventType=${data.type}, Mapped StoredType=${storedNotificationType}`,
+      )
+
+      const notificationDataToCreate: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'> = {
+        user: data.userId,
+        title: data.title,
+        messageKey: data.messageKey,
+        messageParams: data.messageParams,
+        type: storedNotificationType as Notification['type'],
+        isRead: false,
+        link: data.link,
+        metadata: data.metadata,
+      };
+
+      await this.payload.create({
         collection: 'notifications',
-        data: {
-          user: data.userId,
-          title: data.title,
-          message: data.message,
-          type: data.type as any, // Cast as 'type' field in 'notifications' might be more specific
-          isRead: false,
-          link: data.link,
-          metadata: data.metadata,
-        },
+        data: notificationDataToCreate,
       })
       return true
     } catch (error) {
@@ -99,22 +222,27 @@ class EmailNotificationChannel implements INotificationChannel {
       console.error(`Email channel: User email not available for user ${data.userId}`)
       return false
     }
+    const localeForEmail = data.locale || data.user?.locale || 'en'
+
     if (!data.emailSpecific?.templateSlug) {
-      console.error(`Email channel: Template slug not provided for user ${data.userId}, type ${data.type}`)
-      // Fallback to a generic notification email if desired, or return false
-      // For now, sending a generic one:
+      console.error(
+        `Email channel: Template slug not provided for user ${data.userId}, type ${data.type}`,
+      )
       try {
-         await this.emailService.sendTemplateEmail(
-          'notification', // Generic template
+        const tGlobal = await getTranslations({ locale: localeForEmail });
+        const translatedMessage = data.messageKey ? tGlobal(data.messageKey, data.messageParams) : 'Notification content unavailable.';
+
+        await this.emailService.sendTemplateEmail(
+          'notification',
           data.user.email,
           {
-            title: data.title,
-            message: data.message,
+            title: data.title, 
+            message: translatedMessage,
             type: data.type,
             link: data.link,
             ...(data.metadata || {}),
           },
-          { locale: data.locale || data.user.locale || 'ru' },
+          { locale: localeForEmail },
         )
         return true
       } catch (error) {
@@ -128,7 +256,7 @@ class EmailNotificationChannel implements INotificationChannel {
         data.emailSpecific.templateSlug,
         data.user.email,
         data.emailSpecific.templateContext,
-        { locale: data.locale || data.user.locale || 'ru' },
+        { locale: localeForEmail },
       )
       return true
     } catch (error) {
@@ -143,21 +271,19 @@ class EmailNotificationChannel implements INotificationChannel {
 
 export class NotificationService extends BaseService {
   private static instance: NotificationService | null = null
-  private emailService: EmailService | null = null // Keep for direct use if needed, or phase out
-  private telegramService: TelegramService | null = null // Keep for admin notifications
+  private emailService: EmailService | null = null
+  private telegramService: TelegramService | null = null
   private channels: INotificationChannel[] = []
 
   private constructor(payload: Payload) {
     super(payload)
-    this.emailService = EmailService.getInstance(payload) // Still init for EmailNotificationChannel
+    this.emailService = EmailService.getInstance(payload)
     this.telegramService = TelegramService.getInstance(payload)
 
-    // Register channels
     this.channels.push(new InAppNotificationChannel(payload))
     if (this.emailService) {
       this.channels.push(new EmailNotificationChannel(this.emailService))
     }
-    // TODO: Add SMSChannel, PushChannel when implemented
   }
 
   public static getInstance(payload: Payload): NotificationService {
@@ -167,7 +293,6 @@ export class NotificationService extends BaseService {
     return NotificationService.instance
   }
 
-  // --- Helper to get common subscription data ---
   private async getSubscriptionContext(subscriptionId: string): Promise<{
     subscription: Subscription | null
     user: User | null
@@ -177,12 +302,11 @@ export class NotificationService extends BaseService {
       const subscription = (await this.payload.findByID({
         collection: 'subscriptions',
         id: subscriptionId,
-        depth: 2, // Depth to populate user and plan
+        depth: 1,
       })) as unknown as Subscription
 
       if (!subscription) return { subscription: null, user: null, plan: null }
 
-      // Type assertions assuming depth=2 works as expected
       const user =
         typeof subscription.user === 'object' && subscription.user !== null
           ? (subscription.user as User)
@@ -192,13 +316,11 @@ export class NotificationService extends BaseService {
           ? (subscription.plan as SubscriptionPlan)
           : null
 
-      // Fetch user separately if only ID is present (shouldn't happen with depth=2 but as fallback)
       if (!user && typeof subscription.user === 'string') {
-        console.warn(`User object not populated for subscription ${subscriptionId} despite depth=2`)
+        console.warn(`User object not populated for subscription ${subscriptionId} despite depth=1`)
       }
-      // Fetch plan separately if only ID is present
       if (!plan && typeof subscription.plan === 'string') {
-        console.warn(`Plan object not populated for subscription ${subscriptionId} despite depth=2`)
+        console.warn(`Plan object not populated for subscription ${subscriptionId} despite depth=1`)
       }
 
       return { subscription, user, plan }
@@ -208,22 +330,21 @@ export class NotificationService extends BaseService {
     }
   }
 
-  // --- Subscription Specific Notifications ---
-
   async sendSubscriptionActivated(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
       console.error(`Missing data for sendSubscriptionActivated: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
-      user: user, // Pass the full user object
-      title: 'Subscription Activated',
-      message: `Your subscription to ${plan.name} is now active.`,
+      user: user,
+      title: 'subscription_activated',
+      messageKey: 'NotificationBodies.subscription_activated_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_activated',
       locale: userLocale,
       metadata: {
@@ -244,8 +365,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      // Return true if at least one channel succeeded
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription activated notification for ${subscriptionId}:`,
@@ -261,14 +381,15 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionCancelled: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Cancelled',
-      message: `Your subscription to ${plan.name} has been cancelled.`,
+      title: 'subscription_cancelled',
+      messageKey: 'NotificationBodies.subscription_cancelled_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_cancelled',
       locale: userLocale,
       metadata: {
@@ -288,7 +409,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription cancelled notification for ${subscriptionId}:`,
@@ -304,21 +425,22 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionPaymentFailed: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Payment Failed',
-      message: `We couldn't process the payment for your ${plan.name} subscription. Please update your payment method.`,
+      title: 'subscription_payment_failed',
+      messageKey: 'NotificationBodies.subscription_payment_failed_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_payment_failed',
       locale: userLocale,
       metadata: {
         subscriptionId: subscription.id,
         planId: plan.id,
         planName: plan.name,
-        nextPaymentAttempt: subscription.expiresAt, // Or specific retry date?
+        nextPaymentAttempt: subscription.expiresAt,
       },
       emailSpecific: {
         templateSlug: 'subscription-payment-failed',
@@ -326,15 +448,15 @@ export class NotificationService extends BaseService {
           userName,
           planName: plan.name,
           nextPaymentDate: subscription.expiresAt as string,
-          amount: plan.price, // Assuming plan has price
-          currency: plan.currency, // Assuming plan has currency
+          amount: plan.price,
+          currency: plan.currency,
         },
       },
     }
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription payment failed notification for ${subscriptionId}:`,
@@ -350,14 +472,15 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionPlanChanged: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Plan Changed',
-      message: `Your subscription plan has been changed from ${oldPlanName} to ${newPlan.name}.`,
+      title: 'subscription_plan_changed',
+      messageKey: 'NotificationBodies.subscription_plan_changed_detail',
+      messageParams: { oldPlanName: oldPlanName, newPlanName: newPlan.name },
       type: 'subscription_plan_changed',
       locale: userLocale,
       metadata: {
@@ -372,14 +495,14 @@ export class NotificationService extends BaseService {
           userName,
           oldPlanName: oldPlanName,
           newPlanName: newPlan.name,
-          effectiveDate: new Date().toISOString(), // Or specific date
+          effectiveDate: new Date().toISOString(),
         },
       },
     }
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription plan changed notification for ${subscriptionId}:`,
@@ -395,14 +518,15 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionPaused: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Paused',
-      message: `Your subscription to ${plan.name} has been paused.`,
+      title: 'subscription_paused',
+      messageKey: 'NotificationBodies.subscription_paused_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_paused',
       locale: userLocale,
       metadata: {
@@ -422,7 +546,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription paused notification for ${subscriptionId}:`,
@@ -438,14 +562,15 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionResumed: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Resumed',
-      message: `Your subscription to ${plan.name} has been resumed and is now active.`,
+      title: 'subscription_resumed',
+      messageKey: 'NotificationBodies.subscription_resumed_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_resumed',
       locale: userLocale,
       metadata: {
@@ -467,7 +592,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription resumed notification for ${subscriptionId}:`,
@@ -483,14 +608,15 @@ export class NotificationService extends BaseService {
       console.error(`Missing data for sendSubscriptionExpired: ${subscriptionId}`)
       return false
     }
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email || 'Customer'
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Subscription Expired',
-      message: `Your subscription to ${plan.name} has expired.`,
+      title: 'subscription_expired',
+      messageKey: 'NotificationBodies.subscription_expired_detail',
+      messageParams: { planName: plan.name },
       type: 'subscription_expired',
       locale: userLocale,
       metadata: {
@@ -510,7 +636,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch subscription expired notification for ${subscriptionId}:`,
@@ -523,7 +649,7 @@ export class NotificationService extends BaseService {
   async sendPaymentConfirmation(orderData: {
     orderId: string
     orderNumber: string
-    customerEmail: string // Keep for Telegram and as fallback
+    customerEmail: string
     total: number
     currency: string
     items?: Array<{
@@ -535,20 +661,19 @@ export class NotificationService extends BaseService {
     }>
     paymentMethod?: string
     paymentId?: string
-    locale?: string // Keep as fallback
+    locale?: string
   }): Promise<boolean> {
     let fetchedUser: User | null = null
     let userIdForNotification: string | null = null
-    let finalUserLocale = orderData.locale || 'ru'
+    let finalUserLocale = orderData.locale || 'en'
     let finalUserName = ''
-    let finalUserEmail = orderData.customerEmail // Fallback email
+    let finalUserEmail = orderData.customerEmail
 
     try {
-      // 1. Attempt to fetch full order and user details
       const order = (await this.payload.findByID({
         collection: 'orders',
         id: orderData.orderId,
-        depth: 1, // Include user data
+        depth: 0,
       })) as Order | null
 
       if (order && order.customer) {
@@ -560,7 +685,6 @@ export class NotificationService extends BaseService {
           finalUserEmail = fetchedUser.email || finalUserEmail
         } else if (typeof order.customer === 'string') {
           userIdForNotification = order.customer
-          // Attempt to fetch user if only ID is present
           try {
             fetchedUser = (await this.payload.findByID({
               collection: 'users',
@@ -584,13 +708,11 @@ export class NotificationService extends BaseService {
         `Error getting order/user details for payment confirmation (orderId: ${orderData.orderId}):`,
         fetchError,
       )
-      // Continue with provided data if fetching fails
     }
 
-    // 2. Format order items (remains the same)
-    const orderItems = (orderData.items || []).map(item => ({
+    const orderItems = (orderData.items || []).map((item) => ({
       name: item.name || 'Product',
-      description: '', // Or fetch from product if available
+      description: '',
       quantity: item.quantity,
       price: item.price,
       total: item.price * item.quantity,
@@ -598,15 +720,15 @@ export class NotificationService extends BaseService {
       id: item.product,
     }))
 
-    // 3. Send user-facing notifications if userId is available
     let userNotificationSent = false
     if (userIdForNotification) {
       const notificationPayload: NotificationPayload = {
         userId: userIdForNotification,
-        user: fetchedUser || undefined, // Pass fetched user if available
-        title: 'Payment Confirmed',
-        message: `Your payment for order #${orderData.orderNumber} has been confirmed.`,
-        type: 'payment_confirmed', // Maps to 'billing_alerts' category
+        user: fetchedUser || undefined,
+        title: 'payment_confirmed',
+        messageKey: 'NotificationBodies.payment_confirmed_detail',
+        messageParams: { orderNumber: orderData.orderNumber },
+        type: 'payment_confirmed',
         locale: finalUserLocale,
         metadata: {
           orderId: orderData.orderId,
@@ -615,22 +737,17 @@ export class NotificationService extends BaseService {
           currency: orderData.currency,
         },
         emailSpecific: {
-          // Using the specific method in EmailService, but could also use a template slug
-          // For consistency, let's assume 'payment-confirmation' template exists
-          // and EmailNotificationChannel will use sendPaymentConfirmationEmail if slug is 'payment-confirmation'
-          // OR we can directly call emailService.sendPaymentConfirmationEmail if we bypass sendNotification for this one.
-          // For now, let's assume a generic template 'payment-confirmation' and pass context.
-          templateSlug: 'payment-confirmation', // This slug should map to sendPaymentConfirmationEmail or a similar template
+          templateSlug: 'payment-confirmation',
           templateContext: {
             userName: finalUserName || finalUserEmail,
-            email: finalUserEmail, // EmailService needs this
+            email: finalUserEmail,
             orderNumber: orderData.orderNumber,
             paymentDate: new Date().toISOString(),
             paymentAmount: orderData.total,
             currency: orderData.currency,
             paymentMethod: orderData.paymentMethod,
             transactionId: orderData.paymentId,
-            purchasedItems: orderItems.map(item => ({
+            purchasedItems: orderItems.map((item) => ({
               name: item.name,
               type: item.type as 'course' | 'product' | 'subscription' | 'other',
               id: item.id,
@@ -640,20 +757,21 @@ export class NotificationService extends BaseService {
       }
       try {
         const results = await this.sendNotification(notificationPayload)
-        userNotificationSent = results.some(r => r === true)
+        userNotificationSent = results.some((r) => r === true)
       } catch (e) {
-        console.error(`Failed to dispatch payment confirmation for user ${userIdForNotification}:`, e)
+        console.error(
+          `Failed to dispatch payment confirmation for user ${userIdForNotification}:`,
+          e,
+        )
       }
     } else {
-      // If no userId, try to send email directly if emailService is available and customerEmail is provided
-      // This path is for guest checkouts or when user association fails
       if (this.emailService && orderData.customerEmail) {
         console.log(
           `No user ID for order ${orderData.orderId}, attempting direct email to ${orderData.customerEmail}`,
         )
         try {
           await this.emailService.sendPaymentConfirmationEmail({
-            userName: orderData.customerEmail, // Guest, so use email as name
+            userName: orderData.customerEmail,
             email: orderData.customerEmail,
             orderNumber: orderData.orderNumber,
             paymentDate: new Date().toISOString(),
@@ -662,13 +780,13 @@ export class NotificationService extends BaseService {
             paymentMethod: orderData.paymentMethod,
             transactionId: orderData.paymentId,
             locale: finalUserLocale,
-            purchasedItems: orderItems.map(item => ({
+            purchasedItems: orderItems.map((item) => ({
               name: item.name,
               type: item.type as 'course' | 'product' | 'subscription' | 'other',
               id: item.id,
             })),
           })
-          userNotificationSent = true // Consider it sent if direct email succeeds
+          userNotificationSent = true
         } catch (emailError) {
           console.error(
             `Failed to send direct payment confirmation email to ${orderData.customerEmail}:`,
@@ -682,27 +800,26 @@ export class NotificationService extends BaseService {
       }
     }
 
-    // 4. Отправка уведомления в Telegram (для администраторов) - remains the same
     if (this.telegramService) {
       try {
         await this.telegramService.sendMessage(
           `💰 Новый оплаченный заказ!\n` +
             `Номер заказа: ${orderData.orderNumber}\n` +
             `Сумма: ${orderData.total} ${orderData.currency}\n` +
-            `Email клиента: ${finalUserEmail || 'Неизвестен'}`, // Use finalUserEmail
+            `Email клиента: ${finalUserEmail || 'Неизвестен'}`,
         )
       } catch (telegramError) {
         console.error(`Failed to send Telegram payment confirmation:`, telegramError)
       }
     }
 
-    return userNotificationSent // Return true if user notification (in-app or email) was attempted and succeeded
+    return userNotificationSent
   }
 
   async sendDigitalOrderStatusUpdate(orderData: {
     orderId: string
-    status: string // e.g., 'ready_for_download', 'completed'
-    customerEmail?: string // Fallback if user not found on order
+    status: string
+    customerEmail?: string
     downloadLinks?: string[]
   }): Promise<boolean> {
     if (!orderData.orderId || !orderData.status) {
@@ -712,25 +829,24 @@ export class NotificationService extends BaseService {
 
     let fetchedUser: User | null = null
     let userIdForNotification: string | null = null
-    let finalUserLocale = 'ru'
+    let finalUserLocale = 'en'
     let finalUserName = ''
-    let finalUserEmail = orderData.customerEmail // Fallback
+    let finalUserEmail = orderData.customerEmail
 
-    let orderNumberForMessage = orderData.orderId // Fallback if order number not found
+    let orderNumberForMessage = orderData.orderId
 
     try {
       const order = (await this.payload.findByID({
         collection: 'orders',
         id: orderData.orderId,
-        depth: 1, // Include user data
+        depth: 0,
       })) as Order | null
 
       if (!order) {
         console.error(`Order not found for status update: ${orderData.orderId}`)
-        // Decide if we should still attempt to notify if customerEmail is present
         if (!orderData.customerEmail) return false
       } else {
-        orderNumberForMessage = order.orderNumber || order.id // Use orderNumber if available
+        orderNumberForMessage = order.orderNumber || order.id
         if (order.customer) {
           if (typeof order.customer === 'object' && order.customer.id) {
             fetchedUser = order.customer as User
@@ -751,24 +867,33 @@ export class NotificationService extends BaseService {
                 finalUserEmail = fetchedUser.email || finalUserEmail
               }
             } catch (userFetchErr) {
-              console.error(`Could not fetch user ${userIdForNotification} for status update:`, userFetchErr)
+              console.error(
+                `Could not fetch user ${userIdForNotification} for status update:`,
+                userFetchErr,
+              )
             }
           }
         }
       }
     } catch (fetchError) {
-      console.error(`Error getting order/user details for status update (orderId: ${orderData.orderId}):`, fetchError)
-      if (!orderData.customerEmail && !userIdForNotification) return false // Cannot proceed
+      console.error(
+        `Error getting order/user details for status update (orderId: ${orderData.orderId}):`,
+        fetchError,
+      )
+      if (!orderData.customerEmail && !userIdForNotification) return false
     }
 
     if (!userIdForNotification && !finalUserEmail) {
-      console.error(`Cannot send status update for order ${orderData.orderId}: No user ID or customer email.`)
+      console.error(
+        `Cannot send status update for order ${orderData.orderId}: No user ID or customer email.`,
+      )
       return false
     }
-    
-    let title = 'Order Status Update'
-    let message = `Your order #${orderNumberForMessage} status has been updated to ${orderData.status}.`
-    let notificationType: NotificationCategory = 'order_status'
+
+    let titleKey = 'order_status'
+    let messageKey = 'NotificationBodies.order_status_update_detail'
+    let messageParams: Record<string, any> = { orderNumber: orderNumberForMessage, status: orderData.status }
+    let notificationType: NotificationEventType = 'order_status'
     let emailTemplateSlug: string | null = null
     const emailTemplateContext: Record<string, any> = {
       orderNumber: orderNumberForMessage,
@@ -777,21 +902,20 @@ export class NotificationService extends BaseService {
 
     switch (orderData.status) {
       case 'ready_for_download':
-        title = 'Download Ready'
-        message = `Your digital products from order #${orderNumberForMessage} are ready for download.`
+        titleKey = 'download_ready'
+        messageKey = 'NotificationBodies.download_ready_detail'
+        messageParams = { orderNumber: orderNumberForMessage }
         notificationType = 'download_ready'
         emailTemplateSlug = 'digital_product_ready'
         emailTemplateContext.downloadLinks = orderData.downloadLinks || []
-        // emailTemplateContext.products = order?.items?.map((item: any) => typeof item.product === 'object' ? item.product.title : 'Item') || []; // Requires order to be fetched
         break
       case 'completed':
-        title = 'Order Completed'
-        message = `Your order #${orderNumberForMessage} has been completed.`
+        titleKey = 'order_completed'
+        messageKey = 'NotificationBodies.order_completed_detail'
+        messageParams = { orderNumber: orderNumberForMessage }
         notificationType = 'order_completed'
         emailTemplateSlug = 'order_completed'
-        // emailTemplateContext.products = order?.items?.map((item: any) => typeof item.product === 'object' ? item.product.title : 'Item') || []; // Requires order to be fetched
         break
-      // Add other relevant statuses here
     }
 
     let userNotificationSent = false
@@ -799,9 +923,10 @@ export class NotificationService extends BaseService {
       const notificationPayload: NotificationPayload = {
         userId: userIdForNotification,
         user: fetchedUser || undefined,
-        title,
-        message,
-        type: notificationType, // Maps to 'order_updates' category
+        title: titleKey,
+        messageKey: messageKey,
+        messageParams: messageParams,
+        type: notificationType as NotificationEventType,
         locale: finalUserLocale,
         metadata: {
           orderId: orderData.orderId,
@@ -817,14 +942,21 @@ export class NotificationService extends BaseService {
       }
       try {
         const results = await this.sendNotification(notificationPayload)
-        userNotificationSent = results.some(r => r === true)
+        userNotificationSent = results.some((r) => r === true)
       } catch (e) {
-        console.error(`Failed to dispatch status update for user ${userIdForNotification}, order ${orderData.orderId}:`, e)
+        console.error(
+          `Failed to dispatch status update for user ${userIdForNotification}, order ${orderData.orderId}:`,
+          e,
+        )
       }
     } else if (finalUserEmail && emailTemplateSlug && this.emailService) {
-      // Direct email if no user ID but email and template are available
-      console.log(`No user ID for order ${orderData.orderId}, attempting direct email for status ${orderData.status} to ${finalUserEmail}`)
+      console.log(
+        `No user ID for order ${orderData.orderId}, attempting direct email for status ${orderData.status} to ${finalUserEmail}`,
+      )
       try {
+        const localizedTitle = await this.getNotificationTitle(notificationType, finalUserLocale)
+        emailTemplateContext.title = localizedTitle;
+
         await this.emailService.sendTemplateEmail(
           emailTemplateSlug,
           finalUserEmail,
@@ -833,22 +965,27 @@ export class NotificationService extends BaseService {
         )
         userNotificationSent = true
       } catch (emailError) {
-        console.error(`Failed to send direct status update email to ${finalUserEmail} for order ${orderData.orderId}:`, emailError)
+        console.error(
+          `Failed to send direct status update email to ${finalUserEmail} for order ${orderData.orderId}:`,
+          emailError,
+        )
       }
     } else {
-       console.warn(`Could not send digital order status update for order ${orderData.orderId}. No user ID and insufficient data for direct email.`);
+      console.warn(
+        `Could not send digital order status update for order ${orderData.orderId}. No user ID and insufficient data for direct email.`,
+      )
     }
-    
+
     return userNotificationSent
   }
 
   async sendAbandonedCartReminder(cartData: {
-    user: User // Expect a full User object
-    items: Array<{ product: { title: string }; quantity: number; price: number }> // More specific item structure
+    user: User
+    items: Array<{ product: { title: string }; quantity: number; price: number }>
     total: number
     currency: string
     lastUpdated: Date
-  }): Promise<boolean> { // Return boolean for success indication
+  }): Promise<boolean> {
     const { user, items, total, currency, lastUpdated } = cartData
 
     if (!user || !user.id || !user.email) {
@@ -856,37 +993,31 @@ export class NotificationService extends BaseService {
       return false
     }
 
-    // Global settings check (if re-enabled)
-    // const settings = await this.payload.findGlobal<'settings', any>({ slug: 'settings' })
-    // if (!settings?.notificationSettings?.email?.enableAbandonedCartReminders) {
-    //   console.log('Abandoned cart reminders are globally disabled.')
-    //   return false
-    // }
-
-    const userLocale = user.locale || 'ru'
+    const userLocale = user.locale || 'en'
     const userName = user.name || user.email
 
     const emailTemplateContext = {
       userName,
-      items: items.map(item => ({
+      items: items.map((item) => ({
         title: item.product.title,
         quantity: item.quantity,
         price: item.price,
       })),
       total,
       currency,
-      lastUpdated: lastUpdated.toLocaleDateString(userLocale), // Use locale for date formatting
-      cartUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/cart`, // Ensure NEXT_PUBLIC_SERVER_URL is set
+      lastUpdated: lastUpdated.toLocaleDateString(userLocale),
+      cartUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/cart`,
     }
 
     const notificationPayload: NotificationPayload = {
       userId: user.id,
       user: user,
-      title: 'Items waiting in your cart',
-      message: `You have ${items.length} item(s) in your cart. Complete your purchase before they're gone!`,
-      type: 'abandoned_cart', // Maps to 'marketing' category
+      title: 'abandoned_cart',
+      messageKey: 'NotificationBodies.abandoned_cart_detail',
+      messageParams: { itemCount: items.length },
+      type: 'abandoned_cart',
       locale: userLocale,
-      metadata: emailTemplateContext, // Re-use for in-app metadata
+      metadata: emailTemplateContext,
       emailSpecific: {
         templateSlug: 'abandoned-cart',
         templateContext: emailTemplateContext,
@@ -895,11 +1026,9 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      // Do not throw error here to prevent breaking other processes,
-      // but log if no channel succeeded.
-      if (!results.some(r => r === true)) {
-          console.warn(`Abandoned cart reminder for user ${user.id} was not sent via any channel.`);
-          return false;
+      if (!results.some((r) => r === true)) {
+        console.warn(`Abandoned cart reminder for user ${user.id} was not sent via any channel.`)
+        return false
       }
       return true
     } catch (error) {
@@ -910,7 +1039,7 @@ export class NotificationService extends BaseService {
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
     try {
-      await this.payload.update<'notifications', any>({
+      await this.payload.update({
         collection: 'notifications',
         id: notificationId,
         data: {
@@ -923,7 +1052,7 @@ export class NotificationService extends BaseService {
     }
   }
 
-  async getUserNotifications(userId: string, options = {}): Promise<any> {
+  async getUserNotifications(userId: string, options = {}): Promise<any> { // Consider returning PaginatedDocs<Notification>
     return this.payload.find({
       collection: 'notifications',
       where: {
@@ -936,25 +1065,19 @@ export class NotificationService extends BaseService {
     })
   }
 
-  /**
-   * Проверяет настройки уведомлений пользователя
-   * @param userId ID пользователя
-   * @param notificationType Тип уведомления
-   * @returns Объект с флагами, указывающими, какие типы уведомлений разрешены
-   */
   async checkUserNotificationPreferences(
     userId: string,
-    notificationType: NotificationCategory, // Use the exported type
-    channelType?: INotificationChannel['channelType'], // Optional: check for a specific channel
+    notificationType: NotificationEventType,
+    channelType?: INotificationChannel['channelType'],
   ): Promise<{
-    allowInApp: boolean // In-app is usually not part of this specific check, but kept for consistency
+    allowInApp: boolean
     allowEmail: boolean
     allowPush: boolean
-    allowSms: boolean // Added for future SMS channel
-    [key: string]: boolean // For other dynamic channels
+    allowSms: boolean
+    [key: string]: boolean
   }> {
     const defaults = {
-      allowInApp: true, // Default for in-app (often non-configurable or separately configured)
+      allowInApp: true,
       allowEmail: true,
       allowPush: false,
       allowSms: false,
@@ -964,7 +1087,7 @@ export class NotificationService extends BaseService {
       const user = await this.payload.findByID({
         collection: 'users',
         id: userId,
-        depth: 0, // Preferences are top-level fields
+        depth: 0,
       })
 
       if (!user) {
@@ -972,7 +1095,6 @@ export class NotificationService extends BaseService {
         return defaults
       }
 
-      // User's general notification frequency
       if (user.notificationFrequency === 'never') {
         return {
           ...defaults,
@@ -981,20 +1103,20 @@ export class NotificationService extends BaseService {
           allowSms: false,
         }
       }
-      // Add more granular frequency checks if needed (e.g., 'digest')
+      
+      const userNotificationPrefs = user.notificationPreferences as
+        | {
+            email?: {
+              orderUpdates?: boolean
+              subscriptionUpdates?: boolean
+              accountActivity?: boolean
+              marketingAndPromotions?: boolean
+              productNewsAndTips?: boolean
+            }
+          }
+        | undefined
 
-      const userNotificationPrefs = user.notificationPreferences as {
-        email?: {
-          orderUpdates?: boolean
-          subscriptionUpdates?: boolean
-          accountActivity?: boolean
-          marketingAndPromotions?: boolean
-          productNewsAndTips?: boolean
-        }
-        // push?: { ... } // Future placeholder
-      } | undefined
-
-      let emailAllowed = false // Default to false if not explicitly allowed or mapped
+      let emailAllowed = false
 
       const emailCategoryDefaults = {
         orderUpdates: true,
@@ -1004,66 +1126,45 @@ export class NotificationService extends BaseService {
         productNewsAndTips: false,
       }
 
-      type EmailPreferenceKey = keyof typeof emailCategoryDefaults;
+      type EmailPreferenceKey = keyof typeof emailCategoryDefaults
       let mappedPreferenceKey: EmailPreferenceKey | null = null
 
-      // Map notificationType to a preference key
-      if (
-        [
-          'payment_confirmed',
-          'download_ready',
-          'order_completed',
-          'order_status',
-          'order_cancelled',
-          'order_shipped_fulfilled',
-          'refund_processed',
-          'initial_payment_failed',
-        ].includes(notificationType)
-      ) {
+      const orderUpdateTypes: NotificationEventType[] = [
+        'order_created', 'order_paid', 'order_payment_failed', 'order_shipped_fulfilled',
+        'order_cancelled', 'order_refunded', 'refund_processed', 'order_completed',
+        'download_ready', 'payment_confirmed', 'order_confirmation', 'initial_payment_failed',
+        'order_status', 'order_updates', 'refund_notifications', 'system_alert',
+        'billing_alert', 'billing_alerts',
+      ]
+      const subscriptionUpdateTypes: NotificationEventType[] = [
+        'subscription_activated', 'subscription_cancelled', 'subscription_payment_failed',
+        'subscription_plan_changed', 'subscription_paused', 'subscription_resumed',
+        'subscription_expired', 'subscription_renewal_reminder', 'subscription_renewed_successfully',
+        'subscription_updates', 'renewal_reminders', 'payment_failed',
+      ]
+      const accountActivityTypes: NotificationEventType[] = [
+        'account_welcome', 'welcome_email', 'account_password_changed', 'password_changed',
+        'account_email_changed', 'email_address_changed', 'account_details_updated',
+        'account_updated', 'achievement_unlocked', 'level_up', 'certificate_issued',
+        'comment_reply', 'comment_mention', 'comment_new', 'account', 'achievements', 'comments',
+      ]
+      const marketingAndPromotionsTypes: NotificationEventType[] = [
+        'newsletter_subscribed', 'promotional_message', 'abandoned_cart', 'newsletter', 'marketing',
+      ]
+      const productNewsAndTipsTypes: NotificationEventType[] = [
+        'course_enrolled', 'lesson_completed', 'module_completed', 'assessment_submitted',
+        'assessment_graded', 'course_completed', 'courses', 'general_info',
+      ]
+
+      if (orderUpdateTypes.includes(notificationType)) {
         mappedPreferenceKey = 'orderUpdates'
-      } else if (
-        [
-          'subscription_activated',
-          'subscription_cancelled',
-          'subscription_plan_changed',
-          'subscription_paused',
-          'subscription_resumed',
-          'subscription_expired',
-          'subscription_renewal_reminder',
-          'subscription_renewed_successfully',
-          'subscription_payment_failed',
-        ].includes(notificationType)
-      ) {
+      } else if (subscriptionUpdateTypes.includes(notificationType)) {
         mappedPreferenceKey = 'subscriptionUpdates'
-      } else if (
-        [
-          'welcome_email',
-          'password_changed',
-          'email_address_changed',
-          'account_updated',
-          'achievement',
-          'level_up',
-          'comment_reply',
-          'comment_mention',
-        ].includes(notificationType)
-      ) {
+      } else if (accountActivityTypes.includes(notificationType)) {
         mappedPreferenceKey = 'accountActivity'
-      } else if (
-        ['promo', 'discount', 'marketing', 'abandoned_cart', 'newsletter', 'broadcast'].includes(
-          notificationType,
-        )
-      ) {
+      } else if (marketingAndPromotionsTypes.includes(notificationType)) {
         mappedPreferenceKey = 'marketingAndPromotions'
-      } else if (
-        [
-          'course_completed', // Assuming general course news, not specific progress for this category
-          'lesson_completed',
-          'course_enrolled',
-          'product_news', // Example direct type
-          'platform_updates', // Example direct type
-        ].includes(notificationType)
-      ) {
-        // This category can be refined if more specific course/product preferences are added
+      } else if (productNewsAndTipsTypes.includes(notificationType)) {
         mappedPreferenceKey = 'productNewsAndTips'
       }
 
@@ -1072,23 +1173,17 @@ export class NotificationService extends BaseService {
         if (typeof preferenceValue === 'boolean') {
           emailAllowed = preferenceValue
         } else {
-          // Value is undefined (e.g., field not on an old user doc, though Payload defaults should handle this)
-          // Fallback to the schema default for this specific category.
-          emailAllowed = emailCategoryDefaults[mappedPreferenceKey] ?? false // Fallback to false if key is somehow invalid
+          emailAllowed = emailCategoryDefaults[mappedPreferenceKey] ?? false
           this.payload.logger.warn(
             `Email preference for "${mappedPreferenceKey}" was undefined for user ${userId}. Used schema default: ${emailAllowed}.`,
           )
         }
       } else if (mappedPreferenceKey) {
-        // userNotificationPrefs.email is missing, or userNotificationPrefs itself is missing.
-        // This implies the user object might be incomplete or the structure is not as expected.
-        // Fallback to schema defaults for the mapped key.
         emailAllowed = emailCategoryDefaults[mappedPreferenceKey] ?? false
         this.payload.logger.warn(
           `User's email preferences structure (user.notificationPreferences.email) was missing or incomplete for user ${userId} while checking for "${mappedPreferenceKey}". Used schema default: ${emailAllowed}.`,
         )
       } else {
-        // notificationType was not mapped to any known preferenceKey
         this.payload.logger.warn(
           `Notification type "${notificationType}" not mapped to a known email preference category for user ${userId}. Email will be disabled for this type.`,
         )
@@ -1098,17 +1193,19 @@ export class NotificationService extends BaseService {
       const finalPreferences: { [key: string]: boolean } = {
         allowInApp: defaults.allowInApp,
         allowEmail: emailAllowed,
-        allowPush: defaults.allowPush, // Remains false, as push preferences are not yet implemented in detail
-        allowSms: defaults.allowSms,   // Remains false, as SMS preferences are not yet implemented
+        allowPush: defaults.allowPush,
+        allowSms: defaults.allowSms,
       }
 
-      // If a specific channelType is requested, only return that preference
       if (channelType) {
-        const singleChannelPrefKey = `allow${channelType.charAt(0).toUpperCase() + channelType.slice(1)}`;
-        // Ensure the key exists in defaults before trying to construct the return object
-        // Use a type assertion for defaults key access if necessary, or check existence
-        const defaultChannelValue = (defaults as Record<string, boolean>)[singleChannelPrefKey] ?? (channelType === 'inApp' ? true : false);
-        return { ...defaults, [singleChannelPrefKey]: finalPreferences[singleChannelPrefKey] ?? defaultChannelValue };
+        const singleChannelPrefKey = `allow${channelType.charAt(0).toUpperCase() + channelType.slice(1)}`
+        const defaultChannelValue =
+          (defaults as Record<string, boolean>)[singleChannelPrefKey] ??
+          (channelType === 'inApp' ? true : false)
+        return {
+          ...defaults,
+          [singleChannelPrefKey]: finalPreferences[singleChannelPrefKey] ?? defaultChannelValue,
+        }
       }
 
       return finalPreferences as {
@@ -1120,41 +1217,48 @@ export class NotificationService extends BaseService {
       }
     } catch (error) {
       console.error(`Error checking user notification preferences for user ${userId}:`, error)
-      return defaults // Return safe defaults on error
+      return defaults
     }
   }
 
-  /**
-   * Dispatches a notification to all relevant channels based on user preferences.
-   * @param data The notification payload.
-   */
   async sendNotification(data: NotificationPayload): Promise<boolean[]> {
     let userForPrefs = data.user
     if (!userForPrefs) {
       try {
-        userForPrefs = await this.payload.findByID({ collection: 'users', id: data.userId, depth: 0 })
+        userForPrefs = await this.payload.findByID({
+          collection: 'users',
+          id: data.userId,
+          depth: 0,
+        })
       } catch (e) {
         console.error(`sendNotification: Could not fetch user ${data.userId} for preferences.`)
-        return this.channels.map(() => false) // Return array of falses
+        return this.channels.map(() => false)
       }
     }
     if (!userForPrefs) {
-        console.error(`sendNotification: User ${data.userId} not found. Cannot send notification.`)
-        return this.channels.map(() => false)
+      console.error(`sendNotification: User ${data.userId} not found. Cannot send notification.`)
+      return this.channels.map(() => false)
     }
-    
-    // Ensure the payload has the user object for channels that need it (like EmailChannel)
-    const payloadWithUser: NotificationPayload = { ...data, user: userForPrefs };
+
+    const notificationLocale = data.locale || userForPrefs.locale || 'en'
+    const localizedTitle = await this.getNotificationTitle(data.type, notificationLocale)
+
+    const payloadWithUserAndLocale: NotificationPayload = {
+      ...data,
+      user: userForPrefs,
+      title: localizedTitle,
+      locale: notificationLocale,
+    }
 
     const results: boolean[] = []
 
     for (const channel of this.channels) {
       try {
         const preferences = await this.checkUserNotificationPreferences(
-          payloadWithUser.userId,
-          payloadWithUser.type, // Pass the general notification type for category mapping
+          payloadWithUserAndLocale.userId,
+          payloadWithUserAndLocale.type,
         )
-        
+
         let shouldSendViaChannel = false
         switch (channel.channelType) {
           case 'inApp':
@@ -1170,37 +1274,38 @@ export class NotificationService extends BaseService {
             shouldSendViaChannel = preferences.allowPush
             break
           default:
-            // For custom channels, preference key might be different
-            // Assuming a convention like `allowCustomChannelName`
             const prefKey = `allow${channel.channelType.charAt(0).toUpperCase() + channel.channelType.slice(1)}`
             shouldSendViaChannel = preferences[prefKey] === true
         }
 
         if (shouldSendViaChannel) {
-          const success = await channel.send(payloadWithUser, this)
+          const success = await channel.send(payloadWithUserAndLocale, this)
           results.push(success)
           if (success) {
-            console.log(`Notification sent via ${channel.channelType} to user ${payloadWithUser.userId}: ${payloadWithUser.title}`)
+            console.log(
+              `Notification sent via ${channel.channelType} to user ${payloadWithUserAndLocale.userId}: ${payloadWithUserAndLocale.title}`,
+            )
           } else {
-            console.warn(`Failed to send notification via ${channel.channelType} to user ${payloadWithUser.userId}: ${payloadWithUser.title}`)
+            console.warn(
+              `Failed to send notification via ${channel.channelType} to user ${payloadWithUserAndLocale.userId}: ${payloadWithUserAndLocale.title}`,
+            )
           }
         } else {
-          results.push(false) // Channel not allowed by preferences
+          results.push(false)
         }
       } catch (error) {
-        console.error(`Error processing channel ${channel.channelType} for user ${payloadWithUser.userId}:`, error)
+        console.error(
+          `Error processing channel ${channel.channelType} for user ${payloadWithUserAndLocale.userId}:`,
+          error,
+        )
         results.push(false)
       }
     }
     return results
   }
 
-  /**
-   * Отмечает все уведомления пользователя как прочитанные
-   * @param userId ID пользователя
-   */
   async markAllAsRead(userId: string): Promise<boolean> {
-    const where: Where = {
+    const whereClause: Where = { // Renamed to avoid conflict if 'where' is a keyword in a broader scope
       user: {
         equals: userId,
       },
@@ -1209,9 +1314,9 @@ export class NotificationService extends BaseService {
       },
     }
     try {
-      await this.payload.update<'notifications', any>({
+      await this.payload.update({
         collection: 'notifications',
-        where: where,
+        where: whereClause,
         data: {
           isRead: true,
         },
@@ -1223,645 +1328,728 @@ export class NotificationService extends BaseService {
     }
   }
 
-  private async createNotification(
-    type: Notification['type'],
-    message: string,
-    recipientUserId: string,
-    relatedDoc?: {
-      collection: 'orders' | 'subscriptions' | 'products'
-      id: string
-    },
-  ): Promise<Notification | null> {
+  private async getNotificationTitle(
+    type: NotificationEventType,
+    locale: string = 'en',
+  ): Promise<string> {
     try {
-      // Добавляем отсутствующее поле title
-      const notificationData: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'> = {
-        type: type as any,
-        title: this.getNotificationTitle(type as any), // Генерируем заголовок по типу
-        message,
-        user: recipientUserId,
-        isRead: false,
-        ...(relatedDoc && { relatedDoc }),
+      const t = await getTranslations({ locale, namespace: 'NotificationTitles' })
+      let titleKey = type as string
+      if (type === 'welcome_email') titleKey = 'account_welcome'
+      if (type === 'password_changed') titleKey = 'account_password_changed'
+      if (type === 'email_address_changed') titleKey = 'account_email_changed'
+      if (type === 'account_updated') titleKey = 'account_details_updated'
+      if (type === 'refund_processed') titleKey = 'order_refunded'
+      if (type === 'payment_failed' && type.startsWith('subscription')) titleKey = 'subscription_payment_failed'
+      else if (type === 'payment_failed') titleKey = 'order_payment_failed'
+
+
+      let translatedTitle = t(titleKey)
+
+      if (translatedTitle === titleKey) {
+        const genericTitleMap: Partial<Record<NotificationEventType, string>> = {
+          account: 'account_details_updated',
+          courses: 'general_info',
+          achievements: 'achievement_unlocked',
+          comments: 'comment_new',
+          newsletter: 'newsletter_subscribed',
+          marketing: 'promotional_message',
+          billing_alerts: 'billing_alert',
+          subscription_updates: 'subscription_activated', 
+          order_updates: 'order_status',
+          refund_notifications: 'order_refunded',
+          renewal_reminders: 'subscription_renewal_reminder',
+        }
+        if (genericTitleMap[type]) {
+          translatedTitle = t(genericTitleMap[type]!)
+        } else {
+          translatedTitle = t('default')
+        }
       }
-
-      const newNotification = await this.payload.create<'notifications', any>({
-        collection: 'notifications',
-        data: notificationData,
-      })
-      console.log(`Notification created: ${type} for user ${recipientUserId}`)
-      return newNotification as Notification
+      return translatedTitle
     } catch (error) {
-      console.error(`Error creating notification (${type}):`, error)
-      return null
+      console.error(`Error getting notification title for type ${type}, locale ${locale}:`, error)
+      const fallbackTitles: Record<string, string> = {
+        order_confirmation: 'Order Confirmed',
+        subscription_activated: 'Subscription Activated',
+        default: 'New Notification',
+      }
+      const fallbackTitle = fallbackTitles[type as string]
+      return fallbackTitle ?? fallbackTitles.default ?? 'New Notification'
     }
   }
 
-  // Вспомогательная функция для генерации заголовка (можно вынести или сделать сложнее)
-  private getNotificationTitle(type: string): string {
-    // TODO: Implement proper title generation / localization
-    switch (type) {
-      case 'order_confirmation':
-        return 'Заказ подтвержден'
-      case 'subscription_activated':
-        return 'Подписка активирована'
-      case 'subscription_cancelled':
-        return 'Подписка отменена'
-      return 'Ошибка платежа'
-    case 'order_shipped_fulfilled':
-      return 'Заказ отправлен/выполнен'
-    case 'order_cancelled':
-      return 'Заказ отменен'
-    case 'refund_processed':
-      return 'Возврат обработан'
-    case 'subscription_renewal_reminder':
-      return 'Напоминание о продлении подписки'
-    case 'subscription_renewed_successfully':
-      return 'Подписка успешно продлена'
-    case 'initial_payment_failed':
-      return 'Ошибка начального платежа'
-    case 'welcome_email':
-      return 'Добро пожаловать!'
-    case 'password_changed':
-      return 'Пароль изменен'
-    case 'email_address_changed':
-      return 'Email адрес изменен'
-    case 'account_updated':
-      return 'Данные аккаунта обновлены'
-    // ... другие типы ...
-    default:
-      return 'Новое уведомление'
-    }
-  }
-
-  async sendOrderConfirmation(order: Order): Promise<void> {
-    const userId =
-      typeof order.customer === 'object' && order.customer !== null
-        ? order.customer.id
-        : typeof order.customer === 'string'
-          ? order.customer
+  async sendOrderConfirmation(order: Order): Promise<boolean> {
+    const customer = order.customer
+    const userIdValue = // Renamed to avoid conflict with function parameter 'userId' in other methods
+      typeof customer === 'object' && customer !== null
+        ? customer.id
+        : typeof customer === 'string'
+          ? customer
           : null
 
-    if (!userId) {
+    if (!userIdValue) {
       console.error('Cannot send order confirmation: User ID not found in order.')
-      return
+      return false
     }
-    await this.createNotification(
-      'order_confirmation' as any,
-      `Ваш заказ #${order.id} успешно оформлен.`,
-      userId,
-      { collection: 'orders', id: order.id },
-    )
-  }
 
-  async sendPaymentFailed(subscription: Subscription): Promise<void> {
-    const userObject = subscription.user
-    const userId =
-      typeof userObject === 'object' && userObject !== null
-        ? userObject.id
-        : typeof userObject === 'string'
-          ? userObject
-          : null
-
-    if (!userId) {
-      console.error('Cannot send payment failed notification: User ID not found in subscription.')
-      return
-    }
-    await this.createNotification(
-      'payment_failed' as any,
-      `Платеж по подписке ${subscription.id} не прошел. Пожалуйста, обновите платежную информацию.`,
-      userId,
-      { collection: 'subscriptions', id: subscription.id },
-    )
-  }
-  
-    // --- OMS Notifications ---
-  
-    async sendOrderCancelledNotification(orderId: string, cancellationReason?: string): Promise<boolean> {
-      let fetchedUser: User | null = null
-      let userIdForNotification: string | null = null
-      let finalUserLocale = 'ru'
-      let finalUserName = ''
-      let finalUserEmail: string | null = null
-      let orderNumberForMessage = orderId
-  
+    let user: User | undefined = undefined
+    if (typeof customer === 'object' && customer !== null) {
+      user = customer as User
+    } else if (typeof customer === 'string') {
       try {
-        const order = (await this.payload.findByID({
-          collection: 'orders',
-          id: orderId,
-          depth: 1, // Include user data
-        })) as Order | null
-  
-        if (!order) {
-          console.error(`Order not found for cancellation notification: ${orderId}`)
-          return false
-        }
-        orderNumberForMessage = order.orderNumber || order.id
-  
-        if (order.customer) {
-          if (typeof order.customer === 'object' && order.customer.id) {
-            fetchedUser = order.customer as User
-            userIdForNotification = fetchedUser.id
-            finalUserLocale = fetchedUser.locale || finalUserLocale
-            finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-            finalUserEmail = fetchedUser.email
-          } else if (typeof order.customer === 'string') {
-            userIdForNotification = order.customer
-            try {
-              fetchedUser = (await this.payload.findByID({
-                collection: 'users',
-                id: userIdForNotification,
-              })) as User
-              if (fetchedUser) {
-                finalUserLocale = fetchedUser.locale || finalUserLocale
-                finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-                finalUserEmail = fetchedUser.email
-              }
-            } catch (userFetchErr) {
-              console.error(`Could not fetch user ${userIdForNotification} for order cancellation:`, userFetchErr)
-            }
-          }
-        }
-  
-        if (!userIdForNotification || !finalUserEmail) {
-          console.error(`Missing user data for order cancellation notification: ${orderId}`)
-          return false
-        }
-  
-        const notificationPayload: NotificationPayload = {
-          userId: userIdForNotification,
-          user: fetchedUser || undefined,
-          title: this.getNotificationTitle('order_cancelled'),
-          message: `Your order #${orderNumberForMessage} has been cancelled.`,
-          type: 'order_cancelled', // Maps to 'order_updates' category
-          locale: finalUserLocale,
-          metadata: {
-            orderId: order.id,
-            orderNumber: orderNumberForMessage,
-            cancellationReason: cancellationReason || (order as any).cancellationReason || 'Not specified',
-          },
-          emailSpecific: {
-            templateSlug: 'order-cancelled',
-            templateContext: {
-              userName: finalUserName,
-              orderNumber: orderNumberForMessage,
-              cancellationReason: cancellationReason || (order as any).cancellationReason || 'Not specified',
-            },
-          },
-        }
-  
-        const results = await this.sendNotification(notificationPayload)
-        return results.some(r => r === true)
-      } catch (error) {
-        console.error(`Failed to dispatch order cancelled notification for ${orderId}:`, error)
+        user = await this.payload.findByID({ collection: 'users', id: customer, depth: 0 }) as User
+      } catch (e) {
+        console.warn(`Could not fetch user object for order confirmation: ${customer}`)
+      }
+    }
+
+    const userLocale = user?.locale || 'en'
+    const userName = user?.name || user?.email || 'Customer'
+
+    const notificationPayload: NotificationPayload = {
+      userId: userIdValue,
+      user,
+      title: 'order_confirmation',
+      messageKey: 'NotificationBodies.order_confirmation_detail',
+      messageParams: { orderNumber: order.orderNumber || order.id },
+      type: 'order_confirmation',
+      locale: userLocale,
+      link: `/account/orders/${order.id}`,
+      metadata: {
+        orderId: order.id,
+        orderNumber: order.orderNumber || order.id,
+        total: userLocale === 'en' && order.total.en ? order.total.en.amount : (order.total.ru ? order.total.ru.amount : 0),
+        currency: userLocale === 'en' && order.total.en ? order.total.en.currency : (order.total.ru ? order.total.ru.currency : 'USD'),
+      },
+      emailSpecific: {
+        templateSlug: 'order-confirmation',
+        templateContext: {
+          userName,
+          orderNumber: order.orderNumber || order.id,
+          orderDate: order.createdAt,
+          total: userLocale === 'en' && order.total.en ? order.total.en.amount : (order.total.ru ? order.total.ru.amount : 0),
+          currency: userLocale === 'en' && order.total.en ? order.total.en.currency : (order.total.ru ? order.total.ru.currency : 'USD'),
+          items: order.items?.map(item => ({
+            name: typeof item.product === 'object' ? (item.product as any)?.title : 'Product',
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        },
+      },
+    }
+
+    try {
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
+    } catch (error) {
+      console.error(`Failed to dispatch order confirmation for order ${order.id}:`, error)
+      return false
+    }
+  }
+
+  async sendPaymentFailed(subscriptionId: string): Promise<boolean> {
+    const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
+    if (!subscription || !user || !plan) {
+      console.error(`Missing data for sendPaymentFailed (direct call): ${subscriptionId}`)
+      return false
+    }
+    const userLocale = user.locale || 'en'
+    const userName = user.name || user.email || 'Customer'
+
+    const notificationPayload: NotificationPayload = {
+      userId: user.id,
+      user: user,
+      title: 'payment_failed',
+      messageKey: 'NotificationBodies.payment_failed_subscription_detail',
+      messageParams: { planName: plan.name },
+      type: 'payment_failed',
+      locale: userLocale,
+      link: `/account/subscriptions/${subscription.id}`,
+      metadata: {
+        subscriptionId: subscription.id,
+        planId: plan.id,
+        planName: plan.name,
+      },
+      emailSpecific: {
+        templateSlug: 'subscription-payment-failed',
+        templateContext: {
+          userName,
+          planName: plan.name,
+          nextPaymentDate: subscription.expiresAt as string,
+        },
+      },
+    }
+    try {
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
+    } catch (error) {
+      console.error(
+        `Failed to dispatch payment failed notification for subscription ${subscriptionId}:`,
+        error,
+      )
+      return false
+    }
+  }
+
+  async sendOrderCancelledNotification(
+    orderId: string,
+    cancellationReason?: string,
+  ): Promise<boolean> {
+    let fetchedUser: User | null = null
+    let userIdForNotification: string | null = null
+    let finalUserLocale = 'en'
+    let finalUserName = ''
+    let finalUserEmail: string | null = null
+    let orderNumberForMessage = orderId
+
+    try {
+      const order = (await this.payload.findByID({
+        collection: 'orders',
+        id: orderId,
+        depth: 0,
+      })) as Order | null
+
+      if (!order) {
+        console.error(`Order not found for cancellation notification: ${orderId}`)
         return false
       }
-    }
-  
-    async sendRefundProcessedNotification(orderId: string, refundDetails: { amount: number; currency: string; processedAt: string }): Promise<boolean> {
-      let fetchedUser: User | null = null
-      let userIdForNotification: string | null = null
-      let finalUserLocale = 'ru'
-      let finalUserName = ''
-      let finalUserEmail: string | null = null
-      let orderNumberForMessage = orderId
-  
-      try {
-        const order = (await this.payload.findByID({
-          collection: 'orders',
-          id: orderId,
-          depth: 1, // Include user data
-        })) as Order | null
-  
-        if (!order) {
-          console.error(`Order not found for refund processed notification: ${orderId}`)
-          return false
-        }
-        orderNumberForMessage = order.orderNumber || order.id
-  
-        if (order.customer) {
-          if (typeof order.customer === 'object' && order.customer.id) {
-            fetchedUser = order.customer as User
-            userIdForNotification = fetchedUser.id
-            finalUserLocale = fetchedUser.locale || finalUserLocale
-            finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-            finalUserEmail = fetchedUser.email
-          } else if (typeof order.customer === 'string') {
-            userIdForNotification = order.customer
-            try {
-              fetchedUser = (await this.payload.findByID({
-                collection: 'users',
-                id: userIdForNotification,
-              })) as User
-              if (fetchedUser) {
-                finalUserLocale = fetchedUser.locale || finalUserLocale
-                finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-                finalUserEmail = fetchedUser.email
-              }
-            } catch (userFetchErr) {
-              console.error(`Could not fetch user ${userIdForNotification} for refund notification:`, userFetchErr)
+      orderNumberForMessage = order.orderNumber || order.id
+
+      if (order.customer) {
+        if (typeof order.customer === 'object' && order.customer.id) {
+          fetchedUser = order.customer as User
+          userIdForNotification = fetchedUser.id
+          finalUserLocale = fetchedUser.locale || finalUserLocale
+          finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+          finalUserEmail = fetchedUser.email
+        } else if (typeof order.customer === 'string') {
+          userIdForNotification = order.customer
+          try {
+            fetchedUser = (await this.payload.findByID({
+              collection: 'users',
+              id: userIdForNotification,
+              depth: 0,
+            })) as User
+            if (fetchedUser) {
+              finalUserLocale = fetchedUser.locale || finalUserLocale
+              finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+              finalUserEmail = fetchedUser.email
             }
+          } catch (userFetchErr) {
+            console.error(
+              `Could not fetch user ${userIdForNotification} for order cancellation:`,
+              userFetchErr,
+            )
           }
         }
-  
-        if (!userIdForNotification || !finalUserEmail) {
-          console.error(`Missing user data for refund processed notification: ${orderId}`)
-          return false
+      }
+
+      if (!userIdForNotification || !finalUserEmail) {
+        console.error(`Missing user data for order cancellation notification: ${orderId}`)
+        return false
+      }
+      const tNotificationBodies = await getTranslations({ locale: finalUserLocale, namespace: 'NotificationBodies' });
+      const reasonText = cancellationReason || (order as any).cancellationReason || tNotificationBodies('defaultCancellationReason');
+
+
+      const notificationPayload: NotificationPayload = {
+        userId: userIdForNotification,
+        user: fetchedUser || undefined,
+        title: 'order_cancelled',
+        messageKey: 'NotificationBodies.order_cancelled_detail',
+        messageParams: { orderNumber: orderNumberForMessage, reason: reasonText },
+        type: 'order_cancelled',
+        locale: finalUserLocale,
+        metadata: {
+          orderId: order.id,
+          orderNumber: orderNumberForMessage,
+          cancellationReason: reasonText,
+        },
+        emailSpecific: {
+          templateSlug: 'order-cancelled',
+          templateContext: {
+            userName: finalUserName,
+            orderNumber: orderNumberForMessage,
+            cancellationReason: reasonText,
+          },
+        },
+      }
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some((r) => r === true)
+    } catch (error) {
+      console.error(`Failed to dispatch order cancelled notification for ${orderId}:`, error)
+      return false
+    }
+  }
+
+  async sendRefundProcessedNotification(
+    orderId: string,
+    refundDetails: { amount: number; currency: string; processedAt: string },
+  ): Promise<boolean> {
+    let fetchedUser: User | null = null
+    let userIdForNotification: string | null = null
+    let finalUserLocale = 'en'
+    let finalUserName = ''
+    let finalUserEmail: string | null = null
+    let orderNumberForMessage = orderId
+
+    try {
+      const order = (await this.payload.findByID({
+        collection: 'orders',
+        id: orderId,
+        depth: 0,
+      })) as Order | null
+
+      if (!order) {
+        console.error(`Order not found for refund processed notification: ${orderId}`)
+        return false
+      }
+      orderNumberForMessage = order.orderNumber || order.id
+
+      if (order.customer) {
+        if (typeof order.customer === 'object' && order.customer.id) {
+          fetchedUser = order.customer as User
+          userIdForNotification = fetchedUser.id
+          finalUserLocale = fetchedUser.locale || finalUserLocale
+          finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+          finalUserEmail = fetchedUser.email
+        } else if (typeof order.customer === 'string') {
+          userIdForNotification = order.customer
+          try {
+            fetchedUser = (await this.payload.findByID({
+              collection: 'users',
+              id: userIdForNotification,
+              depth: 0,
+            })) as User
+            if (fetchedUser) {
+              finalUserLocale = fetchedUser.locale || finalUserLocale
+              finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+              finalUserEmail = fetchedUser.email
+            }
+          } catch (userFetchErr) {
+            console.error(
+              `Could not fetch user ${userIdForNotification} for refund notification:`,
+              userFetchErr,
+            )
+          }
         }
-  
-        const notificationPayload: NotificationPayload = {
-          userId: userIdForNotification,
-          user: fetchedUser || undefined,
-          title: this.getNotificationTitle('refund_processed'),
-          message: `A refund of ${refundDetails.amount} ${refundDetails.currency} for order #${orderNumberForMessage} has been processed.`,
-          type: 'refund_processed', // Maps to 'refund_notifications' category
-          locale: finalUserLocale,
-          metadata: {
-            orderId: order.id,
+      }
+
+      if (!userIdForNotification || !finalUserEmail) {
+        console.error(`Missing user data for refund processed notification: ${orderId}`)
+        return false
+      }
+
+      const notificationPayload: NotificationPayload = {
+        userId: userIdForNotification,
+        user: fetchedUser || undefined,
+        title: 'order_refunded',
+        messageKey: 'NotificationBodies.refund_processed_detail',
+        messageParams: {
+          amount: refundDetails.amount,
+          currency: refundDetails.currency,
+          orderNumber: orderNumberForMessage,
+        },
+        type: 'refund_processed',
+        locale: finalUserLocale,
+        metadata: {
+          orderId: order.id,
+          orderNumber: orderNumberForMessage,
+          refundAmount: refundDetails.amount,
+          currency: refundDetails.currency,
+          processedAt: refundDetails.processedAt,
+        },
+        emailSpecific: {
+          templateSlug: 'refund-processed',
+          templateContext: {
+            userName: finalUserName,
             orderNumber: orderNumberForMessage,
             refundAmount: refundDetails.amount,
             currency: refundDetails.currency,
             processedAt: refundDetails.processedAt,
           },
-          emailSpecific: {
-            templateSlug: 'refund-processed',
-            templateContext: {
-              userName: finalUserName,
-              orderNumber: orderNumberForMessage,
-              refundAmount: refundDetails.amount,
-              currency: refundDetails.currency,
-              processedAt: refundDetails.processedAt,
-            },
-          },
-        }
-  
-        const results = await this.sendNotification(notificationPayload)
-        return results.some(r => r === true)
-      } catch (error) {
-        console.error(`Failed to dispatch refund processed notification for ${orderId}:`, error)
-        return false
+        },
       }
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some((r) => r === true)
+    } catch (error) {
+      console.error(`Failed to dispatch refund processed notification for ${orderId}:`, error)
+      return false
     }
-  
-    // --- SMS Notifications ---
-  
-    async sendSubscriptionRenewalReminder(subscriptionId: string): Promise<boolean> {
-      const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
-      if (!subscription || !user || !plan) {
-        console.error(`Missing data for sendSubscriptionRenewalReminder: ${subscriptionId}`)
-        return false
-      }
-      const userLocale = user.locale || 'ru'
-      const userName = user.name || user.email || 'Customer'
-  
-      const notificationPayload: NotificationPayload = {
-        userId: user.id,
-        user: user,
-        title: this.getNotificationTitle('subscription_renewal_reminder'),
-        message: `Your subscription to ${plan.name} is due for renewal on ${new Date(subscription.expiresAt as string).toLocaleDateString(userLocale)}.`,
-        type: 'subscription_renewal_reminder', // Maps to 'renewal_reminders' category
-        locale: userLocale,
-        metadata: {
-          subscriptionId: subscription.id,
+  }
+
+  async sendSubscriptionRenewalReminder(subscriptionId: string): Promise<boolean> {
+    const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
+    if (!subscription || !user || !plan) {
+      console.error(`Missing data for sendSubscriptionRenewalReminder: ${subscriptionId}`)
+      return false
+    }
+    const userLocale = user.locale || 'en'
+    const userName = user.name || user.email || 'Customer'
+
+    const notificationPayload: NotificationPayload = {
+      userId: user.id,
+      user: user,
+      title: 'subscription_renewal_reminder',
+      messageKey: 'NotificationBodies.subscription_renewal_reminder_detail',
+      messageParams: {
+        planName: plan.name,
+        renewalDate: new Date(subscription.expiresAt as string).toLocaleDateString(userLocale),
+      },
+      type: 'subscription_renewal_reminder',
+      locale: userLocale,
+      metadata: {
+        subscriptionId: subscription.id,
+        planName: plan.name,
+        renewalDate: subscription.expiresAt,
+      },
+      emailSpecific: {
+        templateSlug: 'subscription-renewal-reminder',
+        templateContext: {
+          userName,
           planName: plan.name,
-          renewalDate: subscription.expiresAt,
+          renewalDate: subscription.expiresAt as string,
         },
-        emailSpecific: {
-          templateSlug: 'subscription-renewal-reminder',
-          templateContext: {
-            userName,
-            planName: plan.name,
-            renewalDate: subscription.expiresAt as string,
-          },
-        },
-      }
-  
-      try {
-        const results = await this.sendNotification(notificationPayload)
-        return results.some(r => r === true)
-      } catch (error) {
-        console.error(`Failed to dispatch subscription renewal reminder for ${subscriptionId}:`, error)
-        return false
-      }
-    }
-  
-    async sendSubscriptionRenewedSuccessfully(subscriptionId: string): Promise<boolean> {
-      const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
-      if (!subscription || !user || !plan) {
-        console.error(`Missing data for sendSubscriptionRenewedSuccessfully: ${subscriptionId}`)
-        return false
-      }
-      const userLocale = user.locale || 'ru'
-      const userName = user.name || user.email || 'Customer'
-  
-      const notificationPayload: NotificationPayload = {
-        userId: user.id,
-        user: user,
-        title: this.getNotificationTitle('subscription_renewed_successfully'),
-        message: `Your subscription to ${plan.name} has been successfully renewed. Next payment: ${new Date(subscription.expiresAt as string).toLocaleDateString(userLocale)}.`,
-        type: 'subscription_renewed_successfully', // Maps to 'subscription_updates' category
-        locale: userLocale,
-        metadata: {
-          subscriptionId: subscription.id,
-          planName: plan.name,
-          nextPaymentDate: subscription.expiresAt,
-        },
-        emailSpecific: {
-          templateSlug: 'subscription-renewed', // Or 'subscription-renewed-successfully'
-          templateContext: {
-            userName,
-            planName: plan.name,
-            newExpiryDate: subscription.expiresAt as string,
-          },
-        },
-      }
-  
-      try {
-        const results = await this.sendNotification(notificationPayload)
-        return results.some(r => r === true)
-      } catch (error) {
-        console.error(`Failed to dispatch subscription renewed successfully notification for ${subscriptionId}:`, error)
-        return false
-      }
-    }
-  
-    // --- PS Notifications ---
-  
-    async sendInitialPaymentFailedNotification(orderId: string, reason?: string): Promise<boolean> {
-      let fetchedUser: User | null = null
-      let userIdForNotification: string | null = null
-      let finalUserLocale = 'ru'
-      let finalUserName = ''
-      let finalUserEmail: string | null = null
-      let orderNumberForMessage = orderId
-  
-      try {
-        const order = (await this.payload.findByID({
-          collection: 'orders',
-          id: orderId,
-          depth: 1, // Include user data
-        })) as Order | null
-  
-        if (!order) {
-          console.error(`Order not found for initial payment failed notification: ${orderId}`)
-          return false
-        }
-        orderNumberForMessage = order.orderNumber || order.id
-  
-        if (order.customer) {
-          if (typeof order.customer === 'object' && order.customer.id) {
-            fetchedUser = order.customer as User
-            userIdForNotification = fetchedUser.id
-            finalUserLocale = fetchedUser.locale || finalUserLocale
-            finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-            finalUserEmail = fetchedUser.email
-          } else if (typeof order.customer === 'string') {
-            userIdForNotification = order.customer
-            try {
-              fetchedUser = (await this.payload.findByID({
-                collection: 'users',
-                id: userIdForNotification,
-              })) as User
-              if (fetchedUser) {
-                finalUserLocale = fetchedUser.locale || finalUserLocale
-                finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
-                finalUserEmail = fetchedUser.email
-              }
-            } catch (userFetchErr) {
-              console.error(`Could not fetch user ${userIdForNotification} for initial payment failed:`, userFetchErr)
-            }
-          }
-        }
-  
-        if (!userIdForNotification || !finalUserEmail) {
-          console.error(`Missing user data for initial payment failed notification: ${orderId}`)
-          return false
-        }
-  
-        const notificationPayload: NotificationPayload = {
-          userId: userIdForNotification,
-          user: fetchedUser || undefined,
-          title: this.getNotificationTitle('initial_payment_failed'),
-          message: `We were unable to process the payment for order #${orderNumberForMessage}. ${reason || 'Please check your payment details and try again.'}`,
-          type: 'initial_payment_failed', // Maps to 'billing_alerts' category
-          locale: finalUserLocale,
-          metadata: {
-            orderId: order.id,
-            orderNumber: orderNumberForMessage,
-            reason: reason || 'Payment failed.',
-          },
-          emailSpecific: {
-            templateSlug: 'initial-payment-failed',
-            templateContext: {
-              userName: finalUserName,
-              orderNumber: orderNumberForMessage,
-              failureReason: reason || 'Payment failed.',
-            },
-          },
-        }
-  
-        const results = await this.sendNotification(notificationPayload)
-        return results.some(r => r === true)
-      } catch (error) {
-        console.error(`Failed to dispatch initial payment failed notification for ${orderId}:`, error)
-        return false
-      }
-    }
-  
-    // --- Account Management Notifications ---
-  
-    async sendWelcomeEmail(userId: string): Promise<boolean> {
-      try {
-        const user = await this.payload.findByID({ collection: 'users', id: userId }) as User
-        if (!user || !user.email) {
-          console.error(`User not found or missing email for sendWelcomeEmail: ${userId}`)
-          return false
-        }
-        const userLocale = user.locale || 'ru'
-        const userName = user.name || user.email
-  
-        const preferences = await this.checkUserNotificationPreferences(userId, 'welcome_email')
-  
-        // In-app for welcome might be optional or combined with a tour. For now, let's add it.
-        if (preferences.allowInApp) {
-           await this.payload.create<'notifications', any>({
-            collection: 'notifications',
-            data: {
-              user: userId,
-              title: this.getNotificationTitle('welcome_email'),
-              message: `Добро пожаловать, ${userName}! Мы рады видеть вас.`,
-              type: 'welcome_email' as any,
-              isRead: false,
-              metadata: { userId },
-            },
-          })
-        }
-  
-          if (this.emailService && preferences.allowEmail) {
-            await this.emailService.sendWelcomeEmail({ // Uses specific method from EmailService
-              name: userName,
-              email: user.email,
-              locale: userLocale,
-              unsubscribeToken: '', // User type does not have unsubscribeToken, passing empty string.
-            })
-          }
-          return true
-      } catch (error) {
-        console.error(`Failed to send welcome email for user ${userId}:`, error)
-        return false
-      }
-    }
-  
-    async sendPasswordChangedNotification(userId: string): Promise<boolean> {
-      try {
-        const user = await this.payload.findByID({ collection: 'users', id: userId }) as User
-        if (!user || !user.email) {
-          console.error(`User not found or missing email for sendPasswordChangedNotification: ${userId}`)
-          return false
-        }
-        const userLocale = user.locale || 'ru'
-        const userName = user.name || user.email
-  
-        const preferences = await this.checkUserNotificationPreferences(userId, 'password_changed')
-  
-        if (preferences.allowInApp) {
-          await this.payload.create<'notifications', any>({
-            collection: 'notifications',
-            data: {
-              user: userId,
-              title: this.getNotificationTitle('password_changed'),
-              message: 'Ваш пароль был успешно изменен.',
-              type: 'password_changed' as any,
-              isRead: false,
-              metadata: { userId },
-            },
-          })
-        }
-  
-          if (this.emailService && preferences.allowEmail) {
-            await this.emailService.sendTemplateEmail(
-              'password-changed',
-              user.email,
-              {
-                userName,
-              },
-              { locale: userLocale },
-            )
-          }
-          return true
-      } catch (error) {
-        console.error(`Failed to send password changed notification for user ${userId}:`, error)
-        return false
-      }
-    }
-  
-    async sendEmailAddressChangedNotification(userId: string, oldEmail?: string): Promise<boolean> {
-      try {
-        const user = await this.payload.findByID({ collection: 'users', id: userId }) as User
-        if (!user || !user.email) {
-          console.error(`User not found or missing email for sendEmailAddressChangedNotification: ${userId}`)
-          return false
-        }
-        const userLocale = user.locale || 'ru'
-        const userName = user.name || user.email
-  
-        const preferences = await this.checkUserNotificationPreferences(userId, 'email_address_changed')
-  
-        if (preferences.allowInApp) {
-          await this.payload.create<'notifications', any>({
-            collection: 'notifications',
-            data: {
-              user: userId,
-              title: this.getNotificationTitle('email_address_changed'),
-              message: `Ваш email адрес был изменен на ${user.email}.`,
-              type: 'email_address_changed' as any,
-              isRead: false,
-              metadata: { userId, newEmail: user.email, oldEmail },
-            },
-          })
-        }
-  
-          if (this.emailService && preferences.allowEmail) {
-            await this.emailService.sendTemplateEmail(
-              'email-address-changed',
-              user.email, // Send to new email
-              {
-                userName,
-                newEmail: user.email,
-                oldEmail: oldEmail,
-              },
-              { locale: userLocale },
-            )
-            // Security alert to old email
-            if (oldEmail && oldEmail !== user.email) {
-              await this.emailService.sendTemplateEmail(
-                'email-address-change-security-alert', // Needs a specific template
-                oldEmail,
-                {
-                  userName, // Or a generic greeting
-                  newEmail: user.email,
-                },
-                { locale: userLocale }, // Or default to a common locale for security alerts
-              )
-            }
-          }
-          return true
-      } catch (error) {
-        console.error(`Failed to send email address changed notification for user ${userId}:`, error)
-        return false
-      }
-    }
-  
-    async sendAccountUpdatedNotification(userId: string, updatedFieldsText: string): Promise<boolean> {
-      try {
-        const user = await this.payload.findByID({ collection: 'users', id: userId }) as User
-        if (!user || !user.email) {
-          console.error(`User not found or missing email for sendAccountUpdatedNotification: ${userId}`)
-          return false
-        }
-        const userLocale = user.locale || 'ru'
-        const userName = user.name || user.email
-  
-        const preferences = await this.checkUserNotificationPreferences(userId, 'account_updated')
-  
-        if (preferences.allowInApp) {
-          await this.payload.create<'notifications', any>({
-            collection: 'notifications',
-            data: {
-              user: userId,
-              title: this.getNotificationTitle('account_updated'),
-              message: `Данные вашего аккаунта были обновлены: ${updatedFieldsText}.`,
-              type: 'account_updated' as any,
-              isRead: false,
-              metadata: { userId, updatedFieldsText },
-            },
-          })
-        }
-  
-          if (this.emailService && preferences.allowEmail) {
-            await this.emailService.sendTemplateEmail(
-              'account-updated',
-              user.email,
-              {
-                userName,
-                updatedFieldsText,
-              },
-              { locale: userLocale },
-            )
-          }
-          return true
-      } catch (error) {
-        console.error(`Failed to send account updated notification for user ${userId}:`, error)
-        return false
-      }
+      },
     }
 
-  // --- New Method for Order Shipped/Fulfilled ---
-  async sendOrderShippedFulfilledNotification(orderId: string, shipmentDetails?: { trackingNumber?: string; carrier?: string; shippedAt?: string }): Promise<boolean> {
     try {
-      const order = await this.payload.findByID({
+      const results = await this.sendNotification(notificationPayload)
+      return results.some((r) => r === true)
+    } catch (error) {
+      console.error(
+        `Failed to dispatch subscription renewal reminder for ${subscriptionId}:`,
+        error,
+      )
+      return false
+    }
+  }
+
+  async sendSubscriptionRenewedSuccessfully(subscriptionId: string): Promise<boolean> {
+    const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
+    if (!subscription || !user || !plan) {
+      console.error(`Missing data for sendSubscriptionRenewedSuccessfully: ${subscriptionId}`)
+      return false
+    }
+    const userLocale = user.locale || 'en'
+    const userName = user.name || user.email || 'Customer'
+
+    const notificationPayload: NotificationPayload = {
+      userId: user.id,
+      user: user,
+      title: 'subscription_renewed_successfully',
+      messageKey: 'NotificationBodies.subscription_renewed_successfully_detail',
+      messageParams: {
+        planName: plan.name,
+        nextPaymentDate: new Date(subscription.expiresAt as string).toLocaleDateString(userLocale),
+      },
+      type: 'subscription_renewed_successfully',
+      locale: userLocale,
+      metadata: {
+        subscriptionId: subscription.id,
+        planName: plan.name,
+        nextPaymentDate: subscription.expiresAt,
+      },
+      emailSpecific: {
+        templateSlug: 'subscription-renewed',
+        templateContext: {
+          userName,
+          planName: plan.name,
+          newExpiryDate: subscription.expiresAt as string,
+        },
+      },
+    }
+
+    try {
+      const results = await this.sendNotification(notificationPayload)
+      return results.some((r) => r === true)
+    } catch (error) {
+      console.error(
+        `Failed to dispatch subscription renewed successfully notification for ${subscriptionId}:`,
+        error,
+      )
+      return false
+    }
+  }
+
+  async sendInitialPaymentFailedNotification(orderId: string, reason?: string): Promise<boolean> {
+    let fetchedUser: User | null = null
+    let userIdForNotification: string | null = null
+    let finalUserLocale = 'en'
+    let finalUserName = ''
+    let finalUserEmail: string | null = null
+    let orderNumberForMessage = orderId
+
+    try {
+      const order = (await this.payload.findByID({
         collection: 'orders',
         id: orderId,
-        depth: 1, // To populate customer
-      }) as Order
+        depth: 0,
+      })) as Order | null
+
+      if (!order) {
+        console.error(`Order not found for initial payment failed notification: ${orderId}`)
+        return false
+      }
+      orderNumberForMessage = order.orderNumber || order.id
+
+      if (order.customer) {
+        if (typeof order.customer === 'object' && order.customer.id) {
+          fetchedUser = order.customer as User
+          userIdForNotification = fetchedUser.id
+          finalUserLocale = fetchedUser.locale || finalUserLocale
+          finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+          finalUserEmail = fetchedUser.email
+        } else if (typeof order.customer === 'string') {
+          userIdForNotification = order.customer
+          try {
+            fetchedUser = (await this.payload.findByID({
+              collection: 'users',
+              id: userIdForNotification,
+              depth: 0,
+            })) as User
+            if (fetchedUser) {
+              finalUserLocale = fetchedUser.locale || finalUserLocale
+              finalUserName = fetchedUser.name || fetchedUser.email || 'Customer'
+              finalUserEmail = fetchedUser.email
+            }
+          } catch (userFetchErr) {
+            console.error(
+              `Could not fetch user ${userIdForNotification} for initial payment failed:`,
+              userFetchErr,
+            )
+          }
+        }
+      }
+
+      if (!userIdForNotification || !finalUserEmail) {
+        console.error(`Missing user data for initial payment failed notification: ${orderId}`)
+        return false
+      }
+      const tNotificationBodies = await getTranslations({ locale: finalUserLocale, namespace: 'NotificationBodies' });
+      const reasonText = reason || tNotificationBodies('defaultPaymentFailedReason');
+
+      const notificationPayload: NotificationPayload = {
+        userId: userIdForNotification,
+        user: fetchedUser || undefined,
+        title: 'initial_payment_failed',
+        messageKey: 'NotificationBodies.initial_payment_failed_detail',
+        messageParams: {
+          orderNumber: orderNumberForMessage,
+          reason: reasonText,
+        },
+        type: 'initial_payment_failed',
+        locale: finalUserLocale,
+        metadata: {
+          orderId: order.id,
+          orderNumber: orderNumberForMessage,
+          reason: reasonText,
+        },
+        emailSpecific: {
+          templateSlug: 'initial-payment-failed',
+          templateContext: {
+            userName: finalUserName,
+            orderNumber: orderNumberForMessage,
+            failureReason: reasonText,
+          },
+        },
+      }
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some((r) => r === true)
+    } catch (error) {
+      console.error(`Failed to dispatch initial payment failed notification for ${orderId}:`, error)
+      return false
+    }
+  }
+
+  async sendWelcomeEmail(userId: string): Promise<boolean> {
+    try {
+      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      if (!user || !user.email) {
+        console.error(`User not found or missing email for sendWelcomeEmail: ${userId}`)
+        return false
+      }
+      const userLocale = user.locale || 'en'
+      const userName = user.name || user.email
+
+      const notificationPayload: NotificationPayload = {
+        userId,
+        user,
+        title: 'account_welcome',
+        messageKey: 'NotificationBodies.welcome_detail',
+        messageParams: { userName },
+        type: 'welcome_email',
+        locale: userLocale,
+        link: '/account',
+        metadata: { userId },
+        emailSpecific: {
+          templateSlug: 'welcome',
+          templateContext: {
+            name: userName,
+            email: user.email,
+          },
+        },
+      }
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
+    } catch (error) {
+      console.error(`Failed to send welcome email for user ${userId}:`, error)
+      return false
+    }
+  }
+
+  async sendPasswordChangedNotification(userId: string): Promise<boolean> {
+    try {
+      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      if (!user || !user.email) {
+        console.error(
+          `User not found or missing email for sendPasswordChangedNotification: ${userId}`,
+        )
+        return false
+      }
+      const userLocale = user.locale || 'en'
+      const userName = user.name || user.email
+
+      const notificationPayload: NotificationPayload = {
+        userId,
+        user,
+        title: 'account_password_changed',
+        messageKey: 'NotificationBodies.password_changed_detail',
+        messageParams: {},
+        type: 'password_changed',
+        locale: userLocale,
+        link: '/account/security',
+        metadata: { userId },
+        emailSpecific: {
+          templateSlug: 'password-changed',
+          templateContext: {
+            userName,
+          },
+        },
+      }
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
+    } catch (error) {
+      console.error(`Failed to send password changed notification for user ${userId}:`, error)
+      return false
+    }
+  }
+
+  async sendEmailAddressChangedNotification(userId: string, oldEmail?: string): Promise<boolean> {
+    try {
+      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      if (!user || !user.email) {
+        console.error(
+          `User not found or missing email for sendEmailAddressChangedNotification: ${userId}`,
+        )
+        return false
+      }
+      const userLocale = user.locale || 'en'
+      const userName = user.name || user.email
+
+      const notificationPayload: NotificationPayload = {
+        userId,
+        user,
+        title: 'account_email_changed',
+        messageKey: 'NotificationBodies.email_address_changed_detail',
+        messageParams: { newEmail: user.email },
+        type: 'email_address_changed',
+        locale: userLocale,
+        link: '/account/profile',
+        metadata: { userId, newEmail: user.email, oldEmail },
+        emailSpecific: {
+          templateSlug: 'email-address-changed',
+          templateContext: {
+            userName,
+            newEmail: user.email,
+            oldEmail: oldEmail,
+          },
+        },
+      }
+
+      const results = await this.sendNotification(notificationPayload)
+      let securityAlertSent = true
+
+      if (oldEmail && oldEmail !== user.email && this.emailService) {
+        try {
+          await this.emailService.sendTemplateEmail(
+            'email-address-change-security-alert',
+            oldEmail,
+            {
+              userName: userName,
+              newEmail: user.email,
+            },
+            { locale: userLocale },
+          )
+        } catch (secError) {
+          console.error(`Failed to send security alert to old email ${oldEmail}:`, secError)
+          securityAlertSent = false
+        }
+      }
+      return results.some(result => result === true) && securityAlertSent
+    } catch (error) {
+      console.error(`Failed to send email address changed notification for user ${userId}:`, error)
+      return false
+    }
+  }
+
+  async sendAccountUpdatedNotification(
+    userId: string,
+    updatedFieldsText: string,
+  ): Promise<boolean> {
+    try {
+      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      if (!user || !user.email) {
+        console.error(
+          `User not found or missing email for sendAccountUpdatedNotification: ${userId}`,
+        )
+        return false
+      }
+      const userLocale = user.locale || 'en'
+      const userName = user.name || user.email
+
+      const notificationPayload: NotificationPayload = {
+        userId,
+        user,
+        title: 'account_details_updated',
+        messageKey: 'NotificationBodies.account_updated_detail',
+        messageParams: { updatedFieldsText },
+        type: 'account_updated',
+        locale: userLocale,
+        link: '/account/profile',
+        metadata: { userId, updatedFieldsText },
+        emailSpecific: {
+          templateSlug: 'account-updated',
+          templateContext: {
+            userName,
+            updatedFieldsText,
+          },
+        },
+      }
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
+    } catch (error) {
+      console.error(`Failed to send account updated notification for user ${userId}:`, error)
+      return false
+    }
+  }
+
+  async sendOrderShippedFulfilledNotification(
+    orderId: string,
+    shipmentDetails?: { trackingNumber?: string; carrier?: string; shippedAt?: string },
+  ): Promise<boolean> {
+    try {
+      const order = (await this.payload.findByID({
+        collection: 'orders',
+        id: orderId,
+        depth: 0,
+      })) as Order
 
       if (!order) {
         console.error(`Order not found for sendOrderShippedFulfilledNotification: ${orderId}`)
@@ -1869,48 +2057,57 @@ export class NotificationService extends BaseService {
       }
 
       const customer = order.customer
-      const userId = typeof customer === 'object' && customer !== null ? customer.id : typeof customer === 'string' ? customer : null
+      const userIdValue =
+        typeof customer === 'object' && customer !== null
+          ? customer.id
+          : typeof customer === 'string'
+            ? customer
+            : null
       const userEmail = typeof customer === 'object' && customer !== null ? customer.email : null
 
-      if (!userId || !userEmail) {
+      if (!userIdValue || !userEmail) {
         console.error(`Missing user data for sendOrderShippedFulfilledNotification: ${orderId}`)
         return false
       }
 
-      const user = await this.payload.findByID({ collection: 'users', id: userId }) as User
+      const user = (await this.payload.findByID({ collection: 'users', id: userIdValue, depth: 0 })) as User
       const userName = user?.name || userEmail
-      const userLocale = user?.locale || 'ru'
+      const userLocale = user?.locale || 'en'
+      
+      let resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_no_tracking';
+      const resolvedMessageParams: Record<string, any> = { orderNumber: order.orderNumber || order.id };
 
-      const preferences = await this.checkUserNotificationPreferences(userId, 'order_shipped_fulfilled')
-
-      if (preferences.allowInApp) {
-        await this.payload.create<'notifications', any>({
-          collection: 'notifications',
-          data: {
-            user: userId,
-            title: this.getNotificationTitle('order_shipped_fulfilled'),
-            message: `Ваш заказ #${order.orderNumber} был отправлен/выполнен. ${shipmentDetails?.trackingNumber ? `Трек-номер: ${shipmentDetails.trackingNumber}` : ''}`,
-            type: 'order_shipped_fulfilled' as any,
-            isRead: false,
-            metadata: { orderId: order.id, orderNumber: order.orderNumber, ...shipmentDetails },
-          },
-        })
+      if (shipmentDetails?.trackingNumber) {
+        resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_with_tracking';
+        resolvedMessageParams.trackingNumber = shipmentDetails.trackingNumber;
       }
 
-      if (this.emailService && preferences.allowEmail) {
-        await this.emailService.sendTemplateEmail(
-          'order-shipped-fulfilled',
-          userEmail,
-          {
+      const notificationPayload: NotificationPayload = {
+        userId: userIdValue,
+        user,
+        title: 'order_shipped_fulfilled',
+        messageKey: resolvedMessageKey,
+        messageParams: resolvedMessageParams,
+        type: 'order_shipped_fulfilled',
+        locale: userLocale,
+        link: `/account/orders/${order.id}`,
+        metadata: { orderId: order.id, orderNumber: order.orderNumber, ...shipmentDetails },
+        emailSpecific: {
+          templateSlug: 'order-shipped-fulfilled',
+          templateContext: {
             userName,
             orderNumber: order.orderNumber,
-            items: order.items?.map(item => ({ name: typeof item.product === 'object' ? (item.product as any)?.title : 'Товар', quantity: item.quantity })),
+            items: order.items?.map((item) => ({
+              name: typeof item.product === 'object' ? (item.product as any)?.title : 'Товар', 
+              quantity: item.quantity,
+            })),
             ...shipmentDetails,
           },
-          { locale: userLocale },
-        )
+        },
       }
-      return true
+
+      const results = await this.sendNotification(notificationPayload)
+      return results.some(result => result === true)
     } catch (error) {
       console.error(`Failed to send order shipped/fulfilled notification for ${orderId}:`, error)
       return false
@@ -1919,21 +2116,17 @@ export class NotificationService extends BaseService {
 
   async markAsRead(notificationId: string, userId: string): Promise<boolean> {
     try {
-      // Убираем явные generic-аргументы, полагаемся на вывод типов
       const notification = await this.payload.findByID({
         collection: 'notifications',
         id: notificationId,
         depth: 0,
-      })
-
-      // Приведение типа может понадобиться здесь, если вывод типов не сработает идеально
-      const typedNotification = notification as Notification | null
+      }) as Notification | null; // Added type assertion
 
       if (
-        !typedNotification ||
-        (typeof typedNotification.user === 'string'
-          ? typedNotification.user !== userId
-          : typedNotification.user?.id !== userId)
+        !notification ||
+        (typeof notification.user === 'string'
+          ? notification.user !== userId
+          : notification.user?.id !== userId)
       ) {
         console.warn(
           `Notification ${notificationId} not found or does not belong to user ${userId}.`,
@@ -1941,17 +2134,16 @@ export class NotificationService extends BaseService {
         return false
       }
 
-      if (typedNotification.isRead === true) {
+      if (notification.isRead === true) {
         return true
       }
 
-      // В update оставляем <'notifications', any>, т.к. там была другая ошибка
-      await this.payload.update<'notifications', any>({
+      await this.payload.update({
         collection: 'notifications',
         id: notificationId,
         data: {
           isRead: true,
-        },
+        } as Partial<Notification>, // Use Partial for update data
       })
       return true
     } catch (error) {
@@ -1960,39 +2152,26 @@ export class NotificationService extends BaseService {
     }
   }
 
-  // Переписанный markAllUserNotificationsAsRead с for...of
   async markAllUserNotificationsAsRead(userId: string): Promise<void> {
+    const whereClause: Where = {
+      user: {
+        equals: userId,
+      },
+      isRead: {
+        equals: false,
+      },
+    }
     try {
-      const notificationsToUpdate = await this.payload.find({
+      await this.payload.update({
         collection: 'notifications',
-        where: {
-          user: { equals: userId },
-          isRead: { equals: false },
-        },
-        limit: 1000,
-        depth: 0,
+        where: whereClause,
+        data: {
+          isRead: true,
+        } as Partial<Notification>, // Use Partial for update data
       })
-
-      let updatedCount = 0
-      // Указываем тип для notification в цикле
-      for (const notification of notificationsToUpdate.docs as Notification[]) {
-        try {
-          // Попробуем снова с двумя generic-аргументами
-          await this.payload.update<'notifications', any>({
-            collection: 'notifications',
-            id: notification.id,
-            data: { isRead: true },
-            depth: 0,
-          })
-          updatedCount++
-        } catch (updateError) {
-          console.error(`Failed to mark notification ${notification.id} as read:`, updateError)
-        }
-      }
-
-      console.log(`Marked ${updatedCount} notifications as read for user ${userId}`)
+      console.log(`Attempted to mark all unread notifications as read for user ${userId}.`)
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
+      console.error(`Error marking all notifications as read for user ${userId}:`, error)
       throw error
     }
   }
@@ -2002,31 +2181,31 @@ export class NotificationService extends BaseService {
     limit: number = 10,
     page: number = 1,
   ): Promise<{ docs: Notification[]; totalDocs: number } | null> {
-    const where: Where = {
+    const whereClause: Where = { // Renamed to avoid conflict
       user: {
         equals: userId,
       },
     }
     try {
-      const results = await this.payload.find<'notifications', any>({
+      const results = await this.payload.find({
         collection: 'notifications',
-        where,
+        where: whereClause,
         sort: '-createdAt',
         limit,
         page,
-        depth: 1,
+        depth: 0,
       })
-      return results as { docs: Notification[]; totalDocs: number }
+      return results as { docs: Notification[]; totalDocs: number } 
     } catch (error) {
       console.error(`Error fetching notifications for user ${userId}:`, error)
       return null
     }
   }
 
-  async getUnreadCount(userId: string): Promise<number> {
-    const where: Where = {
+  async getUnreadCount(userIdValue: string): Promise<number> { // Renamed userId to userIdValue
+    const whereClause: Where = { // Renamed to avoid conflict
       user: {
-        equals: userId,
+        equals: userIdValue, // Use renamed variable
       },
       isRead: {
         equals: false,
@@ -2035,11 +2214,11 @@ export class NotificationService extends BaseService {
     try {
       const result = await this.payload.count<'notifications'>({
         collection: 'notifications',
-        where,
+        where: whereClause, // Use renamed variable
       })
       return result.totalDocs
     } catch (error) {
-      console.error(`Error fetching unread notification count for user ${userId}:`, error)
+      console.error(`Error fetching unread notification count for user ${userIdValue}:`, error) // Use renamed variable
       return 0
     }
   }

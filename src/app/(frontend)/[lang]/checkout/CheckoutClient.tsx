@@ -36,11 +36,23 @@ import { cn } from '@/utilities/ui'
 import React from 'react'
 import CryptoCurrencySelector from '@/components/CryptoCurrencySelector'
 import { Product, Service, CartSession, Media } from '@/payload-types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+
+// Добавляем интерфейс для метаданных платежа
+interface PaymentMetadata {
+  customerEmail: string
+  locale: 'ru' | 'en'
+  discount?: {
+    code: string
+    amount: number
+    percentage?: number
+  }
+  originalAmount?: number
+  originalCurrency?: string
+}
 
 const isValidEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -562,6 +574,29 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         throw new Error('Selected payment method is unavailable')
       }
 
+      // Дополнительное логирование для отладки
+      console.log('Payment provider:', provider)
+      console.log('Payment provider ID:', provider.id)
+      console.log('Payment provider name:', provider.name)
+
+      // Проверяем наличие минимальных обязательных полей для провайдера
+      if (!provider.id) {
+        throw new Error('Payment provider ID is missing')
+      }
+
+      // Проверка суммы заказа
+      if (total <= 0) {
+        throw new Error('Invalid order total: ' + total)
+      }
+
+      // Убедимся, что локаль указана корректно
+      const validLocale = ['ru', 'en'].includes(locale) ? locale : 'ru'
+
+      // Определяем сумму в нужной валюте (для ru не нужна конвертация, используем исходную)
+      // Ставка конвертации берется из настроек CMS в utilities/formatPrice.ts
+      const displayTotal = locale === 'ru' ? total : convertPrice(total, 'ru', locale)
+      console.log('Total amount to charge:', displayTotal, locale === 'ru' ? 'RUB' : 'USD')
+
       const paymentDataItems = cart?.items
         ?.map((item) => {
           if (item.itemType === 'service' && item.service) {
@@ -593,24 +628,50 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         cryptoSpecificData.selectedCurrency = selectedCryptoCurrency
       }
 
+      // Формируем данные для платежа
       const paymentData = {
         items: paymentDataItems,
         customer: {
           email,
-          locale,
+          locale: validLocale,
+          name: email.split('@')[0],
         },
-        provider: provider,
-        returnUrl: `${window.location.origin}/${locale}/payment/success`,
+        // Передаем только ID провайдера, на сервере данные будут получены из CMS
+        provider: typeof provider === 'string' ? provider : provider.id,
+        currency: validLocale === 'ru' ? 'RUB' : 'USD',
+        amount: displayTotal,
+        description: `Заказ от ${new Date().toISOString().split('T')[0]}`,
+        returnUrl: `${window.location.origin}/${validLocale}/payment/success`,
+        failUrl: `${window.location.origin}/${validLocale}/payment/fail`,
         ...cryptoSpecificData,
-        ...(appliedDiscount && {
+        metadata: {
+          customerEmail: email,
+          locale: validLocale,
+          // Добавляем исходные данные для аудита
+          originalAmount: total,
+          originalCurrency: 'RUB', // Базовая валюта системы
+        } as PaymentMetadata,
+      }
+
+      // Добавляем данные скидки только если она применена
+      if (appliedDiscount) {
+        const updatedMetadata: PaymentMetadata = {
+          ...(paymentData.metadata as PaymentMetadata),
           discount: {
             code: appliedDiscount.code,
             amount: appliedDiscount.amount,
           },
-        }),
+        }
+        paymentData.metadata = updatedMetadata
       }
 
-      const response = await fetch('/api/v1/payment/create', {
+      // Дополнительное логирование данных запроса
+      console.log('Payment data being sent:', JSON.stringify(paymentData, null, 2))
+
+      // Временное решение для отладки - добавляем тестовый режим в URL
+      const paymentEndpoint = '/api/v1/payment/create'
+
+      const response = await fetch(paymentEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -618,12 +679,51 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         body: JSON.stringify(paymentData),
       })
 
+      // Всегда пытаемся получить ответ в формате JSON для детальной информации об ошибке
+      const responseData = await response.json().catch(() => null)
+      console.log('Server response:', responseData)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Checkout failed')
+        // Извлекаем максимально подробную информацию об ошибке из ответа
+        const errorMessage =
+          responseData?.error ||
+          (responseData?.message ? `Error: ${responseData.message}` : 'Checkout failed')
+
+        // Логируем полный ответ сервера для отладки
+        console.error('Server error details:', responseData)
+
+        // Формируем детальное сообщение об ошибке
+        let detailedError =
+          locale === 'ru'
+            ? `Ошибка платежной системы: ${errorMessage}`
+            : `Payment system error: ${errorMessage}`
+
+        // Если есть подробные детали ошибки от платежного провайдера, добавляем их
+        if (responseData?.errorDetails) {
+          detailedError +=
+            locale === 'ru'
+              ? `\nДополнительная информация: ${responseData.errorDetails}`
+              : `\nAdditional information: ${responseData.errorDetails}`
+        }
+
+        // Добавляем код HTTP статуса для технической информации
+        detailedError += ` (${response.status})`
+
+        // Если это ошибка Robokassa и мы это знаем, указываем это явно
+        if (responseData?.providerError && selectedProvider === 'robokassa') {
+          detailedError =
+            locale === 'ru'
+              ? `Ошибка Robokassa: ${errorMessage}`
+              : `Robokassa error: ${errorMessage}`
+        }
+
+        throw new Error(detailedError)
       }
 
-      const { paymentUrl } = await response.json()
+      const paymentUrl = responseData.paymentUrl
+      if (!paymentUrl) {
+        throw new Error('Payment URL is missing in response')
+      }
 
       if (clearCart) {
         await clearCart()
@@ -960,11 +1060,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                               <div className="flex items-center">
                                 <p className="font-medium mr-4 tabular-nums">
                                   {formatPrice(
-                                    convertPrice(
-                                      (item.priceSnapshot || 0) * (item.quantity || 0),
-                                      'en',
-                                      locale,
-                                    ),
+                                    locale === 'ru'
+                                      ? (item.priceSnapshot || 0) * (item.quantity || 0)
+                                      : convertPrice(
+                                          (item.priceSnapshot || 0) * (item.quantity || 0),
+                                          'ru',
+                                          locale,
+                                        ),
                                     locale,
                                   )}
                                 </p>
@@ -1695,11 +1797,13 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             </div>
                             <div className="font-medium tabular-nums">
                               {formatPrice(
-                                convertPrice(
-                                  (item.priceSnapshot || 0) * (item.quantity || 0),
-                                  'en',
-                                  locale,
-                                ),
+                                locale === 'ru'
+                                  ? (item.priceSnapshot || 0) * (item.quantity || 0)
+                                  : convertPrice(
+                                      (item.priceSnapshot || 0) * (item.quantity || 0),
+                                      'ru',
+                                      locale,
+                                    ),
                                 locale,
                               )}
                             </div>
@@ -1724,7 +1828,10 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           {locale === 'ru' ? 'Подытог' : 'Subtotal'}
                         </span>
                         <span className="font-medium tabular-nums">
-                          {formatPrice(convertPrice(total, 'en', locale), locale)}
+                          {formatPrice(
+                            locale === 'ru' ? total : convertPrice(total, 'ru', locale),
+                            locale,
+                          )}
                         </span>
                       </div>
 
@@ -1745,7 +1852,9 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                               <span className="font-medium text-green-700 dark:text-green-400 mr-2 tabular-nums">
                                 -
                                 {formatPrice(
-                                  convertPrice(appliedDiscount.amount, 'en', locale),
+                                  locale === 'ru'
+                                    ? appliedDiscount.amount
+                                    : convertPrice(appliedDiscount.amount, 'ru', locale),
                                   locale,
                                 )}
                               </span>
@@ -1843,18 +1952,25 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           <div className="flex flex-col items-end">
                             {appliedDiscount && appliedDiscount.amount > 0 && (
                               <span className="text-sm line-through text-muted-foreground mb-1 tabular-nums">
-                                {formatPrice(convertPrice(total, 'en', locale), locale)}
+                                {formatPrice(
+                                  locale === 'ru' ? total : convertPrice(total, 'ru', locale),
+                                  locale,
+                                )}
                               </span>
                             )}
                             <span className="text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 tabular-nums font-bold">
                               {formatPrice(
                                 appliedDiscount && typeof appliedDiscount.amount === 'number'
-                                  ? convertPrice(
-                                      Math.max(0, total - appliedDiscount.amount),
-                                      'en',
-                                      locale,
-                                    )
-                                  : convertPrice(total, 'en', locale),
+                                  ? locale === 'ru'
+                                    ? Math.max(0, total - appliedDiscount.amount)
+                                    : convertPrice(
+                                        Math.max(0, total - appliedDiscount.amount),
+                                        'ru',
+                                        locale,
+                                      )
+                                  : locale === 'ru'
+                                    ? total
+                                    : convertPrice(total, 'ru', locale),
                                 locale,
                               )}
                             </span>
