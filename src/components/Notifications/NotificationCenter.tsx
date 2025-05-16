@@ -402,14 +402,14 @@ export default function NotificationCenter() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative focus-visible:ring-0 focus-visible:ring-offset-0  transition-colors"
+                className="relative focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors hover:bg-accent/50 rounded-full w-9 h-9"
                 aria-label={t('title')}
               >
-                <Bell className="h-[1.2rem] w-[1.2rem]" />
+                <Bell className="h-[1.3rem] w-[1.3rem]" />
                 {unreadCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-0 -right-0 flex h-4 min-w-4 items-center justify-center p-0 text-[0.65rem] font-bold"
+                    className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center p-0 text-[0.7rem] font-bold"
                   >
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Badge>
@@ -427,13 +427,15 @@ export default function NotificationCenter() {
           className="w-96 p-0 max-h-[80vh] overflow-hidden"
           sideOffset={8}
         >
-          <div className="sticky top-0 z-10 bg-background flex items-center justify-between p-2 border-b">
-            <DropdownMenuLabel className="p-0">{t('title')}</DropdownMenuLabel>
+          <div className="sticky top-0 z-10 bg-background flex items-center justify-between p-3 border-b">
+            <DropdownMenuLabel className="p-0 text-base font-medium">
+              {t('title')}
+            </DropdownMenuLabel>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs"
+                className="h-8 text-xs px-3 hover:bg-accent/50 font-medium"
                 onClick={handleMarkAllAsRead}
               >
                 {t('markAllAsRead')}
@@ -441,8 +443,8 @@ export default function NotificationCenter() {
             )}
           </div>
 
-          <div className="sticky top-[41px] z-10 bg-background p-2 border-b">
-            <div className="flex items-center space-x-2">
+          <div className="sticky top-[49px] z-10 bg-background p-3 border-b">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="showOnlyUnread"
                 checked={showOnlyUnread}
@@ -454,13 +456,13 @@ export default function NotificationCenter() {
               />
               <Label
                 htmlFor="showOnlyUnread"
-                className={cn('text-xs font-normal', isLoadingInitial && 'text-muted-foreground')}
+                className={cn('text-sm font-normal', isLoadingInitial && 'text-muted-foreground')}
               >
                 {t('showOnlyUnread')}
               </Label>
 
               {isLoadingInitial && (
-                <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full ml-2"></div>
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full ml-2"></div>
               )}
             </div>
           </div>
@@ -469,30 +471,31 @@ export default function NotificationCenter() {
           displayedNotifications.length === 0 &&
           !isFetchingMore &&
           !isLoadingInitial ? (
-            <div className="p-4 text-center text-muted-foreground">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mx-auto mb-2"></div>
-              {t('loading')}
+            <div className="p-8 text-center text-muted-foreground">
+              <div className="animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+              <p className="text-sm">{t('loading')}</p>
             </div>
           ) : isLoadingInitial && displayedNotifications.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mx-auto mb-2"></div>
-              {t('filtering')}
+            <div className="p-8 text-center text-muted-foreground">
+              <div className="animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+              <p className="text-sm">{t('filtering')}</p>
             </div>
           ) : error ? (
-            <div className="p-4 text-center text-destructive">
-              {typeof error === 'string' ? error : t('errorLoading')}
+            <div className="p-8 text-center text-destructive">
+              <AlertTriangle className="h-7 w-7 mx-auto mb-3 opacity-70" />
+              <p className="text-sm">{typeof error === 'string' ? error : t('errorLoading')}</p>
             </div>
           ) : displayedNotifications.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
-              <p>{t('noNotifications')}</p>
+            <div className="p-10 text-center text-muted-foreground">
+              <Bell className="mx-auto h-10 w-10 mb-4 opacity-50" />
+              <p className="text-sm">{t('noNotifications')}</p>
             </div>
           ) : (
-            <div className="overflow-y-auto overscroll-contain px-1 py-1.5 flex flex-col gap-0.5">
+            <div className="overflow-y-auto overscroll-contain px-2 py-2 flex flex-col gap-2">
               {displayedNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="notification-dropdown-item overflow-hidden rounded-md bg-transparent transition-colors"
+                  className="notification-dropdown-item overflow-hidden rounded-md bg-background/80 transition-colors group hover:bg-accent/50"
                   onClick={async (e) => {
                     const target = e.target as HTMLElement
 
@@ -540,13 +543,14 @@ export default function NotificationCenter() {
                 </div>
               ))}
               {isFetchingMore && (
-                <div className="p-1.5 text-center text-xs text-muted-foreground">
-                  {t('loadingMore')}
+                <div className="p-3 text-center text-muted-foreground border-t bg-muted/20">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
+                  <p className="text-xs">{t('loadingMore')}</p>
                 </div>
               )}
               {!isFetchingMore && hasMore && displayedNotifications.length > 0 && (
                 <DropdownMenuItem
-                  className="p-1.5 justify-center text-xs font-medium sticky bottom-0 bg-background border-t"
+                  className="p-3 justify-center text-xs font-medium sticky bottom-0 bg-background border-t hover:bg-accent/70"
                   onClick={handleLoadMore}
                   disabled={isFetchingMore}
                 >
@@ -555,10 +559,10 @@ export default function NotificationCenter() {
               )}
             </div>
           )}
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="mb-0" />
           <DropdownMenuGroup>
             <DropdownMenuItem
-              className="p-2 justify-center text-sm font-medium"
+              className="p-3 justify-center text-sm font-medium bg-muted/10 hover:bg-accent/70"
               onClick={navigateToNotificationsPage}
             >
               {t('viewAll')}

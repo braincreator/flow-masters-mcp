@@ -270,9 +270,9 @@ const formatDate = (dateString: string, lang: string, timeOnly = false): string 
 
 // Функция для определения, используется ли компонент внутри NotificationCenter
 const isInsideDropdown = (element: HTMLElement | null): boolean => {
-  if (!element) return false;
-  return element.closest('.notification-dropdown-item') !== null;
-};
+  if (!element) return false
+  return element.closest('.notification-dropdown-item') !== null
+}
 
 const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   notification,
@@ -386,12 +386,12 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   if (isCompact) {
     return (
       <TooltipProvider delayDuration={200}>
-        <div 
+        <div
           className={cardClassName}
           ref={(el) => {
             // Добавляем специальные классы, если компонент находится внутри NotificationCenter
             if (el && isInsideDropdown(el)) {
-              el.classList.add('notification-dropdown-item-card');
+              el.classList.add('notification-dropdown-item-card')
             }
           }}
         >
