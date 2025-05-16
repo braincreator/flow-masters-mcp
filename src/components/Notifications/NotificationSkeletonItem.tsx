@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 export const SkeletonStyles = {
-  base: 'animate-pulse bg-muted rounded',
+  base: 'bg-muted rounded',
   icon: 'h-8 w-8',
   badge: 'h-5 w-16',
   title: 'h-5 w-48',
@@ -14,7 +14,7 @@ export const SkeletonStyles = {
 
 const NotificationSkeletonItem: React.FC = () => {
   return (
-    <Card className="w-full rounded-lg border p-5">
+    <Card className="w-full rounded-lg border p-5 mb-4 animate-pulse">
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0 pt-1">
           <div className={cn(SkeletonStyles.base, SkeletonStyles.icon, 'rounded-full')} />

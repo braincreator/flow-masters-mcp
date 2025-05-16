@@ -424,9 +424,14 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
 
       {/* Индикатор загрузки в конце списка */}
       {isLoading && (
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-6">
           <NotificationSkeletonItem />
-          {hasMore && <NotificationSkeletonItem />}
+          {hasMore && (
+            <>
+              <NotificationSkeletonItem />
+              <NotificationSkeletonItem />
+            </>
+          )}
         </div>
       )}
 

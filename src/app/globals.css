@@ -892,7 +892,8 @@
 }
 
 @keyframes pulse-subtle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -902,4 +903,29 @@
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Стили для Tooltip, чтобы они всегда отображались поверх других элементов */
+.radix-tooltip {
+  z-index: 9999 !important;
+  position: fixed;
+}
+
+.radix-tooltip-content {
+  z-index: 9999 !important;
+  position: fixed;
+  max-width: 320px;
+}
+
+/* Подстраховка для корректного отображения портала tooltip */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+/* Дополнительный стиль для родительских контейнеров с overflow */
+[data-radix-tooltip-trigger-container] {
+  position: relative;
+  overflow: visible !important;
 }

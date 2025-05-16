@@ -34,6 +34,7 @@ import {
   FileArchive as FileAward, // Lucide doesn't have FileAward, using FileArchive as placeholder
   TrendingUp, // For LEVEL_UP
   Percent, // Alt for PROMOTIONAL
+  Clock, // Для отображения времени
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -235,7 +236,7 @@ const formatNotificationMessage = (
   }
 }
 
-const formatDate = (dateString: string, lang: string): string => {
+const formatDate = (dateString: string, lang: string, timeOnly = false): string => {
   try {
     if (!dateString) return ''
 
@@ -247,36 +248,16 @@ const formatDate = (dateString: string, lang: string): string => {
       return ''
     }
 
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffSecs = Math.floor(diffMs / 1000)
-    const diffMins = Math.floor(diffSecs / 60)
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
-
-    // Для сегодняшних уведомлений показываем время
-    if (diffDays === 0) {
+    // Если нужно только время
+    if (timeOnly) {
       return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })
     }
 
-    // Для вчерашних показываем "Вчера" и время
-    if (diffDays === 1) {
-      return `Вчера, ${date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}`
-    }
-
-    // Для уведомлений в пределах недели показываем день недели и время
-    if (diffDays < 7) {
-      return (
-        date.toLocaleDateString(lang, { weekday: 'long' }) +
-        `, ${date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}`
-      )
-    }
-
-    // Для более старых уведомлений показываем полную дату
+    // Всегда возвращаем полную дату с временем
     return (
       date.toLocaleDateString(lang, {
         day: 'numeric',
-        month: 'short',
+        month: 'long',
         year: 'numeric',
       }) + `, ${date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}`
     )
@@ -361,15 +342,8 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   }
 
   const formattedDate = useMemo(() => {
-    return new Date(notification.receivedAt).toLocaleString(lang, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-  }, [notification.receivedAt, lang])
+    return formatDate(notification.createdAt, lang)
+  }, [notification.createdAt, lang])
 
   const typeStyle = useMemo(() => getNotificationTypeStyle(notification.type), [notification.type])
 
@@ -391,7 +365,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   // Для компактного режима возвращаем упрощенную версию карточки
   if (isCompact) {
     return (
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delayDuration={200}>
         <motion.div
           whileHover={{ scale: isActive ? 1 : 1.01 }}
           whileTap={{ scale: isActive ? 1 : 0.99 }}
@@ -434,9 +408,6 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                   >
                     {notification.title}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                    {formatDate(notification.receivedAt, lang)}
-                  </p>
                 </div>
 
                 <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 line-clamp-1">
@@ -483,7 +454,9 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                             <Eye className="w-3 h-3" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>{t('markAsRead')}</TooltipContent>
+                        <TooltipContent side="top" align="center" className="z-[9999]">
+                          {t('markAsRead')}
+                        </TooltipContent>
                       </Tooltip>
                     ) : (
                       <Tooltip>
@@ -499,10 +472,19 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                             <EyeOff className="w-3 h-3" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>{t('markAsUnread')}</TooltipContent>
+                        <TooltipContent side="top" align="center" className="z-[9999]">
+                          {t('markAsUnread')}
+                        </TooltipContent>
                       </Tooltip>
                     )}
                   </div>
+                </div>
+
+                <div className="flex items-center gap-1 ml-1 text-gray-400">
+                  <Clock className="h-2.5 w-2.5" />
+                  <span className="text-[10px] whitespace-nowrap">
+                    {formatDate(notification.createdAt, lang, false)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -514,7 +496,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   // Для полного режима возвращаем оригинальную карточку
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={200}>
       <motion.div
         whileHover={{ scale: isActive ? 1 : 1.01 }}
         whileTap={{ scale: isActive ? 1 : 0.99 }}
@@ -560,16 +542,15 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                   >
                     {notification.title}
                   </h3>
-                  <Badge
-                    variant="outline"
-                    className={cn('text-xs mt-1 px-1.5 py-0.5', typeStyle.tagClass)}
-                  >
-                    {tTypes ? tTypes(notification.type as string) : notification.type}
-                  </Badge>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge
+                      variant="outline"
+                      className={cn('text-xs px-1.5 py-0.5', typeStyle.tagClass)}
+                    >
+                      {tTypes ? tTypes(notification.type as string) : notification.type}
+                    </Badge>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2 whitespace-nowrap pt-0.5">
-                  {formatDate(notification.receivedAt, lang)}
-                </p>
               </div>
 
               <p
@@ -652,6 +633,15 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {localStatus === 'unread' ? t('status.unread') : t('status.read')}
               </span>
+              <div className="flex items-center ml-2 text-gray-400">
+                <span className="inline-block w-[1px] h-3 bg-gray-300 dark:bg-gray-600 mx-1"></span>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span className="text-xs whitespace-nowrap">
+                    {formatDate(notification.createdAt, lang, false)}
+                  </span>
+                </div>
+              </div>
             </div>
             <div className="flex items-center space-x-1">
               {localStatus === 'unread' ? (
@@ -671,7 +661,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                       <Eye className={cn('w-4 h-4', isMarkingRead && 'animate-pulse')} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="center" className="z-[9999]">
                     {isMarkingRead ? t('markingRead') : t('markAsRead')}
                   </TooltipContent>
                 </Tooltip>
@@ -692,7 +682,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                       <EyeOff className={cn('w-4 h-4', isMarkingUnread && 'animate-pulse')} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="center" className="z-[9999]">
                     {isMarkingUnread ? t('markingUnread') : t('markAsUnread')}
                   </TooltipContent>
                 </Tooltip>
@@ -713,7 +703,9 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                     <Trash2 className={cn('w-4 h-4', isDeleting && 'animate-pulse')} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{isDeleting ? t('deleting') : t('delete')}</TooltipContent>
+                <TooltipContent side="top" align="center" className="z-[9999]">
+                  {isDeleting ? t('deleting') : t('delete')}
+                </TooltipContent>
               </Tooltip>
             </div>
           </div>
