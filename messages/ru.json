@@ -1728,69 +1728,99 @@
     "order_shipped_fulfilled_detail_with_tracking": "Ваш заказ №{orderNumber} был отправлен/выполнен. Трек-номер: {trackingNumber}"
   },
   "Notifications": {
+    "pageTitle": "Уведомления",
     "title": "Уведомления",
-    "description": "Просмотр и управление вашими уведомлениями",
+    "description": "Просмотр и управление уведомлениями",
+    "topbar": "Панель уведомлений",
     "confirmDelete": "Вы уверены, что хотите удалить это уведомление?",
     "confirmDeleteAll": "Вы уверены, что хотите удалить ВСЕ уведомления? Это действие нельзя отменить.",
     "confirmDeleteRead": "Вы уверены, что хотите удалить все ПРОЧИТАННЫЕ уведомления?",
+    "confirmMarkAllRead": "Отметить все уведомления как прочитанные?",
     "errorTitle": "Ошибка загрузки уведомлений",
     "loadingMore": "Загрузка уведомлений...",
-    "noNotifications": "Уведомлений нет.",
-    "controls": {
-      "filterByType": "Фильтр по типу",
-      "selectTypePlaceholder": "Выберите тип",
-      "types": {
-        "all": "Все типы",
-        "info": "Информация",
-        "alert": "Оповещение",
-        "promo": "Промоакция",
-        "update": "Обновление",
-        "default": "Неизвестный тип"
-      },
-      "filterByStatus": "Фильтр по статусу",
-      "selectStatusPlaceholder": "Выберите статус",
-      "statuses": {
-        "all": "Все статусы",
-        "unread": "Непрочитанные",
-        "read": "Прочитанные",
-        "default": "Неизвестный статус"
-      },
-      "sortByLabel": "Сортировать по",
-      "selectSortFieldPlaceholder": "Выберите поле",
-      "sortBy": {
-        "receivedAt": "Дата получения",
-        "title": "Заголовок"
-      },
-      "sortOrderLabel": "Порядок",
-      "sortOrder": {
-        "asc": "По возрастанию",
-        "desc": "По убыванию"
-      },
-      "markAllRead": "Отметить все как прочитанные",
-      "deleteRead": "Удалить прочитанные",
-      "deleteAll": "Удалить все"
+    "retry": "Повторить",
+    "endOfList": "Конец списка",
+    "errors": {
+      "fetchFailed": "Не удалось загрузить уведомления",
+      "loadMoreFailed": "Не удалось загрузить дополнительные уведомления",
+      "markReadFailed": "Не удалось отметить уведомление как прочитанное",
+      "markUnreadFailed": "Не удалось отметить уведомление как непрочитанное",
+      "markAllReadFailed": "Не удалось отметить все уведомления как прочитанные",
+      "deleteFailed": "Не удалось удалить уведомление",
+      "deleteAllFailed": "Не удалось удалить все уведомления",
+      "deleteReadFailed": "Не удалось удалить прочитанные уведомления",
+      "unknown": "Произошла неизвестная ошибка"
+    },
+    "emptyState": {
+      "title": "Уведомлений пока нет",
+      "message": "Здесь будут отображаться ваши уведомления. Когда вы получите новое уведомление, оно появится здесь."
     },
     "item": {
+      "showMore": "Показать больше",
+      "showLess": "Скрыть",
+      "markAsRead": "Отметить как прочитанное",
+      "markingRead": "Отмечаем...",
+      "markAsUnread": "Отметить как непрочитанное",
+      "markingUnread": "Отмечаем...",
+      "delete": "Удалить",
+      "deleting": "Удаляем...",
       "status": {
         "read": "Прочитано",
         "unread": "Непрочитано"
       },
-      "type": {
-        "info": "Информация",
-        "alert": "Оповещение",
-        "promo": "Промоакция",
-        "update": "Обновление",
-        "default": "Общее"
+      "goToLink": "Подробнее",
+      "viewDetails": "Подробнее"
+    },
+    "controls": {
+      "status": {
+        "all": "Все",
+        "unread": "Непрочитанные",
+        "read": "Прочитанные"
       },
-      "showLess": "Показать меньше",
-      "showMore": "Показать больше",
-      "goToLink": "Перейти по ссылке",
-      "markingRead": "Отмечается...",
-      "markAsRead": "Отметить как прочитанное",
-      "deleting": "Удаление...",
-      "delete": "Удалить",
-      "markAsUnread": "Отметить как непрочитанное",
-      "markingUnread": "Отмечается как непрочитанное..."
+      "sortBy": {
+        "label": "Сортировка",
+        "field": "Поле",
+        "order": "Порядок",
+        "createdAt": "Дата получения",
+        "receivedAt": "По дате получения",
+        "title": "Заголовок",
+        "ascending": "По возрастанию",
+        "descending": "По убыванию"
+      },
+      "filters": {
+        "title": "Фильтры",
+        "description": "Настройте отображение уведомлений",
+        "status": "Статус",
+        "type": "Тип уведомления",
+        "allTypes": "Все типы",
+        "reset": "Сбросить",
+        "apply": "Применить"
+      },
+      "actions": {
+        "label": "Действия",
+        "markAllRead": "Отметить все как прочитанные",
+        "deleteAll": "Удалить все",
+        "deleteRead": "Удалить прочитанные",
+        "tempDebugKey": "Тестовый ключ"
+      }
+    },
+    "type": {
+      "course_enrolled": "Запись на курс",
+      "lesson_completed": "Урок завершен",
+      "module_completed": "Модуль завершен",
+      "assessment_submitted": "Задание отправлено",
+      "assessment_graded": "Задание оценено",
+      "course_completed": "Курс завершен",
+      "certificate_issued": "Сертификат выдан",
+      "achievement_unlocked": "Достижение разблокировано",
+      "level_up": "Уровень повышен",
+      "system_alert": "Системное оповещение",
+      "general_info": "Общая информация",
+      "order_update": "Обновление заказа",
+      "subscription_update": "Обновление подписки",
+      "account_activity": "Активность аккаунта",
+      "promotional": "Акция",
+      "social_interaction": "Социальная активность"
     }
   }
 }

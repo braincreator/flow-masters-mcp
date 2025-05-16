@@ -4,6 +4,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/utilities/ui'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface PaginationProps {
   currentPage: number
@@ -67,9 +68,12 @@ export function Pagination({
   const pageRange = getPageRange()
 
   return (
-    <nav
-      className={cn('flex justify-center items-center gap-1', className)}
+    <motion.nav
+      className={cn('flex justify-center items-center gap-1.5 py-2', className)}
       aria-label="Pagination"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Previous button */}
       <Button
@@ -78,33 +82,57 @@ export function Pagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Previous page"
+        className="w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors duration-200"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {/* Page numbers */}
-      {pageRange.map((page, index) =>
-        page === 'ellipsis' ? (
-          <span
-            key={`ellipsis-${index}`}
-            className="w-9 h-9 flex items-center justify-center text-muted-foreground"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </span>
-        ) : (
-          <Button
-            key={page}
-            variant={currentPage === page ? 'default' : 'outline'}
-            size="icon"
-            onClick={() => onPageChange(page)}
-            aria-label={`Page ${page}`}
-            aria-current={currentPage === page ? 'page' : undefined}
-            className="w-9 h-9"
-          >
-            {page}
-          </Button>
-        ),
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`page-${currentPage}`}
+          className="flex items-center gap-1.5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {pageRange.map((page, index) =>
+            page === 'ellipsis' ? (
+              <motion.span
+                key={`ellipsis-${index}`}
+                className="w-8 h-8 flex items-center justify-center text-muted-foreground"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  duration: 1.5,
+                  repeatDelay: 0.5,
+                }}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </motion.span>
+            ) : (
+              <Button
+                key={page}
+                variant={currentPage === page ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => onPageChange(page)}
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? 'page' : undefined}
+                className={cn(
+                  'w-8 h-8 rounded-md font-medium transition-all duration-200',
+                  currentPage === page
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-primary/25 hover:bg-primary/90'
+                    : 'hover:border-primary/30 text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {page}
+              </Button>
+            ),
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Next button */}
       <Button
@@ -113,9 +141,10 @@ export function Pagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Next page"
+        className="w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors duration-200"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
-    </nav>
+    </motion.nav>
   )
 }

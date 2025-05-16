@@ -2,7 +2,7 @@ import { setRequestLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 import { PageHeading } from '@/components/PageHeading'
-import NotificationsPageContent from '@/components/Notifications/NotificationsPage'
+import NotificationsPageWithInfiniteScroll from '@/components/Notifications/NotificationsPageWithInfiniteScroll'
 
 interface Props {
   params: {
@@ -32,7 +32,7 @@ export default async function NotificationsPage({ params }: Props) {
   return (
     <div className="container max-w-5xl mx-auto py-6 px-4 md:px-6">
       <PageHeading title={t('title')} description={t('description')} />
-      <NotificationsPageContent lang={lang} />
+      <NotificationsPageWithInfiniteScroll lang={lang} />
     </div>
   )
 }

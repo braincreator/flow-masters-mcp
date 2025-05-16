@@ -15,9 +15,12 @@ export async function GET(request: NextRequest) {
 
     // Получаем параметры запроса
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const limit = parseInt(searchParams.get('limit') || '10', 10) // Match frontend default
     const page = parseInt(searchParams.get('page') || '1', 10)
-    const onlyUnread = searchParams.get('onlyUnread') === 'true'
+    const type = searchParams.get('type')
+    const status = searchParams.get('status') // 'read', 'unread', or null for 'all'
+    const sortBy = searchParams.get('sortBy') || 'createdAt' // Default to createdAt
+    const sortOrderParam = searchParams.get('sortOrder') || 'desc' // Default to desc
 
     // Формируем условие запроса
     const whereCondition: any = {
@@ -30,29 +33,52 @@ export async function GET(request: NextRequest) {
       ],
     }
 
-    if (onlyUnread) {
+    if (type) {
+      whereCondition.and.push({
+        type: {
+          equals: type,
+        },
+      })
+    }
+
+    if (status === 'read') {
+      whereCondition.and.push({
+        isRead: {
+          equals: true,
+        },
+      })
+    } else if (status === 'unread') {
       whereCondition.and.push({
         isRead: {
           equals: false,
         },
       })
     }
+    // If status is null or empty, no isRead filter is applied (shows all)
 
     // Получаем payload client
     const payload = await getPayloadClient()
+
+    const sortDirection = sortOrderParam === 'asc' ? '' : '-'
+    const sortString = `${sortDirection}${sortBy}`
 
     console.log('API /notifications: Запрос уведомлений с параметрами:', {
       userId,
       limit,
       page,
-      onlyUnread,
+      type,
+      status,
+      sortBy: sortBy,
+      sortOrder: sortOrderParam,
+      appliedSort: sortString,
+      whereCondition: JSON.stringify(whereCondition.and)
     })
 
     // Получаем уведомления
     const notifications = await payload.find({
       collection: 'notifications',
       where: whereCondition,
-      sort: '-createdAt',
+      sort: sortString,
       limit,
       page,
       depth: 0,
