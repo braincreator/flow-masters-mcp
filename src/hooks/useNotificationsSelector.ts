@@ -24,16 +24,15 @@ export function useNotificationsSelector<T>(selector: (context: NotificationsCon
 // Predefined selectors for common use cases
 
 /**
- * Select only the notifications list and count
+ * Select only the notifications list
  */
 export function useNotificationsList() {
   return useNotificationsSelector((context) => ({
     notifications: context.notifications,
-    unreadCount: context.unreadCount,
-    isLoading: context.isLoading,
+    isLoading: context.isLoadingInitial || context.isLoadingMore || context.isLoadingNew,
     error: context.error,
-    getNotificationsByType: context.getNotificationsByType,
-    getUnreadNotifications: context.getUnreadNotifications,
+    hasMore: context.hasMore,
+    loadMoreNotifications: context.loadMoreNotifications,
   }))
 }
 
@@ -60,7 +59,7 @@ export function useNotificationActions() {
 }
 
 /**
- * Select only the unread count
+ * Get the unread notification count
  */
 export function useUnreadCount() {
   return useNotificationsSelector((context) => ({
@@ -74,7 +73,76 @@ export function useUnreadCount() {
 export function useNotificationsOfType(type: NotificationType) {
   return useNotificationsSelector((context) => ({
     notifications: context.getNotificationsByType(type),
-    isLoading: context.isLoading,
+    isLoading: context.isLoadingInitial || context.isLoadingMore,
     error: context.error,
   }))
+}
+
+/**
+ * Группирует уведомления по типам с подсчетом количества в каждой группе
+ * @returns Объект с группированными уведомлениями и метаданными групп
+ */
+export function useGroupedNotifications() {
+  return useNotificationsSelector((context) => {
+    const { notifications } = context
+
+    // Группируем уведомления по типу
+    const groupedByType = notifications.reduce(
+      (groups, notification) => {
+        const type = notification.type
+        if (!groups[type]) {
+          groups[type] = {
+            type,
+            items: [],
+            count: 0,
+            unreadCount: 0,
+            latestTimestamp: '',
+          }
+        }
+
+        groups[type].items.push(notification)
+        groups[type].count += 1
+        if (!notification.isRead) {
+          groups[type].unreadCount += 1
+        }
+
+        // Обновляем timestamp на самый последний в группе
+        const notificationTimestamp = notification.createdAt
+        if (
+          !groups[type].latestTimestamp ||
+          new Date(notificationTimestamp) > new Date(groups[type].latestTimestamp)
+        ) {
+          groups[type].latestTimestamp = notificationTimestamp
+        }
+
+        return groups
+      },
+      {} as Record<
+        string,
+        {
+          type: string
+          items: any[]
+          count: number
+          unreadCount: number
+          latestTimestamp: string
+        }
+      >,
+    )
+
+    // Преобразуем в массив и сортируем по времени (самые новые сверху)
+    const groupsArray = Object.values(groupedByType).sort(
+      (a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime(),
+    )
+
+    return {
+      groups: groupsArray,
+      isLoading: context.isLoadingInitial || context.isLoadingMore || context.isLoadingNew,
+      error: context.error,
+      hasMoreGroups: context.hasMore,
+      loadMoreNotifications: context.loadMoreNotifications,
+      totalGroups: groupsArray.length,
+      totalNotifications: notifications.length,
+      totalUnreadCount: context.unreadCount,
+    }
+  })
 }

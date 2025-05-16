@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, memo, useMemo } from 'react'
+import React, { useState, memo, useMemo, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { type Notification } from './InfiniteNotificationsList'
 import { NotificationStoredType } from '@/types/notifications' // Added import
@@ -45,6 +45,8 @@ interface NotificationItemProps {
   onMarkAsUnread: (id: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
   lang: string
+  isProcessing?: boolean
+  variant?: 'default' | 'compact' // Добавляем вариант отображения
 }
 
 interface NotificationTypeStyle {
@@ -287,31 +289,50 @@ const formatDate = (dateString: string, lang: string): string => {
 const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   notification,
   onMarkAsRead,
-  onMarkAsUnread, // Added prop
+  onMarkAsUnread,
   onDelete,
   lang,
+  isProcessing = false,
+  variant = 'default', // По умолчанию полный размер
 }) => {
   const t = useTranslations('Notifications.item')
   const tTypes = useTranslations('Notifications.type')
   const tBodies = useTranslations('NotificationBodies')
   const [isExpanded, setIsExpanded] = useState(false)
   const [isMarkingRead, setIsMarkingRead] = useState(false)
-  const [isMarkingUnread, setIsMarkingUnread] = useState(false) // Added state for unread
+  const [isMarkingUnread, setIsMarkingUnread] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [localStatus, setLocalStatus] = useState(notification.status)
+
+  // Используем эффект для обновления локального статуса при изменении входящего статуса
+  useEffect(() => {
+    setLocalStatus(notification.status)
+  }, [notification.status])
 
   const handleMarkAsRead = async () => {
+    if (isMarkingRead || isDeleting || isProcessing) return
+
+    // Мгновенно обновляем локальное состояние для отзывчивого UI
     setIsMarkingRead(true)
+    setLocalStatus('read')
+
     try {
       await onMarkAsRead(notification.id)
     } catch (error) {
       console.error('Failed to mark as read from item:', error)
+      // Возвращаем предыдущее состояние при ошибке
+      setLocalStatus('unread')
     } finally {
       setIsMarkingRead(false)
     }
   }
 
   const handleDelete = async () => {
+    if (isDeleting || isMarkingRead || isMarkingUnread || isProcessing) return
+
+    // Мгновенно обновляем локальное состояние
     setIsDeleting(true)
+
     try {
       await onDelete(notification.id)
     } catch (error) {
@@ -322,25 +343,18 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   }
 
   const handleMarkAsUnread = async () => {
-    setIsMarkingUnread(true)
-    try {
-      // Make API call
-      const response = await fetch(`/api/notifications/${notification.id}/unread`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+    if (isMarkingUnread || isDeleting || isProcessing) return
 
-      if (!response.ok) {
-        // Consider using a translated error message here if this becomes user-facing
-        throw new Error(`Failed to mark as unread: ${response.statusText}`)
-      }
-      // Call parent handler to update UI/state
+    // Мгновенно обновляем локальное состояние
+    setIsMarkingUnread(true)
+    setLocalStatus('unread')
+
+    try {
       await onMarkAsUnread(notification.id)
     } catch (error) {
       console.error('Failed to mark as unread from item:', error)
-      // Optionally, show a toast or error message to the user
+      // Возвращаем предыдущее состояние при ошибке
+      setLocalStatus('read')
     } finally {
       setIsMarkingUnread(false)
     }
@@ -359,21 +373,171 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   const typeStyle = useMemo(() => getNotificationTypeStyle(notification.type), [notification.type])
 
+  const isCompact = variant === 'compact'
+
   const cardClassName = cn(
-    'w-full rounded-lg border backdrop-blur-sm p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
-    notification.status === 'unread'
+    'w-full rounded-lg border backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+    localStatus === 'unread'
       ? 'bg-blue-50/90 border-blue-300 border-l-4 border-l-blue-500 dark:bg-blue-950/20 dark:border-blue-800 dark:border-l-blue-600 shadow-md'
       : 'bg-card/90 border-gray-200 dark:border-gray-700 dark:bg-gray-800/90 shadow-sm',
+    (isProcessing || isMarkingRead || isMarkingUnread || isDeleting) &&
+      'opacity-80 pointer-events-none',
+    isCompact ? 'p-3' : 'p-5', // Меньший padding для компактного режима
   )
 
+  // Состояние активности (для микроанимаций)
+  const isActive = isProcessing || isMarkingRead || isMarkingUnread || isDeleting
+
+  // Для компактного режима возвращаем упрощенную версию карточки
+  if (isCompact) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <motion.div
+          whileHover={{ scale: isActive ? 1 : 1.01 }}
+          whileTap={{ scale: isActive ? 1 : 0.99 }}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: isActive ? 0.98 : 1,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 17,
+            opacity: { duration: 0.2 },
+            scale: { duration: 0.1 },
+          }}
+        >
+          <Card className={cardClassName}>
+            {isActive && (
+              <div className="absolute inset-0 bg-background/30 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+              </div>
+            )}
+
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 relative">
+                <typeStyle.IconComponent
+                  className={cn('w-4 h-4 mt-0.5', typeStyle.iconClass)}
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div className="flex-grow min-w-0">
+                <div className="flex justify-between items-start gap-1.5">
+                  <h3
+                    className={cn(
+                      'text-sm line-clamp-1',
+                      localStatus === 'unread' ? 'font-bold' : 'font-medium',
+                    )}
+                  >
+                    {notification.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {formatDate(notification.receivedAt, lang)}
+                  </p>
+                </div>
+
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 line-clamp-1">
+                  {notification.messageKey
+                    ? formatNotificationMessage(
+                        notification.messageKey,
+                        t,
+                        tBodies,
+                        notification.messageParams,
+                      )
+                    : notification.shortText || notification.title}
+                </p>
+
+                <div className="flex justify-between items-center mt-2">
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className={cn(
+                        'w-2 h-2 rounded-full',
+                        localStatus === 'unread'
+                          ? 'bg-blue-500 dark:bg-blue-400'
+                          : 'bg-gray-300 dark:bg-gray-600',
+                      )}
+                    />
+                    <Badge
+                      variant="outline"
+                      className={cn('text-[10px] px-1 py-0', typeStyle.tagClass)}
+                    >
+                      {tTypes ? tTypes(notification.type as string) : notification.type}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-0.5">
+                    {localStatus === 'unread' ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleMarkAsRead}
+                            disabled={isMarkingRead || isProcessing}
+                            aria-label={t('markAsRead')}
+                            className="w-6 h-6"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t('markAsRead')}</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleMarkAsUnread}
+                            disabled={isMarkingUnread || isProcessing}
+                            aria-label={t('markAsUnread')}
+                            className="w-6 h-6"
+                          >
+                            <EyeOff className="w-3 h-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t('markAsUnread')}</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </TooltipProvider>
+    )
+  }
+
+  // Для полного режима возвращаем оригинальную карточку
   return (
     <TooltipProvider delayDuration={300}>
       <motion.div
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+        whileHover={{ scale: isActive ? 1 : 1.01 }}
+        whileTap={{ scale: isActive ? 1 : 0.99 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: isActive ? 0.98 : 1,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 400,
+          damping: 17,
+          opacity: { duration: 0.2 },
+          scale: { duration: 0.1 },
+        }}
       >
         <Card className={cardClassName}>
+          {isActive && (
+            <div className="absolute inset-0 bg-background/30 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+              <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+            </div>
+          )}
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0 pt-1 relative">
               <div
@@ -391,7 +555,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                   <h3
                     className={cn(
                       'text-md text-gray-800 dark:text-gray-100',
-                      notification.status === 'unread' ? 'font-bold' : 'font-semibold',
+                      localStatus === 'unread' ? 'font-bold' : 'font-semibold',
                     )}
                   >
                     {notification.title}
@@ -411,7 +575,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
               <p
                 className={cn(
                   'text-sm text-gray-600 dark:text-gray-300 mt-2',
-                  notification.status === 'unread' ? 'font-medium' : '',
+                  localStatus === 'unread' ? 'font-medium' : '',
                 )}
               >
                 {notification.messageKey
@@ -475,28 +639,36 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
           </div>
 
           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <div
-              className={cn(
-                'w-2.5 h-2.5 rounded-full transition-all duration-300',
-                notification.status === 'unread'
-                  ? 'bg-blue-500 animate-pulse dark:bg-blue-400'
-                  : 'bg-gray-300 dark:bg-gray-600',
-              )}
-              aria-label={notification.status === 'unread' ? t('status.unread') : t('status.read')}
-            />
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'w-2.5 h-2.5 rounded-full transition-colors duration-200',
+                  localStatus === 'unread'
+                    ? 'bg-blue-500 dark:bg-blue-400'
+                    : 'bg-gray-300 dark:bg-gray-600',
+                )}
+                aria-label={localStatus === 'unread' ? t('status.unread') : t('status.read')}
+              />
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {localStatus === 'unread' ? t('status.unread') : t('status.read')}
+              </span>
+            </div>
             <div className="flex items-center space-x-1">
-              {notification.status === 'unread' ? (
+              {localStatus === 'unread' ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleMarkAsRead}
-                      disabled={isMarkingRead}
+                      disabled={isMarkingRead || isProcessing}
                       aria-label={t('markAsRead')}
-                      className="group w-8 h-8 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 active:scale-95 transform transition-all duration-200"
+                      className={cn(
+                        'group w-8 h-8 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 active:scale-95 transform transition-all duration-200',
+                        isMarkingRead && 'bg-blue-50 dark:bg-blue-900/10',
+                      )}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className={cn('w-4 h-4', isMarkingRead && 'animate-pulse')} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -510,11 +682,14 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={handleMarkAsUnread}
-                      disabled={isMarkingUnread}
+                      disabled={isMarkingUnread || isProcessing}
                       aria-label={t('markAsUnread')}
-                      className="group w-8 h-8 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 active:scale-95 transform transition-all duration-200"
+                      className={cn(
+                        'group w-8 h-8 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 active:scale-95 transform transition-all duration-200',
+                        isMarkingUnread && 'bg-blue-50 dark:bg-blue-900/10',
+                      )}
                     >
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className={cn('w-4 h-4', isMarkingUnread && 'animate-pulse')} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -528,11 +703,14 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                     variant="ghost"
                     size="icon"
                     onClick={handleDelete}
-                    disabled={isDeleting}
+                    disabled={isDeleting || isProcessing}
                     aria-label={t('delete')}
-                    className="group w-8 h-8 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 active:scale-95 transform transition-all duration-200"
+                    className={cn(
+                      'group w-8 h-8 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 active:scale-95 transform transition-all duration-200',
+                      isDeleting && 'bg-red-50 dark:bg-red-900/10',
+                    )}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className={cn('w-4 h-4', isDeleting && 'animate-pulse')} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{isDeleting ? t('deleting') : t('delete')}</TooltipContent>

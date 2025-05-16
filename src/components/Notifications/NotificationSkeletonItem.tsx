@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -48,4 +48,5 @@ const NotificationSkeletonItem: React.FC = () => {
   )
 }
 
-export default NotificationSkeletonItem
+// Используем memo для предотвращения излишних ререндеров
+export default memo(NotificationSkeletonItem)

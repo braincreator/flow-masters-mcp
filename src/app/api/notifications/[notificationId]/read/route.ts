@@ -13,7 +13,7 @@ export async function POST(request: NextRequest, { params }: { params: { notific
     }
 
     const userId = session.user.id
-    const { notificationId } = params
+    const { notificationId } = await params
 
     // Получаем payload client
     const payload = await getPayloadClient()

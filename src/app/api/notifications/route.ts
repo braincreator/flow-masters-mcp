@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       sortBy: sortBy,
       sortOrder: sortOrderParam,
       appliedSort: sortString,
-      whereCondition: JSON.stringify(whereCondition.and)
+      whereCondition: JSON.stringify(whereCondition.and),
     })
 
     // Получаем уведомления
@@ -89,8 +89,9 @@ export async function GET(request: NextRequest) {
     )
 
     // Подробный лог типов уведомлений
-    console.log('API /notifications: Типы уведомлений:', 
-      notifications.docs.map(doc => ({ id: doc.id, type: doc.type }))
+    console.log(
+      'API /notifications: Типы уведомлений:',
+      notifications.docs.map((doc) => ({ id: doc.id, type: doc.type })),
     )
 
     // Проверяем, что уведомления имеют нужные поля
@@ -102,10 +103,19 @@ export async function GET(request: NextRequest) {
       if (!doc.title) {
         console.warn('API /notifications: Уведомление без поля title:', doc.id)
       }
-      return doc
+
+      // Явно преобразуем isRead в status для корректного отображения в интерфейсе
+      return {
+        ...doc,
+        status: doc.isRead === true ? 'read' : 'unread',
+      }
     })
 
-    return NextResponse.json({ items: processedDocs, totalPages: notifications.totalPages, currentPage: notifications.page })
+    return NextResponse.json({
+      items: processedDocs,
+      totalPages: notifications.totalPages,
+      currentPage: notifications.page,
+    })
   } catch (error) {
     console.error('Error fetching notifications:', error)
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
@@ -183,7 +193,10 @@ export async function DELETE(request: NextRequest) {
     })
 
     if (idsToDelete.length === 0) {
-      return NextResponse.json({ error: 'No notification IDs provided for deletion' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No notification IDs provided for deletion' },
+        { status: 400 },
+      )
     }
 
     const payload = await getPayloadClient()
@@ -225,11 +238,11 @@ export async function DELETE(request: NextRequest) {
     // A more accurate count would require knowing the exact structure of `deleteResult`.
     // Based on typical Payload behavior, `deleteResult.docs` might be an array of affected IDs or objects.
     // If `deleteResult` contains `docs` (array of deleted items) or `errors`:
-    let deletedCount = 0;
+    let deletedCount = 0
     if (deleteResult && Array.isArray(deleteResult.docs)) {
       // The `docs` array in BulkOperationResult contains the IDs of the affected documents.
       // So, its length gives the count of successfully processed (in this case, deleted) documents.
-      deletedCount = deleteResult.docs.length;
+      deletedCount = deleteResult.docs.length
     }
     // The `errors` array in BulkOperationResult contains details about any documents that failed to process.
     // We are already handling `deleteResult.errors` below.
@@ -238,15 +251,20 @@ export async function DELETE(request: NextRequest) {
     if (deleteResult.errors && deleteResult.errors.length > 0) {
       console.error('Errors during batch deletion:', deleteResult.errors)
       // Decide if this is a partial success or full failure
-      return NextResponse.json({ 
-        message: 'Some notifications could not be deleted.', 
-        errors: deleteResult.errors,
-        deletedCount 
-      }, { status: 207 }) // Multi-Status
+      return NextResponse.json(
+        {
+          message: 'Some notifications could not be deleted.',
+          errors: deleteResult.errors,
+          deletedCount,
+        },
+        { status: 207 },
+      ) // Multi-Status
     }
 
-    return NextResponse.json({ message: 'Notifications deleted successfully', count: deletedCount }, { status: 200 })
-
+    return NextResponse.json(
+      { message: 'Notifications deleted successfully', count: deletedCount },
+      { status: 200 },
+    )
   } catch (error) {
     console.error('Error deleting notifications:', error)
     let errorMessage = 'Failed to delete notifications'

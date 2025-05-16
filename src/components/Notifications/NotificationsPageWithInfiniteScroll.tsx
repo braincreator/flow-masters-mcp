@@ -36,6 +36,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import NotificationFilterSidebar from './NotificationFilterSidebar'
+import { toast } from '@/components/ui/use-toast'
 
 interface NotificationsPageProps {
   lang: string
@@ -54,6 +55,8 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   // Список типов уведомлений
   const notificationTypes = Object.values(NotificationStoredType).map((type) => ({
@@ -150,34 +153,144 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
 
   const handleMarkAllAsRead = async () => {
     if (!confirm(t('confirmMarkAllRead'))) return
+
+    // Мгновенно отображаем действие в UI - даже до запроса подтверждения
+    setIsLoading(true)
+
     try {
+      // Оптимистично обновляем UI сразу после подтверждения
+      if (filters.status === 'unread') {
+        // Если показаны только непрочитанные, применяем анимацию исчезновения
+        const animationTimeout = setTimeout(() => {
+          setNotifications([]) // Очищаем список с анимацией
+        }, 300)
+      } else {
+        // Иначе обновляем статусы всех уведомлений мгновенно
+        setNotifications((prev) =>
+          prev.map((notification) => ({ ...notification, status: 'read' })),
+        )
+      }
+
+      // Делаем запрос к API после обновления UI
       const response = await fetch('/api/notifications/mark-all-as-read', { method: 'POST' })
       if (!response.ok) throw new Error(t('errors.markAllReadFailed'))
-      window.location.reload() // Перезагружаем страницу для обновления списка
+
+      toast({
+        description: t('markAllReadSuccess'),
+        variant: 'default',
+        duration: 1500,
+      })
+
+      // После успешного запроса обновляем данные с сервера для синхронизации
+      setIsInitialLoad(true)
     } catch (error) {
       console.error('Failed to mark all as read:', error)
+      toast({
+        description: t('errors.markAllReadFailed'),
+        variant: 'destructive',
+        duration: 3000,
+      })
+      // При ошибке перезагружаем данные для восстановления правильного состояния
+      setIsInitialLoad(true)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleDeleteAllNotifications = async () => {
     if (!confirm(t('confirmDeleteAll'))) return
+
+    // Мгновенно отображаем действие в UI
+    setIsLoading(true)
+
     try {
+      // Применяем анимацию исчезновения к элементам
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, isDeleting: true })),
+      )
+
+      // Через короткое время очищаем весь список (для анимации)
+      setTimeout(() => {
+        setNotifications([])
+      }, 300)
+
+      // Делаем запрос к API после обновления UI
       const response = await fetch('/api/notifications', { method: 'DELETE' })
       if (!response.ok) throw new Error(t('errors.deleteAllFailed'))
-      window.location.reload() // Перезагружаем страницу для обновления списка
+
+      toast({
+        description: t('deleteAllSuccess'),
+        variant: 'default',
+        duration: 1500,
+      })
     } catch (error) {
       console.error('Failed to delete all notifications:', error)
+      toast({
+        description: t('errors.deleteAllFailed'),
+        variant: 'destructive',
+        duration: 3000,
+      })
+      // При ошибке перезагружаем данные
+      setIsInitialLoad(true)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleDeleteReadNotifications = async () => {
     if (!confirm(t('confirmDeleteRead'))) return
+
+    // Мгновенно отображаем действие в UI
+    setIsLoading(true)
+
     try {
+      // Оптимистично обновляем UI
+      if (filters.status === 'read') {
+        // Если показаны только прочитанные, применяем анимацию исчезновения
+        setNotifications((prev) =>
+          prev.map((notification) => ({ ...notification, isDeleting: true })),
+        )
+
+        // Через короткое время очищаем весь список (для анимации)
+        setTimeout(() => {
+          setNotifications([])
+        }, 300)
+      } else {
+        // Если показаны все, добавляем анимацию к прочитанным и удаляем их
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notification.status === 'read' ? { ...notification, isDeleting: true } : notification,
+          ),
+        )
+
+        // Через короткое время удаляем прочитанные (для анимации)
+        setTimeout(() => {
+          setNotifications((prev) =>
+            prev.filter((notification) => notification.status === 'unread'),
+          )
+        }, 300)
+      }
+
+      // Делаем запрос к API после обновления UI
       const response = await fetch('/api/notifications/read', { method: 'DELETE' })
       if (!response.ok) throw new Error(t('errors.deleteReadFailed'))
-      window.location.reload() // Перезагружаем страницу для обновления списка
+
+      toast({
+        description: t('deleteReadSuccess'),
+        variant: 'default',
+        duration: 1500,
+      })
     } catch (error) {
       console.error('Failed to delete read notifications:', error)
+      toast({
+        description: t('errors.deleteReadFailed'),
+        variant: 'destructive',
+        duration: 3000,
+      })
+      // При ошибке перезагружаем данные
+      setIsInitialLoad(true)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -250,6 +363,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
             onResetFilters={() => {
               setFilters({ type: '', status: '' })
               setSort({ sortBy: 'createdAt', sortOrder: 'desc' })
+              setIsInitialLoad(true) // Перезагружаем данные с новыми фильтрами
             }}
             onDeleteReadNotifications={handleDeleteReadNotifications}
           />
@@ -293,6 +407,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
                     onResetFilters={() => {
                       setFilters({ type: '', status: '' })
                       setSort({ sortBy: 'createdAt', sortOrder: 'desc' })
+                      setIsInitialLoad(true) // Перезагружаем данные с новыми фильтрами
                     }}
                     onDeleteReadNotifications={handleDeleteReadNotifications}
                     isMobile={true}

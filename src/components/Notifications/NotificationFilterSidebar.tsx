@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { NotificationStoredType } from '@/types/notifications'
-import { Check, Trash2, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
+import { Check, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -103,12 +103,34 @@ const NotificationFilterSidebar: React.FC<NotificationFilterSidebarProps> = ({
     { value: 'title', label: tControls('sortBy.title') },
   ]
 
+  const hasActiveFilters =
+    filters.type !== '' ||
+    filters.status !== '' ||
+    sort.sortBy !== 'createdAt' ||
+    sort.sortOrder !== 'desc'
+
   return (
     <div className={cn('space-y-6', className)}>
       <div>
         <h3 className="text-lg font-medium">{tControls('filters.title')}</h3>
         <p className="text-sm text-muted-foreground">{tControls('filters.description')}</p>
       </div>
+
+      {/* Кнопка сброса фильтров - перемещаем в верхнюю часть */}
+      {hasActiveFilters && (
+        <div className="flex items-center justify-between">
+          {/* <div className="text-sm text-muted-foreground">{tControls('filters.activeFilters')}</div> */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            onClick={onResetFilters}
+          >
+            <X className="h-3.5 w-3.5" />
+            {tControls('filters.reset')}
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-5">
         {/* Фильтр по статусу */}
@@ -135,7 +157,7 @@ const NotificationFilterSidebar: React.FC<NotificationFilterSidebarProps> = ({
           </div>
         </div>
 
-        {/* Фильтр по типу - заменён на более удобный компонент */}
+        {/* Фильтр по типу */}
         <div className="space-y-3">
           <label className="text-sm font-medium block">{tControls('filters.type')}</label>
 
@@ -231,25 +253,6 @@ const NotificationFilterSidebar: React.FC<NotificationFilterSidebarProps> = ({
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Кнопки действий */}
-      <div className="pt-4 space-y-2">
-        <Button
-          variant="outline"
-          className="w-full justify-start hover:bg-primary/5 transition-colors duration-200"
-          onClick={onResetFilters}
-        >
-          {tControls('filters.reset')}
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors duration-200"
-          onClick={onDeleteReadNotifications}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          {tControls('actions.deleteRead')}
-        </Button>
       </div>
 
       {/* Кнопка закрытия на мобильных */}

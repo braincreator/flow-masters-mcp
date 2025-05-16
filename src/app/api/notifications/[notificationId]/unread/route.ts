@@ -13,6 +13,9 @@ export async function POST(request: NextRequest, { params }: { params: { notific
     }
 
     const userId = session.user.id
+    // Per Next.js warning for dynamic APIs, ensure request stream is consumed
+    // before accessing params. Using request.text() if body content isn't strictly needed here.
+    await request.text();
     const { notificationId } = params
 
     if (!notificationId) {
