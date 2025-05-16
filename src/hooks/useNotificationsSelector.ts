@@ -146,3 +146,13 @@ export function useGroupedNotifications() {
     }
   })
 }
+
+/**
+ * Получаем доступ к состоянию фильтрации уведомлений
+ */
+export function useNotificationsFilter() {
+  return useNotificationsSelector((context) => ({
+    showOnlyUnreadFilter: context.showOnlyUnreadFilter,
+    setShowOnlyUnreadFilter: context.setShowOnlyUnreadFilter,
+  }))
+}

@@ -929,3 +929,69 @@
   position: relative;
   overflow: visible !important;
 }
+
+/* Специальные стили для уведомлений в выпадающем меню */
+.notification-dropdown-item {
+  cursor: pointer;
+}
+
+.notification-dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.dark .notification-dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Оптимизированные стили для компактного режима в NotificationCenter */
+.notification-dropdown-item .w-full.rounded-lg {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Уменьшаем отступы для контента в выпадающем меню */
+.notification-dropdown-item .w-full.rounded-lg {
+  margin-bottom: 0 !important;
+}
+
+/* Специальные стили для карточек уведомлений внутри NotificationCenter */
+.notification-dropdown-item-card {
+  border-width: 1px !important;
+  border-left-width: 3px !important;
+  padding: 0.75rem !important;
+  margin: 0 !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.notification-dropdown-item-card:hover {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+.dark .notification-dropdown-item-card:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Оптимизируем внешний вид для NotificationCenter */
+.notification-dropdown-item-card h3 {
+  font-size: 0.8rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.notification-dropdown-item-card p {
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+.notification-dropdown-item-card .badge {
+  font-size: 0.65rem !important;
+  padding: 0 0.25rem !important;
+}
+
+/* Уменьшаем размер кнопок в контексте выпадающего меню */
+.notification-dropdown-item-card button {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  padding: 0 !important;
+}

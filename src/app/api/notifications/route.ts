@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10)
     const type = searchParams.get('type')
     const status = searchParams.get('status') // 'read', 'unread', or null for 'all'
+    const onlyUnread = searchParams.get('onlyUnread') === 'true' // Получаем параметр onlyUnread
     const sortBy = searchParams.get('sortBy') || 'createdAt' // Default to createdAt
     const sortOrderParam = searchParams.get('sortOrder') || 'desc' // Default to desc
 
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Приоритет отдаем параметру status, если он указан
     if (status === 'read') {
       whereCondition.and.push({
         isRead: {
@@ -48,6 +50,13 @@ export async function GET(request: NextRequest) {
         },
       })
     } else if (status === 'unread') {
+      whereCondition.and.push({
+        isRead: {
+          equals: false,
+        },
+      })
+    } else if (onlyUnread) {
+      // Если status не указан, проверяем onlyUnread
       whereCondition.and.push({
         isRead: {
           equals: false,
@@ -68,6 +77,7 @@ export async function GET(request: NextRequest) {
       page,
       type,
       status,
+      onlyUnread,
       sortBy: sortBy,
       sortOrder: sortOrderParam,
       appliedSort: sortString,

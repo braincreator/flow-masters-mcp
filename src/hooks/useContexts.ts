@@ -49,6 +49,7 @@ export {
   useNotificationActions,
   useUnreadCount,
   useNotificationsOfType,
+  useNotificationsFilter,
 } from '@/hooks/useNotificationsSelector'
 
 export {

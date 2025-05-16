@@ -48,6 +48,7 @@ interface NotificationItemProps {
   lang: string
   isProcessing?: boolean
   variant?: 'default' | 'compact' // Добавляем вариант отображения
+  disableClickEvents?: boolean // Добавляем флаг для отключения кликов
 }
 
 interface NotificationTypeStyle {
@@ -267,6 +268,12 @@ const formatDate = (dateString: string, lang: string, timeOnly = false): string 
   }
 }
 
+// Функция для определения, используется ли компонент внутри NotificationCenter
+const isInsideDropdown = (element: HTMLElement | null): boolean => {
+  if (!element) return false;
+  return element.closest('.notification-dropdown-item') !== null;
+};
+
 const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   notification,
   onMarkAsRead,
@@ -275,6 +282,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   lang,
   isProcessing = false,
   variant = 'default', // По умолчанию полный размер
+  disableClickEvents = false, // По умолчанию разрешаем клики
 }) => {
   const t = useTranslations('Notifications.item')
   const tTypes = useTranslations('Notifications.type')
@@ -292,6 +300,10 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   const handleMarkAsRead = async () => {
     if (isMarkingRead || isDeleting || isProcessing) return
+    if (disableClickEvents) {
+      // Если события клика отключены, предотвращаем действие
+      return
+    }
 
     // Мгновенно обновляем локальное состояние для отзывчивого UI
     setIsMarkingRead(true)
@@ -310,6 +322,10 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   const handleDelete = async () => {
     if (isDeleting || isMarkingRead || isMarkingUnread || isProcessing) return
+    if (disableClickEvents) {
+      // Если события клика отключены, предотвращаем действие
+      return
+    }
 
     // Мгновенно обновляем локальное состояние
     setIsDeleting(true)
@@ -325,6 +341,10 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   const handleMarkAsUnread = async () => {
     if (isMarkingUnread || isDeleting || isProcessing) return
+    if (disableClickEvents) {
+      // Если события клика отключены, предотвращаем действие
+      return
+    }
 
     // Мгновенно обновляем локальное состояние
     setIsMarkingUnread(true)
@@ -350,13 +370,13 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const isCompact = variant === 'compact'
 
   const cardClassName = cn(
-    'w-full rounded-lg border backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+    'w-full rounded-lg border backdrop-blur-sm transition-all duration-200',
     localStatus === 'unread'
-      ? 'bg-blue-50/90 border-blue-300 border-l-4 border-l-blue-500 dark:bg-blue-950/20 dark:border-blue-800 dark:border-l-blue-600 shadow-md'
-      : 'bg-card/90 border-gray-200 dark:border-gray-700 dark:bg-gray-800/90 shadow-sm',
+      ? 'bg-blue-50/90 border-blue-300 border-l-4 border-l-blue-500 dark:bg-blue-950/20 dark:border-blue-800 dark:border-l-blue-600'
+      : 'bg-card/90 border-gray-200 dark:border-gray-700 dark:bg-gray-800/90',
     (isProcessing || isMarkingRead || isMarkingUnread || isDeleting) &&
       'opacity-80 pointer-events-none',
-    isCompact ? 'p-3' : 'p-5', // Меньший padding для компактного режима
+    isCompact ? 'p-2 hover:bg-muted/20' : 'p-5 hover:shadow-xl hover:-translate-y-1',
   )
 
   // Состояние активности (для микроанимаций)
@@ -366,79 +386,71 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   if (isCompact) {
     return (
       <TooltipProvider delayDuration={200}>
-        <motion.div
-          whileHover={{ scale: isActive ? 1 : 1.01 }}
-          whileTap={{ scale: isActive ? 1 : 0.99 }}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            scale: isActive ? 0.98 : 1,
-          }}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 17,
-            opacity: { duration: 0.2 },
-            scale: { duration: 0.1 },
+        <div 
+          className={cardClassName}
+          ref={(el) => {
+            // Добавляем специальные классы, если компонент находится внутри NotificationCenter
+            if (el && isInsideDropdown(el)) {
+              el.classList.add('notification-dropdown-item-card');
+            }
           }}
         >
-          <Card className={cardClassName}>
-            {isActive && (
-              <div className="absolute inset-0 bg-background/30 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
-              </div>
-            )}
+          {isActive && (
+            <div className="absolute inset-0 bg-background/30 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+              <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+            </div>
+          )}
 
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 relative">
-                <typeStyle.IconComponent
-                  className={cn('w-4 h-4 mt-0.5', typeStyle.iconClass)}
-                  aria-hidden="true"
-                />
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 relative">
+              <typeStyle.IconComponent
+                className={cn('w-4 h-4 mt-0.5', typeStyle.iconClass)}
+                aria-hidden="true"
+              />
+            </div>
+
+            <div className="flex-grow min-w-0">
+              <div className="flex justify-between items-start gap-1.5">
+                <h3
+                  className={cn(
+                    'text-sm line-clamp-1',
+                    localStatus === 'unread' ? 'font-bold' : 'font-medium',
+                  )}
+                >
+                  {notification.title}
+                </h3>
               </div>
 
-              <div className="flex-grow min-w-0">
-                <div className="flex justify-between items-start gap-1.5">
-                  <h3
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 line-clamp-1">
+                {notification.messageKey
+                  ? formatNotificationMessage(
+                      notification.messageKey,
+                      t,
+                      tBodies,
+                      notification.messageParams,
+                    )
+                  : notification.shortText || notification.title}
+              </p>
+
+              <div className="flex justify-between items-center mt-2">
+                <div className="flex items-center gap-1.5">
+                  <div
                     className={cn(
-                      'text-sm line-clamp-1',
-                      localStatus === 'unread' ? 'font-bold' : 'font-medium',
+                      'w-2 h-2 rounded-full',
+                      localStatus === 'unread'
+                        ? 'bg-blue-500 dark:bg-blue-400'
+                        : 'bg-gray-300 dark:bg-gray-600',
                     )}
+                  />
+                  <Badge
+                    variant="outline"
+                    className={cn('text-[10px] px-1 py-0', typeStyle.tagClass)}
                   >
-                    {notification.title}
-                  </h3>
+                    {tTypes ? tTypes(notification.type as string) : notification.type}
+                  </Badge>
                 </div>
 
-                <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 line-clamp-1">
-                  {notification.messageKey
-                    ? formatNotificationMessage(
-                        notification.messageKey,
-                        t,
-                        tBodies,
-                        notification.messageParams,
-                      )
-                    : notification.shortText || notification.title}
-                </p>
-
-                <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className={cn(
-                        'w-2 h-2 rounded-full',
-                        localStatus === 'unread'
-                          ? 'bg-blue-500 dark:bg-blue-400'
-                          : 'bg-gray-300 dark:bg-gray-600',
-                      )}
-                    />
-                    <Badge
-                      variant="outline"
-                      className={cn('text-[10px] px-1 py-0', typeStyle.tagClass)}
-                    >
-                      {tTypes ? tTypes(notification.type as string) : notification.type}
-                    </Badge>
-                  </div>
-
+                {!disableClickEvents && (
                   <div className="flex items-center gap-0.5">
                     {localStatus === 'unread' ? (
                       <Tooltip>
@@ -478,18 +490,18 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                       </Tooltip>
                     )}
                   </div>
-                </div>
+                )}
+              </div>
 
-                <div className="flex items-center gap-1 ml-1 text-gray-400">
-                  <Clock className="h-2.5 w-2.5" />
-                  <span className="text-[10px] whitespace-nowrap">
-                    {formatDate(notification.createdAt, lang, false)}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1 ml-1 text-gray-400">
+                <Clock className="h-2.5 w-2.5" />
+                <span className="text-[10px] whitespace-nowrap">
+                  {formatDate(notification.createdAt, lang, false)}
+                </span>
               </div>
             </div>
-          </Card>
-        </motion.div>
+          </div>
+        </div>
       </TooltipProvider>
     )
   }

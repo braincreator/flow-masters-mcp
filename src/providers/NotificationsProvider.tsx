@@ -8,12 +8,9 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react'
-import {
-  fetchNotifications,
-  markNotificationAsRead,
-} from '@/lib/api/notifications'
+import { fetchNotifications, markNotificationAsRead } from '@/lib/api/notifications'
 import { useAuth } from '@/hooks/useAuth'
-import { tryCatch, AppError, ErrorType, ErrorSeverity } from '@/utilities/errorHandling' 
+import { tryCatch, AppError, ErrorType, ErrorSeverity } from '@/utilities/errorHandling'
 import { useStateLogger } from '@/utilities/stateLogger'
 import { toast } from 'sonner'
 
@@ -68,7 +65,7 @@ export interface NotificationsContextType {
   error: AppError | null
   markAsRead: (notificationId: string) => Promise<void>
   markAllAsRead: () => Promise<void>
-  refetchNotifications: () => Promise<void>
+  refetchNotifications: (page?: number, unreadOnly?: boolean, status?: string) => Promise<void>
   loadMoreNotifications: () => Promise<void>
   hasMore: boolean
   currentPage: number
@@ -110,14 +107,16 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [lastFetchedTimestamp, setLastFetchedTimestamp] = useState<string | null>(null)
 
   const NOTIFICATION_LIMIT = 20
-  const POLLING_INTERVAL = 30000 
+  const POLLING_INTERVAL = 30000
 
   type FetchType = 'initial' | 'loadMore' | 'fetchNewer' | 'filterChange'
 
   const fetchUserNotifications = useCallback(
     async (fetchType: FetchType, pageToFetch: number = 1): Promise<void> => {
       if (!isAuthenticated || !user?.id) {
-        logger.debug('Skip fetching notifications', { reason: 'User not authenticated or no user ID' })
+        logger.debug('Skip fetching notifications', {
+          reason: 'User not authenticated or no user ID',
+        })
         setNotifications([])
         setIsLoadingInitial(false)
         setIsLoadingMore(false)
@@ -153,12 +152,24 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
       if (fetchType === 'fetchNewer' && lastFetchedTimestamp) {
         params.newerThanTimestamp = lastFetchedTimestamp
-        params.page = 1 
+        params.page = 1
       }
 
       const { data, error: fetchError } = await tryCatch(async () => {
-        // @ts-ignore 
-        return fetchNotifications(params.limit, params.page, params.unreadOnly, params.newerThanTimestamp)
+        if (params.newerThanTimestamp) {
+          const url = new URL('/api/notifications', window.location.origin)
+          url.searchParams.append('limit', params.limit.toString())
+          url.searchParams.append('page', params.page.toString())
+          url.searchParams.append('onlyUnread', params.unreadOnly.toString())
+          url.searchParams.append('newerThan', params.newerThanTimestamp)
+
+          return await fetch(url.pathname + url.search, {
+            credentials: 'include',
+          }).then((res) => res.json())
+        }
+
+        // Всегда передаем все три параметра в fetchNotifications
+        return fetchNotifications(params.limit, params.page, params.unreadOnly)
       })
 
       if (fetchError) {
@@ -229,11 +240,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     },
     [
       isAuthenticated,
-      user?.id, 
-      logger, 
-      showOnlyUnreadFilter, 
-      lastFetchedTimestamp, 
-      NOTIFICATION_LIMIT, 
+      user?.id,
+      logger,
+      showOnlyUnreadFilter,
+      lastFetchedTimestamp,
+      NOTIFICATION_LIMIT,
     ],
   )
 
@@ -247,7 +258,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       logger.info('User logged out, clearing notifications data')
       setNotifications([])
       setCurrentPage(1)
-      setHasMore(true) 
+      setHasMore(true)
       setError(null)
       setIsLoadingInitial(false)
       setIsLoadingMore(false)
@@ -258,7 +269,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
-      return () => {} 
+      return () => {}
     }
 
     logger.info('Setting up polling for new notifications', { interval: POLLING_INTERVAL })
@@ -442,16 +453,37 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     error,
     markAsRead,
     markAllAsRead,
-    refetchNotifications: async () => {
-      logger.info('Manual refresh triggered (refetchNotifications)')
-      await fetchUserNotifications('initial', 1)
+    refetchNotifications: async (page?: number, unreadOnly?: boolean, status?: string) => {
+      const pageToUse = page || 1
+      const unreadOnlyToUse = unreadOnly !== undefined ? unreadOnly : showOnlyUnreadFilter
+
+      logger.info('Manual refresh triggered (refetchNotifications)', {
+        page: pageToUse,
+        unreadOnly: unreadOnlyToUse,
+        status,
+      })
+
+      if (unreadOnly !== undefined && unreadOnly !== showOnlyUnreadFilter) {
+        setShowOnlyUnreadFilter(unreadOnly)
+      }
+
+      // Используем тип 'filterChange' если изменился фильтр unreadOnly
+      const fetchType =
+        unreadOnly !== undefined && unreadOnly !== showOnlyUnreadFilter ? 'filterChange' : 'initial'
+
+      await fetchUserNotifications(fetchType, pageToUse)
     },
     loadMoreNotifications: async () => {
       if (hasMore && !isLoadingInitial && !isLoadingMore && !isLoadingNew) {
         logger.info('Loading more notifications')
         await fetchUserNotifications('loadMore', currentPage + 1)
       } else {
-        logger.debug('Skipped loading more', { hasMore, isLoadingInitial, isLoadingMore, isLoadingNew })
+        logger.debug('Skipped loading more', {
+          hasMore,
+          isLoadingInitial,
+          isLoadingMore,
+          isLoadingNew,
+        })
       }
     },
     hasMore,
