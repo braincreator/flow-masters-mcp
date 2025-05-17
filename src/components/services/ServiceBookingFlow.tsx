@@ -48,7 +48,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 }) => {
   const t = useTranslations('ServiceBooking')
   const router = useRouter()
-  const { addItem, refreshCart } = useCart() // Используем оба метода из хука
+  const { addItem, refreshCart, emptyCart } = useCart() // Используем все необходимые методы из хука
 
   const [step, setStep] = useState<'payment' | 'additionalInfo' | 'booking' | 'complete'>(
     skipPayment && initialOrderId
@@ -118,6 +118,15 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     setError(null)
 
     try {
+      // Очищаем корзину перед добавлением новой услуги, чтобы избежать конфликтов
+      if (typeof emptyCart === 'function') {
+        await emptyCart()
+        console.log('ServiceBookingFlow: Cart cleared before adding new service.')
+      } else {
+        // Этого не должно произойти, если useCart предоставляет emptyCart
+        console.warn('ServiceBookingFlow: emptyCart function is not available from useCart.')
+      }
+
       // Последовательные шаги для гарантированного добавления в корзину
       console.log('ServiceBookingFlow: 1. Calling addItem with params:', serviceId, 'service', 1)
       await addItem(serviceId, 'service', 1)

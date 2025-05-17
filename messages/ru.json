@@ -1,4 +1,43 @@
 {
+  "FloatingCartButton": {
+    "viewCart": "Посмотреть корзину"
+  },
+  "Cart": {
+    "title": "Корзина",
+    "description": "Просмотрите свою корзину и перейдите к оформлению заказа",
+    "loading": "Загрузка корзины...",
+    "error": "Ошибка загрузки корзины. Пожалуйста, попробуйте еще раз.",
+    "emptyCart": "Ваша корзина пуста.",
+    "totalLabel": "Итого:",
+    "checkoutButton": "Оформить заказ",
+    "removeButton": "Удалить",
+    "quantityLabel": "Кол-во",
+    "itemLabel": "Товар",
+    "priceLabel": "Цена",
+    "subtotalLabel": "Подытог",
+    "shippingLabel": "Доставка",
+    "taxLabel": "Налог",
+    "discountLabel": "Скидка",
+    "continueShoppingButton": "Продолжить покупки",
+    "closeButton": "Закрыть",
+    "removeModalTitle": "Удалить товар",
+    "removeModalDescription": "Вы уверены, что хотите удалить этот товар из корзины?",
+    "cancelButton": "Отмена",
+    "removeItemLabel": "Удалить товар",
+    "productFallbackTitle": "Товар",
+    "errorTitle": "Ошибка загрузки корзины",
+    "errorDescriptionDefault": "Возникла проблема при загрузке данных вашей корзины. Пожалуйста, попробуйте еще раз.",
+    "tryAgainButton": "Попробовать снова",
+    "emptyTitle": "Ваша корзина пуста",
+    "checkoutSuccessTitle": "Заказ успешно оформлен!",
+    "checkoutSuccessMessage": "Ваш заказ был успешно размещен."
+  },
+  "CartComponent": {
+    "loading": "Загрузка корзины...",
+    "error": "Ошибка загрузки корзины. Пожалуйста, попробуйте еще раз.",
+    "emptyCart": "Ваша корзина пуста.",
+    "totalLabel": "Итого:"
+  },
   "Account": {
     "subscriptions": {
       "metadata": {
@@ -596,7 +635,8 @@
     "showResults": "Показать результаты",
     "clearAll": "Очистить всё",
     "bookService": "Забронировать услугу",
-    "backToServiceDetails": "Вернуться к деталям услуги"
+    "backToServiceDetails": "Вернуться к деталям услуги",
+    "minutes": "минут"
   },
   "home": {
     "title": "Flow Masters",
@@ -901,7 +941,8 @@
     "errorNotSuccessful": "Платеж не был успешным",
     "errorVerifyStatus": "Не удалось проверить статус платежа",
     "successIconLabel": "Успех",
-    "errorIconLabel": "Ошибка"
+    "errorIconLabel": "Ошибка",
+    "returnToCartButton": "Вернуться в корзину"
   },
   "AccountProfile": {
     "fullName": "Полное имя",
@@ -1825,5 +1866,122 @@
     },
     "readSuccess": "Уведомление отмечено как прочитанное",
     "unreadSuccess": "Уведомление отмечено как непрочитанное"
+  },
+  "ServiceOrder": {
+    "orderTitle": "Заказ услуги",
+    "orderHeading": "Заказ услуги: {serviceName}",
+    "specificationLabel": "Техническое задание",
+    "specificationPlaceholder": "Опишите подробно, что вы хотите получить от данной услуги...",
+    "filesLabel": "Прикрепить файлы (если необходимо)",
+    "selectedFiles": "Выбранные файлы",
+    "remove": "Удалить",
+    "submitting": "Отправка...",
+    "uploadingFiles": "Загрузка файлов...",
+    "submitOrder": "Оформить заказ",
+    "orderSuccess": "Заказ успешно оформлен!",
+    "redirecting": "Перенаправление на страницу заказа...",
+    "specificationRequired": "Техническое задание обязательно для заполнения",
+    "specificationTooShort": "Техническое задание должно быть подробнее (минимум 20 символов)",
+    "preview": "Предпросмотр",
+    "edit": "Редактировать",
+    "previewSpecification": "Предпросмотр технического задания",
+    "noSpecificationText": "Техническое задание не заполнено",
+    "errorUploadingFile": "Ошибка загрузки файла",
+    "errorCreatingOrder": "Ошибка создания заказа",
+    "unknownError": "Произошла неизвестная ошибка"
+  },
+  "Projects": {
+    "titleProjects": "Мои проекты",
+    "noProjects": "У вас пока нет проектов",
+    "browseServices": "Заказать услугу",
+    "errorLoadingProjects": "Ошибка при загрузке проектов",
+    "unknownError": "Произошла неизвестная ошибка",
+    "retry": "Повторить попытку",
+    "created": "Создан",
+    "updated": "Обновлен",
+    "filterAll": "Все проекты",
+    "unknownService": "Неизвестная услуга",
+    "statusNew": "Новый",
+    "statusInProgress": "В работе",
+    "statusReview": "На проверке",
+    "statusCompleted": "Завершен",
+    "statusCancelled": "Отменен"
+  },
+  "ProjectDetails": {
+    "backToProjects": "Назад к проектам",
+    "errorLoadingProject": "Ошибка при загрузке проекта",
+    "projectNotFound": "Проект не найден",
+    "unknownError": "Произошла неизвестная ошибка",
+    "orderNumber": "Номер заказа",
+    "created": "Создан",
+    "updated": "Обновлен",
+    "unknown": "Неизвестно",
+    "unknownService": "Неизвестная услуга",
+    "tabSpecification": "Техническое задание",
+    "tabTasks": "Задачи",
+    "tabMessages": "Обсуждения",
+    "tabFiles": "Файлы",
+    "specification": "Техническое задание",
+    "noSpecification": "Текст технического задания не предоставлен",
+    "attachedFiles": "Приложенные файлы",
+    "noFiles": "Файлы не приложены",
+    "download": "Скачать",
+    "tasks": "Задачи",
+    "tasksComingSoon": "Раздел задач будет доступен в ближайшее время",
+    "messages": "Обсуждения",
+    "messagesComingSoon": "Раздел обсуждений будет доступен в ближайшее время",
+    "files": "Файлы",
+    "filesComingSoon": "Раздел файлов будет доступен в ближайшее время",
+    "statusNew": "Новый",
+    "statusInProgress": "В работе",
+    "statusReview": "На проверке",
+    "statusCompleted": "Завершен",
+    "statusCancelled": "Отменен"
+  },
+  "FileUpload": {
+    "dropFiles": "Перетащите файлы сюда",
+    "oneFileOnly": "(только один файл)",
+    "orClickToBrowse": "или нажмите для выбора файлов",
+    "fileSizeError": "{{count}} файл(ов) слишком большой. Максимальный размер {{maxSize}} МБ",
+    "uploading": "Загрузка файлов..."
+  },
+  "TaskForm": {
+    "createTask": "Создать задачу",
+    "editTask": "Редактировать задачу",
+    "title": "Название",
+    "description": "Описание",
+    "status": "Статус",
+    "statusNew": "Новая",
+    "statusInProgress": "В работе",
+    "statusCompleted": "Завершена",
+    "titleRequired": "Название задачи обязательно",
+    "submit": "Сохранить",
+    "submitting": "Сохранение...",
+    "cancel": "Отмена",
+    "submitError": "Ошибка при сохранении задачи"
+  },
+  "Projects": {
+    "title": "Проекты",
+    "projectName": "Название проекта",
+    "serviceType": "Тип услуги",
+    "status": "Статус",
+    "created": "Создан",
+    "updated": "Обновлен",
+    "view": "Просмотр",
+    "actions": "Действия",
+    "filterByStatus": "Фильтр по статусу",
+    "allStatuses": "Все статусы",
+    "noProjects": "У вас нет проектов",
+    "noProjectsWithStatus": "У вас нет проектов со статусом {status}",
+    "orderNewService": "Заказать новую услугу",
+    "errorLoadingProjects": "Ошибка загрузки проектов",
+    "unknownError": "Неизвестная ошибка",
+    "status": {
+      "new": "Новый",
+      "in_progress": "В работе",
+      "on_review": "На проверке",
+      "completed": "Завершен",
+      "cancelled": "Отменен"
+    }
   }
 }

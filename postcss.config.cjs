@@ -10,5 +10,6 @@ module.exports = {
         flexbox: 'no-2009',
       },
     },
+    'postcss-import': { path: ['./node_modules'] },
   },
 }

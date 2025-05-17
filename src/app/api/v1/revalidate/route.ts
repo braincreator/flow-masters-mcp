@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from '@/utilities/revalidation'
+import { revalidateContent } from '@/utilities/revalidation'
 
 export async function POST(request: NextRequest) {
   // Check for secret to confirm this is a valid request
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Revalidate the page
-    await revalidatePath(path, { type: type as 'page' | 'layout' })
+    await revalidateContent({ path, type: type as 'page' | 'layout' })
 
     return NextResponse.json({ revalidated: true, now: Date.now() })
   } catch (err) {

@@ -114,6 +114,9 @@ export interface Config {
     discounts: Discount;
     promotions: Promotion;
     reviews: Review;
+    'service-projects': ServiceProject;
+    tasks: Task;
+    'project-messages': ProjectMessage;
     courses: Course;
     modules: Module;
     lessons: Lesson;
@@ -186,6 +189,9 @@ export interface Config {
     discounts: DiscountsSelect<false> | DiscountsSelect<true>;
     promotions: PromotionsSelect<false> | PromotionsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'service-projects': ServiceProjectsSelect<false> | ServiceProjectsSelect<true>;
+    tasks: TasksSelect<false> | TasksSelect<true>;
+    'project-messages': ProjectMessagesSelect<false> | ProjectMessagesSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
     modules: ModulesSelect<false> | ModulesSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
@@ -8615,9 +8621,9 @@ export interface Order {
    */
   paymentVerificationFailed?: boolean | null;
   /**
-   * Type of order. Determines how fulfillment is handled.
+   * Type of the order
    */
-  orderType?: ('product' | 'service' | 'subscription') | null;
+  orderType: 'product' | 'service' | 'subscription';
   /**
    * Additional data for service orders
    */
@@ -8647,6 +8653,14 @@ export interface Order {
     cancelledAt?: string | null;
     reason?: string | null;
   };
+  /**
+   * Текстовое описание ТЗ от клиента
+   */
+  specificationText?: string | null;
+  /**
+   * Файлы ТЗ, прикрепленные клиентом
+   */
+  specificationFiles?: (string | Media)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -8972,6 +8986,140 @@ export interface Review {
   user?: (string | null) | User;
   rating: number;
   comment: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-projects".
+ */
+export interface ServiceProject {
+  id: string;
+  /**
+   * Название проекта
+   */
+  name: string;
+  /**
+   * Исходный заказ
+   */
+  sourceOrder: string | Order;
+  /**
+   * Заказчик
+   */
+  customer: string | User;
+  /**
+   * Детали заказанной услуги
+   */
+  serviceDetails?: {
+    serviceName?: string | null;
+    serviceType?: string | null;
+  };
+  /**
+   * Текстовое ТЗ
+   */
+  specificationText?: string | null;
+  /**
+   * Файлы ТЗ
+   */
+  specificationFiles?: (string | Media)[] | null;
+  /**
+   * Статус выполнения проекта
+   */
+  status: 'new' | 'in_progress' | 'on_review' | 'completed' | 'cancelled';
+  /**
+   * Исполнитель
+   */
+  assignedTo?: (string | null) | User;
+  /**
+   * Внутренние заметки по проекту
+   */
+  notes?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks".
+ */
+export interface Task {
+  id: string;
+  /**
+   * Связанный проект по услуге
+   */
+  project: string | ServiceProject;
+  /**
+   * Название задачи
+   */
+  name: string;
+  /**
+   * Описание задачи
+   */
+  description?: string | null;
+  /**
+   * Статус задачи
+   */
+  status: 'new' | 'in_progress' | 'completed';
+  /**
+   * Ответственный
+   */
+  assignedTo: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-messages".
+ */
+export interface ProjectMessage {
+  id: string;
+  /**
+   * Связанный проект по услуге
+   */
+  project: string | ServiceProject;
+  /**
+   * Автор сообщения
+   */
+  author: string | User;
+  /**
+   * Текст сообщения
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Прикрепленные файлы
+   */
+  attachments?: (string | Media)[] | null;
+  /**
+   * Системное сообщение
+   */
+  isSystemMessage?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -9702,28 +9850,6 @@ export interface EmailCampaign {
       | null;
     locale?: ('' | 'ru' | 'en') | null;
   };
-  emailSequence?:
-    | {
-        template: string | EmailTemplate;
-        /**
-         * Задержка перед отправкой этого письма (от начала кампании или предыдущего письма)
-         */
-        delay?: number | null;
-        /**
-         * JSON с условиями, при которых это письмо будет отправлено
-         */
-        condition?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        id?: string | null;
-      }[]
-    | null;
   lastRun?: string | null;
   stats?: {
     totalSent?: number | null;
@@ -11677,6 +11803,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'service-projects';
+        value: string | ServiceProject;
+      } | null)
+    | ({
+        relationTo: 'tasks';
+        value: string | Task;
+      } | null)
+    | ({
+        relationTo: 'project-messages';
+        value: string | ProjectMessage;
       } | null)
     | ({
         relationTo: 'courses';
@@ -15609,6 +15747,8 @@ export interface OrdersSelect<T extends boolean = true> {
         cancelledAt?: T;
         reason?: T;
       };
+  specificationText?: T;
+  specificationFiles?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -15724,6 +15864,54 @@ export interface ReviewsSelect<T extends boolean = true> {
   user?: T;
   rating?: T;
   comment?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-projects_select".
+ */
+export interface ServiceProjectsSelect<T extends boolean = true> {
+  name?: T;
+  sourceOrder?: T;
+  customer?: T;
+  serviceDetails?:
+    | T
+    | {
+        serviceName?: T;
+        serviceType?: T;
+      };
+  specificationText?: T;
+  specificationFiles?: T;
+  status?: T;
+  assignedTo?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks_select".
+ */
+export interface TasksSelect<T extends boolean = true> {
+  project?: T;
+  name?: T;
+  description?: T;
+  status?: T;
+  assignedTo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-messages_select".
+ */
+export interface ProjectMessagesSelect<T extends boolean = true> {
+  project?: T;
+  author?: T;
+  content?: T;
+  attachments?: T;
+  isSystemMessage?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -16190,14 +16378,6 @@ export interface EmailCampaignsSelect<T extends boolean = true> {
         segment?: T;
         filter?: T;
         locale?: T;
-      };
-  emailSequence?:
-    | T
-    | {
-        template?: T;
-        delay?: T;
-        condition?: T;
-        id?: T;
       };
   lastRun?: T;
   stats?:

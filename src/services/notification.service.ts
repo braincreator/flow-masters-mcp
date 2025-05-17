@@ -2,13 +2,7 @@ import { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { EmailService } from './email.service'
 import { TelegramService } from './telegram.service'
-import {
-  Order,
-  Subscription,
-  User,
-  SubscriptionPlan,
-  Notification,
-} from '../payload-types'
+import { Order, Subscription, User, SubscriptionPlan, Notification } from '../payload-types'
 import type { Where } from 'payload'
 import { getPayload } from 'payload'
 import { getTranslations } from 'next-intl/server'
@@ -74,12 +68,12 @@ export type NotificationEventType =
   | 'subscription_updates'
   | 'order_updates'
   | 'refund_notifications'
-  | 'renewal_reminders';
+  | 'renewal_reminders'
 
 export interface NotificationPayload {
   userId: string
   user?: User
-  title: string 
+  title: string
   messageKey: string
   messageParams?: Record<string, any>
   type: NotificationEventType
@@ -90,8 +84,7 @@ export interface NotificationPayload {
     templateSlug: string
     templateContext: Record<string, any>
   }
-  inAppSpecific?: {
-  }
+  inAppSpecific?: {}
 }
 
 export interface INotificationChannel {
@@ -195,7 +188,7 @@ class InAppNotificationChannel implements INotificationChannel {
         isRead: false,
         link: data.link,
         metadata: data.metadata,
-      };
+      }
 
       await this.payload.create({
         collection: 'notifications',
@@ -229,14 +222,16 @@ class EmailNotificationChannel implements INotificationChannel {
         `Email channel: Template slug not provided for user ${data.userId}, type ${data.type}`,
       )
       try {
-        const tGlobal = await getTranslations({ locale: localeForEmail });
-        const translatedMessage = data.messageKey ? tGlobal(data.messageKey, data.messageParams) : 'Notification content unavailable.';
+        const tGlobal = await getTranslations({ locale: localeForEmail })
+        const translatedMessage = data.messageKey
+          ? tGlobal(data.messageKey, data.messageParams)
+          : 'Notification content unavailable.'
 
         await this.emailService.sendTemplateEmail(
           'notification',
           data.user.email,
           {
-            title: data.title, 
+            title: data.title,
             message: translatedMessage,
             type: data.type,
             link: data.link,
@@ -892,7 +887,10 @@ export class NotificationService extends BaseService {
 
     let titleKey = 'order_status'
     let messageKey = 'NotificationBodies.order_status_update_detail'
-    let messageParams: Record<string, any> = { orderNumber: orderNumberForMessage, status: orderData.status }
+    let messageParams: Record<string, any> = {
+      orderNumber: orderNumberForMessage,
+      status: orderData.status,
+    }
     let notificationType: NotificationEventType = 'order_status'
     let emailTemplateSlug: string | null = null
     const emailTemplateContext: Record<string, any> = {
@@ -955,7 +953,7 @@ export class NotificationService extends BaseService {
       )
       try {
         const localizedTitle = await this.getNotificationTitle(notificationType, finalUserLocale)
-        emailTemplateContext.title = localizedTitle;
+        emailTemplateContext.title = localizedTitle
 
         await this.emailService.sendTemplateEmail(
           emailTemplateSlug,
@@ -1052,7 +1050,8 @@ export class NotificationService extends BaseService {
     }
   }
 
-  async getUserNotifications(userId: string, options = {}): Promise<any> { // Consider returning PaginatedDocs<Notification>
+  async getUserNotifications(userId: string, options = {}): Promise<any> {
+    // Consider returning PaginatedDocs<Notification>
     return this.payload.find({
       collection: 'notifications',
       where: {
@@ -1103,7 +1102,7 @@ export class NotificationService extends BaseService {
           allowSms: false,
         }
       }
-      
+
       const userNotificationPrefs = user.notificationPreferences as
         | {
             email?: {
@@ -1130,30 +1129,74 @@ export class NotificationService extends BaseService {
       let mappedPreferenceKey: EmailPreferenceKey | null = null
 
       const orderUpdateTypes: NotificationEventType[] = [
-        'order_created', 'order_paid', 'order_payment_failed', 'order_shipped_fulfilled',
-        'order_cancelled', 'order_refunded', 'refund_processed', 'order_completed',
-        'download_ready', 'payment_confirmed', 'order_confirmation', 'initial_payment_failed',
-        'order_status', 'order_updates', 'refund_notifications', 'system_alert',
-        'billing_alert', 'billing_alerts',
+        'order_created',
+        'order_paid',
+        'order_payment_failed',
+        'order_shipped_fulfilled',
+        'order_cancelled',
+        'order_refunded',
+        'refund_processed',
+        'order_completed',
+        'download_ready',
+        'payment_confirmed',
+        'order_confirmation',
+        'initial_payment_failed',
+        'order_status',
+        'order_updates',
+        'refund_notifications',
+        'system_alert',
+        'billing_alert',
+        'billing_alerts',
       ]
       const subscriptionUpdateTypes: NotificationEventType[] = [
-        'subscription_activated', 'subscription_cancelled', 'subscription_payment_failed',
-        'subscription_plan_changed', 'subscription_paused', 'subscription_resumed',
-        'subscription_expired', 'subscription_renewal_reminder', 'subscription_renewed_successfully',
-        'subscription_updates', 'renewal_reminders', 'payment_failed',
+        'subscription_activated',
+        'subscription_cancelled',
+        'subscription_payment_failed',
+        'subscription_plan_changed',
+        'subscription_paused',
+        'subscription_resumed',
+        'subscription_expired',
+        'subscription_renewal_reminder',
+        'subscription_renewed_successfully',
+        'subscription_updates',
+        'renewal_reminders',
+        'payment_failed',
       ]
       const accountActivityTypes: NotificationEventType[] = [
-        'account_welcome', 'welcome_email', 'account_password_changed', 'password_changed',
-        'account_email_changed', 'email_address_changed', 'account_details_updated',
-        'account_updated', 'achievement_unlocked', 'level_up', 'certificate_issued',
-        'comment_reply', 'comment_mention', 'comment_new', 'account', 'achievements', 'comments',
+        'account_welcome',
+        'welcome_email',
+        'account_password_changed',
+        'password_changed',
+        'account_email_changed',
+        'email_address_changed',
+        'account_details_updated',
+        'account_updated',
+        'achievement_unlocked',
+        'level_up',
+        'certificate_issued',
+        'comment_reply',
+        'comment_mention',
+        'comment_new',
+        'account',
+        'achievements',
+        'comments',
       ]
       const marketingAndPromotionsTypes: NotificationEventType[] = [
-        'newsletter_subscribed', 'promotional_message', 'abandoned_cart', 'newsletter', 'marketing',
+        'newsletter_subscribed',
+        'promotional_message',
+        'abandoned_cart',
+        'newsletter',
+        'marketing',
       ]
       const productNewsAndTipsTypes: NotificationEventType[] = [
-        'course_enrolled', 'lesson_completed', 'module_completed', 'assessment_submitted',
-        'assessment_graded', 'course_completed', 'courses', 'general_info',
+        'course_enrolled',
+        'lesson_completed',
+        'module_completed',
+        'assessment_submitted',
+        'assessment_graded',
+        'course_completed',
+        'courses',
+        'general_info',
       ]
 
       if (orderUpdateTypes.includes(notificationType)) {
@@ -1305,7 +1348,8 @@ export class NotificationService extends BaseService {
   }
 
   async markAllAsRead(userId: string): Promise<boolean> {
-    const whereClause: Where = { // Renamed to avoid conflict if 'where' is a keyword in a broader scope
+    const whereClause: Where = {
+      // Renamed to avoid conflict if 'where' is a keyword in a broader scope
       user: {
         equals: userId,
       },
@@ -1340,9 +1384,9 @@ export class NotificationService extends BaseService {
       if (type === 'email_address_changed') titleKey = 'account_email_changed'
       if (type === 'account_updated') titleKey = 'account_details_updated'
       if (type === 'refund_processed') titleKey = 'order_refunded'
-      if (type === 'payment_failed' && type.startsWith('subscription')) titleKey = 'subscription_payment_failed'
+      if (type === 'payment_failed' && type.startsWith('subscription'))
+        titleKey = 'subscription_payment_failed'
       else if (type === 'payment_failed') titleKey = 'order_payment_failed'
-
 
       let translatedTitle = t(titleKey)
 
@@ -1355,7 +1399,7 @@ export class NotificationService extends BaseService {
           newsletter: 'newsletter_subscribed',
           marketing: 'promotional_message',
           billing_alerts: 'billing_alert',
-          subscription_updates: 'subscription_activated', 
+          subscription_updates: 'subscription_activated',
           order_updates: 'order_status',
           refund_notifications: 'order_refunded',
           renewal_reminders: 'subscription_renewal_reminder',
@@ -1398,7 +1442,11 @@ export class NotificationService extends BaseService {
       user = customer as User
     } else if (typeof customer === 'string') {
       try {
-        user = await this.payload.findByID({ collection: 'users', id: customer, depth: 0 }) as User
+        user = (await this.payload.findByID({
+          collection: 'users',
+          id: customer,
+          depth: 0,
+        })) as User
       } catch (e) {
         console.warn(`Could not fetch user object for order confirmation: ${customer}`)
       }
@@ -1419,8 +1467,18 @@ export class NotificationService extends BaseService {
       metadata: {
         orderId: order.id,
         orderNumber: order.orderNumber || order.id,
-        total: userLocale === 'en' && order.total.en ? order.total.en.amount : (order.total.ru ? order.total.ru.amount : 0),
-        currency: userLocale === 'en' && order.total.en ? order.total.en.currency : (order.total.ru ? order.total.ru.currency : 'USD'),
+        total:
+          userLocale === 'en' && order.total.en
+            ? order.total.en.amount
+            : order.total.ru
+              ? order.total.ru.amount
+              : 0,
+        currency:
+          userLocale === 'en' && order.total.en
+            ? order.total.en.currency
+            : order.total.ru
+              ? order.total.ru.currency
+              : 'USD',
       },
       emailSpecific: {
         templateSlug: 'order-confirmation',
@@ -1428,9 +1486,19 @@ export class NotificationService extends BaseService {
           userName,
           orderNumber: order.orderNumber || order.id,
           orderDate: order.createdAt,
-          total: userLocale === 'en' && order.total.en ? order.total.en.amount : (order.total.ru ? order.total.ru.amount : 0),
-          currency: userLocale === 'en' && order.total.en ? order.total.en.currency : (order.total.ru ? order.total.ru.currency : 'USD'),
-          items: order.items?.map(item => ({
+          total:
+            userLocale === 'en' && order.total.en
+              ? order.total.en.amount
+              : order.total.ru
+                ? order.total.ru.amount
+                : 0,
+          currency:
+            userLocale === 'en' && order.total.en
+              ? order.total.en.currency
+              : order.total.ru
+                ? order.total.ru.currency
+                : 'USD',
+          items: order.items?.map((item) => ({
             name: typeof item.product === 'object' ? (item.product as any)?.title : 'Product',
             quantity: item.quantity,
             price: item.price,
@@ -1441,7 +1509,7 @@ export class NotificationService extends BaseService {
 
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(`Failed to dispatch order confirmation for order ${order.id}:`, error)
       return false
@@ -1482,7 +1550,7 @@ export class NotificationService extends BaseService {
     }
     try {
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(
         `Failed to dispatch payment failed notification for subscription ${subscriptionId}:`,
@@ -1549,9 +1617,14 @@ export class NotificationService extends BaseService {
         console.error(`Missing user data for order cancellation notification: ${orderId}`)
         return false
       }
-      const tNotificationBodies = await getTranslations({ locale: finalUserLocale, namespace: 'NotificationBodies' });
-      const reasonText = cancellationReason || (order as any).cancellationReason || tNotificationBodies('defaultCancellationReason');
-
+      const tNotificationBodies = await getTranslations({
+        locale: finalUserLocale,
+        namespace: 'NotificationBodies',
+      })
+      const reasonText =
+        cancellationReason ||
+        (order as any).cancellationReason ||
+        tNotificationBodies('defaultCancellationReason')
 
       const notificationPayload: NotificationPayload = {
         userId: userIdForNotification,
@@ -1829,8 +1902,11 @@ export class NotificationService extends BaseService {
         console.error(`Missing user data for initial payment failed notification: ${orderId}`)
         return false
       }
-      const tNotificationBodies = await getTranslations({ locale: finalUserLocale, namespace: 'NotificationBodies' });
-      const reasonText = reason || tNotificationBodies('defaultPaymentFailedReason');
+      const tNotificationBodies = await getTranslations({
+        locale: finalUserLocale,
+        namespace: 'NotificationBodies',
+      })
+      const reasonText = reason || tNotificationBodies('defaultPaymentFailedReason')
 
       const notificationPayload: NotificationPayload = {
         userId: userIdForNotification,
@@ -1868,7 +1944,11 @@ export class NotificationService extends BaseService {
 
   async sendWelcomeEmail(userId: string): Promise<boolean> {
     try {
-      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      const user = (await this.payload.findByID({
+        collection: 'users',
+        id: userId,
+        depth: 0,
+      })) as User
       if (!user || !user.email) {
         console.error(`User not found or missing email for sendWelcomeEmail: ${userId}`)
         return false
@@ -1896,7 +1976,7 @@ export class NotificationService extends BaseService {
       }
 
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(`Failed to send welcome email for user ${userId}:`, error)
       return false
@@ -1905,7 +1985,11 @@ export class NotificationService extends BaseService {
 
   async sendPasswordChangedNotification(userId: string): Promise<boolean> {
     try {
-      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      const user = (await this.payload.findByID({
+        collection: 'users',
+        id: userId,
+        depth: 0,
+      })) as User
       if (!user || !user.email) {
         console.error(
           `User not found or missing email for sendPasswordChangedNotification: ${userId}`,
@@ -1933,7 +2017,7 @@ export class NotificationService extends BaseService {
         },
       }
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(`Failed to send password changed notification for user ${userId}:`, error)
       return false
@@ -1942,7 +2026,11 @@ export class NotificationService extends BaseService {
 
   async sendEmailAddressChangedNotification(userId: string, oldEmail?: string): Promise<boolean> {
     try {
-      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      const user = (await this.payload.findByID({
+        collection: 'users',
+        id: userId,
+        depth: 0,
+      })) as User
       if (!user || !user.email) {
         console.error(
           `User not found or missing email for sendEmailAddressChangedNotification: ${userId}`,
@@ -1991,7 +2079,7 @@ export class NotificationService extends BaseService {
           securityAlertSent = false
         }
       }
-      return results.some(result => result === true) && securityAlertSent
+      return results.some((result) => result === true) && securityAlertSent
     } catch (error) {
       console.error(`Failed to send email address changed notification for user ${userId}:`, error)
       return false
@@ -2003,7 +2091,11 @@ export class NotificationService extends BaseService {
     updatedFieldsText: string,
   ): Promise<boolean> {
     try {
-      const user = (await this.payload.findByID({ collection: 'users', id: userId, depth: 0 })) as User
+      const user = (await this.payload.findByID({
+        collection: 'users',
+        id: userId,
+        depth: 0,
+      })) as User
       if (!user || !user.email) {
         console.error(
           `User not found or missing email for sendAccountUpdatedNotification: ${userId}`,
@@ -2033,7 +2125,7 @@ export class NotificationService extends BaseService {
       }
 
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(`Failed to send account updated notification for user ${userId}:`, error)
       return false
@@ -2070,16 +2162,22 @@ export class NotificationService extends BaseService {
         return false
       }
 
-      const user = (await this.payload.findByID({ collection: 'users', id: userIdValue, depth: 0 })) as User
+      const user = (await this.payload.findByID({
+        collection: 'users',
+        id: userIdValue,
+        depth: 0,
+      })) as User
       const userName = user?.name || userEmail
       const userLocale = user?.locale || 'en'
-      
-      let resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_no_tracking';
-      const resolvedMessageParams: Record<string, any> = { orderNumber: order.orderNumber || order.id };
+
+      let resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_no_tracking'
+      const resolvedMessageParams: Record<string, any> = {
+        orderNumber: order.orderNumber || order.id,
+      }
 
       if (shipmentDetails?.trackingNumber) {
-        resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_with_tracking';
-        resolvedMessageParams.trackingNumber = shipmentDetails.trackingNumber;
+        resolvedMessageKey = 'NotificationBodies.order_shipped_fulfilled_detail_with_tracking'
+        resolvedMessageParams.trackingNumber = shipmentDetails.trackingNumber
       }
 
       const notificationPayload: NotificationPayload = {
@@ -2098,7 +2196,7 @@ export class NotificationService extends BaseService {
             userName,
             orderNumber: order.orderNumber,
             items: order.items?.map((item) => ({
-              name: typeof item.product === 'object' ? (item.product as any)?.title : 'Товар', 
+              name: typeof item.product === 'object' ? (item.product as any)?.title : 'Товар',
               quantity: item.quantity,
             })),
             ...shipmentDetails,
@@ -2107,7 +2205,7 @@ export class NotificationService extends BaseService {
       }
 
       const results = await this.sendNotification(notificationPayload)
-      return results.some(result => result === true)
+      return results.some((result) => result === true)
     } catch (error) {
       console.error(`Failed to send order shipped/fulfilled notification for ${orderId}:`, error)
       return false
@@ -2116,11 +2214,11 @@ export class NotificationService extends BaseService {
 
   async markAsRead(notificationId: string, userId: string): Promise<boolean> {
     try {
-      const notification = await this.payload.findByID({
+      const notification = (await this.payload.findByID({
         collection: 'notifications',
         id: notificationId,
         depth: 0,
-      }) as Notification | null; // Added type assertion
+      })) as Notification | null // Added type assertion
 
       if (
         !notification ||
@@ -2181,7 +2279,8 @@ export class NotificationService extends BaseService {
     limit: number = 10,
     page: number = 1,
   ): Promise<{ docs: Notification[]; totalDocs: number } | null> {
-    const whereClause: Where = { // Renamed to avoid conflict
+    const whereClause: Where = {
+      // Renamed to avoid conflict
       user: {
         equals: userId,
       },
@@ -2195,15 +2294,17 @@ export class NotificationService extends BaseService {
         page,
         depth: 0,
       })
-      return results as { docs: Notification[]; totalDocs: number } 
+      return results as { docs: Notification[]; totalDocs: number }
     } catch (error) {
       console.error(`Error fetching notifications for user ${userId}:`, error)
       return null
     }
   }
 
-  async getUnreadCount(userIdValue: string): Promise<number> { // Renamed userId to userIdValue
-    const whereClause: Where = { // Renamed to avoid conflict
+  async getUnreadCount(userIdValue: string): Promise<number> {
+    // Renamed userId to userIdValue
+    const whereClause: Where = {
+      // Renamed to avoid conflict
       user: {
         equals: userIdValue, // Use renamed variable
       },

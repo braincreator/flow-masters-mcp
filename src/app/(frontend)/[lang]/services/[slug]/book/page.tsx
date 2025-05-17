@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { GridContainer as Container } from '@/components/GridContainer'
 import { useParams } from 'next/navigation'
-import { ServiceBookingFlow } from '@/components/services/ServiceBookingFlow'
+import { ServiceBookingFlow, type Locale as ServiceBookingLocale } from '@/components/services/ServiceBookingFlow'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -27,7 +27,7 @@ export default function ServiceBookPage() {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`/api/v1/services?slug=${params.slug}`)
+        const response = await fetch(`/api/v1/services?slug=${params.slug}&locale=${params.lang}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch service')
@@ -54,7 +54,7 @@ export default function ServiceBookPage() {
   }, [params.slug])
 
   // Получаем локализованные данные
-  const locale = params.lang as string
+  const locale = params.lang as ServiceBookingLocale
   const title =
     service && typeof service.title === 'object'
       ? service.title[locale] || service.title.en
@@ -100,12 +100,7 @@ export default function ServiceBookPage() {
   const serviceTypeLabel = t(`serviceTypes.${service.serviceType}`) || service.serviceType
 
   // Логирование для отладки
-  console.log('Service data:', {
-    id: service.id,
-    title: service.title,
-    slug: service.slug,
-    serviceType: service.serviceType,
-  })
+  console.log('Full service data on book page:', JSON.stringify(service, null, 2))
 
   if (!service.id) {
     return (

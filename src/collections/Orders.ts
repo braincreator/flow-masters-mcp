@@ -13,11 +13,24 @@ import type {
   Service as ServiceType,
   Subscription as SubscriptionType,
   Booking as BookingType,
+  Media as MediaType,
 } from '../payload-types'
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
 import { NotificationService } from '../services/notification.service'
 import { convertPrice } from '@/utilities/formatPrice'
+
+// Добавляем объявление типов для локализованного текста спецификации
+interface LocalizedSpecificationText {
+  en?: string | null
+  ru?: string | null
+}
+
+// Определяем тип для локализованного заголовка услуги
+interface LocalizedTitle {
+  en?: string | null
+  ru?: string | null
+}
 
 // Interim type for the Order data within the hook, including new fields
 // This helps bridge the gap until payload-types.ts is regenerated with the new fields.
@@ -33,6 +46,7 @@ interface OrderWithCalculatedFields
     | 'serviceData'
     | 'id'
     | 'cancellationDetails'
+    | 'specificationText'
   > {
   id: string // Hooks expect a non-optional ID
   orderNumber?: string
@@ -47,6 +61,7 @@ interface OrderWithCalculatedFields
     | 'refunded'
     | 'partially_refunded'
     | 'pending_manual_review'
+    | 'paid' // Добавляем статус paid для createServiceProjectHook
   items?: Array<{
     product?: string | ProductType
     service?: string | ServiceType
@@ -86,13 +101,17 @@ interface OrderWithCalculatedFields
   paymentProvider?: string | null
   paymentData?: GeneratedOrderType['paymentData']
   paidAt?: string | null
-  orderType?: 'product' | 'service' | 'subscription' | null
+  orderType?: 'product' | 'service' | 'subscription'
   serviceData?: {
     // Define serviceData explicitly to match usage
     serviceId?: string | null
     serviceType?: string | null
     requiresBooking?: boolean | null
   } | null
+  // Исправляем тип для поля specificationText - используем правильный тип
+  specificationText?: LocalizedSpecificationText | null
+  // Исправляем тип для поля specificationFiles - используем MediaType вместо Record
+  specificationFiles?: Array<string | MediaType> | null
   subscriptionProcessedToken?: boolean | null
   renewalForSubscription?: string | SubscriptionType | null
   cancellationDetails?: {
@@ -875,11 +894,177 @@ const afterChangeHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = as
   }
 }
 
+const createServiceProjectHook: CollectionAfterChangeHook<OrderWithCalculatedFields> = async ({
+  doc,
+  previousDoc,
+  operation,
+  req,
+}) => {
+  const { payload } = req
+
+  // Проверяем, что это заказ услуги и его статус изменился
+  if (
+    operation === 'update' &&
+    doc.orderType === 'service' &&
+    previousDoc?.status !== doc.status &&
+    (doc.status === 'processing' || doc.status === 'paid')
+  ) {
+    // Проверяем, не создан ли уже проект для этого заказа
+    const existingProjects = await payload.find({
+      collection: 'service-projects' as any,
+      where: {
+        sourceOrder: {
+          equals: doc.id,
+        },
+      },
+    })
+
+    if (existingProjects.totalDocs > 0) {
+      // Проект уже существует
+      return
+    }
+
+    // Получаем данные об услуге
+    let serviceName = 'Unknown Service'
+    let serviceType = ''
+    let serviceId = null
+
+    if (doc.items && Array.isArray(doc.items)) {
+      for (const item of doc.items) {
+        if (item.service) {
+          try {
+            if (typeof item.service === 'string') {
+              // Получаем данные услуги по ID
+              const service = await payload.findByID({
+                collection: 'services',
+                id: item.service,
+              })
+
+              // Проверяем наличие полей перед обращением к ним
+              if (service.title) {
+                if (typeof service.title === 'object' && service.title !== null) {
+                  // Исправляем обработку локализованного заголовка
+                  const titleObj = service.title as LocalizedTitle
+                  serviceName = titleObj.ru || titleObj.en || 'Услуга'
+                } else {
+                  serviceName = service.title.toString()
+                }
+              }
+              serviceType = service.serviceType || ''
+              serviceId = service.id
+
+              // Прерываем после нахождения первой услуги
+              break
+            } else if (typeof item.service === 'object') {
+              // Данные услуги уже в объекте
+              if (item.service.title) {
+                if (typeof item.service.title === 'object' && item.service.title !== null) {
+                  // Исправляем обработку локализованного заголовка
+                  const titleObj = item.service.title as LocalizedTitle
+                  serviceName = titleObj.ru || titleObj.en || 'Услуга'
+                } else {
+                  serviceName = item.service.title.toString()
+                }
+              }
+              serviceType = item.service.serviceType || ''
+              serviceId = item.service.id
+
+              // Прерываем после нахождения первой услуги
+              break
+            }
+          } catch (error: unknown) {
+            // Ошибка получения данных услуги
+            const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+            req.payload.logger.error(`Ошибка при получении данных услуги: ${errorMessage}`)
+          }
+        }
+      }
+    }
+
+    // Создаем имя проекта
+    const projectName = `Проект по заказу ${doc.orderNumber}`
+
+    // Создаем проект
+    try {
+      const createdProject = await payload.create({
+        collection: 'service-projects' as any,
+        data: {
+          name: projectName,
+          sourceOrder: doc.id,
+          customer: typeof doc.customer === 'string' ? doc.customer : doc.customer?.id || '',
+          serviceDetails: {
+            serviceName,
+            serviceType,
+          },
+          specificationText: doc.specificationText,
+          specificationFiles: doc.specificationFiles,
+          status: 'new',
+          // Назначаем администратора - в реальной системе можно назначить конкретного исполнителя
+          // или оставить это поле пустым для назначения вручную
+        },
+      })
+
+      // Создаем системное сообщение в проекте
+      if (createdProject.id) {
+        try {
+          // Находим первого администратора для системного сообщения
+          const adminUsers = await payload.find({
+            collection: 'users',
+            where: {
+              roles: {
+                contains: 'admin',
+              },
+            },
+            limit: 1,
+          })
+
+          const adminUser = adminUsers.docs[0]
+
+          if (adminUser) {
+            // Создаем системное сообщение
+            await payload.create({
+              collection: 'project-messages' as any,
+              data: {
+                project: createdProject.id,
+                author: adminUser.id,
+                content: [
+                  {
+                    children: [
+                      {
+                        text: `Проект создан автоматически на основе заказа #${doc.orderNumber}.`,
+                      },
+                    ],
+                  },
+                  {
+                    children: [
+                      {
+                        text: 'Пожалуйста, ознакомьтесь с техническим заданием и ожидайте дальнейших действий от нашей команды.',
+                      },
+                    ],
+                  },
+                ],
+                isSystemMessage: true,
+              },
+            })
+          }
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+          req.payload.logger.error(`Ошибка при создании системного сообщения: ${errorMessage}`)
+        }
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+      req.payload.logger.error(`Ошибка при создании проекта по услуге: ${errorMessage}`)
+    }
+  }
+}
+
 export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'orderNumber',
     defaultColumns: ['orderNumber', 'customer', 'status', 'total', 'createdAt'],
+    group: 'E-commerce',
   },
   fields: [
     {
@@ -1165,14 +1350,23 @@ export const Orders: CollectionConfig = {
       name: 'orderType',
       type: 'select',
       options: [
-        { label: 'Product', value: 'product' },
-        { label: 'Service', value: 'service' },
-        { label: 'Subscription', value: 'subscription' },
+        {
+          label: 'Product Order',
+          value: 'product',
+        },
+        {
+          label: 'Service Order',
+          value: 'service',
+        },
+        {
+          label: 'Subscription',
+          value: 'subscription',
+        },
       ],
+      required: true,
       admin: {
-        description: 'Type of order. Determines how fulfillment is handled.',
+        description: 'Type of the order',
       },
-      // Validation for item types based on orderType is handled in the `validateOrderItemsHook`.
     },
     {
       name: 'serviceData',
@@ -1265,10 +1459,29 @@ export const Orders: CollectionConfig = {
         // }
       ],
     },
+    {
+      name: 'specificationText',
+      type: 'textarea',
+      localized: true,
+      admin: {
+        description: 'Текстовое описание ТЗ от клиента',
+        condition: (data) => data.orderType === 'service',
+      },
+    },
+    {
+      name: 'specificationFiles',
+      type: 'relationship',
+      relationTo: 'media',
+      hasMany: true,
+      admin: {
+        description: 'Файлы ТЗ, прикрепленные клиентом',
+        condition: (data) => data.orderType === 'service',
+      },
+    },
   ],
   hooks: {
     beforeValidate: [validateOrderItemsHook],
     beforeChange: [calculateOrderTotalsHook],
-    afterChange: [afterChangeHook],
+    afterChange: [afterChangeHook, createServiceProjectHook],
   },
 }

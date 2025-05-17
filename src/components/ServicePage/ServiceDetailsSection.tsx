@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp, Star, Shield, Search, Palette, FileJson } from 'lucide-react'

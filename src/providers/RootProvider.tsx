@@ -8,8 +8,6 @@ import { I18nProvider } from '@/providers/I18n'
 import { Toaster } from 'sonner'
 import { PayloadAPIProvider } from '@/providers/payload'
 import { CurrencyProvider } from './CurrencyProvider'
-import { NextIntlClientProvider } from 'next-intl'
-import { useMessages } from 'next-intl'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { NotificationsProvider } from '@/providers/NotificationsProvider'
 import { CartProvider } from './CartProvider'
@@ -52,7 +50,7 @@ export function RootProvider({ children, lang }: RootProviderProps) {
                         <FeatureFlagsProvider>
                           <UserPreferencesProvider>
                             <NotificationsProvider>
-                              <CartProvider locale={lang}>
+                              <CartProvider locale={lang as Locale}>
                                 <CheckoutProvider>
                                   <FavoritesProvider>
                                     <PayloadAPIProvider>

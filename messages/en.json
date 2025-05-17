@@ -1,4 +1,43 @@
 {
+  "FloatingCartButton": {
+    "viewCart": "View Cart"
+  },
+  "Cart": {
+    "title": "Shopping Cart",
+    "description": "View your shopping cart and proceed to checkout",
+    "loading": "Loading cart...",
+    "error": "Error loading cart. Please try again.",
+    "emptyCart": "Your cart is empty.",
+    "totalLabel": "Total:",
+    "checkoutButton": "Checkout",
+    "removeButton": "Remove",
+    "quantityLabel": "Qty",
+    "itemLabel": "Item",
+    "priceLabel": "Price",
+    "subtotalLabel": "Subtotal",
+    "shippingLabel": "Shipping",
+    "taxLabel": "Tax",
+    "discountLabel": "Discount",
+    "continueShoppingButton": "Continue Shopping",
+    "closeButton": "Close",
+    "removeModalTitle": "Remove Item",
+    "removeModalDescription": "Are you sure you want to remove this item from your cart?",
+    "cancelButton": "Cancel",
+    "removeItemLabel": "Remove item",
+    "productFallbackTitle": "Product",
+    "errorTitle": "Error Loading Cart",
+    "errorDescriptionDefault": "There was an issue loading your cart details. Please try again.",
+    "tryAgainButton": "Try Again",
+    "emptyTitle": "Your Cart is Empty",
+    "checkoutSuccessTitle": "Checkout Successful!",
+    "checkoutSuccessMessage": "Your order has been placed."
+  },
+  "CartComponent": {
+    "loading": "Loading cart...",
+    "error": "Error loading cart. Please try again.",
+    "emptyCart": "Your cart is empty.",
+    "totalLabel": "Total:"
+  },
   "Account": {
     "subscriptions": {
       "metadata": {
@@ -478,7 +517,8 @@
     "errorLoading": "Failed to load notifications",
     "viewAll": "View All",
     "markAllAsRead": "Mark all as read",
-    "showOnlyUnread": "Show only unread"
+    "showOnlyUnread": "Show only unread",
+    "filtering": "Filtering"
   },
   "SubscriptionPlans": {
     "errorLoading": "Failed to load subscription plans",
@@ -849,7 +889,8 @@
     "errorNotSuccessful": "Payment was not successful",
     "errorVerifyStatus": "Could not verify payment status",
     "successIconLabel": "Success",
-    "errorIconLabel": "Error"
+    "errorIconLabel": "Error",
+    "returnToCartButton": "Return to Cart"
   },
   "AccountProfile": {
     "fullName": "Full Name",
@@ -1833,6 +1874,29 @@
   "Notifications": {
     "title": "Notifications",
     "description": "View and manage your notifications",
+    "type": {
+      "info": "Info",
+      "alert": "Alert",
+      "promo": "Promo",
+      "update": "Update",
+      "order_update": "Order Update",
+      "course_enrolled": "Course Enrolled",
+      "lesson_completed": "Lesson Completed",
+      "module_completed": "Module Completed",
+      "assessment_submitted": "Assessment Submitted",
+      "assessment_graded": "Assessment Graded",
+      "course_completed": "Course Completed",
+      "certificate_issued": "Certificate Issued",
+      "achievement_unlocked": "Achievement Unlocked",
+      "level_up": "Level Up",
+      "system_alert": "System Alert",
+      "general_info": "General Info",
+      "subscription_update": "Subscription Update",
+      "account_activity": "Account Activity",
+      "promotional": "Promotional",
+      "social_interaction": "Social Interaction",
+      "default": "General"
+    },
     "topbar": "Notifications Topbar",
     "confirmDelete": "Are you sure you want to delete this notification?",
     "confirmDeleteAll": "Are you sure you want to delete ALL notifications? This action cannot be undone.",
@@ -1890,6 +1954,22 @@
         "alert": "Alert",
         "promo": "Promo",
         "update": "Update",
+        "order_update": "Order Update",
+        "course_enrolled": "Course Enrolled",
+        "lesson_completed": "Lesson Completed",
+        "module_completed": "Module Completed",
+        "assessment_submitted": "Assessment Submitted",
+        "assessment_graded": "Assessment Graded",
+        "course_completed": "Course Completed",
+        "certificate_issued": "Certificate Issued",
+        "achievement_unlocked": "Achievement Unlocked",
+        "level_up": "Level Up",
+        "system_alert": "System Alert",
+        "general_info": "General Info",
+        "subscription_update": "Subscription Update",
+        "account_activity": "Account Activity",
+        "promotional": "Promotional",
+        "social_interaction": "Social Interaction",
         "default": "General"
       },
       "showLess": "Show Less",
@@ -1902,5 +1982,11 @@
       "markAsUnread": "Mark as Unread",
       "markingUnread": "Marking as Unread..."
     }
+  },
+  "FileUpload": {
+    "dropFiles": "Drop files here",
+    "oneFileOnly": "(one file only)",
+    "orClickToBrowse": "or click to browse",
+    "fileSizeError": "{{count}} file(s) exceed the maximum size of {{maxSize}} MB"
   }
 }

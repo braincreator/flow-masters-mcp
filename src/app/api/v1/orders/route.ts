@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         ],
         total: {
           en: { amount: totalAmount, currency: 'USD' }, // Adapt currency/localization as needed
-          ru: { amount: totalAmount * 90, currency: 'RUB' }, // Placeholder conversion
+          ru: { amount: totalAmount, currency: 'RUB' }, // Placeholder conversion
         },
         status: 'pending' as const,
         orderType: 'service' as const,
@@ -180,7 +180,7 @@ export async function POST(req: Request) {
         items: orderItems,
         total: {
           en: { amount: totalAmount, currency: 'USD' },
-          ru: { amount: totalAmount * 90, currency: 'RUB' },
+          ru: { amount: totalAmount, currency: 'RUB' },
         },
         status: 'pending' as const,
         orderType: finalOrderType,

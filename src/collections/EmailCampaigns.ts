@@ -228,40 +228,40 @@ export const EmailCampaigns: CollectionConfig = {
         },
       ],
     },
-    {
-      name: 'emailSequence',
-      label: 'Последовательность писем',
-      type: 'array',
-      minRows: 1,
-      fields: [
-        {
-          name: 'template',
-          label: 'Шаблон письма',
-          type: 'relationship',
-          relationTo: 'email-templates',
-          required: true,
-        },
-        {
-          name: 'delay',
-          label: 'Задержка (в часах)',
-          type: 'number',
-          min: 0,
-          defaultValue: 0,
-          admin: {
-            description:
-              'Задержка перед отправкой этого письма (от начала кампании или предыдущего письма)',
-          },
-        },
-        {
-          name: 'condition',
-          label: 'Условие отправки',
-          type: 'json',
-          admin: {
-            description: 'JSON с условиями, при которых это письмо будет отправлено',
-          },
-        },
-      ],
-    },
+    // {
+    //   name: 'emailSequence',
+    //   label: 'Последовательность писем',
+    //   type: 'array',
+    //   minRows: 1,
+    //   fields: [
+    //     {
+    //       name: 'template',
+    //       label: 'Шаблон письма',
+    //       type: 'relationship',
+    //       relationTo: 'email-templates',
+    //       required: true,
+    //     },
+    //     {
+    //       name: 'delay',
+    //       label: 'Задержка (в часах)',
+    //       type: 'number',
+    //       min: 0,
+    //       defaultValue: 0,
+    //       admin: {
+    //         description:
+    //           'Задержка перед отправкой этого письма (от начала кампании или предыдущего письма)',
+    //       },
+    //     },
+    //     {
+    //       name: 'condition',
+    //       label: 'Условие отправки',
+    //       type: 'json',
+    //       admin: {
+    //         description: 'JSON с условиями, при которых это письмо будет отправлено',
+    //       },
+    //     },
+    //   ],
+    // },
     {
       name: 'lastRun',
       label: 'Последний запуск',

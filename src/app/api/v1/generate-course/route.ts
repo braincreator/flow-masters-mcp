@@ -10,28 +10,6 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientSession } from 'mongoose';
 
-const textBlockSchema = z.object({
-  blockType: z.literal('textBlock'),
-  content: z.any(),
-});
-
-const imageBlockSchema = z.object({
-  blockType: z.literal('imageBlock'),
-  imageUrl: z.string().url().optional(),
-  image: z.string().optional(),
-  caption: z.string().optional(),
-})
-  .refine((data) => data.imageUrl || data.image, {
-    message: 'Image block must have either imageUrl or image ID',
-  });
-
-const codeBlockSchema = z.object({
-  blockType: z.literal('codeBlock'),
-  language: z.string().optional().default('none'),
-  code: z.string().min(1),
-});
-
-
 const moduleSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -51,7 +29,6 @@ const courseGenerationPayloadSchema = z.object({
 });
 
 type CourseGenerationPayload = z.infer<typeof courseGenerationPayloadSchema>;
-type ImageBlockData = z.infer<typeof imageBlockSchema>;
 
 async function uploadImageFromUrl(
   payload: Payload,
@@ -223,139 +200,14 @@ export async function POST(request: NextRequest) {
     const courseId = 'testCourseId';
     console.log(`Course created with ID: ${courseId}`);
 
-    // const createdModuleIds: string[] = [];
-
-    // for (const moduleData of body.modules) {
-    //   console.log(`Creating module: ${moduleData.title} for course ${courseId}`);
-
-    //   const processedLessonsData = [];
-    //   for (const lessonData of moduleData.lessons) {
-    //     const processedLesson = { ...lessonData };
-
-    //     if (processedLesson.lessonType === 'standard' && processedLesson.contentLayout) {
-    //       for (let i = 0; i < processedLesson.contentLayout.length; i++) {
-    //         const block = processedLesson.contentLayout[i];
-
-    //         if (block?.blockType === 'imageBlock' && (block as ImageBlockData).imageUrl) {
-        //           const imageUrl = (block as ImageBlockData).imageUrl!;
-        //           const altText = (block as ImageBlockData).caption || lessonData.title;
-        //           console.log(`Processing image block with URL: ${imageUrl}`);
-        //           const mediaId = await uploadImageFromUrl(payload, imageUrl, altText, session || undefined);
-
-        //           if (mediaId) {
-        //             (processedLesson.contentLayout[i] as ImageBlockData).image = mediaId;
-        //             delete (processedLesson.contentLayout[i] as any).imageUrl;
-        //             console.log(`Image block updated with Media ID: ${mediaId}`);
-        //           } else {
-        //             const errorMessage = `Failed to upload image for lesson '${lessonData.title}'. Skipping image block.`;
-        //             console.error(errorMessage);
-        //             processedLesson.contentLayout.splice(i, 1);
-        //             i--;
-        //             processedLesson.contentLayout[i] = {
-        //               blockType: 'textBlock',
-        //               content: {
-        //                 root: {
-        //                   type: 'root',
-        //                   children: [
-        //                     {
-        //                       type: 'paragraph',
-        //                       children: [
-        //                         {
-        //                           type: 'text',
-        //                           text: errorMessage,
-        //                         },
-        //                       ],
-        //                     },
-        //                   ],
-        //                 },
-        //               },
-        //             } as any;
-        //           }
-        //         }
-        //       }
-        //     }
-        //     processedLessonsData.push(processedLesson);
-        //   }
-
-        //   const newModule = await payload.create<'modules', ModulesSelect>({
-        //     collection: 'modules',
-        //     data: {
-        //       title: moduleData.title,
-        //       course: null,
-        //       layout: [],
-        //       course: courseId,
-        //     },
-        //     overrideAccess: true,
-        //     req: reqWithTransaction,
-        //   });
-        //   const moduleId = newModule.id;
-        //   console.log(`Module created with ID: ${moduleId}`);
-        //   createdModuleIds.push(moduleId);
-
-        //   const createdLessonIds: string[] = [];
-
-        //   for (const lessonData of processedLessonsData) {
-        //     console.log(`Creating lesson: ${lessonData.title} for module ${moduleId}`);
-
-        //     const lessonPayload: Partial<Lesson> = {
-        //       title: lessonData.title,
-        //       module: moduleId,
-        //       order: lessonData.order,
-        //       lessonType: lessonData.lessonType,
-        //     };
-
-        //     if (lessonData.lessonType === 'standard' && lessonData.contentLayout) {
-        //       lessonPayload.contentLayout = lessonData.contentLayout;
-        //     } else if (lessonData.lessonType === 'video' && lessonData.videoUrl) {
-        //       lessonPayload.videoUrl = lessonData.videoUrl;
-        //     }
-
-        //     const newLesson = await payload.create<'modules', Module>({
-        //       collection: 'modules', //lessons collection does not exist
-        //       data: lessonPayload as any,
-        //       overrideAccess: true,
-        //       req: reqWithTransaction,
-        //     });
-        //     console.log(`Lesson created with ID: ${newLesson.id}`);
-        //     if (newLesson?.id) {
-        //       createdLessonIds.push(newLesson.id);
-        //     }
-        //   }
-
-        //   console.log(`Updating module ${moduleId} with ${createdLessonIds.length} lessons.`);
-        //   await payload.update<'modules', ModulesSelect>({
-        //     collection: 'modules',
-        //     id: moduleId,
-        //     data: {},
-        //     overrideAccess: true,
-        //     req: reqWithTransaction,
-        //   });
-      // }
-
-    // console.log(`Updating course ${courseId} with ${createdModuleIds.length} modules.`);
-    // await payload.update<'courses', CoursesSelect>({
-    //   collection: 'courses',
-    //   id: courseId,
-    //   overrideAccess: true,
-    //   req: reqWithTransaction,
-    // });
-
-    // await session?.commitTransaction()
-    // console.log('Transaction committed successfully.')
-    // session?.endSession()
-    // session = null
 
     console.log(`Successfully generated course ${courseId} and all related content.`);
 
-    return NextResponse.json({ success: true, courseId: courseId }, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      courseId: courseId,
+    }, { status: 201 });
   } catch (error: any) {
-    // if (session && session.inTransaction()) {
-    //   console.error('Error occurred during transaction. Aborting...');
-    //   await session?.abortTransaction();
-    //   console.log('Transaction aborted.');
-    //   session?.endSession();
-    //   session = null;
-    // }
 
     console.error('Error processing course generation request:', error);
 

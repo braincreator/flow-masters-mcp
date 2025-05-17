@@ -40,6 +40,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import { DetailedCartItemsList, CartItemType } from '@/components/Cart/DetailedCartItemsList'
 
 // Добавляем интерфейс для метаданных платежа
 interface PaymentMetadata {
@@ -737,43 +738,10 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     }
   }
 
-  const currentCartItems = cart?.items || []
+  const currentCartItems: CartItemType[] = cart?.items || []
 
-  type CartItemType = NonNullable<CartSession['items']>[0]
-
-  const getItemTitle = (item: CartItemType): string => {
-    const entity = item.itemType === 'service' ? item.service : item.product
-    if (entity && typeof entity !== 'string' && entity.title) {
-      if (typeof entity.title === 'object' && entity.title !== null) {
-        const localizedTitle = (entity.title as any)[locale] || (entity.title as any).en
-        if (localizedTitle) return String(localizedTitle)
-      } else if (typeof entity.title === 'string') {
-        return entity.title
-      }
-    }
-    return item.itemType === 'service' ? 'Service' : 'Product'
-  }
-
-  const getItemImageUrl = (item: CartItemType): string | null => {
-    if (item.itemType === 'service' && item.service && typeof item.service !== 'string') {
-      const service = item.service as Service
-      if (service.thumbnail && typeof service.thumbnail !== 'string') {
-        return (service.thumbnail as Media).url || null
-      }
-    } else if (item.itemType === 'product' && item.product && typeof item.product !== 'string') {
-      const product = item.product as Product
-      if (product.thumbnail && typeof product.thumbnail !== 'string') {
-        return (product.thumbnail as Media).url || null
-      }
-      if (product.gallery && product.gallery.length > 0 && product.gallery[0]?.image) {
-        const firstImageInGallery = product.gallery[0].image
-        if (firstImageInGallery && typeof firstImageInGallery !== 'string') {
-          return (firstImageInGallery as Media).url || null
-        }
-      }
-    }
-    return null
-  }
+  // getItemTitle and getItemImageUrl are now part of DetailedCartItemsList or its props
+  // We will rely on the props passed to DetailedCartItemsList for rendering.
 
   // Новые функции для управления пошаговым интерфейсом
   const goToNextStep = () => {
@@ -971,236 +939,14 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                   </CardHeader>
 
                   <CardContent className="py-4">
-                    {currentCartItems.length === 0 ? (
-                      <div className="text-center py-10">
-                        <div className="relative mx-auto h-24 w-24 mb-4">
-                          <div className="absolute inset-0 rounded-full bg-muted/30 animate-pulse" />
-                          <ShoppingBag className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-muted-foreground" />
-                        </div>
-                        <p className="text-muted-foreground mb-6">
-                          {locale === 'ru'
-                            ? 'Ваша корзина пуста. Добавьте товары для оформления заказа.'
-                            : 'Your cart is empty. Add some products to proceed with checkout.'}
-                        </p>
-                        <Button
-                          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-300"
-                          asChild
-                        >
-                          <a href={`/${locale}`}>
-                            <ShoppingBag className="h-4 w-4 mr-2" />
-                            {locale === 'ru' ? 'Перейти к покупкам' : 'Continue shopping'}
-                          </a>
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {currentCartItems.map((item: CartItemType) => {
-                          const itemId =
-                            item.itemType === 'service'
-                              ? typeof item.service === 'string'
-                                ? item.service
-                                : item.service?.id
-                              : typeof item.product === 'string'
-                                ? item.product
-                                : item.product?.id
-                          const imageUrl = getItemImageUrl(item)
-                          const title = getItemTitle(item)
-
-                          return (
-                            <motion.div
-                              key={`cart-item-${item.itemType}-${itemId}`}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.3 }}
-                              className="p-4 border rounded-lg flex justify-between items-center group hover:border-primary/50 dark:hover:border-primary/30 transition-all duration-300 hover:bg-muted/20 dark:hover:bg-muted/5 transform hover:translate-y-[-3px] hover:shadow-md"
-                              layout
-                            >
-                              <div className="flex items-center">
-                                <div className="mr-4 relative h-16 w-16 rounded-md overflow-hidden border border-muted/30 bg-background shadow-sm">
-                                  {imageUrl ? (
-                                    <Image
-                                      src={imageUrl}
-                                      alt={title}
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  ) : (
-                                    <div className="h-full w-full bg-gradient-to-br from-muted/30 to-muted/10 flex items-center justify-center">
-                                      <ShoppingBag className="h-8 w-8 text-muted-foreground/70" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="font-medium line-clamp-1">{title}</p>
-                                  <div className="flex items-center mt-1">
-                                    <Badge
-                                      variant={
-                                        item.itemType === 'service' ? 'secondary' : 'default'
-                                      }
-                                      className="text-xs h-5"
-                                    >
-                                      {item.itemType === 'service'
-                                        ? locale === 'ru'
-                                          ? 'Услуга'
-                                          : 'Service'
-                                        : locale === 'ru'
-                                          ? 'Товар'
-                                          : 'Product'}
-                                    </Badge>
-                                    <span className="text-sm text-muted-foreground ml-2 flex items-center">
-                                      {locale === 'ru' ? 'Кол-во' : 'Qty'}:
-                                      <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded bg-muted/40 text-foreground font-medium text-xs px-1 ml-1">
-                                        {item.quantity || 0}
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center">
-                                <p className="font-medium mr-4 tabular-nums">
-                                  {formatPrice(
-                                    locale === 'ru'
-                                      ? (item.priceSnapshot || 0) * (item.quantity || 0)
-                                      : convertPrice(
-                                          (item.priceSnapshot || 0) * (item.quantity || 0),
-                                          'ru',
-                                          locale,
-                                        ),
-                                    locale,
-                                  )}
-                                </p>
-                                <div className="flex items-center mr-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6 rounded-full"
-                                    onClick={() => {
-                                      const itemId =
-                                        item.itemType === 'service'
-                                          ? typeof item.service === 'string'
-                                            ? item.service
-                                            : item.service?.id
-                                          : typeof item.product === 'string'
-                                            ? item.product
-                                            : item.product?.id
-
-                                      if (itemId && item.quantity > 1) {
-                                        console.log('Decreasing quantity for item:', itemId)
-
-                                        // Используем оптимизированную функцию из контекста корзины
-                                        if (typeof updateItem === 'function') {
-                                          updateItem(
-                                            itemId,
-                                            item.itemType,
-                                            Math.max(1, (item.quantity || 1) - 1),
-                                          )
-                                        }
-                                      }
-                                    }}
-                                    disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
-                                  >
-                                    {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
-                                      <Loader2 className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      >
-                                        <path d="M5 12h14" />
-                                      </svg>
-                                    )}
-                                  </Button>
-                                  <span className="mx-2 font-medium text-sm min-w-[24px] text-center">
-                                    {item.quantity || 0}
-                                  </span>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6 rounded-full"
-                                    onClick={() => {
-                                      const itemId =
-                                        item.itemType === 'service'
-                                          ? typeof item.service === 'string'
-                                            ? item.service
-                                            : item.service?.id
-                                          : typeof item.product === 'string'
-                                            ? item.product
-                                            : item.product?.id
-
-                                      if (itemId) {
-                                        console.log('Increasing quantity for item:', itemId)
-
-                                        // Используем оптимизированную функцию из контекста корзины
-                                        if (typeof updateItem === 'function') {
-                                          updateItem(
-                                            itemId,
-                                            item.itemType,
-                                            (item.quantity || 1) + 1,
-                                          )
-                                        }
-                                      }
-                                    }}
-                                    disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
-                                  >
-                                    {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
-                                      <Loader2 className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      >
-                                        <path d="M5 12h14" />
-                                        <path d="M12 5v14" />
-                                      </svg>
-                                    )}
-                                  </Button>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => {
-                                    const itemId =
-                                      item.itemType === 'service'
-                                        ? typeof item.service === 'string'
-                                          ? item.service
-                                          : item.service?.id
-                                        : typeof item.product === 'string'
-                                          ? item.product
-                                          : item.product?.id
-                                    if (itemId) {
-                                      removeFromCart(itemId, item.itemType)
-                                    }
-                                  }}
-                                  disabled={itemsLoading?.[`${item.itemType}-${itemId}`]}
-                                >
-                                  {itemsLoading?.[`${item.itemType}-${itemId}`] ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <X className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
-                            </motion.div>
-                          )
-                        })}
-                      </div>
-                    )}
+                    <DetailedCartItemsList
+                        items={currentCartItems}
+                        locale={locale}
+                        removeFromCart={removeFromCart}
+                        updateItem={updateItem}
+                        itemsLoading={itemsLoading || {}} // Ensure itemsLoading is always an object
+                        isCheckout={true}
+                    />
                   </CardContent>
 
                   {currentCartItems.length > 0 && (
@@ -1471,7 +1217,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
                   <CardContent className="py-8">
                     {isLoadingProviders ? (
-                      <div className="flex justify-center items-center py-12">
+                      <div className="w-full flex justify-center items-center py-12">
                         <div className="text-center">
                           <div className="relative mb-4">
                             <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping opacity-30" />
@@ -1780,11 +1526,26 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             : typeof item.product === 'string'
                               ? item.product
                               : item.product?.id
-                        const title = getItemTitle(item)
+                      // const title = getItemTitle(item) // getItemTitle is internal to DetailedCartItemsList or handled by its props
 
-                        return (
-                          <div
-                            key={`summary-item-${item.itemType}-${itemId}`}
+                      // Simplified summary display, as detailed list is above
+                      // For a more consistent look, you might want to extract a "CartItemSummaryRow" component too.
+                      // For now, let's keep it simple.
+                      const entity = item.itemType === 'service' ? item.service : item.product;
+                      let title = item.itemType === 'service' ? 'Service' : 'Product';
+                      if (entity && typeof entity !== 'string' && entity.title) {
+                        if (typeof entity.title === 'object' && entity.title !== null) {
+                          const localizedTitle = (entity.title as any)[locale] || (entity.title as any).en;
+                          if (localizedTitle) title = String(localizedTitle);
+                        } else if (typeof entity.title === 'string') {
+                          title = entity.title;
+                        }
+                      }
+
+
+                      return (
+                        <div
+                          key={`summary-item-${item.itemType}-${itemId ?? 'unknown'}`}
                             className="flex justify-between items-center text-sm py-1.5 border-b border-dashed border-muted/50 last:border-0 group"
                           >
                             <div className="flex-1 truncate group-hover:text-primary transition-colors">

@@ -1,8 +1,9 @@
 import React from 'react'
 import { Metadata } from 'next'
 import { ChatBlock } from '@/blocks/Chat/Component'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getMessages } from 'next-intl/server' // Import getMessages
 import { setRequestLocale } from 'next-intl/server'
+import { NextIntlClientProvider } from 'next-intl' // Import NextIntlClientProvider
 
 interface Props {
   params: {
@@ -26,6 +27,9 @@ export default async function ChatPage({ params }: Props) {
 
   // Получаем переводы
   const t = await getTranslations({ locale: lang, namespace: 'chat' })
+  // Fetch all messages for the current locale to pass to the client provider
+  const allMessages = await getMessages({ locale: lang })
+
   // Тестовые данные для демонстрации
   const chatData = {
     heading: t('heading'),
@@ -63,7 +67,7 @@ export default async function ChatPage({ params }: Props) {
       // Явно указываем источник настроек
       webhookSource: 'manual' as const,
       // Используем тот же URL вебхука, но с новым именем поля
-      webhookUrl: 'https://n8n.flow-masters.ru/webhook/c352d717-c827-49b9-9bfa-621a4655ab2e',
+      webhookUrl: 'https://n8n.flow-masters.ru/webhook-test/demo-chat',
       webhookSecret: 'demo-secret',
       timeout: 30000,
     },
@@ -243,8 +247,10 @@ export default async function ChatPage({ params }: Props) {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <ChatBlock {...chatData} />
-    </div>
+    <NextIntlClientProvider locale={lang} messages={allMessages} timeZone="Europe/Moscow">
+      <div className="container mx-auto py-10">
+        <ChatBlock {...chatData} />
+      </div>
+    </NextIntlClientProvider>
   )
 }

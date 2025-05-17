@@ -74,11 +74,11 @@ export function ModalDialog({
         overlayClassName
       )}
     >
-      <ModalContent 
+      <ModalContent
         className={cn(
           "relative",
           sizeClasses[size],
-          "w-full animate-in fade-in-0 zoom-in-95",
+          "w-full", // Removed animation classes for diagnostics
           className
         )}
       >

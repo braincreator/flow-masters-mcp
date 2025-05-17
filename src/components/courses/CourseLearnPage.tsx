@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/Progress'
+import { Progress } from '@/components/ui/progress'
 import { Loader2, Lock, BookOpen, MessageSquare, FileText } from 'lucide-react'
 import { CourseContent } from './CourseContent'
 import { CourseOverview } from './CourseOverview'
@@ -147,7 +147,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
           </div>
           <h1 className="text-3xl font-bold mb-4">Access Restricted</h1>
           <p className="mb-6">
-            You don't have access to this course. Please purchase the course to gain access.
+            You don&apos;t have access to this course. Please purchase the course to gain access.
           </p>
           <Button onClick={() => router.push(`/courses/${course.slug}`)}>
             View Course Details

@@ -2,19 +2,21 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCart } from '@/providers/CartProvider'
+import { useCart, CartItemType } from '@/providers/CartProvider'
 import { Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { ModalDialog } from '@/components/ui/modal-dialog'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { formatPrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/utilities/ui'
 import { useTranslations } from 'next-intl'
+import { Checkout } from '@/components/Checkout' // Import Checkout component
+import { DetailedCartItemsList, CartItemType as DetailedCartItem } from './Cart/DetailedCartItemsList' // Import DetailedCartItemsList
 
 interface CartProps {
   locale: Locale
@@ -32,11 +34,31 @@ export function Cart({ locale }: CartProps) {
     updateItem,
     emptyCart,
     refreshCart,
+    closeCartModal, // Get closeModal function
   } = useCart()
 
+  type CartView = 'items' | 'checkout' | 'confirmation'
+  const [currentView, setCurrentView] = useState<CartView>('items')
+
   const [removeModalOpen, setRemoveModalOpen] = useState(false)
-  const [itemToRemove, setItemToRemove] = useState<string | null>(null)
+  const [itemToRemove, setItemToRemove] = useState<{ id: string; itemType: CartItemType } | null>(
+    null,
+  )
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
+
+  const handleCheckoutSuccess = useCallback(() => {
+    setCurrentView('confirmation')
+    // Optionally, clear cart or perform other actions
+    // emptyCart(); // Example: clear cart on successful checkout
+  }, [])
+
+  const handleGoToCheckout = () => {
+    setCurrentView('checkout')
+  }
+
+  const handleBackToItems = () => {
+    setCurrentView('items')
+  }
 
   if (isLoading) {
     return <CartSkeleton />
@@ -54,44 +76,48 @@ export function Cart({ locale }: CartProps) {
     )
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <Card className="text-center py-12">
         <h2 className="text-2xl font-bold mb-4">{t('emptyTitle')}</h2>
-        <Button asChild variant="default">
-          <Link href={`/${locale}/products`}>{t('continueShoppingButton')}</Link>
+        <Button variant="default" onClick={closeCartModal}>
+          {t('continueShoppingButton')}
         </Button>
       </Card>
     )
   }
 
-  const handleRemoveClick = (productId: string) => {
-    setItemToRemove(productId)
+  const handleRemoveClick = (productId: string, itemType: CartItemType) => {
+    setItemToRemove({ id: productId, itemType })
     setRemoveModalOpen(true)
   }
 
   const confirmRemove = async () => {
     if (!itemToRemove) return
-    setUpdatingItemId(itemToRemove)
+    setUpdatingItemId(itemToRemove.id)
     setRemoveModalOpen(false)
     try {
-      await removeItem(itemToRemove)
+      await removeItem(itemToRemove.id, itemToRemove.itemType)
     } finally {
       setItemToRemove(null)
       setUpdatingItemId(null)
     }
   }
 
-  const handleQuantityChange = async (productId: string, newQuantityStr: string) => {
+  const handleQuantityChange = async (
+    productId: string,
+    itemType: CartItemType,
+    newQuantityStr: string,
+  ) => {
     const newQuantity = parseInt(newQuantityStr, 10)
     if (isNaN(newQuantity) || newQuantity < 0) return
 
     setUpdatingItemId(productId)
     try {
       if (newQuantity === 0) {
-        await removeItem(productId)
+        await removeItem(productId, itemType)
       } else {
-        await updateItem(productId, newQuantity)
+        await updateItem(productId, itemType, newQuantity)
       }
     } finally {
       setUpdatingItemId(null)
@@ -99,11 +125,25 @@ export function Cart({ locale }: CartProps) {
   }
 
   const getProductTitle = (itemProduct: string | Product | null | undefined): string => {
-    if (typeof itemProduct === 'object' && itemProduct?.title) {
+    if (typeof itemProduct === 'object' && itemProduct && typeof itemProduct.title !== 'undefined') {
       const title = itemProduct.title
-      return typeof title === 'object'
-        ? title[locale] || title.en || t('productFallbackTitle')
-        : title
+      // Check if title is a localized object (and not null)
+      if (typeof title === 'object' && title !== null) {
+        const localizedTitle = title as { [key: string]: string } // Type assertion
+        if (locale in localizedTitle && typeof localizedTitle[locale] === 'string') {
+          return localizedTitle[locale]
+        }
+        // Fallback to 'en' if current locale is not present
+        if ('en' in localizedTitle && typeof localizedTitle.en === 'string') {
+          return localizedTitle.en
+        }
+        // If it's an object but doesn't have locale or 'en', or they are not strings, fallback
+        return t('productFallbackTitle')
+      }
+      // If title is a simple string
+      if (typeof title === 'string') {
+        return title
+      }
     }
     return t('productFallbackTitle')
   }
@@ -125,98 +165,46 @@ export function Cart({ locale }: CartProps) {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-4">
-        {cart.items.map(({ product, quantity, price }) => {
-          const productId = typeof product === 'string' ? product : product?.id
-          if (!productId) return null
+      {currentView === 'items' && cart && cart.items && (
+        <>
+          <DetailedCartItemsList
+            items={cart.items as DetailedCartItem[]} // Cast to DetailedCartItem[]
+            locale={locale}
+            removeFromCart={removeItem} // Pass the original removeItem
+            updateItem={updateItem} // Pass the original updateItem
+            // Pass isItemUpdating if DetailedCartItemsList needs it
+            // isItemUpdating={(itemId, itemType) => updatingItemId === itemId} // Example
+          />
+          <Card className="p-6 mt-8"> {/* Added mt-8 for spacing */}
+            <div className="flex justify-between text-xl font-bold mb-4">
+              <span>{t('totalLabel')}</span>
+              <span>{formatPrice(total, locale)}</span>
+            </div>
 
-          const title = getProductTitle(product)
-          const slug = getProductSlug(product)
-          const imageUrl = getProductImageUrl(product)
-          const isUpdating = updatingItemId === productId
+            <Button className="w-full" size="lg" onClick={handleGoToCheckout}>
+              {t('checkoutButton')}
+            </Button>
+          </Card>
+        </>
+      )}
 
-          return (
-            <Card
-              key={productId}
-              className={cn(
-                'p-4 transition-opacity',
-                isUpdating && 'opacity-50 pointer-events-none',
-              )}
-            >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 96px"
-                      className="object-cover rounded-md"
-                    />
-                  ) : (
-                    <Skeleton className="w-full h-full rounded-md" />
-                  )}
-                </div>
+      {currentView === 'checkout' && (
+        <Checkout
+          locale={locale}
+          onBack={handleBackToItems}
+          onCheckoutSuccess={handleCheckoutSuccess}
+        />
+      )}
 
-                <div className="flex-grow">
-                  {slug ? (
-                    <Link
-                      href={`/${locale}/products/${slug}`}
-                      className="text-lg font-semibold hover:text-primary"
-                    >
-                      {title}
-                    </Link>
-                  ) : (
-                    <span className="text-lg font-semibold">{title}</span>
-                  )}
-                  <div className="text-muted-foreground">{formatPrice(price, locale)}</div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={quantity}
-                    onChange={(e) => handleQuantityChange(productId, e.target.value)}
-                    className="w-20"
-                    disabled={isUpdating}
-                    aria-label={t('quantityLabel')}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveClick(productId)}
-                    className="text-destructive hover:text-destructive/90"
-                    disabled={isUpdating}
-                    aria-label={t('removeItemLabel')}
-                  >
-                    {isUpdating && updatingItemId === productId ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
-
-                <div className="text-lg font-semibold ml-auto sm:ml-0">
-                  {formatPrice(price * quantity, locale)}
-                </div>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
-
-      <Card className="p-6">
-        <div className="flex justify-between text-xl font-bold mb-4">
-          <span>{t('totalLabel')}</span>
-          <span>{formatPrice(total, locale)}</span>
-        </div>
-
-        <Button className="w-full" size="lg" asChild>
-          <Link href={`/${locale}/checkout`}>{t('checkoutButton')}</Link>
-        </Button>
-      </Card>
+      {currentView === 'confirmation' && (
+        <Card className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">{t('checkoutSuccessTitle', { defaultValue: 'Checkout Successful!' })}</h2>
+          <p className="mb-6">{t('checkoutSuccessMessage', { defaultValue: 'Your order has been placed.' })}</p>
+          <Button variant="default" onClick={closeCartModal}>
+            {t('continueShoppingButton')}
+          </Button>
+        </Card>
+      )}
 
       <ModalDialog
         isOpen={removeModalOpen}

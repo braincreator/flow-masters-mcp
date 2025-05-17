@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Progress } from '@/components/ui/Progress'
+import { Progress } from '@/components/ui/progress'
 
 interface CourseProgressBarProps {
   progress: number

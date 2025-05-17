@@ -59,6 +59,12 @@ export interface CartContextType {
   error: Error | null
   itemsLoading: Record<string, boolean> // NEW: отслеживает загрузку для отдельных товаров
 
+  // Состояние и функции для модального окна корзины
+  isCartModalOpen: boolean
+  openCartModal: () => void
+  closeCartModal: () => void
+  toggleCartModal: () => void
+
   // Основные методы для работы с корзиной
   addItem: (
     itemId: string,
@@ -114,75 +120,146 @@ export function CartProvider({
 }) {
   const { isAuthenticated } = useAuth()
   const [cart, setCart] = useState<CartSession | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(false) // Initialize to false, fetchCart will set it
   const [error, setError] = useState<Error | null>(null)
   const [itemsLoading, setItemsLoading] = useState<Record<string, boolean>>({}) // NEW
+  const [isCartModalOpen, setIsCartModalOpen] = useState<boolean>(false)
+
+// Helper function for deep equality check of CartSession data
+const areCartDataEqual = (cartA: CartSession | null, cartB: CartSession | null): boolean => {
+  if (cartA === cartB) return true;
+  if (!cartA || !cartB) return cartA === cartB;
+
+  if (cartA.id !== cartB.id || cartA.userId !== cartB.userId) {
+    // console.log('CartProvider: areCartDataEqual: Basic props differ');
+    return false;
+  }
+
+  const itemsA = cartA.items || [];
+  const itemsB = cartB.items || [];
+
+  if (itemsA.length !== itemsB.length) {
+    // console.log('CartProvider: areCartDataEqual: Item lengths differ');
+    return false;
+  }
+
+  // More robust item comparison by creating a comparable string for each item and sorting
+  const normalizeItem = (item: CartItem) => {
+    const id = item.itemType === 'product'
+      ? (typeof item.product === 'string' ? item.product : item.product?.id)
+      : (typeof item.service === 'string' ? item.service : item.service?.id);
+    return `${id || 'no-id'}-${item.quantity}-${item.priceSnapshot}-${item.itemType}`;
+  };
+
+  const sortedItemsA = [...itemsA].map(normalizeItem).sort();
+  const sortedItemsB = [...itemsB].map(normalizeItem).sort();
+
+  for (let i = 0; i < sortedItemsA.length; i++) {
+    if (sortedItemsA[i] !== sortedItemsB[i]) {
+      // console.log(`CartProvider: areCartDataEqual: Item at index ${i} differs: ${sortedItemsA[i]} vs ${sortedItemsB[i]}`);
+      return false;
+    }
+  }
+  // console.log('CartProvider: areCartDataEqual: Carts are equal');
+  return true;
+};
+
 
   const fetchCart = useCallback(async (): Promise<void> => {
+    setIsLoading(true)
+    // console.log('CartProvider: Fetching cart data...')
     try {
-      setIsLoading(true)
-      console.log('CartProvider: Fetching cart data...')
       const data = await getCart()
-      console.log('CartProvider: Cart data received:', data)
-      console.log('CartProvider: Cart items:', data?.items || [])
-      setCart(data)
+      // console.log('CartProvider: Cart data received:', data)
+      setCart(currentCart => {
+        if (areCartDataEqual(currentCart, data)) {
+          // console.log('CartProvider: fetchCart - Cart data is the same, not updating state.');
+          return currentCart;
+        }
+        // console.log('CartProvider: fetchCart - Cart data changed, updating state.');
+        return data;
+      })
       setError(null)
     } catch (err) {
-      // Don't set error for 404 (no cart) or 401 (not authenticated)
       if (err instanceof Error && !err.message.includes('404') && !err.message.includes('401')) {
         console.error('CartProvider: Error fetching cart:', err)
         setError(err)
+      } else {
+        // For 404 or 401, ensure cart is null if it wasn't already
+        setCart(currentCart => {
+          if (currentCart !== null) {
+            // console.log('CartProvider: fetchCart - Setting cart to null due to 404/401.');
+            return null;
+          }
+          return currentCart;
+        });
+        setError(null); // Clear previous errors on 404/401
       }
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, []) // Removed cart from dependencies as setCart now handles conditional update
 
-  // Добавим функцию для повторных попыток обновления корзины
   const retryFetchCart = useCallback(async (maxRetries = 3): Promise<void> => {
-    let retries = 0
-    let success = false
+    setIsLoading(true);
+    let retries = 0;
+    let success = false;
 
     while (retries < maxRetries && !success) {
       try {
-        console.log(`CartProvider: Attempting to fetch cart (attempt ${retries + 1}/${maxRetries})`)
-        const data = await getCart()
-        if (data && data.items) {
-          console.log(`CartProvider: Cart successfully fetched on attempt ${retries + 1}`, data)
-          setCart(data)
-          setError(null)
-          success = true
-        } else {
-          console.log(`CartProvider: Empty cart data on attempt ${retries + 1}`, data)
-          await new Promise((resolve) => setTimeout(resolve, 500))
-          retries++
-        }
+        // console.log(`CartProvider: Attempting to fetch cart (attempt ${retries + 1}/${maxRetries})`);
+        const data = await getCart();
+        setCart(currentCart => {
+          if (areCartDataEqual(currentCart, data)) {
+            // console.log(`CartProvider: retryFetchCart - Cart data is the same on attempt ${retries + 1}, not updating state.`);
+            success = true; // Consider it success if data is same or successfully fetched
+            return currentCart;
+          }
+          if (data) { // Ensure data is not null before considering it a successful fetch
+            // console.log(`CartProvider: retryFetchCart - Cart data changed/fetched on attempt ${retries + 1}, updating state.`);
+            success = true;
+            return data;
+          }
+          // console.log(`CartProvider: retryFetchCart - Empty/null cart data on attempt ${retries + 1}`);
+          return currentCart; // Keep current cart if new data is null and current isn't
+        });
+        if (success) setError(null);
       } catch (err) {
-        console.error(`CartProvider: Error fetching cart on attempt ${retries + 1}:`, err)
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        retries++
+        console.error(`CartProvider: Error fetching cart on attempt ${retries + 1}:`, err);
+        // Don't set global error on retry, let it fail if all retries exhausted
+      }
+      if (!success) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * (retries + 1))); // Exponential backoff
+        retries++;
       }
     }
 
     if (!success) {
-      console.error('CartProvider: Failed to fetch cart after multiple attempts')
+      console.error('CartProvider: Failed to fetch cart after multiple attempts');
+      // setError(new Error('Failed to load cart. Please try again.')); // Optionally set a final error
     }
-
-    setIsLoading(false)
-  }, [])
+    setIsLoading(false);
+  }, []); // Removed cart from dependencies
 
   // Fetch cart on mount and when auth state changes
   useEffect(() => {
+    // console.log('CartProvider: Auth state changed or component mounted. isAuthenticated:', isAuthenticated);
     fetchCart()
   }, [fetchCart, isAuthenticated])
 
-  // Calculate itemCount and total
-  const items = cart?.items ?? []
-  const itemCount = items.reduce((count, item) => count + (item.quantity || 1), 0)
-  const total = items.reduce((sum, item) => {
-    const price = item.priceSnapshot || 0
-    return sum + price * (item.quantity || 1)
-  }, 0)
+
+  const memoizedItems = useMemo(() => cart?.items ?? [], [cart?.items]);
+
+  const itemCount = useMemo(() => {
+    return memoizedItems.reduce((count, item) => count + (item.quantity || 1), 0)
+  }, [memoizedItems])
+
+  const total = useMemo(() => {
+    return memoizedItems.reduce((sum, item) => {
+      const price = item.priceSnapshot || 0
+      return sum + price * (item.quantity || 1)
+    }, 0)
+  }, [memoizedItems])
 
   // NEW: Вспомогательные функции для оптимистичного обновления
 
@@ -337,11 +414,10 @@ export function CartProvider({
 
         await updateCartItemQuantity(itemId, itemType, quantity)
 
-        // Получаем обновленную корзину, но без полной перезагрузки UI
-        const updatedCart = await getCart()
-        if (updatedCart) {
-          setCart(updatedCart)
-        }
+        // Fetch and conditionally set cart
+        const newCartData = await getCart();
+        setCart(currentCart => areCartDataEqual(currentCart, newCartData) ? currentCart : newCartData);
+
       } catch (err) {
         console.error('Error updating cart item:', err)
 
@@ -378,11 +454,9 @@ export function CartProvider({
 
         await removeFromCart(itemId, itemType)
 
-        // Получаем обновленную корзину, но без полной перезагрузки UI
-        const updatedCart = await getCart()
-        if (updatedCart) {
-          setCart(updatedCart)
-        }
+        // Fetch and conditionally set cart
+        const newCartData = await getCart();
+        setCart(currentCart => areCartDataEqual(currentCart, newCartData) ? currentCart : newCartData);
       } catch (err) {
         console.error('Error removing cart item:', err)
 
@@ -514,16 +588,24 @@ export function CartProvider({
     }
   }, [cart, fetchCart])
 
+  const openCartModal = useCallback(() => setIsCartModalOpen(true), [])
+  const closeCartModal = useCallback(() => setIsCartModalOpen(false), [])
+  const toggleCartModal = useCallback(() => setIsCartModalOpen((prev) => !prev), [])
+
   // Memoize context value to prevent unnecessary re-renders
   const value = useMemo(
     () => ({
       cart,
-      items: items as CartItem[],
+      items: memoizedItems,
       itemCount,
       total,
       isLoading,
       error,
       itemsLoading,
+      isCartModalOpen,
+      openCartModal,
+      closeCartModal,
+      toggleCartModal,
       addItem,
       updateItem: debouncedUpdateItem,
       removeItem,
@@ -535,12 +617,17 @@ export function CartProvider({
       remove: removeItem,
     }),
     [
-      cart,
-      itemCount,
-      total,
+      cart, // cart object reference
+      memoizedItems, // stable items array reference if content is same
+      itemCount, // derived from memoizedItems
+      total,     // derived from memoizedItems
       isLoading,
       error,
       itemsLoading,
+      isCartModalOpen,
+      openCartModal,
+      closeCartModal,
+      toggleCartModal,
       addItem,
       debouncedUpdateItem,
       removeItem,

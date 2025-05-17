@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { Progress } from '@/components/ui/Progress'
+import { Progress } from '@/components/ui/progress'
 
 interface CourseProgressProps {
   courseId: string

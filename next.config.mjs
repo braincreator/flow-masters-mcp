@@ -27,6 +27,7 @@ const getModulePath = (pkg) => {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
     remotePatterns: [
       {
@@ -80,6 +81,7 @@ const nextConfig = {
   serverExternalPackages: ['mongoose'],
 
   transpilePackages: [
+    '@payloadcms/ui',
     'payload-admin',
     '@aws-sdk/client-s3',
     '@aws-sdk/lib-storage',

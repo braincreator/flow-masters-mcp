@@ -25,6 +25,11 @@ import { Discounts } from './Discounts'
 import { Promotions } from './Promotions'
 import { Reviews } from './Reviews'
 
+// Service Projects
+import ServiceProjects from './ServiceProjects'
+import Tasks from './Tasks'
+import ProjectMessages from './ProjectMessages'
+
 // Courses / LMS
 import { Courses } from './Courses'
 import { Modules } from './Modules'
@@ -100,6 +105,11 @@ const collections = [
   Discounts,
   Promotions,
   Reviews,
+
+  // Service Projects
+  ServiceProjects,
+  Tasks,
+  ProjectMessages,
 
   // Courses / LMS
   Courses,

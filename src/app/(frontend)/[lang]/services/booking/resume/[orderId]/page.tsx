@@ -5,9 +5,10 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/utilities/auth/getServerSession'
-import { Container } from '@/components/Container'
 import { Button } from '@/components/ui/button'
 import ServiceBookingFlow from '@/components/services/ServiceBookingFlow'
+import { Container } from '@/components/ui/container'
+type Locale = 'en' | 'ru';
 
 type ResumeBookingPageProps = {
   params: {
@@ -51,20 +52,24 @@ export default async function ResumeBookingPage({
     })
 
     // Проверяем, принадлежит ли заказ текущему пользователю
-    if (order.customer.id !== session.user.id) {
+    if (typeof order.customer === 'object' && order.customer.id !== session.user.id) {
       return notFound()
     }
 
     // Проверяем, оплачен ли заказ
-    if (order.status !== 'paid' && order.status !== 'completed') {
+    if (order.status !== 'completed') {
       // Если заказ не оплачен, перенаправляем на страницу оплаты
       return redirect(`/${lang}/services/${order.serviceData?.serviceId}/book`)
     }
 
     // Получаем информацию об услуге
+    if (!order.serviceData?.serviceId || typeof order.serviceData.serviceId !== 'string') {
+      return notFound();
+    }
+
     const service = await payload.findByID({
       collection: 'services',
-      id: order.serviceData?.serviceId,
+      id: order.serviceData.serviceId,
     })
 
     if (!service) {
@@ -73,7 +78,7 @@ export default async function ResumeBookingPage({
 
     // Получаем локализованные данные
     const title =
-      typeof service.title === 'object' ? service.title[lang] || service.title.en : service.title
+      typeof service.title === 'object' ? service.title[lang] || (service.title as any).en : service.title as string
 
     return (
       <Container>
@@ -89,8 +94,9 @@ export default async function ResumeBookingPage({
           <ServiceBookingFlow
             serviceId={service.id}
             price={service.price}
-            requiresBooking={service.requiresBooking}
-            bookingSettings={service.bookingSettings}
+            requiresBooking={service.requiresBooking ?? undefined}
+            bookingSettings={service.bookingSettings ? { ...service.bookingSettings, provider: (service.bookingSettings.provider ?? 'other'), calendlyUsername: service.bookingSettings.calendlyUsername ?? undefined, calendlyEventType: service.bookingSettings.calendlyEventType ?? undefined, hideEventTypeDetails: service.bookingSettings.hideEventTypeDetails ?? undefined, hideGdprBanner: service.bookingSettings.hideGdprBanner ?? undefined, enableAdditionalInfo: service.bookingSettings.enableAdditionalInfo ?? undefined, additionalInfoFields: service.bookingSettings.additionalInfoFields?.map(field => ({ ...field, required: field.required ?? false })) ?? undefined } as any : undefined}
+            locale={lang as Locale}
             className="w-full"
             orderId={orderId}
             skipPayment={true}

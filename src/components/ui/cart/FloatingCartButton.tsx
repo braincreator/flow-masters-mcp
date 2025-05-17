@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import { useCart } from '@/providers/CartProvider'
+import { useTranslations } from 'next-intl'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utilities/ui'
@@ -15,7 +15,8 @@ interface FloatingCartButtonProps {
 }
 
 export default function FloatingCartButton({ locale, className }: FloatingCartButtonProps) {
-  const { items = [], itemCount = 0, isLoading, error } = useCart(locale)
+  const { items = [], itemCount = 0, isLoading, error, toggleCartModal } = useCart(locale)
+  const t = useTranslations('FloatingCartButton')
   const [visible, setVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [animate, setAnimate] = useState(false)
@@ -161,7 +162,9 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
 
   // Touch events for mobile
   function handleTouchStart(e: React.TouchEvent) {
+    if (!e.touches || e.touches.length === 0) return
     const touch = e.touches[0]
+    if (!touch) return // Add null check for touch
 
     // Сбрасываем счетчик расстояния при начале новой операции перетаскивания
     dragDistanceRef.current = 0
@@ -175,9 +178,10 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
   }
 
   function handleTouchMove(e: React.TouchEvent) {
-    if (!isDragging) return
+    if (!isDragging || !e.touches || e.touches.length === 0) return
 
     const touch = e.touches[0]
+    if (!touch) return // Add null check for touch
     const deltaX = touch.clientX - dragStart.x
     const deltaY = touch.clientY - dragStart.y
 
@@ -272,8 +276,8 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
               isHovered && 'shadow-accent/50 shadow-2xl',
             )}
           >
-            <Link
-              href={`/${locale}/cart`}
+            <button
+              type="button"
               onClick={(e) => {
                 // Проверяем, было ли реальное перетаскивание
                 if (wasRecentlyDragged(e)) {
@@ -281,9 +285,11 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
                   e.stopPropagation()
                   return false
                 }
-                // В противном случае разрешаем клик
+                // В противном случае разрешаем клик и открываем модалку
+                toggleCartModal()
               }}
-              className="p-4 flex items-center justify-center cursor-pointer relative block"
+              className="p-4 flex items-center justify-center cursor-pointer relative block w-full h-full appearance-none bg-transparent border-none"
+              aria-label={t('viewCart')}
             >
               <ShoppingCart className="w-6 h-6 text-accent-foreground" />
 
@@ -293,9 +299,9 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
-                    className="ml-2 whitespace-nowrap overflow-hidden"
+                    className="ml-2 whitespace-nowrap overflow-hidden text-accent-foreground"
                   >
-                    View Cart
+                    {t('viewCart')}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -316,7 +322,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
                   {itemCount}
                 </motion.span>
               )}
-            </Link>
+            </button>
           </motion.div>
         </div>
       )}

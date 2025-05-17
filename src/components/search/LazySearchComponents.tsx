@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 // Lazy-loaded search components with appropriate loading skeletons
 
 export const LazySearchBar = dynamic(
-  () => import('./SearchBar').then((mod) => ({ default: mod.SearchBar })),
+  () => Promise.resolve({ default: SearchBar }),
   {
     loading: () => <Skeleton className="h-10 w-full rounded-md" />,
     ssr: false,
@@ -14,7 +14,7 @@ export const LazySearchBar = dynamic(
 )
 
 export const LazySearchResults = dynamic(
-  () => import('./SearchResults').then((mod) => ({ default: mod.SearchResults })),
+  () => Promise.resolve({ default: SearchResults }),
   {
     loading: () => (
       <div className="space-y-4">
@@ -35,7 +35,7 @@ export const LazySearchResults = dynamic(
 )
 
 export const LazySearchFilters = dynamic(
-  () => import('./SearchFilters').then((mod) => ({ default: mod.SearchFilters })),
+  () => Promise.resolve({ default: SearchFilters }),
   {
     loading: () => (
       <div className="space-y-4">
@@ -52,7 +52,7 @@ export const LazySearchFilters = dynamic(
 )
 
 export const LazySearchHistory = dynamic(
-  () => import('./SearchHistory').then((mod) => ({ default: mod.SearchHistory })),
+  () => Promise.resolve({ default: SearchHistory }),
   {
     loading: () => (
       <div className="space-y-4">

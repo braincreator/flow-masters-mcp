@@ -8,11 +8,13 @@ import { Locale } from '@/constants'
 
 interface CheckoutProps {
   locale: Locale
+  onBack?: () => void
+  onCheckoutSuccess?: () => void
 }
 
-export function Checkout({ locale }: CheckoutProps) {
+export function Checkout({ locale, onBack, onCheckoutSuccess }: CheckoutProps) {
   const t = useTranslations('Checkout')
-  const { cart, total } = useCart()
+  const { cart, total, clear } = useCart() // Added clear from useCart
   const [paymentMethod, setPaymentMethod] = useState('yoomoney')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +24,7 @@ export function Checkout({ locale }: CheckoutProps) {
       setError(null)
       setLoading(true)
 
-      if (!cart || cart.items.length === 0) {
+      if (!cart || !cart.items || cart.items.length === 0) {
         throw new Error(t('errorCartEmpty'))
       }
 
@@ -47,7 +49,15 @@ export function Checkout({ locale }: CheckoutProps) {
       }
 
       const { paymentUrl } = await response.json()
-      window.location.href = paymentUrl
+      // Instead of redirecting, call onCheckoutSuccess
+      if (onCheckoutSuccess) {
+        onCheckoutSuccess()
+      } else {
+        // Fallback if no handler, though ideally Cart.tsx handles this
+        window.location.href = paymentUrl
+      }
+      // Optionally clear cart after initiating payment
+      // await clear();
     } catch (error) {
       console.error('Checkout error:', error)
       setError(error instanceof Error ? error.message : t('errorCheckoutFailedDefault'))
@@ -91,11 +101,20 @@ export function Checkout({ locale }: CheckoutProps) {
 
         <button
           onClick={handleCheckout}
-          disabled={loading || !cart || cart.items.length === 0}
+          disabled={loading || !cart || !cart.items || cart.items.length === 0}
           className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {loading ? t('processingButton') : t('proceedButton')}
         </button>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-full mt-4 text-center text-sm text-gray-600 hover:text-gray-800"
+          >
+            {t('backToCartButton', { defaultValue: 'Back to Cart' })}
+          </button>
+        )}
       </div>
 
       <div>

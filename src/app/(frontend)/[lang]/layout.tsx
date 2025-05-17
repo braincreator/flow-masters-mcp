@@ -4,9 +4,10 @@ import { Header } from '@/globals/Header/Component'
 import { Footer } from '@/globals/Footer/Component'
 import { AdminBar } from '@/components/AdminBar'
 import { draftMode } from 'next/headers'
-import { Locale } from '@/constants'
+import { Locale, SUPPORTED_LOCALES } from '@/constants'
 import '@/app/(frontend)/globals.css'
 import FloatingCartButtonWrapper from '@/components/FloatingCartButtonWrapper'
+import { CartModal } from '@/components/Cart/CartModal'
 import CookieConsentBanner from '@/components/CookieConsentBanner/CookieConsentBanner'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
@@ -20,6 +21,11 @@ import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
+
+// Добавляем функцию generateStaticParams из удаленного .js файла
+export function generateStaticParams() {
+  return SUPPORTED_LOCALES.map((locale) => ({ lang: locale }))
+}
 
 interface LayoutProps {
   children: ReactNode
@@ -94,6 +100,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                   <div id="pagination-slot" className="container py-8"></div>
                   <Footer locale={lang} />
                   <FloatingCartButtonWrapper locale={lang} />
+                  <CartModal locale={lang} />
                   <CookieConsentBanner locale={lang} />
                 </LoadingProvider>
               </LoadingConfigProvider>

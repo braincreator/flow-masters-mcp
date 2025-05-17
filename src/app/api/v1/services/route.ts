@@ -9,6 +9,12 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type')
+    const slug = searchParams.get('slug')
+    const localeParam = searchParams.get('locale')
+    let locale: 'en' | 'ru' | undefined = undefined
+    if (localeParam === 'en' || localeParam === 'ru') {
+      locale = localeParam
+    }
     const requiresBooking = searchParams.get('requiresBooking')
     const requiresPayment = searchParams.get('requiresPayment')
     const status = searchParams.get('status') || 'published'
@@ -41,12 +47,29 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Moved slug filter to be independent
+    if (slug) {
+      where.slug = {
+        equals: slug,
+      }
+    }
+
     // Получаем услуги
-    const services = await payload.find({
+    const findOptions: any = {
       collection: 'services',
       where,
       depth: 1,
-    })
+    }
+
+    if (locale) {
+      findOptions.locale = locale
+    }
+
+    console.log('[API /services] Effective locale for query:', locale)
+    console.log('[API /services] Query where clause:', JSON.stringify(where, null, 2))
+    console.log('[API /services] Payload find options:', JSON.stringify(findOptions, null, 2))
+
+    const services = await payload.find(findOptions)
 
     return NextResponse.json(services)
   } catch (error) {
