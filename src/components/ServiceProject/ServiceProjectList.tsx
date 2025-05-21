@@ -56,7 +56,7 @@ const ServiceProjectList: React.FC<ServiceProjectListProps> = ({ projects }) => 
       <ul className="divide-y divide-gray-200">
         {projects.map((project) => (
           <li key={project.id} className="hover:bg-gray-50 transition-colors">
-            <Link href={`/projects/${project.id}`} className="block p-4 sm:px-6 sm:py-5">
+            <Link href={`/${locale}/dashboard/projects/${project.id}`} className="block p-4 sm:px-6 sm:py-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-medium text-gray-900 truncate">{project.name}</h3>

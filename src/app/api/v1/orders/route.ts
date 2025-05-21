@@ -92,8 +92,11 @@ export async function POST(req: Request) {
       // Add logic for partial_prepayment if needed, similar to the old route.
       totalAmount = service.price
 
+      // Import the utility function for consistent order number generation
+      const { generateOrderNumber } = require('@/utilities/orderNumber')
+
       const orderData = {
-        orderNumber: `SERV-${Date.now()}`, // Differentiate service order numbers
+        orderNumber: generateOrderNumber('SERV'), // Consistent format for service orders
         customer: user.id,
         items: [
           {
@@ -174,8 +177,9 @@ export async function POST(req: Request) {
         0,
       )
 
+      // Use the same utility function for product/subscription orders
       const orderData = {
-        orderNumber: `${finalOrderType.toUpperCase()}-${Date.now()}`,
+        orderNumber: generateOrderNumber(finalOrderType.toUpperCase().substring(0, 4)),
         customer: user.id,
         items: orderItems,
         total: {

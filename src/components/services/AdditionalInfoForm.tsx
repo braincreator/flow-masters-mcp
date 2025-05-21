@@ -5,31 +5,50 @@ import { useTranslations } from 'next-intl'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { AlertCircle, CalendarIcon, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import FileUpload from '@/components/FileUpload'
 import type { AdditionalInfoField } from '@/types/service'
+
+// Define a generic type for the form data
+type FormData = Record<string, any>
 
 type AdditionalInfoFormProps = {
   fields: AdditionalInfoField[]
   title?: string
   description?: string
   isRequired?: boolean
-  onSubmit: (data: Record<string, any>) => void
+  onSubmit: (data: FormData) => Promise<void> | void
   onSkip?: () => void
   className?: string
+  isSubmittingFiles?: boolean // New prop to indicate if files are being submitted
 }
 
-export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
+const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
   fields,
   title = 'Дополнительная информация',
   description,
@@ -37,76 +56,143 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
   onSubmit,
   onSkip,
   className = '',
+  isSubmittingFiles = false,
 }) => {
   const t = useTranslations('ServiceBooking')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Динамически создаем схему валидации на основе полей
-  const formSchema = z.object(
-    fields.reduce((schema, field) => {
-      let fieldSchema
+  const formSchema = React.useMemo(
+    () =>
+      z.object(
+        fields.reduce((schema, field) => {
+          let fieldSchema
 
-      switch (field.fieldType) {
-        case 'text':
-          fieldSchema = z.string()
-          break
-        case 'textarea':
-          fieldSchema = z.string()
-          break
-        case 'number':
-          fieldSchema = z.coerce.number()
-          break
-        case 'date':
-          fieldSchema = z.date().optional()
-          break
-        case 'select':
-          fieldSchema = z.string()
-          break
-        case 'checkbox':
-          fieldSchema = z.boolean().default(false)
-          break
-        default:
-          fieldSchema = z.string()
-      }
+          switch (field.fieldType) {
+            case 'text':
+              fieldSchema = z.string()
+              break
+            case 'textarea':
+              fieldSchema = z.string()
+              break
+            case 'number':
+              fieldSchema = z.coerce.number()
+              break
+            case 'date':
+              fieldSchema = z.date().optional()
+              break
+            case 'select':
+              fieldSchema = z.string()
+              break
+            case 'checkbox':
+              fieldSchema = z.boolean().default(false)
+              break
+            case 'fileUpload':
+              // Validate as an array of File objects
+              fieldSchema = z.array(z.instanceof(File))
+              break
+            default:
+              fieldSchema = z.string()
+          }
 
-      // Если поле обязательное, добавляем валидацию
-      if (field.required) {
-        if (field.fieldType === 'text' || field.fieldType === 'textarea' || field.fieldType === 'select') {
-          fieldSchema = fieldSchema.min(1, { message: 'Это поле обязательно для заполнения' })
-        } else if (field.fieldType === 'date') {
-          fieldSchema = z.date({ required_error: 'Это поле обязательно для заполнения' })
-        }
-      } else {
-        // Если поле не обязательное, делаем его опциональным
-        if (field.fieldType !== 'checkbox' && field.fieldType !== 'date') {
-          fieldSchema = fieldSchema.optional()
-        }
-      }
+          // Если поле обязательное, добавляем валидацию
+          if (field.required) {
+            if (
+              field.fieldType === 'text' ||
+              field.fieldType === 'textarea' ||
+              field.fieldType === 'select'
+            ) {
+              // Type assertion to fix the min method not existing on all types
+              fieldSchema = (fieldSchema as z.ZodString).min(1, { message: t('fieldRequired', { defaultValue: 'This field is required' }) })
+            } else if (field.fieldType === 'date') {
+              fieldSchema = z.date({ required_error: t('fieldRequired', { defaultValue: 'This field is required' }) })
+            } else if (field.fieldType === 'fileUpload') {
+              fieldSchema = z.array(z.instanceof(File)).min(1, {
+                message: t('fileRequired', { defaultValue: 'Please upload at least one file' })
+              })
+            }
+          } else {
+            // Если поле не обязательное, делаем его опциональным
+            if (
+              field.fieldType !== 'checkbox' &&
+              field.fieldType !== 'date' &&
+              field.fieldType !== 'fileUpload'
+            ) {
+              fieldSchema = fieldSchema.optional()
+            } else if (field.fieldType === 'fileUpload') {
+              fieldSchema = z.array(z.instanceof(File)).optional().default([])
+            }
+          }
 
-      return { ...schema, [field.fieldName]: fieldSchema }
-    }, {})
+          return { ...schema, [field.fieldName]: fieldSchema }
+        }, {})
+      ),
+    [fields, t]
   )
 
   // Создаем форму
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: fields.reduce((values, field) => {
-      if (field.fieldType === 'checkbox') {
-        values[field.fieldName] = false
-      } else if (field.fieldType !== 'date') {
-        values[field.fieldName] = ''
-      }
-      return values
-    }, {} as Record<string, any>),
+    defaultValues: React.useMemo(
+      () =>
+        fields.reduce(
+          (values, field) => {
+            if (field.fieldType === 'checkbox') {
+              values[field.fieldName] = field.defaultValue === 'true' || false
+            } else if (field.fieldType === 'fileUpload') {
+              values[field.fieldName] = [] // Default to empty array for files
+            } else if (field.fieldType === 'number') {
+              values[field.fieldName] = field.defaultValue ? Number(field.defaultValue) : 0
+            } else if (field.fieldType === 'date') {
+              values[field.fieldName] = field.defaultValue ? new Date(field.defaultValue) : undefined
+            } else {
+              values[field.fieldName] = field.defaultValue || ''
+            }
+            return values
+          },
+          {} as Record<string, any>,
+        ),
+      [fields], // Зависимость от полей
+    ),
   })
 
   // Обработчик отправки формы
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
     try {
-      await onSubmit(data)
+      // Log form data for debugging (remove in production)
+      console.log('Submitting form data:', data)
+
+      // Check for file uploads and validate file sizes
+      const hasLargeFiles = Object.entries(data).some(([key, value]) => {
+        const field = fields.find(f => f.fieldName === key)
+        if (field?.fieldType === 'fileUpload' && Array.isArray(value)) {
+          return value.some(file => file.size > 10 * 1024 * 1024) // 10MB limit
+        }
+        return false
+      })
+
+      if (hasLargeFiles) {
+        form.setError('root', {
+          message: t('fileTooLarge', { defaultValue: 'One or more files exceed the 10MB size limit' })
+        })
+        return
+      }
+
+      // Call onSubmit and handle both Promise and non-Promise returns
+      const result = onSubmit(data)
+      if (result instanceof Promise) {
+        await result
+      }
     } catch (error) {
       console.error('Error submitting form:', error)
+
+      // Show error message to user
+      form.setError('root', {
+        message: t('submissionError', {
+          defaultValue: 'An error occurred while submitting the form. Please try again.'
+        })
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -119,6 +205,9 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
     }
   }
 
+  // Определяем, должна ли кнопка отправки быть отключена
+  const isSubmitDisabled = isSubmitting || isSubmittingFiles;
+
   return (
     <div className={`p-6 border rounded-lg shadow-sm ${className}`}>
       <h3 className="text-xl font-medium mb-2">{title}</h3>
@@ -126,11 +215,26 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          {/* Display form-level errors */}
+          {form.formState.errors.root && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Добавляем индикатор загрузки файлов, если isSubmittingFiles === true */}
+          {isSubmittingFiles && (
+             <Alert className="mb-4">
+               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+               <AlertDescription>{t('uploadingFiles', { defaultValue: 'Uploading files...' })}</AlertDescription>
+             </Alert>
+          )}
           {fields.map((field) => (
             <FormField
               key={field.fieldName}
               control={form.control}
-              name={field.fieldName}
+              name={field.fieldName as any}
               render={({ field: formField }) => (
                 <FormItem>
                   <FormLabel>
@@ -140,29 +244,33 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
 
                   {field.fieldType === 'text' && (
                     <FormControl>
-                      <Input
-                        placeholder={field.placeholder}
-                        {...formField}
+                      <Input placeholder={field.placeholder} {...formField} />
+                    </FormControl>
+                  )}
+
+                  {field.fieldType === 'fileUpload' && ( // New file upload field type
+                    <FormControl>
+                      <FileUpload
+                        onFilesAdded={(files) => formField.onChange(files)}
+                        multiple={field.multipleFiles || false} // Assuming a 'multipleFiles' prop on field
+                        accept={field.allowedFileTypes || '*/*'}
+                        maxSize={field.maxFileSize || 5 * 1024 * 1024} // Assuming 'maxFileSize' prop on field
+                        isUploading={isSubmittingFiles} // Pass the submitting state
                       />
                     </FormControl>
                   )}
 
+
+
                   {field.fieldType === 'textarea' && (
                     <FormControl>
-                      <Textarea
-                        placeholder={field.placeholder}
-                        {...formField}
-                      />
+                      <Textarea placeholder={field.placeholder} {...formField} />
                     </FormControl>
                   )}
 
                   {field.fieldType === 'number' && (
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder={field.placeholder}
-                        {...formField}
-                      />
+                      <Input type="number" placeholder={field.placeholder} {...formField} />
                     </FormControl>
                   )}
 
@@ -174,7 +282,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
                             variant="outline"
                             className={cn(
                               'w-full justify-start text-left font-normal',
-                              !formField.value && 'text-muted-foreground'
+                              !formField.value && 'text-muted-foreground',
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -190,7 +298,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
                             mode="single"
                             selected={formField.value}
                             onSelect={formField.onChange}
-                            initialFocus
+                            // initialFocus is deprecated, removed
                           />
                         </PopoverContent>
                       </Popover>
@@ -199,10 +307,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
 
                   {field.fieldType === 'select' && field.options && (
                     <FormControl>
-                      <Select
-                        onValueChange={formField.onChange}
-                        defaultValue={formField.value}
-                      >
+                      <Select onValueChange={formField.onChange} defaultValue={formField.value}>
                         <SelectTrigger>
                           <SelectValue placeholder={field.placeholder || 'Выберите опцию'} />
                         </SelectTrigger>
@@ -235,9 +340,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
                     </FormControl>
                   )}
 
-                  {field.description && (
-                    <FormDescription>{field.description}</FormDescription>
-                  )}
+                  {field.description && <FormDescription>{field.description}</FormDescription>}
                   <FormMessage />
                 </FormItem>
               )}
@@ -246,18 +349,14 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
 
           <div className="flex justify-between pt-4">
             {!isRequired && onSkip && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSkip}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={handleSkip} disabled={isSubmitDisabled}> {/* Use isSubmitDisabled here */}
                 {t('skipAdditionalInfo')}
               </Button>
             )}
+
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitDisabled} // Use isSubmitDisabled here
               className={!isRequired && onSkip ? '' : 'w-full'}
             >
               {isSubmitting ? t('processing') : t('continueBooking')}
@@ -266,7 +365,7 @@ export const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
         </form>
       </Form>
     </div>
-  )
+  );
 }
 
-export default AdditionalInfoForm
+export default AdditionalInfoForm;

@@ -74,7 +74,8 @@ export class OrderService extends BaseService {
       const orderData = {
         ...input,
         items: updatedItems,
-        orderNumber: input.orderNumber || `ORD-${Date.now()}`,
+        // Import the utility function for consistent order number generation
+        orderNumber: input.orderNumber || require('@/utilities/orderNumber').generateOrderNumber('ORD'),
         paymentData: input.paymentData
           ? Object.assign({}, input.paymentData, {
               customerLocale: locale,

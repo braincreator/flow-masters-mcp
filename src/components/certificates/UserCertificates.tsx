@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +18,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { ru, enUS } from 'date-fns/locale'
 
 interface Certificate {
@@ -47,7 +55,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
         setLoading(true)
         // In a real app, you would fetch certificates from an API
         const response = await fetch(`/api/v1/user/${user.id}/certificates`)
-        
+
         if (response.ok) {
           const data = await response.json()
           setCertificates(data.certificates || [])
@@ -123,14 +131,14 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
   const handleDownload = (certificateId: string) => {
     // In a real app, this would trigger a download of the certificate
     console.log(`Downloading certificate ${certificateId}`)
-    alert(t('downloadStarted'))
+    new AppError({ message: t('downloadStarted'), severity: ErrorSeverity.INFO }).notify()
   }
 
   // Handle certificate sharing
   const handleShare = (certificateId: string) => {
     // In a real app, this would open a sharing dialog
     console.log(`Sharing certificate ${certificateId}`)
-    
+
     if (navigator.share) {
       navigator.share({
         title: t('shareCertificate'),
@@ -138,7 +146,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
         url: `https://flowmasters.com/verify/${certificateId}`,
       })
     } else {
-      alert(t('copyLinkToClipboard'))
+      new AppError({ message: t('copyLinkToClipboard'), severity: ErrorSeverity.INFO }).notify()
     }
   }
 
@@ -158,7 +166,11 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
           <CardDescription>{t('notAuthenticatedDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={() => window.location.href = `/${locale}/login?redirect=${encodeURIComponent(`/${locale}/certificates`)}`}>
+          <Button
+            onClick={() =>
+              (window.location.href = `/${locale}/login?redirect=${encodeURIComponent(`/${locale}/certificates`)}`)
+            }
+          >
             {t('loginButton')}
           </Button>
         </CardContent>
@@ -178,7 +190,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
           <TabsList>
             <TabsTrigger value="all">{t('tabs.all')}</TabsTrigger>
@@ -231,44 +243,44 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
                       certificate.status === 'active'
                         ? 'bg-green-500'
                         : certificate.status === 'expired'
-                        ? 'bg-amber-500'
-                        : 'bg-red-500'
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'
                     }
                   >
                     {certificate.status === 'active'
                       ? t('status.active')
                       : certificate.status === 'expired'
-                      ? t('status.expired')
-                      : t('status.revoked')}
+                        ? t('status.expired')
+                        : t('status.revoked')}
                   </Badge>
                 </div>
               </div>
-              
+
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">{certificate.title}</CardTitle>
                 <CardDescription>{certificate.courseName}</CardDescription>
               </CardHeader>
-              
+
               <CardContent className="pb-2">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('issueDate')}:</span>
                     <span>{formatDate(certificate.issueDate)}</span>
                   </div>
-                  
+
                   {certificate.expiryDate && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('expiryDate')}:</span>
                       <span>{formatDate(certificate.expiryDate)}</span>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('credentialId')}:</span>
                     <span className="font-mono text-xs">{certificate.credentialId}</span>
                   </div>
                 </div>
-                
+
                 <div className="mt-3 flex flex-wrap gap-1">
                   {certificate.skills.map((skill) => (
                     <Badge key={skill} variant="outline" className="text-xs">
@@ -277,7 +289,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
                   ))}
                 </div>
               </CardContent>
-              
+
               <CardFooter className="pt-2">
                 <div className="flex gap-2 w-full">
                   <Button

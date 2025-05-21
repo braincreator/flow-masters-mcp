@@ -21,6 +21,7 @@ const DB_TO_UI_TYPE_MAP: Record<NotificationStoredType, NotificationType> = {
   [NotificationStoredType.ACCOUNT_ACTIVITY]: 'info', // For profile changes, password updates etc.
   [NotificationStoredType.PROMOTIONAL]: 'info', // For marketing, special offers, newsletters
   [NotificationStoredType.SOCIAL_INTERACTION]: 'message', // For comments, replies, mentions
+  [NotificationStoredType.PROJECT_STATUS_UPDATED]: 'info', // For project status updates
 }
 
 /**

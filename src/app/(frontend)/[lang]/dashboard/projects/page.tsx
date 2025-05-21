@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense, use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
@@ -31,7 +31,26 @@ const statusBadgeClasses: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800',
 }
 
-export default function ProjectsPage({ params }: { params: { lang: string } }) {
+// This is the main component that will use React.use() to unwrap the params
+export default function ProjectsPage({ params }: { params: any }) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectsPageWrapper params={params} />
+    </Suspense>
+  )
+}
+
+// This component will safely unwrap the params
+function ProjectsPageWrapper({ params }: { params: any }) {
+  // Safely unwrap the params using React.use()
+  const unwrappedParams = use(params) as { lang: string }
+  const lang = unwrappedParams.lang
+
+  return <ProjectsPageContent lang={lang} />
+}
+
+// This is a wrapper component that will handle the Promise nature of params
+function ProjectsPageContent({ lang }: { lang: string }) {
   const t = useTranslations('Projects')
   const [projects, setProjects] = useState<ProjectItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -40,22 +59,69 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
 
   // Получение списка проектов
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjects = async (retryCount = 0) => {
       try {
         setIsLoading(true)
+        console.log('Fetching projects from API...')
+
         const response = await fetch('/api/service-projects', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Ensure cookies are sent with the request
+          cache: 'no-store' // Prevent caching issues
         })
 
+        console.log(`Projects API response status: ${response.status}`)
+
         if (!response.ok) {
-          throw new Error(t('errorLoadingProjects'))
+          // Try to get more detailed error information
+          let errorMessage = t('errorLoadingProjects')
+          let errorDetails = ''
+
+          try {
+            const errorData = await response.json()
+            console.error('Error response data:', errorData)
+            errorDetails = errorData.details || errorData.error || ''
+          } catch (parseError) {
+            console.error('Could not parse error response:', parseError)
+          }
+
+          // Handle specific status codes
+          if (response.status === 401) {
+            console.error('User is not authenticated, redirecting to login page')
+
+            // Check if we're in development mode and should retry
+            if (process.env.NODE_ENV === 'development' && retryCount < 1) {
+              console.log('Development mode detected, retrying request...')
+              setTimeout(() => fetchProjects(retryCount + 1), 1000)
+              return
+            }
+
+            // Only redirect if we're not in development mode or we've already retried
+            window.location.href = `/${lang}/login?redirect=${encodeURIComponent(window.location.pathname)}`
+            return
+          }
+
+          throw new Error(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`)
         }
 
         const data = await response.json()
+        console.log(`Received ${data.length} projects`)
         setProjects(data)
+        setError(null) // Clear any previous errors
       } catch (err) {
         console.error('Error fetching projects:', err)
+
+        // Check if it's a network error and retry if needed
+        const isNetworkError = err instanceof TypeError &&
+          (err.message.includes('fetch') || err.message.includes('network'));
+
+        if (isNetworkError && retryCount < 2) {
+          console.log(`Network error, retrying (${retryCount + 1}/3)...`)
+          setTimeout(() => fetchProjects(retryCount + 1), 1000)
+          return
+        }
+
         setError(err instanceof Error ? err.message : t('unknownError'))
       } finally {
         setIsLoading(false)
@@ -63,7 +129,7 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
     }
 
     fetchProjects()
-  }, [t])
+  }, [t, lang])
 
   // Получаем список проектов в соответствии с выбранным фильтром
   const filteredProjects =
@@ -159,7 +225,7 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
               : t('noProjectsWithStatus', { status: t(`status.${statusFilter}`) })}
           </p>
           <Link
-            href={`/${params.lang}/dashboard/services`}
+            href={`/${lang}/dashboard/services`}
             className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             {t('orderNewService')}
@@ -187,7 +253,7 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    {t('status')}
+                    {t('statusLabel')}
                   </th>
                   <th
                     scope="col"
@@ -206,7 +272,7 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{project.name}</div>
                       <div className="text-sm text-gray-500">
-                        {t('created')}: {formatDate(project.createdAt, params.lang)}
+                        {t('created')}: {formatDate(project.createdAt, lang)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -229,11 +295,11 @@ export default function ProjectsPage({ params }: { params: { lang: string } }) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(project.updatedAt, params.lang)}
+                      {formatDate(project.updatedAt, lang)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
-                        href={`/${params.lang}/dashboard/projects/${project.id}`}
+                        href={`/${lang}/dashboard/projects/${project.id}`}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         {t('view')}

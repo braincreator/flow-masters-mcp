@@ -31,3 +31,6 @@ export * from './newsletters/adminNewSubscriber'
 export * from './rewards/rewardGeneric'
 export * from './rewards/rewardDiscount'
 export * from './rewards/rewardFreeCourse'
+
+// Project emails
+export * from './projects/projectReportNotification'

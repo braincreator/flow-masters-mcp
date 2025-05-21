@@ -138,6 +138,15 @@ const ServiceProjects: CollectionConfig = {
         description: 'Внутренние заметки по проекту',
       },
     },
+    {
+      name: 'appliedTemplate',
+      type: 'relationship',
+      relationTo: 'project-templates',
+      admin: {
+        description: 'Примененный шаблон проекта',
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true,
 }

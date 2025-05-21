@@ -1,5 +1,7 @@
 import type { Media, User } from '../payload-types'
 
+export type Locale = 'en' | 'ru'
+
 export type ServiceType =
   | 'consultation'
   | 'training'
@@ -18,12 +20,17 @@ export type PaymentType = 'full_prepayment' | 'partial_prepayment' | 'post_payme
 export interface AdditionalInfoField {
   fieldName: string
   fieldLabel: string
-  fieldType: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox'
+  fieldType: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox' | 'fileUpload'
   required: boolean
   options?: Array<{ label: string; value: string }>
   description?: string
   placeholder?: string
   sendToCalendly?: boolean
+  defaultValue?: string
+  // File upload specific properties
+  multipleFiles?: boolean
+  allowedFileTypes?: string
+  maxFileSize?: number
 }
 
 export interface BookingSettings {

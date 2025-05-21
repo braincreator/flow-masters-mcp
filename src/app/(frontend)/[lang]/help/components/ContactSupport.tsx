@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Mail, MessageSquare, Clock } from 'lucide-react'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 
 interface ContactSupportProps {
   locale: string
@@ -18,7 +19,10 @@ export function ContactSupport({ locale }: ContactSupportProps) {
 
   const handleLiveChat = () => {
     // In a real app, this would open a live chat widget
-    alert('Live chat functionality would be implemented here')
+    new AppError({
+      message: 'Live chat functionality would be implemented here',
+      severity: ErrorSeverity.INFO,
+    }).notify()
   }
 
   return (

@@ -19,6 +19,7 @@ import {
   AlertTriangle, // Keep for SYSTEM_ALERT
   MessageSquare, // Keep for SOCIAL_INTERACTION (was NEW_MESSAGE)
   CalendarClock, // Can be used for specific reminders if any, or removed if not mapped
+  Briefcase, // For PROJECT_STATUS_UPDATED
   Award, // Keep for ACHIEVEMENT_UNLOCKED, MODULE_COMPLETED
   Bell, // Default
   Info, // For GENERAL_INFO
@@ -174,6 +175,13 @@ const getNotificationTypeStyle = (type: NotificationStoredType): NotificationTyp
         tagClass:
           'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900 dark:text-pink-300 dark:border-pink-700',
         iconClass: 'text-pink-600 dark:text-pink-400',
+      }
+    case NotificationStoredType.PROJECT_STATUS_UPDATED:
+      return {
+        IconComponent: Briefcase,
+        tagClass:
+          'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900 dark:text-violet-300 dark:border-violet-700',
+        iconClass: 'text-violet-600 dark:text-violet-400',
       }
     default:
       // Fallback for any unmapped types, though all should be covered

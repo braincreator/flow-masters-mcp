@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense, use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
@@ -99,7 +99,26 @@ const statusBadgeClasses: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800',
 }
 
-export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
+// This is the main component that will use React.use() to unwrap the params
+export default function ProjectDetailsPage({ params }: { params: any }) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectDetailsPageWrapper params={params} />
+    </Suspense>
+  )
+}
+
+// This component will safely unwrap the params
+function ProjectDetailsPageWrapper({ params }: { params: any }) {
+  // Safely unwrap the params using React.use()
+  const unwrappedParams = use(params) as { lang: string; id: string }
+  const { lang, id } = unwrappedParams
+
+  return <ProjectDetailsPageContent lang={lang} id={id} />
+}
+
+// This is the content component that receives unwrapped params
+function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -131,7 +150,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     const fetchProjectDetails = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch(`/api/service-projects/${params.id}`, {
+        const response = await fetch(`/api/service-projects/${id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -152,7 +171,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     }
 
     fetchProjectDetails()
-  }, [params.id, t, showNotification])
+  }, [id, t, showNotification])
 
   // Получение задач проекта при переключении на вкладку задач
   useEffect(() => {
@@ -386,7 +405,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
       <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 my-4">
         <p>{error || t('projectNotFound')}</p>
         <Link
-          href={`/${params.lang}/dashboard/projects`}
+          href={`/${lang}/dashboard/projects`}
           className="mt-4 inline-block text-sm text-red-600 hover:text-red-800"
         >
           {t('backToProjects')}
@@ -399,7 +418,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <Link
-          href={`/${params.lang}/dashboard/projects`}
+          href={`/${lang}/dashboard/projects`}
           className="text-blue-600 hover:text-blue-800 flex items-center"
         >
           <svg
@@ -444,11 +463,11 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             </div>
             <div>
               <span className="text-gray-500">{t('created')}:</span>{' '}
-              <span>{formatDate(project.createdAt, params.lang)}</span>
+              <span>{formatDate(project.createdAt, lang)}</span>
             </div>
             <div>
               <span className="text-gray-500">{t('updated')}:</span>{' '}
-              <span>{formatDate(project.updatedAt, params.lang)}</span>
+              <span>{formatDate(project.updatedAt, lang)}</span>
             </div>
           </div>
         </div>
@@ -508,10 +527,10 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
               {/* Текст спецификации */}
               <div className="mb-6">
                 <h3 className="text-md font-medium mb-2">{t('specificationText')}</h3>
-                {project.specificationText && project.specificationText[params.lang] ? (
+                {project.specificationText && project.specificationText[lang] ? (
                   <div className="bg-gray-50 p-4 rounded-md border">
                     <div className="prose max-w-none whitespace-pre-wrap">
-                      {project.specificationText[params.lang]}
+                      {project.specificationText[lang]}
                     </div>
                   </div>
                 ) : (
@@ -632,7 +651,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                           )}
                         </div>
                         <div>
-                          {t('updated')}: {formatDate(task.updatedAt, params.lang)}
+                          {t('updated')}: {formatDate(task.updatedAt, lang)}
                         </div>
                       </div>
                     </div>
@@ -703,7 +722,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                             : message.author.name || message.author.email}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {formatDate(message.createdAt, params.lang)}
+                          {formatDate(message.createdAt, lang)}
                         </div>
                       </div>
 
@@ -957,7 +976,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                               {file.uploadedBy?.name || file.uploadedBy?.email || t('unknown')}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {formatDate(file.createdAt, params.lang)}
+                              {formatDate(file.createdAt, lang)}
                             </td>
                             <td className="px-4 py-3 text-right">
                               <a

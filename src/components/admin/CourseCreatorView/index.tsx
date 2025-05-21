@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { useRouter } from 'next/navigation'
 import { Button, Gutter, Card } from '@payloadcms/ui'
 
@@ -14,8 +15,10 @@ const CourseCreatorView: React.FC = () => {
   // Simple toast implementation
   const addToast = (toast: { type: string; message: string }) => {
     console.log(`Toast: [${toast.type}] ${toast.message}`)
-    // In a real implementation, we would use a toast library
-    alert(toast.message)
+    new AppError({
+      message: toast.message,
+      severity: toast.type === 'error' ? ErrorSeverity.ERROR : ErrorSeverity.INFO,
+    }).notify()
   }
 
   const [title, setTitle] = useState('')

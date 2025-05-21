@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, PlayCircle, PauseCircle, RefreshCw, X, AlertCircle, Edit } from 'lucide-react'
+import { AppError } from '@/utilities/errorHandling'
 import { usePayloadAPI } from '@/hooks/usePayloadAPI'
 import { cn } from '@/utilities/ui'
 
@@ -98,9 +99,9 @@ const EmailCampaignManager: React.FC = () => {
     } catch (error: unknown) {
       console.error('Error triggering campaign:', error)
       if (error instanceof Error) {
-        alert(`Error: ${error.message}`)
+        new AppError({ message: `Error: ${error.message}` }).notify()
       } else {
-        alert('An unknown error occurred')
+        new AppError({ message: 'An unknown error occurred' }).notify()
       }
     }
   }
@@ -125,9 +126,9 @@ const EmailCampaignManager: React.FC = () => {
     } catch (error: unknown) {
       console.error('Error pausing campaign:', error)
       if (error instanceof Error) {
-        alert(`Error: ${error.message}`)
+        new AppError({ message: `Error: ${error.message}` }).notify()
       } else {
-        alert('An unknown error occurred')
+        new AppError({ message: 'An unknown error occurred' }).notify()
       }
     }
   }
@@ -148,9 +149,9 @@ const EmailCampaignManager: React.FC = () => {
     } catch (error: unknown) {
       console.error('Error getting campaign details:', error)
       if (error instanceof Error) {
-        alert(`Error: ${error.message}`)
+        new AppError({ message: `Error: ${error.message}` }).notify()
       } else {
-        alert('An unknown error occurred')
+        new AppError({ message: 'An unknown error occurred' }).notify()
       }
     }
   }

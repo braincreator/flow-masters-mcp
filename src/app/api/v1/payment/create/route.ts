@@ -298,7 +298,8 @@ export async function POST(req: Request) {
         order = await payload.create({
           collection: 'orders',
           data: {
-            orderNumber: `ORD-${Date.now()}`,
+            // Import the utility function for consistent order number generation
+            orderNumber: require('@/utilities/orderNumber').generateOrderNumber('ORD'),
             customer: user, // Link to the user ID
             items: orderItems,
             // Format total according to the required structure
@@ -363,7 +364,8 @@ export async function POST(req: Request) {
           console.warn('Integration error during order creation, but order might have been created')
           // Try to retrieve the just-created order by orderNumber
           try {
-            const orderNumber = `ORD-${Date.now()}`
+            // Use the same utility function for consistent order number generation
+            const orderNumber = require('@/utilities/orderNumber').generateOrderNumber('ORD')
             const orderResult = await payload.find({
               collection: 'orders',
               where: {

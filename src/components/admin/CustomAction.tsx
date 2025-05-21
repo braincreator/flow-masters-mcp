@@ -1,11 +1,12 @@
 'use client'
 
 import React from 'react'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { Button } from '@payloadcms/ui'
 
 const CustomAction: React.FC = () => {
   const handleClick = () => {
-    alert('Custom action triggered!')
+    new AppError({ message: 'Custom action triggered!', severity: ErrorSeverity.INFO }).notify()
   }
 
   return (

@@ -1,25 +1,25 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { Button } from 'payload/components/elements'
-import { useField } from 'payload/components/forms'
-import { Modal } from 'payload/components/elements'
+import { Button, Modal } from '@payloadcms/ui'
+// import { useField } from 'payload/components/forms' // Removed
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 
 // Стили для модального окна и iframe
-const modalStyles: React.CSSProperties = {
-  position: 'fixed',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '80vw',
-  height: '80vh',
-  backgroundColor: 'white',
-  zIndex: 1000,
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '0 5px 15px rgba(0,0,0,.5)',
-  borderRadius: '4px',
-}
+// const modalStyles: React.CSSProperties = { // Removed
+//   position: 'fixed',
+//   top: '50%',
+//   left: '50%',
+//   transform: 'translate(-50%, -50%)',
+//   width: '80vw',
+//   height: '80vh',
+//   backgroundColor: 'white',
+//   zIndex: 1000,
+//   display: 'flex',
+//   flexDirection: 'column',
+//   boxShadow: '0 5px 15px rgba(0,0,0,.5)',
+//   borderRadius: '4px',
+// }
 
 const modalHeaderStyles: React.CSSProperties = {
   padding: '1rem',
@@ -53,7 +53,10 @@ export const PreviewButton: React.FC = () => {
 
   const fetchPreview = useCallback(async () => {
     if (!docId || docId === 'create') {
-      alert('Сохраните шаблон перед предпросмотром.')
+      new AppError({
+        message: 'Сохраните шаблон перед предпросмотром.',
+        severity: ErrorSeverity.INFO,
+      }).notify()
       return
     }
     setIsLoading(true)
@@ -97,6 +100,7 @@ export const PreviewButton: React.FC = () => {
               srcDoc={previewHtml} // Используем srcDoc для вставки HTML
               style={iframeStyles}
               title="Предпросмотр Email"
+              sandbox=""
             />
           </div>
         </Modal>

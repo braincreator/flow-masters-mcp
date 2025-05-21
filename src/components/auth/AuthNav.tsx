@@ -13,13 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, LogOut, BookOpen, Settings, Award, Trophy, Gift } from 'lucide-react'
+import { User, LogOut, BookOpen, Settings, Briefcase, Folder, ShoppingCart } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export function AuthNav() {
   const t = useTranslations('common')
-  const tDashboard = useTranslations('AccountDashboard')
-  const { user, isAuthenticated, isLoading, logout, refreshAuth } = useAuth()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
 
   // We don't need to refresh auth on every mount
   // The AuthProvider already checks auth in its own useEffect
@@ -45,8 +44,9 @@ export function AuthNav() {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           className="group relative h-8 w-8 rounded-full p-0 hover:bg-accent hover:text-foreground hover:ring-2 hover:ring-accent"
@@ -92,20 +92,29 @@ export function AuthNav() {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
-            href={`/${currentLocale}/courses`}
+            href={`/${currentLocale}/dashboard/projects`}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <BookOpen className="h-4 w-4" />
-            <span>{t('courses')}</span>
+            <Briefcase className="h-4 w-4" />
+            <span>{t('myProjects')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
-            href={`/${currentLocale}/leaderboard`}
+            href={`/${currentLocale}/courses`}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <Trophy className="h-4 w-4" />
-            <span>{t('leaderboard')}</span>
+            <BookOpen className="h-4 w-4" />
+            <span>{t('myCourses')}</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href={`/${currentLocale}/account/orders`}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span>{t('orders')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
@@ -127,5 +136,6 @@ export function AuthNav() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   )
 }

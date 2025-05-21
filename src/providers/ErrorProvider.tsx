@@ -259,11 +259,20 @@ export function ErrorProvider({
             router.push('/')
             break
           case 'auth':
+          case 'permission': // Added 'permission' category to redirect to login
             // Redirect to login
             router.push('/login')
             break
           default:
-            // No default recovery action
+            // Explicitly handle 403 if it reaches here and wasn't categorized as 'permission' or 'auth'
+            if (error.code === '403') {
+              router.push('/login')
+            } else {
+              // No default recovery action for other uncategorized errors to prevent loops
+              console.warn(
+                `No default recovery action for error: ${error.id}, category: ${error.category}, code: ${error.code}`,
+              )
+            }
             break
         }
       }
@@ -344,7 +353,7 @@ export function ErrorProvider({
     ],
   )
 
-  return <ErrorContext.Provider value={value}>{children}</ErrorContext.Provider>
+  return <ErrorContext.Provider value={value as ErrorContextType}>{children}</ErrorContext.Provider>
 }
 
 // Custom hook to use the error context
@@ -371,10 +380,10 @@ interface ErrorBoundaryState {
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  static contextType = ErrorContext
-  context!: React.ContextType<typeof ErrorContext>
+  static override contextType = ErrorContext
+  declare context: React.ContextType<typeof ErrorContext>
 
-  state: ErrorBoundaryState = {
+  override state: ErrorBoundaryState = {
     hasError: false,
     error: null,
     errorInfo: null,
@@ -384,11 +393,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error, errorInfo: null }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo })
 
     if (this.context) {
-      this.context.handleErrorBoundary(error, errorInfo.componentStack)
+      this.context.handleErrorBoundary(error, errorInfo.componentStack || '')
     }
   }
 
@@ -396,7 +405,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.setState({ hasError: false, error: null, errorInfo: null })
   }
 
-  render() {
+  override render() {
     const { hasError, error } = this.state
     const { children, fallback } = this.props
 
@@ -410,7 +419,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         timestamp: new Date(),
         originalError: error,
         stack: error.stack,
-        componentStack: this.state.errorInfo?.componentStack,
+        componentStack: this.state.errorInfo?.componentStack || undefined,
         handled: true,
       }
 

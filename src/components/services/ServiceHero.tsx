@@ -79,7 +79,8 @@ export default function ServiceHero({
                 className="bg-primary hover:bg-primary/90 text-white font-medium group"
                 size="lg"
               >
-                <Link href={`/${locale}/contact?service=${slug}`}>
+                {/* Changed link to point to the booking page for all orderable services */}
+                <Link href={`/${locale}/services/${slug}/book`}>
                   <span className="flex items-center">
                     {translations.order || 'Order Service'}
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

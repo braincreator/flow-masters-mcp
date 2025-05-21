@@ -67,7 +67,7 @@ const NotificationControls: React.FC<NotificationControlsProps> = ({
             <SelectContent>
               {notificationTypes.map(type => (
                 <SelectItem key={type} value={type}>
-                  {t(`types.${type}` as any, {}, { defaultValue: type })}
+                  {t(`types.${type}`, { defaultValue: type })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -85,7 +85,7 @@ const NotificationControls: React.FC<NotificationControlsProps> = ({
             <SelectContent>
               {notificationStatuses.map(status => (
                 <SelectItem key={status} value={status}>
-                  {t(`statuses.${status}` as any, {}, { defaultValue: status })}
+                  {t(`statuses.${status}`, { defaultValue: status })}
                 </SelectItem>
               ))}
             </SelectContent>

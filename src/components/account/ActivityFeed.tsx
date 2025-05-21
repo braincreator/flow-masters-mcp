@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
+import { AppError } from '@/utilities/errorHandling'
 import {
   BookOpen,
   Award,
@@ -140,9 +141,9 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
 
         // Show a more user-friendly error in development
         if (process.env.NODE_ENV === 'development') {
-          alert(
-            `Error fetching activities: ${error instanceof Error ? error.message : String(error)}`,
-          )
+          new AppError({
+            message: `Error fetching activities: ${error instanceof Error ? error.message : String(error)}`,
+          }).notify()
         }
 
         setActivities([])

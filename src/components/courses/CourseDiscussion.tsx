@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { MessageSquare, Send, ThumbsUp, Flag, Reply } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDistanceToNow } from 'date-fns'
@@ -244,7 +245,11 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
 
   const reportComment = (commentId: string, isReply = false, replyId?: string) => {
     // In a real app, this would send a report to moderators
-    alert('Comment reported to moderators. Thank you for helping keep our community respectful.')
+    new AppError({
+      message:
+        'Comment reported to moderators. Thank you for helping keep our community respectful.',
+      severity: ErrorSeverity.INFO,
+    }).notify()
   }
 
   return (

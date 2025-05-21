@@ -29,6 +29,9 @@ import { generateRewardGenericEmail } from '../utilities/emailTemplates/rewards/
 import { generateRewardDiscountEmail } from '../utilities/emailTemplates/rewards/rewardDiscount'
 import { generateRewardFreeCourseEmail } from '../utilities/emailTemplates/rewards/rewardFreeCourse'
 
+// Project emails
+import { generateProjectReportNotificationEmail } from '../utilities/emailTemplates/projects/projectReportNotification'
+
 // Import types from emailTemplates.ts
 import {
   PasswordResetEmailData,
@@ -43,6 +46,7 @@ import {
   OrderConfirmationEmailData,
   PaymentConfirmationEmailData,
   RewardEmailData,
+  ProjectReportNotificationEmailData,
 } from '../types/emailTemplates'
 
 // Интерфейс для опций отправки письма
@@ -1322,6 +1326,51 @@ export class EmailService extends BaseService {
       return result
     } catch (error) {
       console.error('Failed to send order status update email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Отправляет уведомление о новом отчете по проекту
+   */
+  async sendProjectReportNotificationEmail(data: ProjectReportNotificationEmailData): Promise<boolean> {
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://flow-masters.ru'
+
+      // Ensure we have all required data
+      const emailData: ProjectReportNotificationEmailData = {
+        ...data,
+        siteUrl,
+      }
+
+      // First try to use a CMS template
+      const cmsResult = await this.sendTemplateEmail(
+        EmailTemplateSlug.PROJECT_REPORT_NOTIFICATION,
+        data.email,
+        // Convert to Record<string, unknown> safely
+        Object.fromEntries(Object.entries(emailData)),
+        { locale: data.locale || 'ru' },
+      )
+
+      // If CMS template was found and email sent successfully, return
+      if (cmsResult) {
+        return true
+      }
+
+      // Fall back to hardcoded template
+      const html = generateProjectReportNotificationEmail(emailData)
+      const subject =
+        data.locale === 'en'
+          ? `New Project Report: ${data.projectName}`
+          : `Новый отчет по проекту: ${data.projectName}`
+
+      return await this.sendEmail({
+        to: data.email,
+        subject,
+        html,
+      })
+    } catch (error) {
+      console.error('Error sending project report notification email:', error)
       return false
     }
   }

@@ -117,6 +117,10 @@ export interface Config {
     'service-projects': ServiceProject;
     tasks: Task;
     'project-messages': ProjectMessage;
+    'project-milestones': ProjectMilestone;
+    'project-reports': ProjectReport;
+    'project-templates': ProjectTemplate;
+    'project-feedback': ProjectFeedback;
     courses: Course;
     modules: Module;
     lessons: Lesson;
@@ -192,6 +196,10 @@ export interface Config {
     'service-projects': ServiceProjectsSelect<false> | ServiceProjectsSelect<true>;
     tasks: TasksSelect<false> | TasksSelect<true>;
     'project-messages': ProjectMessagesSelect<false> | ProjectMessagesSelect<true>;
+    'project-milestones': ProjectMilestonesSelect<false> | ProjectMilestonesSelect<true>;
+    'project-reports': ProjectReportsSelect<false> | ProjectReportsSelect<true>;
+    'project-templates': ProjectTemplatesSelect<false> | ProjectTemplatesSelect<true>;
+    'project-feedback': ProjectFeedbackSelect<false> | ProjectFeedbackSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
     modules: ModulesSelect<false> | ModulesSelect<true>;
     lessons: LessonsSelect<false> | LessonsSelect<true>;
@@ -8152,7 +8160,8 @@ export interface Notification {
     | 'subscription_update'
     | 'account_activity'
     | 'promotional'
-    | 'social_interaction';
+    | 'social_interaction'
+    | 'project_status_updated';
   /**
    * Whether the notification has been read
    */
@@ -9048,6 +9057,185 @@ export interface ServiceProject {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Примененный шаблон проекта
+   */
+  appliedTemplate?: (string | null) | ProjectTemplate;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Templates for service projects
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-templates".
+ */
+export interface ProjectTemplate {
+  id: string;
+  /**
+   * Template name
+   */
+  name: string;
+  /**
+   * Template description
+   */
+  description?: string | null;
+  /**
+   * Template category
+   */
+  category: 'ai_development' | 'machine_learning' | 'data_analysis' | 'chatbot' | 'integration' | 'custom';
+  /**
+   * Tags for filtering templates
+   */
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Estimated project duration
+   */
+  estimatedDuration: {
+    /**
+     * Duration value
+     */
+    value: number;
+    /**
+     * Duration unit
+     */
+    unit: 'days' | 'weeks' | 'months';
+  };
+  /**
+   * Project overview template
+   */
+  overview?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Project milestones
+   */
+  milestones?:
+    | {
+        /**
+         * Milestone title
+         */
+        title: string;
+        /**
+         * Milestone description
+         */
+        description?: string | null;
+        /**
+         * Order in the milestone sequence (1, 2, 3, etc.)
+         */
+        order: number;
+        /**
+         * Estimated milestone duration
+         */
+        estimatedDuration: {
+          /**
+           * Duration value
+           */
+          value: number;
+          /**
+           * Duration unit
+           */
+          unit: 'days' | 'weeks' | 'months';
+        };
+        /**
+         * Dependencies on other milestones
+         */
+        dependsOn?:
+          | {
+              /**
+               * Order number of the milestone this depends on
+               */
+              milestoneOrder: number;
+              /**
+               * Days to offset after the dependent milestone (can be negative)
+               */
+              offsetDays?: number | null;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Milestone deliverables
+         */
+        deliverables?:
+          | {
+              /**
+               * Deliverable name
+               */
+              name: string;
+              /**
+               * Deliverable description
+               */
+              description?: string | null;
+              /**
+               * Deliverable type
+               */
+              type: 'document' | 'code' | 'design' | 'model' | 'data' | 'other';
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Whether this milestone requires client approval
+         */
+        requiresClientApproval?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Project tasks
+   */
+  tasks?:
+    | {
+        /**
+         * Task title
+         */
+        title: string;
+        /**
+         * Task description
+         */
+        description?: string | null;
+        /**
+         * Order number of the related milestone
+         */
+        relatedMilestoneOrder: number;
+        /**
+         * Estimated hours to complete
+         */
+        estimatedHours?: number | null;
+        /**
+         * Default role for task assignee
+         */
+        assigneeRole?:
+          | ('project_manager' | 'developer' | 'designer' | 'data_scientist' | 'qa_engineer' | 'unassigned')
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Whether this template is active and available for use
+   */
+  isActive?: boolean | null;
+  /**
+   * Template version number
+   */
+  version?: number | null;
+  createdBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -9120,6 +9308,249 @@ export interface ProjectMessage {
    * Системное сообщение
    */
   isSystemMessage?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-milestones".
+ */
+export interface ProjectMilestone {
+  id: string;
+  /**
+   * Название этапа проекта
+   */
+  title: string;
+  /**
+   * Описание этапа
+   */
+  description?: string | null;
+  /**
+   * Проект
+   */
+  project: string | ServiceProject;
+  /**
+   * Порядковый номер этапа
+   */
+  order: number;
+  /**
+   * Статус этапа
+   */
+  status: 'planned' | 'in_progress' | 'completed' | 'delayed';
+  /**
+   * Планируемая дата завершения
+   */
+  dueDate?: string | null;
+  /**
+   * Фактическая дата завершения
+   */
+  completedAt?: string | null;
+  /**
+   * Результаты этапа
+   */
+  deliverables?:
+    | {
+        /**
+         * Название результата
+         */
+        title: string;
+        /**
+         * Описание результата
+         */
+        description?: string | null;
+        /**
+         * Файлы результата
+         */
+        files?: (string | Media)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Требуется подтверждение клиента
+   */
+  clientApprovalRequired?: boolean | null;
+  /**
+   * Подтверждено клиентом
+   */
+  clientApproved?: boolean | null;
+  /**
+   * Отзыв клиента
+   */
+  clientFeedback?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Automated status reports for service projects
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-reports".
+ */
+export interface ProjectReport {
+  id: string;
+  /**
+   * Report title
+   */
+  title: string;
+  /**
+   * Related project
+   */
+  project: string | ServiceProject;
+  /**
+   * Type of report
+   */
+  reportType: 'weekly' | 'monthly' | 'milestone' | 'custom';
+  /**
+   * Reporting period
+   */
+  reportPeriod: {
+    /**
+     * Start date of the reporting period
+     */
+    startDate: string;
+    /**
+     * End date of the reporting period
+     */
+    endDate: string;
+  };
+  /**
+   * Executive summary of the report
+   */
+  summary: string;
+  /**
+   * Detailed report content
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Project progress metrics
+   */
+  progressMetrics?: {
+    /**
+     * Overall project completion percentage
+     */
+    completionPercentage?: number | null;
+    /**
+     * Total number of milestones
+     */
+    milestonesTotal?: number | null;
+    /**
+     * Number of completed milestones
+     */
+    milestonesCompleted?: number | null;
+    /**
+     * Number of in-progress milestones
+     */
+    milestonesInProgress?: number | null;
+    /**
+     * Number of delayed milestones
+     */
+    milestonesDelayed?: number | null;
+  };
+  /**
+   * Summary of activities during the reporting period
+   */
+  activitySummary?: {
+    /**
+     * Number of messages exchanged
+     */
+    messagesCount?: number | null;
+    /**
+     * Number of files shared
+     */
+    filesCount?: number | null;
+    /**
+     * Number of milestones completed in this period
+     */
+    milestonesCompletedInPeriod?: number | null;
+  };
+  /**
+   * Recent or relevant milestones
+   */
+  recentMilestones?: (string | ProjectMilestone)[] | null;
+  /**
+   * Upcoming milestones
+   */
+  upcomingMilestones?: (string | ProjectMilestone)[] | null;
+  /**
+   * Whether this report has been sent to the client
+   */
+  sentToClient?: boolean | null;
+  /**
+   * Whether the client has viewed this report
+   */
+  clientViewed?: boolean | null;
+  /**
+   * Whether this report was generated automatically by the system
+   */
+  generatedAutomatically?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-feedback".
+ */
+export interface ProjectFeedback {
+  id: string;
+  /**
+   * The project this feedback is for
+   */
+  project: string | ServiceProject;
+  /**
+   * The milestone this feedback is for (if applicable)
+   */
+  milestone?: (string | null) | ProjectMilestone;
+  /**
+   * Type of feedback
+   */
+  feedbackType: 'milestone' | 'survey' | 'completion';
+  /**
+   * Satisfaction rating (1-5)
+   */
+  rating: number;
+  /**
+   * Ratings for specific aspects of the service
+   */
+  aspectRatings?: {
+    /**
+     * Communication rating (1-5)
+     */
+    communication?: number | null;
+    /**
+     * Quality rating (1-5)
+     */
+    quality?: number | null;
+    /**
+     * Timeliness rating (1-5)
+     */
+    timeliness?: number | null;
+    /**
+     * Value for money rating (1-5)
+     */
+    valueForMoney?: number | null;
+  };
+  /**
+   * Additional comments or feedback
+   */
+  comment?: string | null;
+  /**
+   * User who submitted the feedback
+   */
+  submittedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -11815,6 +12246,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'project-messages';
         value: string | ProjectMessage;
+      } | null)
+    | ({
+        relationTo: 'project-milestones';
+        value: string | ProjectMilestone;
+      } | null)
+    | ({
+        relationTo: 'project-reports';
+        value: string | ProjectReport;
+      } | null)
+    | ({
+        relationTo: 'project-templates';
+        value: string | ProjectTemplate;
+      } | null)
+    | ({
+        relationTo: 'project-feedback';
+        value: string | ProjectFeedback;
       } | null)
     | ({
         relationTo: 'courses';
@@ -15886,6 +16333,7 @@ export interface ServiceProjectsSelect<T extends boolean = true> {
   status?: T;
   assignedTo?: T;
   notes?: T;
+  appliedTemplate?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -15912,6 +16360,161 @@ export interface ProjectMessagesSelect<T extends boolean = true> {
   content?: T;
   attachments?: T;
   isSystemMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-milestones_select".
+ */
+export interface ProjectMilestonesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  project?: T;
+  order?: T;
+  status?: T;
+  dueDate?: T;
+  completedAt?: T;
+  deliverables?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        files?: T;
+        id?: T;
+      };
+  clientApprovalRequired?: T;
+  clientApproved?: T;
+  clientFeedback?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-reports_select".
+ */
+export interface ProjectReportsSelect<T extends boolean = true> {
+  title?: T;
+  project?: T;
+  reportType?: T;
+  reportPeriod?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+      };
+  summary?: T;
+  content?: T;
+  progressMetrics?:
+    | T
+    | {
+        completionPercentage?: T;
+        milestonesTotal?: T;
+        milestonesCompleted?: T;
+        milestonesInProgress?: T;
+        milestonesDelayed?: T;
+      };
+  activitySummary?:
+    | T
+    | {
+        messagesCount?: T;
+        filesCount?: T;
+        milestonesCompletedInPeriod?: T;
+      };
+  recentMilestones?: T;
+  upcomingMilestones?: T;
+  sentToClient?: T;
+  clientViewed?: T;
+  generatedAutomatically?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-templates_select".
+ */
+export interface ProjectTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  estimatedDuration?:
+    | T
+    | {
+        value?: T;
+        unit?: T;
+      };
+  overview?: T;
+  milestones?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        order?: T;
+        estimatedDuration?:
+          | T
+          | {
+              value?: T;
+              unit?: T;
+            };
+        dependsOn?:
+          | T
+          | {
+              milestoneOrder?: T;
+              offsetDays?: T;
+              id?: T;
+            };
+        deliverables?:
+          | T
+          | {
+              name?: T;
+              description?: T;
+              type?: T;
+              id?: T;
+            };
+        requiresClientApproval?: T;
+        id?: T;
+      };
+  tasks?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        relatedMilestoneOrder?: T;
+        estimatedHours?: T;
+        assigneeRole?: T;
+        id?: T;
+      };
+  isActive?: T;
+  version?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-feedback_select".
+ */
+export interface ProjectFeedbackSelect<T extends boolean = true> {
+  project?: T;
+  milestone?: T;
+  feedbackType?: T;
+  rating?: T;
+  aspectRatings?:
+    | T
+    | {
+        communication?: T;
+        quality?: T;
+        timeliness?: T;
+        valueForMoney?: T;
+      };
+  comment?: T;
+  submittedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }

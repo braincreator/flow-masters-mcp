@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { Button, Gutter, Card } from '@payloadcms/ui'
 
 import './index.scss'
@@ -28,8 +29,10 @@ const EmailCampaignView: React.FC = () => {
   // Simple toast implementation
   const addToast = (toast: { type: string; message: string }) => {
     console.log(`Toast: [${toast.type}] ${toast.message}`)
-    // In a real implementation, we would use a toast library
-    alert(toast.message)
+    new AppError({
+      message: toast.message,
+      severity: toast.type === 'error' ? ErrorSeverity.ERROR : ErrorSeverity.INFO,
+    }).notify()
   }
 
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([])

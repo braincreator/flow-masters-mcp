@@ -30,13 +30,13 @@ export default function ServiceBookPage() {
         const response = await fetch(`/api/v1/services?slug=${params.slug}&locale=${params.lang}`)
 
         if (!response.ok) {
-          throw new Error('Failed to fetch service')
+          throw new Error(t('errorFetchingService', { defaultValue: 'Failed to fetch service' }))
         }
 
         const data = await response.json()
 
         if (!data.docs || data.docs.length === 0) {
-          throw new Error('Service not found')
+          throw new Error(t('serviceNotFound', { defaultValue: 'Service not found' }))
         }
 
         setService(data.docs[0])
@@ -107,7 +107,7 @@ export default function ServiceBookPage() {
       <Container>
         <div className="py-3 md:py-4 lg:py-5">
           <Alert variant="destructive" className="mb-6 max-w-2xl mx-auto">
-            <AlertDescription>Ошибка: ID услуги не найден</AlertDescription>
+            <AlertDescription>{t('errorServiceIdNotFound', { defaultValue: 'Error: Service ID not found' })}</AlertDescription>
           </Alert>
           <div className="flex justify-center">
             <Button asChild variant="default">
@@ -196,9 +196,10 @@ export default function ServiceBookPage() {
               serviceId={service.id}
               price={service.price}
               requiresBooking={service.requiresBooking}
-              bookingSettings={service.requiresBooking ? service.bookingSettings : undefined}
+              bookingSettings={service.bookingSettings} // Always pass bookingSettings
               className="mb-0"
               locale={locale}
+              skipPayment={service.requiresPayment === false} // Pass skipPayment based on service data
             />
           </AnimateInView>
         </div>

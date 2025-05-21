@@ -29,6 +29,10 @@ import { Reviews } from './Reviews'
 import ServiceProjects from './ServiceProjects'
 import Tasks from './Tasks'
 import ProjectMessages from './ProjectMessages'
+import ProjectMilestones from './ProjectMilestones'
+import ProjectReports from './ProjectReports'
+import ProjectTemplates from './ProjectTemplates'
+import ProjectFeedback from './ProjectFeedback'
 
 // Courses / LMS
 import { Courses } from './Courses'
@@ -110,6 +114,10 @@ const collections = [
   ServiceProjects,
   Tasks,
   ProjectMessages,
+  ProjectMilestones,
+  ProjectReports,
+  ProjectTemplates,
+  ProjectFeedback,
 
   // Courses / LMS
   Courses,

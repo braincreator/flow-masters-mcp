@@ -481,7 +481,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({
       </CardContent>
 
       <CardFooter className="flex justify-end">
-        <Button variant="primary" onClick={handleSavePreferences} disabled={isSaving}>
+        <Button variant="default" onClick={handleSavePreferences} disabled={isSaving}>
           {isSaving ? t('saving') : t('save')}
         </Button>
       </CardFooter>

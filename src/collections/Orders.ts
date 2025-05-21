@@ -200,7 +200,11 @@ const calculateOrderTotalsHook: CollectionBeforeChangeHook<OrderWithCalculatedFi
 
   // Generate order number if not provided
   if (!data.orderNumber && operation === 'create') {
-    data.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
+    // Import the utility function for consistent order number generation
+    const { generateOrderNumber } = require('@/utilities/orderNumber')
+    // Generate order number based on order type
+    const prefix = data.orderType ? data.orderType.toUpperCase().substring(0, 4) : 'ORD'
+    data.orderNumber = generateOrderNumber(prefix)
   }
 
   let subtotalEn = 0
@@ -981,8 +985,12 @@ const createServiceProjectHook: CollectionAfterChangeHook<OrderWithCalculatedFie
       }
     }
 
-    // Создаем имя проекта
-    const projectName = `Проект по заказу ${doc.orderNumber}`
+    // Import the utility function for extracting short order number
+    const { getShortOrderNumber } = require('@/utilities/orderNumber')
+
+    // Create project name with short order number for better readability
+    const shortOrderNumber = getShortOrderNumber(doc.orderNumber)
+    const projectName = `Проект по заказу ${doc.orderNumber} (${shortOrderNumber})`
 
     // Создаем проект
     try {

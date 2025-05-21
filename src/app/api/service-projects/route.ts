@@ -1,20 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
 import { getAuth } from '../helpers/auth'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 // Получение списка проектов пользователя
 export async function GET(req: NextRequest) {
   try {
-    const { user } = await getAuth(req)
+    console.log('GET /api/service-projects: Received request')
+
+    // Получаем пользователя из запроса
+    const { user, error: authError } = await getAuth(req)
+
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log(`GET /api/service-projects: No authenticated user found. Error: ${authError || 'Unknown error'}`)
+      return NextResponse.json({
+        error: 'Unauthorized',
+        details: authError || 'Authentication required',
+        help: 'Please log in to access this resource'
+      }, { status: 401 })
     }
+
+    console.log(`GET /api/service-projects: Processing request for user ${user.id}`)
 
     // Получаем параметры запроса
     const url = new URL(req.url)
     const statusFilter = url.searchParams.get('status') || undefined
     const page = Number(url.searchParams.get('page')) || 1
     const limit = Number(url.searchParams.get('limit')) || 10
+
+    console.log(`GET /api/service-projects: Query params - status: ${statusFilter}, page: ${page}, limit: ${limit}`)
 
     // Формируем условия запроса для получения проектов пользователя
     // (где он заказчик или исполнитель)
@@ -40,7 +53,17 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    console.log(`GET /api/service-projects: Query where condition:`, JSON.stringify(where))
+
+    // Get the Payload client
+    console.log('GET /api/service-projects: Getting Payload client')
+    const payload = await getPayloadClient()
+
+    // Log available collections for debugging
+    console.log('GET /api/service-projects: Available collections:', Object.keys(payload.collections))
+
     // Получаем проекты пользователя
+    console.log('GET /api/service-projects: Fetching projects from database')
     const projectsResponse = await payload.find({
       collection: 'service-projects',
       where,
@@ -50,9 +73,43 @@ export async function GET(req: NextRequest) {
       depth: 1, // Включаем связанные объекты первого уровня
     })
 
+    console.log(`GET /api/service-projects: Found ${projectsResponse.docs.length} projects`)
+
+    // Возвращаем результат
     return NextResponse.json(projectsResponse.docs)
   } catch (error) {
     console.error('Error fetching service projects:', error)
-    return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 })
+
+    // Возвращаем более подробную информацию об ошибке
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('Error details:', { message: errorMessage, stack: errorStack })
+
+    // Проверяем, связана ли ошибка с отсутствием коллекции
+    if (errorMessage.includes("can't be found") || errorMessage.includes("cannot find")) {
+      console.error('Collection not found error. Checking available collections...')
+
+      try {
+        // Получаем экземпляр Payload клиента для проверки доступных коллекций
+        const payload = await getPayloadClient()
+        const collections = Object.keys(payload.collections)
+
+        console.error('Available collections:', collections)
+
+        return NextResponse.json({
+          error: 'Collection not found',
+          details: `The collection 'service-projects' could not be found. Available collections: ${collections.join(', ')}`,
+          availableCollections: collections
+        }, { status: 404 })
+      } catch (collectionCheckError) {
+        console.error('Error checking available collections:', collectionCheckError)
+      }
+    }
+
+    return NextResponse.json({
+      error: 'Failed to fetch projects',
+      details: errorMessage
+    }, { status: 500 })
   }
 }

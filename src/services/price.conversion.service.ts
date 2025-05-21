@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import { fetchExchangeRates } from '@/utilities/api'
+import { Settings } from '@/payload-types' // Assuming 'Settings' is the type for the 'settings' global
 
 export class PriceConversionService {
   private static instance: PriceConversionService
@@ -44,14 +45,14 @@ export class PriceConversionService {
 
   async updateRates(): Promise<void> {
     try {
-      const settings = await this.getSettings()
+      const currentExchangeRatesFieldContent = await this.getSettings()
 
       // Get manual rates first
-      const manualRates = await this.getManualRates()
+      const manualRates = await this.getManualRates() // This method uses getSettings internally
 
       // Get auto rates if enabled
       let autoRates = {}
-      if (settings.autoUpdateEnabled) {
+      if (currentExchangeRatesFieldContent.autoUpdateEnabled) {
         autoRates = await fetchExchangeRates()
       }
 
@@ -67,10 +68,10 @@ export class PriceConversionService {
         slug: 'settings',
         data: {
           exchangeRates: {
-            ...settings,
-            lastUpdate: new Date(),
+            ...currentExchangeRatesFieldContent,
+            lastUpdate: new Date().toISOString(),
           },
-        },
+        } as Partial<Settings>, // Type assertion added
       })
 
       this.lastUpdate = new Date()

@@ -20,4 +20,6 @@ export enum NotificationStoredType {
   ACCOUNT_ACTIVITY = 'account_activity', // For password changes, email changes, profile updates
   PROMOTIONAL = 'promotional', // For marketing, discounts, abandoned cart
   SOCIAL_INTERACTION = 'social_interaction', // For comments, replies, mentions
+  // Project Related
+  PROJECT_STATUS_UPDATED = 'project_status_updated', // For project status updates
 }

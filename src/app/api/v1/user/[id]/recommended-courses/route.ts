@@ -56,23 +56,74 @@ interface PayloadResponse<T> {
   nextPage: number | null
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Verify authentication using Payload CMS
     const auth = await verifyAuth(request)
 
     // Check if user is authenticated
     if (!auth.isAuthenticated || !auth.user) {
-      return auth.response || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return auth.response || NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+        notification: {
+          type: 'error',
+          message: 'Please login to access this resource'
+        }
+      }, { status: 401 })
     }
 
     // In Next.js route handlers, params should be treated as a Promise
-    const { id } = await params
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+
+    // Log for debugging authorization
+    console.log('Authorization Check Details for /user/[id]/recommended-courses:');
+    console.log('Path ID (id):', id, typeof id);
+    console.log('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
+    console.log('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
+    // console.log('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
 
     // Check if user has access to this data
     // (only admin or the user themselves)
     if (auth.user.id !== id && !auth.user.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      console.warn('Authorization failed in /user/[id]/recommended-courses: User is not the owner and not an admin.', {
+        pathId: id,
+        authUserId: auth.user.id,
+        isAdmin: auth.user.isAdmin,
+        authenticatedUser: auth.user, // Log the user object for more context
+      });
+    if (!auth.user || (auth.user.id !== id && !auth.user.roles?.includes('admin'))) {
+      console.warn('Authorization failed in /user/[id]/recommended-courses:', {
+        pathId: id,
+        authUserId: auth.user?.id,
+        userRoles: auth.user?.roles,
+        isAdmin: auth.user?.isAdmin,
+        authenticatedUser: auth.user,
+      });
+      
+      let errorMessage = 'You do not have permission to access this resource';
+      if (auth.user?.id !== id) {
+        errorMessage += ' (not the resource owner)';
+      }
+      if (!auth.user?.roles?.includes('admin')) {
+        errorMessage += ' (not an admin)';
+      }
+
+      return NextResponse.json({
+        success: false,
+        error: 'Forbidden',
+        details: {
+          required: 'Owner or admin access',
+          userRoles: auth.user?.roles,
+          isAdmin: auth.user?.isAdmin
+        },
+        notification: {
+          type: 'error',
+          message: errorMessage
+        }
+      }, { status: 403 })
+    }
     }
 
     const userId = id
@@ -89,7 +140,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     })) as unknown as User
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({
+        success: false,
+        error: 'User not found',
+        notification: {
+          type: 'error',
+          message: 'The requested user could not be found'
+        }
+      }, { status: 404 })
     }
 
     // Fetch courses the user is already enrolled in
@@ -161,6 +219,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({
       success: true,
       data: finalCourses,
+      notification: {
+        type: 'success',
+        message: 'Recommended courses loaded successfully'
+      }
     })
   } catch (error) {
     console.error('Error fetching recommended courses:', error)

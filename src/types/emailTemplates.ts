@@ -305,31 +305,51 @@ export interface AdminNewSubscriberNotificationEmailData extends BaseEmailTempla
   adminPanelUrl?: string
 }
 
+// Project Report email templates
+export interface ProjectReportNotificationEmailData extends BaseEmailTemplateData {
+  userName: string
+  projectName: string
+  projectId: string
+  reportId: string
+  reportTitle: string
+  reportType: string
+  reportPeriod: {
+    startDate: string
+    endDate: string
+  }
+  reportSummary: string
+  completionPercentage: number
+  dashboardUrl?: string
+}
+
 // Template slugs enum for type safety
 export enum EmailTemplateSlug {
   // Authentication
   WELCOME = 'welcome-email',
   PASSWORD_RESET = 'password-reset',
   UNSUBSCRIBE_CONFIRMATION = 'unsubscribe-confirmation',
-  
+
   // Courses
   COURSE_ENROLLMENT = 'course-enrollment',
   COURSE_COMPLETION = 'course-completion',
   COURSE_PROGRESS = 'course-progress',
   COURSE_CERTIFICATE = 'course-certificate',
-  
+
   // Orders
   ORDER_CONFIRMATION = 'order-confirmation',
   PAYMENT_CONFIRMATION = 'payment-confirmation',
-  
+
   // Rewards
   REWARD_GENERIC = 'reward-generic',
   REWARD_DISCOUNT = 'reward-discount',
   REWARD_FREE_COURSE = 'reward-free-course',
-  
+
   // Newsletters
   NEWSLETTER = 'newsletter',
   ADMIN_NEW_SUBSCRIBER = 'admin-new-subscriber',
+
+  // Project Reports
+  PROJECT_REPORT_NOTIFICATION = 'project-report-notification',
 
   // Subscriptions
   SUBSCRIPTION_ACTIVATED = 'subscription-activated',
@@ -372,6 +392,7 @@ export interface TemplateDataMap {
   [EmailTemplateSlug.REWARD_FREE_COURSE]: RewardFreeCourseEmailData
   [EmailTemplateSlug.NEWSLETTER]: NewsletterEmailData
   [EmailTemplateSlug.ADMIN_NEW_SUBSCRIBER]: AdminNewSubscriberNotificationEmailData
+  [EmailTemplateSlug.PROJECT_REPORT_NOTIFICATION]: ProjectReportNotificationEmailData
   [EmailTemplateSlug.SUBSCRIPTION_ACTIVATED]: SubscriptionActivatedEmailData
   [EmailTemplateSlug.SUBSCRIPTION_CANCELLED]: SubscriptionCancelledEmailData
   [EmailTemplateSlug.SUBSCRIPTION_PAYMENT_FAILED]: SubscriptionPaymentFailedEmailData

@@ -63,7 +63,8 @@ interface PayloadResponse<T> {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Await the params object before using it
-  const { id } = await params
+  const resolvedParams = await params;
+  const { id } = resolvedParams;
   try {
     // Verify authentication using Payload CMS
     const auth = await verifyAuth(request)
@@ -79,14 +80,57 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })
       return (
         auth.response ||
-        NextResponse.json({ error: 'Unauthorized', details: auth.error }, { status: 401 })
+        NextResponse.json({
+          success: false,
+          error: 'Unauthorized',
+          details: auth.error,
+          notification: {
+            type: 'error',
+            message: 'Please login to access this resource'
+          }
+        }, { status: 401 })
       )
     }
 
+    // Log for debugging authorization
+    console.log('Authorization Check Details for /user/[id]/stats:');
+    console.log('Path ID (id):', id, typeof id);
+    console.log('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
+    console.log('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
+    // console.log('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
+
     // Check if user has access to this data
     // (only admin or the user themselves)
-    if (auth.user.id !== id && !auth.user.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (auth.user.id !== id && !auth.user.roles?.includes('admin')) {
+      console.warn('Authorization failed in /user/[id]/stats:', {
+        pathId: id,
+        authUserId: auth.user.id,
+        userRoles: auth.user.roles,
+        isAdmin: auth.user.isAdmin,
+        authenticatedUser: auth.user,
+      });
+      
+      let errorMessage = 'You do not have permission to access this resource';
+      if (auth.user.id !== id) {
+        errorMessage += ' (not the resource owner)';
+      }
+      if (!auth.user.roles?.includes('admin')) {
+        errorMessage += ' (not an admin)';
+      }
+
+      return NextResponse.json({
+        success: false,
+        error: 'Forbidden',
+        details: {
+          required: 'Owner or admin access',
+          userRoles: auth.user.roles,
+          isAdmin: auth.user.isAdmin
+        },
+        notification: {
+          type: 'error',
+          message: errorMessage
+        }
+      }, { status: 403 })
     }
 
     const userId = id
@@ -99,7 +143,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     })) as unknown as ExtendedUser
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({
+        success: false,
+        error: 'User not found',
+        notification: {
+          type: 'error',
+          message: 'The requested user could not be found'
+        }
+      }, { status: 404 })
     }
 
     // Fetch course enrollments
@@ -179,6 +230,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         achievements,
         totalAchievements,
       },
+      notification: {
+        type: 'success',
+        message: 'User stats loaded successfully'
+      }
     })
   } catch (error) {
     console.error('Error fetching user stats:', error)
@@ -186,6 +241,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        notification: {
+          type: 'error',
+          message: 'Failed to load user stats'
+        },
       },
       { status: 500 },
     )
