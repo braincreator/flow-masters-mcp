@@ -1,32 +1,16 @@
-import { CollectionConfig, Access } from 'payload'
+import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
-import { serviceProjectHooks } from '@/hooks/collections/serviceProjects'
-
-// Функция доступа для проверки является ли пользователь заказчиком проекта или администратором
-const isAdminOrProjectCustomer: Access = ({ req: { user } }) => {
-  if (!user) return false
-
-  // Администраторы имеют полный доступ
-  if (user.roles?.includes('admin')) return true
-
-  // Для запросов на создание/обновление/удаление доступ имеют только заказчики к своим проектам
-  return {
-    'project.customer': {
-      equals: user.id,
-    },
-  }
-}
 
 const ProjectMilestones: CollectionConfig = {
   slug: 'project-milestones',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'project', 'dueDate', 'status', 'completedAt'],
+    defaultColumns: ['title', 'project', 'dueDate', 'status', 'updatedAt'],
     group: 'E-commerce',
   },
   access: {
     create: isAdmin,
-    read: isAdminOrProjectCustomer,
+    read: isAdmin,
     update: isAdmin,
     delete: isAdmin,
   },
@@ -56,152 +40,94 @@ const ProjectMilestones: CollectionConfig = {
       },
     },
     {
-      name: 'order',
-      type: 'number',
-      required: true,
-      defaultValue: 0,
+      name: 'startDate',
+      type: 'date',
       admin: {
-        description: 'Порядковый номер этапа',
-      },
-    },
-    {
-      name: 'status',
-      type: 'select',
-      options: [
-        { label: 'Запланирован', value: 'planned' },
-        { label: 'В работе', value: 'in_progress' },
-        { label: 'Завершен', value: 'completed' },
-        { label: 'Отложен', value: 'delayed' },
-      ],
-      defaultValue: 'planned',
-      required: true,
-      admin: {
-        description: 'Статус этапа',
+        description: 'Дата начала',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
       },
     },
     {
       name: 'dueDate',
       type: 'date',
       admin: {
-        description: 'Планируемая дата завершения',
+        description: 'Плановая дата завершения',
         date: {
           pickerAppearance: 'dayAndTime',
-          timeFormat: '24hr',
         },
       },
     },
     {
-      name: 'completedAt',
+      name: 'completionDate',
       type: 'date',
       admin: {
         description: 'Фактическая дата завершения',
         date: {
           pickerAppearance: 'dayAndTime',
-          timeFormat: '24hr',
         },
-        condition: (data) => data.status === 'completed',
+        condition: (data) => data?.status === 'completed',
       },
     },
     {
-      name: 'deliverables',
-      type: 'array',
-      admin: {
-        description: 'Результаты этапа',
-      },
-      fields: [
-        {
-          name: 'title',
-          type: 'text',
-          required: true,
-          admin: {
-            description: 'Название результата',
-          },
-        },
-        {
-          name: 'description',
-          type: 'textarea',
-          admin: {
-            description: 'Описание результата',
-          },
-        },
-        {
-          name: 'files',
-          type: 'relationship',
-          relationTo: 'media',
-          hasMany: true,
-          admin: {
-            description: 'Файлы результата',
-          },
-        },
+      name: 'status',
+      type: 'select',
+      options: [
+        { label: 'Не начат', value: 'not_started' },
+        { label: 'В процессе', value: 'in_progress' },
+        { label: 'Завершен', value: 'completed' },
+        { label: 'Просрочен', value: 'overdue' },
       ],
-    },
-    {
-      name: 'clientApprovalRequired',
-      type: 'checkbox',
-      defaultValue: false,
+      defaultValue: 'not_started',
+      required: true,
       admin: {
-        description: 'Требуется подтверждение клиента',
+        description: 'Статус этапа',
       },
     },
     {
-      name: 'clientApproved',
-      type: 'checkbox',
-      defaultValue: false,
+      name: 'priority',
+      type: 'select',
+      options: [
+        { label: 'Низкий', value: 'low' },
+        { label: 'Средний', value: 'medium' },
+        { label: 'Высокий', value: 'high' },
+        { label: 'Критический', value: 'critical' },
+      ],
+      defaultValue: 'medium',
       admin: {
-        description: 'Подтверждено клиентом',
-        condition: (data) => data.clientApprovalRequired === true && data.status === 'completed',
+        description: 'Приоритет этапа',
       },
     },
     {
-      name: 'clientFeedback',
-      type: 'textarea',
+      name: 'progress',
+      type: 'number',
+      min: 0,
+      max: 100,
+      defaultValue: 0,
       admin: {
-        description: 'Отзыв клиента',
-        condition: (data) => data.clientApprovalRequired === true && data.status === 'completed',
+        description: 'Прогресс выполнения (0-100%)',
       },
+    },
+    {
+      name: 'dependencies',
+      type: 'relationship',
+      relationTo: 'project-milestones',
+      hasMany: true,
+      admin: {
+        description: 'Зависимости (этапы, которые должны быть завершены до начала этого этапа)',
+      },
+    },
+    {
+      name: 'associatedTasks',
+      type: 'relationship',
+      relationTo: 'tasks',
+      hasMany: true,
+      admin: {
+        description: 'Связанные задачи',
+      }
     },
   ],
-  hooks: {
-    afterChange: [
-      async ({ doc, req, operation }) => {
-        // Если статус этапа изменился на "Завершен", отправляем уведомление клиенту
-        if (operation === 'update' && doc.status === 'completed' && !doc.completedAt) {
-          try {
-            const { payload } = req
-            
-            // Получаем проект
-            const project = await payload.findByID({
-              collection: 'service-projects',
-              id: typeof doc.project === 'object' ? doc.project.id : doc.project,
-              depth: 1,
-            })
-            
-            // Обновляем дату завершения этапа
-            await payload.update({
-              collection: 'project-milestones',
-              id: doc.id,
-              data: {
-                completedAt: new Date().toISOString(),
-              },
-            })
-            
-            // Создаем системное сообщение о завершении этапа
-            await payload.create({
-              collection: 'project-messages',
-              data: {
-                project: typeof doc.project === 'object' ? doc.project.id : doc.project,
-                author: req.user.id,
-                isSystemMessage: true,
-                content: `Milestone "${doc.title}" has been completed.`,
-              },
-            })
-          } catch (error) {
-            req.payload.logger.error(`Error processing milestone completion: ${error}`)
-          }
-        }
-      },
-    ],
-  },
   timestamps: true,
 }
 

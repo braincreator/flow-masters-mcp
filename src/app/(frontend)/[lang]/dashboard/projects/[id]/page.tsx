@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import MilestonesTabContent from './components/MilestonesTabContent'
+import CalendarTabContent from './components/CalendarTabContent'
+import FeedbackTabContent from './components/FeedbackTabContent'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
@@ -109,7 +112,7 @@ interface ProjectFile {
 }
 
 export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
-  const { id, lang } = React.use(params)
+  const { id, lang } = params
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -132,6 +135,18 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   // Состояние для отслеживания файла, который в процессе удаления
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null)
+
+  // Состояние для этапов проекта (milestones)
+  const [milestones, setMilestones] = useState<any[]>([])
+  const [isLoadingMilestones, setIsLoadingMilestones] = useState(false)
+  const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false)
+
+  // Состояние для календаря проекта
+  const [isLoadingCalendarData, setIsLoadingCalendarData] = useState(false)
+
+  // Состояние для отзывов проекта
+  const [feedback, setFeedback] = useState<any[]>([])
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false)
 
   // Функция для перевода статуса
   const getStatusText = (status: string) => {
@@ -213,17 +228,325 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     fetchTasks()
   }, [activeTab, project, t])
 
+  // Получение этапов проекта при переключении на вкладку этапов
+  useEffect(() => {
+    const fetchMilestones = async () => {
+      if (activeTab !== 'milestones' || !project) {
+        if (activeTab === 'milestones')
+          console.log('Milestones load: Skipped, project not yet loaded.')
+        return
+      }
+      console.log(
+        'Milestones load: activeTab is "milestones" and project exists. Fetching milestones.',
+      )
+      try {
+        setIsLoadingMilestones(true)
+        console.log('Milestones load: isLoadingMilestones set to true')
+
+        // In the future, this would be an actual API call
+        // For now, we'll just simulate a delay and return dummy data
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
+        // Dummy milestone data
+        const dummyMilestones = [
+          {
+            id: '1',
+            title: 'Анализ требований',
+            description: 'Анализ и уточнение требований к проекту',
+            status: 'completed',
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+            dueDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+            completionDate: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString(), // 26 days ago (completed before deadline)
+            createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago
+            updatedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+            progress: 100,
+            priority: 'high',
+            associatedTasks: [
+              { id: 'a1', title: 'Интервью с заказчиком', status: 'completed' },
+              { id: 'a2', title: 'Анализ конкурентов', status: 'completed' },
+              { id: 'a3', title: 'Составление ТЗ', status: 'completed' }
+            ]
+          },
+          {
+            id: '2',
+            title: 'Проектирование',
+            description: 'Разработка архитектуры и дизайна проекта',
+            status: 'completed',
+            startDate: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000).toISOString(), // 24 days ago
+            dueDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+            completionDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago (completed after deadline)
+            createdAt: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString(), // 26 days ago
+            updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+            progress: 100,
+            priority: 'medium',
+            associatedTasks: [
+              { id: 'b1', title: 'Создание архитектуры проекта', status: 'completed' },
+              { id: 'b2', title: 'Разработка дизайн-макетов', status: 'completed' },
+              { id: 'b3', title: 'Согласование с заказчиком', status: 'completed' }
+            ]
+          },
+          {
+            id: '3',
+            title: 'Разработка',
+            description: 'Реализация функциональности проекта',
+            status: 'in_progress',
+            startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days in the future
+            createdAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days ago
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+            progress: 65,
+            priority: 'high',
+            associatedTasks: [
+              { id: 'c1', title: 'Создание базовой структуры проекта', status: 'completed' },
+              { id: 'c2', title: 'Реализация авторизации', status: 'completed' },
+              { id: 'c3', title: 'Разработка API', status: 'in_progress' },
+              { id: 'c4', title: 'Интеграция с внешними сервисами', status: 'in_progress' },
+              { id: 'c5', title: 'Тестирование компонентов', status: 'not_started' }
+            ],
+          },
+          {
+            id: '4',
+            title: 'Тестирование',
+            description: 'Проверка качества и соответствия требованиям',
+            status: 'not_started',
+            startDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days in the future
+            dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days in the future
+            createdAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days ago
+            updatedAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days ago
+            progress: 0,
+            priority: 'medium',
+            associatedTasks: [
+              { id: 'd1', title: 'Разработка тест-кейсов', status: 'not_started' },
+              { id: 'd2', title: 'Тестирование функциональности', status: 'not_started' },
+              { id: 'd3', title: 'Исправление ошибок', status: 'not_started' }
+            ]
+          },
+          {
+            id: '5',
+            title: 'Запуск',
+            description: 'Публикация проекта',
+            status: 'not_started',
+            startDate: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days in the future
+            dueDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(), // 18 days in the future
+            createdAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days ago
+            updatedAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(), // 16 days ago
+            progress: 0,
+            priority: 'critical',
+            associatedTasks: [
+              { id: 'e1', title: 'Развертывание на сервере', status: 'not_started' },
+              { id: 'e2', title: 'Финальное тестирование', status: 'not_started' },
+              { id: 'e3', title: 'Демонстрация заказчику', status: 'not_started' }
+            ]
+          },
+        ]
+        
+        // Calculate progress based on tasks
+        dummyMilestones.forEach(milestone => {
+          if (milestone.associatedTasks && milestone.associatedTasks.length > 0) {
+            const completedTasks = milestone.associatedTasks.filter(task => task.status === 'completed').length;
+            const totalTasks = milestone.associatedTasks.length;
+            milestone.progress = Math.round((completedTasks / totalTasks) * 100);
+          }
+        });
+
+        setMilestones(dummyMilestones)
+        console.log(
+          'Milestones load: isLoadingMilestones set to false. Milestones data:',
+          dummyMilestones,
+        )
+      } catch (err) {
+        console.error('Error fetching milestones:', err)
+        console.log('Milestones load: isLoadingMilestones set to false. Error:', err)
+      } finally {
+        setIsLoadingMilestones(false)
+        console.log(
+          'Milestones load: fetchMilestones finally block, isLoadingMilestones set to false',
+        )
+      }
+      
+      // Функция для создания нового этапа
+      const handleCreateMilestone = async (milestoneData: {
+        title: string;
+        description?: string;
+        startDate?: string;
+        dueDate?: string;
+        priority?: string;
+      }) => {
+        if (!project) return
+        
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          const newMilestone = {
+            id: `milestone-${Date.now()}`,
+            ...milestoneData,
+            status: 'not_started',
+            progress: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+          
+          setMilestones(prev => [newMilestone, ...prev])
+          showNotification('success', t('milestoneCreatedSuccess'))
+          setIsMilestoneModalOpen(false)
+        } catch (err) {
+          console.error('Error creating milestone:', err)
+          showNotification('error', t('errorCreatingMilestone'))
+          throw err
+        }
+      }
+      
+      // Функция для создания нового отзыва
+      const handleCreateFeedback = async (feedbackData: {
+        title: string;
+        rating: number;
+        comment: string;
+        feedbackType: string;
+        isPublic: boolean;
+      }) => {
+        if (!project) return
+        
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          const newFeedback = {
+            id: `feedback-${Date.now()}`,
+            ...feedbackData,
+            author: {
+              id: project.customer.id,
+              name: 'Текущий пользователь',
+              email: project.customer.email
+            },
+            createdAt: new Date().toISOString(),
+          }
+          
+          setFeedback(prev => [...prev, newFeedback])
+          showNotification('success', t('feedbackCreatedSuccess'))
+          return newFeedback
+        } catch (err) {
+          console.error('Error creating feedback:', err)
+          showNotification('error', t('errorCreatingFeedback'))
+          throw err
+        }
+      }
+    }
+
+    fetchMilestones()
+  }, [activeTab, project])
+
+  // Получение данных для календаря при переключении на вкладку календаря
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      if (activeTab !== 'calendar' || !project) {
+        if (activeTab === 'calendar') console.log('Calendar load: Skipped, project not yet loaded.')
+        return
+      }
+      console.log('Calendar load: activeTab is "calendar" and project exists.')
+
+      try {
+        setIsLoadingCalendarData(true)
+        console.log('Calendar load: isLoadingCalendarData set to true')
+
+        // Calendar data is a combination of milestones and tasks
+        // We'll use the existing data, so just simulate a delay
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        console.log('Calendar load: isLoadingCalendarData set to false.')
+      } catch (err) {
+        console.error('Error preparing calendar data:', err)
+        console.log('Calendar load: isLoadingCalendarData set to false. Error:', err)
+      } finally {
+        setIsLoadingCalendarData(false)
+        console.log(
+          'Calendar load: fetchCalendarData finally block, isLoadingCalendarData set to false',
+        )
+      }
+    }
+
+    fetchCalendarData()
+  }, [activeTab, project, milestones, tasks])
+
+  // Получение отзывов проекта при переключении на вкладку отзывов
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      if (activeTab !== 'feedback' || !project) {
+        if (activeTab === 'feedback') console.log('Feedback load: Skipped, project not yet loaded.')
+        return
+      }
+      console.log('Feedback load: activeTab is "feedback" and project exists. Fetching feedback.')
+
+      try {
+        setIsLoadingFeedback(true)
+        console.log('Feedback load: isLoadingFeedback set to true')
+
+        // In the future, this would be an actual API call
+        // For now, we'll just simulate a delay and return dummy data
+        await new Promise((resolve) => setTimeout(resolve, 800))
+
+        // Dummy feedback data
+        const dummyFeedback = [
+          {
+            id: '1',
+            title: 'Отличное начало проекта',
+            rating: 5,
+            comment:
+              'Этап анализа требований был проведен очень тщательно. Команда учла все пожелания и предложила отличные решения.',
+            author: {
+              id: project.customer.id,
+              name: 'Клиент',
+              email: project.customer.email,
+            },
+            createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+            feedbackType: 'milestone',
+            isPublic: true,
+          },
+          {
+            id: '2',
+            title: 'Хорошая коммуникация',
+            rating: 4,
+            comment:
+              'Команда всегда на связи и оперативно отвечает на вопросы. Есть небольшие замечания по срокам, но в целом все отлично.',
+            author: {
+              id: project.customer.id,
+              name: 'Клиент',
+              email: project.customer.email,
+            },
+            createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+            feedbackType: 'collaboration',
+            isPublic: false,
+          },
+        ]
+
+        setFeedback(dummyFeedback)
+        console.log('Feedback load: isLoadingFeedback set to false. Feedback data:', dummyFeedback)
+      } catch (err) {
+        console.error('Error fetching feedback:', err)
+        console.log('Feedback load: isLoadingFeedback set to false. Error:', err)
+      } finally {
+        setIsLoadingFeedback(false)
+        console.log('Feedback load: fetchFeedback finally block, isLoadingFeedback set to false')
+      }
+    }
+
+    fetchFeedback()
+  }, [activeTab, project])
+
   // Получение сообщений проекта при переключении на вкладку обсуждений
   useEffect(() => {
     const fetchMessages = async () => {
       if (activeTab !== 'discussions' || !project) {
-        if (activeTab === 'discussions') console.log('Messages load: Skipped, project not yet loaded.');
-        return;
+        if (activeTab === 'discussions')
+          console.log('Messages load: Skipped, project not yet loaded.')
+        return
       }
-      console.log('Messages load: activeTab is "discussions" and project exists. Fetching messages.');
+      console.log(
+        'Messages load: activeTab is "discussions" and project exists. Fetching messages.',
+      )
       try {
         setIsLoadingMessages(true)
-        console.log('Messages load: isLoadingMessages set to true');
+        console.log('Messages load: isLoadingMessages set to true')
         const response = await fetch(`/api/project-messages?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -235,13 +558,13 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
         const data = await response.json()
         setMessages(data)
-        console.log('Messages load: isLoadingMessages set to false. Messages data:', data);
+        console.log('Messages load: isLoadingMessages set to false. Messages data:', data)
       } catch (err) {
         console.error('Error fetching messages:', err)
-        console.log('Messages load: isLoadingMessages set to false. Error:', err);
+        console.log('Messages load: isLoadingMessages set to false. Error:', err)
       } finally {
         setIsLoadingMessages(false)
-        console.log('Messages load: fetchMessages finally block, isLoadingMessages set to false');
+        console.log('Messages load: fetchMessages finally block, isLoadingMessages set to false')
       }
     }
 
@@ -252,13 +575,13 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   useEffect(() => {
     const fetchFiles = async () => {
       if (activeTab !== 'files' || !project) {
-        if (activeTab === 'files') console.log('Files load: Skipped, project not yet loaded.');
-        return;
+        if (activeTab === 'files') console.log('Files load: Skipped, project not yet loaded.')
+        return
       }
-      console.log('Files load: activeTab is "files" and project exists. Fetching files.');
+      console.log('Files load: activeTab is "files" and project exists. Fetching files.')
       try {
         setIsLoadingFiles(true)
-        console.log('Files load: isLoadingFiles set to true');
+        console.log('Files load: isLoadingFiles set to true')
         const response = await fetch(`/api/project-files?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -269,7 +592,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         }
 
         const data = await response.json()
-        console.log('Files load: isLoadingFiles set to false. Files data:', data);
+        console.log('Files load: isLoadingFiles set to false. Files data:', data)
         // API возвращает массив файлов напрямую
         if (Array.isArray(data)) {
           setProjectFiles(data)
@@ -280,10 +603,10 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         }
       } catch (err) {
         console.error('Error fetching files:', err)
-        console.log('Files load: isLoadingFiles set to false. Error:', err);
+        console.log('Files load: isLoadingFiles set to false. Error:', err)
       } finally {
         setIsLoadingFiles(false)
-        console.log('Files load: fetchFiles finally block, isLoadingFiles set to false');
+        console.log('Files load: fetchFiles finally block, isLoadingFiles set to false')
       }
     }
 
@@ -314,6 +637,100 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     } catch (err) {
       console.error('Error creating task:', err)
       showNotification('error', t('errorCreatingTask'))
+      throw err
+    }
+  }
+
+  // Функция для создания нового этапа
+  const handleCreateMilestone = async (milestoneData: {
+    title: string
+    description?: string
+    startDate?: string
+    dueDate?: string
+    completionDate?: string
+    priority?: string
+    associatedTaskIds?: string[]
+  }) => {
+    if (!project) return
+
+    try {
+      // Get associated tasks if ids were provided
+      let associatedTasks: Array<{id: string; title: string; status: string}> = [];
+      if (milestoneData.associatedTaskIds && milestoneData.associatedTaskIds.length > 0) {
+        associatedTasks = tasks.filter(task => milestoneData.associatedTaskIds?.includes(task.id))
+          .map(task => ({
+            id: task.id,
+            title: task.title,
+            status: task.status
+          }));
+      }
+      
+      // Calculate progress based on associated tasks
+      let progress = 0;
+      if (associatedTasks.length > 0) {
+        const completedTasks = associatedTasks.filter(task => task.status === 'completed').length;
+        progress = Math.round((completedTasks / associatedTasks.length) * 100);
+      }
+      
+      // Determine status
+      let status = 'not_started';
+      if (milestoneData.completionDate) {
+        status = 'completed';
+      } else if (progress > 0) {
+        status = 'in_progress';
+      }
+      
+      const newMilestone = {
+        id: `milestone-${Date.now()}`,
+        ...milestoneData,
+        status,
+        progress,
+        associatedTasks,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      setMilestones((prev) => [newMilestone, ...prev])
+      showNotification('success', t('milestoneCreatedSuccess'))
+      setIsMilestoneModalOpen(false)
+    } catch (err) {
+      console.error('Error creating milestone:', err)
+      showNotification('error', t('errorCreatingMilestone'))
+      throw err
+    }
+  }
+
+  // Функция для создания нового отзыва
+  const handleCreateFeedback = async (feedbackData: {
+    title: string
+    rating: number
+    comment: string
+    feedbackType: string
+    isPublic: boolean
+  }) => {
+    if (!project) return
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      const newFeedback = {
+        id: `feedback-${Date.now()}`,
+        ...feedbackData,
+        author: {
+          id: project.customer.id,
+          name: 'Текущий пользователь',
+          email: project.customer.email,
+        },
+        createdAt: new Date().toISOString(),
+      }
+
+      setFeedback((prev) => [...prev, newFeedback])
+      showNotification('success', t('feedbackCreatedSuccess'))
+      // No need to return the feedback object, as the component expects Promise<void>
+    } catch (err) {
+      console.error('Error creating feedback:', err)
+      showNotification('error', t('errorCreatingFeedback'))
       throw err
     }
   }
@@ -515,12 +932,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         transition={{ duration: 0.5 }}
       >
         {/* Project Header - using the extracted component */}
-        <ProjectHeader
-          project={project}
-          lang={lang}
-          t={t}
-          getStatusText={getStatusText}
-        />
+        <ProjectHeader project={project} lang={lang} t={t} getStatusText={getStatusText} />
 
         {/* Tab Navigation - using the extracted component */}
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
@@ -529,11 +941,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         <motion.div className="p-6">
           <AnimatePresence mode="wait">
             {activeTab === 'specification' && (
-              <SpecificationTabContent
-                project={project}
-                lang={lang}
-                t={t}
-              />
+              <SpecificationTabContent project={project} lang={lang} t={t} />
             )}
 
             {activeTab === 'tasks' && (
@@ -571,6 +979,41 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                 deletingFileId={deletingFileId}
                 project={project}
                 lang={lang}
+                t={t}
+              />
+            )}
+
+            {activeTab === 'milestones' && (
+              <MilestonesTabContent
+                milestones={milestones}
+                isLoadingMilestones={isLoadingMilestones}
+                handleCreateMilestone={handleCreateMilestone}
+                project={project}
+                params={{ lang }}
+                t={t}
+                isMilestoneModalOpen={isMilestoneModalOpen}
+                setIsMilestoneModalOpen={setIsMilestoneModalOpen}
+              />
+            )}
+
+            {activeTab === 'calendar' && (
+              <CalendarTabContent
+                milestones={milestones}
+                tasks={tasks}
+                isLoadingCalendarData={isLoadingCalendarData}
+                project={project}
+                params={{ lang }}
+                t={t}
+              />
+            )}
+
+            {activeTab === 'feedback' && (
+              <FeedbackTabContent
+                feedback={feedback}
+                isLoadingFeedback={isLoadingFeedback}
+                handleCreateFeedback={handleCreateFeedback}
+                project={project}
+                params={{ lang }}
                 t={t}
               />
             )}
