@@ -398,13 +398,17 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   }
 
   // Функция для удаления файла проекта
+  // Состояние для отслеживания файла, который в процессе удаления
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null)
+
   const handleDeleteFile = async (fileEntryId: string) => {
     if (!project || !fileEntryId) return
 
     if (!confirm(t('filesTab.confirmDeleteFile'))) return
 
     try {
-      setIsLoadingFiles(true) // Показываем индикатор загрузки при удалении
+      // Устанавливаем ID файла, который удаляется (для анимации)
+      setDeletingFileId(fileEntryId)
 
       const response = await fetch(
         `/api/project-files?projectId=${project.id}&fileId=${fileEntryId}`,
@@ -418,18 +422,21 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         throw new Error(errorData.error || t('errorDeletingFile'))
       }
 
-      // Обновляем список файлов после успешного удаления
-      if (Array.isArray(projectFiles)) {
-        setProjectFiles(
-          projectFiles.filter((projectFile) => projectFile && projectFile.id !== fileEntryId),
-        )
-      }
-      showNotification('success', t('filesTab.fileDeletedSuccessfully'))
+      // Ждем завершения анимации перед обновлением списка
+      setTimeout(() => {
+        // Обновляем список файлов после успешного удаления
+        if (Array.isArray(projectFiles)) {
+          setProjectFiles(
+            projectFiles.filter((projectFile) => projectFile && projectFile.id !== fileEntryId),
+          )
+        }
+        setDeletingFileId(null) // Сбрасываем ID удаляемого файла
+        showNotification('success', t('filesTab.fileDeletedSuccessfully'))
+      }, 300) // Время должно соответствовать длительности анимации exit
     } catch (err) {
       console.error('Error deleting project file:', err)
       showNotification('error', err instanceof Error ? err.message : t('unknownError'))
-    } finally {
-      setIsLoadingFiles(false) // Скрываем индикатор загрузки
+      setDeletingFileId(null) // Сбрасываем ID удаляемого файла в случае ошибки
     }
   }
 
@@ -501,87 +508,186 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         </Link>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <motion.div
+        className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* Заголовок проекта */}
-        <div className="p-6 border-b">
+        <div className="p-6 border-b bg-gradient-to-r from-white to-blue-50">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold">{project.name}</h1>
-              <p className="text-gray-600">{project.serviceDetails.serviceName}</p>
+              <motion.h1
+                className="text-2xl font-bold text-gray-800"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                {project.name}
+              </motion.h1>
+              <motion.p
+                className="text-gray-600 mt-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                {project.serviceDetails.serviceName}
+              </motion.p>
             </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[project.status] || 'bg-gray-100 text-gray-800'}`}
+            <motion.span
+              className={`px-4 py-1.5 rounded-full text-sm font-medium shadow-sm ${statusBadgeClasses[project.status] || 'bg-gray-100 text-gray-800'}`}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
+              whileHover={{ scale: 1.05 }}
             >
               {getStatusText(project.status)}
-            </span>
+            </motion.span>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <div>
+          <motion.div
+            className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm bg-white bg-opacity-60 p-3 rounded-lg shadow-sm"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center">
+              <svg
+                className="w-4 h-4 text-blue-500 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
               <span className="text-gray-500">{t('orderNumber')}:</span>{' '}
-              <span className="font-medium">
+              <span className="font-medium ml-1">
                 {project.sourceOrder?.orderNumber || t('unknown')}
               </span>
             </div>
-            <div>
+            <div className="flex items-center">
+              <svg
+                className="w-4 h-4 text-blue-500 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
               <span className="text-gray-500">{t('created')}:</span>{' '}
-              <span>{formatDate(project.createdAt, lang)}</span>
+              <span className="ml-1">{formatDate(project.createdAt, lang)}</span>
             </div>
-            <div>
+            <div className="flex items-center">
+              <svg
+                className="w-4 h-4 text-blue-500 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               <span className="text-gray-500">{t('updated')}:</span>{' '}
-              <span>{formatDate(project.updatedAt, lang)}</span>
+              <span className="ml-1">{formatDate(project.updatedAt, lang)}</span>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Навигация по табам */}
-        <div className="border-b">
-          <nav className="flex -mb-px overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('specification')}
-              className={`text-sm font-medium py-4 px-6 border-b-2 ${
-                activeTab === 'specification'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('tabs.specification')}
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`text-sm font-medium py-4 px-6 border-b-2 ${
-                activeTab === 'tasks'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('tabs.tasks')}
-            </button>
-            <button
-              onClick={() => setActiveTab('discussions')}
-              className={`text-sm font-medium py-4 px-6 border-b-2 ${
-                activeTab === 'discussions'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('tabs.discussions')}
-            </button>
-            <button
-              onClick={() => setActiveTab('files')}
-              className={`text-sm font-medium py-4 px-6 border-b-2 ${
-                activeTab === 'files'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('tabs.files')}
-            </button>
+        <div className="border-b bg-gray-50">
+          <nav className="flex -mb-px overflow-x-auto px-2">
+            {['specification', 'tasks', 'discussions', 'files'].map((tab) => (
+              <motion.button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative text-sm font-medium py-4 px-6 border-b-2 transition-all duration-200 ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-700 font-semibold'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+              >
+                <div className="flex items-center space-x-1.5">
+                  {tab === 'specification' && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  )}
+                  {tab === 'tasks' && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  )}
+                  {tab === 'discussions' && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                  )}
+                  {tab === 'files' && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  )}
+                  <span>{t(`tabs.${tab}`)}</span>
+                </div>
+                {activeTab === tab && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+                    layoutId="activeTab"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            ))}
           </nav>
         </div>
 
         {/* Контент текущего таба */}
-        <div className="p-6">
+        <motion.div
+          className="p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          key={activeTab}
+        >
           {activeTab === 'specification' && (
             <div>
               <h2 className="text-lg font-medium mb-4">{t('specification')}</h2>
@@ -1021,15 +1127,16 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        <AnimatePresence>
+                        <AnimatePresence mode="popLayout">
                           {projectFiles.map((projectFile, index) => (
                             <motion.tr
                               key={projectFile.id}
-                              className="hover:bg-blue-50 transition-colors duration-150 ease-in-out"
+                              className={`transition-colors duration-150 ease-in-out ${deletingFileId === projectFile.id ? 'bg-red-50' : 'hover:bg-blue-50'}`}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, x: -100 }}
+                              exit={{ opacity: 0, x: -100, height: 0 }}
                               transition={{ duration: 0.3, delay: index * 0.05 }}
+                              layout
                             >
                               <td className="px-4 py-3">
                                 <div className="flex items-center">
@@ -1067,26 +1174,45 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                                 {formatDate(projectFile.createdAt, lang)}
                               </td>
                               <td className="px-4 py-3 text-right">
-                                <button
+                                <motion.button
                                   onClick={() => handleDeleteFile(projectFile.id)}
-                                  className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-150 flex items-center justify-end ml-auto"
+                                  className={`${deletingFileId === projectFile.id ? 'bg-red-100 text-red-800' : 'text-red-600 hover:text-red-800 hover:bg-red-50'} text-sm font-medium transition-all duration-200 flex items-center justify-end ml-auto px-2 py-1 rounded-md`}
                                   aria-label={t('filesTab.delete')}
+                                  disabled={deletingFileId === projectFile.id}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
                                 >
-                                  <svg
-                                    className="w-4 h-4 mr-1"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
+                                  {deletingFileId === projectFile.id ? (
+                                    <svg
+                                      className="w-4 h-4 mr-1 animate-spin"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4 mr-1"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      />
+                                    </svg>
+                                  )}
                                   {t('filesTab.delete')}
-                                </button>
+                                </motion.button>
                               </td>
                             </motion.tr>
                           ))}
@@ -1202,8 +1328,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
