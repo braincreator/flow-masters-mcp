@@ -4,6 +4,8 @@ import React, { useEffect, useState, Suspense, use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
+import { motion, AnimatePresence } from 'framer-motion'
+import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
 
 // Определение типа для проекта в списке
 interface ProjectItem {
@@ -24,17 +26,21 @@ interface ProjectItem {
 
 // Определяем соответствие статусов проектов для отображения
 const statusBadgeClasses: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  on_review: 'bg-purple-100 text-purple-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
+  new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  in_progress: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+  on_review: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+  completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
 }
 
 // This is the main component that will use React.use() to unwrap the params
 export default function ProjectsPage({ params }: { params: any }) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[300px]">
+        <AnimatedLoadingIndicator size="large" color="text-blue-600" />
+      </div>
+    }>
       <ProjectsPageWrapper params={params} />
     </Suspense>
   )
@@ -75,7 +81,7 @@ function ProjectsPageContent({ lang }: { lang: string }) {
 
         if (!response.ok) {
           // Try to get more detailed error information
-          let errorMessage = t('errorLoadingProjects')
+          const errorMessage = t('errorLoadingProjects')
           let errorDetails = ''
 
           try {
@@ -142,55 +148,98 @@ function ProjectsPageContent({ lang }: { lang: string }) {
     return t(`status.${status}`, { defaultValue: status })
   }
 
+  // Card item animation variants for staggered animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 20
+      }
+    },
+    hover: {
+      y: -5,
+      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      transition: {
+        type: "spring", 
+        stiffness: 400,
+        damping: 10
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
-        <div className="loader">
-          <svg
-            className="animate-spin h-8 w-8 text-gray-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-        </div>
+        <AnimatedLoadingIndicator size="large" color="text-blue-600" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 my-4">
+      <motion.div 
+        className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-lg p-4 my-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <p>{error}</p>
-      </div>
+      </motion.div>
     )
   }
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <motion.div 
+        className="flex flex-wrap items-center justify-between gap-4 mb-6"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">{t('title')}</h1>
 
-        {/* Фильтр по статусу */}
-        <div className="flex items-center">
-          <span className="text-sm text-gray-500 mr-2">{t('filterByStatus')}:</span>
-          <select
+        {/* Фильтр по статусу - улучшенный дизайн */}
+        <motion.div
+          className="flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-sm px-4 py-2 border border-gray-200 dark:border-gray-700 relative"
+          whileHover={{ y: -2, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        >
+          <svg
+            className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">{t('filterByStatus')}</span>
+          <motion.select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-grow bg-transparent border-none text-sm focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-200 appearance-none pr-8"
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.2 }}
           >
             <option value="all">{t('allStatuses')}</option>
             <option value="new">{t('status.new')}</option>
@@ -198,120 +247,169 @@ function ProjectsPageContent({ lang }: { lang: string }) {
             <option value="on_review">{t('status.on_review')}</option>
             <option value="completed">{t('status.completed')}</option>
             <option value="cancelled">{t('status.cancelled')}</option>
-          </select>
-        </div>
-      </div>
-
-      {filteredProjects.length === 0 ? (
-        <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <div className="text-gray-500 mb-3">
-            <svg
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <p className="text-gray-600">
-            {statusFilter === 'all'
-              ? t('noProjects')
-              : t('noProjectsWithStatus', { status: t(`status.${statusFilter}`) })}
-          </p>
-          <Link
-            href={`/${lang}/dashboard/services`}
-            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          </motion.select>
+          <svg
+            className="w-4 h-4 text-gray-500 dark:text-gray-400 absolute right-5 pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            {t('orderNewService')}
-          </Link>
-        </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {t('projectName')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {t('serviceType')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {t('statusLabel')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {t('updated')}
-                  </th>
-                  <th scope="col" className="relative px-6 py-3">
-                    <span className="sr-only">{t('actions')}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{project.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {t('created')}: {formatDate(project.createdAt, lang)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {project.serviceDetails.serviceName}
-                      </div>
-                      {project.serviceDetails.serviceType && (
-                        <div className="text-sm text-gray-500">
-                          {project.serviceDetails.serviceType}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
-                          statusBadgeClasses[project.status] || 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {getStatusText(project.status)}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </motion.div>
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {filteredProjects.length === 0 ? (
+          <motion.div 
+            key="empty-state"
+            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="text-gray-500 dark:text-gray-400 mb-3"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: [0.7, 1, 0.7] 
+              }}
+              transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+            >
+              <svg
+                className="mx-auto h-16 w-16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </motion.div>
+            <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
+              {statusFilter === 'all'
+                ? t('noProjects')
+                : t('noProjectsWithStatus', { status: t(`status.${statusFilter}`) })}
+            </p>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link
+                href={`/${lang}/dashboard/services`}
+                className="inline-block px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+              >
+                {t('orderNewService')}
+              </Link>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {filteredProjects.map((project, index) => (
+              <motion.div
+                key={project.id}
+                className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md"
+                variants={cardVariants}
+                whileHover="hover"
+                custom={index}
+              >
+                <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center mb-3">
+                    <h2
+                      className="text-base font-semibold text-gray-800 dark:text-white line-clamp-2"
+                      title={project.name}
+                    >
+                      {project.name}
+                    </h2>
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                        statusBadgeClasses[project.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {getStatusText(project.status)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                    {project.serviceDetails.serviceName || t('unknownService')}
+                    {project.serviceDetails.serviceType && (
+                      <span className="text-gray-500 dark:text-gray-400 ml-1">
+                        - {project.serviceDetails.serviceType}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(project.updatedAt, lang)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        href={`/${lang}/dashboard/projects/${project.id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                    )}
+                  </p>
+                </div>
+                
+                <div className="px-5 py-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">{t('created')}:</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300">
+                        {formatDate(project.createdAt, lang)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">{t('updated')}:</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300">
+                        {formatDate(project.updatedAt, lang)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link
+                      href={`/${lang}/dashboard/projects/${project.id}`}
+                      className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
+                    >
+                      <svg 
+                        className="w-4 h-4 mr-2" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        {t('view')}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        ></path>
+                      </svg>
+                      {t('view')}
+                    </Link>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

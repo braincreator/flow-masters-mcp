@@ -985,7 +985,7 @@ const createServiceProjectHook: CollectionAfterChangeHook<OrderWithCalculatedFie
     }
 
     // Создаем имя проекта
-    const projectName = `Проект по заказу ${doc.orderNumber}`
+    const projectName = `${doc.orderNumber}`
 
     // Создаем проект
     try {

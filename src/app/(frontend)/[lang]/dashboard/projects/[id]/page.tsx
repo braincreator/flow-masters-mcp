@@ -1,13 +1,20 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
-import TaskFormModal from '@/components/modals/TaskFormModal'
 import { useNotification } from '@/context/NotificationContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
+
+// Import new components
+import ProjectHeader from './components/ProjectHeader'
+import TabNavigation from './components/TabNavigation'
+import SpecificationTabContent from './components/SpecificationTabContent'
+import TasksTabContent from './components/TasksTabContent'
+import DiscussionsTabContent from './components/DiscussionsTabContent'
+import FilesTabContent from './components/FilesTabContent'
 
 // Определение типа для проекта
 interface ProjectDetails {
@@ -101,17 +108,8 @@ interface ProjectFile {
   category?: string
 }
 
-// Определяем соответствие статусов проектов для отображения
-const statusBadgeClasses: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  on_review: 'bg-purple-100 text-purple-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-}
-
 export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
-  const { id, lang } = use(params)
+  const { id, lang } = React.use(params)
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -132,6 +130,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   const [newMessage, setNewMessage] = useState('')
   // Состояние для модального окна создания задачи
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  // Состояние для отслеживания файла, который в процессе удаления
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null)
 
   // Функция для перевода статуса
   const getStatusText = (status: string) => {
@@ -143,8 +143,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     const fetchProjectDetails = async () => {
       try {
         setIsLoading(true)
+        console.log('Initial load: isLoading set to true')
         const response = await fetch(`/api/service-projects/${id}`, {
-          // Используем unwrapped id
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -155,25 +155,32 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
         const data = await response.json()
         setProject(data)
+        console.log('Initial load: isLoading set to false. Project data:', data)
       } catch (err) {
         console.error('Error fetching project details:', err)
         setError(err instanceof Error ? err.message : t('unknownError'))
+        console.log('Initial load: isLoading set to false. Error:', err)
         showNotification('error', t('errorLoadingProject'))
       } finally {
         setIsLoading(false)
+        console.log('Initial load: fetchProjectDetails finally block, isLoading set to false')
       }
     }
 
     fetchProjectDetails()
-  }, [id, t, showNotification]) // Используем unwrapped id в массиве зависимостей
+  }, [id, t, showNotification])
 
   // Получение задач проекта при переключении на вкладку задач
   useEffect(() => {
     const fetchTasks = async () => {
-      if (activeTab !== 'tasks' || !project) return
-
+      if (activeTab !== 'tasks' || !project) {
+        if (activeTab === 'tasks') console.log('Tasks load: Skipped, project not yet loaded.')
+        return
+      }
+      console.log('Tasks load: activeTab is "tasks" and project exists. Fetching tasks.')
       try {
         setIsLoadingTasks(true)
+        console.log('Tasks load: isLoadingTasks set to true')
         const response = await fetch(`/api/tasks?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -188,15 +195,18 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
           } catch (parseError) {
             errorDetails = response.statusText
           }
-          throw new Error(t('errorLoadingTasks') + (errorDetails ? `: ${errorDetails}` : '')) // Modified error message
+          throw new Error(t('errorLoadingTasks') + (errorDetails ? `: ${errorDetails}` : ''))
         }
 
         const data = await response.json()
         setTasks(data)
+        console.log('Tasks load: isLoadingTasks set to false. Tasks data:', data)
       } catch (err) {
-        console.error('Error fetching tasks:', err) // Existing logging
+        console.error('Error fetching tasks:', err)
+        console.log('Tasks load: isLoadingTasks set to false. Error:', err)
       } finally {
         setIsLoadingTasks(false)
+        console.log('Tasks load: fetchTasks finally block, isLoadingTasks set to false')
       }
     }
 
@@ -206,10 +216,14 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   // Получение сообщений проекта при переключении на вкладку обсуждений
   useEffect(() => {
     const fetchMessages = async () => {
-      if (activeTab !== 'discussions' || !project) return
-
+      if (activeTab !== 'discussions' || !project) {
+        if (activeTab === 'discussions') console.log('Messages load: Skipped, project not yet loaded.');
+        return;
+      }
+      console.log('Messages load: activeTab is "discussions" and project exists. Fetching messages.');
       try {
         setIsLoadingMessages(true)
+        console.log('Messages load: isLoadingMessages set to true');
         const response = await fetch(`/api/project-messages?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -221,10 +235,13 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
         const data = await response.json()
         setMessages(data)
+        console.log('Messages load: isLoadingMessages set to false. Messages data:', data);
       } catch (err) {
         console.error('Error fetching messages:', err)
+        console.log('Messages load: isLoadingMessages set to false. Error:', err);
       } finally {
         setIsLoadingMessages(false)
+        console.log('Messages load: fetchMessages finally block, isLoadingMessages set to false');
       }
     }
 
@@ -234,10 +251,14 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   // Получение файлов проекта при переключении на вкладку файлов
   useEffect(() => {
     const fetchFiles = async () => {
-      if (activeTab !== 'files' || !project) return
-
+      if (activeTab !== 'files' || !project) {
+        if (activeTab === 'files') console.log('Files load: Skipped, project not yet loaded.');
+        return;
+      }
+      console.log('Files load: activeTab is "files" and project exists. Fetching files.');
       try {
         setIsLoadingFiles(true)
+        console.log('Files load: isLoadingFiles set to true');
         const response = await fetch(`/api/project-files?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -248,6 +269,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         }
 
         const data = await response.json()
+        console.log('Files load: isLoadingFiles set to false. Files data:', data);
         // API возвращает массив файлов напрямую
         if (Array.isArray(data)) {
           setProjectFiles(data)
@@ -258,8 +280,10 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         }
       } catch (err) {
         console.error('Error fetching files:', err)
+        console.log('Files load: isLoadingFiles set to false. Error:', err);
       } finally {
         setIsLoadingFiles(false)
+        console.log('Files load: fetchFiles finally block, isLoadingFiles set to false');
       }
     }
 
@@ -398,9 +422,6 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   }
 
   // Функция для удаления файла проекта
-  // Состояние для отслеживания файла, который в процессе удаления
-  const [deletingFileId, setDeletingFileId] = useState<string | null>(null)
-
   const handleDeleteFile = async (fileEntryId: string) => {
     if (!project || !fileEntryId) return
 
@@ -443,39 +464,18 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="loader">
-          <svg
-            className="animate-spin h-8 w-8 text-gray-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-        </div>
+        <AnimatedLoadingIndicator size="large" />
       </div>
     )
   }
 
   if (error || !project) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 my-4">
+      <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-lg p-4 my-4">
         <p>{error || t('projectNotFound')}</p>
         <Link
           href={`/${lang}/dashboard/projects`}
-          className="mt-4 inline-block text-sm text-red-600 hover:text-red-800"
+          className="mt-4 inline-block text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
         >
           {t('backToProjects')}
         </Link>
@@ -488,7 +488,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
       <div className="mb-6">
         <Link
           href={`/${lang}/dashboard/projects`}
-          className="text-blue-600 hover:text-blue-800 flex items-center"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
         >
           <svg
             className="w-4 h-4 mr-1"
@@ -509,825 +509,72 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
       </div>
 
       <motion.div
-        className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100"
+        className="bg-white dark:bg-gray-800 shadow-lg dark:shadow-xl rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Заголовок проекта */}
-        <div className="p-6 border-b bg-gradient-to-r from-white to-blue-50">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <motion.h1
-                className="text-2xl font-bold text-gray-800"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                {project.name}
-              </motion.h1>
-              <motion.p
-                className="text-gray-600 mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                {project.serviceDetails.serviceName}
-              </motion.p>
-            </div>
-            <motion.span
-              className={`px-4 py-1.5 rounded-full text-sm font-medium shadow-sm ${statusBadgeClasses[project.status] || 'bg-gray-100 text-gray-800'}`}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              {getStatusText(project.status)}
-            </motion.span>
-          </div>
+        {/* Project Header - using the extracted component */}
+        <ProjectHeader
+          project={project}
+          lang={lang}
+          t={t}
+          getStatusText={getStatusText}
+        />
 
-          <motion.div
-            className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm bg-white bg-opacity-60 p-3 rounded-lg shadow-sm"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="flex items-center">
-              <svg
-                className="w-4 h-4 text-blue-500 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              <span className="text-gray-500">{t('orderNumber')}:</span>{' '}
-              <span className="font-medium ml-1">
-                {project.sourceOrder?.orderNumber || t('unknown')}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <svg
-                className="w-4 h-4 text-blue-500 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="text-gray-500">{t('created')}:</span>{' '}
-              <span className="ml-1">{formatDate(project.createdAt, lang)}</span>
-            </div>
-            <div className="flex items-center">
-              <svg
-                className="w-4 h-4 text-blue-500 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-gray-500">{t('updated')}:</span>{' '}
-              <span className="ml-1">{formatDate(project.updatedAt, lang)}</span>
-            </div>
-          </motion.div>
-        </div>
+        {/* Tab Navigation - using the extracted component */}
+        <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
 
-        {/* Навигация по табам */}
-        <div className="border-b bg-gray-50">
-          <nav className="flex -mb-px overflow-x-auto px-2">
-            {['specification', 'tasks', 'discussions', 'files'].map((tab) => (
-              <motion.button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative text-sm font-medium py-4 px-6 border-b-2 transition-all duration-200 ${
-                  activeTab === tab
-                    ? 'border-blue-500 text-blue-700 font-semibold'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
-              >
-                <div className="flex items-center space-x-1.5">
-                  {tab === 'specification' && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  )}
-                  {tab === 'tasks' && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                  )}
-                  {tab === 'discussions' && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
-                    </svg>
-                  )}
-                  {tab === 'files' && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  )}
-                  <span>{t(`tabs.${tab}`)}</span>
-                </div>
-                {activeTab === tab && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
-                    layoutId="activeTab"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Контент текущего таба */}
-        <motion.div
-          className="p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          key={activeTab}
-        >
-          {activeTab === 'specification' && (
-            <div>
-              <h2 className="text-lg font-medium mb-4">{t('specification')}</h2>
-
-              {/* Текст спецификации */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium mb-2">{t('specificationText')}</h3>
-                {project.specificationText && project.specificationText[lang] ? (
-                  <div className="bg-gray-50 p-4 rounded-md border">
-                    <div className="prose max-w-none whitespace-pre-wrap">
-                      {project.specificationText[params.lang]}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">{t('noSpecificationText')}</p>
-                )}
-              </div>
-
-              {/* Файлы спецификации */}
-              <div>
-                <h3 className="text-md font-medium mb-2">{t('specificationFiles')}</h3>
-                {project.specificationFiles && project.specificationFiles.length > 0 ? (
-                  <div className="bg-gray-50 rounded-lg border overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t('fileName')}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                          >
-                            {t('actions')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {project.specificationFiles.map((file) => (
-                          <tr key={file.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 mr-2 text-gray-400"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                  />
-                                </svg>
-                                <span className="truncate">{file.filename}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                              >
-                                {t('download')}
-                              </a>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">{t('noSpecificationFiles')}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'tasks' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium">{t('tasks')}</h2>
-                <button
-                  onClick={() => setIsTaskModalOpen(true)}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                >
-                  {t('createTask')}
-                </button>
-              </div>
-
-              {isLoadingTasks ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                </div>
-              ) : tasks && tasks.length > 0 ? (
-                <div className="space-y-4">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                      <div className="flex justify-between">
-                        <h3 className="font-medium">{task.title}</h3>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            task.status === 'completed'
-                              ? 'bg-green-100 text-green-800'
-                              : task.status === 'in_progress'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-blue-100 text-blue-800'
-                          }`}
-                        >
-                          {t(`taskStatus.${task.status}`)}
-                        </span>
-                      </div>
-
-                      {task.description && (
-                        <p className="mt-2 text-gray-600 text-sm">{task.description}</p>
-                      )}
-
-                      <div className="mt-3 text-xs text-gray-500 flex justify-between items-center">
-                        <div>
-                          {task.assignedTo && (
-                            <span>
-                              {t('assignedTo')}: {task.assignedTo.name || task.assignedTo.email}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          {t('updated')}: {formatDate(task.updatedAt, params.lang)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <div className="text-gray-500 mb-3">
-                    <svg
-                      className="mx-auto h-12 w-12"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-gray-600">{t('noTasks')}</p>
-                  <button
-                    onClick={() => setIsTaskModalOpen(true)}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    {t('createFirstTask')}
-                  </button>
-                </div>
-              )}
-
-              {/* Модальное окно создания задачи */}
-              <TaskFormModal
-                isOpen={isTaskModalOpen}
-                onClose={() => setIsTaskModalOpen(false)}
-                onSubmit={handleCreateTask}
-                projectId={project?.id || ''}
+        {/* Tab Content - using the extracted components */}
+        <motion.div className="p-6">
+          <AnimatePresence mode="wait">
+            {activeTab === 'specification' && (
+              <SpecificationTabContent
+                project={project}
+                lang={lang}
+                t={t}
               />
-            </div>
-          )}
+            )}
 
-          {activeTab === 'discussions' && (
-            <div>
-              <h2 className="text-lg font-medium mb-4">{t('discussions')}</h2>
+            {activeTab === 'tasks' && (
+              <TasksTabContent
+                tasks={tasks}
+                isLoadingTasks={isLoadingTasks}
+                handleCreateTask={handleCreateTask}
+                project={project}
+                params={{ lang }}
+                t={t}
+                isTaskModalOpen={isTaskModalOpen}
+                setIsTaskModalOpen={setIsTaskModalOpen}
+              />
+            )}
 
-              {isLoadingMessages ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                </div>
-              ) : messages && messages.length > 0 ? (
-                <div className="space-y-6 mb-6">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`p-4 rounded-lg ${
-                        message.isSystemMessage
-                          ? 'bg-gray-100'
-                          : message.author.id === project?.customer.id
-                            ? 'bg-blue-50 border border-blue-100'
-                            : 'bg-green-50 border border-green-100'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium">
-                          {message.isSystemMessage
-                            ? t('system')
-                            : message.author.name || message.author.email}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {formatDate(message.createdAt, params.lang)}
-                        </div>
-                      </div>
+            {activeTab === 'discussions' && (
+              <DiscussionsTabContent
+                messages={messages}
+                isLoadingMessages={isLoadingMessages}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                handleSendMessage={handleSendMessage}
+                project={project}
+                params={{ lang }}
+                t={t}
+              />
+            )}
 
-                      <div className="prose prose-sm max-w-none whitespace-pre-wrap">
-                        {message.content}
-                      </div>
-
-                      {message.attachments && message.attachments.length > 0 && (
-                        <div className="mt-3 pt-3 border-t">
-                          <div className="text-xs text-gray-500 mb-2">{t('attachments')}:</div>
-                          <div className="space-y-2">
-                            {message.attachments.map((file) => (
-                              <div key={file.id} className="flex items-center text-sm">
-                                <svg
-                                  className="w-4 h-4 mr-1 text-gray-500"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                                  />
-                                </svg>
-                                <a
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 truncate"
-                                >
-                                  {file.filename}
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-8 text-center mb-8">
-                  <div className="text-gray-500 mb-3">
-                    <svg
-                      className="mx-auto h-12 w-12"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-gray-600">{t('noMessages')}</p>
-                </div>
-              )}
-
-              {/* Форма для отправки нового сообщения */}
-              <div className="bg-white border rounded-lg p-4">
-                <h3 className="text-md font-medium mb-3">{t('newMessage')}</h3>
-                <textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="w-full border rounded-md p-3 mb-3 min-h-[120px]"
-                  placeholder={t('messageText')}
-                />
-
-                <div className="flex flex-wrap gap-2 justify-between">
-                  <div>
-                    <button className="flex items-center text-sm text-gray-600 px-3 py-1 border rounded hover:bg-gray-50">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                        />
-                      </svg>
-                      {t('attachFile')}
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!newMessage.trim()}
-                    className={`px-4 py-2 text-white rounded ${
-                      newMessage.trim()
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'bg-blue-300 cursor-not-allowed'
-                    }`}
-                  >
-                    {t('send')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'files' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium">{t('files')}</h2>
-                <label className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm cursor-pointer">
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        handleUploadFile(Array.from(e.target.files))
-                      }
-                    }}
-                  />
-                  {t('uploadFile')}
-                </label>
-              </div>
-
-              {/* Спецификация файлы отображаем всегда */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium mb-3">{t('specificationFiles')}</h3>
-                {project.specificationFiles && project.specificationFiles.length > 0 ? (
-                  <div className="bg-gray-50 rounded-lg border overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t('fileName')}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                          >
-                            {t('actions')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {project.specificationFiles.map((file) => (
-                          <tr key={file.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 mr-2 text-gray-400"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                  />
-                                </svg>
-                                <span className="truncate">{file.filename}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                              >
-                                {t('download')}
-                              </a>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">{t('noSpecificationFiles')}</p>
-                )}
-              </div>
-
-              {/* Файлы проекта */}
-              <div>
-                <h3 className="text-md font-medium mb-3">{t('projectFiles')}</h3>
-                {isLoadingFiles ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin h-8 w-8 border-3 border-blue-500 rounded-full border-t-transparent shadow-lg">
-                      <div className="animate-ping absolute inset-0 h-full w-full rounded-full bg-blue-400 opacity-20"></div>
-                    </div>
-                  </div>
-                ) : projectFiles && projectFiles.length > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white rounded-lg border shadow-md overflow-hidden transition-all duration-300 ease-in-out"
-                  >
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t('fileName')}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t('uploadedBy')}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t('date')}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                          >
-                            {t('actions')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        <AnimatePresence mode="popLayout">
-                          {projectFiles.map((projectFile, index) => (
-                            <motion.tr
-                              key={projectFile.id}
-                              className={`transition-colors duration-150 ease-in-out ${deletingFileId === projectFile.id ? 'bg-red-50' : 'hover:bg-blue-50'}`}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, x: -100, height: 0 }}
-                              transition={{ duration: 0.3, delay: index * 0.05 }}
-                              layout
-                            >
-                              <td className="px-4 py-3">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0 h-8 w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
-                                    <svg
-                                      className="w-5 h-5"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <a
-                                    href={projectFile.file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 hover:underline truncate font-medium transition-colors duration-150"
-                                  >
-                                    {projectFile.file.filename}
-                                  </a>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-700">
-                                {projectFile.uploadedBy?.name ||
-                                  projectFile.uploadedBy?.email ||
-                                  t('unknown')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-700">
-                                {formatDate(projectFile.createdAt, lang)}
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <motion.button
-                                  onClick={() => handleDeleteFile(projectFile.id)}
-                                  className={`${deletingFileId === projectFile.id ? 'bg-red-100 text-red-800' : 'text-red-600 hover:text-red-800 hover:bg-red-50'} text-sm font-medium transition-all duration-200 flex items-center justify-end ml-auto px-2 py-1 rounded-md`}
-                                  aria-label={t('filesTab.delete')}
-                                  disabled={deletingFileId === projectFile.id}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  {deletingFileId === projectFile.id ? (
-                                    <svg
-                                      className="w-4 h-4 mr-1 animate-spin"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                      />
-                                    </svg>
-                                  ) : (
-                                    <svg
-                                      className="w-4 h-4 mr-1"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                      />
-                                    </svg>
-                                  )}
-                                  {t('filesTab.delete')}
-                                </motion.button>
-                              </td>
-                            </motion.tr>
-                          ))}
-                        </AnimatePresence>
-                      </tbody>
-                    </table>
-                    <div className="p-4 bg-gray-50 border-t">
-                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center cursor-pointer transition-colors duration-150 shadow-sm hover:shadow">
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          />
-                        </svg>
-                        <input
-                          type="file"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files.length > 0) {
-                              handleUploadFile(Array.from(e.target.files))
-                            }
-                          }}
-                        />
-                        {t('uploadFile')}
-                      </label>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white rounded-lg p-8 text-center shadow-sm border transition-all duration-300 ease-in-out hover:shadow-md"
-                  >
-                    <motion.div
-                      className="text-blue-500 mb-4"
-                      initial={{ scale: 0.8 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        duration: 0.5,
-                        delay: 0.2,
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 20,
-                      }}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                    >
-                      <svg
-                        className="mx-auto h-16 w-16"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                    </motion.div>
-                    <motion.p
-                      className="text-gray-600 mb-4"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
-                    >
-                      {t('noProjectFiles')}
-                    </motion.p>
-                    <motion.label
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center cursor-pointer transition-all duration-200 shadow-sm hover:shadow"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      <input
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            handleUploadFile(Array.from(e.target.files))
-                          }
-                        }}
-                      />
-                      {t('uploadFile')}
-                    </motion.label>
-                  </motion.div>
-                )}
-              </div>
-            </div>
-          )}
+            {activeTab === 'files' && (
+              <FilesTabContent
+                projectFiles={projectFiles}
+                isLoadingFiles={isLoadingFiles}
+                handleUploadFile={handleUploadFile}
+                handleDeleteFile={handleDeleteFile}
+                deletingFileId={deletingFileId}
+                project={project}
+                lang={lang}
+                t={t}
+              />
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
     </div>

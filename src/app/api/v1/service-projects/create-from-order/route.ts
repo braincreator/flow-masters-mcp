@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // Create project name with short order number for better readability
     const shortOrderNumber = getShortOrderNumber(order.orderNumber)
-    const projectName = `Проект по заказу ${order.orderNumber} (${shortOrderNumber})`
+    const projectName = `${order.orderNumber} (${shortOrderNumber})`
 
     // Create the project
     try {
