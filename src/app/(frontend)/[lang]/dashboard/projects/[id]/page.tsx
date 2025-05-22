@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
 import TaskFormModal from '@/components/modals/TaskFormModal'
 import { useNotification } from '@/context/NotificationContext'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Определение типа для проекта
 interface ProjectDetails {
@@ -110,7 +111,7 @@ const statusBadgeClasses: Record<string, string> = {
 }
 
 export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
-  const { id, lang } = React.use(params)
+  const { id, lang } = use(params)
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -173,30 +174,24 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
       try {
         setIsLoadingTasks(true)
-        console.log(`Fetching tasks for project ${project.id}...`) // Added logging
         const response = await fetch(`/api/tasks?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
-
-        console.log(`Tasks API response status: ${response.status}`) // Added logging
 
         if (!response.ok) {
           // Attempt to read response body for more details
           let errorDetails = ''
           try {
             const errorData = await response.json()
-            console.error('Error response data:', errorData) // Added logging
             errorDetails = errorData.details || errorData.error || JSON.stringify(errorData)
           } catch (parseError) {
-            console.error('Could not parse error response:', parseError) // Added logging
             errorDetails = response.statusText
           }
           throw new Error(t('errorLoadingTasks') + (errorDetails ? `: ${errorDetails}` : '')) // Modified error message
         }
 
         const data = await response.json()
-        console.log('Tasks fetched successfully:', data) // Added logging
         setTasks(data)
       } catch (err) {
         console.error('Error fetching tasks:', err) // Existing logging
@@ -331,6 +326,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   const handleUploadFile = async (files: File[]) => {
     if (!project || !files.length) return
 
+    setIsLoadingFiles(true) // Показываем индикатор загрузки
+
     try {
       // Сначала загружаем файлы в медиа-библиотеку
       const uploadPromises = files.map(async (file) => {
@@ -395,17 +392,19 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
     } catch (err) {
       console.error('Error uploading files:', err)
       showNotification('error', t('errorUploadingFiles'))
+    } finally {
+      setIsLoadingFiles(false) // Скрываем индикатор загрузки
     }
   }
 
   // Функция для удаления файла проекта
   const handleDeleteFile = async (fileEntryId: string) => {
-    if (!project) return
+    if (!project || !fileEntryId) return
 
-    if (!confirm(t('confirmDeleteFile'))) return
+    if (!confirm(t('filesTab.confirmDeleteFile'))) return
 
     try {
-      console.log('Attempting to delete file with fileEntryId:', fileEntryId)
+      setIsLoadingFiles(true) // Показываем индикатор загрузки при удалении
 
       const response = await fetch(
         `/api/project-files?projectId=${project.id}&fileId=${fileEntryId}`,
@@ -414,19 +413,23 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
         },
       )
 
-      console.log('Delete API response status:', response.status)
-
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || t('errorDeletingFile'))
       }
 
       // Обновляем список файлов после успешного удаления
-      setProjectFiles(projectFiles.filter((file) => file.id !== fileEntryId))
-      showNotification('success', t('fileDeletedSuccessfully'))
+      if (Array.isArray(projectFiles)) {
+        setProjectFiles(
+          projectFiles.filter((projectFile) => projectFile && projectFile.id !== fileEntryId),
+        )
+      }
+      showNotification('success', t('filesTab.fileDeletedSuccessfully'))
     } catch (err) {
       console.error('Error deleting project file:', err)
       showNotification('error', err instanceof Error ? err.message : t('unknownError'))
+    } finally {
+      setIsLoadingFiles(false) // Скрываем индикатор загрузки
     }
   }
 
@@ -977,12 +980,19 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                 <h3 className="text-md font-medium mb-3">{t('projectFiles')}</h3>
                 {isLoadingFiles ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                    <div className="animate-spin h-8 w-8 border-3 border-blue-500 rounded-full border-t-transparent shadow-lg">
+                      <div className="animate-ping absolute inset-0 h-full w-full rounded-full bg-blue-400 opacity-20"></div>
+                    </div>
                   </div>
                 ) : projectFiles && projectFiles.length > 0 ? (
-                  <div className="bg-gray-50 rounded-lg border overflow-hidden">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white rounded-lg border shadow-md overflow-hidden transition-all duration-300 ease-in-out"
+                  >
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
+                      <thead className="bg-gray-50">
                         <tr>
                           <th
                             scope="col"
@@ -1011,60 +1021,129 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {projectFiles.map((projectFile) => (
-                          <tr key={projectFile.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 mr-2 text-gray-400"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
+                        <AnimatePresence>
+                          {projectFiles.map((projectFile, index) => (
+                            <motion.tr
+                              key={projectFile.id}
+                              className="hover:bg-blue-50 transition-colors duration-150 ease-in-out"
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, x: -100 }}
+                              transition={{ duration: 0.3, delay: index * 0.05 }}
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-8 w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
+                                    <svg
+                                      className="w-5 h-5"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <a
+                                    href={projectFile.file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 hover:underline truncate font-medium transition-colors duration-150"
+                                  >
+                                    {projectFile.file.filename}
+                                  </a>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                {projectFile.uploadedBy?.name ||
+                                  projectFile.uploadedBy?.email ||
+                                  t('unknown')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                {formatDate(projectFile.createdAt, lang)}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <button
+                                  onClick={() => handleDeleteFile(projectFile.id)}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-150 flex items-center justify-end ml-auto"
+                                  aria-label={t('filesTab.delete')}
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                  />
-                                </svg>
-                                <a
-                                  href={projectFile.file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline truncate"
-                                >
-                                  {projectFile.file.filename}
-                                </a>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              {projectFile.uploadedBy?.name ||
-                                projectFile.uploadedBy?.email ||
-                                t('unknown')}
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              {formatDate(projectFile.createdAt, lang)}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <button
-                                onClick={() => handleDeleteFile(projectFile.id)}
-                                className="text-red-600 hover:text-red-800 text-sm font-medium"
-                                aria-label={t('filesTab.delete')}
-                              >
-                                {t('filesTab.delete')}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                  {t('filesTab.delete')}
+                                </button>
+                              </td>
+                            </motion.tr>
+                          ))}
+                        </AnimatePresence>
                       </tbody>
                     </table>
-                  </div>
+                    <div className="p-4 bg-gray-50 border-t">
+                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center cursor-pointer transition-colors duration-150 shadow-sm hover:shadow">
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
+                        </svg>
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleUploadFile(Array.from(e.target.files))
+                            }
+                          }}
+                        />
+                        {t('uploadFile')}
+                      </label>
+                    </div>
+                  </motion.div>
                 ) : (
-                  <div className="bg-gray-50 rounded-lg p-8 text-center">
-                    <div className="text-gray-500 mb-3">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white rounded-lg p-8 text-center shadow-sm border transition-all duration-300 ease-in-out hover:shadow-md"
+                  >
+                    <motion.div
+                      className="text-blue-500 mb-4"
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        duration: 0.5,
+                        delay: 0.2,
+                        type: 'spring',
+                        stiffness: 260,
+                        damping: 20,
+                      }}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
                       <svg
-                        className="mx-auto h-12 w-12"
+                        className="mx-auto h-16 w-16"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -1076,9 +1155,36 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                           d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
                         />
                       </svg>
-                    </div>
-                    <p className="text-gray-600">{t('noProjectFiles')}</p>
-                    <label className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-block cursor-pointer">
+                    </motion.div>
+                    <motion.p
+                      className="text-gray-600 mb-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      {t('noProjectFiles')}
+                    </motion.p>
+                    <motion.label
+                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center cursor-pointer transition-all duration-200 shadow-sm hover:shadow"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
                       <input
                         type="file"
                         multiple
@@ -1089,9 +1195,9 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
                           }
                         }}
                       />
-                      {t('uploadFirstFile')}
-                    </label>
-                  </div>
+                      {t('uploadFile')}
+                    </motion.label>
+                  </motion.div>
                 )}
               </div>
             </div>
