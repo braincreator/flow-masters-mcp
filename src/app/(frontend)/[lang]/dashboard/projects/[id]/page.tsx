@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useState, Suspense, use } from 'react'
+import React, { useEffect, useState } from 'react'
+import { use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { formatDate } from '@/utilities/formatDate'
@@ -77,16 +78,25 @@ interface MessageItem {
 // Определение типа для файла проекта
 interface ProjectFile {
   id: string
-  filename: string
-  url: string
-  fileSize?: number
-  mimeType?: string
+  project: string // ID проекта
+  file: {
+    // Ссылка на документ из коллекции 'media'
+    id: string
+    filename: string
+    url: string
+    fileSize?: number
+    mimeType?: string
+    createdAt: string
+    updatedAt: string
+  }
   uploadedBy?: {
+    // Пользователь, который добавил файл к проекту (не обязательно тот, кто загрузил медиа)
     id: string
     name?: string
     email: string
   }
   createdAt: string
+  updatedAt: string
   category?: string
 }
 
@@ -99,26 +109,8 @@ const statusBadgeClasses: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800',
 }
 
-// This is the main component that will use React.use() to unwrap the params
-export default function ProjectDetailsPage({ params }: { params: any }) {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ProjectDetailsPageWrapper params={params} />
-    </Suspense>
-  )
-}
-
-// This component will safely unwrap the params
-function ProjectDetailsPageWrapper({ params }: { params: any }) {
-  // Safely unwrap the params using React.use()
-  const unwrappedParams = use(params) as { lang: string; id: string }
-  const { lang, id } = unwrappedParams
-
-  return <ProjectDetailsPageContent lang={lang} id={id} />
-}
-
-// This is the content component that receives unwrapped params
-function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
+export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
+  const { id, lang } = React.use(params)
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -151,6 +143,7 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
       try {
         setIsLoading(true)
         const response = await fetch(`/api/service-projects/${id}`, {
+          // Используем unwrapped id
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -171,7 +164,7 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
     }
 
     fetchProjectDetails()
-  }, [id, t, showNotification])
+  }, [id, t, showNotification]) // Используем unwrapped id в массиве зависимостей
 
   // Получение задач проекта при переключении на вкладку задач
   useEffect(() => {
@@ -180,19 +173,33 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
 
       try {
         setIsLoadingTasks(true)
+        console.log(`Fetching tasks for project ${project.id}...`) // Added logging
         const response = await fetch(`/api/tasks?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
 
+        console.log(`Tasks API response status: ${response.status}`) // Added logging
+
         if (!response.ok) {
-          throw new Error(t('errorLoadingTasks'))
+          // Attempt to read response body for more details
+          let errorDetails = ''
+          try {
+            const errorData = await response.json()
+            console.error('Error response data:', errorData) // Added logging
+            errorDetails = errorData.details || errorData.error || JSON.stringify(errorData)
+          } catch (parseError) {
+            console.error('Could not parse error response:', parseError) // Added logging
+            errorDetails = response.statusText
+          }
+          throw new Error(t('errorLoadingTasks') + (errorDetails ? `: ${errorDetails}` : '')) // Modified error message
         }
 
         const data = await response.json()
+        console.log('Tasks fetched successfully:', data) // Added logging
         setTasks(data)
       } catch (err) {
-        console.error('Error fetching tasks:', err)
+        console.error('Error fetching tasks:', err) // Existing logging
       } finally {
         setIsLoadingTasks(false)
       }
@@ -246,7 +253,14 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
         }
 
         const data = await response.json()
-        setProjectFiles(data.projectFiles || [])
+        // API возвращает массив файлов напрямую
+        if (Array.isArray(data)) {
+          setProjectFiles(data)
+        } else {
+          // Если структура неизвестна или не массив, используем пустой массив
+          setProjectFiles([])
+          console.error('Unexpected response format from project-files API:', data)
+        }
       } catch (err) {
         console.error('Error fetching files:', err)
       } finally {
@@ -362,12 +376,57 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
 
       if (updatedFilesResponse.ok) {
         const data = await updatedFilesResponse.json()
-        setProjectFiles(data.projectFiles || [])
+        // Проверяем структуру данных и устанавливаем projectFiles
+        if (Array.isArray(data)) {
+          setProjectFiles(data)
+        } else if (data.docs && Array.isArray(data.docs)) {
+          // Если API возвращает объект с полем docs (стандартный формат Payload CMS)
+          setProjectFiles(data.docs)
+        } else if (data.files && Array.isArray(data.files)) {
+          // Если API возвращает объект с полем files
+          setProjectFiles(data.files)
+        } else {
+          // Если структура неизвестна, используем пустой массив
+          setProjectFiles([])
+          console.error('Unexpected response format from project-files API:', data)
+        }
         showNotification('success', t('filesUploadedSuccess', { count: files.length }))
       }
     } catch (err) {
       console.error('Error uploading files:', err)
       showNotification('error', t('errorUploadingFiles'))
+    }
+  }
+
+  // Функция для удаления файла проекта
+  const handleDeleteFile = async (fileEntryId: string) => {
+    if (!project) return
+
+    if (!confirm(t('confirmDeleteFile'))) return
+
+    try {
+      console.log('Attempting to delete file with fileEntryId:', fileEntryId)
+
+      const response = await fetch(
+        `/api/project-files?projectId=${project.id}&fileId=${fileEntryId}`,
+        {
+          method: 'DELETE',
+        },
+      )
+
+      console.log('Delete API response status:', response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || t('errorDeletingFile'))
+      }
+
+      // Обновляем список файлов после успешного удаления
+      setProjectFiles(projectFiles.filter((file) => file.id !== fileEntryId))
+      showNotification('success', t('fileDeletedSuccessfully'))
+    } catch (err) {
+      console.error('Error deleting project file:', err)
+      showNotification('error', err instanceof Error ? err.message : t('unknownError'))
     }
   }
 
@@ -530,7 +589,7 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
                 {project.specificationText && project.specificationText[lang] ? (
                   <div className="bg-gray-50 p-4 rounded-md border">
                     <div className="prose max-w-none whitespace-pre-wrap">
-                      {project.specificationText[lang]}
+                      {project.specificationText[params.lang]}
                     </div>
                   </div>
                 ) : (
@@ -651,7 +710,7 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
                           )}
                         </div>
                         <div>
-                          {t('updated')}: {formatDate(task.updatedAt, lang)}
+                          {t('updated')}: {formatDate(task.updatedAt, params.lang)}
                         </div>
                       </div>
                     </div>
@@ -722,7 +781,7 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
                             : message.author.name || message.author.email}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {formatDate(message.createdAt, lang)}
+                          {formatDate(message.createdAt, params.lang)}
                         </div>
                       </div>
 
@@ -952,8 +1011,8 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {projectFiles.map((file) => (
-                          <tr key={file.id} className="hover:bg-gray-50">
+                        {projectFiles.map((projectFile) => (
+                          <tr key={projectFile.id} className="hover:bg-gray-50">
                             <td className="px-4 py-3">
                               <div className="flex items-center">
                                 <svg
@@ -969,24 +1028,32 @@ function ProjectDetailsPageContent({ lang, id }: { lang: string; id: string }) {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                   />
                                 </svg>
-                                <span className="truncate">{file.filename}</span>
+                                <a
+                                  href={projectFile.file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline truncate"
+                                >
+                                  {projectFile.file.filename}
+                                </a>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {file.uploadedBy?.name || file.uploadedBy?.email || t('unknown')}
+                              {projectFile.uploadedBy?.name ||
+                                projectFile.uploadedBy?.email ||
+                                t('unknown')}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {formatDate(file.createdAt, lang)}
+                              {formatDate(projectFile.createdAt, lang)}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              <button
+                                onClick={() => handleDeleteFile(projectFile.id)}
+                                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                aria-label={t('filesTab.delete')}
                               >
-                                {t('download')}
-                              </a>
+                                {t('filesTab.delete')}
+                              </button>
                             </td>
                           </tr>
                         ))}

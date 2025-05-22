@@ -19,6 +19,7 @@ import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
 import { NotificationService } from '../services/notification.service'
 import { convertPrice } from '@/utilities/formatPrice'
+import { generateOrderNumber, ORDER_PREFIXES } from '@/utilities/orderNumber'
 
 // Добавляем объявление типов для локализованного текста спецификации
 interface LocalizedSpecificationText {
@@ -200,10 +201,8 @@ const calculateOrderTotalsHook: CollectionBeforeChangeHook<OrderWithCalculatedFi
 
   // Generate order number if not provided
   if (!data.orderNumber && operation === 'create') {
-    // Import the utility function for consistent order number generation
-    const { generateOrderNumber } = require('@/utilities/orderNumber')
     // Generate order number based on order type
-    const prefix = data.orderType ? data.orderType.toUpperCase().substring(0, 4) : 'ORD'
+    const prefix = data.orderType ? ORDER_PREFIXES[data.orderType.toUpperCase() as keyof typeof ORDER_PREFIXES] || ORDER_PREFIXES.DEFAULT : ORDER_PREFIXES.DEFAULT
     data.orderNumber = generateOrderNumber(prefix)
   }
 
@@ -985,12 +984,8 @@ const createServiceProjectHook: CollectionAfterChangeHook<OrderWithCalculatedFie
       }
     }
 
-    // Import the utility function for extracting short order number
-    const { getShortOrderNumber } = require('@/utilities/orderNumber')
-
-    // Create project name with short order number for better readability
-    const shortOrderNumber = getShortOrderNumber(doc.orderNumber)
-    const projectName = `Проект по заказу ${doc.orderNumber} (${shortOrderNumber})`
+    // Создаем имя проекта
+    const projectName = `Проект по заказу ${doc.orderNumber}`
 
     // Создаем проект
     try {

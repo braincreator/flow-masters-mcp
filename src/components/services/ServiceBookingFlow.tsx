@@ -14,6 +14,7 @@ import AdditionalInfoForm from '@/components/services/AdditionalInfoForm'
 import type { BookingSettings, AdditionalInfoField } from '@/types/service'
 import ServicePrice from '@/components/services/ServicePrice'
 import { format } from 'date-fns' // Import format function
+import { formatOrderNumberForDisplay } from '@/utilities/orderNumber' // Import order number utility
 // import type { Locale } from '@/config/i18n.config' // Assuming you have a Locale type - Commenting out due to error
 
 // Define Locale type based on linter error
@@ -704,7 +705,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
           {(orderNumber || orderId) && (
             <p className="text-sm text-green-600 mb-4">
-              {t('orderNumber')}: <span className="font-medium">{orderNumber || orderId}</span>
+              {t('orderNumber')}: <span className="font-medium">{formatOrderNumberForDisplay(orderNumber || orderId || '')}</span>
             </p>
           )}
 

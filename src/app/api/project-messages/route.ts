@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
+import { getPayload } from 'payload'
 import { getAuth } from '../helpers/auth'
+import config from '@/payload.config'
+
+let cachedPayload = null
+
+async function getPayloadInstance() {
+  if (cachedPayload) {
+    return cachedPayload
+  }
+  cachedPayload = await getPayload({ config })
+  return cachedPayload
+}
 
 // Получение списка сообщений проекта
 export async function GET(req: NextRequest) {
@@ -18,6 +29,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Проверка доступа к проекту
+    const payload = await getPayloadInstance()
     const projectResponse = await payload.find({
       collection: 'service-projects',
       where: {
@@ -47,7 +59,7 @@ export async function GET(req: NextRequest) {
     const messagesResponse = await payload.find({
       collection: 'project-messages',
       where: {
-        'project.id': {
+        project: {
           equals: projectId,
         },
       },
@@ -78,6 +90,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Проверка доступа к проекту
+    const payload = await getPayloadInstance()
     const projectResponse = await payload.find({
       collection: 'service-projects',
       where: {

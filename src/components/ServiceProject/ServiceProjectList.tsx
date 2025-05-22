@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { formatDate } from '@/utilities/formatDate'
+import { formatOrderNumberForDisplay } from '@/utilities/orderNumber'
 import { useLocale } from 'next-intl'
 
 interface ServiceProject {
@@ -56,7 +57,7 @@ const ServiceProjectList: React.FC<ServiceProjectListProps> = ({ projects }) => 
       <ul className="divide-y divide-gray-200">
         {projects.map((project) => (
           <li key={project.id} className="hover:bg-gray-50 transition-colors">
-            <Link href={`/${locale}/dashboard/projects/${project.id}`} className="block p-4 sm:px-6 sm:py-5">
+            <Link href={`/projects/${project.id}`} className="block p-4 sm:px-6 sm:py-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-medium text-gray-900 truncate">{project.name}</h3>
@@ -64,7 +65,7 @@ const ServiceProjectList: React.FC<ServiceProjectListProps> = ({ projects }) => 
                     {project.serviceDetails?.serviceName || t('unknownService')}
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
-                    {t('orderNumber')}: {project.sourceOrder?.orderNumber || t('unknown')}
+                    {t('orderNumber')}: {project.sourceOrder?.orderNumber ? formatOrderNumberForDisplay(project.sourceOrder.orderNumber) : t('unknown')}
                   </p>
                 </div>
                 <div className="mt-3 sm:mt-0 flex flex-col sm:flex-row sm:space-x-4 items-start sm:items-center text-sm">

@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatPrice } from '@/utilities/formatPrice'
+import { formatOrderNumberForDisplay } from '@/utilities/orderNumber'
 import { CalendarClock, AlertCircle } from 'lucide-react'
 
 type PendingBooking = {
@@ -37,13 +38,13 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await fetch('/api/v1/services/booking/pending')
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch pending bookings')
         }
-        
+
         const data = await response.json()
         setPendingBookings(data.pendingBookings || [])
       } catch (err) {
@@ -53,7 +54,7 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
         setLoading(false)
       }
     }
-    
+
     fetchPendingBookings()
   }, [])
 
@@ -91,12 +92,12 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
           {t('pendingBookingsDescription')}
         </AlertDescription>
       </Alert>
-      
+
       {pendingBookings.map((item) => {
-        const serviceTitle = typeof item.service?.title === 'object' 
-          ? item.service?.title[locale] || item.service?.title.en 
+        const serviceTitle = typeof item.service?.title === 'object'
+          ? item.service?.title[locale] || item.service?.title.en
           : item.service?.title || t('unknownService')
-        
+
         return (
           <Card key={item.order.id} className="mb-4">
             <CardHeader>
@@ -105,7 +106,7 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
                 {t('pendingBookingFor')} {serviceTitle}
               </CardTitle>
               <CardDescription>
-                {t('orderNumber')}: {item.order.orderNumber}
+                {t('orderNumber')}: {formatOrderNumberForDisplay(item.order.orderNumber)}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -124,7 +125,7 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
               </p>
             </CardContent>
             <CardFooter>
-              <Button 
+              <Button
                 onClick={() => router.push(`/${locale}/services/booking/resume/${item.order.id}`)}
                 className="w-full"
               >

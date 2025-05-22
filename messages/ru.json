@@ -1249,10 +1249,7 @@
     "payNow": "Оплатить сейчас",
     "additionalInfoRequired": "Эта информация необходима для завершения бронирования.",
     "additionalInfoOptional": "Эта информация не обязательна, но помогает нам предоставить лучший сервис.",
-    "projectInitiatedTitle": "Проект по услуге инициирован",
-    "projectInitiatedDescription": "Спасибо! Ваш проект по услуге был инициирован. Мы рассмотрим детали и свяжемся с вами в ближайшее время. Вы можете отслеживать ваш заказ в личном кабинете.",
     "errorSavingAdditionalInfo": "Произошла ошибка при сохранении вашей информации. Пожалуйста, попробуйте еще раз.",
-    "initiatingServiceRequest": "Инициируем ваш запрос на услугу...",
     "errorInitiatingOrder": "Не удалось начать ваш запрос на услугу."
   },
   "ServiceCustomFields": {
@@ -1961,6 +1958,13 @@
     "tabTasks": "Задачи",
     "tabMessages": "Обсуждения",
     "tabFiles": "Файлы",
+    "filesTab": {
+      "delete": "Удалить",
+      "confirmDeleteFile": "Вы уверены, что хотите удалить этот файл?",
+      "fileDeletedSuccessfully": "Файл успешно удален.",
+      "errorDeletingFile": "Ошибка при удалении файла.",
+      "unknownError": "Неизвестная ошибка"
+    },
     "specification": "Техническое задание",
     "specificationText": "Текст технического задания",
     "specificationFiles": "Файлы технического задания",

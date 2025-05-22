@@ -162,6 +162,7 @@ export interface Config {
     'assessment-submissions': AssessmentSubmission;
     'learning-paths': LearningPath;
     'waiting-list-entries': WaitingListEntry;
+    'project-files': ProjectFile;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -241,6 +242,7 @@ export interface Config {
     'assessment-submissions': AssessmentSubmissionsSelect<false> | AssessmentSubmissionsSelect<true>;
     'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
     'waiting-list-entries': WaitingListEntriesSelect<false> | WaitingListEntriesSelect<true>;
+    'project-files': ProjectFilesSelect<false> | ProjectFilesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -11809,6 +11811,19 @@ export interface WaitingListEntry {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-files".
+ */
+export interface ProjectFile {
+  id: string;
+  project: string | ServiceProject;
+  file: string | Media;
+  uploadedBy: string | User;
+  category?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -12426,6 +12441,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'waiting-list-entries';
         value: string | WaitingListEntry;
+      } | null)
+    | ({
+        relationTo: 'project-files';
+        value: string | ProjectFile;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -17875,6 +17894,18 @@ export interface WaitingListEntriesSelect<T extends boolean = true> {
   user?: T;
   course?: T;
   notified?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-files_select".
+ */
+export interface ProjectFilesSelect<T extends boolean = true> {
+  project?: T;
+  file?: T;
+  uploadedBy?: T;
+  category?: T;
   updatedAt?: T;
   createdAt?: T;
 }

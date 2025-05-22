@@ -53,6 +53,7 @@ import { CourseReviews } from './collections/CourseReviews/config'
 import { AssessmentSubmissions } from './collections/AssessmentSubmissions/config' // Import AssessmentSubmissions
 import { LearningPaths } from './collections/LearningPaths/config' // Import LearningPaths
 import { WaitingListEntries } from './collections/WaitingListEntries/config' // Import WaitingListEntries
+import { ProjectFiles } from './collections/ProjectFiles/config' // Import ProjectFiles
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
@@ -97,8 +98,8 @@ interface RecalculateSegmentsInput {
 }
 // ----------------------------------------------------- //
 
-import { PaymentService } from './services/payment.service'; // Import PaymentService
-import { isAdmin } from './access/isAdmin'; // Import isAdmin for access control
+import { PaymentService } from './services/payment.service' // Import PaymentService
+import { isAdmin } from './access/isAdmin' // Import isAdmin for access control
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
@@ -111,57 +112,66 @@ export default buildConfig({
 
     // Custom components for the admin panel
     // Conditionally load complex components to avoid issues during type generation
-    components: process.env.IS_GENERATING_TYPES === 'true' ? {} : {
-      // Define custom views
-      views: {
-        monitoring: {
-          path: '/monitoring',
-          Component: dashboardPath,
-        },
-        landingGenerator: {
-          path: '/landing-generator',
-          Component: '@/components/admin/LandingGeneratorView',
-        },
-        setupRewards: {
-          path: '/admin/setup-rewards',
-          // Use placeholder during type generation
-          Component: process.env.IS_GENERATING_TYPES === 'true' ? '@/components/admin/CustomAction' : '@/app/(admin)/admin/setup-rewards/page',
-        },
-        courseCreator: {
-          path: '/course-creator',
-          Component: '@/components/admin/CourseCreatorView',
-        },
-        analytics: {
-          path: '/analytics',
-          Component: '@/components/admin/AnalyticsView',
-        },
-        emailCampaigns: {
-          path: '/email-campaigns',
-          Component: '@/components/admin/EmailCampaignView',
-        },
-        endpoints: {
-          path: '/endpoints',
-          // Use placeholder during type generation
-          Component: process.env.IS_GENERATING_TYPES === 'true' ? '@/components/admin/CustomAction' : '@/app/admin/endpoints/page',
-        },
-      },
-      // Custom navigation components
-      afterNavLinks: ['@/components/admin/CustomNavigation'],
-      // Custom branding
-      graphics: {
-        Logo: '@/components/admin/CustomLogo',
-        Icon: '@/components/admin/CustomIcon',
-      },
-      // Custom header
-      header: ['@/components/admin/CustomHeader'],
-      // Custom actions in the header
-      actions: ['@/components/admin/CustomAction'],
-      // Other component overrides
-      beforeLogin: ['@/components/admin/CustomLoginMessage'],
-      beforeDashboard: ['@/components/admin/CustomDashboard'],
-      // Custom providers
-      providers: ['@/components/admin/CustomProvider'],
-    },
+    components:
+      process.env.IS_GENERATING_TYPES === 'true'
+        ? {}
+        : {
+            // Define custom views
+            views: {
+              monitoring: {
+                path: '/monitoring',
+                Component: dashboardPath,
+              },
+              landingGenerator: {
+                path: '/landing-generator',
+                Component: '@/components/admin/LandingGeneratorView',
+              },
+              setupRewards: {
+                path: '/admin/setup-rewards',
+                // Use placeholder during type generation
+                Component:
+                  process.env.IS_GENERATING_TYPES === 'true'
+                    ? '@/components/admin/CustomAction'
+                    : '@/app/(admin)/admin/setup-rewards/page',
+              },
+              courseCreator: {
+                path: '/course-creator',
+                Component: '@/components/admin/CourseCreatorView',
+              },
+              analytics: {
+                path: '/analytics',
+                Component: '@/components/admin/AnalyticsView',
+              },
+              emailCampaigns: {
+                path: '/email-campaigns',
+                Component: '@/components/admin/EmailCampaignView',
+              },
+              endpoints: {
+                path: '/endpoints',
+                // Use placeholder during type generation
+                Component:
+                  process.env.IS_GENERATING_TYPES === 'true'
+                    ? '@/components/admin/CustomAction'
+                    : '@/app/admin/endpoints/page',
+              },
+            },
+            // Custom navigation components
+            afterNavLinks: ['@/components/admin/CustomNavigation'],
+            // Custom branding
+            graphics: {
+              Logo: '@/components/admin/CustomLogo',
+              Icon: '@/components/admin/CustomIcon',
+            },
+            // Custom header
+            header: ['@/components/admin/CustomHeader'],
+            // Custom actions in the header
+            actions: ['@/components/admin/CustomAction'],
+            // Other component overrides
+            beforeLogin: ['@/components/admin/CustomLoginMessage'],
+            beforeDashboard: ['@/components/admin/CustomDashboard'],
+            // Custom providers
+            providers: ['@/components/admin/CustomProvider'],
+          },
 
     // Custom navigation is implemented through afterNavLinks component
     // In Payload v3, navigation groups are handled through custom components
@@ -248,7 +258,8 @@ export default buildConfig({
     CourseReviews,
     AssessmentSubmissions,
     LearningPaths,
-    WaitingListEntries
+    WaitingListEntries,
+    ProjectFiles, // Add ProjectFiles
   ], // Add WaitingListEntries (comment seems misplaced, but keeping structure)
   globals: [...globalsList],
   email: nodemailerAdapter({
@@ -541,66 +552,85 @@ export default buildConfig({
     {
       path: '/orders/:id/refund',
       method: 'post',
-      handler: async (req: PayloadRequest, res: Response) => { // Added types for req and res
+      handler: async (req: PayloadRequest, res: Response) => {
+        // Added types for req and res
         if (!isAdmin({ req })) {
-          return res.status(403).json({ error: 'Forbidden' });
+          return res.status(403).json({ error: 'Forbidden' })
         }
         try {
-          const orderId = req.routeParams?.id as string; // Try expressRequest first, then fallback to req
-          const { amount, currency, reason } = req.body as { amount?: string | number; currency?: string; reason?: string };
+          const orderId = req.routeParams?.id as string // Try expressRequest first, then fallback to req
+          const { amount, currency, reason } = req.body as {
+            amount?: string | number
+            currency?: string
+            reason?: string
+          }
 
           if (!orderId || !currency) {
-            return res.status(400).json({ error: 'Order ID and currency are required.' });
+            return res.status(400).json({ error: 'Order ID and currency are required.' })
           }
-          
-          let amountToRefund: number | undefined = undefined;
+
+          let amountToRefund: number | undefined = undefined
           if (amount !== undefined && amount !== null) {
-            amountToRefund = parseFloat(String(amount)); // Convert amount to string before parseFloat
+            amountToRefund = parseFloat(String(amount)) // Convert amount to string before parseFloat
             if (isNaN(amountToRefund)) {
-              return res.status(400).json({ error: 'Invalid amount provided.' });
+              return res.status(400).json({ error: 'Invalid amount provided.' })
             }
           }
 
-          const paymentService = PaymentService.getInstance(req.payload);
-          const result = await paymentService.refundPayment(orderId, currency, amountToRefund, reason);
-          
+          const paymentService = PaymentService.getInstance(req.payload)
+          const result = await paymentService.refundPayment(
+            orderId,
+            currency,
+            amountToRefund,
+            reason,
+          )
+
           if (result.status === 'succeeded' || result.status === 'refunded') {
-            return res.status(200).json({ success: true, message: 'Refund processed successfully.', details: result });
+            return res
+              .status(200)
+              .json({ success: true, message: 'Refund processed successfully.', details: result })
           } else {
-            return res.status(400).json({ success: false, message: 'Refund processing failed.', details: result });
+            return res
+              .status(400)
+              .json({ success: false, message: 'Refund processing failed.', details: result })
           }
         } catch (error: any) {
-          req.payload.logger.error(`Error in /orders/:id/refund endpoint: ${error.message}`);
-          return res.status(500).json({ error: 'Internal server error during refund.' });
+          req.payload.logger.error(`Error in /orders/:id/refund endpoint: ${error.message}`)
+          return res.status(500).json({ error: 'Internal server error during refund.' })
         }
       },
     },
     {
       path: '/orders/:id/void',
       method: 'post',
-      handler: async (req: PayloadRequest, res: Response) => { // Added types for req and res
+      handler: async (req: PayloadRequest, res: Response) => {
+        // Added types for req and res
         if (!isAdmin({ req })) {
-          return res.status(403).json({ error: 'Forbidden' });
+          return res.status(403).json({ error: 'Forbidden' })
         }
         try {
-          const orderId = req.routeParams?.id as string; // Try expressRequest first, then fallback to req
-          const { reason } = req.body as { reason?: string };
+          const orderId = req.routeParams?.id as string // Try expressRequest first, then fallback to req
+          const { reason } = req.body as { reason?: string }
 
           if (!orderId) {
-            return res.status(400).json({ error: 'Order ID is required.' });
+            return res.status(400).json({ error: 'Order ID is required.' })
           }
 
-          const paymentService = PaymentService.getInstance(req.payload);
-          const result = await paymentService.voidPayment(orderId, reason);
+          const paymentService = PaymentService.getInstance(req.payload)
+          const result = await paymentService.voidPayment(orderId, reason)
 
           if (result.status === 'succeeded' || result.status === 'voided') {
-            return res.status(200).json({ success: true, message: 'Void processed successfully.', details: result });
+            return res
+              .status(200)
+              .json({ success: true, message: 'Void processed successfully.', details: result })
           } else {
-            return res.status(400).json({ success: false, message: 'Void processing failed.', details: result });
+            return res
+              .status(400)
+              .json({ success: false, message: 'Void processing failed.', details: result })
           }
         } catch (error: any) {
-          req.payload.logger.error(`Error in /orders/:id/void endpoint: ${error.message}`);
-          return res.status(500).json({ error: 'Internal server error during void.' });
+          req.payload.logger.error(`Error in /orders/:id/void endpoint: ${error.message}`)
+          return res.status(500).json({ error: 'Internal server error during void.' })
         }
       },
     },
@@ -676,19 +706,19 @@ export default buildConfig({
             id: id,
             depth: 0,
           })
-    
+
           if (!result) {
             return res.status(404).send('Template not found')
           }
-    
+
           // Cast to a simple object with html property
           const template = result as unknown as { html?: string }
-    
+
           if (typeof template.html !== 'string') {
             req.payload.logger.warn(`Template ${id} has no generated HTML content for preview.`)
             return res.status(500).send('<p>Error: Template HTML not generated.</p>')
           }
-    
+
           res.setHeader('Content-Type', 'text/html')
           res.status(200).send(template.html)
         } catch (error: unknown) {
@@ -779,10 +809,7 @@ export default buildConfig({
       const automationJobsQuery = await payload.find({
         collection: 'automation-jobs',
         where: {
-          and: [
-            { status: { equals: 'active' } },
-            { triggerType: { equals: 'schedule' } },
-          ],
+          and: [{ status: { equals: 'active' } }, { triggerType: { equals: 'schedule' } }],
         },
         limit: 1000, // Adjust limit as needed
         overrideAccess: true,
@@ -798,51 +825,80 @@ export default buildConfig({
 
         // Determine cron expression based on frequency or custom schedule
         // Access schedule properties via job.schedule?.propertyName
-        if (job.schedule?.frequency === 'custom' && typeof job.schedule?.cronExpression === 'string' && cron.validate(job.schedule.cronExpression)) {
+        if (
+          job.schedule?.frequency === 'custom' &&
+          typeof job.schedule?.cronExpression === 'string' &&
+          cron.validate(job.schedule.cronExpression)
+        ) {
           cronExpression = job.schedule.cronExpression
         } else if (job.schedule?.frequency === 'daily') {
           // Example: Run daily at a specific time (e.g., 2 AM)
           cronExpression = '0 2 * * *' // Default daily schedule
           if (typeof job.schedule?.time === 'string' && /^\d{1,2}:\d{2}$/.test(job.schedule.time)) {
-             const [hour, minute] = job.schedule.time.split(':')
-             cronExpression = `${minute} ${hour} * * *`
-          } else if (job.schedule?.time) { // Check if time property exists
-             payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time format for daily schedule: '${job.schedule.time}'. Using default 2 AM.`)
+            const [hour, minute] = job.schedule.time.split(':')
+            cronExpression = `${minute} ${hour} * * *`
+          } else if (job.schedule?.time) {
+            // Check if time property exists
+            payload.logger.warn(
+              `Job '${job.name}' (${job.id}): Invalid time format for daily schedule: '${job.schedule.time}'. Using default 2 AM.`,
+            )
           }
         } else if (job.schedule?.frequency === 'weekly') {
           // Example: Run weekly on Sunday at 3 AM
           cronExpression = '0 3 * * 0' // Default weekly schedule (Sunday 3 AM)
-           // Check if schedule object and required properties exist
-           if (typeof job.schedule === 'object' && job.schedule && typeof job.schedule.dayOfWeek === 'number' && typeof job.schedule.time === 'string') {
-             const { dayOfWeek, time } = job.schedule
-             if (/^\d{1,2}:\d{2}$/.test(time) && dayOfWeek >= 0 && dayOfWeek <= 6) {
-               const [hour, minute] = time.split(':')
-               cronExpression = `${minute} ${hour} * * ${dayOfWeek}`
-             } else {
-               payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfWeek ('${dayOfWeek}') for weekly schedule. Using default Sunday 3 AM.`)
-             }
-           } else if (job.schedule) { // Check if schedule group exists at all
-             payload.logger.warn(`Job '${job.name}' (${job.id}): Missing or invalid dayOfWeek/time for weekly schedule. Using default Sunday 3 AM.`)
-           }
+          // Check if schedule object and required properties exist
+          if (
+            typeof job.schedule === 'object' &&
+            job.schedule &&
+            typeof job.schedule.dayOfWeek === 'number' &&
+            typeof job.schedule.time === 'string'
+          ) {
+            const { dayOfWeek, time } = job.schedule
+            if (/^\d{1,2}:\d{2}$/.test(time) && dayOfWeek >= 0 && dayOfWeek <= 6) {
+              const [hour, minute] = time.split(':')
+              cronExpression = `${minute} ${hour} * * ${dayOfWeek}`
+            } else {
+              payload.logger.warn(
+                `Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfWeek ('${dayOfWeek}') for weekly schedule. Using default Sunday 3 AM.`,
+              )
+            }
+          } else if (job.schedule) {
+            // Check if schedule group exists at all
+            payload.logger.warn(
+              `Job '${job.name}' (${job.id}): Missing or invalid dayOfWeek/time for weekly schedule. Using default Sunday 3 AM.`,
+            )
+          }
         } else if (job.schedule?.frequency === 'monthly') {
           // Example: Run monthly on the 1st day at 4 AM
           cronExpression = '0 4 1 * *' // Default monthly schedule (1st day 4 AM)
-           // Check if schedule object and required properties exist
-          if (typeof job.schedule === 'object' && job.schedule && typeof job.schedule.dayOfMonth === 'number' && typeof job.schedule.time === 'string') {
+          // Check if schedule object and required properties exist
+          if (
+            typeof job.schedule === 'object' &&
+            job.schedule &&
+            typeof job.schedule.dayOfMonth === 'number' &&
+            typeof job.schedule.time === 'string'
+          ) {
             const { dayOfMonth, time } = job.schedule
             if (/^\d{1,2}:\d{2}$/.test(time) && dayOfMonth >= 1 && dayOfMonth <= 31) {
               const [hour, minute] = time.split(':')
               cronExpression = `${minute} ${hour} ${dayOfMonth} * *`
             } else {
-              payload.logger.warn(`Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfMonth ('${dayOfMonth}') for monthly schedule. Using default 1st day 4 AM.`)
+              payload.logger.warn(
+                `Job '${job.name}' (${job.id}): Invalid time ('${time}') or dayOfMonth ('${dayOfMonth}') for monthly schedule. Using default 1st day 4 AM.`,
+              )
             }
-          } else if (job.schedule) { // Check if schedule group exists at all
-            payload.logger.warn(`Job '${job.name}' (${job.id}): Missing or invalid dayOfMonth/time for monthly schedule. Using default 1st day 4 AM.`)
+          } else if (job.schedule) {
+            // Check if schedule group exists at all
+            payload.logger.warn(
+              `Job '${job.name}' (${job.id}): Missing or invalid dayOfMonth/time for monthly schedule. Using default 1st day 4 AM.`,
+            )
           }
         }
 
         if (cronExpression && cron.validate(cronExpression)) {
-          payload.logger.info(`Scheduling job '${job.name}' (${job.id}) with schedule: ${cronExpression}`)
+          payload.logger.info(
+            `Scheduling job '${job.name}' (${job.id}) with schedule: ${cronExpression}`,
+          )
 
           cron.schedule(
             cronExpression,
@@ -855,10 +911,13 @@ export default buildConfig({
                 const serviceRegistry = ServiceRegistry.getInstance(payload)
 
                 switch (job.jobType) {
-                  case 'update_course_booking_statuses' as string: { // Assert type to handle potentially outdated generated types
+                  case 'update_course_booking_statuses' as string: {
+                    // Assert type to handle potentially outdated generated types
                     const courseService = new CourseService(payload) // Instantiate CourseService directly
                     await courseService.updateAllCourseBookingStatuses()
-                    payload.logger.info(`Job '${job.name}' (${job.id}): Successfully updated course booking statuses.`)
+                    payload.logger.info(
+                      `Job '${job.name}' (${job.id}): Successfully updated course booking statuses.`,
+                    )
                     jobStatus = 'success'
                     break
                   }
@@ -867,14 +926,17 @@ export default buildConfig({
                   //   // ... logic for another job
                   //   break;
                   default:
-                    payload.logger.warn(`Job '${job.name}' (${job.id}): Unimplemented job type '${job.jobType}'.`)
+                    payload.logger.warn(
+                      `Job '${job.name}' (${job.id}): Unimplemented job type '${job.jobType}'.`,
+                    )
                     // Mark as success even if unimplemented to avoid repeated errors for unknown types
                     // Or potentially mark as 'skipped' if you add such a status
                     jobStatus = 'success'
                     break
                 }
               } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error during job execution'
+                const errorMessage =
+                  error instanceof Error ? error.message : 'Unknown error during job execution'
                 payload.logger.error(`Job '${job.name}' (${job.id}) failed: ${errorMessage}`, error)
                 // Optionally update the job status to 'error' in the DB
                 try {
@@ -889,30 +951,41 @@ export default buildConfig({
                     overrideAccess: true,
                   })
                 } catch (updateError) {
-                  payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update job status to error after execution failure.`, updateError)
+                  payload.logger.error(
+                    `Job '${job.name}' (${job.id}): Failed to update job status to error after execution failure.`,
+                    updateError,
+                  )
                 }
               } finally {
                 // Always update lastRun, regardless of success or failure, unless it failed to update status above
-                if (jobStatus === 'success') { // Only update lastRun if the main logic succeeded or was skipped
-                   try {
-                     await payload.update({
-                       collection: 'automation-jobs',
-                       id: job.id,
-                       data: {
-                         lastRun: new Date().toISOString(), // Convert Date to ISO string
-                         // Optionally clear error status if it succeeded now
-                         // status: 'active',
-                       },
-                       overrideAccess: true,
-                     })
-                     const duration = Date.now() - jobStartTime
-                     payload.logger.info(`Job '${job.name}' (${job.id}) finished. Duration: ${duration}ms. Updated lastRun.`)
-                   } catch (updateError) {
-                     payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update lastRun timestamp after successful execution.`, updateError)
-                   }
-                } else {
+                if (jobStatus === 'success') {
+                  // Only update lastRun if the main logic succeeded or was skipped
+                  try {
+                    await payload.update({
+                      collection: 'automation-jobs',
+                      id: job.id,
+                      data: {
+                        lastRun: new Date().toISOString(), // Convert Date to ISO string
+                        // Optionally clear error status if it succeeded now
+                        // status: 'active',
+                      },
+                      overrideAccess: true,
+                    })
                     const duration = Date.now() - jobStartTime
-                    payload.logger.info(`Job '${job.name}' (${job.id}) finished with errors. Duration: ${duration}ms.`)
+                    payload.logger.info(
+                      `Job '${job.name}' (${job.id}) finished. Duration: ${duration}ms. Updated lastRun.`,
+                    )
+                  } catch (updateError) {
+                    payload.logger.error(
+                      `Job '${job.name}' (${job.id}): Failed to update lastRun timestamp after successful execution.`,
+                      updateError,
+                    )
+                  }
+                } else {
+                  const duration = Date.now() - jobStartTime
+                  payload.logger.info(
+                    `Job '${job.name}' (${job.id}) finished with errors. Duration: ${duration}ms.`,
+                  )
                 }
               }
             },
@@ -926,19 +999,22 @@ export default buildConfig({
             `Job '${job.name}' (${job.id}): Could not determine a valid cron schedule from frequency '${job.schedule?.frequency}' and schedule data. Job will not be scheduled.`,
           )
           // Optionally update the job status to 'inactive' or 'error' if schedule is invalid
-           try {
-             await payload.update({
-               collection: 'automation-jobs',
-               id: job.id,
-               data: {
-                 status: 'error', // Or 'inactive'
-                 // jobLogs: (job.jobLogs || []).concat([{ timestamp: new Date(), level: 'warn', message: 'Invalid or missing schedule configuration.' }]),
-               },
-               overrideAccess: true,
-             })
-           } catch (updateError) {
-             payload.logger.error(`Job '${job.name}' (${job.id}): Failed to update job status to error due to invalid schedule.`, updateError)
-           }
+          try {
+            await payload.update({
+              collection: 'automation-jobs',
+              id: job.id,
+              data: {
+                status: 'error', // Or 'inactive'
+                // jobLogs: (job.jobLogs || []).concat([{ timestamp: new Date(), level: 'warn', message: 'Invalid or missing schedule configuration.' }]),
+              },
+              overrideAccess: true,
+            })
+          } catch (updateError) {
+            payload.logger.error(
+              `Job '${job.name}' (${job.id}): Failed to update job status to error due to invalid schedule.`,
+              updateError,
+            )
+          }
         }
       })
     } catch (error) {
