@@ -9332,53 +9332,37 @@ export interface ProjectMilestone {
    */
   project: string | ServiceProject;
   /**
-   * Порядковый номер этапа
+   * Дата начала
    */
-  order: number;
+  startDate?: string | null;
   /**
-   * Статус этапа
-   */
-  status: 'planned' | 'in_progress' | 'completed' | 'delayed';
-  /**
-   * Планируемая дата завершения
+   * Плановая дата завершения
    */
   dueDate?: string | null;
   /**
    * Фактическая дата завершения
    */
-  completedAt?: string | null;
+  completionDate?: string | null;
   /**
-   * Результаты этапа
+   * Статус этапа
    */
-  deliverables?:
-    | {
-        /**
-         * Название результата
-         */
-        title: string;
-        /**
-         * Описание результата
-         */
-        description?: string | null;
-        /**
-         * Файлы результата
-         */
-        files?: (string | Media)[] | null;
-        id?: string | null;
-      }[]
-    | null;
+  status: 'not_started' | 'in_progress' | 'completed' | 'overdue';
   /**
-   * Требуется подтверждение клиента
+   * Приоритет этапа
    */
-  clientApprovalRequired?: boolean | null;
+  priority?: ('low' | 'medium' | 'high' | 'critical') | null;
   /**
-   * Подтверждено клиентом
+   * Прогресс выполнения (0-100%)
    */
-  clientApproved?: boolean | null;
+  progress?: number | null;
   /**
-   * Отзыв клиента
+   * Зависимости (этапы, которые должны быть завершены до начала этого этапа)
    */
-  clientFeedback?: string | null;
+  dependencies?: (string | ProjectMilestone)[] | null;
+  /**
+   * Связанные задачи
+   */
+  associatedTasks?: (string | Task)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -9509,50 +9493,37 @@ export interface ProjectReport {
 export interface ProjectFeedback {
   id: string;
   /**
-   * The project this feedback is for
+   * Заголовок отзыва
+   */
+  title: string;
+  /**
+   * Проект
    */
   project: string | ServiceProject;
   /**
-   * The milestone this feedback is for (if applicable)
+   * Автор отзыва
    */
-  milestone?: (string | null) | ProjectMilestone;
+  author: string | User;
   /**
-   * Type of feedback
-   */
-  feedbackType: 'milestone' | 'survey' | 'completion';
-  /**
-   * Satisfaction rating (1-5)
+   * Оценка (от 1 до 5)
    */
   rating: number;
   /**
-   * Ratings for specific aspects of the service
+   * Текст отзыва
    */
-  aspectRatings?: {
-    /**
-     * Communication rating (1-5)
-     */
-    communication?: number | null;
-    /**
-     * Quality rating (1-5)
-     */
-    quality?: number | null;
-    /**
-     * Timeliness rating (1-5)
-     */
-    timeliness?: number | null;
-    /**
-     * Value for money rating (1-5)
-     */
-    valueForMoney?: number | null;
-  };
+  comment: string;
   /**
-   * Additional comments or feedback
+   * Тип отзыва
    */
-  comment?: string | null;
+  feedbackType: 'general' | 'milestone' | 'collaboration' | 'result';
   /**
-   * User who submitted the feedback
+   * Связанный этап проекта (если применимо)
    */
-  submittedBy?: (string | null) | User;
+  milestone?: (string | null) | ProjectMilestone;
+  /**
+   * Показывать отзыв публично
+   */
+  isPublic?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -16390,21 +16361,14 @@ export interface ProjectMilestonesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   project?: T;
-  order?: T;
-  status?: T;
+  startDate?: T;
   dueDate?: T;
-  completedAt?: T;
-  deliverables?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        files?: T;
-        id?: T;
-      };
-  clientApprovalRequired?: T;
-  clientApproved?: T;
-  clientFeedback?: T;
+  completionDate?: T;
+  status?: T;
+  priority?: T;
+  progress?: T;
+  dependencies?: T;
+  associatedTasks?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -16520,20 +16484,14 @@ export interface ProjectTemplatesSelect<T extends boolean = true> {
  * via the `definition` "project-feedback_select".
  */
 export interface ProjectFeedbackSelect<T extends boolean = true> {
+  title?: T;
   project?: T;
-  milestone?: T;
-  feedbackType?: T;
+  author?: T;
   rating?: T;
-  aspectRatings?:
-    | T
-    | {
-        communication?: T;
-        quality?: T;
-        timeliness?: T;
-        valueForMoney?: T;
-      };
   comment?: T;
-  submittedBy?: T;
+  feedbackType?: T;
+  milestone?: T;
+  isPublic?: T;
   updatedAt?: T;
   createdAt?: T;
 }
