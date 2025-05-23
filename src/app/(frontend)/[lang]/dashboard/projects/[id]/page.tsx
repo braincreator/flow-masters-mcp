@@ -62,7 +62,9 @@ interface TaskItem {
   id: string
   title: string
   description?: string
-  status: string
+  status: 'new' | 'in_progress' | 'completed'
+  dueDate?: string
+  completionDate?: string
   createdAt: string
   updatedAt: string
   assignedTo?: {

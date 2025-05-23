@@ -9264,6 +9264,14 @@ export interface Task {
    */
   status: 'new' | 'in_progress' | 'completed';
   /**
+   * Плановая дата завершения задачи
+   */
+  dueDate?: string | null;
+  /**
+   * Фактическая дата завершения задачи
+   */
+  completionDate?: string | null;
+  /**
    * Ответственный
    */
   assignedTo: string | User;
@@ -16336,6 +16344,8 @@ export interface TasksSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   status?: T;
+  dueDate?: T;
+  completionDate?: T;
   assignedTo?: T;
   updatedAt?: T;
   createdAt?: T;

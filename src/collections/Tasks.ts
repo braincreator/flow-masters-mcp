@@ -99,6 +99,27 @@ const Tasks: CollectionConfig = {
       },
     },
     {
+      name: 'dueDate',
+      type: 'date',
+      admin: {
+        description: 'Плановая дата завершения задачи',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'completionDate',
+      type: 'date',
+      admin: {
+        description: 'Фактическая дата завершения задачи',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+        condition: (data) => data?.status === 'completed',
+      },
+    },
+    {
       name: 'assignedTo',
       type: 'relationship',
       relationTo: 'users',

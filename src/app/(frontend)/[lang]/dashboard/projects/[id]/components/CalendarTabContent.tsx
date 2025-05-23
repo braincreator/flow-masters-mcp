@@ -1,21 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
+import {
+  CalendarEvent,
+  processMilestoneEvents,
+  processTaskEvents,
+  processProjectEvents,
+  groupEventsByDate,
+  getEventsForDate,
+  hasEventsOnDate,
+  getEventStyleClasses,
+  formatEventTooltip,
+} from '@/utilities/calendarEvents'
+import { formatDate } from '@/utilities/formatDate'
 
 // Types
 interface MilestoneItem {
   id: string
   title: string
-  status: string
+  description?: string
+  status: 'not_started' | 'in_progress' | 'completed' | 'overdue'
+  priority?: 'low' | 'medium' | 'high' | 'critical'
   startDate?: string
   dueDate?: string
+  completionDate?: string
+  progress?: number
 }
 
 interface TaskItem {
   id: string
   title: string
-  status: string
+  description?: string
+  status: 'new' | 'in_progress' | 'completed'
   dueDate?: string
+  completionDate?: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface ProjectDetails {
@@ -35,36 +59,47 @@ interface CalendarTabContentProps {
 const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
   const { milestones, tasks, isLoadingCalendarData, project, lang, t } = props
 
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
 
-  // Format month name
-  const formatMonthYear = (date: Date) => {
-    return date.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+  // Process all events from milestones, tasks, and project
+  const allEvents = useMemo(() => {
+    const events: CalendarEvent[] = []
 
-  // Navigation functions
-  const goToPreviousMonth = () => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(currentDate.getMonth() - 1)
-    setCurrentDate(newDate)
-  }
+    // Process milestone events
+    if (milestones && milestones.length > 0) {
+      events.push(...processMilestoneEvents(milestones))
+    }
 
-  const goToNextMonth = () => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(currentDate.getMonth() + 1)
-    setCurrentDate(newDate)
-  }
+    // Process task events
+    if (tasks && tasks.length > 0) {
+      events.push(...processTaskEvents(tasks))
+    }
 
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
+    // Process project events
+    if (project) {
+      events.push(
+        ...processProjectEvents({
+          id: project.id,
+          name: project.name,
+          createdAt: new Date().toISOString(), // Fallback if not available
+          updatedAt: new Date().toISOString(), // Fallback if not available
+          status: 'active',
+        }),
+      )
+    }
 
-  // Weekday headers
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    return events.sort((a, b) => a.date.getTime() - b.date.getTime())
+  }, [milestones, tasks, project])
+
+  // Group events by date for easy lookup
+  const eventsByDate = useMemo(() => groupEventsByDate(allEvents), [allEvents])
+
+  // Get events for selected date
+  const selectedDateEvents = useMemo(() => {
+    if (!selectedDate) return []
+    return getEventsForDate(allEvents, selectedDate)
+  }, [allEvents, selectedDate])
 
   return (
     <motion.div
@@ -80,62 +115,17 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
           {t('calendarTab.title')}
         </h3>
         <div className="flex items-center space-x-4">
-          <button
-            onClick={goToToday}
-            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm transition-colors duration-150 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const today = new Date()
+              setSelectedDate(today)
+              setCurrentMonth(today)
+            }}
           >
             {t('calendarTab.today')}
-          </button>
-          <div className="flex">
-            <button
-              onClick={goToPreviousMonth}
-              className="p-1.5 bg-gray-100 text-gray-700 rounded-l border-r border-gray-300 hover:bg-gray-200 transition-colors duration-150 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={goToNextMonth}
-              className="p-1.5 bg-gray-100 text-gray-700 rounded-r hover:bg-gray-200 transition-colors duration-150 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </div>
-          <div className="flex">
-            <button
-              onClick={() => setViewMode('month')}
-              className={`px-3 py-1.5 text-sm transition-colors duration-150 rounded-l border-r ${
-                viewMode === 'month'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600'
-              }`}
-            >
-              {t('calendarTab.month')}
-            </button>
-            <button
-              onClick={() => setViewMode('week')}
-              className={`px-3 py-1.5 text-sm transition-colors duration-150 rounded-r ${
-                viewMode === 'week'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              {t('calendarTab.week')}
-            </button>
-          </div>
+          </Button>
         </div>
       </div>
 
@@ -144,41 +134,158 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
           <AnimatedLoadingIndicator size="medium" />
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <div className="flex justify-center p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              {formatMonthYear(currentDate)}
-            </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Calendar */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardContent className="p-6">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  month={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  className="rounded-md border"
+                  modifiers={{
+                    hasEvents: (date) => hasEventsOnDate(allEvents, date),
+                    hasOverdueEvents: (date) => {
+                      const dayEvents = getEventsForDate(allEvents, date)
+                      return dayEvents.some((event) => event.isOverdue)
+                    },
+                    hasPlannedEvents: (date) => {
+                      const dayEvents = getEventsForDate(allEvents, date)
+                      return dayEvents.some((event) => event.isPlanned && !event.isOverdue)
+                    },
+                    hasActualEvents: (date) => {
+                      const dayEvents = getEventsForDate(allEvents, date)
+                      return dayEvents.some((event) => !event.isPlanned && !event.isOverdue)
+                    },
+                  }}
+                  modifiersClassNames={{
+                    hasEvents: 'relative',
+                    hasOverdueEvents: 'bg-red-50 text-red-900 font-semibold',
+                    hasPlannedEvents: 'bg-blue-50 text-blue-900',
+                    hasActualEvents: 'bg-green-50 text-green-900 font-medium',
+                  }}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Calendar Grid - Simplified for now */}
-          <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
-            {weekdays.map((day) => (
-              <div
-                key={day}
-                className="py-2 text-center text-sm font-medium text-gray-600 dark:text-gray-400"
-              >
-                {t(`calendarTab.weekdays.${day.toLowerCase()}`)}
-              </div>
-            ))}
-          </div>
+          {/* Event Details and Legend */}
+          <div className="space-y-6">
+            {/* Selected Date Events */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {selectedDate
+                    ? formatDate(selectedDate.toISOString(), lang)
+                    : t('calendarTab.noEvents')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedDateEvents.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedDateEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className={`p-3 rounded-lg border ${getEventStyleClasses(event)}`}
+                        title={formatEventTooltip(event, t, lang)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{event.title}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t(
+                                `calendarTab.events.${event.type}${event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)}`,
+                              )}
+                            </p>
+                          </div>
+                          <Badge
+                            variant={
+                              event.isOverdue
+                                ? 'destructive'
+                                : event.isPlanned
+                                  ? 'outline'
+                                  : 'default'
+                            }
+                            className="ml-2 text-xs"
+                          >
+                            {event.isOverdue
+                              ? t('calendarTab.eventTypes.overdue')
+                              : event.isPlanned
+                                ? t('calendarTab.eventTypes.planned')
+                                : t('calendarTab.eventTypes.actual')}
+                          </Badge>
+                        </div>
+                        {event.description && (
+                          <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    {selectedDate ? t('calendarTab.noEvents') : t('calendarTab.loading')}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-          <div className="p-6 text-center">
-            <p className="text-gray-600 dark:text-gray-300">
-              {t('calendarTab.milestoneCount')}: {milestones.length}
-            </p>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
-              {t('calendarTab.taskCount')}: {tasks.length}
-            </p>
+            {/* Legend */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t('calendarTab.legend.title')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                  <span className="text-sm">
+                    {t('calendarTab.legend.plannedEvents')} - {t('calendarTab.legend.milestones')}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                  <span className="text-sm">
+                    {t('calendarTab.legend.plannedEvents')} - {t('calendarTab.legend.tasks')}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-sm">
+                    {t('calendarTab.legend.actualEvents')} - {t('calendarTab.legend.milestones')}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                  <span className="text-sm">
+                    {t('calendarTab.legend.actualEvents')} - {t('calendarTab.legend.tasks')}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-sm">{t('calendarTab.legend.overdueEvents')}</span>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h3 className="text-blue-600 dark:text-blue-300 font-medium">
-                {t('calendarTab.implementationMessage')}
-              </h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {t('calendarTab.calendarImplementationDescription')}
-              </p>
-            </div>
+            {/* Summary */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600">{milestones.length}</p>
+                    <p className="text-sm text-gray-600">{t('calendarTab.milestoneCount')}</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{tasks.length}</p>
+                    <p className="text-sm text-gray-600">{t('calendarTab.taskCount')}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}

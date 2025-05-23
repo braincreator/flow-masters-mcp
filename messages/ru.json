@@ -2232,7 +2232,43 @@
         "friday": "Пт",
         "saturday": "Сб",
         "sunday": "Вс"
-      }
+      },
+      "events": {
+        "milestoneStart": "Начало этапа",
+        "milestoneDue": "Срок этапа",
+        "milestoneCompleted": "Этап завершен",
+        "taskDue": "Срок задачи",
+        "taskCompleted": "Задача завершена",
+        "projectCreated": "Проект создан",
+        "projectUpdated": "Проект обновлен"
+      },
+      "eventTypes": {
+        "planned": "Запланировано",
+        "actual": "Фактически",
+        "overdue": "Просрочено",
+        "completed": "Завершено"
+      },
+      "tooltip": {
+        "milestone": "Этап: {title}",
+        "task": "Задача: {title}",
+        "status": "Статус: {status}",
+        "priority": "Приоритет: {priority}",
+        "dueDate": "Срок: {date}",
+        "completionDate": "Завершено: {date}",
+        "startDate": "Начало: {date}",
+        "multipleEvents": "{count} событий в этот день",
+        "clickForDetails": "Нажмите для подробностей"
+      },
+      "legend": {
+        "title": "Легенда",
+        "plannedEvents": "Запланированные события",
+        "actualEvents": "Завершенные события",
+        "overdueEvents": "Просроченные события",
+        "milestones": "Этапы",
+        "tasks": "Задачи"
+      },
+      "noEvents": "Нет событий в этом месяце",
+      "loading": "Загрузка событий календаря..."
     },
     "feedbackTab": {
       "title": "Отзывы о проекте",

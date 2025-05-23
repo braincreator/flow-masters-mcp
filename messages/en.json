@@ -2348,7 +2348,43 @@
         "friday": "Fri",
         "saturday": "Sat",
         "sunday": "Sun"
-      }
+      },
+      "events": {
+        "milestoneStart": "Milestone Start",
+        "milestoneDue": "Milestone Due",
+        "milestoneCompleted": "Milestone Completed",
+        "taskDue": "Task Due",
+        "taskCompleted": "Task Completed",
+        "projectCreated": "Project Created",
+        "projectUpdated": "Project Updated"
+      },
+      "eventTypes": {
+        "planned": "Planned",
+        "actual": "Actual",
+        "overdue": "Overdue",
+        "completed": "Completed"
+      },
+      "tooltip": {
+        "milestone": "Milestone: {title}",
+        "task": "Task: {title}",
+        "status": "Status: {status}",
+        "priority": "Priority: {priority}",
+        "dueDate": "Due: {date}",
+        "completionDate": "Completed: {date}",
+        "startDate": "Start: {date}",
+        "multipleEvents": "{count} events on this date",
+        "clickForDetails": "Click for details"
+      },
+      "legend": {
+        "title": "Legend",
+        "plannedEvents": "Planned Events",
+        "actualEvents": "Completed Events",
+        "overdueEvents": "Overdue Events",
+        "milestones": "Milestones",
+        "tasks": "Tasks"
+      },
+      "noEvents": "No events for this month",
+      "loading": "Loading calendar events..."
     },
     "filesTab": {
       "title": "Project Files",

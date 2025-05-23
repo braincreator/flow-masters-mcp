@@ -43,6 +43,71 @@ export async function GET(req: NextRequest) {
       },
       sort: '-createdAt',
     })
+
+    // For demo purposes, if no tasks exist, return some sample tasks with date fields
+    if (tasksResponse.docs.length === 0) {
+      const sampleTasks = [
+        {
+          id: 'task-1',
+          title: 'Настройка базы данных',
+          description: 'Создание и настройка структуры базы данных для проекта',
+          status: 'completed',
+          dueDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days ago
+          completionDate: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(), // 22 days ago (completed early)
+          createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+          assignedTo: {
+            id: 'user-1',
+            name: 'Разработчик',
+            email: 'dev@example.com',
+          },
+        },
+        {
+          id: 'task-2',
+          title: 'Создание API эндпоинтов',
+          description: 'Разработка REST API для основных функций приложения',
+          status: 'in_progress',
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          assignedTo: {
+            id: 'user-1',
+            name: 'Разработчик',
+            email: 'dev@example.com',
+          },
+        },
+        {
+          id: 'task-3',
+          title: 'Интеграция с внешними сервисами',
+          description: 'Подключение к платежным системам и сервисам уведомлений',
+          status: 'new',
+          dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          assignedTo: {
+            id: 'user-1',
+            name: 'Разработчик',
+            email: 'dev@example.com',
+          },
+        },
+        {
+          id: 'task-4',
+          title: 'Тестирование безопасности',
+          description: 'Проведение аудита безопасности и исправление уязвимостей',
+          status: 'new',
+          dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (overdue)
+          createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          assignedTo: {
+            id: 'user-2',
+            name: 'Тестировщик',
+            email: 'tester@example.com',
+          },
+        },
+      ]
+      return NextResponse.json(sampleTasks)
+    }
+
     return NextResponse.json(tasksResponse.docs)
   } catch (error) {
     console.error('Error fetching tasks:', error)
