@@ -1,44 +1,44 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { formatDate } from '@/utilities/formatDate';
-import Link from 'next/link'; // Added for potential links in messages
-import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'; // Assuming this path
+import React from 'react'
+import { motion } from 'framer-motion'
+import { formatDate } from '@/utilities/formatDate'
+import Link from 'next/link' // Added for potential links in messages
+import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator' // Assuming this path
 
 // --- Copied/defined types - consider moving to a shared types file ---
 interface MessageAttachment {
-  id: string;
-  filename: string;
-  url: string;
+  id: string
+  filename: string
+  url: string
 }
 
 interface MessageItem {
-  id: string;
-  content: string;
-  createdAt: string;
+  id: string
+  content: string
+  createdAt: string
   author: {
-    id: string;
-    name?: string;
-    email: string;
-  };
-  isSystemMessage: boolean;
-  attachments?: MessageAttachment[];
+    id: string
+    name?: string
+    email: string
+  }
+  isSystemMessage: boolean
+  attachments?: MessageAttachment[]
 }
 
 interface ProjectDetails {
-  id: string;
+  id: string
   // Add other necessary ProjectDetails fields if used
 }
 // --- End of types ---
 
 interface DiscussionsTabContentProps {
-  messages: MessageItem[];
-  isLoadingMessages: boolean;
-  newMessage: string;
-  setNewMessage: (message: string) => void;
-  handleSendMessage: () => Promise<void>; // Adjusted for async
-  project: ProjectDetails; // Ensure this has at least 'id'
-  params: { lang: string };
-  t: (key: string, params?: any) => string;
+  messages: MessageItem[]
+  isLoadingMessages: boolean
+  newMessage: string
+  setNewMessage: (message: string) => void
+  handleSendMessage: () => Promise<void> // Adjusted for async
+  project: ProjectDetails // Ensure this has at least 'id'
+  lang: string
+  t: (key: string, params?: any) => string
   // Note: File attachment functionality for messages is deferred
 }
 
@@ -49,11 +49,9 @@ const DiscussionsTabContent: React.FC<DiscussionsTabContentProps> = ({
   setNewMessage,
   handleSendMessage,
   project, // project prop is available but not directly used in the JSX moved so far
-  params,
+  lang,
   t,
 }) => {
-  const { lang } = params;
-
   return (
     <motion.div
       key="discussions"
@@ -197,12 +195,14 @@ const DiscussionsTabContent: React.FC<DiscussionsTabContentProps> = ({
             disabled={!newMessage.trim() || isLoadingMessages}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 transition-colors duration-150 shadow-sm hover:shadow"
           >
-            {isLoadingMessages ? t('discussionsTab.sendingButton') : t('discussionsTab.sendMessageButton')}
+            {isLoadingMessages
+              ? t('discussionsTab.sendingButton')
+              : t('discussionsTab.sendMessageButton')}
           </button>
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default DiscussionsTabContent;
+export default DiscussionsTabContent

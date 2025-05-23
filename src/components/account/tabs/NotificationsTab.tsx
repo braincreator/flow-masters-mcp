@@ -3,6 +3,10 @@
 import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Bell, Check, Loader2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 interface NotificationPreferences {
   email?: {
@@ -24,27 +28,43 @@ export function NotificationsTab({ preferences, onUpdate }: NotificationsTabProp
   const t = useTranslations('Account.Profile')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  
+
+  // Состояние для чекбоксов
+  const [orderUpdates, setOrderUpdates] = useState(preferences.email?.orderUpdates || false)
+  const [subscriptionUpdates, setSubscriptionUpdates] = useState(
+    preferences.email?.subscriptionUpdates || false,
+  )
+  const [accountActivity, setAccountActivity] = useState(
+    preferences.email?.accountActivity || false,
+  )
+  const [marketingAndPromotions, setMarketingAndPromotions] = useState(
+    preferences.email?.marketingAndPromotions || false,
+  )
+  const [productNewsAndTips, setProductNewsAndTips] = useState(
+    preferences.email?.productNewsAndTips || false,
+  )
+
+  // Состояние для радио-кнопок
+  const [frequency, setFrequency] = useState(preferences.notificationFrequency || 'immediately')
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!onUpdate) return
-    
+
     setIsLoading(true)
     setIsSuccess(false)
-    
-    const formData = new FormData(event.currentTarget)
-    
+
     const updatedPreferences: NotificationPreferences = {
       email: {
-        orderUpdates: formData.get('orderUpdates') === 'on',
-        subscriptionUpdates: formData.get('subscriptionUpdates') === 'on',
-        accountActivity: formData.get('accountActivity') === 'on',
-        marketingAndPromotions: formData.get('marketingAndPromotions') === 'on',
-        productNewsAndTips: formData.get('productNewsAndTips') === 'on',
+        orderUpdates,
+        subscriptionUpdates,
+        accountActivity,
+        marketingAndPromotions,
+        productNewsAndTips,
       },
-      notificationFrequency: formData.get('frequency') as 'immediately' | 'daily' | 'weekly' | 'never',
+      notificationFrequency: frequency as 'immediately' | 'daily' | 'weekly' | 'never',
     }
-    
+
     try {
       await onUpdate(updatedPreferences)
       setIsSuccess(true)
@@ -55,107 +75,90 @@ export function NotificationsTab({ preferences, onUpdate }: NotificationsTabProp
       setIsLoading(false)
     }
   }
-  
+
   return (
     <div className="animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-8">
         <div>
           <h3 className="text-lg font-medium mb-4">{t('notifications.emailNotifications')}</h3>
           <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="orderUpdates"
-                  name="orderUpdates"
-                  type="checkbox"
-                  defaultChecked={preferences.email?.orderUpdates}
-                  className="w-4 h-4 text-accent border-border rounded"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="orderUpdates" className="font-medium">
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="orderUpdates"
+                checked={orderUpdates}
+                onCheckedChange={setOrderUpdates}
+                className="mt-1"
+              />
+              <div className="text-sm">
+                <Label htmlFor="orderUpdates" className="font-medium">
                   {t('notifications.orderUpdates.title')}
-                </label>
+                </Label>
                 <p className="text-muted-foreground">
                   {t('notifications.orderUpdates.description')}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="subscriptionUpdates"
-                  name="subscriptionUpdates"
-                  type="checkbox"
-                  defaultChecked={preferences.email?.subscriptionUpdates}
-                  className="w-4 h-4 text-accent border-border rounded"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="subscriptionUpdates" className="font-medium">
+
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="subscriptionUpdates"
+                checked={subscriptionUpdates}
+                onCheckedChange={setSubscriptionUpdates}
+                className="mt-1"
+              />
+              <div className="text-sm">
+                <Label htmlFor="subscriptionUpdates" className="font-medium">
                   {t('notifications.subscriptionUpdates.title')}
-                </label>
+                </Label>
                 <p className="text-muted-foreground">
                   {t('notifications.subscriptionUpdates.description')}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="accountActivity"
-                  name="accountActivity"
-                  type="checkbox"
-                  defaultChecked={preferences.email?.accountActivity}
-                  className="w-4 h-4 text-accent border-border rounded"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="accountActivity" className="font-medium">
+
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="accountActivity"
+                checked={accountActivity}
+                onCheckedChange={setAccountActivity}
+                className="mt-1"
+              />
+              <div className="text-sm">
+                <Label htmlFor="accountActivity" className="font-medium">
                   {t('notifications.accountActivity.title')}
-                </label>
+                </Label>
                 <p className="text-muted-foreground">
                   {t('notifications.accountActivity.description')}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="marketingAndPromotions"
-                  name="marketingAndPromotions"
-                  type="checkbox"
-                  defaultChecked={preferences.email?.marketingAndPromotions}
-                  className="w-4 h-4 text-accent border-border rounded"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="marketingAndPromotions" className="font-medium">
+
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="marketingAndPromotions"
+                checked={marketingAndPromotions}
+                onCheckedChange={setMarketingAndPromotions}
+                className="mt-1"
+              />
+              <div className="text-sm">
+                <Label htmlFor="marketingAndPromotions" className="font-medium">
                   {t('notifications.marketing.title')}
-                </label>
-                <p className="text-muted-foreground">
-                  {t('notifications.marketing.description')}
-                </p>
+                </Label>
+                <p className="text-muted-foreground">{t('notifications.marketing.description')}</p>
               </div>
             </div>
-            
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="productNewsAndTips"
-                  name="productNewsAndTips"
-                  type="checkbox"
-                  defaultChecked={preferences.email?.productNewsAndTips}
-                  className="w-4 h-4 text-accent border-border rounded"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="productNewsAndTips" className="font-medium">
+
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="productNewsAndTips"
+                checked={productNewsAndTips}
+                onCheckedChange={setProductNewsAndTips}
+                className="mt-1"
+              />
+              <div className="text-sm">
+                <Label htmlFor="productNewsAndTips" className="font-medium">
                   {t('notifications.productNews.title')}
-                </label>
+                </Label>
                 <p className="text-muted-foreground">
                   {t('notifications.productNews.description')}
                 </p>
@@ -163,79 +166,47 @@ export function NotificationsTab({ preferences, onUpdate }: NotificationsTabProp
             </div>
           </div>
         </div>
-        
+
         <div>
           <h3 className="text-lg font-medium mb-4">{t('notifications.frequency.title')}</h3>
           <div className="bg-muted/40 p-4 rounded-lg border">
             <p className="text-sm text-muted-foreground mb-4">
               {t('notifications.frequency.description')}
             </p>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <input
-                  id="frequency-immediately"
-                  name="frequency"
-                  type="radio"
-                  value="immediately"
-                  defaultChecked={preferences.notificationFrequency === 'immediately'}
-                  className="w-4 h-4 text-accent border-border"
-                />
-                <label htmlFor="frequency-immediately" className="ml-3 text-sm font-medium">
+            <RadioGroup value={frequency} onValueChange={setFrequency} className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="immediately" id="frequency-immediately" />
+                <Label htmlFor="frequency-immediately" className="text-sm font-medium">
                   {t('notifications.frequency.immediately')}
-                </label>
+                </Label>
               </div>
-              
-              <div className="flex items-center">
-                <input
-                  id="frequency-daily"
-                  name="frequency"
-                  type="radio"
-                  value="daily"
-                  defaultChecked={preferences.notificationFrequency === 'daily'}
-                  className="w-4 h-4 text-accent border-border"
-                />
-                <label htmlFor="frequency-daily" className="ml-3 text-sm font-medium">
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="daily" id="frequency-daily" />
+                <Label htmlFor="frequency-daily" className="text-sm font-medium">
                   {t('notifications.frequency.daily')}
-                </label>
+                </Label>
               </div>
-              
-              <div className="flex items-center">
-                <input
-                  id="frequency-weekly"
-                  name="frequency"
-                  type="radio"
-                  value="weekly"
-                  defaultChecked={preferences.notificationFrequency === 'weekly'}
-                  className="w-4 h-4 text-accent border-border"
-                />
-                <label htmlFor="frequency-weekly" className="ml-3 text-sm font-medium">
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="weekly" id="frequency-weekly" />
+                <Label htmlFor="frequency-weekly" className="text-sm font-medium">
                   {t('notifications.frequency.weekly')}
-                </label>
+                </Label>
               </div>
-              
-              <div className="flex items-center">
-                <input
-                  id="frequency-never"
-                  name="frequency"
-                  type="radio"
-                  value="never"
-                  defaultChecked={preferences.notificationFrequency === 'never'}
-                  className="w-4 h-4 text-accent border-border"
-                />
-                <label htmlFor="frequency-never" className="ml-3 text-sm font-medium">
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="never" id="frequency-never" />
+                <Label htmlFor="frequency-never" className="text-sm font-medium">
                   {t('notifications.frequency.never')}
-                </label>
+                </Label>
               </div>
-            </div>
+            </RadioGroup>
           </div>
         </div>
-        
+
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70"
-          >
+          <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -252,7 +223,7 @@ export function NotificationsTab({ preferences, onUpdate }: NotificationsTabProp
                 {t('buttons.savePreferences')}
               </>
             )}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -1,42 +1,42 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { formatDate } from '@/utilities/formatDate';
-import TaskFormModal from '@/components/modals/TaskFormModal'; // Assuming this path is correct
-import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'; // Assuming this path
+import React from 'react'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { formatDate } from '@/utilities/formatDate'
+import TaskFormModal from '@/components/modals/TaskFormModal' // Assuming this path is correct
+import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator' // Assuming this path
 
 // --- Copied/defined types - consider moving to a shared types file ---
 interface TaskItem {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  title: string
+  description?: string
+  status: string
+  createdAt: string
+  updatedAt: string
   assignedTo?: {
-    id: string;
-    name?: string;
-    email: string;
-  };
+    id: string
+    name?: string
+    email: string
+  }
 }
 
 interface ProjectDetails {
-  id: string;
-  name: string;
+  id: string
+  name: string
   // Add other necessary ProjectDetails fields if used directly in this component
   // For now, only 'id' and 'name' are explicitly used by TaskFormModal or general context
 }
 // --- End of types ---
 
 interface TasksTabContentProps {
-  tasks: TaskItem[];
-  isLoadingTasks: boolean;
-  handleCreateTask: (taskData: { title: string; description?: string }) => Promise<void>; // Adjusted for async
-  project: ProjectDetails; // Ensure this has at least 'id' and 'name' for TaskFormModal
-  params: { lang: string };
-  t: (key: string, params?: any) => string;
-  isTaskModalOpen: boolean;
-  setIsTaskModalOpen: (isOpen: boolean) => void;
+  tasks: TaskItem[]
+  isLoadingTasks: boolean
+  handleCreateTask: (taskData: { title: string; description?: string }) => Promise<void> // Adjusted for async
+  project: ProjectDetails // Ensure this has at least 'id' and 'name' for TaskFormModal
+  lang: string
+  t: (key: string, params?: any) => string
+  isTaskModalOpen: boolean
+  setIsTaskModalOpen: (isOpen: boolean) => void
 }
 
 const TasksTabContent: React.FC<TasksTabContentProps> = ({
@@ -44,29 +44,27 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
   isLoadingTasks,
   handleCreateTask,
   project,
-  params,
+  lang,
   t,
   isTaskModalOpen,
   setIsTaskModalOpen,
 }) => {
-  const { lang } = params;
-
   // Function to get status badge styling (can be moved to a utility if shared)
   const getTaskStatusBadge = (status: string) => {
-    const baseStyle = 'px-2 py-0.5 text-xs font-medium rounded-full';
+    const baseStyle = 'px-2 py-0.5 text-xs font-medium rounded-full'
     switch (status) {
       case 'todo':
-        return `${baseStyle} bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200`;
+        return `${baseStyle} bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200`
       case 'in_progress':
-        return `${baseStyle} bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100`;
+        return `${baseStyle} bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100`
       case 'completed':
-        return `${baseStyle} bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100`;
+        return `${baseStyle} bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100`
       case 'on_review':
-        return `${baseStyle} bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100`;
+        return `${baseStyle} bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100`
       default:
-        return `${baseStyle} bg-gray-100 text-gray-600 dark:bg-gray-500 dark:text-gray-300`;
+        return `${baseStyle} bg-gray-100 text-gray-600 dark:bg-gray-500 dark:text-gray-300`
     }
-  };
+  }
 
   return (
     <motion.div
@@ -120,7 +118,9 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
                 </p>
               )}
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                <span>{t('tasksTab.created')}: {formatDate(task.createdAt, lang)}</span>
+                <span>
+                  {t('tasksTab.created')}: {formatDate(task.createdAt, lang)}
+                </span>
                 {task.assignedTo && (
                   <span className="ml-2">
                     | {t('tasksTab.assignedTo')}: {task.assignedTo.name || task.assignedTo.email}
@@ -172,7 +172,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
         projectId={project.id}
       />
     </motion.div>
-  );
-};
+  )
+}
 
-export default TasksTabContent;
+export default TasksTabContent

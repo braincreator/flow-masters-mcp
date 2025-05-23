@@ -2,8 +2,12 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { getServerSession } from '@/utilities/getServerSession'
 
-export default async function ProjectDetailPage({ params }: { params: { lang: string, id: string } }) {
-  const { lang, id } = params
+export default async function ProjectDetailPage({
+  params,
+}: {
+  params: Promise<{ lang: string; id: string }>
+}) {
+  const { lang, id } = await params
   const session = await getServerSession()
 
   // Если пользователь не авторизован, редиректим на страницу входа

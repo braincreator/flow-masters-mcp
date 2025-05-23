@@ -10,6 +10,10 @@ import { formatDate } from '@/utilities/formatDate'
 import { useNotification } from '@/context/NotificationContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 
 // Import new components
 import ProjectHeader from './components/ProjectHeader'
@@ -111,8 +115,12 @@ interface ProjectFile {
   category?: string
 }
 
-export default function ProjectDetailsPage({ params }: { params: { lang: string; id: string } }) {
-  const { id, lang } = params
+export default function ProjectDetailsPage({
+  params,
+}: {
+  params: Promise<{ lang: string; id: string }>
+}) {
+  const { id, lang } = React.use(params)
   const t = useTranslations('ProjectDetails')
   const { showNotification } = useNotification()
   const [project, setProject] = useState<ProjectDetails | null>(null)
@@ -264,8 +272,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             associatedTasks: [
               { id: 'a1', title: 'Интервью с заказчиком', status: 'completed' },
               { id: 'a2', title: 'Анализ конкурентов', status: 'completed' },
-              { id: 'a3', title: 'Составление ТЗ', status: 'completed' }
-            ]
+              { id: 'a3', title: 'Составление ТЗ', status: 'completed' },
+            ],
           },
           {
             id: '2',
@@ -282,8 +290,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             associatedTasks: [
               { id: 'b1', title: 'Создание архитектуры проекта', status: 'completed' },
               { id: 'b2', title: 'Разработка дизайн-макетов', status: 'completed' },
-              { id: 'b3', title: 'Согласование с заказчиком', status: 'completed' }
-            ]
+              { id: 'b3', title: 'Согласование с заказчиком', status: 'completed' },
+            ],
           },
           {
             id: '3',
@@ -301,7 +309,7 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
               { id: 'c2', title: 'Реализация авторизации', status: 'completed' },
               { id: 'c3', title: 'Разработка API', status: 'in_progress' },
               { id: 'c4', title: 'Интеграция с внешними сервисами', status: 'in_progress' },
-              { id: 'c5', title: 'Тестирование компонентов', status: 'not_started' }
+              { id: 'c5', title: 'Тестирование компонентов', status: 'not_started' },
             ],
           },
           {
@@ -318,8 +326,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             associatedTasks: [
               { id: 'd1', title: 'Разработка тест-кейсов', status: 'not_started' },
               { id: 'd2', title: 'Тестирование функциональности', status: 'not_started' },
-              { id: 'd3', title: 'Исправление ошибок', status: 'not_started' }
-            ]
+              { id: 'd3', title: 'Исправление ошибок', status: 'not_started' },
+            ],
           },
           {
             id: '5',
@@ -335,19 +343,21 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             associatedTasks: [
               { id: 'e1', title: 'Развертывание на сервере', status: 'not_started' },
               { id: 'e2', title: 'Финальное тестирование', status: 'not_started' },
-              { id: 'e3', title: 'Демонстрация заказчику', status: 'not_started' }
-            ]
+              { id: 'e3', title: 'Демонстрация заказчику', status: 'not_started' },
+            ],
           },
         ]
-        
+
         // Calculate progress based on tasks
-        dummyMilestones.forEach(milestone => {
+        dummyMilestones.forEach((milestone) => {
           if (milestone.associatedTasks && milestone.associatedTasks.length > 0) {
-            const completedTasks = milestone.associatedTasks.filter(task => task.status === 'completed').length;
-            const totalTasks = milestone.associatedTasks.length;
-            milestone.progress = Math.round((completedTasks / totalTasks) * 100);
+            const completedTasks = milestone.associatedTasks.filter(
+              (task) => task.status === 'completed',
+            ).length
+            const totalTasks = milestone.associatedTasks.length
+            milestone.progress = Math.round((completedTasks / totalTasks) * 100)
           }
-        });
+        })
 
         setMilestones(dummyMilestones)
         console.log(
@@ -363,21 +373,21 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
           'Milestones load: fetchMilestones finally block, isLoadingMilestones set to false',
         )
       }
-      
+
       // Функция для создания нового этапа
       const handleCreateMilestone = async (milestoneData: {
-        title: string;
-        description?: string;
-        startDate?: string;
-        dueDate?: string;
-        priority?: string;
+        title: string
+        description?: string
+        startDate?: string
+        dueDate?: string
+        priority?: string
       }) => {
         if (!project) return
-        
+
         try {
           // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          await new Promise((resolve) => setTimeout(resolve, 500))
+
           const newMilestone = {
             id: `milestone-${Date.now()}`,
             ...milestoneData,
@@ -386,8 +396,8 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           }
-          
-          setMilestones(prev => [newMilestone, ...prev])
+
+          setMilestones((prev) => [newMilestone, ...prev])
           showNotification('success', t('milestoneCreatedSuccess'))
           setIsMilestoneModalOpen(false)
         } catch (err) {
@@ -396,33 +406,33 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
           throw err
         }
       }
-      
+
       // Функция для создания нового отзыва
       const handleCreateFeedback = async (feedbackData: {
-        title: string;
-        rating: number;
-        comment: string;
-        feedbackType: string;
-        isPublic: boolean;
+        title: string
+        rating: number
+        comment: string
+        feedbackType: string
+        isPublic: boolean
       }) => {
         if (!project) return
-        
+
         try {
           // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
+          await new Promise((resolve) => setTimeout(resolve, 500))
+
           const newFeedback = {
             id: `feedback-${Date.now()}`,
             ...feedbackData,
             author: {
               id: project.customer.id,
               name: 'Текущий пользователь',
-              email: project.customer.email
+              email: project.customer.email,
             },
             createdAt: new Date().toISOString(),
           }
-          
-          setFeedback(prev => [...prev, newFeedback])
+
+          setFeedback((prev) => [...prev, newFeedback])
           showNotification('success', t('feedbackCreatedSuccess'))
           return newFeedback
         } catch (err) {
@@ -655,31 +665,32 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
     try {
       // Get associated tasks if ids were provided
-      let associatedTasks: Array<{id: string; title: string; status: string}> = [];
+      let associatedTasks: Array<{ id: string; title: string; status: string }> = []
       if (milestoneData.associatedTaskIds && milestoneData.associatedTaskIds.length > 0) {
-        associatedTasks = tasks.filter(task => milestoneData.associatedTaskIds?.includes(task.id))
-          .map(task => ({
+        associatedTasks = tasks
+          .filter((task) => milestoneData.associatedTaskIds?.includes(task.id))
+          .map((task) => ({
             id: task.id,
             title: task.title,
-            status: task.status
-          }));
+            status: task.status,
+          }))
       }
-      
+
       // Calculate progress based on associated tasks
-      let progress = 0;
+      let progress = 0
       if (associatedTasks.length > 0) {
-        const completedTasks = associatedTasks.filter(task => task.status === 'completed').length;
-        progress = Math.round((completedTasks / associatedTasks.length) * 100);
+        const completedTasks = associatedTasks.filter((task) => task.status === 'completed').length
+        progress = Math.round((completedTasks / associatedTasks.length) * 100)
       }
-      
+
       // Determine status
-      let status = 'not_started';
+      let status = 'not_started'
       if (milestoneData.completionDate) {
-        status = 'completed';
+        status = 'completed'
       } else if (progress > 0) {
-        status = 'in_progress';
+        status = 'in_progress'
       }
-      
+
       const newMilestone = {
         id: `milestone-${Date.now()}`,
         ...milestoneData,
@@ -888,14 +899,17 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
 
   if (error || !project) {
     return (
-      <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 rounded-lg p-4 my-4">
-        <p>{error || t('projectNotFound')}</p>
-        <Link
-          href={`/${lang}/dashboard/projects`}
-          className="mt-4 inline-block text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-        >
-          {t('backToProjects')}
-        </Link>
+      <div className="container mx-auto px-4 py-6">
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error || t('projectNotFound')}</AlertDescription>
+        </Alert>
+        <Button variant="outline" asChild>
+          <Link href={`/${lang}/dashboard/projects`} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToProjects')}
+          </Link>
+        </Button>
       </div>
     )
   }
@@ -903,122 +917,109 @@ export default function ProjectDetailsPage({ params }: { params: { lang: string;
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
-        <Link
-          href={`/${lang}/dashboard/projects`}
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
-        >
-          <svg
-            className="w-4 h-4 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M15 19l-7-7 7-7"
-            ></path>
-          </svg>
-          {t('backToProjects')}
-        </Link>
+        <Button variant="ghost" asChild>
+          <Link href={`/${lang}/dashboard/projects`} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToProjects')}
+          </Link>
+        </Button>
       </div>
 
       <motion.div
-        className="bg-white dark:bg-gray-800 shadow-lg dark:shadow-xl rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Project Header - using the extracted component */}
-        <ProjectHeader project={project} lang={lang} t={t} getStatusText={getStatusText} />
+        <Card className="shadow-lg dark:shadow-xl border border-gray-100 dark:border-gray-700">
+          {/* Project Header - using the extracted component */}
+          <ProjectHeader project={project} lang={lang} t={t} getStatusText={getStatusText} />
 
-        {/* Tab Navigation - using the extracted component */}
-        <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
+          {/* Tab Navigation - using the extracted component */}
+          <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
 
-        {/* Tab Content - using the extracted components */}
-        <motion.div className="p-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'specification' && (
-              <SpecificationTabContent project={project} lang={lang} t={t} />
-            )}
+          {/* Tab Content - using the extracted components */}
+          <CardContent className="p-6">
+            <AnimatePresence mode="wait">
+              {activeTab === 'specification' && (
+                <SpecificationTabContent project={project} lang={lang} t={t} />
+              )}
 
-            {activeTab === 'tasks' && (
-              <TasksTabContent
-                tasks={tasks}
-                isLoadingTasks={isLoadingTasks}
-                handleCreateTask={handleCreateTask}
-                project={project}
-                params={{ lang }}
-                t={t}
-                isTaskModalOpen={isTaskModalOpen}
-                setIsTaskModalOpen={setIsTaskModalOpen}
-              />
-            )}
+              {activeTab === 'tasks' && (
+                <TasksTabContent
+                  tasks={tasks}
+                  isLoadingTasks={isLoadingTasks}
+                  handleCreateTask={handleCreateTask}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                  isTaskModalOpen={isTaskModalOpen}
+                  setIsTaskModalOpen={setIsTaskModalOpen}
+                />
+              )}
 
-            {activeTab === 'discussions' && (
-              <DiscussionsTabContent
-                messages={messages}
-                isLoadingMessages={isLoadingMessages}
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
-                handleSendMessage={handleSendMessage}
-                project={project}
-                params={{ lang }}
-                t={t}
-              />
-            )}
+              {activeTab === 'discussions' && (
+                <DiscussionsTabContent
+                  messages={messages}
+                  isLoadingMessages={isLoadingMessages}
+                  newMessage={newMessage}
+                  setNewMessage={setNewMessage}
+                  handleSendMessage={handleSendMessage}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                />
+              )}
 
-            {activeTab === 'files' && (
-              <FilesTabContent
-                projectFiles={projectFiles}
-                isLoadingFiles={isLoadingFiles}
-                handleUploadFile={handleUploadFile}
-                handleDeleteFile={handleDeleteFile}
-                deletingFileId={deletingFileId}
-                project={project}
-                lang={lang}
-                t={t}
-              />
-            )}
+              {activeTab === 'files' && (
+                <FilesTabContent
+                  projectFiles={projectFiles}
+                  isLoadingFiles={isLoadingFiles}
+                  handleUploadFile={handleUploadFile}
+                  handleDeleteFile={handleDeleteFile}
+                  deletingFileId={deletingFileId}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                />
+              )}
 
-            {activeTab === 'milestones' && (
-              <MilestonesTabContent
-                milestones={milestones}
-                isLoadingMilestones={isLoadingMilestones}
-                handleCreateMilestone={handleCreateMilestone}
-                project={project}
-                params={{ lang }}
-                t={t}
-                isMilestoneModalOpen={isMilestoneModalOpen}
-                setIsMilestoneModalOpen={setIsMilestoneModalOpen}
-              />
-            )}
+              {activeTab === 'milestones' && (
+                <MilestonesTabContent
+                  milestones={milestones}
+                  isLoadingMilestones={isLoadingMilestones}
+                  handleCreateMilestone={handleCreateMilestone}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                  isMilestoneModalOpen={isMilestoneModalOpen}
+                  setIsMilestoneModalOpen={setIsMilestoneModalOpen}
+                />
+              )}
 
-            {activeTab === 'calendar' && (
-              <CalendarTabContent
-                milestones={milestones}
-                tasks={tasks}
-                isLoadingCalendarData={isLoadingCalendarData}
-                project={project}
-                params={{ lang }}
-                t={t}
-              />
-            )}
+              {activeTab === 'calendar' && (
+                <CalendarTabContent
+                  milestones={milestones}
+                  tasks={tasks}
+                  isLoadingCalendarData={isLoadingCalendarData}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                />
+              )}
 
-            {activeTab === 'feedback' && (
-              <FeedbackTabContent
-                feedback={feedback}
-                isLoadingFeedback={isLoadingFeedback}
-                handleCreateFeedback={handleCreateFeedback}
-                project={project}
-                params={{ lang }}
-                t={t}
-              />
-            )}
-          </AnimatePresence>
-        </motion.div>
+              {activeTab === 'feedback' && (
+                <FeedbackTabContent
+                  feedback={feedback}
+                  isLoadingFeedback={isLoadingFeedback}
+                  handleCreateFeedback={handleCreateFeedback}
+                  project={project}
+                  lang={lang}
+                  t={t}
+                />
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   )

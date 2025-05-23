@@ -190,6 +190,95 @@
       },
       "title": "Профиль аккаунта",
       "notAuthenticated": "Пожалуйста, войдите, чтобы просмотреть свой профиль.",
+      "level": "Уровень",
+      "achievementsCount": "Достижения",
+      "defaultName": "Пользователь",
+      "tabs": {
+        "personal": "Личная информация",
+        "security": "Безопасность",
+        "notifications": "Уведомления",
+        "achievements": "Достижения"
+      },
+      "fields": {
+        "fullName": "Полное имя",
+        "email": "Email адрес",
+        "emailReadOnly": "Email адрес нельзя изменить",
+        "phone": "Номер телефона",
+        "language": "Предпочитаемый язык"
+      },
+      "placeholders": {
+        "fullName": "Введите ваше полное имя",
+        "phone": "Введите ваш номер телефона"
+      },
+      "languages": {
+        "english": "Английский",
+        "russian": "Русский"
+      },
+      "security": {
+        "currentPassword": "Текущий пароль",
+        "newPassword": "Новый пароль",
+        "confirmPassword": "Подтвердите новый пароль",
+        "passwordTips": {
+          "title": "Советы по безопасности пароля",
+          "length": "Используйте не менее 8 символов",
+          "mixture": "Включите комбинацию букв, цифр и символов",
+          "avoid": "Избегайте использования легко угадываемой информации"
+        }
+      },
+      "errors": {
+        "passwordsDoNotMatch": "Новые пароли не совпадают",
+        "passwordTooShort": "Пароль должен содержать не менее 8 символов",
+        "passwordChangeFailed": "Не удалось изменить пароль. Пожалуйста, проверьте текущий пароль и попробуйте еще раз."
+      },
+      "notifications": {
+        "emailNotifications": "Email уведомления",
+        "orderUpdates": {
+          "title": "Обновления заказов",
+          "description": "Получайте уведомления о ваших заказах, включая информацию о доставке"
+        },
+        "subscriptionUpdates": {
+          "title": "Обновления подписок",
+          "description": "Получайте уведомления о продлении подписок, изменениях и платежной информации"
+        },
+        "accountActivity": {
+          "title": "Активность аккаунта",
+          "description": "Получайте оповещения о входах в систему, изменениях пароля и других событиях безопасности"
+        },
+        "marketing": {
+          "title": "Маркетинг и акции",
+          "description": "Будьте в курсе специальных предложений, скидок и рекламных мероприятий"
+        },
+        "productNews": {
+          "title": "Новости продукта и советы",
+          "description": "Получайте обновления о новых функциях, улучшениях и советы по использованию"
+        },
+        "frequency": {
+          "title": "Частота уведомлений",
+          "description": "Выберите, как часто вы хотите получать некритичные уведомления",
+          "immediately": "Отправлять сразу (по мере поступления)",
+          "daily": "Ежедневный дайджест",
+          "weekly": "Еженедельная сводка",
+          "never": "Никогда (только критические уведомления)"
+        }
+      },
+      "achievements": {
+        "level": "Уровень",
+        "toNextLevel": "до следующего уровня",
+        "earned": "Полученные достижения",
+        "earnedOn": "Получено",
+        "inProgress": "В процессе",
+        "locked": "Заблокированные достижения",
+        "noAchievements": "Пока нет достижений",
+        "earnAchievements": "Завершайте курсы и задания, чтобы получать достижения"
+      },
+      "buttons": {
+        "saving": "Сохранение...",
+        "saved": "Сохранено",
+        "saveChanges": "Сохранить изменения",
+        "updating": "Обновление...",
+        "updatePassword": "Обновить пароль",
+        "savePreferences": "Сохранить настройки"
+      },
       "profileInformation": {
         "title": "Информация профиля",
         "nameLabel": "Полное имя",
@@ -574,7 +663,16 @@
     "services": "Услуги",
     "myProjects": "Мои проекты",
     "myCourses": "Мои курсы",
-    "orders": "Заказы"
+    "orders": "Заказы",
+    "close": "Закрыть",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "view": "Просмотр",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно"
   },
   "Services": {
     "metaTitle": "Наши Услуги",
@@ -969,18 +1067,6 @@
     "returnToCartButton": "Вернуться в корзину"
   },
   "AccountProfile": {
-    "fullName": "Полное имя",
-    "emailLabel": "Email (не может быть изменен)",
-    "changePasswordTitle": "Изменить пароль",
-    "currentPassword": "Текущий пароль",
-    "newPassword": "Новый пароль",
-    "confirmPassword": "Подтвердите новый пароль",
-    "changePasswordTitle": "Изменить пароль",
-    "updateButton": "Обновить профиль",
-    "updatingButton": "Обновление...",
-    "updateSuccess": "Профиль успешно обновлен",
-    "updateError": "Произошла ошибка при обновлении профиля",
-    "updateFailedError": "Не удалось обновить профиль",
     "validation": {
       "nameRequired": "Имя должно содержать не менее 2 символов",
       "invalidEmail": "Пожалуйста, введите корректный email адрес",
@@ -1923,106 +2009,6 @@
     "errorCreatingOrder": "Ошибка создания заказа",
     "unknownError": "Произошла неизвестная ошибка"
   },
-
-  "ProjectDetails": {
-    "backToProjects": "Назад к проектам",
-    "errorLoadingProject": "Ошибка при загрузке проекта",
-    "projectNotFound": "Проект не найден",
-    "unknownError": "Произошла неизвестная ошибка",
-    "errorTitle": "Ошибка загрузки проекта",
-    "possibleSolutions": "Возможные решения",
-    "checkConnection": "Проверьте подключение к интернету",
-    "tryRefreshing": "Попробуйте обновить страницу",
-    "checkPermissions": "Убедитесь, что у вас есть доступ к этому проекту",
-    "contactSupport": "Свяжитесь с поддержкой, если проблема не исчезнет",
-    "refresh": "Обновить страницу",
-    "unauthorizedError": "Вы должны войти в систему, чтобы просмотреть этот проект",
-    "serverError": "Произошла ошибка сервера. Пожалуйста, попробуйте позже",
-    "orderNumber": "Номер заказа",
-    "created": "Создан",
-    "updated": "Обновлен",
-    "unknown": "Неизвестно",
-    "unknownService": "Неизвестная услуга",
-    "status": {
-      "new": "Новый",
-      "in_progress": "В работе",
-      "on_review": "На проверке",
-      "completed": "Завершен",
-      "cancelled": "Отменен"
-    },
-    "tabs": {
-      "specification": "Техническое задание",
-      "tasks": "Задачи",
-      "discussions": "Обсуждения",
-      "files": "Файлы"
-    },
-    "tabSpecification": "Техническое задание",
-    "tabTasks": "Задачи",
-    "tabMessages": "Обсуждения",
-    "tabFiles": "Файлы",
-    "filesTab": {
-      "delete": "Удалить",
-      "confirmDeleteFile": "Вы уверены, что хотите удалить этот файл?",
-      "fileDeletedSuccessfully": "Файл успешно удален.",
-      "errorDeletingFile": "Ошибка при удалении файла.",
-      "unknownError": "Неизвестная ошибка"
-    },
-    "specification": "Техническое задание",
-    "specificationText": "Текст технического задания",
-    "specificationFiles": "Файлы технического задания",
-    "noSpecification": "Текст технического задания не предоставлен",
-    "noSpecificationText": "Текст технического задания не предоставлен",
-    "noSpecificationFiles": "Файлы технического задания не приложены",
-    "attachedFiles": "Приложенные файлы",
-    "noFiles": "Файлы не приложены",
-    "fileName": "Имя файла",
-    "actions": "Действия",
-    "download": "Скачать",
-    "tasks": "Задачи",
-    "createTask": "Создать задачу",
-    "createFirstTask": "Создать первую задачу",
-    "noTasks": "Задачи не найдены",
-    "taskStatus": {
-      "new": "Новая",
-      "in_progress": "В работе",
-      "completed": "Завершена"
-    },
-    "assignedTo": "Назначена",
-    "tasksComingSoon": "Раздел задач будет доступен в ближайшее время",
-    "messages": "Обсуждения",
-    "messagesComingSoon": "Раздел обсуждений будет доступен в ближайшее время",
-    "files": "Файлы",
-    "filesComingSoon": "Раздел файлов будет доступен в ближайшее время",
-    "projectFiles": "Файлы проекта",
-    "noProjectFiles": "Файлы проекта не найдены",
-    "uploadFile": "Загрузить файл",
-    "uploadFirstFile": "Загрузить первый файл",
-    "uploadedBy": "Загружено",
-    "date": "Дата",
-    "system": "Система",
-    "attachments": "Вложения",
-    "noMessages": "Сообщения не найдены",
-    "newMessage": "Новое сообщение",
-    "messageText": "Введите ваше сообщение здесь...",
-    "send": "Отправить",
-    "attachFile": "Прикрепить файл",
-    "discussions": "Обсуждения",
-    "statusNew": "Новый",
-    "statusInProgress": "В работе",
-    "statusReview": "На проверке",
-    "statusCompleted": "Завершен",
-    "statusCancelled": "Отменен",
-    "errorLoadingTasks": "Ошибка при загрузке задач",
-    "errorLoadingMessages": "Ошибка при загрузке сообщений",
-    "errorLoadingFiles": "Ошибка при загрузке файлов",
-    "errorCreatingTask": "Ошибка при создании задачи",
-    "taskCreatedSuccess": "Задача успешно создана",
-    "errorSendingMessage": "Ошибка при отправке сообщения",
-    "messageSentSuccess": "Сообщение успешно отправлено",
-    "errorAddingFilesToProject": "Ошибка при добавлении файлов к проекту",
-    "filesUploadedSuccess": "Файлы успешно загружены: {count}",
-    "errorUploadingFiles": "Ошибка при загрузке файлов"
-  },
   "FileUpload": {
     "dropFiles": "Перетащите файлы сюда",
     "oneFileOnly": "(только один файл)",
@@ -2075,6 +2061,211 @@
       "on_review": "На проверке",
       "completed": "Завершен",
       "cancelled": "Отменен"
+    }
+  },
+  "ProjectDetails": {
+    "backToProjects": "Назад к проектам",
+    "errorLoadingProject": "Ошибка загрузки проекта",
+    "projectNotFound": "Проект не найден",
+    "unknownError": "Произошла неизвестная ошибка",
+    "errorTitle": "Ошибка загрузки проекта",
+    "possibleSolutions": "Возможные решения",
+    "checkConnection": "Проверьте подключение к интернету",
+    "tryRefreshing": "Попробуйте обновить страницу",
+    "checkPermissions": "Убедитесь, что у вас есть разрешение на доступ к этому проекту",
+    "contactSupport": "Обратитесь в службу поддержки, если проблема не исчезнет",
+    "refresh": "Обновить страницу",
+    "unauthorizedError": "Вы должны войти в систему, чтобы просмотреть этот проект",
+    "serverError": "Произошла ошибка сервера. Пожалуйста, попробуйте позже",
+    "orderNumber": "Номер заказа",
+    "created": "Создан",
+    "updated": "Обновлен",
+    "lastUpdated": "Последнее обновление",
+    "unknown": "Неизвестно",
+    "serviceNameNotAvailable": "Название услуги недоступно",
+    "tabs": {
+      "specification": "Техническое задание",
+      "tasks": "Задачи",
+      "discussions": "Обсуждения",
+      "files": "Файлы",
+      "milestones": "Этапы",
+      "calendar": "Календарь",
+      "feedback": "Отзывы"
+    },
+    "specification": "Техническое задание",
+    "specificationText": "Текст технического задания",
+    "specificationFiles": "Файлы технического задания",
+    "noSpecificationText": "Текст технического задания не предоставлен",
+    "noSpecificationFiles": "Файлы технического задания не найдены",
+    "downloadFile": "Скачать файл",
+    "tasks": "Задачи",
+    "createTask": "Создать задачу",
+    "noTasks": "Задачи не найдены",
+    "taskTitle": "Название задачи",
+    "taskDescription": "Описание задачи",
+
+    "assignedTo": "Назначено",
+    "tasksComingSoon": "Раздел задач скоро будет доступен",
+    "messages": "Обсуждения",
+    "messagesComingSoon": "Раздел обсуждений скоро будет доступен",
+    "files": "Файлы",
+    "filesComingSoon": "Раздел файлов скоро будет доступен",
+    "projectFiles": "Файлы проекта",
+    "noProjectFiles": "Файлы проекта не найдены",
+    "uploadFile": "Загрузить файл",
+    "uploadFirstFile": "Загрузить первый файл",
+    "uploadedBy": "Загружено",
+    "date": "Дата",
+    "system": "Система",
+    "attachments": "Вложения",
+    "noMessages": "Сообщения не найдены",
+    "newMessage": "Новое сообщение",
+    "messageText": "Введите ваше сообщение здесь...",
+    "send": "Отправить",
+    "attachFile": "Прикрепить файл",
+    "discussions": "Обсуждения",
+    "errorLoadingTasks": "Ошибка загрузки задач",
+    "errorLoadingMessages": "Ошибка загрузки сообщений",
+    "errorLoadingFiles": "Ошибка загрузки файлов",
+    "errorCreatingTask": "Ошибка создания задачи",
+    "errorSendingMessage": "Ошибка отправки сообщения",
+    "errorUploadingFile": "Ошибка загрузки файла",
+    "taskCreatedSuccessfully": "Задача успешно создана",
+    "messageSentSuccessfully": "Сообщение успешно отправлено",
+    "fileUploadedSuccessfully": "Файл успешно загружен",
+
+    "errorAddingFilesToProject": "Ошибка добавления файлов к проекту",
+    "filesUploadedSuccess": "Файлы успешно загружены: {count}",
+    "errorUploadingFiles": "Ошибка при загрузке файлов",
+    "errorDeletingFile": "Ошибка при удалении файла",
+    "status": {
+      "new": "Новый",
+      "in_progress": "В работе",
+      "on_review": "На проверке",
+      "completed": "Завершен",
+      "cancelled": "Отменен",
+      "not_started": "Не начат",
+      "overdue": "Просрочен",
+      "delayed": "Задержан",
+      "blocked": "Заблокирован"
+    },
+    "taskStatus": {
+      "new": "Новая",
+      "in_progress": "В работе",
+      "completed": "Завершена",
+      "cancelled": "Отменена",
+      "blocked": "Заблокирована",
+      "on_hold": "Приостановлена"
+    },
+    "tasksTab": {
+      "title": "Задачи проекта",
+      "createTaskButton": "Создать задачу",
+      "noTasksTitle": "Задач пока нет",
+      "noTasksDescription": "Создайте первую задачу для этого проекта",
+      "created": "Создано",
+      "assignedTo": "Назначено",
+      "status": {
+        "new": "Новая",
+        "not_started": "Не начата",
+        "in_progress": "В работе",
+        "completed": "Завершена",
+        "cancelled": "Отменена",
+        "blocked": "Заблокирована",
+        "on_hold": "Приостановлена"
+      }
+    },
+    "discussionsTab": {
+      "title": "Обсуждения проекта",
+      "systemUser": "Система",
+      "attachments": "Вложения",
+      "noMessagesTitle": "Сообщений пока нет",
+      "noMessagesDescription": "Начните обсуждение этого проекта",
+      "newMessagePlaceholder": "Введите ваше сообщение...",
+      "attachFileTooltip": "Прикрепить файл (скоро будет доступно)",
+      "attachFileButton": "Прикрепить файл",
+      "sendingButton": "Отправка...",
+      "sendMessageButton": "Отправить"
+    },
+    "milestonesTab": {
+      "title": "Этапы проекта",
+      "createMilestoneButton": "Создать этап",
+      "noMilestonesTitle": "Этапов пока нет",
+      "noMilestonesDescription": "Создайте первый этап для этого проекта",
+      "startDate": "Дата начала",
+      "dueDate": "Срок выполнения",
+      "completionDate": "Дата завершения",
+      "progress": "Прогресс",
+      "associatedTasks": "Связанные задачи",
+      "completed": "завершено",
+      "createMilestoneTitle": "Создать новый этап",
+      "milestoneFormModalNotImplemented": "Форма создания этапа будет реализована позже",
+      "status": {
+        "new": "Новый",
+        "not_started": "Не начат",
+        "in_progress": "В работе",
+        "completed": "Завершен",
+        "overdue": "Просрочен",
+        "delayed": "Задержан",
+        "blocked": "Заблокирован"
+      },
+      "priority": {
+        "low": "Низкий",
+        "medium": "Средний",
+        "high": "Высокий",
+        "critical": "Критический"
+      }
+    },
+    "calendarTab": {
+      "title": "Календарь проекта",
+      "today": "Сегодня",
+      "month": "Месяц",
+      "week": "Неделя",
+      "milestoneCount": "Количество этапов",
+      "taskCount": "Количество задач",
+      "implementationMessage": "Календарь в разработке",
+      "calendarImplementationDescription": "Полнофункциональный календарь с задачами и этапами будет доступен в ближайшее время",
+      "weekdays": {
+        "monday": "Пн",
+        "tuesday": "Вт",
+        "wednesday": "Ср",
+        "thursday": "Чт",
+        "friday": "Пт",
+        "saturday": "Сб",
+        "sunday": "Вс"
+      }
+    },
+    "feedbackTab": {
+      "title": "Отзывы о проекте",
+      "addFeedbackButton": "Добавить отзыв",
+      "noFeedbackTitle": "Отзывов пока нет",
+      "noFeedbackDescription": "Оставьте первый отзыв о работе над этим проектом",
+      "public": "Публичный",
+      "addFeedbackTitle": "Добавить отзыв",
+      "feedbackTitle": "Заголовок отзыва",
+      "rating": "Оценка",
+      "comment": "Комментарий",
+      "feedbackType": "Тип отзыва",
+      "makePublic": "Сделать отзыв публичным",
+      "submitFeedback": "Отправить отзыв",
+      "type": {
+        "general": "Общий",
+        "milestone": "По этапу",
+        "collaboration": "Сотрудничество",
+        "result": "Результат"
+      }
+    },
+    "filesTab": {
+      "title": "Файлы проекта",
+      "uploadButton": "Загрузить файлы",
+      "fileName": "Имя файла",
+      "size": "Размер",
+      "uploadedAt": "Дата загрузки",
+      "actions": "Действия",
+      "deleteButton": "Удалить",
+      "downloadButton": "Скачать",
+      "noFilesTitle": "Файлов пока нет",
+      "noFilesDescription": "Загрузите первые файлы для этого проекта",
+      "uploadingIndicator": "Загрузка файлов..."
     }
   }
 }

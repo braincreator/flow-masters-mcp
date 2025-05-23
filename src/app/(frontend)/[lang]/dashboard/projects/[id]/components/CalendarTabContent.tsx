@@ -1,71 +1,70 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator';
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
 
 // Types
 interface MilestoneItem {
-  id: string;
-  title: string;
-  status: string;
-  startDate?: string;
-  dueDate?: string;
+  id: string
+  title: string
+  status: string
+  startDate?: string
+  dueDate?: string
 }
 
 interface TaskItem {
-  id: string;
-  title: string;
-  status: string;
-  dueDate?: string;
+  id: string
+  title: string
+  status: string
+  dueDate?: string
 }
 
 interface ProjectDetails {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface CalendarTabContentProps {
-  milestones: MilestoneItem[];
-  tasks: TaskItem[];
-  isLoadingCalendarData: boolean;
-  project: ProjectDetails;
-  params: { lang: string };
-  t: (key: string, params?: any) => string;
+  milestones: MilestoneItem[]
+  tasks: TaskItem[]
+  isLoadingCalendarData: boolean
+  project: ProjectDetails
+  lang: string
+  t: (key: string, params?: any) => string
 }
 
 const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
-  const { milestones, tasks, isLoadingCalendarData, project, params, t } = props;
-  const { lang } = params;
-  
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  
+  const { milestones, tasks, isLoadingCalendarData, project, lang, t } = props
+
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
+  const [currentDate, setCurrentDate] = useState(new Date())
+
   // Format month name
   const formatMonthYear = (date: Date) => {
     return date.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US', {
       month: 'long',
-      year: 'numeric'
-    });
-  };
-  
+      year: 'numeric',
+    })
+  }
+
   // Navigation functions
   const goToPreviousMonth = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() - 1);
-    setCurrentDate(newDate);
-  };
-  
+    const newDate = new Date(currentDate)
+    newDate.setMonth(currentDate.getMonth() - 1)
+    setCurrentDate(newDate)
+  }
+
   const goToNextMonth = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + 1);
-    setCurrentDate(newDate);
-  };
-  
+    const newDate = new Date(currentDate)
+    newDate.setMonth(currentDate.getMonth() + 1)
+    setCurrentDate(newDate)
+  }
+
   const goToToday = () => {
-    setCurrentDate(new Date());
-  };
-  
+    setCurrentDate(new Date())
+  }
+
   // Weekday headers
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   return (
     <motion.div
@@ -93,7 +92,12 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
               className="p-1.5 bg-gray-100 text-gray-700 rounded-l border-r border-gray-300 hover:bg-gray-200 transition-colors duration-150 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <button
@@ -101,7 +105,12 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
               className="p-1.5 bg-gray-100 text-gray-700 rounded-r hover:bg-gray-200 transition-colors duration-150 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -141,16 +150,19 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
               {formatMonthYear(currentDate)}
             </h2>
           </div>
-          
+
           {/* Calendar Grid - Simplified for now */}
           <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
             {weekdays.map((day) => (
-              <div key={day} className="py-2 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+              <div
+                key={day}
+                className="py-2 text-center text-sm font-medium text-gray-600 dark:text-gray-400"
+              >
                 {t(`calendarTab.weekdays.${day.toLowerCase()}`)}
               </div>
             ))}
           </div>
-          
+
           <div className="p-6 text-center">
             <p className="text-gray-600 dark:text-gray-300">
               {t('calendarTab.milestoneCount')}: {milestones.length}
@@ -158,7 +170,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
             <p className="text-gray-600 dark:text-gray-300 mt-2">
               {t('calendarTab.taskCount')}: {tasks.length}
             </p>
-            
+
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <h3 className="text-blue-600 dark:text-blue-300 font-medium">
                 {t('calendarTab.implementationMessage')}
@@ -171,7 +183,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = (props) => {
         </div>
       )}
     </motion.div>
-  );
-};
+  )
+}
 
-export default CalendarTabContent;
+export default CalendarTabContent

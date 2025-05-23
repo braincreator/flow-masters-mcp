@@ -190,6 +190,95 @@
       },
       "title": "Account Profile",
       "notAuthenticated": "Please log in to view your profile.",
+      "level": "Level",
+      "achievementsCount": "Achievements",
+      "defaultName": "User",
+      "tabs": {
+        "personal": "Personal Information",
+        "security": "Security",
+        "notifications": "Notifications",
+        "achievements": "Achievements"
+      },
+      "fields": {
+        "fullName": "Full Name",
+        "email": "Email Address",
+        "emailReadOnly": "Email address cannot be changed",
+        "phone": "Phone Number",
+        "language": "Preferred Language"
+      },
+      "placeholders": {
+        "fullName": "Enter your full name",
+        "phone": "Enter your phone number"
+      },
+      "languages": {
+        "english": "English",
+        "russian": "Russian"
+      },
+      "security": {
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "passwordTips": {
+          "title": "Password Security Tips",
+          "length": "Use at least 8 characters",
+          "mixture": "Include a mix of letters, numbers, and symbols",
+          "avoid": "Avoid using easily guessable information"
+        }
+      },
+      "errors": {
+        "passwordsDoNotMatch": "New passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters long",
+        "passwordChangeFailed": "Failed to change password. Please check your current password and try again."
+      },
+      "notifications": {
+        "emailNotifications": "Email Notifications",
+        "orderUpdates": {
+          "title": "Order Updates",
+          "description": "Receive notifications about your orders, including shipping and delivery updates"
+        },
+        "subscriptionUpdates": {
+          "title": "Subscription Updates",
+          "description": "Get notified about subscription renewals, changes, and billing information"
+        },
+        "accountActivity": {
+          "title": "Account Activity",
+          "description": "Receive alerts about sign-ins, password changes, and other security events"
+        },
+        "marketing": {
+          "title": "Marketing & Promotions",
+          "description": "Stay informed about special offers, discounts, and promotional events"
+        },
+        "productNews": {
+          "title": "Product News & Tips",
+          "description": "Get updates about new features, improvements, and usage tips"
+        },
+        "frequency": {
+          "title": "Notification Frequency",
+          "description": "Choose how often you want to receive non-critical notifications",
+          "immediately": "Send immediately (as they happen)",
+          "daily": "Daily digest",
+          "weekly": "Weekly summary",
+          "never": "Never (only critical notifications)"
+        }
+      },
+      "achievements": {
+        "level": "Level",
+        "toNextLevel": "to next level",
+        "earned": "Earned Achievements",
+        "earnedOn": "Earned on",
+        "inProgress": "In Progress",
+        "locked": "Locked Achievements",
+        "noAchievements": "No Achievements Yet",
+        "earnAchievements": "Complete courses and activities to earn achievements"
+      },
+      "buttons": {
+        "saving": "Saving...",
+        "saved": "Saved",
+        "saveChanges": "Save Changes",
+        "updating": "Updating...",
+        "updatePassword": "Update Password",
+        "savePreferences": "Save Preferences"
+      },
       "profileInformation": {
         "title": "Profile Information",
         "nameLabel": "Full Name",
@@ -574,7 +663,16 @@
     "services": "Services",
     "myProjects": "My Projects",
     "myCourses": "My Courses",
-    "orders": "Orders"
+    "orders": "Orders",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
   },
   "Services": {
     "metaTitle": "Our Services",
@@ -2069,13 +2167,18 @@
     "orderNumber": "Order number",
     "created": "Created",
     "updated": "Updated",
+    "lastUpdated": "Last updated",
     "unknown": "Unknown",
+    "serviceNameNotAvailable": "Service name not available",
     "unknownService": "Unknown service",
     "tabs": {
       "specification": "Specification",
       "tasks": "Tasks",
       "discussions": "Discussions",
-      "files": "Files"
+      "files": "Files",
+      "milestones": "Milestones",
+      "calendar": "Calendar",
+      "feedback": "Feedback"
     },
     "tabSpecification": "Specification",
     "tabTasks": "Tasks",
@@ -2087,6 +2190,7 @@
     "noSpecification": "No specification text provided",
     "noSpecificationText": "No specification text provided",
     "noSpecificationFiles": "No specification files attached",
+    "downloadFile": "Download file",
     "attachedFiles": "Attached files",
     "noFiles": "No files attached",
     "fileName": "File Name",
@@ -2096,6 +2200,8 @@
     "createTask": "Create Task",
     "createFirstTask": "Create First Task",
     "noTasks": "No tasks found",
+    "taskTitle": "Task title",
+    "taskDescription": "Task description",
     "taskStatus": {
       "new": "New",
       "in_progress": "In Progress",
@@ -2125,11 +2231,137 @@
     "errorLoadingMessages": "Error loading messages",
     "errorLoadingFiles": "Error loading files",
     "errorCreatingTask": "Error creating task",
-    "taskCreatedSuccess": "Task created successfully",
     "errorSendingMessage": "Error sending message",
+    "errorUploadingFile": "Error uploading file",
+    "taskCreatedSuccessfully": "Task created successfully",
+    "messageSentSuccessfully": "Message sent successfully",
+    "fileUploadedSuccessfully": "File uploaded successfully",
+    "taskCreatedSuccess": "Task created successfully",
     "messageSentSuccess": "Message sent successfully",
     "errorAddingFilesToProject": "Error adding files to project",
     "filesUploadedSuccess": "Files uploaded successfully: {count}",
-    "errorUploadingFiles": "Error uploading files"
+    "errorUploadingFiles": "Error uploading files",
+    "errorDeletingFile": "Error deleting file",
+    "status": {
+      "new": "New",
+      "in_progress": "In Progress",
+      "on_review": "Under Review",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "not_started": "Not Started",
+      "overdue": "Overdue",
+      "delayed": "Delayed",
+      "blocked": "Blocked"
+    },
+    "feedbackTab": {
+      "title": "Project Feedback",
+      "addFeedbackButton": "Add Feedback",
+      "noFeedbackTitle": "No feedback yet",
+      "noFeedbackDescription": "Leave the first feedback about working on this project",
+      "public": "Public",
+      "addFeedbackTitle": "Add Feedback",
+      "feedbackTitle": "Feedback Title",
+      "rating": "Rating",
+      "comment": "Comment",
+      "feedbackType": "Feedback Type",
+      "makePublic": "Make feedback public",
+      "submitFeedback": "Submit Feedback",
+      "type": {
+        "general": "General",
+        "milestone": "Milestone",
+        "collaboration": "Collaboration",
+        "result": "Result"
+      }
+    },
+    "tasksTab": {
+      "title": "Project Tasks",
+      "createTaskButton": "Create Task",
+      "noTasksTitle": "No tasks yet",
+      "noTasksDescription": "Create the first task for this project",
+      "created": "Created",
+      "assignedTo": "Assigned to",
+      "status": {
+        "new": "New",
+        "not_started": "Not Started",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "blocked": "Blocked",
+        "on_hold": "On Hold"
+      }
+    },
+    "discussionsTab": {
+      "title": "Project Discussions",
+      "systemUser": "System",
+      "attachments": "Attachments",
+      "noMessagesTitle": "No messages yet",
+      "noMessagesDescription": "Start discussing this project",
+      "newMessagePlaceholder": "Enter your message...",
+      "attachFileTooltip": "Attach file (coming soon)",
+      "attachFileButton": "Attach file",
+      "sendingButton": "Sending...",
+      "sendMessageButton": "Send"
+    },
+    "milestonesTab": {
+      "title": "Project Milestones",
+      "createMilestoneButton": "Create Milestone",
+      "noMilestonesTitle": "No milestones yet",
+      "noMilestonesDescription": "Create the first milestone for this project",
+      "startDate": "Start date",
+      "dueDate": "Due date",
+      "completionDate": "Completion date",
+      "progress": "Progress",
+      "associatedTasks": "Associated tasks",
+      "completed": "completed",
+      "createMilestoneTitle": "Create new milestone",
+      "milestoneFormModalNotImplemented": "Milestone creation form will be implemented later",
+      "status": {
+        "new": "New",
+        "not_started": "Not Started",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "overdue": "Overdue",
+        "delayed": "Delayed",
+        "blocked": "Blocked"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      }
+    },
+    "calendarTab": {
+      "title": "Project Calendar",
+      "today": "Today",
+      "month": "Month",
+      "week": "Week",
+      "milestoneCount": "Milestone count",
+      "taskCount": "Task count",
+      "implementationMessage": "Calendar under development",
+      "calendarImplementationDescription": "Full-featured calendar with tasks and milestones will be available soon",
+      "weekdays": {
+        "monday": "Mon",
+        "tuesday": "Tue",
+        "wednesday": "Wed",
+        "thursday": "Thu",
+        "friday": "Fri",
+        "saturday": "Sat",
+        "sunday": "Sun"
+      }
+    },
+    "filesTab": {
+      "title": "Project Files",
+      "uploadButton": "Upload Files",
+      "fileName": "File Name",
+      "size": "Size",
+      "uploadedAt": "Upload Date",
+      "actions": "Actions",
+      "deleteButton": "Delete",
+      "downloadButton": "Download",
+      "noFilesTitle": "No files yet",
+      "noFilesDescription": "Upload the first files for this project",
+      "uploadingIndicator": "Uploading files..."
+    }
   }
 }

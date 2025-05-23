@@ -1,54 +1,64 @@
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import React from 'react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { FileText, Download } from 'lucide-react'
 
 // Copied from page.tsx - consider moving to a shared types file later
 interface ProjectDetails {
-  id: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  name: string
+  status: string
+  createdAt: string
+  updatedAt: string
   customer: {
-    id: string;
-    email: string;
-  };
+    id: string
+    email: string
+  }
   sourceOrder: {
-    id: string;
-    orderNumber: string;
-  };
+    id: string
+    orderNumber: string
+  }
   serviceDetails: {
-    serviceName: string;
-    serviceType?: string;
-  };
+    serviceName: string
+    serviceType?: string
+  }
   specificationText: {
-    ru?: string | null;
-    en?: string | null;
-    [key: string]: string | null | undefined;
-  };
+    ru?: string | null
+    en?: string | null
+    [key: string]: string | null | undefined
+  }
   specificationFiles: Array<{
-    id: string;
-    filename: string;
-    url: string;
-  }>;
-  tasks?: any[]; // Replace with TaskItem[] if defined elsewhere
-  messages?: any[]; // Replace with MessageItem[] if defined elsewhere
-  projectFiles?: any[]; // Replace with ProjectFile[] if defined elsewhere
+    id: string
+    filename: string
+    url: string
+  }>
+  tasks?: any[] // Replace with TaskItem[] if defined elsewhere
+  messages?: any[] // Replace with MessageItem[] if defined elsewhere
+  projectFiles?: any[] // Replace with ProjectFile[] if defined elsewhere
 }
 
 interface SpecificationTabContentProps {
-  project: ProjectDetails;
-  lang: string;
+  project: ProjectDetails
+  lang: string
   // params: { lang: string }; // params.lang is available via lang prop directly
-  t: (key: string, params?: any) => string;
+  t: (key: string, params?: any) => string
 }
 
-const SpecificationTabContent: React.FC<SpecificationTabContentProps> = ({
-  project,
-  lang,
-  t,
-}) => {
-  const currentLangSpecText = project.specificationText?.[lang] || project.specificationText?.['en'] || project.specificationText?.['ru'];
+const SpecificationTabContent: React.FC<SpecificationTabContentProps> = ({ project, lang, t }) => {
+  const currentLangSpecText =
+    project.specificationText?.[lang] ||
+    project.specificationText?.['en'] ||
+    project.specificationText?.['ru']
 
   return (
     <motion.div
@@ -57,96 +67,76 @@ const SpecificationTabContent: React.FC<SpecificationTabContentProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="py-6"
+      className="space-y-6"
     >
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            {t('specificationTextTitle')}
-          </h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {t('specificationText')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           {currentLangSpecText ? (
             <div
-              className="prose dark:prose-invert max-w-none p-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg shadow"
+              className="prose dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: currentLangSpecText }}
             />
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 p-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg shadow">
-              {t('noSpecificationText')}
-            </p>
+            <p className="text-muted-foreground">{t('noSpecificationText')}</p>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            {t('specificationFilesTitle')}
-          </h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {t('specificationFiles')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           {project.specificationFiles && project.specificationFiles.length > 0 ? (
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 overflow-hidden shadow">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                <thead className="bg-gray-100 dark:bg-gray-700">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
-                      {t('fileName')}
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
-                      {t('actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                  {project.specificationFiles.map((file) => (
-                    <tr key={file.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center">
-                          <svg
-                            className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            ></path>
-                          </svg>
-                          <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
-                            {file.filename}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Имя файла</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {project.specificationFiles.map((file) => (
+                  <TableRow key={file.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                        <span className="font-medium truncate">{file.filename}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" asChild>
                         <Link
                           href={file.url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                          className="flex items-center gap-1"
                         >
-                          {t('downloadButton')}
+                          <Download className="h-4 w-4" />
+                          {t('downloadFile')}
                         </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 p-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg shadow">
-              {t('noSpecificationFiles')}
-            </p>
+            <p className="text-muted-foreground">{t('noSpecificationFiles')}</p>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </motion.div>
-  );
-};
+  )
+}
 
-export default SpecificationTabContent;
+export default SpecificationTabContent

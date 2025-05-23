@@ -117,15 +117,6 @@ export function AuthNav() {
             <span>{t('orders')}</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/${currentLocale}/settings`}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <Settings className="h-4 w-4" />
-            <span>{t('settings')}</span>
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="flex items-center gap-2 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
