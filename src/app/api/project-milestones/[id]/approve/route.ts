@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import payload from 'payload'
 import { getAuth } from '../../../helpers/auth'
+import { getPayloadClient } from '@/utilities/payload/index'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -12,6 +12,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { id } = params
     const body = await req.json()
     const { approved, feedback, satisfactionRating } = body
+
+    // Get the Payload client
+    const payload = await getPayloadClient()
 
     // Получаем этап проекта
     const milestone = await payload.findByID({
@@ -25,7 +28,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Получаем проект
-    const projectId = typeof milestone.project === 'object' ? milestone.project.id : milestone.project
+    const projectId =
+      typeof milestone.project === 'object' ? milestone.project.id : milestone.project
     const project = await payload.findByID({
       collection: 'service-projects',
       id: projectId,
@@ -41,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!milestone.clientApprovalRequired || milestone.status !== 'completed') {
       return NextResponse.json(
         { error: 'This milestone does not require approval or is not completed' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -88,7 +92,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Отправляем уведомление исполнителю проекта, если он назначен
     if (project.assignedTo) {
-      const assignedToId = typeof project.assignedTo === 'object' ? project.assignedTo.id : project.assignedTo
+      const assignedToId =
+        typeof project.assignedTo === 'object' ? project.assignedTo.id : project.assignedTo
 
       // Получаем сервис уведомлений
       const serviceRegistry = req.payload.services.get('service-registry')
@@ -98,7 +103,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         await notificationService.sendNotification({
           userId: assignedToId,
           title: approved ? 'Milestone Approved' : 'Milestone Feedback Received',
-          messageKey: approved ? 'NotificationBodies.milestone_approved' : 'NotificationBodies.milestone_feedback',
+          messageKey: approved
+            ? 'NotificationBodies.milestone_approved'
+            : 'NotificationBodies.milestone_feedback',
           messageParams: {
             milestoneName: milestone.title,
             projectName: project.name,

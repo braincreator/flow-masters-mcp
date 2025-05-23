@@ -672,7 +672,8 @@
     "view": "Просмотр",
     "loading": "Загрузка...",
     "error": "Ошибка",
-    "success": "Успешно"
+    "success": "Успешно",
+    "tryAgain": "Попробовать снова"
   },
   "Services": {
     "metaTitle": "Наши Услуги",
@@ -2188,17 +2189,70 @@
     },
     "milestonesTab": {
       "title": "Этапы проекта",
+      "subtitle": "Управляйте этапами проекта и отслеживайте прогресс",
       "createMilestoneButton": "Создать этап",
       "noMilestonesTitle": "Этапов пока нет",
       "noMilestonesDescription": "Создайте первый этап для этого проекта",
       "startDate": "Дата начала",
       "dueDate": "Срок выполнения",
       "completionDate": "Дата завершения",
-      "progress": "Прогресс",
+      "progressLabel": "Прогресс",
       "associatedTasks": "Связанные задачи",
       "completed": "завершено",
       "createMilestoneTitle": "Создать новый этап",
+      "editMilestoneTitle": "Редактировать этап",
       "milestoneFormModalNotImplemented": "Форма создания этапа будет реализована позже",
+      "form": {
+        "title": "Название этапа",
+        "titlePlaceholder": "Введите название этапа",
+        "description": "Описание",
+        "descriptionPlaceholder": "Введите описание этапа",
+        "editDescription": "Редактируйте информацию об этапе проекта",
+        "createDescription": "Создайте новый этап для отслеживания прогресса проекта",
+        "startDate": "Дата начала",
+        "dueDate": "Срок выполнения",
+        "priority": "Приоритет",
+        "dependencies": "Зависимости",
+        "dependenciesPlaceholder": "Выберите этапы-зависимости",
+        "dependenciesDescription": "Выберите этапы, которые должны быть завершены перед началом этого этапа",
+        "selectDate": "Выберите дату",
+        "selectPriority": "Выберите приоритет",
+        "save": "Сохранить",
+        "cancel": "Отмена",
+        "saving": "Сохранение...",
+        "delete": "Удалить этап",
+        "deleteConfirm": "Вы уверены, что хотите удалить этот этап?",
+        "validation": {
+          "titleRequired": "Название этапа обязательно",
+          "titleMinLength": "Название должно содержать минимум 3 символа",
+          "dueDateAfterStart": "Срок выполнения должен быть после даты начала",
+          "dependencyLoop": "Обнаружена циклическая зависимость"
+        }
+      },
+      "actions": {
+        "edit": "Редактировать",
+        "delete": "Удалить",
+        "markComplete": "Отметить как завершенный",
+        "markInProgress": "Отметить как в работе",
+        "duplicate": "Дублировать",
+        "moveUp": "Переместить вверх",
+        "moveDown": "Переместить вниз"
+      },
+      "filters": {
+        "all": "Все этапы",
+        "active": "Активные",
+        "completed": "Завершенные",
+        "overdue": "Просроченные",
+        "byPriority": "По приоритету",
+        "byStatus": "По статусу"
+      },
+      "sorting": {
+        "byOrder": "По порядку",
+        "byDueDate": "По сроку",
+        "byPriority": "По приоритету",
+        "byProgress": "По прогрессу",
+        "byCreated": "По дате создания"
+      },
       "status": {
         "new": "Новый",
         "not_started": "Не начат",
@@ -2213,6 +2267,36 @@
         "medium": "Средний",
         "high": "Высокий",
         "critical": "Критический"
+      },
+      "dependencies": {
+        "title": "Зависимости этапа",
+        "blockedBy": "Заблокирован этапами:",
+        "blocks": "Блокирует этапы:",
+        "noDependencies": "Нет зависимостей",
+        "addDependency": "Добавить зависимость",
+        "removeDependency": "Удалить зависимость"
+      },
+      "timeline": {
+        "viewMode": "Режим просмотра",
+        "list": "Список",
+        "timeline": "Временная шкала",
+        "kanban": "Канбан",
+        "gantt": "Диаграмма Ганта"
+      },
+      "progress": {
+        "overall": "Общий прогресс",
+        "completed": "Завершено",
+        "inProgress": "В работе",
+        "notStarted": "Не начато",
+        "overdue": "Просрочено"
+      },
+      "notifications": {
+        "created": "Этап успешно создан",
+        "updated": "Этап успешно обновлен",
+        "deleted": "Этап успешно удален",
+        "reordered": "Порядок этапов изменен",
+        "statusChanged": "Статус этапа изменен",
+        "error": "Произошла ошибка при выполнении операции"
       }
     },
     "calendarTab": {

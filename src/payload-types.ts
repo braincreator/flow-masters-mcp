@@ -9371,6 +9371,10 @@ export interface ProjectMilestone {
    * Связанные задачи
    */
   associatedTasks?: (string | Task)[] | null;
+  /**
+   * Порядок сортировки этапов
+   */
+  order?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -16379,6 +16383,7 @@ export interface ProjectMilestonesSelect<T extends boolean = true> {
   progress?: T;
   dependencies?: T;
   associatedTasks?: T;
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
 }

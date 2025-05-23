@@ -985,18 +985,7 @@ export default function ProjectDetailsPage({
                 />
               )}
 
-              {activeTab === 'milestones' && (
-                <MilestonesTabContent
-                  milestones={milestones}
-                  isLoadingMilestones={isLoadingMilestones}
-                  handleCreateMilestone={handleCreateMilestone}
-                  project={project}
-                  lang={lang}
-                  t={t}
-                  isMilestoneModalOpen={isMilestoneModalOpen}
-                  setIsMilestoneModalOpen={setIsMilestoneModalOpen}
-                />
-              )}
+              {activeTab === 'milestones' && <MilestonesTabContent project={project} lang={lang} />}
 
               {activeTab === 'calendar' && (
                 <CalendarTabContent

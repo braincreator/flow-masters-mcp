@@ -125,7 +125,15 @@ const ProjectMilestones: CollectionConfig = {
       hasMany: true,
       admin: {
         description: 'Связанные задачи',
-      }
+      },
+    },
+    {
+      name: 'order',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Порядок сортировки этапов',
+      },
     },
   ],
   timestamps: true,

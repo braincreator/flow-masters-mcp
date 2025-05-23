@@ -672,7 +672,8 @@
     "view": "View",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "tryAgain": "Try Again"
   },
   "Services": {
     "metaTitle": "Our Services",
@@ -2304,17 +2305,70 @@
     },
     "milestonesTab": {
       "title": "Project Milestones",
+      "subtitle": "Manage project milestones and track progress",
       "createMilestoneButton": "Create Milestone",
       "noMilestonesTitle": "No milestones yet",
       "noMilestonesDescription": "Create the first milestone for this project",
       "startDate": "Start date",
       "dueDate": "Due date",
       "completionDate": "Completion date",
-      "progress": "Progress",
+      "progressLabel": "Progress",
       "associatedTasks": "Associated tasks",
       "completed": "completed",
       "createMilestoneTitle": "Create new milestone",
+      "editMilestoneTitle": "Edit milestone",
       "milestoneFormModalNotImplemented": "Milestone creation form will be implemented later",
+      "form": {
+        "title": "Milestone title",
+        "titlePlaceholder": "Enter milestone title",
+        "description": "Description",
+        "descriptionPlaceholder": "Enter milestone description",
+        "editDescription": "Edit milestone information",
+        "createDescription": "Create a new milestone to track project progress",
+        "startDate": "Start date",
+        "dueDate": "Due date",
+        "priority": "Priority",
+        "dependencies": "Dependencies",
+        "dependenciesPlaceholder": "Select milestone dependencies",
+        "dependenciesDescription": "Select milestones that must be completed before this milestone can start",
+        "selectDate": "Select date",
+        "selectPriority": "Select priority",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "delete": "Delete milestone",
+        "deleteConfirm": "Are you sure you want to delete this milestone?",
+        "validation": {
+          "titleRequired": "Milestone title is required",
+          "titleMinLength": "Title must be at least 3 characters long",
+          "dueDateAfterStart": "Due date must be after start date",
+          "dependencyLoop": "Circular dependency detected"
+        }
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "markComplete": "Mark as completed",
+        "markInProgress": "Mark as in progress",
+        "duplicate": "Duplicate",
+        "moveUp": "Move up",
+        "moveDown": "Move down"
+      },
+      "filters": {
+        "all": "All milestones",
+        "active": "Active",
+        "completed": "Completed",
+        "overdue": "Overdue",
+        "byPriority": "By priority",
+        "byStatus": "By status"
+      },
+      "sorting": {
+        "byOrder": "By order",
+        "byDueDate": "By due date",
+        "byPriority": "By priority",
+        "byProgress": "By progress",
+        "byCreated": "By created date"
+      },
       "status": {
         "new": "New",
         "not_started": "Not Started",
@@ -2329,6 +2383,36 @@
         "medium": "Medium",
         "high": "High",
         "critical": "Critical"
+      },
+      "dependencies": {
+        "title": "Milestone dependencies",
+        "blockedBy": "Blocked by milestones:",
+        "blocks": "Blocks milestones:",
+        "noDependencies": "No dependencies",
+        "addDependency": "Add dependency",
+        "removeDependency": "Remove dependency"
+      },
+      "timeline": {
+        "viewMode": "View mode",
+        "list": "List",
+        "timeline": "Timeline",
+        "kanban": "Kanban",
+        "gantt": "Gantt Chart"
+      },
+      "progress": {
+        "overall": "Overall progress",
+        "completed": "Completed",
+        "inProgress": "In progress",
+        "notStarted": "Not started",
+        "overdue": "Overdue"
+      },
+      "notifications": {
+        "created": "Milestone created successfully",
+        "updated": "Milestone updated successfully",
+        "deleted": "Milestone deleted successfully",
+        "reordered": "Milestone order changed",
+        "statusChanged": "Milestone status changed",
+        "error": "An error occurred while performing the operation"
       }
     },
     "calendarTab": {
