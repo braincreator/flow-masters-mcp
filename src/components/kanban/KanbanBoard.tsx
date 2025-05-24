@@ -33,22 +33,22 @@ interface KanbanBoardProps {
 
 const COLUMN_DEFINITIONS: Record<TaskStatus, { title: string; color: string; limit?: number }> = {
   todo: {
-    title: 'kanban.columns.todo',
+    title: 'tasks.kanban.columns.todo.title',
     color: 'bg-gray-100 dark:bg-gray-800',
     limit: undefined,
   },
   in_progress: {
-    title: 'kanban.columns.inProgress',
+    title: 'tasks.kanban.columns.in_progress.title',
     color: 'bg-blue-50 dark:bg-blue-900/20',
     limit: 3, // WIP limit
   },
   review: {
-    title: 'kanban.columns.review',
+    title: 'tasks.kanban.columns.review.title',
     color: 'bg-yellow-50 dark:bg-yellow-900/20',
     limit: 2,
   },
   completed: {
-    title: 'kanban.columns.completed',
+    title: 'tasks.kanban.columns.completed.title',
     color: 'bg-green-50 dark:bg-green-900/20',
     limit: undefined,
   },
@@ -218,19 +218,54 @@ export function KanbanBoard({
 
   if (isLoading) {
     return (
-      <div className={cn('flex gap-6 h-full overflow-x-auto pb-6', className)}>
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="flex-shrink-0 w-80">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 h-full animate-pulse">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, cardIndex) => (
-                  <div key={cardIndex} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                ))}
-              </div>
+      <div
+        className={cn(
+          'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800',
+          'border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm',
+          'p-6 h-full overflow-hidden',
+          className,
+        )}
+      >
+        {/* Loading Board Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+              <div className="h-6 w-32 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
             </div>
+            <div className="h-4 w-20 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
           </div>
-        ))}
+        </div>
+
+        {/* Loading Board Content */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-[calc(100%-5rem)] overflow-hidden">
+          <div className="flex gap-1 h-full overflow-x-auto p-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="flex-shrink-0 w-80">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 h-full animate-pulse">
+                  {/* Column header skeleton */}
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-4 w-20 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                        <div className="h-5 w-8 bg-gray-300 dark:bg-gray-500 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Column content skeleton */}
+                  <div className="p-4 space-y-3">
+                    {Array.from({ length: 3 }).map((_, cardIndex) => (
+                      <div
+                        key={cardIndex}
+                        className="h-24 bg-gray-200 dark:bg-gray-600 rounded-lg"
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -242,31 +277,65 @@ export function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className={cn('flex gap-6 h-full overflow-x-auto pb-6', className)}>
-        <AnimatePresence>
-          {columns.map((column) => (
-            <motion.div
-              key={column.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="flex-shrink-0"
-            >
-              <KanbanColumnComponent
-                column={column}
-                onTaskClick={onTaskClick}
-                onCreateTask={onCreateTask}
-                isDraggedOver={draggedOverColumn === column.id}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      {/* Unified Board Container */}
+      <div
+        className={cn(
+          'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800',
+          'border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm',
+          'p-6 h-full overflow-hidden',
+          className,
+        )}
+      >
+        {/* Board Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('tasks.kanban.boardTitle', { default: 'Task Board' })}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {t('tasks.kanban.totalTasks', {
+                  count: tasks.length,
+                  default: `${tasks.length} tasks`,
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Board Content Area */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm h-[calc(100%-5rem)] overflow-hidden">
+          {/* Column Container */}
+          <div className="flex gap-1 h-full overflow-x-auto p-4">
+            <AnimatePresence>
+              {columns.map((column, index) => (
+                <motion.div
+                  key={column.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2, delay: index * 0.1 }}
+                  className="flex-shrink-0"
+                >
+                  <KanbanColumnComponent
+                    column={column}
+                    onTaskClick={onTaskClick}
+                    onCreateTask={onCreateTask}
+                    isDraggedOver={draggedOverColumn === column.id}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       <DragOverlay>
         {activeTask ? (
-          <div className="rotate-3 opacity-90">
+          <div className="rotate-3 opacity-90 scale-105">
             <TaskCard task={activeTask} onClick={() => {}} isDragging={true} />
           </div>
         ) : null}

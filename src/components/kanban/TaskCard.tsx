@@ -34,27 +34,27 @@ const getPriorityConfig = (
   low: {
     color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     icon: <Circle className="w-3 h-3" />,
-    label: t('priority.low'),
+    label: t('tasks.priority.low'),
   },
   medium: {
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
     icon: <Circle className="w-3 h-3 fill-current" />,
-    label: t('priority.medium'),
+    label: t('tasks.priority.medium'),
   },
   high: {
     color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     icon: <AlertTriangle className="w-3 h-3 fill-current" />,
-    label: t('priority.high'),
+    label: t('tasks.priority.high'),
   },
   urgent: {
     color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
     icon: <AlertTriangle className="w-3 h-3 fill-current" />,
-    label: t('priority.urgent'),
+    label: t('tasks.priority.urgent'),
   },
 })
 
 export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
-  const t = useTranslations('tasks')
+  const t = useTranslations()
   const {
     attributes,
     listeners,
@@ -78,27 +78,29 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
   const cardContent = (
     <div
       className={cn(
-        'bg-white dark:bg-gray-800 rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer',
+        'bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700',
+        'shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600',
+        'transition-all duration-200 cursor-pointer',
         'p-4 space-y-3',
-        isDragging && 'shadow-lg rotate-3 scale-105',
+        isDragging && 'shadow-lg rotate-3 scale-105 border-blue-300 dark:border-blue-600',
         isSortableDragging && 'opacity-50',
-        isOverdue && 'border-red-300 dark:border-red-700',
-        task.status === 'completed' && 'opacity-75',
+        isOverdue && 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10',
+        task.status === 'completed' && 'opacity-75 bg-green-50 dark:bg-green-900/10',
       )}
       onClick={onClick}
     >
-      {/* Header with priority and status */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Badge className={cn('text-xs px-2 py-1', priorityConfig.color)}>
+      {/* Header with priority and status - Fixed height */}
+      <div className="flex items-start justify-between gap-2 min-h-[28px]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge className={cn('text-xs px-2 py-1 flex-shrink-0', priorityConfig.color)}>
             <span className="flex items-center gap-1">
               {priorityConfig.icon}
               {priorityConfig.label}
             </span>
           </Badge>
           {isOverdue && (
-            <Badge variant="destructive" className="text-xs">
-              {t('taskCard.overdue')}
+            <Badge variant="destructive" className="text-xs flex-shrink-0">
+              {t('tasks.overdue')}
             </Badge>
           )}
         </div>
@@ -122,7 +124,7 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
       {task.progress > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-500">
-            <span>{t('taskCard.progress')}</span>
+            <span>{t('tasks.taskCard.progress')}</span>
             <span>{task.progress}%</span>
           </div>
           <Progress value={task.progress} className="h-1.5" />

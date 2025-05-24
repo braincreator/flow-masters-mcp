@@ -7,6 +7,7 @@ import {
   TaskDragResult,
   TasksResponse,
   CreateTaskRequest,
+  UpdateTaskRequest,
   TaskStats,
 } from '@/types/tasks'
 import { KanbanBoard } from '@/components/kanban/KanbanBoard'
@@ -136,6 +137,8 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
   const [activeView, setActiveView] = useState<'kanban' | 'list' | 'stats'>('kanban')
   const [tasksData, setTasksData] = useState<TasksResponse | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [taskModalMode, setTaskModalMode] = useState<'create' | 'edit'>('create')
+  const [editingTask, setEditingTask] = useState<TaskItem | null>(null)
 
   // Fetch tasks with stats
   const fetchTasks = useCallback(async () => {
@@ -165,10 +168,28 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
       task.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleTaskClick = useCallback((task: TaskItem) => {
-    setSelectedTask(task)
-    setIsTaskDetailOpen(true)
-  }, [])
+  const handleTaskClick = useCallback(
+    (task: TaskItem) => {
+      setEditingTask(task)
+      setTaskModalMode('edit')
+      setIsTaskModalOpen(true)
+    },
+    [setIsTaskModalOpen],
+  )
+
+  // Handle opening create modal
+  const handleCreateTaskClick = useCallback(() => {
+    setEditingTask(null)
+    setTaskModalMode('create')
+    setIsTaskModalOpen(true)
+  }, [setIsTaskModalOpen])
+
+  // Handle closing modal
+  const handleCloseModal = useCallback(() => {
+    setIsTaskModalOpen(false)
+    setEditingTask(null)
+    setTaskModalMode('create')
+  }, [setIsTaskModalOpen])
 
   const handleTaskUpdate = useCallback(
     async (taskId: string, updates: Partial<TaskItem>) => {
@@ -288,7 +309,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
           </div>
 
           <Button
-            onClick={() => setIsTaskModalOpen(true)}
+            onClick={handleCreateTaskClick}
             size="default"
             className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
           >
@@ -370,7 +391,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
                   onTaskUpdate={handleTaskUpdate}
                   onTaskMove={handleTaskMove}
                   onTaskClick={handleTaskClick}
-                  onCreateTask={() => setIsTaskModalOpen(true)}
+                  onCreateTask={handleCreateTaskClick}
                   isLoading={isRefreshing}
                   className="flex-1"
                 />
@@ -381,7 +402,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
                 onTaskUpdate={handleTaskUpdate}
                 onTaskMove={handleTaskMove}
                 onTaskClick={handleTaskClick}
-                onCreateTask={() => setIsTaskModalOpen(true)}
+                onCreateTask={handleCreateTaskClick}
                 isLoading={isRefreshing}
                 className="h-full"
               />
@@ -467,7 +488,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
             ) : searchQuery ? (
               <SearchEmptyState onClearSearch={() => setSearchQuery('')} />
             ) : (
-              <ListEmptyState onCreateTask={() => setIsTaskModalOpen(true)} />
+              <ListEmptyState onCreateTask={handleCreateTaskClick} />
             )}
           </div>
         )}
@@ -549,30 +570,23 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
                 <AnimatedLoadingIndicator size="medium" />
               </div>
             ) : (
-              <StatsEmptyState onCreateTask={() => setIsTaskModalOpen(true)} />
+              <StatsEmptyState onCreateTask={handleCreateTaskClick} />
             )}
           </div>
         )}
       </div>
 
-      {/* Task Detail Modal */}
-      <TaskDetailModal
-        task={selectedTask}
-        isOpen={isTaskDetailOpen}
-        onClose={() => {
-          setIsTaskDetailOpen(false)
-          setSelectedTask(null)
-        }}
-        onUpdate={handleTaskUpdate}
-        onDelete={handleTaskDelete}
-      />
-
-      {/* Task Creation Modal */}
+      {/* Unified Task Form Modal */}
       <TaskFormModal
         isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onSubmit={handleCreateTask}
+        onClose={handleCloseModal}
+        onSubmit={taskModalMode === 'create' ? handleCreateTask : undefined}
+        onUpdate={taskModalMode === 'edit' ? handleTaskUpdate : undefined}
+        onDelete={taskModalMode === 'edit' ? handleTaskDelete : undefined}
+        initialData={editingTask}
         projectId={project.id}
+        mode={taskModalMode}
+        projectUsers={[]} // TODO: Add project users when available
       />
     </div>
   )

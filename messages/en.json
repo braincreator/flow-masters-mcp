@@ -1440,6 +1440,61 @@
       "defaultWebsiteTitle": "Payload Website Template"
     }
   },
+  "TaskForm": {
+    "createTask": "Create Task",
+    "editTask": "Edit Task",
+    "createTaskDescription": "Create a new task to organize your project work",
+    "editTaskDescription": "Update task information and settings",
+    "fields": {
+      "title": "Task Title",
+      "titlePlaceholder": "Enter task title",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter task description (optional)",
+      "status": "Status",
+      "statusPlaceholder": "Select task status",
+      "priority": "Priority",
+      "priorityPlaceholder": "Select priority level",
+      "dueDate": "Due Date",
+      "dueDatePlaceholder": "Select due date (optional)",
+      "assignedTo": "Assigned To",
+      "assignedToPlaceholder": "Select assignee (optional)",
+      "unassigned": "Unassigned",
+      "tags": "Tags",
+      "tagsPlaceholder": "Add tags (optional)",
+      "estimatedHours": "Estimated Hours",
+      "estimatedHoursPlaceholder": "Enter estimated hours (optional)"
+    },
+    "actions": {
+      "save": "Save Task",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "delete": "Delete Task",
+      "deleting": "Deleting..."
+    },
+    "validation": {
+      "titleRequired": "Task title is required",
+      "titleMinLength": "Title must be at least 3 characters long",
+      "titleMaxLength": "Title must be less than 100 characters",
+      "descriptionMaxLength": "Description must be less than 1000 characters",
+      "estimatedHoursMin": "Estimated hours must be greater than 0",
+      "estimatedHoursMax": "Estimated hours must be less than 1000",
+      "dueDateFuture": "Due date must be in the future"
+    },
+    "notifications": {
+      "createSuccess": "Task created successfully",
+      "updateSuccess": "Task updated successfully",
+      "deleteSuccess": "Task deleted successfully",
+      "createError": "Failed to create task",
+      "updateError": "Failed to update task",
+      "deleteError": "Failed to delete task",
+      "loadingError": "Failed to load task data"
+    },
+    "confirmDelete": "Are you sure you want to delete this task? This action cannot be undone.",
+    "shortcuts": {
+      "save": "Ctrl+Enter to save",
+      "cancel": "Esc to cancel"
+    }
+  },
   "tasks": {
     "title": "Tasks",
     "createTaskButton": "Create Task",
@@ -1507,7 +1562,10 @@
       "completed": "Completed",
       "inProgress": "In Progress",
       "overdue": "Overdue",
-      "completedThisWeek": "this week"
+      "completedThisWeek": "completed this week",
+      "allProjectTasks": "All project tasks",
+      "currentlyActive": "Currently active",
+      "needAttention": "Need attention"
     },
     "fields": {
       "title": "Title",
@@ -1516,6 +1574,71 @@
       "priority": "Priority",
       "dueDate": "Due Date",
       "assignedTo": "Assigned To"
+    },
+    "kanban": {
+      "boardTitle": "Task Board",
+      "totalTasks": "{count} tasks",
+      "columns": {
+        "todo": {
+          "title": "To Do",
+          "emptyMessage": "Add new tasks here",
+          "emptyDescription": "Tasks that need to be completed"
+        },
+        "in_progress": {
+          "title": "In Progress",
+          "emptyMessage": "Drag tasks here when you start working",
+          "emptyDescription": "Tasks that are actively being worked on"
+        },
+        "review": {
+          "title": "Review",
+          "emptyMessage": "Tasks awaiting review",
+          "emptyDescription": "Completed tasks requiring review"
+        },
+        "completed": {
+          "title": "Completed",
+          "emptyMessage": "Completed tasks will appear here",
+          "emptyDescription": "Fully completed and reviewed tasks"
+        }
+      },
+      "dragAndDrop": {
+        "moveTask": "Move task",
+        "dropHere": "Drop here"
+      }
+    },
+    "taskCard": {
+      "overdue": "Overdue",
+      "dueToday": "Today",
+      "dueTomorrow": "Tomorrow",
+      "dueIn": "Due in {days} days",
+      "comments": "comments",
+      "attachments": "attachments",
+      "assignedTo": "Assigned to:",
+      "noAssignee": "Unassigned",
+      "estimatedHours": "h",
+      "progress": "Progress"
+    },
+    "overdue": "Overdue",
+    "views": {
+      "kanban": "Kanban",
+      "list": "List",
+      "stats": "Statistics"
+    },
+    "list": {
+      "headers": {
+        "title": "Title",
+        "status": "Status",
+        "priority": "Priority",
+        "assignee": "Assignee",
+        "dueDate": "Due Date",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "view": "View"
+      },
+      "noAssignee": "Unassigned",
+      "noDueDate": "No due date"
     }
   },
   "ServiceBooking": {
@@ -2372,6 +2495,8 @@
       }
     },
     "kanban": {
+      "boardTitle": "Task Board",
+      "totalTasks": "{count, plural, =0 {no tasks} =1 {# task} other {# tasks}}",
       "columns": {
         "todo": "To Do",
         "inProgress": "In Progress",
