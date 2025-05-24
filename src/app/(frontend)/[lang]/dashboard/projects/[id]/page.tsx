@@ -224,8 +224,15 @@ export default function ProjectDetailsPage({
         }
 
         const data = await response.json()
-        setTasks(data)
-        console.log('Tasks load: isLoadingTasks set to false. Tasks data:', data)
+        // Ensure tasks is always an array
+        const tasksArray = Array.isArray(data) ? data : data?.tasks || data?.docs || []
+        setTasks(tasksArray)
+        console.log(
+          'Tasks load: isLoadingTasks set to false. Tasks data:',
+          data,
+          'Processed tasks:',
+          tasksArray,
+        )
       } catch (err) {
         console.error('Error fetching tasks:', err)
         console.log('Tasks load: isLoadingTasks set to false. Error:', err)

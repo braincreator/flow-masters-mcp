@@ -9,17 +9,18 @@ import { cn } from '@/utilities/ui'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar } from '@/components/ui/avatar'
-import { 
-  Calendar, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Circle, 
-  MessageSquare, 
+import {
+  Calendar,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Circle,
+  MessageSquare,
   Paperclip,
-  User
+  User,
 } from 'lucide-react'
 import { formatDate } from '@/utilities/formatDate'
+import { useTranslations } from 'next-intl'
 
 interface TaskCardProps {
   task: TaskItem
@@ -27,30 +28,33 @@ interface TaskCardProps {
   isDragging?: boolean
 }
 
-const PRIORITY_CONFIG: Record<TaskPriority, { color: string; icon: React.ReactNode; label: string }> = {
+const getPriorityConfig = (
+  t: any,
+): Record<TaskPriority, { color: string; icon: React.ReactNode; label: string }> => ({
   low: {
     color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     icon: <Circle className="w-3 h-3" />,
-    label: 'Low',
+    label: t('priority.low'),
   },
   medium: {
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
     icon: <Circle className="w-3 h-3 fill-current" />,
-    label: 'Medium',
+    label: t('priority.medium'),
   },
   high: {
     color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     icon: <AlertTriangle className="w-3 h-3 fill-current" />,
-    label: 'High',
+    label: t('priority.high'),
   },
   urgent: {
     color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
     icon: <AlertTriangle className="w-3 h-3 fill-current" />,
-    label: 'Urgent',
+    label: t('priority.urgent'),
   },
-}
+})
 
 export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
+  const t = useTranslations('tasks')
   const {
     attributes,
     listeners,
@@ -65,8 +69,9 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
     transition,
   }
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed'
-  const priorityConfig = PRIORITY_CONFIG[task.priority]
+  const isOverdue =
+    task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed'
+  const priorityConfig = getPriorityConfig(t)[task.priority]
   const hasComments = task.comments && task.comments.length > 0
   const hasAttachments = task.attachments && task.attachments.length > 0
 
@@ -78,7 +83,7 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
         isDragging && 'shadow-lg rotate-3 scale-105',
         isSortableDragging && 'opacity-50',
         isOverdue && 'border-red-300 dark:border-red-700',
-        task.status === 'completed' && 'opacity-75'
+        task.status === 'completed' && 'opacity-75',
       )}
       onClick={onClick}
     >
@@ -93,11 +98,11 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
           </Badge>
           {isOverdue && (
             <Badge variant="destructive" className="text-xs">
-              Overdue
+              {t('taskCard.overdue')}
             </Badge>
           )}
         </div>
-        
+
         {task.status === 'completed' && (
           <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
         )}
@@ -110,16 +115,14 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
 
       {/* Task description */}
       {task.description && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-          {task.description}
-        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{task.description}</p>
       )}
 
       {/* Progress bar */}
       {task.progress > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Progress</span>
+            <span>{t('taskCard.progress')}</span>
             <span>{task.progress}%</span>
           </div>
           <Progress value={task.progress} className="h-1.5" />
@@ -147,10 +150,12 @@ export function TaskCard({ task, onClick, isDragging = false }: TaskCardProps) {
         <div className="flex items-center gap-3">
           {/* Due date */}
           {task.dueDate && (
-            <div className={cn(
-              'flex items-center gap-1',
-              isOverdue && 'text-red-500 dark:text-red-400'
-            )}>
+            <div
+              className={cn(
+                'flex items-center gap-1',
+                isOverdue && 'text-red-500 dark:text-red-400',
+              )}
+            >
               <Calendar className="w-3 h-3" />
               <span>{formatDate(task.dueDate, 'en', { month: 'short', day: 'numeric' })}</span>
             </div>

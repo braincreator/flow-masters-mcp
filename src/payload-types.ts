@@ -9260,17 +9260,42 @@ export interface Task {
    */
   description?: string | null;
   /**
-   * Статус задачи
+   * Task status
    */
-  status: 'new' | 'in_progress' | 'completed';
+  status: 'todo' | 'in_progress' | 'review' | 'completed';
+  /**
+   * Task priority
+   */
+  priority?: ('low' | 'medium' | 'high' | 'urgent') | null;
+  /**
+   * Task completion progress (0-100%)
+   */
+  progress?: number | null;
   /**
    * Плановая дата завершения задачи
    */
   dueDate?: string | null;
   /**
-   * Фактическая дата завершения задачи
+   * Actual completion date
    */
-  completionDate?: string | null;
+  completedAt?: string | null;
+  /**
+   * Estimated hours to complete
+   */
+  estimatedHours?: number | null;
+  /**
+   * Actual hours spent
+   */
+  actualHours?: number | null;
+  /**
+   * Task tags
+   */
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Ответственный
    */
@@ -16348,8 +16373,18 @@ export interface TasksSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   status?: T;
+  priority?: T;
+  progress?: T;
   dueDate?: T;
-  completionDate?: T;
+  completedAt?: T;
+  estimatedHours?: T;
+  actualHours?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
   assignedTo?: T;
   updatedAt?: T;
   createdAt?: T;
