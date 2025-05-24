@@ -2288,7 +2288,32 @@
         "completed": "Completed",
         "cancelled": "Cancelled",
         "blocked": "Blocked",
-        "on_hold": "On Hold"
+        "on_hold": "On Hold",
+        "todo": "To Do",
+        "review": "Review"
+      }
+    },
+    "kanban": {
+      "columns": {
+        "todo": "To Do",
+        "inProgress": "In Progress",
+        "review": "Review",
+        "completed": "Completed"
+      }
+    },
+    "tasks": {
+      "confirmDelete": "Are you sure you want to delete this task? This action cannot be undone.",
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "status": {
+        "todo": "To Do",
+        "in_progress": "In Progress",
+        "review": "Review",
+        "completed": "Completed"
       }
     },
     "discussionsTab": {

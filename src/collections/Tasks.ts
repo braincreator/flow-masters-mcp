@@ -87,15 +87,39 @@ const Tasks: CollectionConfig = {
       name: 'status',
       type: 'select',
       options: [
-        { label: 'Новая', value: 'new' },
-        { label: 'В работе', value: 'in_progress' },
-        { label: 'Завершена', value: 'completed' },
+        { label: 'To Do', value: 'todo' },
+        { label: 'In Progress', value: 'in_progress' },
+        { label: 'Review', value: 'review' },
+        { label: 'Completed', value: 'completed' },
       ],
-      defaultValue: 'new',
+      defaultValue: 'todo',
       required: true,
-      localized: true,
       admin: {
-        description: 'Статус задачи',
+        description: 'Task status',
+      },
+    },
+    {
+      name: 'priority',
+      type: 'select',
+      options: [
+        { label: 'Low', value: 'low' },
+        { label: 'Medium', value: 'medium' },
+        { label: 'High', value: 'high' },
+        { label: 'Urgent', value: 'urgent' },
+      ],
+      defaultValue: 'medium',
+      admin: {
+        description: 'Task priority',
+      },
+    },
+    {
+      name: 'progress',
+      type: 'number',
+      min: 0,
+      max: 100,
+      defaultValue: 0,
+      admin: {
+        description: 'Task completion progress (0-100%)',
       },
     },
     {
@@ -109,14 +133,43 @@ const Tasks: CollectionConfig = {
       },
     },
     {
-      name: 'completionDate',
+      name: 'completedAt',
       type: 'date',
       admin: {
-        description: 'Фактическая дата завершения задачи',
+        description: 'Actual completion date',
         date: {
           pickerAppearance: 'dayAndTime',
         },
         condition: (data) => data?.status === 'completed',
+      },
+    },
+    {
+      name: 'estimatedHours',
+      type: 'number',
+      min: 0,
+      admin: {
+        description: 'Estimated hours to complete',
+      },
+    },
+    {
+      name: 'actualHours',
+      type: 'number',
+      min: 0,
+      admin: {
+        description: 'Actual hours spent',
+      },
+    },
+    {
+      name: 'tags',
+      type: 'array',
+      fields: [
+        {
+          name: 'tag',
+          type: 'text',
+        },
+      ],
+      admin: {
+        description: 'Task tags',
       },
     },
     {
