@@ -18,7 +18,7 @@ import type {
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
 import { NotificationService } from '../services/notification.service'
-import { convertPrice } from '@/utilities/formatPrice'
+
 import { generateOrderNumber, ORDER_PREFIXES } from '@/utilities/orderNumber'
 
 // Добавляем объявление типов для локализованного текста спецификации
@@ -202,7 +202,10 @@ const calculateOrderTotalsHook: CollectionBeforeChangeHook<OrderWithCalculatedFi
   // Generate order number if not provided
   if (!data.orderNumber && operation === 'create') {
     // Generate order number based on order type
-    const prefix = data.orderType ? ORDER_PREFIXES[data.orderType.toUpperCase() as keyof typeof ORDER_PREFIXES] || ORDER_PREFIXES.DEFAULT : ORDER_PREFIXES.DEFAULT
+    const prefix = data.orderType
+      ? ORDER_PREFIXES[data.orderType.toUpperCase() as keyof typeof ORDER_PREFIXES] ||
+        ORDER_PREFIXES.DEFAULT
+      : ORDER_PREFIXES.DEFAULT
     data.orderNumber = generateOrderNumber(prefix)
   }
 
@@ -214,7 +217,8 @@ const calculateOrderTotalsHook: CollectionBeforeChangeHook<OrderWithCalculatedFi
       const itemPriceUsd = typeof item.price === 'number' ? item.price : 0
       const quantity = typeof item.quantity === 'number' ? item.quantity : 1
       subtotalEn += itemPriceUsd * quantity
-      subtotalRu += convertPrice(itemPriceUsd, 'en', 'ru') * quantity
+      // Simple conversion for RUB (using approximate rate)
+      subtotalRu += itemPriceUsd * 75 * quantity // Approximate USD to RUB conversion
     }
   }
 

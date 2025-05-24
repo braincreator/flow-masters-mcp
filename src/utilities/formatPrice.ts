@@ -95,8 +95,8 @@ export const formatItemPrice = (item: any, locale: string = 'en'): string => {
   if (!item) return ''
 
   const price = getLocalePrice(item, locale)
-  const isStartingFrom = item.isPriceStartingFrom === true ||
-    (item.pricing && item.pricing.isPriceStartingFrom === true)
+  const isStartingFrom =
+    item.isPriceStartingFrom === true || (item.pricing && item.pricing.isPriceStartingFrom === true)
 
   return formatPriceWithPrefix(price, locale, isStartingFrom)
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
-import { convertPrice } from '@/utilities/formatPrice'
 
 interface ApiError {
   message: string
@@ -237,7 +236,7 @@ export async function GET(request: Request) {
           let comparePrice = productPrice
           if (locale !== 'en') {
             // Конвертируем из USD в локальную валюту
-            comparePrice = convertPrice(productPrice, 'en', locale)
+            comparePrice = productPrice // Use original price without conversion
           }
 
           // Логируем исходную цену и конвертированную

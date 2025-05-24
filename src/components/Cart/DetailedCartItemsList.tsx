@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, X, ShoppingBag } from 'lucide-react'
 import { Locale } from '@/constants'
 import { Product, Service, CartSession, Media } from '@/payload-types'
-import { formatPrice, convertPrice } from '@/utilities/formatPrice'
+import { formatPrice } from '@/utilities/formatPrice'
 import { cn } from '@/utilities/ui'
 
 // Type for a single cart item, consistent with CheckoutClient
@@ -73,20 +73,18 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
           <ShoppingBag className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-muted-foreground" />
         </div>
         <p className="text-muted-foreground mb-6">
-          {locale === 'ru'
-            ? 'Ваша корзина пуста.'
-            : 'Your cart is empty.'}
+          {locale === 'ru' ? 'Ваша корзина пуста.' : 'Your cart is empty.'}
         </p>
         {!isCheckout && (
-            <Button
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-300"
-                asChild
-            >
-                <a href={`/${locale}`}>
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                {locale === 'ru' ? 'Перейти к покупкам' : 'Continue shopping'}
-                </a>
-            </Button>
+          <Button
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all duration-300"
+            asChild
+          >
+            <a href={`/${locale}`}>
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              {locale === 'ru' ? 'Перейти к покупкам' : 'Continue shopping'}
+            </a>
+          </Button>
         )}
       </div>
     )
@@ -103,7 +101,7 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
             : typeof item.product === 'string'
               ? item.product
               : item.product?.id
-        
+
         if (!itemId) return null // Should not happen with valid cart items
 
         const imageUrl = getItemImageUrl(item)
@@ -141,9 +139,7 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
                 <p className="font-medium line-clamp-2 sm:line-clamp-1">{title}</p>
                 <div className="flex items-center mt-1">
                   <Badge
-                    variant={
-                      item.itemType === 'service' ? 'secondary' : 'default'
-                    }
+                    variant={item.itemType === 'service' ? 'secondary' : 'default'}
                     className="text-xs h-5"
                   >
                     {item.itemType === 'service'
@@ -165,16 +161,7 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
             </div>
             <div className="flex items-center flex-shrink-0 pl-2">
               <p className="font-medium mr-2 sm:mr-4 tabular-nums text-sm sm:text-base">
-                {formatPrice(
-                  locale === 'ru'
-                    ? (item.priceSnapshot || 0) * (item.quantity || 0)
-                    : convertPrice(
-                        (item.priceSnapshot || 0) * (item.quantity || 0),
-                        'ru',
-                        locale,
-                      ),
-                  locale,
-                )}
+                {formatPrice((item.priceSnapshot || 0) * (item.quantity || 0), locale)}
               </p>
               <div className="flex items-center mr-1 sm:mr-2">
                 <Button
@@ -183,11 +170,7 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
                   className="h-6 w-6 rounded-full"
                   onClick={() => {
                     if (itemId && item.quantity > 1) {
-                      updateItem(
-                        itemId,
-                        item.itemType,
-                        Math.max(1, (item.quantity || 1) - 1),
-                      )
+                      updateItem(itemId, item.itemType, Math.max(1, (item.quantity || 1) - 1))
                     }
                   }}
                   disabled={isLoadingThisItem || item.quantity <= 1}
@@ -195,7 +178,19 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
                   {isLoadingThisItem ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M5 12h14" />
+                    </svg>
                   )}
                 </Button>
                 <span className="mx-1 sm:mx-2 font-medium text-sm min-w-[16px] sm:min-w-[24px] text-center">
@@ -207,11 +202,7 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
                   className="h-6 w-6 rounded-full"
                   onClick={() => {
                     if (itemId) {
-                      updateItem(
-                        itemId,
-                        item.itemType,
-                        (item.quantity || 1) + 1,
-                      )
+                      updateItem(itemId, item.itemType, (item.quantity || 1) + 1)
                     }
                   }}
                   disabled={isLoadingThisItem}
@@ -219,7 +210,20 @@ export const DetailedCartItemsList: React.FC<DetailedCartItemsListProps> = ({
                   {isLoadingThisItem ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="M12 5v14" />
+                    </svg>
                   )}
                 </Button>
               </div>

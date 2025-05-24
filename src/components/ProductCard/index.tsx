@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Download, Clock, Shield, ImageIcon } from 'lucide-react'
 import type { Product as PayloadProduct } from '@/payload-types'
-import { formatPrice, getLocalePrice, convertPrice } from '@/utilities/formatPrice'
+import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
 import { cn } from '@/utilities/ui'
 import { useTranslations } from '@/hooks/useTranslations'
@@ -77,7 +77,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
       // Convert the base price to the target locale's currency for comparison
       const baseLocale =
         typeof product.pricing?.baseLocale === 'string' ? product.pricing.baseLocale : 'en'
-      const convertedBasePrice = convertPrice(basePrice, baseLocale, locale)
+      const convertedBasePrice = basePrice // Use original price without conversion
       if (convertedBasePrice !== localePrice && convertedBasePrice > localePrice) {
         return convertedBasePrice
       }
@@ -199,7 +199,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           <div
             className={cn(
               'absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-sm border border-border/60 shadow-sm hover:shadow-md transition-all duration-300 dark:border-border/50 dark:hover:border-accent/30 price-background-blink',
-              hasDiscount ? 'animate-glow-subtle price-bounce' : 'price-3d-rotate'
+              hasDiscount ? 'animate-glow-subtle price-bounce' : 'price-3d-rotate',
             )}
           >
             <ProductPrice
@@ -255,7 +255,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
             </div>
 
             {/* Product Type and Features */}
-            <div className="flex gap-3 hidden md:flex mt-auto pb-1">
+            <div className="hidden md:flex gap-3 mt-auto pb-1">
               {getProductType() === 'digital' && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Download className="h-3.5 w-3.5 mr-1" />
@@ -275,7 +275,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
           <div
             className={cn(
               'absolute top-1 right-6 min-w-[100px] md:min-w-[120px] z-10 bg-background/80 backdrop-blur-sm p-1 rounded-sm border border-border/60 shadow-sm hover:shadow-md transition-all duration-300 price-rotate-border price-background-blink',
-              hasDiscount ? 'animate-glow-subtle discount-highlight' : 'price-3d-rotate'
+              hasDiscount ? 'animate-glow-subtle discount-highlight' : 'price-3d-rotate',
             )}
           >
             {/* Price */}

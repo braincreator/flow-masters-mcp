@@ -3,7 +3,6 @@ import { BaseService } from '@/services/base.service'
 import { ServiceRegistry } from '@/services/service.registry'
 import { revalidateContent } from '@/utilities/revalidation'
 import type { Payload } from 'payload'
-import { getConvertedPrice } from '@/utilities/formatPrice' // Импортируем функцию конвертации цены
 
 // Define simplified input types if needed, or use Partial<Order>
 // Ensure these types align with your actual Order structure from payload-types.ts
@@ -43,23 +42,17 @@ export class OrderService extends BaseService {
       // Создаем массив для обновленных позиций заказа
       const updatedItems = []
 
-      // Обрабатываем каждую позицию заказа
+      // Process each order item
       for (const item of input.items) {
         try {
-          // Конвертируем цену
-          const priceData = await getConvertedPrice(item.price, sourceLocaleForPrice, locale)
-          const convertedPrice = priceData.convertedPrice
-
-          // Создаем обновленную позицию с конвертированной ценой
+          // Create updated item without currency conversion
           const updatedItem = {
             ...item,
             product: typeof item.product === 'string' ? item.product : item.product.id,
             ...(item.service && {
               service: typeof item.service === 'string' ? item.service : item.service.id,
             }),
-            price: convertedPrice, // Используем конвертированную цену
-            originalPrice: item.price, // Сохраняем оригинальную цену
-            conversionRate: convertedPrice / item.price, // Сохраняем коэффициент конвертации
+            price: item.price, // Use original price
           }
 
           updatedItems.push(updatedItem)
@@ -75,7 +68,8 @@ export class OrderService extends BaseService {
         ...input,
         items: updatedItems,
         // Import the utility function for consistent order number generation
-        orderNumber: input.orderNumber || require('@/utilities/orderNumber').generateOrderNumber('ORD'),
+        orderNumber:
+          input.orderNumber || require('@/utilities/orderNumber').generateOrderNumber('ORD'),
         paymentData: input.paymentData
           ? Object.assign({}, input.paymentData, {
               customerLocale: locale,
