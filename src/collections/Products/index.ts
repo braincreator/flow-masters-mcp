@@ -9,97 +9,21 @@ import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
 import type { Product } from '@/payload-types'
 
-// Определяем тип для данных группы pricing, если он не сгенерирован
-type PricingGroup = Product['pricing'] // Используем сгенерированный тип, если есть
-// Если нет, можно определить вручную:
-// type PricingGroup = {
-//   basePrice?: number | null;
-//   discountPercentage?: number | null;
-//   compareAtPrice?: number | null;
-//   finalPrice?: number | null;
-//   locales?: any; // Уточни тип, если нужно
-// }
+// Simple pricing hook for discount calculation
+const pricingHook: FieldHook = ({ value }) => {
+  if (!value) return value
 
-// Заменяем хук CollectionBeforeChangeHook на FieldHook
-const pricingHook: FieldHook = ({ value, siblingData, originalDoc, operation }) => {
-  // value - это значение поля pricing
-  // Если value не определено, создаем пустой объект
-  if (!value) {
-    value = {}
-  }
+  const price = Number(value.price) || 0
+  const discountPercentage = Number(value.discountPercentage) || 0
 
-  // Получаем существующие данные из originalDoc если это обновление
-  const existingPricingData =
-    operation === 'update' && originalDoc?.pricing ? originalDoc.pricing : {}
+  // Calculate final price after discount
+  const finalPrice = price * (1 - discountPercentage / 100)
 
-  // Объединяем существующие данные с переданными (value)
-  const mergedData = {
-    ...existingPricingData,
-    ...value,
-  }
-
-  // Получаем и валидируем basePrice
-  let basePrice = 0
-  if (value.basePrice === undefined || value.basePrice === null || isNaN(Number(value.basePrice))) {
-    // Если basePrice отсутствует или невалидно в текущем запросе,
-    // используем существующее значение или 0
-    basePrice =
-      existingPricingData.basePrice !== undefined && existingPricingData.basePrice !== null
-        ? Number(existingPricingData.basePrice)
-        : 0
-  } else {
-    // Если basePrice передано, проверяем что это число >= 0
-    basePrice = Math.max(0, Number(value.basePrice))
-  }
-
-  // Получаем и валидируем discountPercentage
-  const discountPercentage = Math.max(0, Number(mergedData.discountPercentage) || 0)
-
-  // Определяем compareAtPrice
-  let compareAtPrice = mergedData.compareAtPrice
-
-  // Рассчитываем finalPrice
-  let finalPrice: number
-
-  if (basePrice > 0 && discountPercentage > 0) {
-    // Если есть basePrice и скидка, устанавливаем compareAtPrice = basePrice,
-    // если оно не задано вручную или пусто
-    if (
-      compareAtPrice === null ||
-      compareAtPrice === undefined ||
-      originalDoc?.pricing?.compareAtPrice === compareAtPrice
-    ) {
-      compareAtPrice = basePrice
-    }
-    finalPrice = basePrice * (1 - discountPercentage / 100)
-  } else {
-    // Если скидки нет, compareAtPrice имеет смысл только если задано вручную
-    // и отличается от basePrice
-    if (compareAtPrice === basePrice || compareAtPrice === undefined) {
-      compareAtPrice = null
-    }
-    finalPrice = basePrice
-  }
-
-  // Валидируем compareAtPrice - должно быть > finalPrice
-  if (compareAtPrice !== null && compareAtPrice !== undefined) {
-    compareAtPrice = Math.max(0, Number(compareAtPrice) || 0)
-    if (compareAtPrice <= finalPrice) {
-      compareAtPrice = null
-    }
-  }
-
-  // Округляем finalPrice до 2 знаков после запятой
-  finalPrice = Math.round(finalPrice * 100) / 100
-
-  // Возвращаем объект с обновленными данными
   return {
     ...value,
-    basePrice,
+    price,
     discountPercentage,
-    compareAtPrice,
-    finalPrice,
-    locales: mergedData.locales,
+    finalPrice: Math.round(finalPrice * 100) / 100,
   }
 }
 
@@ -111,7 +35,7 @@ export const Products: CollectionConfig = {
     defaultColumns: [
       'title',
       'productCategory.title',
-      'pricing.finalPrice',
+      'pricing.price',
       'publishedAt',
       'status',
     ],
@@ -156,12 +80,13 @@ export const Products: CollectionConfig = {
       },
       fields: [
         {
-          name: 'basePrice',
+          name: 'price',
           type: 'number',
           required: true,
           min: 0,
+          localized: true,
           admin: {
-            description: 'Base price in USD',
+            description: 'Price in the locale currency (USD for English, RUB for Russian)',
           },
         },
         {
@@ -184,6 +109,7 @@ export const Products: CollectionConfig = {
         {
           name: 'compareAtPrice',
           type: 'number',
+          localized: true,
           admin: {
             description: 'Original price for comparison (optional)',
           },
@@ -195,31 +121,6 @@ export const Products: CollectionConfig = {
           admin: {
             description: 'Price is a starting price (will be displayed as "from X")',
           },
-        },
-        {
-          name: 'localizedPrices',
-          type: 'group',
-          admin: {
-            description: 'Localized prices (override base price for specific locales)',
-          },
-          fields: [
-            {
-              name: 'ru',
-              type: 'number',
-              min: 0,
-              admin: {
-                description: 'Price in rubles for Russian locale',
-              },
-            },
-            {
-              name: 'en',
-              type: 'number',
-              min: 0,
-              admin: {
-                description: 'Price in USD for English locale (if different from base price)',
-              },
-            },
-          ],
         },
       ],
     },

@@ -79,8 +79,9 @@ export const Services: CollectionConfig = {
       type: 'number',
       required: true,
       min: 0,
+      localized: true,
       admin: {
-        description: 'Базовая цена в USD',
+        description: 'Цена в валюте локали (USD для английской, RUB для русской)',
         position: 'sidebar',
       },
     },
@@ -92,33 +93,6 @@ export const Services: CollectionConfig = {
         description: 'Цена является начальной (будет отображаться как "от X")',
         position: 'sidebar',
       },
-    },
-    {
-      name: 'localizedPrices',
-      type: 'group',
-      admin: {
-        description: 'Локализованные цены (переопределяют базовую цену для указанных локалей)',
-        position: 'sidebar',
-      },
-      fields: [
-        {
-          name: 'ru',
-          type: 'number',
-          min: 0,
-          admin: {
-            description: 'Цена в рублях для русской локали',
-          },
-        },
-        // Можно добавить другие локали при необходимости
-        {
-          name: 'en',
-          type: 'number',
-          min: 0,
-          admin: {
-            description: 'Цена в долларах для английской локали (если отличается от базовой)',
-          },
-        },
-      ],
     },
     {
       name: 'duration',

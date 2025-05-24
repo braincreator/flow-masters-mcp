@@ -1,1 +1,0 @@
-export { CurrencySettings } from './config'
