@@ -14,7 +14,6 @@ import { Locale as AppLocale } from '@/constants'
 import { add } from 'date-fns'
 import type { Duration } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
-import { getConvertedPrice } from '@/utilities/formatPrice' // Добавляем импорт функции конвертации
 
 // Local definition for EmailOrderConfirmationArgs
 interface LocalEmailOrderItem {
@@ -403,12 +402,8 @@ export class PaymentService extends BaseService {
         }
       }
 
-      // Конвертируем цену из базовой валюты (en) в валюту пользователя
-      const sourceLocaleForPrice = 'en'
-      const priceData = await getConvertedPrice(params.amount, sourceLocaleForPrice, targetLocale)
-
-      // Используем конвертированную цену вместо оригинальной
-      const convertedAmount = priceData.convertedPrice
+      // Use the original amount without conversion
+      const convertedAmount = params.amount
 
       const metadataForProvider: ProcessPaymentParams['metadata'] = {
         orderId: params.orderId,
@@ -512,10 +507,8 @@ export class PaymentService extends BaseService {
         }
       }
 
-      // Конвертируем цену из базовой валюты (en) в валюту пользователя
-      const sourceLocaleForPrice = 'en'
-      const priceData = await getConvertedPrice(amount, sourceLocaleForPrice, targetLocale)
-      const convertedAmount = priceData.convertedPrice
+      // Use the original amount without conversion
+      const convertedAmount = amount
 
       const description = `Subscription payment for order ${orderId}`
       const chargeResponse = await providerService.chargeWithToken(

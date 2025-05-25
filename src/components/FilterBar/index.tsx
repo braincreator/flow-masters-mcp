@@ -37,7 +37,6 @@ import {
 } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useAuth } from '@/hooks/useAuth'
-import { convertPrice } from '@/utilities/formatPrice'
 
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>

@@ -261,8 +261,6 @@ export interface Config {
     'email-settings': EmailSetting;
     'payment-providers': PaymentProvider;
     'notification-settings': NotificationSetting;
-    'currency-settings': CurrencySetting;
-    'exchange-rate-settings': ExchangeRateSetting;
     'webhook-settings': WebhookSetting;
   };
   globalsSelect: {
@@ -271,8 +269,6 @@ export interface Config {
     'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
     'payment-providers': PaymentProvidersSelect<false> | PaymentProvidersSelect<true>;
     'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
-    'currency-settings': CurrencySettingsSelect<false> | CurrencySettingsSelect<true>;
-    'exchange-rate-settings': ExchangeRateSettingsSelect<false> | ExchangeRateSettingsSelect<true>;
     'webhook-settings': WebhookSettingsSelect<false> | WebhookSettingsSelect<true>;
   };
   locale: 'en' | 'ru';
@@ -2787,9 +2783,9 @@ export interface Product {
   productCategory: string | ProductCategory;
   pricing: {
     /**
-     * Base price in USD
+     * Price in the locale currency (USD for English, RUB for Russian)
      */
-    basePrice: number;
+    price: number;
     /**
      * Discount percentage (0-100)
      */
@@ -2806,19 +2802,6 @@ export interface Product {
      * Price is a starting price (will be displayed as "from X")
      */
     isPriceStartingFrom?: boolean | null;
-    /**
-     * Localized prices (override base price for specific locales)
-     */
-    localizedPrices?: {
-      /**
-       * Price in rubles for Russian locale
-       */
-      ru?: number | null;
-      /**
-       * Price in USD for English locale (if different from base price)
-       */
-      en?: number | null;
-    };
   };
   description: {
     root: {
@@ -8356,26 +8339,13 @@ export interface Service {
    */
   shortDescription: string;
   /**
-   * Базовая цена в USD
+   * Цена в валюте локали (USD для английской, RUB для русской)
    */
   price: number;
   /**
    * Цена является начальной (будет отображаться как "от X")
    */
   isPriceStartingFrom?: boolean | null;
-  /**
-   * Локализованные цены (переопределяют базовую цену для указанных локалей)
-   */
-  localizedPrices?: {
-    /**
-     * Цена в рублях для русской локали
-     */
-    ru?: number | null;
-    /**
-     * Цена в долларах для английской локали (если отличается от базовой)
-     */
-    en?: number | null;
-  };
   /**
    * Продолжительность в минутах (0 для неограниченной)
    */
@@ -11662,11 +11632,17 @@ export interface Solution {
       }[]
     | null;
   pricing: {
-    basePrice: number;
+    /**
+     * Price in locale currency (USD for English, RUB for Russian)
+     */
+    price: number;
     /**
      * Discount percentage (0-100)
      */
     discountPercentage?: number | null;
+    /**
+     * Final price after discount (calculated automatically)
+     */
     finalPrice?: number | null;
   };
   updatedAt: string;
@@ -15939,17 +15915,11 @@ export interface ProductsSelect<T extends boolean = true> {
   pricing?:
     | T
     | {
-        basePrice?: T;
+        price?: T;
         discountPercentage?: T;
         finalPrice?: T;
         compareAtPrice?: T;
         isPriceStartingFrom?: T;
-        localizedPrices?:
-          | T
-          | {
-              ru?: T;
-              en?: T;
-            };
       };
   description?: T;
   shortDescription?: T;
@@ -16026,12 +15996,6 @@ export interface ServicesSelect<T extends boolean = true> {
   shortDescription?: T;
   price?: T;
   isPriceStartingFrom?: T;
-  localizedPrices?:
-    | T
-    | {
-        ru?: T;
-        en?: T;
-      };
   duration?: T;
   thumbnail?: T;
   features?:
@@ -17730,7 +17694,7 @@ export interface SolutionsSelect<T extends boolean = true> {
   pricing?:
     | T
     | {
-        basePrice?: T;
+        price?: T;
         discountPercentage?: T;
         finalPrice?: T;
       };
@@ -18591,139 +18555,6 @@ export interface NotificationSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "currency-settings".
- */
-export interface CurrencySetting {
-  id: string;
-  /**
-   * Primary currency used for internal calculations
-   */
-  baseCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
-  /**
-   * Currencies available to customers on the frontend
-   */
-  supportedCurrencies: ('RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF')[];
-  displayFormat: {
-    symbolPosition: 'before' | 'after';
-    /**
-     * Display currency code along with the symbol (e.g., $100 USD)
-     */
-    showCurrencyCode?: boolean | null;
-    thousandsSeparator: ' ' | ',' | '.' | '';
-    decimalSeparator: '.' | ',';
-    decimalPlaces: '0' | '1' | '2';
-  };
-  /**
-   * Override default currency for specific locales
-   */
-  localeDefaults?:
-    | {
-        locale: 'en' | 'ru';
-        currency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
-        format?: {
-          symbolPosition?: ('before' | 'after') | null;
-          thousandsSeparator?: (' ' | ',' | '.' | '') | null;
-          decimalSeparator?: ('.' | ',') | null;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Rules for rounding prices in different ranges
-   */
-  roundingRules?:
-    | {
-        minPrice: number;
-        maxPrice: number;
-        /**
-         * Round to nearest value (e.g., 5, 10, 99, etc.)
-         */
-        roundTo: number;
-        strategy?: ('nearest' | 'down' | 'up') | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Add additional markup for specific currencies
-   */
-  markup?:
-    | {
-        currency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
-        /**
-         * Additional percentage to add to exchange rate (can be negative for discounts)
-         */
-        percentage: number;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exchange-rate-settings".
- */
-export interface ExchangeRateSetting {
-  id: string;
-  auto?: {
-    enabled?: boolean | null;
-    provider?: ('openexchangerates' | 'exchangerateapi' | 'fixer' | 'currencylayer') | null;
-    apiKey?: string | null;
-    updateFrequency?: ('hourly' | 'daily' | 'weekly') | null;
-    /**
-     * Timestamp of the last automatic update
-     */
-    lastUpdated?: string | null;
-  };
-  /**
-   * Manual exchange rates (these will override automatic rates)
-   */
-  rates?:
-    | {
-        fromCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
-        toCurrency: 'RUB' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' | 'INR' | 'CAD' | 'AUD' | 'CHF';
-        /**
-         * Rate to convert from the base currency to the target currency
-         */
-        rate: number;
-        /**
-         * Whether this rate should be preserved during automatic updates
-         */
-        manuallySet?: boolean | null;
-        /**
-         * Timestamp of the last update for this rate
-         */
-        lastUpdated?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  display?: {
-    /**
-     * Show the current exchange rate when user switches currency
-     */
-    showExchangeRate?: boolean | null;
-    allowUserCurrencySwitch?: boolean | null;
-    /**
-     * Show price in both the user-selected currency and the base currency
-     */
-    showPriceInMultipleCurrencies?: boolean | null;
-  };
-  failover: {
-    /**
-     * Maximum age of rates before they are considered stale
-     */
-    maxRateAge: number;
-    /**
-     * Use manually set rates if automatic update fails
-     */
-    fallbackToManualRates?: boolean | null;
-    disableCurrencySwitching?: boolean | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "webhook-settings".
  */
 export interface WebhookSetting {
@@ -19200,98 +19031,6 @@ export interface NotificationSettingsSelect<T extends boolean = true> {
                         };
                   };
             };
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "currency-settings_select".
- */
-export interface CurrencySettingsSelect<T extends boolean = true> {
-  baseCurrency?: T;
-  supportedCurrencies?: T;
-  displayFormat?:
-    | T
-    | {
-        symbolPosition?: T;
-        showCurrencyCode?: T;
-        thousandsSeparator?: T;
-        decimalSeparator?: T;
-        decimalPlaces?: T;
-      };
-  localeDefaults?:
-    | T
-    | {
-        locale?: T;
-        currency?: T;
-        format?:
-          | T
-          | {
-              symbolPosition?: T;
-              thousandsSeparator?: T;
-              decimalSeparator?: T;
-            };
-        id?: T;
-      };
-  roundingRules?:
-    | T
-    | {
-        minPrice?: T;
-        maxPrice?: T;
-        roundTo?: T;
-        strategy?: T;
-        id?: T;
-      };
-  markup?:
-    | T
-    | {
-        currency?: T;
-        percentage?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exchange-rate-settings_select".
- */
-export interface ExchangeRateSettingsSelect<T extends boolean = true> {
-  auto?:
-    | T
-    | {
-        enabled?: T;
-        provider?: T;
-        apiKey?: T;
-        updateFrequency?: T;
-        lastUpdated?: T;
-      };
-  rates?:
-    | T
-    | {
-        fromCurrency?: T;
-        toCurrency?: T;
-        rate?: T;
-        manuallySet?: T;
-        lastUpdated?: T;
-        id?: T;
-      };
-  display?:
-    | T
-    | {
-        showExchangeRate?: T;
-        allowUserCurrencySwitch?: T;
-        showPriceInMultipleCurrencies?: T;
-      };
-  failover?:
-    | T
-    | {
-        maxRateAge?: T;
-        fallbackToManualRates?: T;
-        disableCurrencySwitching?: T;
       };
   updatedAt?: T;
   createdAt?: T;

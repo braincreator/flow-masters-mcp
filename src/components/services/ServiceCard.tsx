@@ -1,13 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import {
-  formatPrice,
-  convertPrice,
-  getLocaleCurrency,
-  formatItemPrice,
-  getConvertedPrice,
-} from '@/utilities/formatPrice'
+import { formatPrice, formatItemPrice } from '@/utilities/formatPrice'
 import { Button } from '@/components/ui/button'
 import { Service } from '@/types/service'
 import { Badge } from '@/components/ui/badge'
@@ -77,24 +71,16 @@ export default function ServiceCard({
     }
   }
 
-  // Локализация цены с конвертацией валюты
+  // Format price for display
   useEffect(() => {
-    const fetchLocalizedPrice = async () => {
-      try {
-        await getLocaleCurrency(locale)
-        const sourceLocaleForPrice = 'en'
-        const priceData = await getConvertedPrice(service.price, sourceLocaleForPrice, locale)
-        setConvertedPriceValue(priceData.convertedPrice)
-        setLocalizedPrice(priceData.formattedPrice)
-      } catch (error) {
-        console.error('Error formatting price:', error)
-        setLocalizedPrice(formatItemPrice(service, locale))
-      } finally {
-        setIsLoaded(true)
-      }
+    try {
+      setLocalizedPrice(formatItemPrice(service, locale))
+    } catch (error) {
+      console.error('Error formatting price:', error)
+      setLocalizedPrice(formatPrice(service.price || 0, locale))
+    } finally {
+      setIsLoaded(true)
     }
-
-    fetchLocalizedPrice()
   }, [service, locale])
 
   // Получаем информацию о картинке услуги

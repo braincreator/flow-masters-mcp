@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/providers/CartProvider'
 // import { useTranslations } from '@/hooks/useTranslations' // Temporarily remove to isolate issues
-import { formatPrice, convertPrice } from '@/utilities/formatPrice'
+import { formatPrice } from '@/utilities/formatPrice'
 import { Locale } from '@/constants'
 import { Button } from '@/components/ui/button'
 import {
@@ -593,9 +593,8 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       // Убедимся, что локаль указана корректно
       const validLocale = ['ru', 'en'].includes(locale) ? locale : 'ru'
 
-      // Определяем сумму в нужной валюте (для ru не нужна конвертация, используем исходную)
-      // Ставка конвертации берется из настроек CMS в utilities/formatPrice.ts
-      const displayTotal = locale === 'ru' ? total : convertPrice(total, 'ru', locale)
+      // Use the original total without currency conversion
+      const displayTotal = total
       console.log('Total amount to charge:', displayTotal, locale === 'ru' ? 'RUB' : 'USD')
 
       const paymentDataItems = cart?.items
@@ -940,12 +939,12 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
                   <CardContent className="py-4">
                     <DetailedCartItemsList
-                        items={currentCartItems}
-                        locale={locale}
-                        removeFromCart={removeFromCart}
-                        updateItem={updateItem}
-                        itemsLoading={itemsLoading || {}} // Ensure itemsLoading is always an object
-                        isCheckout={true}
+                      items={currentCartItems}
+                      locale={locale}
+                      removeFromCart={removeFromCart}
+                      updateItem={updateItem}
+                      itemsLoading={itemsLoading || {}} // Ensure itemsLoading is always an object
+                      isCheckout={true}
                     />
                   </CardContent>
 
@@ -1526,26 +1525,26 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             : typeof item.product === 'string'
                               ? item.product
                               : item.product?.id
-                      // const title = getItemTitle(item) // getItemTitle is internal to DetailedCartItemsList or handled by its props
+                        // const title = getItemTitle(item) // getItemTitle is internal to DetailedCartItemsList or handled by its props
 
-                      // Simplified summary display, as detailed list is above
-                      // For a more consistent look, you might want to extract a "CartItemSummaryRow" component too.
-                      // For now, let's keep it simple.
-                      const entity = item.itemType === 'service' ? item.service : item.product;
-                      let title = item.itemType === 'service' ? 'Service' : 'Product';
-                      if (entity && typeof entity !== 'string' && entity.title) {
-                        if (typeof entity.title === 'object' && entity.title !== null) {
-                          const localizedTitle = (entity.title as any)[locale] || (entity.title as any).en;
-                          if (localizedTitle) title = String(localizedTitle);
-                        } else if (typeof entity.title === 'string') {
-                          title = entity.title;
+                        // Simplified summary display, as detailed list is above
+                        // For a more consistent look, you might want to extract a "CartItemSummaryRow" component too.
+                        // For now, let's keep it simple.
+                        const entity = item.itemType === 'service' ? item.service : item.product
+                        let title = item.itemType === 'service' ? 'Service' : 'Product'
+                        if (entity && typeof entity !== 'string' && entity.title) {
+                          if (typeof entity.title === 'object' && entity.title !== null) {
+                            const localizedTitle =
+                              (entity.title as any)[locale] || (entity.title as any).en
+                            if (localizedTitle) title = String(localizedTitle)
+                          } else if (typeof entity.title === 'string') {
+                            title = entity.title
+                          }
                         }
-                      }
 
-
-                      return (
-                        <div
-                          key={`summary-item-${item.itemType}-${itemId ?? 'unknown'}`}
+                        return (
+                          <div
+                            key={`summary-item-${item.itemType}-${itemId ?? 'unknown'}`}
                             className="flex justify-between items-center text-sm py-1.5 border-b border-dashed border-muted/50 last:border-0 group"
                           >
                             <div className="flex-1 truncate group-hover:text-primary transition-colors">
@@ -1558,13 +1557,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             </div>
                             <div className="font-medium tabular-nums">
                               {formatPrice(
-                                locale === 'ru'
-                                  ? (item.priceSnapshot || 0) * (item.quantity || 0)
-                                  : convertPrice(
-                                      (item.priceSnapshot || 0) * (item.quantity || 0),
-                                      'ru',
-                                      locale,
-                                    ),
+                                (item.priceSnapshot || 0) * (item.quantity || 0),
                                 locale,
                               )}
                             </div>
@@ -1589,10 +1582,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           {locale === 'ru' ? 'Подытог' : 'Subtotal'}
                         </span>
                         <span className="font-medium tabular-nums">
-                          {formatPrice(
-                            locale === 'ru' ? total : convertPrice(total, 'ru', locale),
-                            locale,
-                          )}
+                          {formatPrice(total, locale)}
                         </span>
                       </div>
 
@@ -1611,13 +1601,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             </span>
                             <div className="flex items-center">
                               <span className="font-medium text-green-700 dark:text-green-400 mr-2 tabular-nums">
-                                -
-                                {formatPrice(
-                                  locale === 'ru'
-                                    ? appliedDiscount.amount
-                                    : convertPrice(appliedDiscount.amount, 'ru', locale),
-                                  locale,
-                                )}
+                                -{formatPrice(appliedDiscount.amount, locale)}
                               </span>
                               <Button
                                 type="button"
@@ -1713,25 +1697,14 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                           <div className="flex flex-col items-end">
                             {appliedDiscount && appliedDiscount.amount > 0 && (
                               <span className="text-sm line-through text-muted-foreground mb-1 tabular-nums">
-                                {formatPrice(
-                                  locale === 'ru' ? total : convertPrice(total, 'ru', locale),
-                                  locale,
-                                )}
+                                {formatPrice(total, locale)}
                               </span>
                             )}
                             <span className="text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 tabular-nums font-bold">
                               {formatPrice(
                                 appliedDiscount && typeof appliedDiscount.amount === 'number'
-                                  ? locale === 'ru'
-                                    ? Math.max(0, total - appliedDiscount.amount)
-                                    : convertPrice(
-                                        Math.max(0, total - appliedDiscount.amount),
-                                        'ru',
-                                        locale,
-                                      )
-                                  : locale === 'ru'
-                                    ? total
-                                    : convertPrice(total, 'ru', locale),
+                                  ? Math.max(0, total - appliedDiscount.amount)
+                                  : total,
                                 locale,
                               )}
                             </span>

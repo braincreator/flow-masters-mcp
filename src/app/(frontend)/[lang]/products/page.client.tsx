@@ -9,7 +9,6 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
-import { convertPrice } from '@/utilities/formatPrice'
 
 interface ProductsClientProps {
   products: Product[]
@@ -99,32 +98,16 @@ export default function ProductsClient({
       let productPrice = 0
       console.log(`DEBUG: Анализ продукта #${index}:`, product.title || product.id)
 
-      // Сначала проверяем, есть ли локализованная цена для текущей локали
-      if (product.pricing?.locales?.[currentLocale]?.amount !== undefined) {
-        // Используем локализованную цену напрямую, без конвертации
-        productPrice = product.pricing.locales?.[currentLocale]?.amount ?? 0
-        console.log(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
-      }
-      // Если нет локализованной цены, используем finalPrice/basePrice и конвертируем
-      else if (product.pricing) {
-        console.log(`DEBUG: Объект pricing:`, JSON.stringify(product.pricing))
-
-        // Используем finalPrice (если есть), или basePrice
-        if (typeof product.pricing.finalPrice === 'number') {
-          productPrice = product.pricing.finalPrice
-          console.log(`DEBUG: Используем finalPrice:`, productPrice)
-        } else if (typeof product.pricing.basePrice === 'number') {
-          productPrice = product.pricing.basePrice
-          console.log(`DEBUG: Используем basePrice:`, productPrice)
-        }
-
-        // Конвертируем если нужно и цена в базовой валюте
-        if (productPrice > 0 && currentLocale !== 'en') {
-          const originalPrice = productPrice
-          productPrice = convertPrice(productPrice, 'en', currentLocale)
-          console.log(
-            `DEBUG: Конвертация из 'en' в '${currentLocale}': ${originalPrice} -> ${productPrice}`,
-          )
+      // Get price using the simplified getLocalePrice function
+      if (product.pricing) {
+        // Check if price is localized
+        if (product.pricing.price && typeof product.pricing.price === 'object') {
+          productPrice = product.pricing.price[currentLocale] || product.pricing.price.en || 0
+          console.log(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
+        } else {
+          // Use finalPrice if available, otherwise use price
+          productPrice = product.pricing.finalPrice || product.pricing.price || 0
+          console.log(`DEBUG: Используем цену:`, productPrice)
         }
       }
 

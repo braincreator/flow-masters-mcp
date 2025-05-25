@@ -7,7 +7,6 @@ import { DropdownProvider } from '@/providers/DropdownContext'
 import { I18nProvider } from '@/providers/I18n'
 import { Toaster } from 'sonner'
 import { PayloadAPIProvider } from '@/providers/payload'
-import { CurrencyProvider } from './CurrencyProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { NotificationsProvider } from '@/providers/NotificationsProvider'
 import { CartProvider } from './CartProvider'
@@ -54,16 +53,14 @@ export function RootProvider({ children, lang }: RootProviderProps) {
                                 <CheckoutProvider>
                                   <FavoritesProvider>
                                     <PayloadAPIProvider>
-                                      <CurrencyProvider>
-                                        <AnalyticsProvider>
-                                          <FormProvider>
-                                            {/* New providers for blog and search functionality */}
-                                            <BlogProvider>
-                                              <SearchProvider>{children}</SearchProvider>
-                                            </BlogProvider>
-                                          </FormProvider>
-                                        </AnalyticsProvider>
-                                      </CurrencyProvider>
+                                      <AnalyticsProvider>
+                                        <FormProvider>
+                                          {/* New providers for blog and search functionality */}
+                                          <BlogProvider>
+                                            <SearchProvider>{children}</SearchProvider>
+                                          </BlogProvider>
+                                        </FormProvider>
+                                      </AnalyticsProvider>
                                       <Toaster
                                         position="top-right"
                                         toastOptions={{ className: 'toast-offset' }}

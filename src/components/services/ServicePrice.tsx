@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { formatPrice, convertPrice, getLocaleCurrency } from '@/utilities/formatPrice'
+import { formatPrice } from '@/utilities/formatPrice'
 
 type ServicePriceProps = {
   price: number
@@ -13,27 +13,20 @@ export default function ServicePrice({ price, locale, className = '' }: ServiceP
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const fetchLocalizedPrice = async () => {
-      try {
-        if (price <= 0) {
-          setLocalizedPrice('Бесплатно')
-          setIsLoaded(true)
-          return
-        }
-
-        await getLocaleCurrency(locale)
-        const sourceLocaleForPrice = 'en'
-        const priceInTargetCurrency = convertPrice(price, sourceLocaleForPrice, locale)
-        setLocalizedPrice(formatPrice(priceInTargetCurrency, locale))
-      } catch (error) {
-        console.error('Error formatting price:', error)
-        setLocalizedPrice(formatPrice(price, locale))
-      } finally {
+    try {
+      if (price <= 0) {
+        setLocalizedPrice(locale === 'ru' ? 'Бесплатно' : 'Free')
         setIsLoaded(true)
+        return
       }
-    }
 
-    fetchLocalizedPrice()
+      setLocalizedPrice(formatPrice(price, locale))
+    } catch (error) {
+      console.error('Error formatting price:', error)
+      setLocalizedPrice(formatPrice(price, locale))
+    } finally {
+      setIsLoaded(true)
+    }
   }, [price, locale])
 
   if (!isLoaded) {

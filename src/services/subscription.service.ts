@@ -19,7 +19,6 @@ import { ServiceRegistry } from './service.registry'
 import { BaseService } from './base.service'
 import { PaymentService, PaymentResult, PaymentProviderKey } from './payment.service'
 import { NotificationService } from './notification.service'
-import { convertPrice } from '@/utilities/formatPrice'
 
 // Constants for retry logic
 const MAX_RETRIES = 3 // Maximum number of retry attempts after an initial payment failure
@@ -570,27 +569,27 @@ export class SubscriptionService extends BaseService {
                 orderSubTotal.en = { amount: primaryAmount, currency: 'USD' }
                 orderTotal.en = { amount: primaryAmount, currency: 'USD' }
                 orderSubTotal.ru = {
-                  amount: convertPrice(primaryAmount, 'en', 'ru'),
+                  amount: primaryAmount * 75, // Approximate USD to RUB conversion
                   currency: 'RUB',
                 }
-                orderTotal.ru = { amount: convertPrice(primaryAmount, 'en', 'ru'), currency: 'RUB' }
+                orderTotal.ru = { amount: primaryAmount * 75, currency: 'RUB' }
               } else if (primaryCurrency === 'RUB') {
                 orderSubTotal.ru = { amount: primaryAmount, currency: 'RUB' }
                 orderTotal.ru = { amount: primaryAmount, currency: 'RUB' }
                 orderSubTotal.en = {
-                  amount: convertPrice(primaryAmount, 'ru', 'en'),
+                  amount: primaryAmount / 75, // Approximate RUB to USD conversion
                   currency: 'USD',
                 }
-                orderTotal.en = { amount: convertPrice(primaryAmount, 'ru', 'en'), currency: 'USD' }
+                orderTotal.en = { amount: primaryAmount / 75, currency: 'USD' }
               } else if (primaryCurrency === 'EUR') {
                 orderSubTotal.en = { amount: primaryAmount, currency: 'EUR' }
                 orderTotal.en = { amount: primaryAmount, currency: 'EUR' }
                 orderSubTotal.ru = {
-                  amount: convertPrice(primaryAmount, 'eur', 'ru'),
+                  amount: primaryAmount * 85, // Approximate EUR to RUB conversion
                   currency: 'RUB',
                 }
                 orderTotal.ru = {
-                  amount: convertPrice(primaryAmount, 'eur', 'ru'),
+                  amount: primaryAmount * 85,
                   currency: 'RUB',
                 }
               } else {

@@ -1,6 +1,6 @@
 import { Payload } from 'payload'
 import { ProductService } from './product.service'
-import { PriceService } from './price.service'
+
 import { RecommendationService } from './recommendation.service'
 import { IntegrationService } from './integration.service'
 import { StorageService } from './storage.service'
@@ -60,7 +60,7 @@ export class ServiceRegistry {
 
     // Бизнес-сервисы
     this.getProductService()
-    this.getPriceService()
+
     this.getRecommendationService()
     this.getOrderService()
     this.getServiceService()
@@ -89,14 +89,6 @@ export class ServiceRegistry {
     return this.services.get(key)
   }
 
-  getPriceService(): PriceService {
-    const key = 'price'
-    if (!this.services.has(key)) {
-      this.services.set(key, PriceService.getInstance(this.payload))
-    }
-    return this.services.get(key)
-  }
-
   getRecommendationService(): RecommendationService {
     const key = 'recommendation'
     if (!this.services.has(key)) {
@@ -121,7 +113,8 @@ export class ServiceRegistry {
     return this.services.get(key)
   }
 
-  getNotificationService(): NotificationService { // Keep only one implementation
+  getNotificationService(): NotificationService {
+    // Keep only one implementation
     const key = 'notification'
     if (!this.services.has(key)) {
       this.services.set(key, NotificationService.getInstance(this.payload))
@@ -246,9 +239,9 @@ export class ServiceRegistry {
     const key = 'courseAnalytics'
     if (!this.services.has(key)) {
       // Instantiate using the constructor
-      this.services.set(key, new CourseAnalyticsService(this.payload));
+      this.services.set(key, new CourseAnalyticsService(this.payload))
     }
-    return this.services.get(key);
+    return this.services.get(key)
   }
 
   getAutoAccountService(): AutoAccountService {

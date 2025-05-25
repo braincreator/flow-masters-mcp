@@ -15,7 +15,6 @@ export { useCart } from '@/providers/CartProvider'
 export { useFavorites } from '@/providers/FavoritesProvider'
 export { useUserPreferences } from '@/providers/UserPreferencesProvider'
 export { usePayloadAPI } from '@/providers/payload'
-export { useCurrencySync } from '@/providers/CurrencyProvider'
 
 // Re-export selector hooks for optimized performance
 export {

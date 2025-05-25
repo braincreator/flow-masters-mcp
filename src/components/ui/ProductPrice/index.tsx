@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { formatPrice, getLocalePrice, convertPrice } from '@/utilities/formatPrice'
+import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
 import { DiscountBadge } from '@/components/ui/badges'
 import { cn } from '@/utilities/ui'
@@ -35,49 +35,30 @@ export function ProductPrice({
   discountClassName,
   paymentOptionsText,
 }: ProductPriceProps) {
-  // Получаем КОНВЕРТИРОВАННЫЕ числовые значения цен с помощью getLocalePrice
-  const convertedFinalPrice = getLocalePrice(product, locale)
+  // Get the final price for the current locale
+  const finalPrice = getLocalePrice(product, locale)
 
-  // Для compareAtPrice нужна отдельная логика, т.к. getLocalePrice не обрабатывает его.
-  // Берем базовый compareAtPrice или basePrice, затем конвертируем, если нужно.
-  let baseCompareAtPrice = product?.pricing?.compareAtPrice ?? null
-  // Если compareAtPrice не задан, но есть скидка, пробуем использовать basePrice как compareAtPrice
-  const hasDiscountPercentage =
-    product?.pricing?.discountPercentage && product.pricing.discountPercentage > 0
-  if (baseCompareAtPrice === null && hasDiscountPercentage && product?.pricing?.basePrice) {
-    baseCompareAtPrice = product.pricing.basePrice
-  }
-
-  let convertedCompareAtPrice: number | null = null
-  if (baseCompareAtPrice !== null) {
-    const baseLocale = /* product?.pricing?.baseLocale || */ 'en' // Предполагаем, что compareAtPrice в базовой локали
-    if (baseLocale !== locale) {
-      convertedCompareAtPrice = convertPrice(baseCompareAtPrice, baseLocale, locale)
+  // Get compare at price if available (localized)
+  let compareAtPrice: number | null = null
+  if (product?.pricing?.compareAtPrice) {
+    // Check if compareAtPrice is localized
+    if (typeof product.pricing.compareAtPrice === 'object') {
+      compareAtPrice = product.pricing.compareAtPrice[locale] || product.pricing.compareAtPrice.en || null
     } else {
-      convertedCompareAtPrice = baseCompareAtPrice
+      compareAtPrice = product.pricing.compareAtPrice
     }
-    if (convertedCompareAtPrice !== null && convertedCompareAtPrice <= convertedFinalPrice) {
-      convertedCompareAtPrice = null
+
+    // Only show compare price if it's higher than final price
+    if (compareAtPrice && compareAtPrice <= finalPrice) {
+      compareAtPrice = null
     }
   }
 
-  const hasDiscount = convertedCompareAtPrice !== null
-  let discountPercentage = product?.pricing?.discountPercentage ?? null
+  const hasDiscount = compareAtPrice !== null && compareAtPrice > finalPrice
+  const discountPercentage = product?.pricing?.discountPercentage ?? null
 
-  // --- Debugging Logs Start ---
-  console.log('--- ProductPrice Debug (Updated) ---')
-  console.log('Locale:', locale)
-  console.log('Product Pricing Prop:', product?.pricing)
-  console.log('Converted Final Price:', convertedFinalPrice)
-  console.log('Base Compare At Price:', baseCompareAtPrice)
-  console.log('Converted Compare At Price:', convertedCompareAtPrice)
-  console.log('Has Discount:', hasDiscount)
-  console.log('--- End ProductPrice Debug ---')
-  // --- Debugging Logs End ---
-
-  // Если finalPrice не определен (или 0 после конвертации?), возвращаем null
-  if (convertedFinalPrice === undefined || convertedFinalPrice === null) {
-    // Возможно, стоит проверить и на 0, если цена 0 не должна отображаться
+  // If finalPrice is not defined, return null
+  if (finalPrice === undefined || finalPrice === null || finalPrice === 0) {
     return null
   }
 
@@ -146,12 +127,10 @@ export function ProductPrice({
             priceClassName,
           )}
         >
-          {/* Форматируем УЖЕ КОНВЕРТИРОВАННУЮ цену */}
-          {formatPrice(convertedFinalPrice, locale)}
+          {formatPrice(finalPrice, locale)}
         </span>
 
-        {/* Используем конвертированную compareAtPrice */}
-        {hasDiscount && convertedCompareAtPrice && (
+        {hasDiscount && compareAtPrice && (
           <span
             className={cn(
               sizeClasses.compare[size],
@@ -161,7 +140,7 @@ export function ProductPrice({
               compareClassName,
             )}
           >
-            {formatPrice(convertedCompareAtPrice, locale)}
+            {formatPrice(compareAtPrice, locale)}
           </span>
         )}
 

@@ -53,9 +53,14 @@ export const Solutions: CollectionConfig<'solutions'>= {
             type: 'group',
             fields: [
                 {
-                    name: 'basePrice',
+                    name: 'price',
                     type: 'number',
                     required: true,
+                    min: 0,
+                    localized: true,
+                    admin: {
+                        description: 'Price in locale currency (USD for English, RUB for Russian)'
+                    }
                 },
                 {
                     name: 'discountPercentage',
@@ -70,26 +75,9 @@ export const Solutions: CollectionConfig<'solutions'>= {
                     name: 'finalPrice',
                     type: 'number',
                     admin: {
-                        hidden: true,
+                        description: 'Final price after discount (calculated automatically)',
+                        readOnly: true,
                     },
-                    hooks: {
-                        beforeChange: [
-                            ({ data }) => {
-                                if (data && data.pricing && data.pricing.basePrice) {
-                                    const basePrice = data.pricing.basePrice;
-                                    const discountPercentage = data.pricing.discountPercentage || 0;
-                                    return {
-                                        ...data,
-                                        pricing: {
-                                            ...data.pricing,
-                                            finalPrice: basePrice * (1 - discountPercentage / 100)
-                                        }
-                                    };
-                                }
-                                return data;
-                            }
-                        ]
-                    }
                 }
             ]
         }

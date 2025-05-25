@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { formatPrice, convertPrice, getLocaleCurrency } from '@/utilities/formatPrice'
+import { formatPrice } from '@/utilities/formatPrice'
 import {
   ArrowRight,
   Clock,
@@ -53,22 +53,14 @@ export default function RelatedServiceCard({
   const servicesT = useTranslations('Services')
 
   useEffect(() => {
-    const fetchLocalizedPrice = async () => {
-      try {
-        await getLocaleCurrency(locale)
-        const sourceLocaleForPrice = 'en'
-        const priceInTargetCurrency = convertPrice(service.price, sourceLocaleForPrice, locale)
-        setLocalizedPrice(formatPrice(priceInTargetCurrency, locale))
-      } catch (error) {
-        console.error('Error formatting price:', error)
-        // Используем запасной вариант форматирования
-        setLocalizedPrice(formatPrice(service.price || 0, locale))
-      } finally {
-        setIsLoaded(true)
-      }
+    try {
+      setLocalizedPrice(formatPrice(service.price || 0, locale))
+    } catch (error) {
+      console.error('Error formatting price:', error)
+      setLocalizedPrice(formatPrice(service.price || 0, locale))
+    } finally {
+      setIsLoaded(true)
     }
-
-    fetchLocalizedPrice()
   }, [service, locale])
 
   // Безопасное получение URL изображения с проверкой типа

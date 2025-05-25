@@ -49,7 +49,6 @@ Manages in-memory caching for API responses.
 - `FavoritesProvider` - Manages user favorites
 - `UserPreferencesProvider` - Manages user preferences
 - `PayloadAPIProvider` - Manages Payload CMS API access
-- `CurrencyProvider` - Manages currency preferences
 
 ## Usage
 

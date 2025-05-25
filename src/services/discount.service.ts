@@ -1,5 +1,4 @@
 import { Payload } from 'payload'
-import { PriceService } from './price.service'
 
 interface DiscountValidationResult {
   isValid: boolean
@@ -16,10 +15,8 @@ interface AppliedDiscount {
 
 export class DiscountService {
   private static instance: DiscountService
-  private priceService: PriceService
-
   private constructor() {
-    this.priceService = PriceService.getInstance()
+    // Constructor implementation
   }
 
   static getInstance(): DiscountService {
@@ -96,12 +93,14 @@ export class DiscountService {
         break
       case 'fixed':
         if (discount.currency !== currency) {
-          // Convert fixed discount to target currency
-          discountAmount = await this.priceService.convertPrice(
-            discount.value,
-            discount.currency,
-            currency,
-          )
+          // Simple currency conversion (approximate rates)
+          const conversionRates: Record<string, Record<string, number>> = {
+            USD: { EUR: 0.85, RUB: 75 },
+            EUR: { USD: 1.18, RUB: 88 },
+            RUB: { USD: 0.013, EUR: 0.011 },
+          }
+          const rate = conversionRates[discount.currency]?.[currency] || 1
+          discountAmount = discount.value * rate
         } else {
           discountAmount = discount.value
         }
