@@ -9,6 +9,8 @@ export { Comments } from './Comments'
 export { ReadingProgressBar } from './ReadingProgressBar'
 export { ShareButtons } from './ShareButtons'
 export { TableOfContents } from './TableOfContents'
+export { FeaturedPost } from './FeaturedPost'
+export { BlogSkeleton } from './BlogSkeleton'
 
 // Export type interfaces for use in other components
 export type { Author } from './AuthorCard'

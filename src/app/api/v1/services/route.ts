@@ -54,11 +54,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Получаем услуги
+    // Получаем услуги с оптимизированными настройками для предотвращения бесконечной загрузки
     const findOptions: any = {
       collection: 'services',
       where,
-      depth: 1,
+      depth: 1, // Allow depth 1 for media population, relatedServices maxDepth prevents circular refs
     }
 
     if (locale) {
@@ -69,12 +69,39 @@ export async function GET(request: NextRequest) {
     console.log('[API /services] Query where clause:', JSON.stringify(where, null, 2))
     console.log('[API /services] Payload find options:', JSON.stringify(findOptions, null, 2))
 
-    const services = await payload.find(findOptions)
+    // Добавляем обработку таймаута для безопасности
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Services query timeout')), 30000)
+    })
+
+    const servicesPromise = payload.find(findOptions)
+
+    const services = await Promise.race([servicesPromise, timeoutPromise])
+
+    // Log successful fetch for debugging
+    console.log('[API /services] Successfully fetched services:', (services as any).docs.length)
 
     return NextResponse.json(services)
   } catch (error) {
     console.error('Error fetching services:', error)
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
+
+    // Provide more detailed error information for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
+    })
+
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch services',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      },
+      { status: 500 },
+    )
   }
 }
 

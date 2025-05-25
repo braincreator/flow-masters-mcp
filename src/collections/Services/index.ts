@@ -158,15 +158,16 @@ export const Services: CollectionConfig = {
         description: 'Галерея изображений услуги',
       },
     },
-    {
-      name: 'relatedServices',
-      type: 'relationship',
-      relationTo: 'services' as const,
-      hasMany: true,
-      admin: {
-        description: 'Связанные услуги',
-      },
-    },
+    // {
+    //   name: 'relatedServices',
+    //   type: 'relationship',
+    //   relationTo: 'services' as const,
+    //   hasMany: true,
+    //   maxDepth: 0, // Prevent circular references by limiting depth
+    //   admin: {
+    //     description: 'Связанные услуги',
+    //   },
+    // },
     {
       name: 'requiresBooking',
       type: 'checkbox',
@@ -295,11 +296,17 @@ export const Services: CollectionConfig = {
                   type: 'text',
                   required: true,
                   localized: true,
+                  admin: {
+                    description: 'Отображаемое название варианта',
+                  },
                 },
                 {
                   name: 'value',
                   type: 'text',
                   required: true,
+                  admin: {
+                    description: 'Значение варианта',
+                  },
                 },
               ],
             },

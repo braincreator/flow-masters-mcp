@@ -55,16 +55,41 @@ export function BlogSearch({
     inputClassName = cn('border border-border rounded-lg shadow-sm')
   }
 
+  // Function to fetch suggestions from API
+  const fetchSuggestions = async (query: string): Promise<string[]> => {
+    try {
+      const response = await fetch(
+        `/api/v1/blog/suggestions?q=${encodeURIComponent(query)}&locale=${currentLocale}`,
+      )
+      if (response.ok) {
+        const data = await response.json()
+        return data.suggestions || []
+      }
+    } catch (error) {
+      console.error('Error fetching blog suggestions:', error)
+    }
+
+    // Fallback suggestions
+    return [`${query} tutorial`, `${query} guide`, `${query} tips`]
+  }
+
+  // Wrapper function to add logging
+  const handleSearchChange = (query: string) => {
+    console.log('BlogSearch onChange called with:', query)
+    onSearch?.(query)
+  }
+
   return (
     <Search
       value={initialQuery}
-      onChange={onSearch}
+      onChange={handleSearchChange}
       placeholder={placeholder}
       className={className}
       showClearButton={showClearButton}
       size={size}
-      debounceMs={300}
-      // debounceMs is handled internally by the generic Search component
+      showSuggestions={true}
+      onSuggestionsFetch={fetchSuggestions}
+      locale={currentLocale}
       inputClassName={inputClassName}
     />
   )

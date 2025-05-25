@@ -111,7 +111,7 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
-    // Conditionally load complex components to avoid issues during type generation
+    // Temporarily disable custom components to isolate React context issues
     components:
       process.env.IS_GENERATING_TYPES === 'true'
         ? {}
@@ -155,22 +155,22 @@ export default buildConfig({
                     : '@/app/admin/endpoints/page',
               },
             },
-            // Custom navigation components
-            afterNavLinks: ['@/components/admin/CustomNavigation'],
+            // Temporarily disable custom components that might cause React context issues
+            // afterNavLinks: ['@/components/admin/CustomNavigation'],
             // Custom branding
-            graphics: {
-              Logo: '@/components/admin/CustomLogo',
-              Icon: '@/components/admin/CustomIcon',
-            },
+            // graphics: {
+            //   Logo: '@/components/admin/CustomLogo',
+            //   Icon: '@/components/admin/CustomIcon',
+            // },
             // Custom header
-            header: ['@/components/admin/CustomHeader'],
+            // header: ['@/components/admin/CustomHeader'],
             // Custom actions in the header
-            actions: ['@/components/admin/CustomAction'],
+            // actions: ['@/components/admin/CustomAction'],
             // Other component overrides
-            beforeLogin: ['@/components/admin/CustomLoginMessage'],
-            beforeDashboard: ['@/components/admin/CustomDashboard'],
+            // beforeLogin: ['@/components/admin/CustomLoginMessage'],
+            // beforeDashboard: ['@/components/admin/CustomDashboard'],
             // Custom providers
-            providers: ['@/components/admin/CustomProvider'],
+            // providers: ['@/components/admin/CustomProvider'],
           },
 
     // Custom navigation is implemented through afterNavLinks component

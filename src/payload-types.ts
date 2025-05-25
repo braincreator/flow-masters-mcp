@@ -8376,10 +8376,6 @@ export interface Service {
       }[]
     | null;
   /**
-   * Связанные услуги
-   */
-  relatedServices?: (string | Service)[] | null;
-  /**
    * Требуется ли бронирование времени для этой услуги
    */
   requiresBooking?: boolean | null;
@@ -8428,7 +8424,13 @@ export interface Service {
            */
           options?:
             | {
+                /**
+                 * Отображаемое название варианта
+                 */
                 label: string;
+                /**
+                 * Значение варианта
+                 */
                 value: string;
                 id?: string | null;
               }[]
@@ -16013,7 +16015,6 @@ export interface ServicesSelect<T extends boolean = true> {
         caption?: T;
         id?: T;
       };
-  relatedServices?: T;
   requiresBooking?: T;
   bookingSettings?:
     | T

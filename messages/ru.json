@@ -997,7 +997,13 @@
     "noPostsFound": "Посты не найдены.",
     "tryChangingFilters": "Попробуйте изменить фильтры или поисковый запрос.",
     "categories": "Категории",
-    "tags": "Теги"
+    "tags": "Теги",
+    "featuredArticle": "Рекомендуемая статья",
+    "latestArticles": "Последние статьи",
+    "searchResults": "Результаты поиска",
+    "readMore": "Читать далее",
+    "author": "Автор",
+    "featured": "Рекомендуем"
   },
   "errors": {
     "notFound": "Страница не найдена",

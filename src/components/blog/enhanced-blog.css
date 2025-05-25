@@ -1,0 +1,166 @@
+/* Enhanced Blog Styles */
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Blog fade-in animation */
+@keyframes blogFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blog-fade-in {
+  animation: blogFadeIn 0.6s ease-out forwards;
+}
+
+/* Enhanced card hover effects */
+.blog-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Featured post specific styles */
+.featured-post {
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-post::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(var(--primary), 0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Improved text gradients */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--foreground) / 0.7) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Enhanced skeleton animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-pulse {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted)) 75%);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Improved badge styles */
+.blog-badge {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Enhanced sidebar styles */
+.sidebar-card {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Smooth transitions for layout changes */
+.layout-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Enhanced focus states */
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Improved loading states */
+.loading-overlay {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Enhanced typography */
+.blog-title {
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.blog-excerpt {
+  line-height: 1.6;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .blog-card {
+    margin-bottom: 1rem;
+  }
+  
+  .featured-post {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  }
+}
+
+/* Print styles */
+@media print {
+  .blog-card,
+  .featured-post {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .blog-fade-in,
+  .animate-pulse,
+  .blog-card {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .blog-card {
+    border-width: 2px;
+  }
+  
+  .blog-badge {
+    border-width: 1px;
+  }
+}

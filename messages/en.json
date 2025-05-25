@@ -946,7 +946,13 @@
     "noPostsFound": "No posts found.",
     "tryChangingFilters": "Try changing your filters or search query.",
     "categories": "Categories",
-    "tags": "Tags"
+    "tags": "Tags",
+    "featuredArticle": "Featured Article",
+    "latestArticles": "Latest Articles",
+    "searchResults": "Search Results",
+    "readMore": "Read More",
+    "author": "Author",
+    "featured": "Featured"
   },
   "errors": {
     "notFound": "Page not found",

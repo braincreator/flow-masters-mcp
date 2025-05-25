@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useCallback, useRef, useEffect } from 'react'
-import { SearchIcon, X } from 'lucide-react'
+import React, { useCallback, useRef, useEffect, useState } from 'react'
+import { SearchIcon, X, Clock, TrendingUp } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,9 @@ interface SearchProps {
   showClearButton?: boolean
   size?: 'default' | 'sm' | 'lg'
   inputClassName?: string
+  showSuggestions?: boolean
+  onSuggestionsFetch?: (query: string) => Promise<string[]>
+  locale?: string
 }
 
 export function Search({
@@ -23,16 +26,135 @@ export function Search({
   showClearButton = true,
   size = 'default',
   inputClassName,
+  showSuggestions = false,
+  onSuggestionsFetch,
+  locale = 'en',
 }: SearchProps) {
+  const [internalValue, setInternalValue] = useState(value)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [isFocused, setIsFocused] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
+
+  // Update internal value when external value changes
+  useEffect(() => {
+    if (value !== internalValue) {
+      setInternalValue(value)
+    }
+  }, [value, internalValue])
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    if (showSuggestions) {
+      const stored = localStorage.getItem('search-recent-searches')
+      if (stored) {
+        try {
+          setRecentSearches(JSON.parse(stored).slice(0, 5))
+        } catch (error) {
+          console.error('Error loading recent searches:', error)
+        }
+      }
+    }
+  }, [showSuggestions])
+
+  // Fetch suggestions when value changes
+  useEffect(() => {
+    if (showSuggestions && onSuggestionsFetch && internalValue.length >= 2) {
+      fetchSuggestions(internalValue)
+    } else {
+      setSuggestions([])
+    }
+  }, [internalValue, showSuggestions, onSuggestionsFetch])
+
+  const fetchSuggestions = useCallback(
+    async (query: string) => {
+      if (!onSuggestionsFetch) return
+
+      setIsLoading(true)
+      try {
+        const results = await onSuggestionsFetch(query)
+        setSuggestions(results)
+      } catch (error) {
+        console.error('Error fetching suggestions:', error)
+        setSuggestions([])
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [onSuggestionsFetch],
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    onChange?.(newValue);
-  };
+    const newValue = e.target.value
+    setInternalValue(newValue)
+    // Always call onChange immediately
+    onChange?.(newValue)
+  }
 
   const handleClear = () => {
+    setInternalValue('')
+    setSuggestions([])
     onChange?.('')
+    inputRef.current?.focus()
   }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    console.log('Suggestion clicked:', suggestion)
+
+    setInternalValue(suggestion)
+    // Call onChange immediately when suggestion is clicked
+    onChange?.(suggestion)
+    setSuggestions([])
+    setIsFocused(false)
+
+    // Add to recent searches
+    if (showSuggestions) {
+      const newRecentSearches = [
+        suggestion,
+        ...recentSearches.filter((s) => s !== suggestion),
+      ].slice(0, 5)
+
+      setRecentSearches(newRecentSearches)
+      localStorage.setItem('search-recent-searches', JSON.stringify(newRecentSearches))
+    }
+
+    // Blur the input to hide mobile keyboard
+    inputRef.current?.blur()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClear()
+      setIsFocused(false)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (internalValue.trim()) {
+        handleSuggestionClick(internalValue.trim())
+      }
+    }
+  }
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        !inputRef.current?.contains(event.target as Node)
+      ) {
+        setIsFocused(false)
+        setSuggestions([])
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const showDropdown =
+    isFocused && showSuggestions && (suggestions.length > 0 || recentSearches.length > 0)
 
   return (
     <div className={cn('relative w-full', className)}>
@@ -46,9 +168,12 @@ export function Search({
           )}
         />
         <Input
+          ref={inputRef}
           type="search"
-          value={value}
+          value={internalValue}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
           placeholder={placeholder}
           className={cn(
             'w-full pl-9 pr-9 rounded-lg',
@@ -63,7 +188,7 @@ export function Search({
             inputClassName,
           )}
         />
-        {showClearButton && value && (
+        {showClearButton && internalValue && (
           <button
             onClick={handleClear}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
@@ -79,6 +204,59 @@ export function Search({
           </button>
         )}
       </div>
+
+      {/* Search Suggestions Dropdown */}
+      {showDropdown && (
+        <div
+          ref={suggestionsRef}
+          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+        >
+          {/* Recent Searches */}
+          {recentSearches.length > 0 && !internalValue && (
+            <div className="p-2">
+              <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                Recent Searches
+              </div>
+              {recentSearches.map((search, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(search)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
+                >
+                  {search}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Search Suggestions */}
+          {suggestions.length > 0 && (
+            <div className="p-2">
+              <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
+                <TrendingUp className="h-3 w-3" />
+                Suggestions
+              </div>
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Loading state */}
+          {isLoading && (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Loading suggestions...
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
