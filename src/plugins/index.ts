@@ -96,21 +96,24 @@ export const plugins: Plugin[] =
           collections: {
             media: {
               disableLocalStorage: true,
-              disablePayloadAccessControl: true,
-              generateFileURL: ({ collection, filename, prefix, size }) => {
-                const sizeName = size?.name || ''
-                const sizePrefix = sizeName ? `${sizeName}/` : ''
-                return `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/${sizePrefix}${filename}`
+              // Remove disablePayloadAccessControl to respect Media collection access control
+              generateFileURL: ({ filename }) => {
+                // All files are stored at root level, not in size-specific folders
+                // This fixes the issue where CMS tries to load /thumbnail/filename
+                // but files are actually stored at /filename
+                const bucket = process.env.S3_BUCKET || 'flow-masters-bucket'
+                const endpoint = process.env.S3_ENDPOINT || 's3.cloud.ru'
+                return `https://${bucket}.${endpoint}/${filename}`
               },
             },
           },
-          bucket: process.env.S3_BUCKET!,
+          bucket: process.env.S3_BUCKET || 'flow-masters-bucket',
           config: {
             credentials: {
-              accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+              accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
             },
-            endpoint: `https://${process.env.S3_ENDPOINT}`,
+            endpoint: `https://${process.env.S3_ENDPOINT || 's3.cloud.ru'}`,
             region: process.env.S3_REGION || 'ru-central-1',
           },
         }),

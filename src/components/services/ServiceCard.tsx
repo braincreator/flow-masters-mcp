@@ -249,11 +249,6 @@ export default function ServiceCard({
             <div className="absolute bottom-4 left-4 right-4">
               {isLoaded ? (
                 <div className="mt-1 bg-primary/80 backdrop-blur-sm px-2 py-1 rounded-md inline-block text-white text-sm">
-                  {service.isPriceStartingFrom && (
-                    <span className="text-xs text-white/80 mr-1">
-                      {getTranslation('startingFrom', 'от')}
-                    </span>
-                  )}
                   {localizedPrice}
                 </div>
               ) : (

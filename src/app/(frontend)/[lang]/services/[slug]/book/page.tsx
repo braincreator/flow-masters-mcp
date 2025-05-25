@@ -4,7 +4,10 @@ import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { GridContainer as Container } from '@/components/GridContainer'
 import { useParams } from 'next/navigation'
-import { ServiceBookingFlow, type Locale as ServiceBookingLocale } from '@/components/services/ServiceBookingFlow'
+import {
+  ServiceBookingFlow,
+  type Locale as ServiceBookingLocale,
+} from '@/components/services/ServiceBookingFlow'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -107,7 +110,9 @@ export default function ServiceBookPage() {
       <Container>
         <div className="py-3 md:py-4 lg:py-5">
           <Alert variant="destructive" className="mb-6 max-w-2xl mx-auto">
-            <AlertDescription>{t('errorServiceIdNotFound', { defaultValue: 'Error: Service ID not found' })}</AlertDescription>
+            <AlertDescription>
+              {t('errorServiceIdNotFound', { defaultValue: 'Error: Service ID not found' })}
+            </AlertDescription>
           </Alert>
           <div className="flex justify-center">
             <Button asChild variant="default">
@@ -167,7 +172,7 @@ export default function ServiceBookPage() {
                   {service.price !== undefined && (
                     <div className="flex items-center text-sm">
                       <Tag className="h-3.5 w-3.5 mr-1" />
-                      <ServicePrice price={service.price} locale={locale} />
+                      <ServicePrice service={service} locale={locale} />
                     </div>
                   )}
                   {service.duration && (
@@ -193,10 +198,7 @@ export default function ServiceBookPage() {
             className="bg-card rounded-xl border border-border/10 shadow-md p-6 mb-8"
           >
             <ServiceBookingFlow
-              serviceId={service.id}
-              price={service.price}
-              requiresBooking={service.requiresBooking}
-              bookingSettings={service.bookingSettings} // Always pass bookingSettings
+              service={service}
               className="mb-0"
               locale={locale}
               skipPayment={service.requiresPayment === false} // Pass skipPayment based on service data

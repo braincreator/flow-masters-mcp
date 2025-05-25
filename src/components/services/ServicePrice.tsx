@@ -1,33 +1,39 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { formatPrice } from '@/utilities/formatPrice'
+import { formatPrice, formatItemPrice, getLocalePrice } from '@/utilities/formatPrice'
+import { Service } from '@/payload-types'
 
 type ServicePriceProps = {
-  price: number
+  service: Service
   locale: string
   className?: string
 }
 
-export default function ServicePrice({ price, locale, className = '' }: ServicePriceProps) {
+export default function ServicePrice({ service, locale, className = '' }: ServicePriceProps) {
   const [localizedPrice, setLocalizedPrice] = useState<string>('')
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     try {
+      const price = getLocalePrice(service, locale)
+
       if (price <= 0) {
         setLocalizedPrice(locale === 'ru' ? 'Бесплатно' : 'Free')
         setIsLoaded(true)
         return
       }
 
-      setLocalizedPrice(formatPrice(price, locale))
+      // Use formatItemPrice to respect isStartingFrom parameter
+      setLocalizedPrice(formatItemPrice(service, locale))
     } catch (error) {
       console.error('Error formatting price:', error)
-      setLocalizedPrice(formatPrice(price, locale))
+      // Fallback to basic price formatting
+      const fallbackPrice = getLocalePrice(service, locale)
+      setLocalizedPrice(formatPrice(fallbackPrice, locale))
     } finally {
       setIsLoaded(true)
     }
-  }, [price, locale])
+  }, [service, locale])
 
   if (!isLoaded) {
     return (
@@ -37,8 +43,9 @@ export default function ServicePrice({ price, locale, className = '' }: ServiceP
     )
   }
 
+  const price = getLocalePrice(service, locale)
   if (price <= 0) {
-    return <span className={className}>Бесплатно</span>
+    return <span className={className}>{locale === 'ru' ? 'Бесплатно' : 'Free'}</span>
   }
 
   return <span className={className}>{localizedPrice}</span>

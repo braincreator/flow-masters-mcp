@@ -3,7 +3,12 @@ export const ENV = {
   DATABASE_URI: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters',
   PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || '08c93b8544167b018efded89',
   SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000',
-  S3_BUCKET: 'flow-masters-bucket.s3.cloud.ru',
+  // S3 Configuration - separate bucket name from endpoint
+  S3_BUCKET: process.env.S3_BUCKET || 'flow-masters-bucket',
+  S3_ENDPOINT: process.env.S3_ENDPOINT || 's3.cloud.ru',
+  S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID || '',
+  S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY || '',
+  S3_REGION: process.env.S3_REGION || 'ru-central-1',
   PAYLOAD_SMTP_HOST: process.env.PAYLOAD_SMTP_HOST || 'smtp.timeweb.ru',
   PAYLOAD_SMTP_PORT: process.env.PAYLOAD_SMTP_PORT || '465',
   PAYLOAD_SMTP_USER: process.env.PAYLOAD_SMTP_USER || 'admin@flow-masters.ru',

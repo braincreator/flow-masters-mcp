@@ -242,7 +242,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                       <span className="text-muted-foreground text-sm">{t('price')}</span>
                     </div>
                     <ServicePrice
-                      price={serviceData.price}
+                      service={serviceData}
                       locale={lang}
                       className="font-bold text-lg text-primary"
                     />

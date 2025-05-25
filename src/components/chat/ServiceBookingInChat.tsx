@@ -40,21 +40,23 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
       try {
         setIsLoading(true)
         setError(null)
-        
+
         // Получаем услуги указанного типа
-        const response = await fetch(`/api/v1/services?type=${serviceType}&status=published&limit=1`)
-        
+        const response = await fetch(
+          `/api/v1/services?type=${serviceType}&status=published&limit=1`,
+        )
+
         if (!response.ok) {
           throw new Error('Failed to fetch service')
         }
-        
+
         const data = await response.json()
-        
+
         // Проверяем, есть ли услуги
         if (!data.docs || data.docs.length === 0) {
           throw new Error('No services available')
         }
-        
+
         // Берем первую услугу указанного типа
         setService(data.docs[0])
       } catch (err) {
@@ -64,7 +66,7 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
         setIsLoading(false)
       }
     }
-    
+
     fetchService()
   }, [serviceType])
 
@@ -95,8 +97,8 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
   // Создаем настройки бронирования на основе переданных параметров или данных из услуги
   const bookingSettings: BookingSettings = {
     provider: 'calendly',
-    calendlyUsername: calendlyUsername || (service.bookingSettings?.calendlyUsername || ''),
-    calendlyEventType: calendlyEventType || (service.bookingSettings?.calendlyEventType || ''),
+    calendlyUsername: calendlyUsername || service.bookingSettings?.calendlyUsername || '',
+    calendlyEventType: calendlyEventType || service.bookingSettings?.calendlyEventType || '',
     hideEventTypeDetails: hideEventTypeDetails,
     hideGdprBanner: hideGdprBanner,
   }
@@ -104,12 +106,13 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
   // Отображаем компонент бронирования услуги
   return (
     <ServiceBookingFlow
-      serviceId={service.id}
-      price={service.price}
-      requiresBooking={service.requiresBooking || true}
-      bookingSettings={bookingSettings}
+      service={{
+        ...service,
+        bookingSettings: bookingSettings,
+      }}
       prefill={prefill}
       className={className}
+      locale="en" // Default locale, should be passed as prop in real usage
     />
   )
 }

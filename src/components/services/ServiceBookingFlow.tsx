@@ -15,17 +15,13 @@ import type { BookingSettings, AdditionalInfoField } from '@/types/service'
 import ServicePrice from '@/components/services/ServicePrice'
 import { format } from 'date-fns' // Import format function
 import { formatOrderNumberForDisplay } from '@/utilities/orderNumber' // Import order number utility
-// import type { Locale } from '@/config/i18n.config' // Assuming you have a Locale type - Commenting out due to error
+import { Service } from '@/payload-types'
 
 // Define Locale type based on linter error
 export type Locale = 'en' | 'ru'
 
 type ServiceBookingFlowProps = {
-  serviceId: string
-  price: number
-  currency?: string
-  requiresBooking?: boolean
-  bookingSettings?: BookingSettings
+  service: Service
   prefill?: {
     name?: string
     email?: string
@@ -38,17 +34,17 @@ type ServiceBookingFlowProps = {
 }
 
 export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
-  serviceId,
-  price,
-  currency,
-  requiresBooking = false,
-  bookingSettings,
+  service,
   prefill,
   className = '',
   orderId: initialOrderId,
   skipPayment = false,
   locale, // locale is now of type Locale ('en' | 'ru')
 }) => {
+  // Extract values from service object
+  const serviceId = service.id
+  const requiresBooking = service.requiresBooking || false
+  const bookingSettings = service.bookingSettings
   const t = useTranslations('ServiceBooking')
   const router = useRouter()
   const { addItem, refreshCart, emptyCart } = useCart() // Используем все необходимые методы из хука
@@ -109,7 +105,11 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         setError(null)
         try {
           // Log the authentication state and user info for debugging
-          console.log('Authentication state:', { isAuthenticated, userId: user?.id, email: user?.email || customerEmail || prefill?.email })
+          console.log('Authentication state:', {
+            isAuthenticated,
+            userId: user?.id,
+            email: user?.email || customerEmail || prefill?.email,
+          })
 
           const response = await fetch('/api/v1/orders/initiate-service-order', {
             method: 'POST',
@@ -117,9 +117,8 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
             body: JSON.stringify({
               serviceId,
               locale,
-              customerEmail: isAuthenticated && user?.email
-                ? user.email
-                : (customerEmail || prefill?.email), // Use authenticated user email if available
+              customerEmail:
+                isAuthenticated && user?.email ? user.email : customerEmail || prefill?.email, // Use authenticated user email if available
               customerId: isAuthenticated && user?.id ? user.id : undefined, // Include user ID if authenticated
             }),
           })
@@ -202,9 +201,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     setEmailError(null)
 
     // Use authenticated user email if available, otherwise use form email
-    const emailToUse = isAuthenticated && user?.email
-      ? user.email
-      : (prefill?.email || customerEmail)
+    const emailToUse = isAuthenticated && user?.email ? user.email : prefill?.email || customerEmail
 
     // Only validate email if user is not authenticated
     if (!isAuthenticated) {
@@ -439,7 +436,9 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
     setIsCheckingProject(true)
     try {
-      const response = await fetch(`/api/v1/service-projects/check-exists?orderId=${orderIdToCheck}`)
+      const response = await fetch(
+        `/api/v1/service-projects/check-exists?orderId=${orderIdToCheck}`,
+      )
       const data = await response.json()
 
       if (response.ok && data.exists && data.projectId) {
@@ -705,7 +704,10 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
           {(orderNumber || orderId) && (
             <p className="text-sm text-green-600 mb-4">
-              {t('orderNumber')}: <span className="font-medium">{formatOrderNumberForDisplay(orderNumber || orderId || '')}</span>
+              {t('orderNumber')}:{' '}
+              <span className="font-medium">
+                {formatOrderNumberForDisplay(orderNumber || orderId || '')}
+              </span>
             </p>
           )}
 
@@ -741,7 +743,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
 
             <Button
               onClick={() => (window.location.href = `/${locale}/account/orders`)}
-              variant={projectId ? "outline" : "default"}
+              variant={projectId ? 'outline' : 'default'}
               className="w-full"
             >
               {t('viewOrders')}
@@ -795,9 +797,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         )}
         {isAuthenticated && user?.email && (
           <div className="mb-4">
-            <Label className="mb-1 block">
-              {t('emailLabel')}
-            </Label>
+            <Label className="mb-1 block">{t('emailLabel')}</Label>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         )}
@@ -805,7 +805,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         <div className="flex justify-between items-center mb-6">
           <span className="font-medium">{t('price')}</span>
           <span className="text-xl font-bold">
-            <ServicePrice price={price || 0} locale={locale} />
+            <ServicePrice service={service} locale={locale} />
           </span>
         </div>
 

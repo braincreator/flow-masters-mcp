@@ -8,7 +8,7 @@ import { getServerSession } from '@/utilities/auth/getServerSession'
 import { Button } from '@/components/ui/button'
 import ServiceBookingFlow from '@/components/services/ServiceBookingFlow'
 import { Container } from '@/components/ui/container'
-type Locale = 'en' | 'ru';
+type Locale = 'en' | 'ru'
 
 type ResumeBookingPageProps = {
   params: {
@@ -64,7 +64,7 @@ export default async function ResumeBookingPage({
 
     // Получаем информацию об услуге
     if (!order.serviceData?.serviceId || typeof order.serviceData.serviceId !== 'string') {
-      return notFound();
+      return notFound()
     }
 
     const service = await payload.findByID({
@@ -78,7 +78,9 @@ export default async function ResumeBookingPage({
 
     // Получаем локализованные данные
     const title =
-      typeof service.title === 'object' ? service.title[lang] || (service.title as any).en : service.title as string
+      typeof service.title === 'object'
+        ? service.title[lang] || (service.title as any).en
+        : (service.title as string)
 
     return (
       <Container>
@@ -92,10 +94,7 @@ export default async function ResumeBookingPage({
           </div>
 
           <ServiceBookingFlow
-            serviceId={service.id}
-            price={service.price}
-            requiresBooking={service.requiresBooking ?? undefined}
-            bookingSettings={service.bookingSettings ? { ...service.bookingSettings, provider: (service.bookingSettings.provider ?? 'other'), calendlyUsername: service.bookingSettings.calendlyUsername ?? undefined, calendlyEventType: service.bookingSettings.calendlyEventType ?? undefined, hideEventTypeDetails: service.bookingSettings.hideEventTypeDetails ?? undefined, hideGdprBanner: service.bookingSettings.hideGdprBanner ?? undefined, enableAdditionalInfo: service.bookingSettings.enableAdditionalInfo ?? undefined, additionalInfoFields: service.bookingSettings.additionalInfoFields?.map(field => ({ ...field, required: field.required ?? false })) ?? undefined } as any : undefined}
+            service={service}
             locale={lang as Locale}
             className="w-full"
             orderId={orderId}

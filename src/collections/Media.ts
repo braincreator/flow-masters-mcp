@@ -27,21 +27,25 @@ export const Media: CollectionConfig = {
     useAsTitle: 'filename',
     defaultColumns: ['filename', 'alt', 'updatedAt'],
     preview: (doc) => {
-      // Ensure we're using the thumbnail URL for preview
-      if (doc?.sizes?.thumbnail?.url) {
-        return doc.sizes.thumbnail.url
+      // Use type assertion for better TypeScript compatibility
+      const mediaDoc = doc as Record<string, unknown> & {
+        url?: string
       }
-      return doc.url
+      // Since all files are stored at root level, always use the main URL
+      // This fixes the issue where thumbnail URLs don't exist in S3
+      return mediaDoc?.url || ''
     },
   },
   upload: {
     disableLocalStorage: true,
     adminThumbnail: ({ doc }) => {
-      // Ensure we're using the correct thumbnail URL
-      if (doc?.sizes?.thumbnail?.url) {
-        return doc.sizes.thumbnail.url
+      // Use type assertion for better TypeScript compatibility
+      const mediaDoc = doc as Record<string, unknown> & {
+        url?: string
       }
-      return doc.url
+      // Since all files are stored at root level, always use the main URL
+      // This fixes the issue where thumbnail URLs don't exist in S3
+      return mediaDoc?.url || ''
     },
     focalPoint: true,
     imageSizes: [
