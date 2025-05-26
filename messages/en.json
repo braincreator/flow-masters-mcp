@@ -1001,6 +1001,12 @@
     "author": "Author",
     "actions": "Actions",
     "comments": "Comments",
+    "commentsCount": {
+      "zero": "No comments",
+      "one": "1 comment",
+      "other": "{count} comments"
+    },
+    "shareArticle": "Share Article",
     "relatedPosts": "Related Posts",
     "errorLoadingContent": "There was an error loading the content"
   },

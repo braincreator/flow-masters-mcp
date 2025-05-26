@@ -300,13 +300,13 @@ export function BlogPostPageClient({
             <main className="blog-main-content">
               <ErrorBoundary
                 fallback={
-                  <ErrorButtonWrapper locale={currentLocale}>
+                  <div className="text-center py-8 text-destructive">
                     {t('errorLoadingContent')}
-                  </ErrorButtonWrapper>
+                  </div>
                 }
               >
                 <div className="blog-post-content" id="post-content">
-                  <PostContent content={processedContent} debugMode={true} />
+                  <PostContent content={processedContent} postId={post.id} debugMode={true} />
                 </div>
               </ErrorBoundary>
 
@@ -320,10 +320,9 @@ export function BlogPostPageClient({
                 className="blog-newsletter-mobile"
               />
 
-              {/* Comments Section */}
+              {/* Comments Section - Full width matching content */}
               <section id="comments" className="mt-16 blog-comments">
-                <h2 className="text-2xl font-bold mb-8 text-center">{t('comments')}</h2>
-                <div id="comments-list">
+                <div id="comments-list" className="w-full max-w-none">
                   <Comments postId={post.id} locale={currentLocale as 'en' | 'ru'} />
                 </div>
               </section>
@@ -376,7 +375,7 @@ export function BlogPostPageClient({
           {formattedRelatedPosts.length > 0 && (
             <section className="blog-related-posts">
               <h2 className="blog-related-posts-title">{t('relatedPosts')}</h2>
-              <BlogRelatedPosts posts={formattedRelatedPosts} locale={currentLocale} />
+              <BlogRelatedPosts posts={formattedRelatedPosts} />
             </section>
           )}
         </article>

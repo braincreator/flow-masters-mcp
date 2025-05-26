@@ -12,6 +12,7 @@ import { ru } from 'date-fns/locale'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/useAuth'
 import { useBlog } from '@/providers/BlogProvider'
+import { useTranslations } from 'next-intl'
 
 // Переводы для компонента комментариев
 const translations = {
@@ -89,6 +90,7 @@ interface CommentItemProps {
   onReplyClick: (id: string) => void
   onCancelReply: () => void
   onSuccess: () => void
+  addComment: (comment: any) => Promise<void>
 }
 
 function CommentItem({
@@ -103,9 +105,10 @@ function CommentItem({
   onReplyClick,
   onCancelReply,
   onSuccess,
+  addComment,
 }: CommentItemProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const t = locale === 'ru' ? translations.ru : translations.en
+  const tOld = locale === 'ru' ? translations.ru : translations.en
 
   // Генерируем инициалы для аватара
   const initials = comment.author.name
@@ -183,7 +186,7 @@ function CommentItem({
                 className="h-7 px-2 text-xs rounded-md hover:bg-muted"
               >
                 <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
-                <span>{t.like}</span>
+                <span>{tOld.like}</span>
               </Button>
             )}
 
@@ -195,7 +198,7 @@ function CommentItem({
                 onClick={() => onReplyClick(comment.id)}
               >
                 <CornerUpLeft className="h-3.5 w-3.5 mr-1.5" />
-                <span>{replyToId === comment.id ? t.cancel : t.reply}</span>
+                <span>{replyToId === comment.id ? tOld.cancel : tOld.reply}</span>
               </Button>
             )}
 
@@ -204,16 +207,16 @@ function CommentItem({
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0 rounded-md hover:bg-muted ml-auto"
-                title={t.report}
+                title={tOld.report}
               >
                 <Flag className="h-3.5 w-3.5" />
-                <span className="sr-only">{t.report}</span>
+                <span className="sr-only">{tOld.report}</span>
               </Button>
             )}
 
             {isCollapsed && hasReplies && (
               <div className="text-xs text-muted-foreground italic">
-                {t.hiddenReplies(comment.replies!.length)}
+                {tOld.hiddenReplies(comment.replies!.length)}
               </div>
             )}
           </div>
@@ -230,6 +233,7 @@ function CommentItem({
                 }}
                 onCancel={onCancelReply}
                 locale={locale}
+                addComment={addComment}
               />
             </div>
           )}
@@ -251,6 +255,7 @@ function CommentItem({
                   onReplyClick={onReplyClick}
                   onCancelReply={onCancelReply}
                   onSuccess={onSuccess}
+                  addComment={addComment}
                 />
               ))}
             </div>
@@ -283,8 +288,9 @@ export function Comments({
     addComment,
   } = useBlog()
 
-  // Get translations
-  const t = locale === 'ru' ? translations.ru : translations.en
+  // Get translations from next-intl
+  const t = useTranslations('blogPage')
+  const tOld = locale === 'ru' ? translations.ru : translations.en
 
   // Fetch comments when component mounts
   React.useEffect(() => {
@@ -296,12 +302,23 @@ export function Comments({
     fetchComments(postId)
   }
 
+  // Format comments count with proper pluralization
+  const formatCommentsCount = (count: number) => {
+    if (count === 0) {
+      return t('commentsCount.zero')
+    } else if (count === 1) {
+      return t('commentsCount.one')
+    } else {
+      return t('commentsCount.other', { count })
+    }
+  }
+
   return (
     <div className={cn('space-y-6', className)}>
       {/* Заголовок и счетчик */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight">{t.comments}</h2>
-        <div className="text-xs text-muted-foreground">{t.commentCount(comments.length)}</div>
+        <h2 className="text-xl font-bold tracking-tight">{t('comments')}</h2>
+        <div className="text-xs text-muted-foreground">{formatCommentsCount(comments.length)}</div>
       </div>
 
       {/* Comment form */}
@@ -316,9 +333,9 @@ export function Comments({
       ) : (
         <Tabs defaultValue="guest" className="w-full">
           <TabsList className="mb-3">
-            <TabsTrigger value="guest">{t.asGuest}</TabsTrigger>
+            <TabsTrigger value="guest">{tOld.asGuest}</TabsTrigger>
             {/* В будущем здесь может быть вкладка для авторизации */}
-            {/*<TabsTrigger value="user">{t.asUser}</TabsTrigger>*/}
+            {/*<TabsTrigger value="user">{tOld.asUser}</TabsTrigger>*/}
           </TabsList>
           <TabsContent value="guest" className="mt-0">
             <CommentForm
@@ -336,7 +353,7 @@ export function Comments({
         {loading ? (
           <div className="text-center py-6 rounded-lg border border-border bg-card">
             <div className="spinner h-5 w-5 mx-auto animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground mt-2">{t.loading}</p>
+            <p className="text-sm text-muted-foreground mt-2">{tOld.loading}</p>
           </div>
         ) : error ? (
           <div className="text-center py-4 text-sm text-destructive bg-destructive/5 rounded-lg border border-destructive/10 p-4">
@@ -344,7 +361,7 @@ export function Comments({
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-8 text-sm text-muted-foreground bg-muted rounded-lg">
-            {t.noComments}
+            {tOld.noComments}
           </div>
         ) : (
           <div className="divide-y divide-border rounded-lg border border-border overflow-hidden bg-card">
@@ -361,6 +378,7 @@ export function Comments({
                 onReplyClick={setReplyToId}
                 onCancelReply={() => setReplyToId(null)}
                 onSuccess={handleCommentSuccess}
+                addComment={addComment}
               />
             ))}
           </div>

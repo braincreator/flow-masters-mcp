@@ -60,13 +60,24 @@ async function fetchReplies(payload: Payload, commentId: string): Promise<Commen
 
 export async function POST(req: NextRequest) {
   try {
-    const { postId, author, content, parentComment } = (await req.json()) as Omit<
+    const requestBody = await req.json()
+    console.log('Comment API received:', JSON.stringify(requestBody, null, 2))
+
+    const { postId, author, content, parentComment } = requestBody as Omit<
       CommentRequest,
       'author'
     > & { author: { name: string; email: string } }
 
+    console.log('Extracted fields:', { postId, author, content, parentComment })
+
     // Validate required fields
     if (!postId || !author?.name || !author?.email || !content) {
+      console.log('Validation failed - missing fields:', {
+        postId: !!postId,
+        authorName: !!author?.name,
+        authorEmail: !!author?.email,
+        content: !!content,
+      })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
