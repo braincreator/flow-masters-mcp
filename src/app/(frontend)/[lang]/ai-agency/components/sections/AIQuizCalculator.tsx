@@ -3,9 +3,18 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
-import { Calculator, ArrowRight, ArrowLeft, CheckCircle, DollarSign, Clock, TrendingUp, Zap } from 'lucide-react'
+import {
+  Calculator,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  DollarSign,
+  Clock,
+  TrendingUp,
+  Zap,
+} from 'lucide-react'
 import { TrackedCTA } from '../TrackedCTA'
-import { useAnalytics } from '../../hooks/useAnalytics'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
 
 const quizSteps = [
@@ -19,8 +28,8 @@ const quizSteps = [
       { id: 'manufacturing', label: 'Производство', multiplier: 0.8 },
       { id: 'b2b', label: 'B2B продажи', multiplier: 1.1 },
       { id: 'education', label: 'Образование', multiplier: 0.9 },
-      { id: 'other', label: 'Другое', multiplier: 1.0 }
-    ]
+      { id: 'other', label: 'Другое', multiplier: 1.0 },
+    ],
   },
   {
     id: 'team-size',
@@ -30,8 +39,8 @@ const quizSteps = [
       { id: 'small', label: '1-10 человек', multiplier: 0.8 },
       { id: 'medium', label: '11-50 человек', multiplier: 1.0 },
       { id: 'large', label: '51-200 человек', multiplier: 1.3 },
-      { id: 'enterprise', label: '200+ человек', multiplier: 1.5 }
-    ]
+      { id: 'enterprise', label: '200+ человек', multiplier: 1.5 },
+    ],
   },
   {
     id: 'monthly-revenue',
@@ -41,9 +50,9 @@ const quizSteps = [
       { id: 'startup', label: 'До 500 000 ₽', multiplier: 0.7 },
       { id: 'small-business', label: '500 000 - 2 000 000 ₽', multiplier: 1.0 },
       { id: 'medium-business', label: '2 000 000 - 10 000 000 ₽', multiplier: 1.4 },
-      { id: 'large-business', label: '10 000 000+ ₽', multiplier: 2.0 }
-    ]
-  }
+      { id: 'large-business', label: '10 000 000+ ₽', multiplier: 2.0 },
+    ],
+  },
 ]
 
 interface QuizAnswer {
@@ -57,7 +66,17 @@ export function AIQuizCalculator() {
   const [answers, setAnswers] = useState<QuizAnswer[]>([])
   const [showResults, setShowResults] = useState(false)
   const [selectedOption, setSelectedOption] = useState<string>('')
-  const { trackCalculatorCompletion, trackEvent } = useAnalytics()
+  const { trackEvent } = useAnalytics()
+
+  const trackCalculatorCompletion = (results: any) => {
+    trackEvent('engagement', 'calculator_completion', 'ai_benefits_calculator', undefined, {
+      monthlyROI: results.monthlyROI,
+      timeSavings: results.timeSavings,
+      conversionIncrease: results.conversionIncrease,
+      yearlyROI: results.yearlyROI,
+      investmentRange: results.investmentRange,
+    })
+  }
 
   const currentQuizStep = quizSteps[currentStep]
   const isLastStep = currentStep === quizSteps.length - 1
@@ -65,13 +84,13 @@ export function AIQuizCalculator() {
   const handleNext = () => {
     if (!selectedOption) return
 
-    const option = currentQuizStep.options.find(opt => opt.id === selectedOption)
+    const option = currentQuizStep.options.find((opt) => opt.id === selectedOption)
     if (!option) return
 
     const newAnswer: QuizAnswer = {
       stepId: currentQuizStep.id,
       selectedOption,
-      multiplier: option.multiplier
+      multiplier: option.multiplier,
     }
 
     const newAnswers = [...answers]
@@ -98,7 +117,7 @@ export function AIQuizCalculator() {
 
   const calculateResults = (finalAnswers: QuizAnswer[]) => {
     let totalMultiplier = 1
-    finalAnswers.forEach(answer => {
+    finalAnswers.forEach((answer) => {
       totalMultiplier *= answer.multiplier
     })
 
@@ -111,7 +130,8 @@ export function AIQuizCalculator() {
       timeSavings: Math.round(baseSavings * totalMultiplier),
       conversionIncrease: Math.round(baseConversion * totalMultiplier),
       yearlyROI: Math.round(baseROI * totalMultiplier * 12),
-      investmentRange: totalMultiplier > 1.5 ? '200-400' : totalMultiplier > 1.2 ? '150-300' : '80-200'
+      investmentRange:
+        totalMultiplier > 1.5 ? '200-400' : totalMultiplier > 1.2 ? '150-300' : '80-200',
     }
   }
 
@@ -122,11 +142,7 @@ export function AIQuizCalculator() {
     setAnswers([])
     setShowResults(false)
     setSelectedOption('')
-    trackEvent({
-      action: 'calculator_reset',
-      category: 'engagement',
-      label: 'ai_benefits_calculator'
-    })
+    trackEvent('engagement', 'calculator_reset', 'ai_benefits_calculator')
   }
 
   if (showResults && results) {
@@ -146,9 +162,7 @@ export function AIQuizCalculator() {
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
                 Ваш персональный расчет готов! 🎉
               </h2>
-              <p className="text-xl text-gray-600">
-                Вот что ИИ может дать вашему бизнесу
-              </p>
+              <p className="text-xl text-gray-600">Вот что ИИ может дать вашему бизнесу</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -166,9 +180,7 @@ export function AIQuizCalculator() {
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-6 h-6 text-blue-600" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">
-                  {results.timeSavings}ч
-                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-2">{results.timeSavings}ч</div>
                 <div className="text-gray-600">Экономия времени в месяц</div>
               </div>
 
@@ -220,9 +232,7 @@ export function AIQuizCalculator() {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-center">
-              <h4 className="font-bold text-gray-900 mb-2">
-                🎁 Специальное предложение
-              </h4>
+              <h4 className="font-bold text-gray-900 mb-2">🎁 Специальное предложение</h4>
               <p className="text-gray-700">
                 Получите бесплатный аудит вашего бизнеса и персональную стратегию внедрения ИИ
               </p>
@@ -286,12 +296,8 @@ export function AIQuizCalculator() {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"
             >
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                {currentQuizStep.title}
-              </h3>
-              <p className="text-gray-600 mb-8">
-                {currentQuizStep.subtitle}
-              </p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{currentQuizStep.title}</h3>
+              <p className="text-gray-600 mb-8">{currentQuizStep.subtitle}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {currentQuizStep.options.map((option) => (
@@ -301,10 +307,10 @@ export function AIQuizCalculator() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedOption(option.id)}
                     className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all duration-300",
+                      'p-4 rounded-xl border-2 text-left transition-all duration-300',
                       selectedOption === option.id
-                        ? "border-blue-500 bg-blue-50 text-blue-900"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                        ? 'border-blue-500 bg-blue-50 text-blue-900'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50',
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -322,10 +328,10 @@ export function AIQuizCalculator() {
                   onClick={handlePrevious}
                   disabled={currentStep === 0}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300",
+                    'flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300',
                     currentStep === 0
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 hover:bg-gray-100',
                   )}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -336,10 +342,10 @@ export function AIQuizCalculator() {
                   onClick={handleNext}
                   disabled={!selectedOption}
                   className={cn(
-                    "flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-300",
+                    'flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-300',
                     !selectedOption
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl',
                   )}
                 >
                   {isLastStep ? 'Получить результат' : 'Далее'}

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useAnalytics } from '../hooks/useAnalytics'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 
 interface ABTestProps {
   testName: string
@@ -62,7 +62,7 @@ export function ABTest({ testName, variants, children }: ABTestProps) {
       testName,
       variant: selected,
       timestamp: Date.now(),
-      sessionId
+      sessionId,
     }
 
     localStorage.setItem(`ab_test_${testName}`, JSON.stringify(testResult))
@@ -70,25 +70,20 @@ export function ABTest({ testName, variants, children }: ABTestProps) {
     setIsLoading(false)
 
     // Track the test assignment
-    trackEvent({
-      action: 'ab_test_assigned',
-      category: 'experiment',
-      label: `${testName}_${selected}`
-    })
+    trackEvent('experiment', 'ab_test_assigned', `${testName}_${selected}`)
 
     // Store for analytics
     const allTests = JSON.parse(localStorage.getItem('ab_tests_history') || '[]')
     allTests.push(testResult)
     localStorage.setItem('ab_tests_history', JSON.stringify(allTests))
-
   }, [testName, variants, trackEvent])
 
   if (isLoading) {
     return <div className="animate-pulse bg-gray-200 h-20 rounded" />
   }
 
-  const activeVariant = variants.find(v => v.name === selectedVariant)
-  
+  const activeVariant = variants.find((v) => v.name === selectedVariant)
+
   return (
     <div data-ab-test={testName} data-ab-variant={selectedVariant}>
       {activeVariant?.component || children}
@@ -104,12 +99,8 @@ export function useABTestConversion() {
     const testData = localStorage.getItem(`ab_test_${testName}`)
     if (testData) {
       const { variant }: ABTestResult = JSON.parse(testData)
-      
-      trackEvent({
-        action: 'ab_test_conversion',
-        category: 'experiment',
-        label: `${testName}_${variant}_${conversionType}`
-      })
+
+      trackEvent('experiment', 'ab_test_conversion', `${testName}_${variant}_${conversionType}`)
 
       // Store conversion data
       const conversions = JSON.parse(localStorage.getItem('ab_conversions') || '[]')
@@ -117,7 +108,7 @@ export function useABTestConversion() {
         testName,
         variant,
         conversionType,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       })
       localStorage.setItem('ab_conversions', JSON.stringify(conversions))
     }
@@ -140,7 +131,7 @@ export function HeadlineABTest() {
           <br />
           <span className="text-white">Ваш — следующий.</span>
         </h1>
-      )
+      ),
     },
     {
       name: 'benefit_focused',
@@ -153,8 +144,8 @@ export function HeadlineABTest() {
           <br />
           <span className="text-white">с помощью ИИ за 14 дней</span>
         </h1>
-      )
-    }
+      ),
+    },
   ]
 
   return <ABTest testName="hero_headline" variants={headlines} />
@@ -165,18 +156,18 @@ export function CTATextABTest({ section }: { section: string }) {
     {
       name: 'audit',
       weight: 40,
-      component: "Получить бесплатный аудит"
+      component: 'Получить бесплатный аудит',
     },
     {
       name: 'consultation',
       weight: 30,
-      component: "Получить консультацию эксперта"
+      component: 'Получить консультацию эксперта',
     },
     {
       name: 'strategy',
       weight: 30,
-      component: "Получить стратегию внедрения ИИ"
-    }
+      component: 'Получить стратегию внедрения ИИ',
+    },
   ]
 
   return <ABTest testName={`cta_text_${section}`} variants={ctaVariants} />
@@ -192,7 +183,7 @@ export function PricingABTest() {
           <div className="text-4xl font-bold text-gray-900 mb-2">180 000 ₽</div>
           <div className="text-lg text-gray-600">Полная стоимость</div>
         </div>
-      )
+      ),
     },
     {
       name: 'monthly',
@@ -203,8 +194,8 @@ export function PricingABTest() {
           <div className="text-lg text-gray-600">12 месяцев</div>
           <div className="text-sm text-gray-500">Общая стоимость: 180 000 ₽</div>
         </div>
-      )
-    }
+      ),
+    },
   ]
 
   return <ABTest testName="pricing_display" variants={pricingVariants} />

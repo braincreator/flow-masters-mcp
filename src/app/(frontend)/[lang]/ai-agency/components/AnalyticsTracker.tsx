@@ -1,17 +1,38 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useAnalytics } from '../hooks/useAnalytics'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 
 interface AnalyticsTrackerProps {
   children: React.ReactNode
 }
 
 export function AnalyticsTracker({ children }: AnalyticsTrackerProps) {
-  const { trackScrollDepth, trackTimeOnPage, trackSectionView } = useAnalytics()
+  const { trackEvent } = useAnalytics()
   const startTimeRef = useRef<number>(Date.now())
   const scrollDepthRef = useRef<number>(0)
   const sectionsViewedRef = useRef<Set<string>>(new Set())
+
+  const trackScrollDepth = (percentage: number) => {
+    trackEvent('engagement', 'scroll_depth', 'ai_agency_page', percentage, {
+      percentage,
+      timestamp: Date.now(),
+    })
+  }
+
+  const trackTimeOnPage = (seconds: number) => {
+    trackEvent('engagement', 'time_on_page', 'ai_agency_page', seconds, {
+      seconds,
+      timestamp: Date.now(),
+    })
+  }
+
+  const trackSectionView = (sectionName: string) => {
+    trackEvent('engagement', 'section_view', sectionName, undefined, {
+      section: sectionName,
+      timestamp: Date.now(),
+    })
+  }
 
   useEffect(() => {
     let timeOnPageInterval: NodeJS.Timeout
@@ -33,7 +54,7 @@ export function AnalyticsTracker({ children }: AnalyticsTrackerProps) {
         const rect = section.getBoundingClientRect()
         const isVisible = rect.top < window.innerHeight && rect.bottom > 0
         const sectionName = section.getAttribute('data-section')
-        
+
         if (isVisible && sectionName && !sectionsViewedRef.current.has(sectionName)) {
           sectionsViewedRef.current.add(sectionName)
           trackSectionView(sectionName)

@@ -3,7 +3,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Zap, Gift, Clock } from 'lucide-react'
-import { useAnalytics } from '../hooks/useAnalytics'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
 
 interface TrackedCTAProps {
@@ -21,17 +21,19 @@ interface TrackedCTAProps {
 }
 
 const variantStyles = {
-  primary: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl',
+  primary:
+    'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl',
   secondary: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white bg-white',
-  urgent: 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg hover:shadow-xl animate-pulse',
-  gift: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl'
+  urgent:
+    'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg hover:shadow-xl animate-pulse',
+  gift: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl',
 }
 
 const sizeStyles = {
   sm: 'px-4 py-2 text-sm',
   md: 'px-6 py-3 text-base',
   lg: 'px-8 py-4 text-lg',
-  xl: 'px-10 py-5 text-xl'
+  xl: 'px-10 py-5 text-xl',
 }
 
 const iconComponents = {
@@ -39,7 +41,7 @@ const iconComponents = {
   zap: Zap,
   gift: Gift,
   clock: Clock,
-  none: null
+  none: null,
 }
 
 export function TrackedCTA({
@@ -53,10 +55,20 @@ export function TrackedCTA({
   className,
   disabled = false,
   fullWidth = false,
-  pulse = false
+  pulse = false,
 }: TrackedCTAProps) {
-  const { trackCTAClick } = useAnalytics()
+  const { trackEvent } = useAnalytics()
   const IconComponent = iconComponents[icon]
+
+  const trackCTAClick = (text: string, section: string, position: number) => {
+    trackEvent('interaction', 'cta_click', `${section}_${text}`, position, {
+      section,
+      text,
+      position,
+      variant,
+      size,
+    })
+  }
 
   const handleClick = () => {
     if (!disabled) {
@@ -79,26 +91,28 @@ export function TrackedCTA({
         pulse && 'animate-pulse',
         disabled && 'opacity-50 cursor-not-allowed',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-        className
+        className,
       )}
     >
       {/* Animated background effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-      
+
       <span className="relative flex items-center justify-center gap-2">
         {text}
         {IconComponent && (
-          <IconComponent className={cn(
-            "transition-transform duration-300",
-            icon === 'arrow' && "group-hover:translate-x-1",
-            icon === 'zap' && "group-hover:scale-110",
-            icon === 'gift' && "group-hover:rotate-12",
-            icon === 'clock' && "group-hover:rotate-180",
-            size === 'sm' && "w-4 h-4",
-            size === 'md' && "w-5 h-5",
-            size === 'lg' && "w-5 h-5",
-            size === 'xl' && "w-6 h-6"
-          )} />
+          <IconComponent
+            className={cn(
+              'transition-transform duration-300',
+              icon === 'arrow' && 'group-hover:translate-x-1',
+              icon === 'zap' && 'group-hover:scale-110',
+              icon === 'gift' && 'group-hover:rotate-12',
+              icon === 'clock' && 'group-hover:rotate-180',
+              size === 'sm' && 'w-4 h-4',
+              size === 'md' && 'w-5 h-5',
+              size === 'lg' && 'w-5 h-5',
+              size === 'xl' && 'w-6 h-6',
+            )}
+          />
         )}
       </span>
     </motion.button>
@@ -106,7 +120,13 @@ export function TrackedCTA({
 }
 
 // Специализированные CTA компоненты
-export function UrgentCTA({ text, section, position, onClick, className }: Omit<TrackedCTAProps, 'variant' | 'icon'>) {
+export function UrgentCTA({
+  text,
+  section,
+  position,
+  onClick,
+  className,
+}: Omit<TrackedCTAProps, 'variant' | 'icon'>) {
   return (
     <TrackedCTA
       text={text}
@@ -121,7 +141,13 @@ export function UrgentCTA({ text, section, position, onClick, className }: Omit<
   )
 }
 
-export function GiftCTA({ text, section, position, onClick, className }: Omit<TrackedCTAProps, 'variant' | 'icon'>) {
+export function GiftCTA({
+  text,
+  section,
+  position,
+  onClick,
+  className,
+}: Omit<TrackedCTAProps, 'variant' | 'icon'>) {
   return (
     <TrackedCTA
       text={text}
@@ -135,7 +161,13 @@ export function GiftCTA({ text, section, position, onClick, className }: Omit<Tr
   )
 }
 
-export function SecondaryCTA({ text, section, position, onClick, className }: Omit<TrackedCTAProps, 'variant'>) {
+export function SecondaryCTA({
+  text,
+  section,
+  position,
+  onClick,
+  className,
+}: Omit<TrackedCTAProps, 'variant'>) {
   return (
     <TrackedCTA
       text={text}

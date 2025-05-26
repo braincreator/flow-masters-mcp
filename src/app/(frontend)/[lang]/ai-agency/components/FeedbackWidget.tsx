@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, X, Star, Send, ThumbsUp, ThumbsDown } from 'lucide-react'
-import { useAnalytics } from '../hooks/useAnalytics'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
 
 interface FeedbackData {
@@ -49,7 +49,7 @@ export function FeedbackWidget() {
       email: email || undefined,
       page: window.location.pathname,
       timestamp: Date.now(),
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
     }
 
     try {
@@ -59,12 +59,7 @@ export function FeedbackWidget() {
       localStorage.setItem('user_feedback', JSON.stringify(existingFeedback))
 
       // Track in analytics
-      trackEvent({
-        action: 'feedback_submitted',
-        category: 'user_experience',
-        label: feedbackType,
-        value: rating
-      })
+      trackEvent('user_experience', 'feedback_submitted', feedbackType, rating)
 
       // Here you would send to your API
       // await fetch('/api/feedback', {
@@ -103,11 +98,7 @@ export function FeedbackWidget() {
           onClick={() => {
             setIsOpen(true)
             setStep('type')
-            trackEvent({
-              action: 'feedback_widget_opened',
-              category: 'user_experience',
-              label: 'manual_open'
-            })
+            trackEvent('user_experience', 'feedback_widget_opened', 'manual_open')
           }}
           className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
         >
@@ -147,7 +138,7 @@ export function FeedbackWidget() {
                     { type: 'rating' as const, label: 'Оценить страницу', icon: '⭐' },
                     { type: 'suggestion' as const, label: 'Предложение', icon: '💡' },
                     { type: 'bug' as const, label: 'Сообщить об ошибке', icon: '🐛' },
-                    { type: 'general' as const, label: 'Общий вопрос', icon: '💬' }
+                    { type: 'general' as const, label: 'Общий вопрос', icon: '💬' },
                   ].map(({ type, label, icon }) => (
                     <button
                       key={type}
@@ -175,8 +166,8 @@ export function FeedbackWidget() {
                       key={star}
                       onClick={() => setRating(star)}
                       className={cn(
-                        "p-1 transition-colors",
-                        star <= rating ? "text-yellow-400" : "text-gray-300"
+                        'p-1 transition-colors',
+                        star <= rating ? 'text-yellow-400' : 'text-gray-300',
                       )}
                     >
                       <Star className="w-8 h-8 fill-current" />
@@ -204,14 +195,14 @@ export function FeedbackWidget() {
                   {feedbackType === 'bug' && 'Опишите проблему:'}
                   {feedbackType === 'general' && 'Ваш вопрос:'}
                 </p>
-                
+
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Введите ваше сообщение..."
                   className="w-full p-3 border border-gray-200 rounded-lg resize-none h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                
+
                 <input
                   type="email"
                   value={email}
@@ -219,7 +210,7 @@ export function FeedbackWidget() {
                   placeholder="Email для ответа (необязательно)"
                   className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                
+
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setStep(feedbackType === 'rating' ? 'rating' : 'type')}
@@ -275,18 +266,14 @@ export function QuickFeedback({ section }: { section: string }) {
 
   const handleFeedback = (type: 'positive' | 'negative') => {
     setFeedback(type)
-    trackEvent({
-      action: 'quick_feedback',
-      category: 'user_experience',
-      label: `${section}_${type}`
-    })
+    trackEvent('user_experience', 'quick_feedback', `${section}_${type}`)
 
     // Store feedback
     const quickFeedback = JSON.parse(localStorage.getItem('quick_feedback') || '[]')
     quickFeedback.push({
       section,
       type,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
     localStorage.setItem('quick_feedback', JSON.stringify(quickFeedback))
   }
