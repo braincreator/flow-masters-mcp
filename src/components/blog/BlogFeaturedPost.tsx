@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { formatDate } from '@/lib/blogHelpers'
 import { BadgeCheck, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,7 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
   const pathname = usePathname()
   const segments = pathname.split('/')
   const currentLocale = segments.length > 1 ? segments[1] : 'en'
+  const t = useTranslations('blog')
 
   return (
     <div className={cn('group relative overflow-hidden rounded-xl', className)}>
@@ -72,7 +74,7 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
       <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8">
         <div className="flex items-center space-x-2 mb-3">
           <BadgeCheck className="h-5 w-5 text-primary" />
-          <span className="text-primary-foreground text-sm font-medium">Featured Post</span>
+          <span className="text-primary-foreground text-sm font-medium">{t('featured')}</span>
         </div>
 
         {post.categories && post.categories.length > 0 && (
@@ -126,7 +128,7 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span>
-                {post.readTime} {currentLocale === 'ru' ? 'мин чтения' : 'min read'}
+                {post.readTime} {t('readTimeUnit')}
               </span>
             </div>
           )}
@@ -142,9 +144,7 @@ export function BlogFeaturedPost({ post, className }: BlogFeaturedPostProps) {
         </div>
 
         <Button asChild className="w-full sm:w-auto" size="lg">
-          <Link href={`/${currentLocale}/blog/${post.slug}`}>
-            {currentLocale === 'ru' ? 'Читать статью' : 'Read Article'}
-          </Link>
+          <Link href={`/${currentLocale}/blog/${post.slug}`}>{t('readMore')}</Link>
         </Button>
       </div>
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
 import { ArrowLeft, Eye } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { TableOfContents } from '@/components/blog/TableOfContents'
 import { ReadingProgressBar } from '@/components/blog/ReadingProgressBar'
 import PostContent from '@/components/blog/PostContent'
@@ -43,6 +44,8 @@ export function BlogPostPageClient({
   readTime,
   processedContent,
 }: BlogPostPageClientProps) {
+  const t = useTranslations('blogPage')
+
   return (
     <>
       {/* Reading Progress Bar - fixed at top of viewport */}
@@ -60,7 +63,7 @@ export function BlogPostPageClient({
               className="blog-back-button text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {currentLocale === 'ru' ? 'Назад к блогу' : 'Back to Blog'}
+              {t('backToBlog')}
             </Link>
 
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
@@ -102,7 +105,7 @@ export function BlogPostPageClient({
                 <div className="flex items-center gap-1">
                   <Eye className="h-4 w-4" />
                   <span>
-                    {readTime} {currentLocale === 'ru' ? 'мин чтения' : 'min read'}
+                    {readTime} {t('minRead')}
                   </span>
                 </div>
               </div>
@@ -135,10 +138,7 @@ export function BlogPostPageClient({
             <aside className="blog-sidebar-left">
               <div className="sticky top-24">
                 {/* TableOfContents - содержание */}
-                <TableOfContents
-                  contentSelector="#post-content"
-                  title={currentLocale === 'ru' ? 'Содержание' : 'Table of Contents'}
-                />
+                <TableOfContents contentSelector="#post-content" title={t('tableOfContents')} />
 
                 {/* Post metadata sidebar section */}
                 <div className="mt-4 sidebar-card">
@@ -157,31 +157,25 @@ export function BlogPostPageClient({
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    {currentLocale === 'ru' ? 'Детали статьи' : 'Post Details'}
+                    {t('postDetails')}
                   </h3>
                   <dl className="text-sm space-y-2 text-muted-foreground">
                     <div>
-                      <dt className="inline font-medium mr-1">
-                        {currentLocale === 'ru' ? 'Опубликовано:' : 'Published:'}
-                      </dt>
+                      <dt className="inline font-medium mr-1">{t('published')}</dt>
                       <dd className="inline">{format(postDate, 'MMM d, yyyy')}</dd>
                     </div>
                     {post.updatedAt && post.updatedAt !== post.publishedAt && (
                       <div>
-                        <dt className="inline font-medium mr-1">
-                          {currentLocale === 'ru' ? 'Обновлено:' : 'Updated:'}
-                        </dt>
+                        <dt className="inline font-medium mr-1">{t('updated')}</dt>
                         <dd className="inline">
                           {format(new Date(post.updatedAt), 'MMM d, yyyy')}
                         </dd>
                       </div>
                     )}
                     <div>
-                      <dt className="inline font-medium mr-1">
-                        {currentLocale === 'ru' ? 'Время чтения:' : 'Read time:'}
-                      </dt>
+                      <dt className="inline font-medium mr-1">{t('readTime')}</dt>
                       <dd className="inline">
-                        {readTime} {currentLocale === 'ru' ? 'мин' : 'min'}
+                        {readTime} {t('min')}
                       </dd>
                     </div>
                   </dl>
@@ -204,7 +198,7 @@ export function BlogPostPageClient({
                       >
                         <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
                       </svg>
-                      {currentLocale === 'ru' ? 'Категории' : 'Categories'}
+                      {t('categories')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {formattedPostCategories.map((category) => (
@@ -237,7 +231,7 @@ export function BlogPostPageClient({
                       <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
                       <path d="M7 7h.01"></path>
                     </svg>
-                    {currentLocale === 'ru' ? 'Теги' : 'Tags'}
+                    {t('tags')}
                   </h3>
                   {formattedPostTags.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
@@ -252,9 +246,7 @@ export function BlogPostPageClient({
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-muted-foreground">
-                      {currentLocale === 'ru' ? 'Теги не найдены' : 'No tags found'}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{t('noTagsFound')}</div>
                   )}
                 </div>
 
@@ -276,7 +268,7 @@ export function BlogPostPageClient({
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                       </svg>
-                      {currentLocale === 'ru' ? 'Автор' : 'Author'}
+                      {t('author')}
                     </h3>
                     <div className="author-info">
                       {post.author.avatar?.url ? (
@@ -309,9 +301,7 @@ export function BlogPostPageClient({
               <ErrorBoundary
                 fallback={
                   <ErrorButtonWrapper locale={currentLocale}>
-                    {currentLocale === 'ru'
-                      ? 'Произошла ошибка при загрузке содержимого'
-                      : 'There was an error loading the content'}
+                    {t('errorLoadingContent')}
                   </ErrorButtonWrapper>
                 }
               >
@@ -332,9 +322,7 @@ export function BlogPostPageClient({
 
               {/* Comments Section */}
               <section id="comments" className="mt-16 blog-comments">
-                <h2 className="text-2xl font-bold mb-8 text-center">
-                  {currentLocale === 'ru' ? 'Комментарии' : 'Comments'}
-                </h2>
+                <h2 className="text-2xl font-bold mb-8 text-center">{t('comments')}</h2>
                 <div id="comments-list">
                   <Comments postId={post.id} locale={currentLocale as 'en' | 'ru'} />
                 </div>
@@ -363,7 +351,7 @@ export function BlogPostPageClient({
                       <path d="M15 4.2V9m0 0h4.8M15 9l6-6"></path>
                       <path d="M9 4.2V9m0 0H4.2M9 9 3 3"></path>
                     </svg>
-                    {currentLocale === 'ru' ? 'Действия' : 'Actions'}
+                    {t('actions')}
                   </h3>
                   <div className="action-buttons">
                     <BlogActionButtons
@@ -387,9 +375,7 @@ export function BlogPostPageClient({
           {/* Related Posts */}
           {formattedRelatedPosts.length > 0 && (
             <section className="blog-related-posts">
-              <h2 className="blog-related-posts-title">
-                {currentLocale === 'ru' ? 'Похожие статьи' : 'Related Posts'}
-              </h2>
+              <h2 className="blog-related-posts-title">{t('relatedPosts')}</h2>
               <BlogRelatedPosts posts={formattedRelatedPosts} locale={currentLocale} />
             </section>
           )}

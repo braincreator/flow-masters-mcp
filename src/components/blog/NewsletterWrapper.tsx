@@ -46,11 +46,11 @@ export const NewsletterWrapper: React.FC<NewsletterWrapperProps> = ({
 
   // Рендерим блок рассылки только если пользователь не подписан
   return (
-    <div className={`rounded-xl border border-border p-6 shadow-sm bg-gradient-to-br from-card to-card/80 ${className || ''}`}>
+    <div
+      className={`rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:from-primary/10 hover:to-secondary/10 ${className || ''}`}
+    >
       <Newsletter
-        title={
-          locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'
-        }
+        title={locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'}
         description={
           locale === 'ru'
             ? 'Получайте наши новости и статьи на почту'

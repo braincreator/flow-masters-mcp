@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Search } from '@/components/ui/search'
 import { cn } from '@/lib/utils'
 import { useSearch } from '@/providers/SearchProvider'
@@ -20,13 +21,14 @@ export interface BlogSearchProps {
 export function BlogSearch({
   onSearch,
   initialQuery = '',
-  placeholder = 'Search posts...',
+  placeholder,
   className,
   preserveParams = false,
   variant = 'default',
   showClearButton = true,
   size = 'default',
 }: BlogSearchProps) {
+  const t = useTranslations('blog')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -37,6 +39,9 @@ export function BlogSearch({
   // Get the current locale from the pathname (unused in this version)
   const segments = pathname.split('/')
   const currentLocale = segments.length > 1 ? segments[1] : 'en'
+
+  // Use translation for placeholder if not provided
+  const searchPlaceholder = placeholder || t('searchPosts')
 
   // Get the appropriate className based on variant
   let inputClassName = ''
@@ -83,7 +88,7 @@ export function BlogSearch({
     <Search
       value={initialQuery}
       onChange={handleSearchChange}
-      placeholder={placeholder}
+      placeholder={searchPlaceholder}
       className={className}
       showClearButton={showClearButton}
       size={size}

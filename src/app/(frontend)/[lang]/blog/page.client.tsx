@@ -13,10 +13,10 @@ import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { FeaturedPost } from '@/components/blog/FeaturedPost'
-import { BlogSkeleton } from '@/components/blog/BlogSkeleton'
+import { EnhancedBlogSkeleton } from '@/components/blog/EnhancedBlogSkeleton'
 import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
-import { X, Search, GridIcon, ListIcon, Sparkles, TrendingUp } from 'lucide-react' // Added GridIcon, ListIcon
+import { X, Search, GridIcon, ListIcon, Sparkles, TrendingUp, FolderOpen, Tag } from 'lucide-react' // Added GridIcon, ListIcon
 import { Button } from '@/components/ui/button'
 import Link from 'next/link' // Although client component, Link is still useful for navigation
 
@@ -26,29 +26,9 @@ interface BlogPageProps {
   categories: BlogTag[] // Assuming categories and tags have a similar structure
   tags: BlogTag[]
   locale: Locale
-  texts: {
-    title: string
-    description: string
-    posts: string
-    categories: string
-    tags: string
-    noPostsFound: string
-    tryChangingFilters: string
-    filters: string
-    clearFilters: string
-    searchPlaceholder: string
-    activeFilters: string
-    all: string
-  }
 }
 
-const BlogPageClient: React.FC<BlogPageProps> = ({
-  initialPosts,
-  categories,
-  tags,
-  locale,
-  // texts: t, // Remove the passed texts prop alias if using the hook directly
-}) => {
+const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tags, locale }) => {
   const t = useTranslations('blogPage') // Initialize useTranslations
   // State for managing posts, pagination, filters, and search
   const [posts, setPosts] = useState(initialPosts)
@@ -59,8 +39,8 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   const [loading, setLoading] = useState(false)
   const [layout, setLayout] = useState<'grid' | 'list'>('grid') // Add layout state
 
-  // Debounce search term for API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  // Remove debouncing for immediate search response
+  // const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   // Function to fetch posts from the API route
   const fetchPosts = useCallback(
@@ -217,11 +197,11 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     if (currentPage > 1) params.set('page', currentPage.toString())
     if (currentCategory) params.set('category', currentCategory)
     if (currentTag) params.set('tag', currentTag)
-    if (debouncedSearchTerm) params.set('search', debouncedSearchTerm)
+    if (searchTerm) params.set('search', searchTerm)
 
     const newUrl = `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
     window.history.pushState({}, '', newUrl)
-  }, [currentPage, currentCategory, currentTag, debouncedSearchTerm, locale])
+  }, [currentPage, currentCategory, currentTag, searchTerm, locale])
 
   // Debounced effect to fetch posts when filters, search, or page change
   useEffect(() => {
@@ -274,7 +254,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     ) as typeof fetchPosts & { cancel: () => void } // Re-added type assertion
 
     // Trigger the debounced fetch
-    debouncedFetch(currentPage, currentCategory, currentTag, debouncedSearchTerm)
+    debouncedFetch(currentPage, currentCategory, currentTag, searchTerm)
 
     // Cleanup function: cancel the debounced call and abort the fetch if it's running
     return () => {
@@ -285,7 +265,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
       }
     }
     // Dependencies: Fetch when page, filters, search term, or locale changes
-  }, [currentPage, currentCategory, currentTag, debouncedSearchTerm, locale, fetchPosts])
+  }, [currentPage, currentCategory, currentTag, searchTerm, locale, fetchPosts])
 
   // Find active category details if we have a category filter
   const activeCategory = currentCategory
@@ -293,7 +273,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
     : undefined
 
   // Determine if there are active filters
-  const hasActiveFilters = !!(currentCategory || currentTag || debouncedSearchTerm)
+  const hasActiveFilters = !!(currentCategory || currentTag || searchTerm)
 
   // URL for clearing all filters
   const clearAllFiltersUrl = `/${locale}/blog`
@@ -310,29 +290,27 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
               {t('title')}
             </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-6xl xl:text-7xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Discover Amazing Stories
+              {t('heroTitle')}
             </h1>
             <p className="mx-auto max-w-2xl text-lg lg:text-xl text-muted-foreground leading-relaxed">
-              {t('description')} Explore insights, tutorials, and stories that inspire and educate.
+              {t('description')} {t('heroSubtitle')}
             </p>
 
             {/* Stats */}
             <div className="mt-12 flex flex-wrap justify-center gap-8 lg:gap-12">
               <div className="text-center">
-                <div className="text-2xl lg:text-3xl font-bold text-primary">
-                  {posts.totalDocs}+
-                </div>
-                <div className="text-sm text-muted-foreground">Articles</div>
+                <div className="text-2xl lg:text-3xl font-bold text-primary">{posts.totalDocs}</div>
+                <div className="text-sm text-muted-foreground">{t('statsArticles')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">
                   {categories.length}
                 </div>
-                <div className="text-sm text-muted-foreground">Categories</div>
+                <div className="text-sm text-muted-foreground">{t('statsCategories')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">{tags.length}</div>
-                <div className="text-sm text-muted-foreground">Tags</div>
+                <div className="text-sm text-muted-foreground">{t('statsTags')}</div>
               </div>
             </div>
           </div>
@@ -473,32 +451,36 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
               </div>
             )}
 
-            {/* Articles section - Render grid/message based on posts, add opacity if loading */}
+            {/* Articles section - Enhanced loading with smooth transitions */}
             <div
               className={cn(
-                'transition-opacity duration-300 ease-in-out', // Added transition classes
-                loading && 'opacity-50', // Reduce opacity when loading
+                'transition-all duration-500 ease-in-out', // Enhanced transition
+                loading && 'opacity-60 scale-[0.98]', // Subtle scale effect when loading
               )}
             >
               {loading ? (
-                <BlogSkeleton layout={layout} count={6} showFeatured={false} />
+                <div className="animate-in fade-in duration-500">
+                  <EnhancedBlogSkeleton
+                    layout={layout}
+                    count={6}
+                    showFeatured={false}
+                    showProgress={false}
+                  />
+                </div>
               ) : posts.docs.length > 0 ? (
-                <div className="blog-fade-in visible space-y-8">
+                <div className="space-y-8">
                   {/* Section title */}
-                  <div className="flex items-center justify-between">
+                  <div className="blog-smooth-entrance" style={{ animationDelay: '0.1s' }}>
                     <h2 className="text-2xl font-bold">
                       {hasActiveFilters ? t('searchResults') : t('latestArticles')}
                     </h2>
-                    <div className="text-sm text-muted-foreground">
-                      {posts.totalDocs} {posts.totalDocs === 1 ? 'article' : 'articles'}
-                    </div>
                   </div>
 
                   {/* Apply grid or list classes based on layout state */}
                   <div
                     className={cn(
-                      'gap-6', // Common gap
-                      layout === 'grid' ? 'grid sm:grid-cols-2' : 'flex flex-col', // Conditional classes
+                      'gap-6', // Убираем конфликтующие анимации
+                      layout === 'grid' ? 'grid sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col',
                     )}
                   >
                     {posts.docs.map((post, index) => {
@@ -517,10 +499,10 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                           locale={locale}
                           layout={layout} // Pass the layout state
                           imagePriority={index < 3} // Prioritize loading images for first few cards
-                          className="blog-fade-in visible" // Keep existing animation class
+                          className="blog-smooth-entrance transition-all duration-300 hover:scale-[1.01]" // Плавная анимация
                           style={{
-                            animationDelay: `${(index - (hasActiveFilters ? 0 : 1)) * 0.05}s`,
-                          }} // Keep existing style
+                            animationDelay: `${(index - (hasActiveFilters ? 0 : 1)) * 0.08}s`, // Уменьшенная задержка для плавности
+                          }}
                         />
                       )
                     })}
@@ -528,7 +510,10 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
                   {/* Pagination */}
                   {posts.totalPages > 1 && (
-                    <div className="mt-12 flex justify-center">
+                    <div
+                      className="mt-12 flex justify-center blog-smooth-entrance"
+                      style={{ animationDelay: '0.5s' }}
+                    >
                       <Pagination
                         page={currentPage}
                         totalPages={posts.totalPages}
@@ -556,13 +541,16 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
           </div>
 
           {/* Enhanced Sidebar */}
-          <div className="blog-fade-in visible mt-12 lg:mt-0 lg:w-1/3 space-y-8">
+          <div
+            className="blog-smooth-entrance mt-12 lg:mt-0 lg:w-1/3 space-y-8"
+            style={{ animationDelay: '0.3s' }}
+          >
             {/* Categories */}
             {categories.length > 0 && (
-              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm">
+              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <GridIcon className="h-5 w-5 text-primary" />
+                  <div className="rounded-lg bg-primary/10 p-2 transition-colors duration-300 hover:bg-primary/20">
+                    <FolderOpen className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold">{t('categories')}</h3>
                 </div>
@@ -579,10 +567,10 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
             {/* Tags */}
             {tags.length > 0 && (
-              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm">
+              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className="rounded-lg bg-secondary/10 p-2">
-                    <Search className="h-5 w-5 text-secondary-foreground" />
+                  <div className="rounded-lg bg-secondary/10 p-2 transition-colors duration-300 hover:bg-secondary/20">
+                    <Tag className="h-5 w-5 text-secondary-foreground" />
                   </div>
                   <h3 className="text-lg font-bold">{t('tags')}</h3>
                 </div>
@@ -599,10 +587,8 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
               </div>
             )}
 
-            {/* Newsletter - rendered on client with subscription check */}
-            <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm">
-              <NewsletterWrapper locale={locale} storageKey="blog_newsletter_subscription" />
-            </div>
+            {/* Newsletter - контейнер скрывается если пользователь уже подписан */}
+            <NewsletterWrapper locale={locale} storageKey="blog_newsletter_subscription" />
           </div>
         </div>
       </div>

@@ -5,20 +5,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Calendar, Clock, User as UserIcon, ArrowRight, BookOpen } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utilities/ui'
 import { formatBlogDate } from '@/lib/blogHelpers'
 import { BlogTag } from '@/components/blog/BlogTag'
 import { Badge } from '@/components/ui/badge'
-
-// Добавим недостающие переводы
-const translations = {
-  en: {
-    readTimeUnit: 'min read',
-  },
-  ru: {
-    readTimeUnit: 'мин чтения',
-  },
-}
+import { Card, CardContent } from '@/components/ui/card'
 
 // Вспомогательная функция для получения краткого описания из контента
 function getExcerpt(content: any, maxLength = 160): string {
@@ -102,7 +94,7 @@ export function BlogPostCard({
   className,
   style,
 }: BlogPostCardProps) {
-  const t = locale === 'ru' ? translations.ru : translations.en
+  const t = useTranslations('blog')
   const postContent = post?.content ?? null
   const displayExcerpt = showExcerpt && post?.excerpt ? post.excerpt : getExcerpt(postContent, 120)
 
@@ -112,7 +104,7 @@ export function BlogPostCard({
   const postLink = `/${locale}/blog/${post.slug}`
 
   const imageUrl = post.thumbnail?.url || post.heroImage?.url || '' // Determine image URL, fallback to empty string
-  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || 'Blog post image' // Determine image alt text
+  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || t('noImage') // Determine image alt text
 
   return (
     <article
@@ -169,7 +161,7 @@ export function BlogPostCard({
                 className="bg-black/20 text-white border-white/30 backdrop-blur-sm"
               >
                 <BookOpen className="w-3 h-3 mr-1" />
-                {post.readingTime} {t.readTimeUnit}
+                {post.readingTime} {t('readTimeUnit')}
               </Badge>
             </div>
           )}
@@ -211,7 +203,7 @@ export function BlogPostCard({
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-primary/60" />
               <span className="font-medium">
-                {post.readingTime} {t.readTimeUnit}
+                {post.readingTime} {t('readTimeUnit')}
               </span>
             </div>
           )}
@@ -272,7 +264,7 @@ export function BlogPostCard({
               )}
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">{post.author.name}</span>
-                <span className="text-xs text-muted-foreground">Author</span>
+                <span className="text-xs text-muted-foreground">{t('author')}</span>
               </div>
             </div>
           ) : (
@@ -284,7 +276,7 @@ export function BlogPostCard({
             href={postLink}
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
           >
-            Read More
+            {t('readMore')}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
