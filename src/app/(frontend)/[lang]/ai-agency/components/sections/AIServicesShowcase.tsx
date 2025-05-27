@@ -11,28 +11,28 @@ const services = [
     title: 'ИИ-агенты под ключ',
     description: 'Умные помощники для автоматизации бизнес-процессов',
     price: 'от 150 000 ₽',
-    timeline: '7-14 дней',
+    timeline: '3-6 недель',
   },
   {
     icon: MessageSquare,
     title: 'Чат-боты с нейросетями',
     description: 'Telegram, WhatsApp, Web - везде, где ваши клиенты',
     price: 'от 80 000 ₽',
-    timeline: '5-10 дней',
+    timeline: '2-3 недели',
   },
   {
     icon: Settings,
     title: 'Интеграция ИИ в процессы',
     description: 'Консалтинг и внедрение в существующие системы',
     price: 'от 200 000 ₽',
-    timeline: '14-21 день',
+    timeline: '4-8 недель',
   },
   {
     icon: Smartphone,
     title: 'Мобильные приложения с ИИ',
     description: 'Приложения с нейросетевым функционалом',
     price: 'от 300 000 ₽',
-    timeline: '21-45 дней',
+    timeline: '6-12 недель',
   },
   {
     icon: Search,
@@ -88,7 +88,9 @@ export function AIServicesShowcase() {
                   {service.title}
                 </h3>
 
-                <p className="text-gray-600 mb-6 leading-relaxed flex-grow">{service.description}</p>
+                <p className="text-gray-600 mb-6 leading-relaxed flex-grow">
+                  {service.description}
+                </p>
 
                 <div className="flex justify-between items-center mb-6">
                   <div

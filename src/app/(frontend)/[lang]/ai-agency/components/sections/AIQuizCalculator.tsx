@@ -121,9 +121,9 @@ export function AIQuizCalculator() {
       totalMultiplier *= answer.multiplier
     })
 
-    const baseROI = 500000 // Base ROI in rubles
-    const baseSavings = 120 // Base time savings in hours
-    const baseConversion = 25 // Base conversion increase in %
+    const baseROI = 200000 // Base ROI in rubles
+    const baseSavings = 80 // Base time savings in hours
+    const baseConversion = 15 // Base conversion increase in %
 
     return {
       monthlyROI: Math.round(baseROI * totalMultiplier),
@@ -210,7 +210,7 @@ export function AIQuizCalculator() {
                 Годовой ROI: +{results.yearlyROI.toLocaleString()} ₽
               </h3>
               <p className="text-blue-100 mb-6">
-                Окупаемость инвестиций в ИИ составит всего 2-3 месяца
+                Окупаемость инвестиций в ИИ составит 6-12 месяцев
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.button

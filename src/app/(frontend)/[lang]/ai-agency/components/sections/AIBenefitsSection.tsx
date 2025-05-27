@@ -8,28 +8,28 @@ import { TrendingUp, Clock, DollarSign, Users, CheckCircle } from 'lucide-react'
 const benefits = [
   {
     icon: TrendingUp,
-    title: 'Рост продаж на 47%',
+    title: 'Рост продаж на 25%',
     description: 'ИИ-ассистент работает 24/7, не теряет лиды и конвертирует посетителей в клиентов',
-    stats: '+47% конверсия',
+    stats: '+25% конверсия',
   },
   {
     icon: Clock,
-    title: 'Экономия 120 часов в месяц',
+    title: 'Экономия 80 часов в месяц',
     description: 'Автоматизация повторяющихся задач освобождает команду для стратегических решений',
-    stats: '120 часов/мес',
+    stats: '80 часов/мес',
   },
   {
     icon: DollarSign,
-    title: 'Снижение затрат на 60%',
-    description: 'Один ИИ-ассистент заменяет 3-5 сотрудников первой линии поддержки',
-    stats: '-60% затрат',
+    title: 'Снижение затрат на 35%',
+    description: 'ИИ-ассистент помогает оптимизировать процессы и сократить операционные расходы',
+    stats: '-35% затрат',
   },
   {
     icon: Users,
     title: 'Работа без выходных',
     description: 'ИИ анализирует поведение клиентов и предлагает точки роста бизнеса',
     stats: '24/7 работа',
-  }
+  },
 ]
 
 export function AIBenefitsSection() {
@@ -44,9 +44,10 @@ export function AIBenefitsSection() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Что даст вам ИИ через 
+              Что даст вам ИИ через
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {' '}14 дней?
+                {' '}
+                2-3 месяца?
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -72,15 +73,9 @@ export function AIBenefitsSection() {
                     <Icon className="w-8 h-8 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {benefit.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4 leading-relaxed">
-                      {benefit.description}
-                    </p>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {benefit.stats}
-                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{benefit.title}</h3>
+                    <p className="text-gray-600 mb-4 leading-relaxed">{benefit.description}</p>
+                    <div className="text-2xl font-bold text-blue-600">{benefit.stats}</div>
                   </div>
                 </div>
               </motion.div>
@@ -96,16 +91,16 @@ export function AIBenefitsSection() {
           className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center mt-16"
         >
           <h3 className="text-2xl font-bold mb-6">
-            Средние результаты наших клиентов за первый месяц:
+            Средние результаты наших клиентов за первые 3 месяца:
           </h3>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-3xl font-bold mb-2">+47%</div>
+              <div className="text-3xl font-bold mb-2">+15%</div>
               <div className="text-blue-100">Рост конверсии</div>
             </div>
             <div>
-              <div className="text-3xl font-bold mb-2">-60%</div>
+              <div className="text-3xl font-bold mb-2">-25%</div>
               <div className="text-blue-100">Снижение затрат</div>
             </div>
             <div>
@@ -113,8 +108,8 @@ export function AIBenefitsSection() {
               <div className="text-blue-100">Работа без выходных</div>
             </div>
             <div>
-              <div className="text-3xl font-bold mb-2">14</div>
-              <div className="text-blue-100">Дней до результата</div>
+              <div className="text-3xl font-bold mb-2">6-8</div>
+              <div className="text-blue-100">Недель до результата</div>
             </div>
           </div>
 

@@ -23,11 +23,9 @@ export function UrgencySection() {
             >
               <AlertTriangle className="w-10 h-10 text-red-900" />
             </motion.div>
-            
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              ⚠️ КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ
-            </h2>
-            
+
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">⚠️ КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ</h2>
+
             <p className="text-2xl md:text-3xl text-red-100 mb-8 max-w-4xl mx-auto">
               Пока вы думаете, ваши конкуренты уже захватывают рынок с помощью ИИ
             </p>
@@ -47,7 +45,7 @@ export function UrgencySection() {
               >
                 🚀 СРОЧНО НАЧАТЬ ПРОЕКТ
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -59,7 +57,7 @@ export function UrgencySection() {
 
             <div className="mt-8 flex items-center justify-center gap-2 text-yellow-300">
               <Clock className="w-5 h-5" />
-              <span className="text-sm">Ответим в течение 15 минут</span>
+              <span className="text-sm">Ответим в течение 2 часов в рабочее время</span>
             </div>
           </motion.div>
         </div>

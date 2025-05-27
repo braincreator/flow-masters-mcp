@@ -11,7 +11,7 @@ const aiProcessSteps = [
   'Анализируем ваш бизнес',
   'Находим точки роста',
   'Внедряем ИИ-решения',
-  'Получаете результат'
+  'Получаете результат',
 ]
 
 const floatingElements = [
@@ -35,7 +35,7 @@ export function AIHeroSection() {
   useEffect(() => {
     controls.start({
       scale: [1, 1.05, 1],
-      transition: { duration: 0.5 }
+      transition: { duration: 0.5 },
     })
   }, [currentStep, controls])
 
@@ -45,7 +45,7 @@ export function AIHeroSection() {
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-        
+
         {/* Floating AI Elements */}
         {floatingElements.map((element, index) => {
           const Icon = element.icon
@@ -54,21 +54,21 @@ export function AIHeroSection() {
               key={index}
               className="absolute text-primary/30"
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
+              animate={{
                 opacity: [0.3, 0.7, 0.3],
                 scale: [1, 1.2, 1],
                 x: [element.x, element.x + 10, element.x],
-                y: [element.y, element.y - 10, element.y]
+                y: [element.y, element.y - 10, element.y],
               }}
               transition={{
                 duration: 4,
                 delay: element.delay,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
               style={{
                 left: `${20 + index * 20}%`,
-                top: `${20 + index * 15}%`
+                top: `${20 + index * 15}%`,
               }}
             >
               <Icon size={40} />
@@ -103,8 +103,9 @@ export function AIHeroSection() {
             className="mb-12"
           >
             <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Внедрим нейросети в ваш бизнес за <span className="text-yellow-400 font-semibold">14 дней</span>. 
-              Сократите расходы, увеличьте продажи и обгоните конкурентов.
+              Внедрим нейросети в ваш бизнес за{' '}
+              <span className="text-yellow-400 font-semibold">6-8 недель</span>. Сократите расходы,
+              увеличьте продажи и обгоните конкурентов.
             </p>
           </motion.div>
 
@@ -116,10 +117,7 @@ export function AIHeroSection() {
             className="mb-12"
           >
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto border border-white/20">
-              <motion.div
-                animate={controls}
-                className="text-lg font-medium text-white mb-2"
-              >
+              <motion.div animate={controls} className="text-lg font-medium text-white mb-2">
                 Сейчас мы: {aiProcessSteps[currentStep]}
               </motion.div>
               <div className="flex justify-between mt-4">
@@ -127,8 +125,10 @@ export function AIHeroSection() {
                   <div
                     key={index}
                     className={cn(
-                      "h-2 flex-1 mx-1 rounded-full transition-all duration-500",
-                      index <= currentStep ? "bg-gradient-to-r from-blue-400 to-purple-400" : "bg-white/20"
+                      'h-2 flex-1 mx-1 rounded-full transition-all duration-500',
+                      index <= currentStep
+                        ? 'bg-gradient-to-r from-blue-400 to-purple-400'
+                        : 'bg-white/20',
                     )}
                   />
                 ))}
@@ -150,7 +150,7 @@ export function AIHeroSection() {
               Получить бесплатный аудит
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"

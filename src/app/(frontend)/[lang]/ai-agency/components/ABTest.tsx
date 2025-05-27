@@ -139,10 +139,10 @@ export function HeadlineABTest() {
       component: (
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
           <span className="bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Увеличьте прибыль на 47%
+            Увеличьте прибыль на 25%
           </span>
           <br />
-          <span className="text-white">с помощью ИИ за 14 дней</span>
+          <span className="text-white">с помощью ИИ за 6-8 недель</span>
         </h1>
       ),
     },

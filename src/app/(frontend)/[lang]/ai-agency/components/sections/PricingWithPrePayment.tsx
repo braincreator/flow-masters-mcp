@@ -10,21 +10,21 @@ const plans = [
     name: 'Стартер',
     price: '80 000',
     prepayment: '40 000',
-    features: ['Чат-бот для одной платформы', 'Базовая интеграция с CRM', 'Техподдержка 30 дней']
+    features: ['Чат-бот для одной платформы', 'Базовая интеграция с CRM', 'Техподдержка 30 дней'],
   },
   {
     name: 'Профессионал',
     price: '180 000',
     prepayment: '90 000',
     features: ['ИИ-агент + чат-боты', 'Полная интеграция', 'Техподдержка 90 дней'],
-    popular: true
+    popular: true,
   },
   {
     name: 'Корпоративный',
     price: 'от 350 000',
     prepayment: '175 000',
-    features: ['Комплексная ИИ-экосистема', 'Индивидуальная разработка', 'Техподдержка 12 месяцев']
-  }
+    features: ['Комплексная ИИ-экосистема', 'Индивидуальная разработка', 'Техподдержка 12 месяцев'],
+  },
 ]
 
 export function PricingWithPrePayment() {
@@ -42,7 +42,7 @@ export function PricingWithPrePayment() {
               Инвестиции в будущее вашего бизнеса
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Прозрачные цены без скрытых платежей. Окупаемость за 2-3 месяца.
+              Прозрачные цены без скрытых платежей. Окупаемость за 6-12 месяцев.
             </p>
           </motion.div>
         </div>
@@ -70,7 +70,7 @@ export function PricingWithPrePayment() {
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{plan.name}</h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">{plan.price} ₽</div>
-                
+
                 <div className="bg-blue-50 rounded-xl p-4 mb-6">
                   <div className="text-sm text-gray-600 mb-1">Предоплата для старта:</div>
                   <div className="text-2xl font-bold text-blue-600">{plan.prepayment} ₽</div>
@@ -111,12 +111,12 @@ export function PricingWithPrePayment() {
           <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Shield className="w-10 h-10 text-white" />
           </div>
-          
+
           <h3 className="text-3xl font-bold mb-4">Гарантия результата</h3>
           <p className="text-xl text-blue-100 mb-6">
-            Если ИИ-решение не принесет результатов в течение 60 дней — вернем 100% предоплаты
+            Если ИИ-решение не будет работать согласно техническому заданию — вернем 100% предоплаты
           </p>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
