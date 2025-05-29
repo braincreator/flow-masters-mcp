@@ -8729,6 +8729,10 @@ export interface SubscriptionPlan {
    */
   isActive?: boolean | null;
   /**
+   * Является ли тариф популярным (отображается как рекомендованный)
+   */
+  isPopular?: boolean | null;
+  /**
    * Additional metadata for this plan
    */
   metadata?:
@@ -17558,6 +17562,7 @@ export interface SubscriptionPlansSelect<T extends boolean = true> {
   autoRenew?: T;
   allowCancel?: T;
   isActive?: T;
+  isPopular?: T;
   metadata?: T;
   updatedAt?: T;
   createdAt?: T;

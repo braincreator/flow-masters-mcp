@@ -497,6 +497,24 @@
     "faq": {
       "title": "Answering All Doubts",
       "subtitle": "Most common questions and honest answers about AI implementation in business"
+    },
+    "pricing": {
+      "title": "Investment in Your Business Future",
+      "subtitle": "Transparent pricing with no hidden fees. ROI within 6-12 months.",
+      "popularChoice": "Popular Choice",
+      "prepaymentLabel": "Prepayment to start:",
+      "selectPlan": "Select Plan",
+      "guarantee": {
+        "title": "Result Guarantee",
+        "description": "If the AI solution doesn't work according to the technical specifications — we'll return 100% of the prepayment",
+        "button": "Start Project with Guarantee →"
+      },
+      "currency": {
+        "rub": "₽",
+        "usd": "$",
+        "eur": "€"
+      },
+      "from": "from"
     }
   },
   "DashboardHero": {

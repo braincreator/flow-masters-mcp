@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { GridContainer } from '@/components/GridContainer'
 import { ArrowRight, Bot, Zap, TrendingUp, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { useLocale } from 'next-intl'
 
 const aiProcessSteps = [
   'Анализируем ваш бизнес',
@@ -24,6 +26,7 @@ const floatingElements = [
 export function AIHeroSection() {
   const [currentStep, setCurrentStep] = useState(0)
   const controls = useAnimation()
+  const locale = useLocale()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -118,7 +121,8 @@ export function AIHeroSection() {
           >
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto border border-white/20">
               <motion.div animate={controls} className="text-lg font-medium text-white mb-2">
-                Сейчас мы: {aiProcessSteps[currentStep]}
+                Сейчас {currentStep == aiProcessSteps.length - 1 ? 'вы' : 'мы'}:{' '}
+                {aiProcessSteps[currentStep]}
               </motion.div>
               <div className="flex justify-between mt-4">
                 {aiProcessSteps.map((_, index) => (
@@ -143,18 +147,23 @@ export function AIHeroSection() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group"
-            >
-              Получить бесплатный аудит
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link href={`/${locale}/services/ai-audit-free`}>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group"
+              >
+                Получить бесплатный аудит
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
 
             <Button
               variant="outline"
               size="lg"
-              className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg rounded-xl backdrop-blur-sm"
+              className="bg-transparent border-2 border-transparent bg-clip-padding px-8 py-4 text-lg rounded-xl font-semibold transition-all duration-300
+                text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text
+                border-gradient-to-r from-blue-600 to-purple-600
+                hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:bg-opacity-60"
             >
               Посмотреть кейсы
             </Button>

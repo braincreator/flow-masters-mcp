@@ -140,6 +140,14 @@ export const SubscriptionPlans: CollectionConfig = {
       defaultValue: true,
     },
     {
+      name: 'isPopular',
+      type: 'checkbox',
+      admin: {
+        description: 'Является ли тариф популярным (отображается как рекомендованный)',
+      },
+      defaultValue: false,
+    },
+    {
       name: 'metadata',
       type: 'json',
       admin: {

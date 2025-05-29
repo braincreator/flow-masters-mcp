@@ -51,7 +51,7 @@ const getFAQs = (locale: 'en' | 'ru' = 'ru') => {
     {
       question: 'А если ИИ не принесет результат?',
       answer:
-        'Если ИИ-решение не будет работать согласно техническому заданию — вернем 100% предоплаты.',
+        'Доводим проект до полной реализации по ТЗ или дорабатываем за свой счёт.<br />Вы платите только за рабочий результат.',
     },
   ]
 }
@@ -112,7 +112,10 @@ export function AIFAQSection() {
                     className="overflow-hidden"
                   >
                     <div className="px-6 pb-6">
-                      <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                      <p
+                        className="text-gray-700 leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: faq.answer }}
+                      />
                     </div>
                   </motion.div>
                 )}
