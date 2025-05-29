@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       period: plan.period,
       features: plan.features || [],
       isActive: plan.isActive,
+      isPopular: plan.isPopular,
       trialDays: plan.trialDays,
       metadata: plan.metadata,
       createdAt: plan.createdAt,
