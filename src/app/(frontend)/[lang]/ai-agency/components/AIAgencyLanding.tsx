@@ -18,7 +18,6 @@ import { FinalCTASection } from './sections/FinalCTASection'
 import { AnalyticsTracker } from './AnalyticsTracker'
 import { FeedbackWidget } from './FeedbackWidget'
 import { SocialProofNotifications } from './SocialProofNotifications'
-
 export function AIAgencyLanding() {
   return (
     <AnalyticsTracker>
@@ -27,52 +26,52 @@ export function AIAgencyLanding() {
         <section data-section="hero">
           <AIHeroSection />
         </section>
-        
+
         {/* Pain Points - Боли клиентов */}
         <section data-section="pain-points">
           <PainPointsSection />
         </section>
-        
+
         {/* AI Benefits - Выгоды от ИИ */}
         <section data-section="benefits">
           <AIBenefitsSection />
         </section>
-        
+
         {/* Services Showcase - Витрина услуг */}
         <section data-section="services">
           <AIServicesShowcase />
         </section>
-        
+
         {/* Stats Section - Статистика */}
         <section data-section="stats">
           <AIStatsSection />
         </section>
-        
+
         {/* Case Studies - Кейсы */}
         <section data-section="cases">
           <CaseStudiesSection />
         </section>
-        
+
         {/* Quiz Calculator - Интерактивный калькулятор */}
         <section data-section="calculator">
           <AIQuizCalculator />
         </section>
-        
+
         {/* Pricing - Тарифы с объяснением предоплаты */}
         <section data-section="pricing">
           <PricingWithPrePayment />
         </section>
-        
+
         {/* Urgency Section - Срочность */}
         <section data-section="urgency">
           <UrgencySection />
         </section>
-        
+
         {/* FAQ - Частые вопросы */}
         <section data-section="faq">
           <AIFAQSection />
         </section>
-        
+
         {/* Final CTA - Финальный призыв */}
         <section data-section="final-cta">
           <FinalCTASection />

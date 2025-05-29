@@ -2,30 +2,65 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useLocale, useTranslations } from 'next-intl'
 import { GridContainer } from '@/components/GridContainer'
 import { ChevronDown } from 'lucide-react'
 
-const faqs = [
-  {
-    question: 'Подойдет ли ИИ для моего бизнеса?',
-    answer: 'ИИ подходит для 95% бизнесов. Если у вас есть повторяющиеся процессы, общение с клиентами или обработка данных — ИИ точно поможет.'
-  },
-  {
-    question: 'Почему такая цена? Это дорого!',
-    answer: 'Цена окупается за 2-3 месяца. Один ИИ-ассистент заменяет 3-5 сотрудников, работает 24/7 и увеличивает продажи на 30-50%.'
-  },
-  {
-    question: 'Почему нужна предоплата?',
-    answer: 'Предоплата нужна для резервирования ресурсов команды. Мы создаем персональное решение под ваш бизнес, что требует времени экспертов.'
-  },
-  {
-    question: 'А если ИИ не принесет результат?',
-    answer: 'Даем гарантию результата! Если в течение 60 дней ИИ не принесет улучшений — возвращаем 100% предоплаты.'
+const getFAQs = (locale: 'en' | 'ru' = 'ru') => {
+  if (locale === 'en') {
+    return [
+      {
+        question: 'Is AI suitable for my business?',
+        answer:
+          'AI is suitable for 95% of businesses. If you have repetitive processes, customer communication, or data processing — AI will definitely help.',
+      },
+      {
+        question: "Why such a price? It's expensive!",
+        answer:
+          'The price pays for itself in 2-3 months. One AI assistant replaces 3-5 employees, works 24/7 and increases sales by 30-50%.',
+      },
+      {
+        question: 'Why is prepayment needed?',
+        answer:
+          'Prepayment is needed to reserve team resources. We create a personalized solution for your business, which requires expert time.',
+      },
+      {
+        question: "What if AI doesn't bring results?",
+        answer:
+          "If the AI solution doesn't work according to the technical specifications — we'll return 100% of the prepayment.",
+      },
+    ]
   }
-]
+
+  return [
+    {
+      question: 'Подойдет ли ИИ для моего бизнеса?',
+      answer:
+        'ИИ подходит для 95% бизнесов. Если у вас есть повторяющиеся процессы, общение с клиентами или обработка данных — ИИ точно поможет.',
+    },
+    {
+      question: 'Почему такая цена? Это дорого!',
+      answer:
+        'Цена окупается за 2-3 месяца. Один ИИ-ассистент заменяет 3-5 сотрудников, работает 24/7 и увеличивает продажи на 30-50%.',
+    },
+    {
+      question: 'Почему нужна предоплата?',
+      answer:
+        'Предоплата нужна для резервирования ресурсов команды. Мы создаем персональное решение под ваш бизнес, что требует времени экспертов.',
+    },
+    {
+      question: 'А если ИИ не принесет результат?',
+      answer:
+        'Если ИИ-решение не будет работать согласно техническому заданию — вернем 100% предоплаты.',
+    },
+  ]
+}
 
 export function AIFAQSection() {
+  const locale = useLocale() as 'en' | 'ru'
+  const t = useTranslations()
   const [openQuestion, setOpenQuestion] = useState<number | null>(0)
+  const faqs = getFAQs(locale)
 
   return (
     <section className="py-20 bg-white">
@@ -38,11 +73,9 @@ export function AIFAQSection() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Отвечаем на все сомнения
+              {t('AIAgency.faq.title')}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Самые частые вопросы и честные ответы о внедрении ИИ в бизнес
-            </p>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t('AIAgency.faq.subtitle')}</p>
           </motion.div>
         </div>
 
@@ -60,9 +93,7 @@ export function AIFAQSection() {
                 onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
                 className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
               >
-                <h3 className="text-lg font-semibold text-gray-900 pr-4">
-                  {faq.question}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</h3>
                 <motion.div
                   animate={{ rotate: openQuestion === index ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
@@ -70,7 +101,7 @@ export function AIFAQSection() {
                   <ChevronDown className="w-6 h-6 text-gray-500" />
                 </motion.div>
               </button>
-              
+
               <AnimatePresence>
                 {openQuestion === index && (
                   <motion.div
@@ -81,9 +112,7 @@ export function AIFAQSection() {
                     className="overflow-hidden"
                   >
                     <div className="px-6 pb-6">
-                      <p className="text-gray-700 leading-relaxed">
-                        {faq.answer}
-                      </p>
+                      <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
                     </div>
                   </motion.div>
                 )}

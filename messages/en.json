@@ -479,6 +479,26 @@
     "envSetupTitle": "Setting up Environment Variables",
     "checkWebhooksTitle": "Checking Webhooks Operation"
   },
+  "AIAgency": {
+    "services": {
+      "title": "Our Services",
+      "subtitle": "Full range of AI solutions for your business",
+      "viewAllServices": "View All Services",
+      "getAudit": "Get Audit",
+      "order": "Order",
+      "free": "FREE",
+      "duration": {
+        "byAgreement": "By agreement",
+        "days": "{count} days",
+        "weeks": "{count} weeks",
+        "months": "{count} months"
+      }
+    },
+    "faq": {
+      "title": "Answering All Doubts",
+      "subtitle": "Most common questions and honest answers about AI implementation in business"
+    }
+  },
   "DashboardHero": {
     "goodMorning": "Good Morning",
     "goodAfternoon": "Good Afternoon",

@@ -1,5 +1,15 @@
-import { AIAgencyLanding } from "./components/AIAgencyLanding";
+import { AIAgencyLanding } from './components/AIAgencyLanding'
+import { setRequestLocale } from 'next-intl/server'
 
-export default function AIAgencyPage() {
-  return <AIAgencyLanding />;
+interface AIAgencyPageProps {
+  params: Promise<{
+    lang: 'en' | 'ru'
+  }>
+}
+
+export default async function AIAgencyPage({ params }: AIAgencyPageProps) {
+  const { lang } = await params
+  setRequestLocale(lang)
+
+  return <AIAgencyLanding />
 }

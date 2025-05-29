@@ -479,6 +479,26 @@
     "envSetupTitle": "Настройка переменных окружения",
     "checkWebhooksTitle": "Проверка работы вебхуков"
   },
+  "AIAgency": {
+    "services": {
+      "title": "Наши услуги",
+      "subtitle": "Полный спектр ИИ-решений для вашего бизнеса",
+      "viewAllServices": "Посмотреть все услуги",
+      "getAudit": "Получить аудит",
+      "order": "Заказать",
+      "free": "БЕСПЛАТНО",
+      "duration": {
+        "byAgreement": "По договоренности",
+        "days": "{count} дн.",
+        "weeks": "{count} нед.",
+        "months": "{count} мес."
+      }
+    },
+    "faq": {
+      "title": "Отвечаем на все сомнения",
+      "subtitle": "Самые частые вопросы и честные ответы о внедрении ИИ в бизнес"
+    }
+  },
   "DashboardHero": {
     "goodMorning": "Доброе утро",
     "goodAfternoon": "Добрый день",
