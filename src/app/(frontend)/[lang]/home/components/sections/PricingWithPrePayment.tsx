@@ -11,11 +11,13 @@ import {
   formatPrepayment,
   getCurrencyColorClass,
 } from '../../utils/planPriceFormatting'
+import { useLeadFormModal } from '../LeadFormModalProvider'
 
 export function PricingWithPrePayment() {
   const locale = useLocale() as 'en' | 'ru'
   const t = useTranslations()
   const { plans, loading, error } = useAIAgencyPlans({ limit: 3 })
+  const { openModal } = useLeadFormModal()
 
   if (loading) {
     return (
@@ -173,6 +175,7 @@ export function PricingWithPrePayment() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg"
+            onClick={() => openModal({ type: 'guarantee', title: 'Начать проект с гарантией' })}
           >
             {t('AIAgency.pricing.guarantee.button')}
           </motion.button>

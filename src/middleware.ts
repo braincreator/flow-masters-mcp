@@ -19,21 +19,28 @@ const intlMiddleware = createMiddleware({
 export function middleware(request: NextRequest) {
   const startTime = Date.now()
   const pathname = request.nextUrl.pathname
-  const locale = pathname.split('/')[1] || DEFAULT_LOCALE
 
-  // Clone the request headers once
+  // Apply next-intl middleware first
+  const intlResponse = intlMiddleware(request)
+
+  // If next-intl middleware returned a response (e.g., redirect), use it
+  if (intlResponse) {
+    metricsCollector.recordOperationDuration(Date.now() - startTime)
+    return intlResponse
+  }
+
+  // Continue with custom middleware logic if next-intl didn't handle it
+  const locale = pathname.split('/')[1] || DEFAULT_LOCALE
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-locale', locale)
 
   try {
     metricsCollector.recordRequest()
 
-    // Обрабатываем запросы к API без указания версии
+    // Handle API requests without version specified
     if (pathname.startsWith('/api/') && !pathname.match(/\/api\/(v\d+|admin|docs)/)) {
-      // Редирект на v1 по умолчанию
       const newUrl = new URL(request.url)
       newUrl.pathname = pathname.replace('/api/', '/api/v1/')
-
       metricsCollector.recordOperationDuration(Date.now() - startTime)
       return NextResponse.redirect(newUrl)
     }
@@ -41,26 +48,6 @@ export function middleware(request: NextRequest) {
     // Early return for static and system paths
     if (SKIP_PATHS.some((path) => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {
       return nextResponse(requestHeaders, startTime)
-    }
-
-    // Root path redirect
-    if (pathname === '/') {
-      return redirectResponse(`/${DEFAULT_LOCALE}`, request.url, startTime)
-    }
-
-    // Special case for /locale - redirect to default locale home page
-    if (pathname === '/locale') {
-      return redirectResponse(`/${DEFAULT_LOCALE}`, request.url, startTime)
-    }
-
-    // Handle paths without locale
-    if (!SUPPORTED_LOCALES.some((l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`)) {
-      // Skip locale redirect for posts collection
-      if (pathname.startsWith('/posts/')) {
-        return nextResponse(requestHeaders, startTime)
-      }
-
-      return redirectResponse(`/${DEFAULT_LOCALE}${pathname}`, request.url, startTime)
     }
 
     // Default response with locale headers
@@ -71,7 +58,7 @@ export function middleware(request: NextRequest) {
   }
 }
 
-// Helper functions
+// Helper function
 function nextResponse(headers: Headers, startTime: number, pathname?: string) {
   const response = NextResponse.next({ request: { headers } })
   if (pathname) response.headers.set('x-pathname', pathname)
@@ -79,15 +66,13 @@ function nextResponse(headers: Headers, startTime: number, pathname?: string) {
   return response
 }
 
-function redirectResponse(path: string, baseUrl: string, startTime: number) {
-  const response = NextResponse.redirect(new URL(path, baseUrl))
-  metricsCollector.recordOperationDuration(Date.now() - startTime)
-  return response
-}
-
 export const config = {
   matcher: [
-    // Исключаем файлы и API маршруты
-    '/((?!api|_next|.*\\.).*)',
+    // Match all request paths except for the ones starting with:
+    // - api (API routes)
+    // - _next (Next.js internals)
+    // - .well-known (well-known files)
+    // - any file with an extension (e.g., .js, .css)
+    '/((?!api|_next|\.well-known|[^/]+\.[^/]+).*)',
   ],
 }

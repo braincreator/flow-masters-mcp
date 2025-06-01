@@ -714,6 +714,11 @@
     "tryAgain": "Try Again"
   },
   "Services": {
+    "orderForm": {
+      "breadcrumb": "Order Checkout",
+      "title": "Order Service: {serviceName}",
+      "description": "Please fill out the form below to order the '{serviceName}' service."
+    },
     "metaTitle": "Our Services",
     "metaDescription": "Explore the services we offer.",
     "title": "Services",
@@ -2590,7 +2595,35 @@
       "createMilestoneTitle": "Create new milestone",
       "editMilestoneTitle": "Edit milestone",
       "milestoneFormModalNotImplemented": "Milestone creation form will be implemented later",
-      "form": {
+      "Form": {
+        "name": "Name",
+        "namePlaceholder": "Enter your name",
+        "phone": "Phone",
+        "phonePlaceholder": "Enter your phone number",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email",
+        "contactMethod": "Preferred contact method",
+        "contactMethodPlaceholder": "Select Telegram or WhatsApp",
+        "telegram": "Telegram",
+        "whatsapp": "WhatsApp",
+        "submit": "Submit",
+        "submitting": "Submitting...",
+        "successTitle": "Application Sent!",
+        "successMessage": "Thank you for your service request for '{serviceName}'. We will contact you shortly.",
+        "telegramButton": "Go to Telegram Bot",
+        "errorTitle": "Submission Error",
+        "errorMessage": "Failed to send the application. Please try again.",
+        "loadingForm": "Loading form...",
+        "formNotAvailable": "The form is temporarily unavailable. Please try again later.",
+        "validation": {
+          "nameRequired": "Name is required",
+          "phoneRequired": "Phone is required",
+          "emailRequired": "Email is required",
+          "emailInvalid": "Enter a valid email",
+          "contactMethodRequired": "Select a contact method"
+        }
+      },
+      "milestoneForm": {
         "title": "Milestone title",
         "titlePlaceholder": "Enter milestone title",
         "description": "Description",

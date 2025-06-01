@@ -4,8 +4,10 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { AlertTriangle, Clock } from 'lucide-react'
+import { useLeadFormModal } from '../LeadFormModalProvider'
 
 export function UrgencySection() {
+  const { openModal } = useLeadFormModal()
   return (
     <section className="py-20 bg-gradient-to-b from-red-900 to-red-800 text-white">
       <GridContainer>
@@ -42,6 +44,7 @@ export function UrgencySection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-yellow-400 text-red-900 px-8 py-4 rounded-xl font-bold text-xl"
+                onClick={() => openModal({ type: 'urgent', title: 'Срочно начать проект' })}
               >
                 🚀 СРОЧНО НАЧАТЬ ПРОЕКТ
               </motion.button>
@@ -50,6 +53,7 @@ export function UrgencySection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg"
+                onClick={() => openModal({ type: 'urgent', title: 'Экстренная консультация' })}
               >
                 Экстренная консультация
               </motion.button>

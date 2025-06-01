@@ -320,7 +320,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
             <div className="mt-12 flex flex-wrap justify-center gap-8 lg:gap-12">
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">
-                  {posts.totalDocs}+
+                  {posts.totalDocs}
                 </div>
                 <div className="text-sm text-muted-foreground">Articles</div>
               </div>
@@ -600,9 +600,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
             )}
 
             {/* Newsletter - rendered on client with subscription check */}
-            <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm">
+            {/* <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm"> */}
               <NewsletterWrapper locale={locale} storageKey="blog_newsletter_subscription" />
-            </div>
+            {/* </div> */}
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { TrendingUp, Clock, DollarSign, Users, CheckCircle } from 'lucide-react'
+import { useLeadFormModal } from '../LeadFormModalProvider'
 
 const benefits = [
   {
@@ -33,6 +34,8 @@ const benefits = [
 ]
 
 export function AIBenefitsSection() {
+  const { openModal } = useLeadFormModal()
+
   return (
     <section className="py-20 bg-white">
       <GridContainer>
@@ -117,6 +120,7 @@ export function AIBenefitsSection() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => openModal({ type: 'results', title: 'Получить такие же результаты' })}
           >
             Получить такие же результаты →
           </motion.button>

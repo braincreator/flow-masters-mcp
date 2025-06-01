@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { AlertTriangle, Clock, TrendingDown, Users, DollarSign, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLeadFormModal } from '../LeadFormModalProvider'
 
 const painPoints = [
   {
@@ -52,6 +53,8 @@ const painPoints = [
 ]
 
 export function PainPointsSection() {
+  const { openModal } = useLeadFormModal()
+
   return (
     <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
       <GridContainer>
@@ -62,9 +65,7 @@ export function PainPointsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Узнаёте себя?
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Узнаёте себя?</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Если вы не внедряете ИИ — вы спонсируете тех, кто уже это сделал
             </p>
@@ -83,24 +84,26 @@ export function PainPointsSection() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="group relative"
               >
-                <div className={cn(
-                  "p-8 rounded-2xl border-2 border-gray-200 bg-white transition-all duration-300 hover:shadow-xl hover:border-gray-300 h-full",
-                  "hover:-translate-y-2"
-                )}>
-                  <div className={cn(
-                    "w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300",
-                    point.bgColor,
-                    "group-hover:scale-110"
-                  )}>
-                    <Icon className={cn("w-8 h-8", point.color)} />
+                <div
+                  className={cn(
+                    'p-8 rounded-2xl border-2 border-gray-200 bg-white transition-all duration-300 hover:shadow-xl hover:border-gray-300 h-full',
+                    'hover:-translate-y-2',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300',
+                      point.bgColor,
+                      'group-hover:scale-110',
+                    )}
+                  >
+                    <Icon className={cn('w-8 h-8', point.color)} />
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-gray-700 transition-colors">
                     {point.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {point.description}
-                  </p>
+                  <p className="text-gray-600 leading-relaxed">{point.description}</p>
 
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
@@ -127,6 +130,9 @@ export function PainPointsSection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() =>
+                openModal({ type: 'urgent', title: 'Хватит терять деньги! Начать сейчас' })
+              }
             >
               Хватит терять деньги! Начать сейчас →
             </motion.button>

@@ -63,6 +63,8 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
+  basePath: '', // Установите базовый путь, если ваше приложение развернуто не в корне домена
+  trailingSlash: true, // Добавляет завершающий слэш ко всем URL-адресам
 
   experimental: {
     optimizeCss: true,
