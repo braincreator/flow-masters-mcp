@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Service } from '@/types/service'
+import { Service, ServiceType } from '@/types/service'
 import AnimateInView from '@/components/AnimateInView'
 import { ArrowRight, Filter, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import ServiceCard from '@/components/services/ServiceCard'
 
 type ServiceListProps = {
   services: Service[]
-  serviceTypes: string[]
+  serviceTypes: ServiceType[]
   translations: Record<string, string>
   commonTranslations: Record<string, string>
   locale: string
@@ -69,17 +69,29 @@ export default function ServiceList({
     filterServices(activeFilter, searchQuery)
   }, [activeFilter, searchQuery, services, locale])
 
+  // Get all unique service types from both props and services
+  const allServiceTypes: ServiceType[] = Array.from(
+    new Set([
+      ...serviceTypes,
+      ...services.map((s) => s.serviceType).filter(Boolean),
+    ])
+  ).filter(Boolean) as ServiceType[]
+
   // Группируем отфильтрованные услуги по типу
-  const filteredServicesByType: Record<string, Service[]> = {}
+  const filteredServicesByType: Partial<Record<ServiceType, Service[]>> = {}
 
+  // Initialize with all possible types
+  allServiceTypes.forEach((type) => {
+    filteredServicesByType[type] = []
+  })
+
+  // Group services by their type (falling back to 'other' if undefined)
   filteredServices.forEach((service) => {
+    if (!service) return
     const type = service.serviceType || 'other'
-
-    if (!filteredServicesByType[type]) {
-      filteredServicesByType[type] = []
+    if (filteredServicesByType[type]) {
+      filteredServicesByType[type]!.push(service)
     }
-
-    filteredServicesByType[type].push(service)
   })
 
   // Обработчик клика по фильтру категории
@@ -142,7 +154,7 @@ export default function ServiceList({
       {/* Фильтры по типу услуг - быстрый доступ */}
       <AnimateInView direction="up" className="mb-12">
         <div className="flex flex-wrap gap-3 justify-center">
-          {serviceTypes.map((type) => (
+          {allServiceTypes.map((type) => (
             <Badge
               key={type}
               variant={activeFilter === type ? 'default' : 'outline'}
@@ -173,7 +185,9 @@ export default function ServiceList({
       )}
 
       {/* Отображение отфильтрованных услуг по категориям */}
-      {Object.entries(filteredServicesByType).map(([type, services], typeIndex) => (
+      {Object.entries(filteredServicesByType)
+        .filter(([_, services]) => services && services.length > 0)
+        .map(([type, services], typeIndex) => (
         <AnimateInView
           key={type}
           direction="up"
@@ -188,16 +202,19 @@ export default function ServiceList({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, serviceIndex) => (
-              <AnimateInView
-                key={service.id}
-                direction="up"
-                delay={(serviceIndex % 3) * 100}
-                className="h-full"
-              >
-                <ServiceCard service={service} locale={locale} />
-              </AnimateInView>
-            ))}
+            {services.map((service, serviceIndex) => {
+              if (!service || !service.id) return null
+              return (
+                <AnimateInView
+                  key={service.id}
+                  direction="up"
+                  delay={(serviceIndex % 3) * 100}
+                  className="h-full"
+                >
+                  <ServiceCard service={service} locale={locale} />
+                </AnimateInView>
+              )
+            })}
           </div>
         </AnimateInView>
       ))}
