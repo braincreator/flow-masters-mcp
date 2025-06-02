@@ -1,86 +1,33 @@
-import React from 'react'
-import { cn } from '@/utilities/ui'
-import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { draftMode } from 'next/headers'
-import config from '@/payload.config'
-import { getPayload } from 'payload'
-import { homeStatic } from '@/endpoints/seed/home-static'
-import { RenderBlocks } from '@/blocks/RenderBlocks'
-import { RenderHero } from '@/heros/RenderHero'
-import { LivePreviewListener } from '@/components/LivePreviewListener'
-import { PayloadRedirects } from '@/components/PayloadRedirects'
-import { generateMeta } from '@/utilities/generateMeta'
-import PageClient from './[slug]/page.client'
+// src/app/(frontend)/[lang]/page.tsx
+import { AIAgencyLanding } from './home/components/AIAgencyLanding';
+import { setRequestLocale } from 'next-intl/server';
+import type { Metadata } from 'next';
 
-type Props = {
-  params: Promise<{ lang: string }>
+interface LangHomePageProps {
+  params: Promise<{
+    lang: 'en' | 'ru'; // Or simply string if more locales are supported
+  }>;
 }
 
-export default async function LangHome({ params: paramsPromise }: Props) {
-  const { lang } = await paramsPromise
-  const { isEnabled: draft } = await draftMode()
-  const payload = await getPayload({ config })
+export default async function LangHomePage({ params: paramsPromise }: LangHomePageProps) {
+  const { lang } = await paramsPromise;
+  setRequestLocale(lang);
 
-  let page = await payload
-    .find({
-      collection: 'pages',
-      draft,
-      limit: 1,
-      pagination: false,
-      overrideAccess: draft,
-      locale: lang,
-      where: {
-        slug: {
-          equals: 'home',
-        },
-      },
-    })
-    .then((result) => result.docs[0])
-
-  if (!page) {
-    page = homeStatic
-  }
-
-  if (!page) {
-    return notFound()
-  }
-
-  const { hero, layout } = page
-
-  return (
-    <article className="min-h-screen pb-24">
-      <PageClient />
-      <PayloadRedirects disableNotFound url={`/${lang}`} />
-
-      {draft && <LivePreviewListener />}
-
-      <RenderHero {...hero} />
-      <RenderBlocks blocks={layout || []} />
-    </article>
-  )
+  return <AIAgencyLanding />;
 }
 
-export async function generateMetadata({ params: paramsPromise }: Props): Promise<Metadata> {
-  const { lang } = await paramsPromise
-  const payload = await getPayload({ config })
-  const { isEnabled: draft } = await draftMode()
-
-  const page = await payload
-    .find({
-      collection: 'pages',
-      draft,
-      limit: 1,
-      pagination: false,
-      overrideAccess: draft,
-      locale: lang,
-      where: {
-        slug: {
-          equals: 'home',
-        },
-      },
-    })
-    .then((result) => result.docs[0])
-
-  return generateMeta({ doc: page })
+export async function generateMetadata({ params: paramsPromise }: LangHomePageProps): Promise<Metadata> {
+  const { lang } = await paramsPromise;
+  // This metadata should ideally come from a translation file or be more dynamic
+  // For now, a simple placeholder:
+  if (lang === 'ru') {
+    return {
+      title: 'Главная - AI Агентство',
+      description: 'Инновационные AI решения для вашего бизнеса.',
+    };
+  }
+  return {
+    title: 'Home - AI Agency',
+    description: 'Innovative AI solutions for your business.',
+  };
 }

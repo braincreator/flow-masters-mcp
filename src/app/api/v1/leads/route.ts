@@ -1,79 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
-import { z } from 'zod'
-
-// Схема валидации запроса
-const requestSchema = z.object({
-  collection: z.string().min(1),
-  data: z.record(z.any()),
-})
 
 /**
  * Обработчик POST запросов для сохранения лидов
  */
 export async function POST(req: NextRequest) {
   try {
-    // Парсим и валидируем запрос
-    const body = await req.json()
-    const validatedData = requestSchema.safeParse(body)
+    const data = await req.json()
+    const { name, phone, email, comment, actionType, metadata } = data
 
-    if (!validatedData.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid request data',
-          details: validatedData.error.errors,
-        },
-        { status: 400 },
-      )
+    if (!name || !phone) {
+      return NextResponse.json({ error: 'Имя и телефон обязательны' }, { status: 400 })
     }
 
-    const { collection, data } = validatedData.data
+    const payloadClient = await getPayloadClient()
 
-    // Получаем клиент Payload
-    const payload = await getPayloadClient()
+    // Получаем источник из заголовков или данных
+    const source = data.source || req.headers.get('referer') || 'ai-agency-landing'
 
-    // Проверяем, существует ли коллекция
-    const collections = payload.collections
-    const collectionExists = Object.keys(collections).includes(collection)
-
-    if (!collectionExists) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Collection '${collection}' does not exist`,
-        },
-        { status: 400 },
-      )
-    }
-
-    // Добавляем метаданные
-    const leadData = {
-      ...data,
-      createdAt: new Date(),
-      source: req.headers.get('referer') || 'unknown',
-      userAgent: req.headers.get('user-agent') || 'unknown',
-      ip: req.headers.get('x-forwarded-for') || req.ip || 'unknown',
-    }
-
-    // Сохраняем данные в коллекцию
-    const result = await payload.create({
-      collection,
-      data: leadData,
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: result,
-    })
-  } catch (error) {
-    console.error('Error saving lead:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+    const lead = await payloadClient.create({
+      collection: 'leads',
+      data: {
+        name,
+        phone,
+        email: email || null,
+        comment: comment || null,
+        actionType: actionType || 'default',
+        source,
+        metadata: metadata || null,
+        status: 'new',
       },
-      { status: 500 },
-    )
+    })
+
+    return NextResponse.json({ success: true, lead })
+  } catch (e) {
+    console.error('Lead form error:', e)
+    return NextResponse.json({
+      error: e instanceof Error ? e.message : String(e)
+    }, { status: 500 })
   }
 }

@@ -15,9 +15,10 @@ export async function GET(req: NextRequest) {
       const userReq = { headers: { authorization: req.headers.get('authorization') } }
       // @ts-ignore - verify метод существует в Payload, но не определен в типах
       const userRes = await payload.verify(userReq)
-      user = userRes?.user
+      user = userRes?.user || null // Ensure user is null if verification fails or returns undefined
     } catch (error) {
       // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
+      user = null // Explicitly set user to null on error
     }
 
     // Определяем, какую корзину искать
@@ -79,9 +80,10 @@ export async function DELETE(req: NextRequest) {
       const userReq = { headers: { authorization: req.headers.get('authorization') } }
       // @ts-ignore - verify метод существует в Payload, но не определен в типах
       const userRes = await payload.verify(userReq)
-      user = userRes?.user
+      user = userRes?.user || null // Ensure user is null if verification fails or returns undefined
     } catch (error) {
       // Игнорируем ошибки авторизации - просто считаем пользователя анонимным
+      user = null // Explicitly set user to null on error
     }
 
     // Определяем, какую корзину искать

@@ -4,7 +4,7 @@ import { GridContainer as Container } from '@/components/GridContainer'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { Service } from '@/types/service'
+import { Service, ServiceType } from '@/types/service'
 import AnimateInView from '@/components/AnimateInView'
 import ServiceList from '@/components/services/ServiceList'
 import Breadcrumbs from '@/components/Breadcrumbs'
@@ -102,8 +102,8 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
 
     // Получаем все уникальные типы услуг
     const serviceTypes = Array.from(
-      new Set(adaptedServices.map((service) => service.serviceType || 'other')),
-    )
+      new Set(adaptedServices.map((service) => service.serviceType)),
+    ).filter(Boolean) as ServiceType[]
 
     // Преобразуем переводы в объект для передачи клиентскому компоненту
     const servicesTranslations: Record<string, string> = {
@@ -119,9 +119,14 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
       tryAnotherSearch: t('tryAnotherSearch'),
       showAllServices: t('showAllServices'),
       // Типы услуг
-      'serviceTypes.consulting': t('serviceTypes.consulting'),
+      // 'serviceTypes.consulting': t('serviceTypes.consulting'),
       'serviceTypes.consultation': t('serviceTypes.consultation'),
       'serviceTypes.development': t('serviceTypes.development'),
+      'serviceTypes.audit': t('serviceTypes.audit'),
+      'serviceTypes.automation': t('serviceTypes.automation'),
+      'serviceTypes.content_creation': t('serviceTypes.content_creation'),
+      'serviceTypes.training': t('serviceTypes.training'),
+      'serviceTypes.integration': t('serviceTypes.integration'),
       'serviceTypes.support': t('serviceTypes.support'),
       'serviceTypes.other': t('serviceTypes.other'),
       // Дополнительные переводы для карточек услуг

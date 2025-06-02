@@ -91,7 +91,7 @@ const separatorVariants = cva('flex text-muted-foreground', {
 
 export default function Breadcrumbs({
   items,
-  homeLabel = 'Home',
+  homeLabel = 'Главная',
   variant = 'default',
   showHomeIcon = true,
   className,

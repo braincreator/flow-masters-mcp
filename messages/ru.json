@@ -183,6 +183,11 @@
       "unknownMethod": "Неизвестный способ оплаты",
       "backToPaymentHistory": "Назад к истории платежей"
     },
+    "Services": {
+      "serviceTypes": {
+        "consulting": "Консалтинг"
+      }
+    },
     "Profile": {
       "metadata": {
         "title": "Профиль аккаунта",
@@ -198,6 +203,16 @@
         "security": "Безопасность",
         "notifications": "Уведомления",
         "achievements": "Достижения"
+      },
+      "Form": {
+        "validation": {
+          "nameMin": "Имя должно содержать не менее {min} символов",
+          "nameMax": "Имя должно содержать не более {max} символов",
+          "email": "Неверный формат электронной почты",
+          "phoneMin": "Телефон должен содержать не менее {min} символов",
+          "phoneMax": "Телефон должен содержать не более {max} символов"
+        },
+        "title": "Форма"
       },
       "fields": {
         "fullName": "Полное имя",
@@ -479,6 +494,44 @@
     "envSetupTitle": "Настройка переменных окружения",
     "checkWebhooksTitle": "Проверка работы вебхуков"
   },
+  "AIAgency": {
+    "services": {
+      "title": "Наши услуги",
+      "subtitle": "Полный спектр ИИ-решений для вашего бизнеса",
+      "viewAllServices": "Посмотреть все услуги",
+      "getAudit": "Получить аудит",
+      "order": "Заказать",
+      "free": "БЕСПЛАТНО",
+      "duration": {
+        "byAgreement": "По договоренности",
+        "days": "{count} дн.",
+        "weeks": "{count} нед.",
+        "months": "{count} мес."
+      }
+    },
+    "faq": {
+      "title": "Отвечаем на все сомнения",
+      "subtitle": "Самые частые вопросы и честные ответы о внедрении ИИ в бизнес"
+    },
+    "pricing": {
+      "title": "Инвестиции в будущее вашего бизнеса",
+      "subtitle": "Прозрачные цены без скрытых платежей. Окупаемость за 6-12 месяцев.",
+      "popularChoice": "Популярный выбор",
+      "prepaymentLabel": "Предоплата для старта:",
+      "selectPlan": "Выбрать план",
+      "guarantee": {
+        "title": "Гарантия результата",
+        "description": "Если ИИ-решение не будет работать согласно техническому заданию — вернем 100% предоплаты",
+        "button": "Начать проект с гарантией →"
+      },
+      "currency": {
+        "rub": "₽",
+        "usd": "$",
+        "eur": "€"
+      },
+      "from": "от"
+    }
+  },
   "DashboardHero": {
     "goodMorning": "Доброе утро",
     "goodAfternoon": "Добрый день",
@@ -583,7 +636,14 @@
     },
     "tabs": {
       "courses": "Мои курсы",
-      "achievements": "Достижения",
+      "achievements": "Достижения"
+    },
+    "Form": {
+      "validation": {
+        "nameMin": "Имя должно содержать не менее {min} символов",
+        "nameMax": "Имя должно содержать не более {max} символов",
+        "email": "Неверный формат электронной почты"
+      },
       "rewards": "Награды",
       "profile": "Профиль",
       "settings": "Настройки"
@@ -676,26 +736,26 @@
     "tryAgain": "Попробовать снова"
   },
   "Services": {
+    "orderForm": {
+      "breadcrumb": "Оформление заказа",
+      "title": "Заказ услуги: {serviceName}",
+      "description": "Пожалуйста, заполните форму ниже, чтобы заказать услугу '{serviceName}'."
+    },
     "metaTitle": "Наши Услуги",
     "metaDescription": "Ознакомьтесь с услугами, которые мы предлагаем.",
     "title": "Услуги",
     "description": "Описание",
     "noServices": "На данный момент услуги отсутствуют.",
     "serviceTypes": {
-      "consulting": "Консалтинг",
       "consultation": "Консультация",
+      "training": "Обучение",
       "development": "Разработка",
       "support": "Поддержка",
       "audit": "Аудит",
       "integration": "Интеграция",
       "content_creation": "Создание контента",
       "automation": "Автоматизация",
-      "other": "Прочие Услуги",
-      "corporate": "Корпоративные",
-      "personal": "Персональные",
-      "training": "Обучение",
-      "creative": "Креативные",
-      "technical": "Технические"
+      "other": "Другое"
     },
     "features": "Особенности",
     "serviceDetails": "Детали услуги",
@@ -2448,7 +2508,8 @@
       "createMilestoneTitle": "Создать новый этап",
       "editMilestoneTitle": "Редактировать этап",
       "milestoneFormModalNotImplemented": "Форма создания этапа будет реализована позже",
-      "form": {
+
+      "milestoneForm": {
         "title": "Название этапа",
         "titlePlaceholder": "Введите название этапа",
         "description": "Описание",
@@ -2642,6 +2703,35 @@
       "inProgress": "В работе",
       "review": "На проверке",
       "completed": "Завершено"
+    }
+  },
+  "Form": {
+    "name": "Имя",
+    "namePlaceholder": "Введите ваше имя",
+    "phone": "Телефон",
+    "phonePlaceholder": "Введите ваш номер телефона",
+    "email": "Email",
+    "emailPlaceholder": "Введите ваш email",
+    "contactMethod": "Предпочтительный способ связи",
+    "contactMethodPlaceholder": "Выберите Telegram или WhatsApp",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "submit": "Отправить",
+    "submitting": "Отправка...",
+    "successTitle": "Заявка отправлена!",
+    "successMessage": "Спасибо за вашу заявку на услугу '{serviceName}'. Мы скоро свяжемся с вами.",
+    "telegramButton": "Перейти в Telegram бот",
+    "errorTitle": "Ошибка отправки",
+    "errorMessage": "Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.",
+    "loadingForm": "Загрузка формы...",
+    "formNotAvailable": "Форма временно недоступна. Пожалуйста, попробуйте позже.",
+    "validation": {
+      "nameRequired": "Имя обязательно для заполнения",
+      "phoneRequired": "Телефон обязателен для заполнения",
+      "emailRequired": "Email обязателен для заполнения",
+      "emailInvalid": "Введите корректный email",
+      "contactMethodRequired": "Выберите способ связи",
+      "nameMin": "Имя должно содержать не менее {min} символов"
     }
   }
 }

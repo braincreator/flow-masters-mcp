@@ -117,7 +117,10 @@ export function FeatureFlagsProvider({
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch feature flags: ${response.status}`)
+        const errorBody = await response.text() // Try to get response body for more details
+        throw new Error(
+          `Failed to fetch feature flags: ${response.status} ${response.statusText}. Body: ${errorBody}`,
+        )
       }
 
       const data = await response.json()
