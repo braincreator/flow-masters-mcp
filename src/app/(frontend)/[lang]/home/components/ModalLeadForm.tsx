@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, MessageCircle } from 'lucide-react'
 
@@ -20,27 +20,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', comment: '' })
   const [loading, setLoading] = useState(false)
-  const [formId, setFormId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  // Получаем ID формы AI Agency при открытии модального окна
-  useEffect(() => {
-    if (open && !formId) {
-      fetchFormId()
-    }
-  }, [open, formId])
-
-  const fetchFormId = async () => {
-    try {
-      // Используем hardcoded ID формы AI Agency для надежности (v3 с корректной структурой Lexical)
-      const knownFormId = '683d9c39e6e7cfc7c9c76881'
-      setFormId(knownFormId)
-      console.log('Using AI Agency form ID:', knownFormId)
-    } catch (err) {
-      console.error('Error setting form ID:', err)
-      setError('Ошибка загрузки формы')
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -67,21 +47,20 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
     }
 
     try {
-      // Prepare submission data in the format expected by form-submissions API
-      const submissionData = [
-        { field: 'name', value: form.name },
-        { field: 'phone', value: form.phone },
-        { field: 'email', value: form.email },
-        { field: 'comment', value: form.comment },
-        { field: 'actionType', value: actionType },
-      ].filter((item) => item.value) // Remove empty fields
 
-      const res = await fetch('/api/form-submissions', {
+
+      const res = await fetch('/api/v1/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          form: formId,
-          submissionData,
+          ...form,
+          actionType,
+          source: window.location.href,
+          metadata: {
+            modalTitle: title,
+            modalDescription: description,
+            timestamp: new Date().toISOString(),
+          }
         }),
       })
 
@@ -175,7 +154,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                 <button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={loading || !formId}
+                  disabled={loading}
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
@@ -228,13 +207,13 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   transition={{ delay: 0.8, duration: 0.5 }}
                 >
                   <a
-                    href="https://t.me/flowmasters_bot"
+                    href="https://t.me/ai_agency_bot"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Перейти в Telegram бот
+                    Написать в Telegram @ai_agency_bot
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
 

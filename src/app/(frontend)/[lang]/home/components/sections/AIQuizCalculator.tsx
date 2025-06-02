@@ -16,6 +16,7 @@ import {
 import { TrackedCTA } from '../TrackedCTA'
 import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
+import { useLeadFormModal } from '../LeadFormModalProvider'
 
 const quizSteps = [
   {
@@ -67,6 +68,7 @@ export function AIQuizCalculator() {
   const [showResults, setShowResults] = useState(false)
   const [selectedOption, setSelectedOption] = useState<string>('')
   const { trackEvent } = useAnalytics()
+  const { openModal } = useLeadFormModal()
 
   const trackCalculatorCompletion = (results: any) => {
     trackEvent('engagement', 'calculator_completion', 'ai_benefits_calculator', undefined, {
@@ -216,6 +218,11 @@ export function AIQuizCalculator() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => openModal({
+                    type: 'calculator-result',
+                    title: 'Получить персональное предложение',
+                    description: `На основе ваших результатов: годовой ROI +${results.yearlyROI.toLocaleString()} ₽`
+                  })}
                   className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Получить персональное предложение

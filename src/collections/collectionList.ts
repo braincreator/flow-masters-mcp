@@ -79,8 +79,8 @@ import { Events } from './Events' // Needs clarification
 import { CalendlySettings } from './CalendlySettings'
 import { Bookings } from './Bookings'
 import ExpertiseTags from './ExpertiseTags' // Import the new collection
-import { Forms } from './Forms' // Re-enable Forms collection
-import { FormSubmissions } from './FormSubmissions' // Add FormSubmissions collection
+import { Leads } from './Leads' // Import Leads collection
+// import { Forms } from './Forms' // Removed custom Forms collection import - KEEPING COMMENTED FOR HISTORY
 
 const collections = [
   // Core / Site
@@ -167,8 +167,8 @@ const collections = [
   CalendlySettings,
   Bookings,
   ExpertiseTags, // Add the new collection to the array
-  Forms, // Re-enable Forms collection
-  FormSubmissions, // Add FormSubmissions collection
+  Leads, // Add Leads collection to the array
+  // Forms, // Removed custom Forms collection - KEEPING COMMENTED FOR HISTORY
 ]
 
 export default collections

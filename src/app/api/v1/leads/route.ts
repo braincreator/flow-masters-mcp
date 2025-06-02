@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
-// import { z } from 'zod';
-import payload from 'payload'
-
-// // Схема валидации запроса
-// const requestSchema = z.object({
-//   collection: z.string().min(1),
-//   data: z.record(z.any()),
-// });
 
 /**
- * Обработчик POST запросов для сохранения лидов (legacy endpoint)
- * Теперь перенаправляет на новый API form-submissions
+ * Обработчик POST запросов для сохранения лидов
  */
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
-    const { name, phone, email, comment, actionType, formId } = data
+    const { name, phone, email, comment, actionType, metadata } = data
 
     if (!name || !phone) {
       return NextResponse.json({ error: 'Имя и телефон обязательны' }, { status: 400 })
@@ -24,50 +15,28 @@ export async function POST(req: NextRequest) {
 
     const payloadClient = await getPayloadClient()
 
-    // If formId is not provided, try to find AI Agency form
-    let targetFormId = formId
-    if (!targetFormId) {
-      const aiAgencyForms = await payloadClient.find({
-        collection: 'forms',
-        where: {
-          title: {
-            contains: 'AI Agency',
-          },
-        },
-        limit: 1,
-      })
-
-      if (aiAgencyForms.docs.length === 0) {
-        return NextResponse.json({ error: 'AI Agency form not found' }, { status: 404 })
-      }
-
-      targetFormId = aiAgencyForms.docs[0].id
-    }
-
-    const submissionDataArray = Object.entries({
-      name,
-      phone,
-      email,
-      comment,
-      actionType,
-    })
-      .filter(([_, value]) => value) // Remove empty values
-      .map(([fieldName, value]) => ({
-        field: fieldName,
-        value: String(value),
-      }))
+    // Получаем источник из заголовков или данных
+    const source = data.source || req.headers.get('referer') || 'ai-agency-landing'
 
     const lead = await payloadClient.create({
-      collection: 'form-submissions',
+      collection: 'leads',
       data: {
-        form: targetFormId,
-        submissionData: submissionDataArray,
+        name,
+        phone,
+        email: email || null,
+        comment: comment || null,
+        actionType: actionType || 'default',
+        source,
+        metadata: metadata || null,
+        status: 'new',
       },
     })
 
     return NextResponse.json({ success: true, lead })
   } catch (e) {
     console.error('Lead form error:', e)
-    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
+    return NextResponse.json({
+      error: e instanceof Error ? e.message : String(e)
+    }, { status: 500 })
   }
 }

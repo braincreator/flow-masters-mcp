@@ -139,6 +139,11 @@ export function PricingWithPrePayment() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => openModal({
+                      type: 'pricing-plan',
+                      title: `Выбрать тариф "${plan.name}"`,
+                      description: `Стоимость: ${formattedPrice}. Предоплата: ${formattedPrepayment}`
+                    })}
                     className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
                       plan.isPopular
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'

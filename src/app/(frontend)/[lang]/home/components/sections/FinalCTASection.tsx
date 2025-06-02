@@ -13,10 +13,37 @@ export function FinalCTASection() {
     message: '',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Form submitted:', formData)
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('/api/v1/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          actionType: 'final-cta-form',
+          source: window.location.href,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Ошибка отправки формы')
+      }
+
+      setIsSubmitted(true)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      alert('Произошла ошибка при отправке формы. Попробуйте еще раз.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -132,14 +159,62 @@ export function FinalCTASection() {
 
               <motion.button
                 type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg"
+                disabled={isSubmitting || isSubmitted}
+                whileHover={{ scale: isSubmitting || isSubmitted ? 1 : 1.05 }}
+                whileTap={{ scale: isSubmitting || isSubmitted ? 1 : 0.95 }}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 ${
+                  isSubmitted
+                    ? 'bg-green-600 text-white'
+                    : isSubmitting
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                }`}
               >
-                Получить бесплатный аудит
-                <ArrowRight className="ml-2 h-5 w-5 inline" />
+                {isSubmitted ? (
+                  <>
+                    ✅ Заявка отправлена!
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    Отправляем...
+                  </>
+                ) : (
+                  <>
+                    Получить бесплатный аудит
+                    <ArrowRight className="ml-2 h-5 w-5 inline" />
+                  </>
+                )}
               </motion.button>
             </form>
+
+            {isSubmitted && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-6 bg-green-600/20 border border-green-500/30 rounded-xl"
+              >
+                <h4 className="text-xl font-bold text-green-400 mb-3">
+                  🎉 Спасибо за заявку!
+                </h4>
+                <p className="text-green-100 mb-4">
+                  Мы получили вашу заявку и свяжемся с вами в ближайшее время для проведения бесплатного аудита.
+                </p>
+                <div className="bg-blue-600/30 border border-blue-500/30 rounded-lg p-4">
+                  <p className="text-blue-100 text-sm mb-2">
+                    💬 Для быстрой связи напишите нам в Telegram:
+                  </p>
+                  <a
+                    href="https://t.me/ai_agency_bot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-blue-300 hover:text-blue-200 font-semibold"
+                  >
+                    @ai_agency_bot
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
 
