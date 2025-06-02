@@ -747,7 +747,7 @@
     "description": "Описание",
     "noServices": "На данный момент услуги отсутствуют.",
     "serviceTypes": {
-      "consultation": "Консалтинг",
+      "consultation": "Консультация",
       "training": "Обучение",
       "development": "Разработка",
       "support": "Поддержка",

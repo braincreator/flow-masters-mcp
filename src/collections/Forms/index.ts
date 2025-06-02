@@ -2,6 +2,17 @@ import { CollectionConfig } from 'payload'
 import { anyone } from '../../access/anyone' // Corrected import path
 import { authenticated } from '../../access/authenticated'
 import { ServiceRegistry } from '@/services/service.registry'
+import {
+  lexicalEditor,
+  BoldFeature,
+  ItalicFeature,
+  UnderlineFeature,
+  ParagraphFeature,
+  HeadingFeature,
+  LinkFeature,
+  FixedToolbarFeature,
+  InlineToolbarFeature,
+} from '@payloadcms/richtext-lexical'
 
 export const Forms: CollectionConfig = {
   slug: 'forms',
@@ -106,7 +117,36 @@ export const Forms: CollectionConfig = {
     {
       name: 'confirmationMessage',
       type: 'richText',
+      editor: lexicalEditor({
+        features: ({ rootFeatures }) => {
+          return [
+            ...rootFeatures,
+            // Базовое форматирование текста
+            BoldFeature(),
+            ItalicFeature(),
+            UnderlineFeature(),
+
+            // Структура документа
+            ParagraphFeature(),
+            HeadingFeature({
+              enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'],
+            }),
+
+            // Ссылки
+            LinkFeature(),
+
+            // Панели инструментов
+            FixedToolbarFeature(),
+            InlineToolbarFeature(),
+          ]
+        },
+      }),
       required: true,
+      label: 'Сообщение подтверждения',
+      admin: {
+        description:
+          'Сообщение, которое увидит пользователь после отправки формы. Поддерживает форматирование текста.',
+      },
     },
     {
       name: 'emailTo',

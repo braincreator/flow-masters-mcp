@@ -119,7 +119,8 @@ export default function OrderContactForm({
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (!formId) {
-      const errorMsg = translations.formNotAvailable || 'Form ID is not available. Cannot submit.'
+      const errorMsg =
+        translations.formNotAvailable || 'Form ID is not available. Cannot submit.'
       setSubmissionError(errorMsg)
       toast({
         variant: 'destructive',

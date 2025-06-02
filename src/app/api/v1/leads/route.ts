@@ -10,21 +10,38 @@ import payload from 'payload'
 // });
 
 /**
- * Обработчик POST запросов для сохранения лидов
+ * Обработчик POST запросов для сохранения лидов (legacy endpoint)
+ * Теперь перенаправляет на новый API form-submissions
  */
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
-    const { name, phone, email, comment, actionType } = data
+    const { name, phone, email, comment, actionType, formId } = data
+
     if (!name || !phone) {
       return NextResponse.json({ error: 'Имя и телефон обязательны' }, { status: 400 })
     }
-    const payloadClient = await getPayloadClient() // Corrected variable name from 'payload' to 'payloadClient' for clarity
 
-    // TODO: Убедитесь, что formId корректно передается с фронтенда. Этот ID должен соответствовать форме в коллекции 'forms'.
-    const formId = data.formId // Предполагается, что formId будет передан в запросе
-    if (!formId) {
-      return NextResponse.json({ error: 'formId is required' }, { status: 400 })
+    const payloadClient = await getPayloadClient()
+
+    // If formId is not provided, try to find AI Agency form
+    let targetFormId = formId
+    if (!targetFormId) {
+      const aiAgencyForms = await payloadClient.find({
+        collection: 'forms',
+        where: {
+          title: {
+            contains: 'AI Agency',
+          },
+        },
+        limit: 1,
+      })
+
+      if (aiAgencyForms.docs.length === 0) {
+        return NextResponse.json({ error: 'AI Agency form not found' }, { status: 404 })
+      }
+
+      targetFormId = aiAgencyForms.docs[0].id
     }
 
     const submissionDataArray = Object.entries({
@@ -33,19 +50,21 @@ export async function POST(req: NextRequest) {
       email,
       comment,
       actionType,
-    }).map(([fieldName, value]) => ({
-      field: fieldName, // Используем имя поля из объекта
-      value: String(value), // Убедимся, что значение является строкой
-    }))
+    })
+      .filter(([_, value]) => value) // Remove empty values
+      .map(([fieldName, value]) => ({
+        field: fieldName,
+        value: String(value),
+      }))
 
     const lead = await payloadClient.create({
-      // Use payloadClient
       collection: 'form-submissions',
       data: {
-        form: formId, // ID формы, на которую пришел ответ. Требуется передача с фронтенда.
+        form: targetFormId,
         submissionData: submissionDataArray,
       },
     })
+
     return NextResponse.json({ success: true, lead })
   } catch (e) {
     console.error('Lead form error:', e)
