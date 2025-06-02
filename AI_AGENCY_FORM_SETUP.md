@@ -120,7 +120,7 @@ pnpm dev:fast
 В файле `ModalLeadForm.tsx` найдите строку:
 
 ```tsx
-href = 'https://t.me/flowmasters_bot'
+href = 'https://t.me/flow_masters_bot'
 ```
 
 Замените на URL вашего бота.

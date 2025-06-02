@@ -18,3 +18,6 @@ export const PATCH = REST_PATCH(config)
 
 export const PUT = REST_PUT(config)
 export const OPTIONS = REST_OPTIONS(config)
+
+// Add HEAD handler to prevent 404 errors
+export const HEAD = REST_GET(config)

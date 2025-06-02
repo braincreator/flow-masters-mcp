@@ -33,23 +33,35 @@ const defaultFeatureFlags = [
 
 export async function GET(_request: NextRequest) {
   try {
-    // In a real implementation, you would fetch feature flags from your database
     const payload = await getPayloadClient()
-    const featureFlagsResult = await payload.find({
-      collection: 'feature-flags',
-      limit: 100,
-    })
 
-    const flags = featureFlagsResult.docs.length > 0 ? featureFlagsResult.docs : defaultFeatureFlags
+    // Try to fetch feature flags from the database
+    try {
+      const featureFlagsResult = await payload.find({
+        collection: 'feature-flags',
+        limit: 100,
+      })
 
-    return NextResponse.json({
-      success: true,
-      flags,
-    })
+      const flags =
+        featureFlagsResult.docs.length > 0 ? featureFlagsResult.docs : defaultFeatureFlags
+
+      return NextResponse.json({
+        success: true,
+        flags,
+      })
+    } catch (collectionError) {
+      console.warn('Feature flags collection not found or error accessing it:', collectionError)
+
+      // Return default flags if collection doesn't exist or has issues
+      return NextResponse.json({
+        success: true,
+        flags: defaultFeatureFlags,
+      })
+    }
   } catch (error) {
-    console.error('Error fetching feature flags:', error)
+    console.error('Error initializing Payload client:', error)
 
-    // Return default flags on error
+    // Return default flags on any error
     return NextResponse.json({
       success: true,
       flags: defaultFeatureFlags,

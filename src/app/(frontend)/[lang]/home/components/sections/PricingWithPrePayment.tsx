@@ -107,8 +107,8 @@ export function PricingWithPrePayment() {
                 }`}
               >
                 {plan.isPopular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-semibold text-center">
                       {t('AIAgency.pricing.popularChoice')}
                     </div>
                   </div>
@@ -139,11 +139,13 @@ export function PricingWithPrePayment() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => openModal({
-                      type: 'pricing-plan',
-                      title: `Выбрать тариф "${plan.name}"`,
-                      description: `Стоимость: ${formattedPrice}. Предоплата: ${formattedPrepayment}`
-                    })}
+                    onClick={() =>
+                      openModal({
+                        type: 'pricing-plan',
+                        title: `Выбрать тариф "${plan.name}"`,
+                        description: `Стоимость: ${formattedPrice}. Предоплата: ${formattedPrepayment}`,
+                      })
+                    }
                     className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
                       plan.isPopular
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'

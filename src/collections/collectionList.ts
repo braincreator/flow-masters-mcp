@@ -80,6 +80,7 @@ import { CalendlySettings } from './CalendlySettings'
 import { Bookings } from './Bookings'
 import ExpertiseTags from './ExpertiseTags' // Import the new collection
 import { Leads } from './Leads' // Import Leads collection
+import { FeatureFlags } from './FeatureFlags' // Import FeatureFlags collection
 // import { Forms } from './Forms' // Removed custom Forms collection import - KEEPING COMMENTED FOR HISTORY
 
 const collections = [
@@ -168,6 +169,7 @@ const collections = [
   Bookings,
   ExpertiseTags, // Add the new collection to the array
   Leads, // Add Leads collection to the array
+  FeatureFlags, // Add FeatureFlags collection to the array
   // Forms, // Removed custom Forms collection - KEEPING COMMENTED FOR HISTORY
 ]
 

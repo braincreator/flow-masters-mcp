@@ -111,67 +111,8 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
-    // Temporarily disable custom components to isolate React context issues
-    components:
-      process.env.IS_GENERATING_TYPES === 'true'
-        ? {}
-        : {
-            // Define custom views
-            views: {
-              monitoring: {
-                path: '/monitoring',
-                Component: dashboardPath,
-              },
-              landingGenerator: {
-                path: '/landing-generator',
-                Component: '@/components/admin/LandingGeneratorView',
-              },
-              setupRewards: {
-                path: '/admin/setup-rewards',
-                // Use placeholder during type generation
-                Component:
-                  process.env.IS_GENERATING_TYPES === 'true'
-                    ? '@/components/admin/CustomAction'
-                    : '@/app/(admin)/admin/setup-rewards/page',
-              },
-              courseCreator: {
-                path: '/course-creator',
-                Component: '@/components/admin/CourseCreatorView',
-              },
-              analytics: {
-                path: '/analytics',
-                Component: '@/components/admin/AnalyticsView',
-              },
-              emailCampaigns: {
-                path: '/email-campaigns',
-                Component: '@/components/admin/EmailCampaignView',
-              },
-              endpoints: {
-                path: '/endpoints',
-                // Use placeholder during type generation
-                Component:
-                  process.env.IS_GENERATING_TYPES === 'true'
-                    ? '@/components/admin/CustomAction'
-                    : '@/app/admin/endpoints/page',
-              },
-            },
-            // Temporarily disable custom components that might cause React context issues
-            // afterNavLinks: ['@/components/admin/CustomNavigation'],
-            // Custom branding
-            // graphics: {
-            //   Logo: '@/components/admin/CustomLogo',
-            //   Icon: '@/components/admin/CustomIcon',
-            // },
-            // Custom header
-            // header: ['@/components/admin/CustomHeader'],
-            // Custom actions in the header
-            // actions: ['@/components/admin/CustomAction'],
-            // Other component overrides
-            // beforeLogin: ['@/components/admin/CustomLoginMessage'],
-            // beforeDashboard: ['@/components/admin/CustomDashboard'],
-            // Custom providers
-            // providers: ['@/components/admin/CustomProvider'],
-          },
+    // Temporarily disable ALL custom components to fix React context issues
+    components: process.env.IS_GENERATING_TYPES === 'true' ? {} : {},
 
     // Custom navigation is implemented through afterNavLinks component
     // In Payload v3, navigation groups are handled through custom components

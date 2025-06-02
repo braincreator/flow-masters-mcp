@@ -34,13 +34,6 @@ import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from 
 import { RowLabel as RowLabel_17c6ef4bfe47bfa29d923fb5718170b7 } from '@/globals/Header/RowLabel'
 import { default as default_e5f2ea2a3ff3620de63526e885e3b034 } from '@/globals/Footer/RowLabel'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
-import { default as default_67daec3269613a31a72d37965011da0b } from '@/components/admin/MetricsDashboard'
-import { default as default_754efcc4049ddfb5281eb09039a99f31 } from '@/components/admin/LandingGeneratorView'
-import { default as default_9c58daee1019d2b16a85f752ba4ac54a } from '@/app/(admin)/admin/setup-rewards/page'
-import { default as default_5992542806ab9cef50fb76fc74ad1754 } from '@/components/admin/CourseCreatorView'
-import { default as default_db43129b90862b042c8e58805b1c34d3 } from '@/components/admin/AnalyticsView'
-import { default as default_ef7e5634bd08034af0c33ff4de0976a0 } from '@/components/admin/EmailCampaignView'
-import { default as default_85ca7c4380a572cebad055c1b4566637 } from '@/app/admin/endpoints/page'
 
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -77,12 +70,5 @@ export const importMap = {
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@/globals/Header/RowLabel#RowLabel": RowLabel_17c6ef4bfe47bfa29d923fb5718170b7,
   "@/globals/Footer/RowLabel#default": default_e5f2ea2a3ff3620de63526e885e3b034,
-  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
-  "@/components/admin/MetricsDashboard#default": default_67daec3269613a31a72d37965011da0b,
-  "@/components/admin/LandingGeneratorView#default": default_754efcc4049ddfb5281eb09039a99f31,
-  "@/app/(admin)/admin/setup-rewards/page#default": default_9c58daee1019d2b16a85f752ba4ac54a,
-  "@/components/admin/CourseCreatorView#default": default_5992542806ab9cef50fb76fc74ad1754,
-  "@/components/admin/AnalyticsView#default": default_db43129b90862b042c8e58805b1c34d3,
-  "@/components/admin/EmailCampaignView#default": default_ef7e5634bd08034af0c33ff4de0976a0,
-  "@/app/admin/endpoints/page#default": default_85ca7c4380a572cebad055c1b4566637
+  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24
 }

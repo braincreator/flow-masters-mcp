@@ -40,15 +40,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
     setLoading(true)
     setError(null)
 
-    if (!formId) {
-      setError('Форма не загружена. Попробуйте обновить страницу.')
-      setLoading(false)
-      return
-    }
-
     try {
-
-
       const res = await fetch('/api/v1/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +52,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             modalTitle: title,
             modalDescription: description,
             timestamp: new Date().toISOString(),
-          }
+          },
         }),
       })
 
@@ -207,13 +199,13 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   transition={{ delay: 0.8, duration: 0.5 }}
                 >
                   <a
-                    href="https://t.me/ai_agency_bot"
+                    href="https://t.me/flow_masters_bot?start=lead_form"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Написать в Telegram @ai_agency_bot
+                    Написать в Telegram @flow_masters_bot
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
 
