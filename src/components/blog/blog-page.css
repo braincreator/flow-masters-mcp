@@ -239,21 +239,20 @@ html[data-theme='dark'] .blog-page-container {
   }
 }
 
-/* Стили для блока комментариев */
+/* Стили для блока комментариев - полная ширина как у контента */
 .blog-comments {
   max-width: 100%;
+  width: 100%;
 }
 
 .blog-comments .comment-form-container {
-  max-width: 30rem;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 100%;
+  width: 100%;
 }
 
 .blog-comments .comments-list {
-  max-width: 42rem;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 100%;
+  width: 100%;
 }
 
 /* Адаптивные стили для комментариев */

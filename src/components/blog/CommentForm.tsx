@@ -99,6 +99,7 @@ export function CommentForm({
   onCancel,
   locale = 'en',
   user = null,
+  addComment,
 }: CommentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -123,7 +124,7 @@ export function CommentForm({
     setErrorMessage('')
 
     try {
-      // If addComment is provided through props (from BlogProvider), use it
+      // If addComment is provided through props (from BlogProvider), try it first
       if (addComment) {
         const success = await addComment(postId, data.comment, parentCommentId)
 
@@ -131,45 +132,47 @@ export function CommentForm({
           setSubmitStatus('success')
           form.reset()
           onSuccess?.()
-        } else {
-          throw new Error('Failed to submit comment')
+          return // Successfully submitted via BlogProvider
         }
-      } else {
-        // Fallback to direct API call if addComment is not provided
-        const payload = {
-          postId,
-          ...(parentCommentId ? { parentComment: parentCommentId } : {}),
-          content: data.comment,
-          author: user
-            ? {
-                name: user.name,
-                email: user.email,
-                ...(user.avatar ? { avatar: user.avatar } : {}),
-              }
-            : {
-                name: data.name,
-                email: data.email,
-              },
-        }
-
-        const response = await fetch('/api/v1/blog/comment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        })
-
-        const result = await response.json()
-
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to submit comment')
-        }
-
-        setSubmitStatus('success')
-        form.reset()
-        onSuccess?.()
+        // If addComment returns false (e.g., for guest users), fall through to direct API call
       }
+
+      // Direct API call (fallback or when addComment is not provided)
+      const payload = {
+        postId,
+        ...(parentCommentId ? { parentComment: parentCommentId } : {}),
+        content: data.comment,
+        author: user
+          ? {
+              name: user.name,
+              email: user.email,
+              ...(user.avatar ? { avatar: user.avatar } : {}),
+            }
+          : {
+              name: data.name,
+              email: data.email,
+            },
+      }
+
+      console.log('CommentForm fallback sending:', JSON.stringify(payload, null, 2))
+
+      const response = await fetch('/api/v1/blog/comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || 'Failed to submit comment')
+      }
+
+      setSubmitStatus('success')
+      form.reset()
+      onSuccess?.()
     } catch (error) {
       setSubmitStatus('error')
       setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred')

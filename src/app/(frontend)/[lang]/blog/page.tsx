@@ -6,39 +6,9 @@ import { getServerSideURL } from '@/utilities/getURL'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
 import { Post, Category, Media } from '@/payload-types'
 import { BlogPost, BlogTag } from '@/types/blocks'
+import { getTranslations } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import BlogPageClient from './page.client' // Import the client component
-
-// Localized texts
-const texts = {
-  en: {
-    title: 'Blog',
-    description: 'Our latest articles and updates',
-    posts: 'posts',
-    categories: 'Categories',
-    tags: 'Tags',
-    noPostsFound: 'No posts found',
-    tryChangingFilters: 'Try changing your search filters',
-    filters: 'Filters',
-    clearFilters: 'Clear filters',
-    searchPlaceholder: 'Search articles...',
-    activeFilters: 'Active filters',
-    all: 'All',
-  },
-  ru: {
-    title: 'Блог',
-    description: 'Наши последние статьи и обновления',
-    posts: 'статей',
-    categories: 'Категории',
-    tags: 'Теги',
-    noPostsFound: 'Статьи не найдены',
-    tryChangingFilters: 'Попробуйте изменить параметры поиска',
-    filters: 'Фильтры',
-    clearFilters: 'Очистить фильтры',
-    searchPlaceholder: 'Поиск статей...',
-    activeFilters: 'Активные фильтры',
-    all: 'Все',
-  },
-}
 
 // Get properly typed params
 type PageParams = {
@@ -58,11 +28,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const params = await paramsPromise
   const locale = (params.lang || DEFAULT_LOCALE) as Locale
-  const t = texts[locale]
+
+  setRequestLocale(locale)
+  const t = await getTranslations('blogPage')
 
   return {
-    title: t.title,
-    description: t.description,
+    title: t('title'),
+    description: t('description'),
   }
 }
 
@@ -72,7 +44,8 @@ export default async function BlogPage(props: PageParams) {
     const { lang } = await props.params
 
     const locale = (lang || DEFAULT_LOCALE) as Locale
-    const t = texts[locale]
+    setRequestLocale(locale)
+    const t = await getTranslations('blogPage')
     const limit = 9 // Posts per page
 
     // Ensure we have a valid server URL for Payload
@@ -266,7 +239,7 @@ export default async function BlogPage(props: PageParams) {
             id: tag.id,
             title: tag.title,
             slug: tag.slug || '',
-            }
+          }
         }),
         readingTime: post.readingTime || 5, // Используем поле readingTime с запасным значением 5 мин
       }
@@ -284,7 +257,6 @@ export default async function BlogPage(props: PageParams) {
         categories={formattedCategories}
         tags={formattedTags}
         locale={locale}
-        texts={t}
       />
     )
   } catch (error) {

@@ -289,9 +289,17 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Add a comment to a post
+  // Add a comment to a post (only for authenticated users)
   const addComment = useCallback(
     async (postId: string, content: string, parentCommentId?: string) => {
+      // Only handle authenticated users - guest comments should use the fallback in CommentForm
+      if (!user || !user.email) {
+        console.warn(
+          'BlogProvider.addComment called without authenticated user - falling back to CommentForm direct API call',
+        )
+        return false
+      }
+
       setIsLoadingComments(true)
       setCommentError(null)
 
@@ -299,10 +307,10 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
         // Import the API utility functions dynamically to avoid circular dependencies
         const { blogApi } = await import('@/lib/api')
 
-        // Prepare author data
+        // Prepare author data from authenticated user
         const author = {
-          name: user?.name || 'Anonymous',
-          email: user?.email || '',
+          name: user.name,
+          email: user.email,
         }
 
         // Submit comment using the API utility function

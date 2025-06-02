@@ -4,25 +4,10 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, Clock, User as UserIcon, ArrowRight, BookOpen, Star } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utilities/ui'
 import { formatBlogDate } from '@/lib/blogHelpers'
 import { Badge } from '@/components/ui/badge'
-
-// Переводы
-const translations = {
-  en: {
-    readTimeUnit: 'min read',
-    featured: 'Featured',
-    readMore: 'Read More',
-    author: 'Author',
-  },
-  ru: {
-    readTimeUnit: 'мин чтения',
-    featured: 'Рекомендуем',
-    readMore: 'Читать далее',
-    author: 'Автор',
-  },
-}
 
 // Вспомогательная функция для получения краткого описания из контента
 function getExcerpt(content: any, maxLength = 200): string {
@@ -84,12 +69,8 @@ interface FeaturedPostProps {
   className?: string
 }
 
-export function FeaturedPost({
-  post,
-  locale = 'en',
-  className,
-}: FeaturedPostProps) {
-  const t = locale === 'ru' ? translations.ru : translations.en
+export function FeaturedPost({ post, locale = 'en', className }: FeaturedPostProps) {
+  const t = useTranslations('blog')
   const postContent = post?.content ?? null
   const displayExcerpt = post?.excerpt ? post.excerpt : getExcerpt(postContent, 200)
 
@@ -98,7 +79,7 @@ export function FeaturedPost({
   const formattedDate = (post.publishedAt && formatBlogDate(post.publishedAt, locale)) || ''
   const postLink = `/${locale}/blog/${post.slug}`
   const imageUrl = post.thumbnail?.url || post.heroImage?.url || ''
-  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || 'Featured blog post'
+  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || t('noImage')
 
   return (
     <article
@@ -107,25 +88,25 @@ export function FeaturedPost({
         className,
       )}
     >
-      {/* Featured Badge */}
-      <div className="absolute left-6 top-6 z-30">
-        <Badge className="bg-primary text-primary-foreground shadow-lg">
-          <Star className="w-3 h-3 mr-1 fill-current" />
-          {t.featured}
-        </Badge>
-      </div>
-
       <div className="lg:flex lg:items-center lg:gap-8">
         {/* Image */}
         {imageUrl && (
           <div className="lg:w-1/2 relative">
+            {/* Featured Badge - перемещен внутрь контейнера изображения */}
+            <div className="absolute left-6 top-6 z-30">
+              <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 border-0 font-semibold">
+                <Star className="w-3 h-3 mr-1.5 fill-current" />
+                {t('featured')}
+              </Badge>
+            </div>
+
             <Link
               href={postLink}
-              className="block relative overflow-hidden aspect-[16/10] lg:aspect-[4/3]"
+              className="block relative overflow-hidden aspect-[16/10] lg:aspect-[4/3] rounded-2xl"
             >
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10" />
-              
+
               <Image
                 src={imageUrl}
                 alt={imageAlt}
@@ -134,28 +115,28 @@ export function FeaturedPost({
                 priority
                 className="object-cover transition-all duration-700 group-hover:scale-105"
               />
-              
+
               {/* Category badge */}
               {post.categories?.[0] && (
-                <div className="absolute right-6 top-6 z-20">
-                  <Badge 
-                    variant="secondary" 
-                    className="bg-white/90 text-gray-900 hover:bg-white transition-colors backdrop-blur-sm border-0 shadow-sm"
+                <div className="absolute right-4 top-4 z-20">
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/95 text-gray-900 hover:bg-white transition-all duration-300 backdrop-blur-sm border-0 shadow-md font-medium"
                   >
                     {post.categories[0].title}
                   </Badge>
                 </div>
               )}
-              
+
               {/* Reading time indicator */}
               {post.readingTime && (
-                <div className="absolute left-6 bottom-6 z-20">
-                  <Badge 
-                    variant="outline" 
-                    className="bg-black/20 text-white border-white/30 backdrop-blur-sm"
+                <div className="absolute left-4 bottom-4 z-20">
+                  <Badge
+                    variant="outline"
+                    className="bg-black/30 text-white border-white/40 backdrop-blur-sm hover:bg-black/40 transition-all duration-300 font-medium"
                   >
-                    <BookOpen className="w-3 h-3 mr-1" />
-                    {post.readingTime} {t.readTimeUnit}
+                    <BookOpen className="w-3 h-3 mr-1.5" />
+                    {post.readingTime} {t('readTimeUnit')}
                   </Badge>
                 </div>
               )}
@@ -164,7 +145,17 @@ export function FeaturedPost({
         )}
 
         {/* Content */}
-        <div className="lg:w-1/2 p-8 lg:p-12">
+        <div className={cn('p-8 lg:p-12', imageUrl ? 'lg:w-1/2' : 'w-full relative')}>
+          {/* Featured Badge для случая без изображения */}
+          {!imageUrl && (
+            <div className="absolute right-8 top-8 z-30">
+              <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 border-0 font-semibold">
+                <Star className="w-3 h-3 mr-1.5 fill-current" />
+                {t('featured')}
+              </Badge>
+            </div>
+          )}
+
           {/* Title */}
           <Link href={postLink} className="group">
             <h2 className="mb-4 text-3xl lg:text-4xl font-bold leading-tight group-hover:text-primary transition-colors duration-200">
@@ -190,7 +181,7 @@ export function FeaturedPost({
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary/60" />
                 <span className="font-medium">
-                  {post.readingTime} {t.readTimeUnit}
+                  {post.readingTime} {t('readTimeUnit')}
                 </span>
               </div>
             )}
@@ -200,16 +191,19 @@ export function FeaturedPost({
           {post.tags && post.tags.length > 0 && (
             <div className="mb-6 flex flex-wrap items-center gap-2">
               {post.tags.slice(0, 4).map((tag) => (
-                <Badge 
-                  key={tag.id} 
-                  variant="outline" 
+                <Badge
+                  key={tag.id}
+                  variant="outline"
                   className="text-xs bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors"
                 >
                   {tag.title}
                 </Badge>
               ))}
               {post.tags.length > 4 && (
-                <Badge variant="outline" className="text-xs bg-muted/50 text-muted-foreground border-muted">
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-muted/50 text-muted-foreground border-muted"
+                >
                   +{post.tags.length - 4}
                 </Badge>
               )}
@@ -243,17 +237,17 @@ export function FeaturedPost({
                 )}
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-foreground">{post.author.name}</span>
-                  <span className="text-xs text-muted-foreground">{t.author}</span>
+                  <span className="text-xs text-muted-foreground">{t('author')}</span>
                 </div>
               </div>
             )}
-            
+
             {/* Read More Button */}
-            <Link 
+            <Link
               href={postLink}
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 group"
             >
-              {t.readMore}
+              {t('readMore')}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>

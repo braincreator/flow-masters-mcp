@@ -5,7 +5,7 @@ import { getPayloadClient, retryOnSessionExpired } from '@/utilities/payload/ind
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
-import { PayloadAPIProvider } from '@/providers/payload'
+
 import { formatBlogDate, calculateReadingTime } from '@/lib/blogHelpers'
 import { isLexicalContent } from '@/utilities/lexicalParser'
 import { BlogPostPageClient } from './page-client'
@@ -183,18 +183,16 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
     const readTime = post.readingTime || calculateReadingTime(JSON.stringify(post.content)) || 5
 
     return (
-      <PayloadAPIProvider>
-        <BlogPostPageClient
-          post={post}
-          formattedPostTags={formattedPostTags}
-          formattedPostCategories={formattedPostCategories}
-          formattedRelatedPosts={formattedRelatedPosts}
-          currentLocale={currentLocale}
-          postDate={postDate}
-          readTime={readTime}
-          processedContent={processedContent}
-        />
-      </PayloadAPIProvider>
+      <BlogPostPageClient
+        post={post}
+        formattedPostTags={formattedPostTags}
+        formattedPostCategories={formattedPostCategories}
+        formattedRelatedPosts={formattedRelatedPosts}
+        currentLocale={currentLocale}
+        postDate={postDate}
+        readTime={readTime}
+        processedContent={processedContent}
+      />
     )
   } catch (error) {
     console.error('Error rendering blog post page:', error)
