@@ -25,57 +25,57 @@ export function AIAgencyLanding() {
     <LeadFormModalProvider>
       <AnalyticsTracker>
         <div className="min-h-screen bg-background relative">
-          {/* Hero Section - Первый экран */}
+          {/* Hero Section */}
           <section data-section="hero">
             <AIHeroSection />
           </section>
 
-          {/* Pain Points - Боли клиентов */}
+          {/* Pain Points */}
           <section data-section="pain-points">
             <PainPointsSection />
           </section>
 
-          {/* AI Benefits - Выгоды от ИИ */}
+          {/* AI Benefits */}
           <section data-section="benefits">
             <AIBenefitsSection />
           </section>
 
-          {/* Services Showcase - Витрина услуг */}
+          {/* Services Showcase */}
           <section data-section="services">
             <AIServicesShowcase />
           </section>
 
-          {/* Stats Section - Статистика */}
+          {/* Stats Section */}
           <section data-section="stats">
             <AIStatsSection />
           </section>
 
-          {/* Case Studies - Кейсы */}
+          {/* Case Studies */}
           <section data-section="cases">
             <CaseStudiesSection />
           </section>
 
-          {/* Quiz Calculator - Интерактивный калькулятор */}
+          {/* Quiz Calculator */}
           <section data-section="calculator">
             <AIQuizCalculator />
           </section>
 
-          {/* Pricing - Тарифы с объяснением предоплаты */}
+          {/* Pricing */}
           <section data-section="pricing">
             <PricingWithPrePayment />
           </section>
 
-          {/* Urgency Section - Срочность */}
+          {/* Urgency Section */}
           <section data-section="urgency">
             <UrgencySection />
           </section>
 
-          {/* FAQ - Частые вопросы */}
+          {/* FAQ */}
           <section data-section="faq">
             <AIFAQSection />
           </section>
 
-          {/* Final CTA - Финальный призыв */}
+          {/* Final CTA */}
           <section data-section="final-cta">
             <FinalCTASection />
           </section>

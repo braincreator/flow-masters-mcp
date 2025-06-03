@@ -1,25 +1,20 @@
 import { AIAgencyPlan } from '../hooks/useAIAgencyPlans'
+import { formatCurrencyLocalized } from '@/utilities/formatLocalized'
 
-// Функция для форматирования цены плана (простой формат как в оригинале)
+// Функция для форматирования цены плана с локализацией
 export function formatPlanPrice(plan: AIAgencyPlan, locale: 'en' | 'ru' = 'ru'): string {
   const { price } = plan
 
-  // Форматируем число с разделителями тысяч (русский стиль с пробелами)
-  const formattedPrice = formatNumberSimple(price)
-
-  // Возвращаем отформатированную цену с рублями (как в оригинале)
-  return `${formattedPrice} ₽`
+  // Используем локализованное форматирование валют
+  return formatCurrencyLocalized(price, locale)
 }
 
-// Функция для форматирования предоплаты (простой формат как в оригинале)
+// Функция для форматирования предоплаты с локализацией
 export function formatPrepayment(plan: AIAgencyPlan, locale: 'en' | 'ru' = 'ru'): string {
   const { prepayment } = plan
 
-  // Форматируем число с разделителями тысяч (русский стиль с пробелами)
-  const formattedPrepayment = formatNumberSimple(prepayment)
-
-  // Возвращаем отформатированную предоплату с рублями (как в оригинале)
-  return `${formattedPrepayment} ₽`
+  // Используем локализованное форматирование валют
+  return formatCurrencyLocalized(prepayment, locale)
 }
 
 // Функция для получения символа валюты
@@ -58,16 +53,16 @@ export function isPriceFrom(plan: AIAgencyPlan): boolean {
   )
 }
 
-// Функция для форматирования полной цены с префиксом "от" если нужно (простой формат)
+// Функция для форматирования полной цены с префиксом "от" если нужно (локализованный формат)
 export function formatFullPrice(plan: AIAgencyPlan, locale: 'en' | 'ru' = 'ru', t?: any): string {
-  const basePrice = formatNumberSimple(plan.price)
+  const basePrice = formatCurrencyLocalized(plan.price, locale)
 
   if (isPriceFrom(plan)) {
-    const fromText = t ? t('AIAgency.pricing.from') : locale === 'ru' ? 'от' : 'from'
-    return `${fromText} ${basePrice} ₽`
+    const fromText = t ? t('from') : locale === 'ru' ? 'от' : 'from'
+    return `${fromText} ${basePrice}`
   }
 
-  return `${basePrice} ₽`
+  return basePrice
 }
 
 // Функция для получения CSS класса цвета валюты

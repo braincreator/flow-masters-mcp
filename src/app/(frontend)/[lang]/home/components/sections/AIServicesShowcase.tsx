@@ -79,28 +79,28 @@ function getPriceColorClass(color: string, isSpecial: boolean): string {
   return classes[color as keyof typeof classes] || classes.gray
 }
 
-// Функция для форматирования времени выполнения
-function formatDuration(duration?: number | null, t: any): string {
+// Функция для локализованного форматирования времени выполнения
+function formatDuration(duration?: number | null, t: any, locale: 'en' | 'ru' = 'ru'): string {
   if (!duration || duration === 0) {
-    return t('AIAgency.services.duration.byAgreement')
+    return t('duration.byAgreement')
   }
 
   const days = Math.ceil(duration / (60 * 24)) // Конвертируем минуты в дни
 
   if (days <= 7) {
-    return t('AIAgency.services.duration.days', { count: days })
+    return t('duration.days', { count: days })
   } else if (days <= 30) {
     const weeks = Math.ceil(days / 7)
-    return t('AIAgency.services.duration.weeks', { count: weeks })
+    return t('duration.weeks', { count: weeks })
   } else {
     const months = Math.ceil(days / 30)
-    return t('AIAgency.services.duration.months', { count: months })
+    return t('duration.months', { count: months })
   }
 }
 
 export function AIServicesShowcase() {
   const locale = useLocale() as 'en' | 'ru'
-  const t = useTranslations()
+  const t = useTranslations('aiAgency.services')
   const { services, loading, error } = useAIAgencyServices({ limit: 6 })
 
   if (loading) {
@@ -108,11 +108,9 @@ export function AIServicesShowcase() {
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <GridContainer>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('AIAgency.services.title')}
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              {t('AIAgency.services.subtitle')}
+              {t('subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
@@ -155,11 +153,9 @@ export function AIServicesShowcase() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('AIAgency.services.title')}
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              {t('AIAgency.services.subtitle')}
+              {t('subtitle')}
             </p>
           </motion.div>
         </div>
@@ -169,7 +165,7 @@ export function AIServicesShowcase() {
             const Icon = getServiceIcon(service.serviceType)
             const color = getServiceColor(service.serviceType)
             const formattedPrice = formatItemPrice(service, locale)
-            const duration = formatDuration(service.duration, t)
+            const duration = formatDuration(service.duration, t, locale)
             const isAuditService = service.serviceType === 'audit'
 
             return (
@@ -195,7 +191,7 @@ export function AIServicesShowcase() {
 
                 <div className="flex justify-between items-center mb-6">
                   <div className={getPriceColorClass(color, isAuditService || service.price === 0)}>
-                    {service.price === 0 ? t('AIAgency.services.free') : formattedPrice}
+                    {service.price === 0 ? t('free') : formattedPrice}
                   </div>
                   <div className="text-gray-500 text-sm">{duration}</div>
                 </div>
@@ -206,9 +202,7 @@ export function AIServicesShowcase() {
                     whileTap={{ scale: 0.95 }}
                     className={getButtonClass(color, isAuditService || service.price === 0)}
                   >
-                    {isAuditService || service.price === 0
-                      ? t('AIAgency.services.getAudit')
-                      : t('AIAgency.services.order')}
+                    {isAuditService || service.price === 0 ? t('getAudit') : t('order')}
                   </motion.button>
                 </Link>
               </motion.div>
@@ -225,7 +219,7 @@ export function AIServicesShowcase() {
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-all duration-300"
               >
-                {t('AIAgency.services.viewAllServices')}
+                {t('viewAllServices')}
               </motion.button>
             </Link>
           </div>

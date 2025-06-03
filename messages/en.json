@@ -711,7 +711,544 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "name": "Name",
+    "phone": "Phone",
+    "comment": "Comment",
+    "submit": "Submit",
+    "sending": "Sending...",
+    "required": "Required"
+  },
+  "forms": {
+    "leadForm": {
+      "title": "Leave a Request",
+      "description": "We will contact you shortly",
+      "fields": {
+        "name": {
+          "label": "Your Name",
+          "placeholder": "Your name"
+        },
+        "phone": {
+          "label": "Phone",
+          "placeholder": "Phone"
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "Email"
+        },
+        "comment": {
+          "label": "Comment",
+          "placeholder": "Comment (optional)",
+          "placeholderGuarantee": "Describe the task or desired result",
+          "placeholderUrgent": "Describe why it's urgent"
+        }
+      },
+      "buttons": {
+        "submit": "Submit Request",
+        "sending": "Sending...",
+        "close": "Close"
+      },
+      "success": {
+        "title": "Request Successfully Sent!",
+        "description": "Our manager will contact you shortly to discuss project details.",
+        "telegramButton": "Write to Telegram @flow_masters_bot"
+      },
+      "errors": {
+        "submitError": "Submission error",
+        "tryLater": "Error submitting request. Please try later."
+      }
+    },
+    "contactForm": {
+      "title": "Contact Form",
+      "fields": {
+        "name": {
+          "label": "Name",
+          "placeholder": "Your name",
+          "validation": "Name must contain at least 2 characters"
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "your@email.com",
+          "validation": "Enter a valid email"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Message subject"
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Your message",
+          "validation": "Message must contain at least 10 characters"
+        }
+      },
+      "buttons": {
+        "submit": "Send Message",
+        "sending": "Sending..."
+      },
+      "success": {
+        "title": "Message Sent",
+        "description": "Thank you! I will contact you shortly."
+      },
+      "errors": {
+        "title": "Error",
+        "description": "An error occurred while sending.",
+        "failedToSend": "Failed to send message"
+      }
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Stay updated with our latest news",
+      "fields": {
+        "email": {
+          "placeholder": "Enter your email",
+          "label": "Email address"
+        }
+      },
+      "buttons": {
+        "subscribe": "Subscribe",
+        "subscribing": "Subscribing...",
+        "subscribed": "Subscribed!"
+      },
+      "errors": {
+        "invalidEmail": "Please enter a valid email address",
+        "submitError": "Something went wrong. Please try again."
+      }
+    },
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Must be at least {min} characters",
+      "maxLength": "Must be no more than {max} characters"
+    }
+  },
+  "aiAgency": {
+    "hero": {
+      "title": "AI is already changing business.",
+      "subtitle": "Yours is next.",
+      "description": "We implement AI solutions that increase sales by 25% and reduce costs by 35%. Real results in 2-3 months.",
+      "processSteps": {
+        "0": "Analyzing your business",
+        "1": "Finding growth points",
+        "2": "Implementing AI solutions",
+        "3": "You get results"
+      },
+      "buttons": {
+        "freeAudit": "Get Free Audit",
+        "learnMore": "Learn More"
+      },
+      "stats": {
+        "projects": "Projects completed",
+        "clients": "Satisfied clients",
+        "growth": "Average growth",
+        "time": "Implementation time"
+      },
+      "processText": {
+        "now": "Now",
+        "we": "we",
+        "you": "you"
+      },
+      "socialProof": "Trusted by:"
+    },
+    "painPoints": {
+      "title": "Do you recognize yourself?",
+      "subtitle": "If you're not implementing AI — you're sponsoring those who already have",
+      "points": {
+        "0": {
+          "title": "Spending hours on routine?",
+          "description": "Your employees are drowning in repetitive tasks instead of developing the business"
+        },
+        "1": {
+          "title": "Losing customers?",
+          "description": "Slow request processing and lack of personalization drive away buyers"
+        },
+        "2": {
+          "title": "Competitors overtaking?",
+          "description": "While you're thinking, others are already launching AI bots and automating sales"
+        },
+        "3": {
+          "title": "Rising costs?",
+          "description": "Hiring new employees costs more than implementing AI solutions"
+        },
+        "4": {
+          "title": "Low conversion?",
+          "description": "Without personalization and quick response, visitors don't become customers"
+        },
+        "5": {
+          "title": "Afraid of falling behind?",
+          "description": "AI is no longer the future — it's the present. Every day of delay costs money"
+        }
+      },
+      "urgency": {
+        "title": "Every day of delay = lost profit",
+        "description": "While you're reading this, your competitors are already getting leads through AI bots",
+        "button": "Stop losing money"
+      }
+    },
+    "benefits": {
+      "title": "What will AI give you in",
+      "titleHighlight": "2-3 months?",
+      "subtitle": "Real results that our clients get",
+      "items": {
+        "0": {
+          "title": "25% sales growth",
+          "description": "AI assistant works 24/7, doesn't lose leads and converts visitors into customers",
+          "stats": "+25% conversion"
+        },
+        "1": {
+          "title": "Save 80 hours per month",
+          "description": "Automation of repetitive tasks frees up the team for strategic decisions",
+          "stats": "80 hours/month"
+        },
+        "2": {
+          "title": "35% cost reduction",
+          "description": "AI assistant helps optimize processes and reduce operational costs",
+          "stats": "-35% costs"
+        },
+        "3": {
+          "title": "Work without weekends",
+          "description": "AI analyzes customer behavior and suggests business growth points",
+          "stats": "24/7 operation"
+        }
+      },
+      "proofStats": {
+        "conversion": "+15%",
+        "conversionLabel": "Conversion growth",
+        "costs": "-25%",
+        "costsLabel": "Cost reduction",
+        "availability": "24/7",
+        "availabilityLabel": "Work without weekends",
+        "timeline": "6-8",
+        "timelineLabel": "Weeks to results"
+      },
+      "button": "Get my AI solution",
+      "clientResults": {
+        "title": "Average results of our clients in the first 3 months:",
+        "conversion": "+15%",
+        "conversionLabel": "Conversion growth",
+        "costs": "-25%",
+        "costsLabel": "Cost reduction",
+        "availability": "24/7",
+        "availabilityLabel": "Work without weekends",
+        "timeline": "6-8",
+        "timelineLabel": "Weeks to results"
+      }
+    },
+    "services": {
+      "title": "AI Solutions for Your Business",
+      "subtitle": "Choose the solution that fits your needs",
+      "items": {
+        "0": {
+          "title": "AI Chatbot",
+          "description": "24/7 customer support automation",
+          "features": ["Instant responses", "Lead qualification", "Multi-language support"],
+          "price": "from $299/month",
+          "button": "Learn More"
+        },
+        "1": {
+          "title": "Sales Automation",
+          "description": "Automate your sales processes",
+          "features": ["Lead scoring", "Email sequences", "CRM integration"],
+          "price": "from $499/month",
+          "button": "Learn More"
+        },
+        "2": {
+          "title": "Data Analytics",
+          "description": "AI-powered business insights",
+          "features": ["Predictive analytics", "Custom dashboards", "Real-time reports"],
+          "price": "from $799/month",
+          "button": "Learn More"
+        }
+      },
+      "free": "Free",
+      "getAudit": "Get Audit",
+      "order": "Order Service",
+      "viewAllServices": "View All Services",
+      "duration": {
+        "byAgreement": "By agreement",
+        "days": "{count} days",
+        "weeks": "{count} weeks",
+        "months": "{count} months"
+      }
+    },
+    "stats": {
+      "title": "Results That Speak for Themselves",
+      "subtitle": "Real metrics from our clients",
+      "items": {
+        "0": {
+          "value": "150+",
+          "label": "Projects Completed",
+          "description": "Successful AI implementations"
+        },
+        "1": {
+          "value": "25%",
+          "label": "Average Sales Growth",
+          "description": "Within first 3 months"
+        },
+        "2": {
+          "value": "35%",
+          "label": "Cost Reduction",
+          "description": "Through automation"
+        },
+        "3": {
+          "value": "24/7",
+          "label": "Uptime",
+          "description": "Continuous operation"
+        }
+      }
+    },
+    "caseStudies": {
+      "title": "Success Stories",
+      "subtitle": "How we helped businesses grow with AI",
+      "viewAll": "View All Cases",
+      "items": {
+        "0": {
+          "company": "TechCorp",
+          "industry": "E-commerce",
+          "challenge": "Low conversion rates",
+          "solution": "AI chatbot implementation",
+          "results": "+40% conversion, -60% support costs",
+          "testimonial": "AI chatbot increased our sales by 40% in just 2 months"
+        },
+        "1": {
+          "company": "RetailPlus",
+          "industry": "Retail",
+          "challenge": "Manual inventory management",
+          "solution": "Predictive analytics system",
+          "results": "+30% efficiency, -25% waste",
+          "testimonial": "Predictive analytics helped us optimize inventory and reduce waste"
+        },
+        "2": {
+          "company": "ServicePro",
+          "industry": "Services",
+          "challenge": "Customer support overload",
+          "solution": "AI support automation",
+          "results": "+50% satisfaction, -40% response time",
+          "testimonial": "Customer satisfaction increased significantly with AI support"
+        }
+      }
+    },
+    "quiz": {
+      "title": "AI Readiness Assessment",
+      "subtitle": "Find out which AI solution is right for your business",
+      "startButton": "Start Assessment",
+      "nextButton": "Next",
+      "prevButton": "Previous",
+      "submitButton": "Get My Recommendation",
+      "questions": {
+        "0": {
+          "question": "What type of business do you have?",
+          "options": {
+            "0": "E-commerce",
+            "1": "Services (consulting, medical, beauty)",
+            "2": "Manufacturing",
+            "3": "B2B sales"
+          }
+        },
+        "1": {
+          "question": "What is your team size?",
+          "options": {
+            "0": "1-10 people",
+            "1": "11-50 people",
+            "2": "51-200 people",
+            "3": "200+ people"
+          }
+        },
+        "2": {
+          "question": "What is your monthly revenue?",
+          "options": {
+            "0": "Up to $15K",
+            "1": "$15K - $60K",
+            "2": "$60K - $300K",
+            "3": "$300K+"
+          }
+        }
+      },
+      "results": {
+        "title": "Your Recommended AI Solution",
+        "description": "Based on your answers, here's what we recommend:",
+        "getQuote": "Get Free Quote",
+        "metrics": {
+          "monthlyProfit": "Additional monthly profit",
+          "timeSavings": "Time savings per month",
+          "conversionGrowth": "Conversion growth",
+          "investment": "Investment to start",
+          "yearlyROI": "Annual ROI: +{amount}",
+          "paybackPeriod": "AI investment payback will be 6-12 months",
+          "hoursUnit": "h",
+          "investmentRange": "${range}K"
+        },
+        "specialOffer": {
+          "title": "🎁 Special offer",
+          "description": "Get a free business audit and personalized AI implementation strategy"
+        },
+        "progress": {
+          "step": "Step {current} of {total}",
+          "percentage": "{percent}%"
+        }
+      }
+    },
+    "pricing": {
+      "title": "Choose Your AI Solution",
+      "subtitle": "Transparent pricing with guaranteed results",
+      "guarantee": "If the AI solution doesn't work according to specifications — we'll refund 100% of the prepayment",
+      "popularChoice": "Popular Choice",
+      "prepaymentLabel": "Prepayment",
+      "selectPlan": "Select Plan",
+      "cost": "Cost",
+      "from": "from",
+      "guaranteeSection": {
+        "title": "100% Result Guarantee",
+        "description": "We bring the project to full implementation according to specifications or refine it at our own expense.\nYou only pay for working results.",
+        "button": "Start project with guarantee"
+      },
+      "plans": {
+        "0": {
+          "name": "Starter",
+          "price": "$299",
+          "period": "/month",
+          "description": "Perfect for small businesses",
+          "features": {
+            "0": "AI Chatbot",
+            "1": "Basic Analytics",
+            "2": "Email Support",
+            "3": "Setup Included"
+          },
+          "button": "Get Started",
+          "popular": false
+        },
+        "1": {
+          "name": "Professional",
+          "price": "$599",
+          "period": "/month",
+          "description": "For growing businesses",
+          "features": {
+            "0": "Advanced AI Chatbot",
+            "1": "Sales Automation",
+            "2": "Priority Support",
+            "3": "Custom Integration",
+            "4": "Analytics Dashboard"
+          },
+          "button": "Get Started",
+          "popular": true
+        },
+        "2": {
+          "name": "Enterprise",
+          "price": "$1299",
+          "period": "/month",
+          "description": "For large organizations",
+          "features": {
+            "0": "Full AI Suite",
+            "1": "Custom Development",
+            "2": "Dedicated Manager",
+            "3": "24/7 Support",
+            "4": "Advanced Analytics",
+            "5": "API Access"
+          },
+          "button": "Contact Sales",
+          "popular": false
+        }
+      }
+    },
+    "urgency": {
+      "title": "Limited Time Offer",
+      "subtitle": "Get 50% off your first month",
+      "description": "This offer expires in:",
+      "button": "Claim Discount Now",
+      "features": {
+        "0": "Free setup (worth $500)",
+        "1": "Priority implementation",
+        "2": "30-day money-back guarantee"
+      },
+      "critical": {
+        "warning": "⚠️ CRITICAL WARNING",
+        "subtitle": "While you're thinking, your competitors are already capturing the market with AI",
+        "offer": "🔥 LIMITED OFFER",
+        "discount": "30% discount on all packages valid only until the end of the month",
+        "urgentButton": "🚀 START PROJECT URGENTLY",
+        "consultationButton": "Emergency consultation",
+        "responseTime": "We'll respond within 2 hours during business hours"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Answers to the most popular questions about our AI solutions",
+      "items": {
+        "0": {
+          "question": "How long does implementation take?",
+          "answer": "Most AI solutions are implemented within 6-8 weeks, depending on complexity and your specific requirements."
+        },
+        "1": {
+          "question": "Do you provide training for our team?",
+          "answer": "Yes, we provide comprehensive training for your team to ensure they can effectively use and manage the AI solution."
+        },
+        "2": {
+          "question": "What if the AI doesn't deliver promised results?",
+          "answer": "Uses guarantee text from pricing section"
+        },
+        "3": {
+          "question": "Can the AI integrate with our existing systems?",
+          "answer": "Yes, our AI solutions are designed to integrate seamlessly with most popular business systems and platforms."
+        },
+        "4": {
+          "question": "What kind of support do you provide?",
+          "answer": "We provide 24/7 technical support, regular system updates, and ongoing optimization to ensure peak performance."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Ready to Transform Your Business with AI?",
+      "subtitle": "Join 150+ companies that have already increased their profits with our AI solutions",
+      "description": "Don't let your competitors get ahead. Start your AI transformation today.",
+      "button": "Get Free Consultation",
+      "features": {
+        "0": "Free business analysis",
+        "1": "Custom AI strategy",
+        "2": "ROI calculation",
+        "3": "Implementation roadmap"
+      },
+      "urgency": "Limited spots available this month",
+      "form": {
+        "title": "Ready to change",
+        "titleHighlight": "your business?",
+        "subtitle": "Get a personalized AI implementation strategy and start seeing results in 6-8 weeks",
+        "offer": "🎁 Free audit + 30% discount until the end of the month",
+        "contactTitle": "Contact us right now",
+        "contactMethods": {
+          "phone": {
+            "title": "Call",
+            "subtitle": "+7 (999) 123-45-67"
+          },
+          "telegram": {
+            "title": "Telegram",
+            "subtitle": "@ai_agency_bot"
+          },
+          "email": {
+            "title": "Email",
+            "subtitle": "info@ai-agency.ru"
+          }
+        },
+        "formTitle": "Get free audit",
+        "fields": {
+          "name": "Your name",
+          "phone": "Phone",
+          "email": "Email",
+          "message": "Describe your task"
+        },
+        "buttons": {
+          "submit": "Get free audit",
+          "submitting": "Sending...",
+          "submitted": "✅ Request sent!"
+        },
+        "success": {
+          "title": "🎉 Thank you for your request!",
+          "description": "We received your request and will contact you shortly to conduct a free audit.",
+          "telegramText": "💬 For quick contact, write to us on Telegram:",
+          "telegramLink": "@ai_agency_bot"
+        },
+        "finalMessage": "Don't miss the opportunity to outpace your competitors.",
+        "finalUrgency": "Every day of delay = lost profit."
+      }
+    }
   },
   "Services": {
     "orderForm": {

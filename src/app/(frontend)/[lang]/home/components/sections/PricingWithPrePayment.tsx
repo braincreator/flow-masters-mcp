@@ -15,7 +15,7 @@ import { useLeadFormModal } from '../LeadFormModalProvider'
 
 export function PricingWithPrePayment() {
   const locale = useLocale() as 'en' | 'ru'
-  const t = useTranslations()
+  const t = useTranslations('aiAgency.pricing')
   const { plans, loading, error } = useAIAgencyPlans({ limit: 3 })
   const { openModal } = useLeadFormModal()
 
@@ -24,11 +24,9 @@ export function PricingWithPrePayment() {
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <GridContainer>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('AIAgency.pricing.title')}
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              {t('AIAgency.pricing.subtitle')}
+              {t('subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
@@ -80,11 +78,9 @@ export function PricingWithPrePayment() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('AIAgency.pricing.title')}
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              {t('AIAgency.pricing.subtitle')}
+              {t('subtitle')}
             </p>
           </motion.div>
         </div>
@@ -109,7 +105,7 @@ export function PricingWithPrePayment() {
                 {plan.isPopular && (
                   <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-semibold text-center">
-                      {t('AIAgency.pricing.popularChoice')}
+                      {t('popularChoice')}
                     </div>
                   </div>
                 )}
@@ -119,9 +115,7 @@ export function PricingWithPrePayment() {
                   <div className="text-4xl font-bold text-gray-900 mb-2">{formattedPrice}</div>
 
                   <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                    <div className="text-sm text-gray-600 mb-1">
-                      {t('AIAgency.pricing.prepaymentLabel')}
-                    </div>
+                    <div className="text-sm text-gray-600 mb-1">{t('prepaymentLabel')}</div>
                     <div className="text-2xl font-bold text-blue-600">{formattedPrepayment}</div>
                   </div>
                 </div>
@@ -142,8 +136,8 @@ export function PricingWithPrePayment() {
                     onClick={() =>
                       openModal({
                         type: 'pricing-plan',
-                        title: `Выбрать тариф "${plan.name}"`,
-                        description: `Стоимость: ${formattedPrice}. Предоплата: ${formattedPrepayment}`,
+                        title: `${t('selectPlan')} "${plan.name}"`,
+                        description: `${t('cost')}: ${formattedPrice}. ${t('prepaymentLabel')}: ${formattedPrepayment}`,
                       })
                     }
                     className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
@@ -152,7 +146,7 @@ export function PricingWithPrePayment() {
                         : 'bg-gray-900 text-white hover:bg-gray-800'
                     }`}
                   >
-                    {t('AIAgency.pricing.selectPlan')}
+                    {t('selectPlan')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -171,20 +165,25 @@ export function PricingWithPrePayment() {
             <Shield className="w-10 h-10 text-white" />
           </div>
 
-          <h3 className="text-3xl font-bold mb-4">{t('AIAgency.pricing.guarantee.title')}</h3>
+          <h3 className="text-3xl font-bold mb-4">{t('guaranteeSection.title')}</h3>
           <p className="text-xl text-blue-100 mb-6">
-            Доводим проект до полной реализации по ТЗ или дорабатываем за свой счёт.
-            <br />
-            Вы платите только за рабочий результат.
+            {t('guaranteeSection.description')
+              .split('\n')
+              .map((line, index) => (
+                <span key={index}>
+                  {line}
+                  {index === 0 && <br />}
+                </span>
+              ))}
           </p>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg"
-            onClick={() => openModal({ type: 'guarantee', title: 'Начать проект с гарантией' })}
+            onClick={() => openModal({ type: 'guarantee', title: t('guaranteeSection.button') })}
           >
-            {t('AIAgency.pricing.guarantee.button')}
+            {t('guaranteeSection.button')}
           </motion.button>
         </motion.div>
       </GridContainer>

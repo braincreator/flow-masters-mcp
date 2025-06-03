@@ -9,19 +9,27 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
-// Схема валидации Zod (должна совпадать с бэкендом)
-const contactFormSchema = z.object({
-  name: z.string().min(2, { message: 'Имя должно содержать минимум 2 символа' }),
-  email: z.string().email({ message: 'Введите корректный email' }),
-  subject: z.string().optional(), // Тема опциональна
-  message: z.string().min(10, { message: 'Сообщение должно содержать минимум 10 символов' }),
-})
-
-type ContactFormData = z.infer<typeof contactFormSchema>
+type ContactFormData = {
+  name: string
+  email: string
+  subject?: string
+  message: string
+}
 
 export function ContactForm() {
+  const t = useTranslations('forms.contactForm')
   const { toast } = useToast()
+
+  // Create schema with translations
+  const contactFormSchema = z.object({
+    name: z.string().min(2, { message: t('fields.name.validation') }),
+    email: z.string().email({ message: t('fields.email.validation') }),
+    subject: z.string().optional(),
+    message: z.string().min(10, { message: t('fields.message.validation') }),
+  })
+
   const {
     register,
     handleSubmit,
@@ -45,19 +53,19 @@ export function ContactForm() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Не удалось отправить сообщение')
+        throw new Error(result.error || t('errors.failedToSend'))
       }
 
       toast({
-        title: 'Сообщение отправлено',
-        description: 'Спасибо! Я свяжусь с вами в ближайшее время.',
+        title: t('success.title'),
+        description: t('success.description'),
       })
       reset() // Очистить форму после успешной отправки
     } catch (error) {
       console.error('Ошибка отправки формы:', error)
       toast({
-        title: 'Ошибка',
-        description: error instanceof Error ? error.message : 'Произошла ошибка при отправке.',
+        title: t('errors.title'),
+        description: error instanceof Error ? error.message : t('errors.description'),
         variant: 'destructive',
       })
     } finally {
@@ -69,11 +77,11 @@ export function ContactForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-          Ваше имя *
+          {t('fields.name.label')} *
         </label>
         <Input
           id="name"
-          placeholder="Иван Иванов"
+          placeholder={t('fields.name.placeholder')}
           {...register('name')}
           className={errors.name ? 'border-destructive' : ''}
           aria-invalid={errors.name ? 'true' : 'false'}
@@ -83,12 +91,12 @@ export function ContactForm() {
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-          Ваш Email *
+          {t('fields.email.label')} *
         </label>
         <Input
           id="email"
           type="email"
-          placeholder="your.email@example.com"
+          placeholder={t('fields.email.placeholder')}
           {...register('email')}
           className={errors.email ? 'border-destructive' : ''}
           aria-invalid={errors.email ? 'true' : 'false'}
@@ -98,24 +106,23 @@ export function ContactForm() {
 
       <div>
         <label htmlFor="subject" className="block text-sm font-medium text-foreground mb-1">
-          Тема
+          {t('fields.subject.label')}
         </label>
         <Input
           id="subject"
-          placeholder="Тема вашего сообщения (необязательно)"
+          placeholder={t('fields.subject.placeholder')}
           {...register('subject')}
           className={errors.subject ? 'border-destructive' : ''}
         />
-        {/* Ошибки для темы обычно не критичны */}
       </div>
 
       <div>
         <label htmlFor="message" className="block text-sm font-medium text-foreground mb-1">
-          Сообщение *
+          {t('fields.message.label')} *
         </label>
         <Textarea
           id="message"
-          placeholder="Напишите ваше сообщение здесь..."
+          placeholder={t('fields.message.placeholder')}
           rows={6}
           {...register('message')}
           className={errors.message ? 'border-destructive' : ''}
@@ -130,10 +137,10 @@ export function ContactForm() {
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Отправка...
+            {t('buttons.sending')}
           </>
         ) : (
-          'Отправить сообщение'
+          t('buttons.submit')
         )}
       </Button>
     </form>

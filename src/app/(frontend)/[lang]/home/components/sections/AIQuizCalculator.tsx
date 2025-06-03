@@ -17,44 +17,8 @@ import { TrackedCTA } from '../TrackedCTA'
 import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
 import { useLeadFormModal } from '../LeadFormModalProvider'
-
-const quizSteps = [
-  {
-    id: 'business-type',
-    title: 'Какой у вас бизнес?',
-    subtitle: 'Выберите наиболее подходящий вариант',
-    options: [
-      { id: 'ecommerce', label: 'Интернет-магазин', multiplier: 1.2 },
-      { id: 'services', label: 'Услуги (консалтинг, медицина, красота)', multiplier: 1.0 },
-      { id: 'manufacturing', label: 'Производство', multiplier: 0.8 },
-      { id: 'b2b', label: 'B2B продажи', multiplier: 1.1 },
-      { id: 'education', label: 'Образование', multiplier: 0.9 },
-      { id: 'other', label: 'Другое', multiplier: 1.0 },
-    ],
-  },
-  {
-    id: 'team-size',
-    title: 'Размер вашей команды?',
-    subtitle: 'Количество сотрудников в компании',
-    options: [
-      { id: 'small', label: '1-10 человек', multiplier: 0.8 },
-      { id: 'medium', label: '11-50 человек', multiplier: 1.0 },
-      { id: 'large', label: '51-200 человек', multiplier: 1.3 },
-      { id: 'enterprise', label: '200+ человек', multiplier: 1.5 },
-    ],
-  },
-  {
-    id: 'monthly-revenue',
-    title: 'Ваша месячная выручка?',
-    subtitle: 'Примерный оборот в месяц',
-    options: [
-      { id: 'startup', label: 'До 500 000 ₽', multiplier: 0.7 },
-      { id: 'small-business', label: '500 000 - 2 000 000 ₽', multiplier: 1.0 },
-      { id: 'medium-business', label: '2 000 000 - 10 000 000 ₽', multiplier: 1.4 },
-      { id: 'large-business', label: '10 000 000+ ₽', multiplier: 2.0 },
-    ],
-  },
-]
+import { useTranslations, useLocale } from 'next-intl'
+import { formatCurrencyLocalized } from '@/utilities/formatLocalized'
 
 interface QuizAnswer {
   stepId: string
@@ -69,6 +33,45 @@ export function AIQuizCalculator() {
   const [selectedOption, setSelectedOption] = useState<string>('')
   const { trackEvent } = useAnalytics()
   const { openModal } = useLeadFormModal()
+  const t = useTranslations('aiAgency.quiz')
+  const locale = useLocale() as 'en' | 'ru'
+
+  // Create quiz steps from translations
+  const quizSteps = [
+    {
+      id: 'business-type',
+      title: t('questions.0.question'),
+      subtitle: t('subtitle'),
+      options: [
+        { id: 'ecommerce', label: t('questions.0.options.0'), multiplier: 1.2 },
+        { id: 'services', label: t('questions.0.options.1'), multiplier: 1.0 },
+        { id: 'manufacturing', label: t('questions.0.options.2'), multiplier: 0.8 },
+        { id: 'b2b', label: t('questions.0.options.3'), multiplier: 1.1 },
+      ],
+    },
+    {
+      id: 'team-size',
+      title: t('questions.1.question'),
+      subtitle: t('subtitle'),
+      options: [
+        { id: 'small', label: t('questions.1.options.0'), multiplier: 0.8 },
+        { id: 'medium', label: t('questions.1.options.1'), multiplier: 1.0 },
+        { id: 'large', label: t('questions.1.options.2'), multiplier: 1.3 },
+        { id: 'enterprise', label: t('questions.1.options.3'), multiplier: 1.5 },
+      ],
+    },
+    {
+      id: 'monthly-revenue',
+      title: t('questions.2.question'),
+      subtitle: t('subtitle'),
+      options: [
+        { id: 'startup', label: t('questions.2.options.0'), multiplier: 0.7 },
+        { id: 'small-business', label: t('questions.2.options.1'), multiplier: 1.0 },
+        { id: 'medium-business', label: t('questions.2.options.2'), multiplier: 1.4 },
+        { id: 'large-business', label: t('questions.2.options.3'), multiplier: 2.0 },
+      ],
+    },
+  ]
 
   const trackCalculatorCompletion = (results: any) => {
     trackEvent('engagement', 'calculator_completion', 'ai_benefits_calculator', undefined, {
@@ -161,10 +164,8 @@ export function AIQuizCalculator() {
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Ваш персональный расчет готов! 🎉
-              </h2>
-              <p className="text-xl text-gray-600">Вот что ИИ может дать вашему бизнесу</p>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('results.title')}</h2>
+              <p className="text-xl text-gray-600">{t('results.description')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -173,17 +174,20 @@ export function AIQuizCalculator() {
                   <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900 mb-2">
-                  +{results.monthlyROI.toLocaleString()} ₽
+                  +{formatCurrencyLocalized(results.monthlyROI, locale)}
                 </div>
-                <div className="text-gray-600">Дополнительная прибыль в месяц</div>
+                <div className="text-gray-600">{t('results.metrics.monthlyProfit')}</div>
               </div>
 
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-6 h-6 text-blue-600" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">{results.timeSavings}ч</div>
-                <div className="text-gray-600">Экономия времени в месяц</div>
+                <div className="text-2xl font-bold text-gray-900 mb-2">
+                  {results.timeSavings}
+                  {t('results.metrics.hoursUnit')}
+                </div>
+                <div className="text-gray-600">{t('results.metrics.timeSavings')}</div>
               </div>
 
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
@@ -193,7 +197,7 @@ export function AIQuizCalculator() {
                 <div className="text-2xl font-bold text-gray-900 mb-2">
                   +{results.conversionIncrease}%
                 </div>
-                <div className="text-gray-600">Рост конверсии</div>
+                <div className="text-gray-600">{t('results.metrics.conversionGrowth')}</div>
               </div>
 
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
@@ -201,31 +205,33 @@ export function AIQuizCalculator() {
                   <Zap className="w-6 h-6 text-orange-600" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900 mb-2">
-                  {results.investmentRange}К ₽
+                  {t('results.metrics.investmentRange', { range: results.investmentRange })}
                 </div>
-                <div className="text-gray-600">Инвестиции для старта</div>
+                <div className="text-gray-600">{t('results.metrics.investment')}</div>
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center mb-8">
               <h3 className="text-2xl font-bold mb-4">
-                Годовой ROI: +{results.yearlyROI.toLocaleString()} ₽
+                {t('results.metrics.yearlyROI', {
+                  amount: formatCurrencyLocalized(results.yearlyROI, locale),
+                })}
               </h3>
-              <p className="text-blue-100 mb-6">
-                Окупаемость инвестиций в ИИ составит 6-12 месяцев
-              </p>
+              <p className="text-blue-100 mb-6">{t('results.metrics.paybackPeriod')}</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => openModal({
-                    type: 'calculator-result',
-                    title: 'Получить персональное предложение',
-                    description: `На основе ваших результатов: годовой ROI +${results.yearlyROI.toLocaleString()} ₽`
-                  })}
+                  onClick={() =>
+                    openModal({
+                      type: 'calculator-result',
+                      title: t('results.getQuote'),
+                      description: `${t('results.description')} ROI +${formatCurrencyLocalized(results.yearlyROI, locale)}`,
+                    })
+                  }
                   className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Получить персональное предложение
+                  {t('results.getQuote')}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -233,16 +239,14 @@ export function AIQuizCalculator() {
                   onClick={resetQuiz}
                   className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 transition-all duration-300"
                 >
-                  Пройти расчет заново
+                  {t('startButton')}
                 </motion.button>
               </div>
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-center">
-              <h4 className="font-bold text-gray-900 mb-2">🎁 Специальное предложение</h4>
-              <p className="text-gray-700">
-                Получите бесплатный аудит вашего бизнеса и персональную стратегию внедрения ИИ
-              </p>
+              <h4 className="font-bold text-gray-900 mb-2">{t('results.specialOffer.title')}</h4>
+              <p className="text-gray-700">{t('results.specialOffer.description')}</p>
             </div>
           </motion.div>
         </GridContainer>
@@ -264,12 +268,8 @@ export function AIQuizCalculator() {
               <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Calculator className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Калькулятор выгоды от ИИ
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Узнайте, сколько ИИ может принести вашему бизнесу за 2 минуты
-              </p>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
+              <p className="text-xl text-gray-600 leading-relaxed">{t('subtitle')}</p>
             </motion.div>
           </div>
 
@@ -277,10 +277,12 @@ export function AIQuizCalculator() {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm text-gray-600">
-                Шаг {currentStep + 1} из {quizSteps.length}
+                {t('results.progress.step', { current: currentStep + 1, total: quizSteps.length })}
               </span>
               <span className="text-sm text-gray-600">
-                {Math.round(((currentStep + 1) / quizSteps.length) * 100)}%
+                {t('results.progress.percentage', {
+                  percent: Math.round(((currentStep + 1) / quizSteps.length) * 100),
+                })}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -342,7 +344,7 @@ export function AIQuizCalculator() {
                   )}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Назад
+                  {t('prevButton')}
                 </button>
 
                 <button
@@ -355,7 +357,7 @@ export function AIQuizCalculator() {
                       : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl',
                   )}
                 >
-                  {isLastStep ? 'Получить результат' : 'Далее'}
+                  {isLastStep ? t('submitButton') : t('nextButton')}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

@@ -6,54 +6,26 @@ import { GridContainer } from '@/components/GridContainer'
 import { AlertTriangle, Clock, TrendingDown, Users, DollarSign, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLeadFormModal } from '../LeadFormModalProvider'
+import { useTranslations } from 'next-intl'
 
-const painPoints = [
-  {
-    icon: Clock,
-    title: 'Тратите часы на рутину?',
-    description: 'Ваши сотрудники тонут в повторяющихся задачах вместо развития бизнеса',
-    color: 'text-red-500',
-    bgColor: 'bg-red-500/10',
-  },
-  {
-    icon: TrendingDown,
-    title: 'Теряете клиентов?',
-    description: 'Медленная обработка заявок и отсутствие персонализации отпугивают покупателей',
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-  },
-  {
-    icon: Users,
-    title: 'Конкуренты обгоняют?',
-    description: 'Пока вы думаете, другие уже запускают ИИ-ботов и автоматизируют продажи',
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-500/10',
-  },
-  {
-    icon: DollarSign,
-    title: 'Растут расходы?',
-    description: 'Найм новых сотрудников стоит дороже, чем внедрение ИИ-решений',
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-  },
-  {
-    icon: Target,
-    title: 'Низкая конверсия?',
-    description: 'Без персонализации и быстрой реакции посетители не становятся клиентами',
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-  },
-  {
-    icon: AlertTriangle,
-    title: 'Боитесь отстать?',
-    description: 'ИИ уже не будущее — это настоящее. Каждый день промедления стоит денег',
-    color: 'text-red-600',
-    bgColor: 'bg-red-600/10',
-  },
+const painPointIcons = [
+  { icon: Clock, color: 'text-red-500', bgColor: 'bg-red-500/10' },
+  { icon: TrendingDown, color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+  { icon: Users, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10' },
+  { icon: DollarSign, color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+  { icon: Target, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+  { icon: AlertTriangle, color: 'text-red-600', bgColor: 'bg-red-600/10' },
 ]
 
 export function PainPointsSection() {
   const { openModal } = useLeadFormModal()
+  const t = useTranslations('aiAgency.painPoints')
+
+  const painPoints = painPointIcons.map((iconConfig, index) => ({
+    title: t(`points.${index}.title`),
+    description: t(`points.${index}.description`),
+    ...iconConfig,
+  }))
 
   return (
     <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
@@ -65,9 +37,9 @@ export function PainPointsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Узнаёте себя?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Если вы не внедряете ИИ — вы спонсируете тех, кто уже это сделал
+              {t('subtitle')}
             </p>
           </motion.div>
         </div>
@@ -120,21 +92,15 @@ export function PainPointsSection() {
           className="text-center mt-16"
         >
           <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 border border-red-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Каждый день промедления = потерянная прибыль
-            </h3>
-            <p className="text-lg text-gray-700 mb-6">
-              Пока вы читаете это, ваши конкуренты уже получают заявки через ИИ-ботов
-            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('urgency.title')}</h3>
+            <p className="text-lg text-gray-700 mb-6">{t('urgency.description')}</p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() =>
-                openModal({ type: 'urgent', title: 'Хватит терять деньги! Начать сейчас' })
-              }
+              onClick={() => openModal({ type: 'urgent', title: t('urgency.button') })}
             >
-              Хватит терять деньги! Начать сейчас →
+              {t('urgency.button')} →
             </motion.button>
           </div>
         </motion.div>

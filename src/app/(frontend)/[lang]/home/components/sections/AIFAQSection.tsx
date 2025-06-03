@@ -6,61 +6,26 @@ import { useLocale, useTranslations } from 'next-intl'
 import { GridContainer } from '@/components/GridContainer'
 import { ChevronDown } from 'lucide-react'
 
-const getFAQs = (locale: 'en' | 'ru' = 'ru') => {
-  if (locale === 'en') {
-    return [
-      {
-        question: 'Is AI suitable for my business?',
-        answer:
-          'AI is suitable for 95% of businesses. If you have repetitive processes, customer communication, or data processing — AI will definitely help.',
-      },
-      {
-        question: "Why such a price? It's expensive!",
-        answer:
-          'The price pays for itself in 2-3 months. One AI assistant replaces 3-5 employees, works 24/7 and increases sales by 30-50%.',
-      },
-      {
-        question: 'Why is prepayment needed?',
-        answer:
-          'Prepayment is needed to reserve team resources. We create a personalized solution for your business, which requires expert time.',
-      },
-      {
-        question: "What if AI doesn't bring results?",
-        answer:
-          "If the AI solution doesn't work according to the technical specifications — we'll return 100% of the prepayment.",
-      },
-    ]
-  }
-
-  return [
-    {
-      question: 'Подойдет ли ИИ для моего бизнеса?',
-      answer:
-        'ИИ подходит для 95% бизнесов. Если у вас есть повторяющиеся процессы, общение с клиентами или обработка данных — ИИ точно поможет.',
-    },
-    {
-      question: 'Почему такая цена? Это дорого!',
-      answer:
-        'Цена окупается за 2-3 месяца. Один ИИ-ассистент заменяет 3-5 сотрудников, работает 24/7 и увеличивает продажи на 30-50%.',
-    },
-    {
-      question: 'Почему нужна предоплата?',
-      answer:
-        'Предоплата нужна для резервирования ресурсов команды. Мы создаем персональное решение под ваш бизнес, что требует времени экспертов.',
-    },
-    {
-      question: 'А если ИИ не принесет результат?',
-      answer:
-        'Доводим проект до полной реализации по ТЗ или дорабатываем за свой счёт.<br />Вы платите только за рабочий результат.',
-    },
-  ]
-}
-
 export function AIFAQSection() {
   const locale = useLocale() as 'en' | 'ru'
-  const t = useTranslations()
+  const t = useTranslations('aiAgency.faq')
+  const tPricing = useTranslations('aiAgency.pricing')
   const [openQuestion, setOpenQuestion] = useState<number | null>(0)
-  const faqs = getFAQs(locale)
+
+  // Create FAQs from translations
+  const faqs = [0, 1, 2, 3, 4].map((index) => {
+    // For the guarantee question (index 2), use the same text as in guarantee section
+    if (index === 2) {
+      return {
+        question: t(`items.${index}.question`),
+        answer: tPricing('guaranteeSection.description'), // Use detailed guarantee text
+      }
+    }
+    return {
+      question: t(`items.${index}.question`),
+      answer: t(`items.${index}.answer`),
+    }
+  })
 
   return (
     <section className="py-20 bg-white">
@@ -72,10 +37,8 @@ export function AIFAQSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('AIAgency.faq.title')}
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t('AIAgency.faq.subtitle')}</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t('subtitle')}</p>
           </motion.div>
         </div>
 

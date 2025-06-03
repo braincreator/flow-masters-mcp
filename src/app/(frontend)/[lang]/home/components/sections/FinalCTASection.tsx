@@ -4,8 +4,10 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function FinalCTASection() {
+  const t = useTranslations('aiAgency.finalCta.form')
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -34,13 +36,13 @@ export function FinalCTASection() {
       })
 
       if (!response.ok) {
-        throw new Error('Ошибка отправки формы')
+        throw new Error(t('buttons.submitting'))
       }
 
       setIsSubmitted(true)
     } catch (error) {
       console.error('Error submitting form:', error)
-      alert('Произошла ошибка при отправке формы. Попробуйте еще раз.')
+      alert(t('buttons.submitting'))
     } finally {
       setIsSubmitting(false)
     }
@@ -57,20 +59,17 @@ export function FinalCTASection() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-5xl md:text-7xl font-bold mb-6">
-              Готовы изменить
+              {t('title')}
               <br />
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                свой бизнес?
+                {t('titleHighlight')}
               </span>
             </h2>
 
-            <p className="text-2xl text-gray-300 max-w-4xl mx-auto mb-8">
-              Получите персональную стратегию внедрения ИИ и начните получать результат уже через
-              6-8 недель
-            </p>
+            <p className="text-2xl text-gray-300 max-w-4xl mx-auto mb-8">{t('subtitle')}</p>
 
             <div className="bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full inline-block font-bold text-lg">
-              🎁 Бесплатный аудит + скидка 30% до конца месяца
+              {t('offer')}
             </div>
           </motion.div>
         </div>
@@ -83,13 +82,25 @@ export function FinalCTASection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h3 className="text-3xl font-bold mb-8">Свяжитесь с нами прямо сейчас</h3>
+            <h3 className="text-3xl font-bold mb-8">{t('contactTitle')}</h3>
 
             <div className="space-y-6">
               {[
-                { icon: Phone, title: 'Позвонить', subtitle: '+7 (999) 123-45-67' },
-                { icon: MessageCircle, title: 'Telegram', subtitle: '@ai_agency_bot' },
-                { icon: Mail, title: 'Email', subtitle: 'info@ai-agency.ru' },
+                {
+                  icon: Phone,
+                  title: t('contactMethods.phone.title'),
+                  subtitle: t('contactMethods.phone.subtitle'),
+                },
+                {
+                  icon: MessageCircle,
+                  title: t('contactMethods.telegram.title'),
+                  subtitle: t('contactMethods.telegram.subtitle'),
+                },
+                {
+                  icon: Mail,
+                  title: t('contactMethods.email.title'),
+                  subtitle: t('contactMethods.email.subtitle'),
+                },
               ].map((method, index) => {
                 const Icon = method.icon
                 return (
@@ -120,12 +131,12 @@ export function FinalCTASection() {
             transition={{ duration: 0.8 }}
             className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20"
           >
-            <h3 className="text-2xl font-bold mb-6 text-center">Получить бесплатный аудит</h3>
+            <h3 className="text-2xl font-bold mb-6 text-center">{t('formTitle')}</h3>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <input
                 type="text"
-                placeholder="Ваше имя"
+                placeholder={t('fields.name')}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -134,7 +145,7 @@ export function FinalCTASection() {
 
               <input
                 type="tel"
-                placeholder="Телефон"
+                placeholder={t('fields.phone')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -143,14 +154,14 @@ export function FinalCTASection() {
 
               <input
                 type="email"
-                placeholder="Email"
+                placeholder={t('fields.email')}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               <textarea
-                placeholder="Опишите вашу задачу"
+                placeholder={t('fields.message')}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 rows={4}
@@ -166,21 +177,17 @@ export function FinalCTASection() {
                   isSubmitted
                     ? 'bg-green-600 text-white'
                     : isSubmitting
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                 }`}
               >
                 {isSubmitted ? (
-                  <>
-                    ✅ Заявка отправлена!
-                  </>
+                  <>{t('buttons.submitted')}</>
                 ) : isSubmitting ? (
-                  <>
-                    Отправляем...
-                  </>
+                  <>{t('buttons.submitting')}</>
                 ) : (
                   <>
-                    Получить бесплатный аудит
+                    {t('buttons.submit')}
                     <ArrowRight className="ml-2 h-5 w-5 inline" />
                   </>
                 )}
@@ -193,23 +200,17 @@ export function FinalCTASection() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-6 p-6 bg-green-600/20 border border-green-500/30 rounded-xl"
               >
-                <h4 className="text-xl font-bold text-green-400 mb-3">
-                  🎉 Спасибо за заявку!
-                </h4>
-                <p className="text-green-100 mb-4">
-                  Мы получили вашу заявку и свяжемся с вами в ближайшее время для проведения бесплатного аудита.
-                </p>
+                <h4 className="text-xl font-bold text-green-400 mb-3">{t('success.title')}</h4>
+                <p className="text-green-100 mb-4">{t('success.description')}</p>
                 <div className="bg-blue-600/30 border border-blue-500/30 rounded-lg p-4">
-                  <p className="text-blue-100 text-sm mb-2">
-                    💬 Для быстрой связи напишите нам в Telegram:
-                  </p>
+                  <p className="text-blue-100 text-sm mb-2">{t('success.telegramText')}</p>
                   <a
                     href="https://t.me/ai_agency_bot"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-blue-300 hover:text-blue-200 font-semibold"
                   >
-                    @ai_agency_bot
+                    {t('success.telegramLink')}
                     <ArrowRight className="w-4 h-4" />
                   </a>
                 </div>
@@ -226,11 +227,9 @@ export function FinalCTASection() {
           className="text-center mt-16"
         >
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Не упустите возможность обогнать конкурентов.
+            {t('finalMessage')}
             <br />
-            <span className="text-yellow-400 font-semibold">
-              Каждый день промедления = потерянная прибыль.
-            </span>
+            <span className="text-yellow-400 font-semibold">{t('finalUrgency')}</span>
           </p>
         </motion.div>
       </GridContainer>

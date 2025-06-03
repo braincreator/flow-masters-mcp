@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, MessageCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ModalLeadFormProps {
   open: boolean
@@ -13,14 +14,21 @@ interface ModalLeadFormProps {
 export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
   open,
   onClose,
-  title = 'Оставьте заявку',
-  description = 'Мы свяжемся с вами в ближайшее время',
+  title,
+  description,
   actionType = 'default',
 }) => {
+  const t = useTranslations('forms.leadForm')
+  const tCommon = useTranslations('common')
+
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', comment: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Use translations as defaults if not provided
+  const modalTitle = title || t('title')
+  const modalDescription = description || t('description')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -59,13 +67,13 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.message || 'Ошибка отправки')
+        throw new Error(data.message || t('errors.submitError'))
       }
 
       setSubmitted(true)
     } catch (err) {
       console.error('Form submission error:', err)
-      setError(err instanceof Error ? err.message : 'Ошибка при отправке заявки. Попробуйте позже.')
+      setError(err instanceof Error ? err.message : t('errors.tryLater'))
     } finally {
       setLoading(false)
     }
@@ -90,14 +98,14 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
               onClick={handleClose}
-              aria-label="Закрыть"
+              aria-label={tCommon('close')}
             >
               ×
             </button>
             {!submitted ? (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <h2 className="text-2xl font-bold mb-2 text-gray-900">{title}</h2>
-                <p className="text-gray-600 mb-4">{description}</p>
+                <h2 className="text-2xl font-bold mb-2 text-gray-900">{modalTitle}</h2>
+                <p className="text-gray-600 mb-4">{modalDescription}</p>
 
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -108,7 +116,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   name="name"
                   type="text"
                   required
-                  placeholder="Ваше имя"
+                  placeholder={t('fields.name.placeholder')}
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.name}
                   onChange={handleChange}
@@ -117,7 +125,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   name="phone"
                   type="tel"
                   required
-                  placeholder="Телефон"
+                  placeholder={t('fields.phone.placeholder')}
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.phone}
                   onChange={handleChange}
@@ -125,7 +133,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                 <input
                   name="email"
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('fields.email.placeholder')}
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.email}
                   onChange={handleChange}
@@ -134,10 +142,10 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   name="comment"
                   placeholder={
                     actionType === 'guarantee'
-                      ? 'Опишите задачу или желаемый результат'
+                      ? t('fields.comment.placeholderGuarantee')
                       : actionType === 'urgent'
-                        ? 'Опишите, почему важно срочно'
-                        : 'Комментарий (опционально)'
+                        ? t('fields.comment.placeholderUrgent')
+                        : t('fields.comment.placeholder')
                   }
                   className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
                   value={form.comment}
@@ -151,10 +159,10 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   {loading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Отправка...
+                      {t('buttons.sending')}
                     </div>
                   ) : (
-                    'Отправить заявку'
+                    t('buttons.submit')
                   )}
                 </button>
               </form>
@@ -180,7 +188,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                  Заявка успешно отправлена!
+                  {t('success.title')}
                 </motion.div>
 
                 <motion.div
@@ -189,7 +197,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.5 }}
                 >
-                  Наш менеджер свяжется с вами в ближайшее время для обсуждения деталей проекта.
+                  {t('success.description')}
                 </motion.div>
 
                 <motion.div
@@ -205,7 +213,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                     className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Написать в Telegram @flow_masters_bot
+                    {t('success.telegramButton')}
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
 
@@ -213,7 +221,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                     className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:bg-gray-200"
                     onClick={handleClose}
                   >
-                    Закрыть
+                    {t('buttons.close')}
                   </button>
                 </motion.div>
               </motion.div>

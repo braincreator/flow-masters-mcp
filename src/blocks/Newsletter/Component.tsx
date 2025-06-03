@@ -10,6 +10,7 @@ import { cn } from '@/utilities/ui'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 import { RichText } from '@/components/RichText'
+import { useTranslations } from 'next-intl'
 
 type NewsletterStyle = 'default' | 'card' | 'minimal'
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -35,18 +36,22 @@ const validateEmail = (email: string): boolean => {
 export const Newsletter: React.FC<NewsletterProps> = ({
   heading,
   description,
-  buttonText = 'Subscribe',
+  buttonText,
   settings,
   className,
   style = 'default',
   storageKey = 'newsletter_subscribed',
   forceShow = false,
 }) => {
+  const t = useTranslations('forms.newsletter')
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [error, setError] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isClient, setIsClient] = useState(false)
+
+  // Use translation as default if not provided
+  const defaultButtonText = buttonText || t('buttons.subscribe')
 
   useEffect(() => {
     setIsClient(true)
@@ -68,7 +73,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     e.preventDefault()
 
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address')
+      setError(t('errors.invalidEmail'))
       return
     }
 
@@ -95,7 +100,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       }
     } catch (err) {
       setStatus('error')
-      setError('Something went wrong. Please try again.')
+      setError(t('errors.submitError'))
       console.error('Subscription error:', err)
     }
   }
@@ -138,10 +143,10 @@ export const Newsletter: React.FC<NewsletterProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('fields.email.placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    aria-label="Email address"
+                    aria-label={t('fields.email.label')}
                     disabled={status === 'loading' || status === 'success'}
                     className={cn('flex-1', error && 'border-red-500 focus-visible:ring-red-500')}
                   />
@@ -154,7 +159,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
                       <Loader2 className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 animate-spin" />
                     )}
                     <span className={cn(status === 'loading' && 'opacity-0')}>
-                      {status === 'success' ? 'Subscribed!' : buttonText}
+                      {status === 'success' ? t('buttons.subscribed') : defaultButtonText}
                     </span>
                   </Button>
                 </div>
@@ -169,7 +174,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
                 {status === 'success' && (
                   <div className="flex items-center gap-2 text-sm text-green-500 animate-in fade-in slide-in-from-top-1">
                     <CheckCircle className="h-4 w-4" />
-                    <span>Thank you for subscribing!</span>
+                    <span>{t('buttons.subscribed')}</span>
                   </div>
                 )}
               </form>
@@ -177,14 +182,14 @@ export const Newsletter: React.FC<NewsletterProps> = ({
           ) : (
             <div className="flex items-center justify-center gap-2 text-lg text-green-600 p-8">
               <CheckCircle className="h-6 w-6" />
-              <span>Thank you for subscribing!</span>
+              <span>{t('buttons.subscribed')}</span>
             </div>
           )}
 
           {status === 'success' && (
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-500 animate-in fade-in slide-in-from-top-1">
               <CheckCircle className="h-4 w-4" />
-              <span>Thank you for subscribing!</span>
+              <span>{t('buttons.subscribed')}</span>
             </div>
           )}
 

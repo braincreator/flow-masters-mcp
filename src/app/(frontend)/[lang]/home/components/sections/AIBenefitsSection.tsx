@@ -5,36 +5,20 @@ import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { TrendingUp, Clock, DollarSign, Users, CheckCircle } from 'lucide-react'
 import { useLeadFormModal } from '../LeadFormModalProvider'
+import { useTranslations } from 'next-intl'
 
-const benefits = [
-  {
-    icon: TrendingUp,
-    title: 'Рост продаж на 25%',
-    description: 'ИИ-ассистент работает 24/7, не теряет лиды и конвертирует посетителей в клиентов',
-    stats: '+25% конверсия',
-  },
-  {
-    icon: Clock,
-    title: 'Экономия 80 часов в месяц',
-    description: 'Автоматизация повторяющихся задач освобождает команду для стратегических решений',
-    stats: '80 часов/мес',
-  },
-  {
-    icon: DollarSign,
-    title: 'Снижение затрат на 35%',
-    description: 'ИИ-ассистент помогает оптимизировать процессы и сократить операционные расходы',
-    stats: '-35% затрат',
-  },
-  {
-    icon: Users,
-    title: 'Работа без выходных',
-    description: 'ИИ анализирует поведение клиентов и предлагает точки роста бизнеса',
-    stats: '24/7 работа',
-  },
-]
+const benefitIcons = [TrendingUp, Clock, DollarSign, Users]
 
 export function AIBenefitsSection() {
   const { openModal } = useLeadFormModal()
+  const t = useTranslations('aiAgency.benefits')
+
+  const benefits = benefitIcons.map((icon, index) => ({
+    icon,
+    title: t(`items.${index}.title`),
+    description: t(`items.${index}.description`),
+    stats: t(`items.${index}.stats`),
+  }))
 
   return (
     <section className="py-20 bg-white">
@@ -47,14 +31,14 @@ export function AIBenefitsSection() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Что даст вам ИИ через
+              {t('title')}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {' '}
-                2-3 месяца?
+                {t('titleHighlight')}
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Реальные результаты, которые получают наши клиенты
+              {t('subtitle')}
             </p>
           </motion.div>
         </div>
@@ -93,26 +77,24 @@ export function AIBenefitsSection() {
           transition={{ duration: 0.8 }}
           className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center mt-16"
         >
-          <h3 className="text-2xl font-bold mb-6">
-            Средние результаты наших клиентов за первые 3 месяца:
-          </h3>
+          <h3 className="text-2xl font-bold mb-6">{t('clientResults.title')}</h3>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-3xl font-bold mb-2">+15%</div>
-              <div className="text-blue-100">Рост конверсии</div>
+              <div className="text-3xl font-bold mb-2">{t('clientResults.conversion')}</div>
+              <div className="text-blue-100">{t('clientResults.conversionLabel')}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold mb-2">-25%</div>
-              <div className="text-blue-100">Снижение затрат</div>
+              <div className="text-3xl font-bold mb-2">{t('clientResults.costs')}</div>
+              <div className="text-blue-100">{t('clientResults.costsLabel')}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold mb-2">24/7</div>
-              <div className="text-blue-100">Работа без выходных</div>
+              <div className="text-3xl font-bold mb-2">{t('clientResults.availability')}</div>
+              <div className="text-blue-100">{t('clientResults.availabilityLabel')}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold mb-2">6-8</div>
-              <div className="text-blue-100">Недель до результата</div>
+              <div className="text-3xl font-bold mb-2">{t('clientResults.timeline')}</div>
+              <div className="text-blue-100">{t('clientResults.timelineLabel')}</div>
             </div>
           </div>
 
@@ -120,9 +102,9 @@ export function AIBenefitsSection() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => openModal({ type: 'results', title: 'Получить такие же результаты' })}
+            onClick={() => openModal({ type: 'results', title: t('button') })}
           >
-            Получить такие же результаты →
+            {t('button')} →
           </motion.button>
         </motion.div>
       </GridContainer>
