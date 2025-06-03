@@ -837,7 +837,7 @@
         "learnMore": "Learn More"
       },
       "stats": {
-        "projects": "Projects completed",
+        "projects": "Years of experience",
         "clients": "Satisfied clients",
         "growth": "Average growth",
         "time": "Implementation time"
@@ -975,9 +975,9 @@
       "subtitle": "Real metrics from our clients",
       "items": {
         "0": {
-          "value": "150+",
-          "label": "Projects Completed",
-          "description": "Successful AI implementations"
+          "value": "2+",
+          "label": "Years of Experience",
+          "description": "In AI and automation"
         },
         "1": {
           "value": "25%",
@@ -1197,7 +1197,7 @@
     },
     "finalCta": {
       "title": "Ready to Transform Your Business with AI?",
-      "subtitle": "Join 150+ companies that have already increased their profits with our AI solutions",
+      "subtitle": "Join companies that have already increased their profits with our AI solutions",
       "description": "Don't let your competitors get ahead. Start your AI transformation today.",
       "button": "Get Free Consultation",
       "features": {

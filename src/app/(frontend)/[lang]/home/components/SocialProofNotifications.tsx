@@ -22,7 +22,7 @@ const mockEvents: SocialProofEvent[] = [
     message: 'заказал консультацию по внедрению ИИ',
     location: 'Москва',
     timeAgo: '2 минуты назад',
-    name: 'Алексей П.'
+    name: 'Алексей П.',
   },
   {
     id: '2',
@@ -30,7 +30,7 @@ const mockEvents: SocialProofEvent[] = [
     message: 'скачал гайд по автоматизации бизнеса',
     location: 'Санкт-Петербург',
     timeAgo: '5 минут назад',
-    name: 'Мария С.'
+    name: 'Мария С.',
   },
   {
     id: '3',
@@ -38,7 +38,7 @@ const mockEvents: SocialProofEvent[] = [
     message: 'подписался на рассылку об ИИ-трендах',
     location: 'Екатеринбург',
     timeAgo: '8 минут назад',
-    name: 'Дмитрий К.'
+    name: 'Дмитрий К.',
   },
   {
     id: '4',
@@ -46,7 +46,7 @@ const mockEvents: SocialProofEvent[] = [
     message: 'заказал разработку чат-бота',
     location: 'Новосибирск',
     timeAgo: '12 минут назад',
-    name: 'Елена В.'
+    name: 'Елена В.',
   },
   {
     id: '5',
@@ -54,7 +54,7 @@ const mockEvents: SocialProofEvent[] = [
     message: 'записался на бесплатный аудит',
     location: 'Казань',
     timeAgo: '15 минут назад',
-    name: 'Игорь Р.'
+    name: 'Игорь Р.',
   },
   {
     id: '6',
@@ -62,22 +62,22 @@ const mockEvents: SocialProofEvent[] = [
     message: 'заказал ИИ-агента для продаж',
     location: 'Ростов-на-Дону',
     timeAgo: '18 минут назад',
-    name: 'Анна Л.'
-  }
+    name: 'Анна Л.',
+  },
 ]
 
 const eventIcons = {
   signup: Users,
   purchase: CheckCircle,
   consultation: TrendingUp,
-  download: Clock
+  download: Clock,
 }
 
 const eventColors = {
   signup: 'bg-blue-500',
   purchase: 'bg-green-500',
   consultation: 'bg-purple-500',
-  download: 'bg-orange-500'
+  download: 'bg-orange-500',
 }
 
 export function SocialProofNotifications() {
@@ -124,42 +124,36 @@ export function SocialProofNotifications() {
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 backdrop-blur-sm">
             <div className="flex items-start space-x-3">
               {/* Icon */}
-              <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                eventColors[currentEvent.type]
-              )}>
+              <div
+                className={cn(
+                  'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                  eventColors[currentEvent.type],
+                )}
+              >
                 {React.createElement(eventIcons[currentEvent.type], {
-                  className: "w-5 h-5 text-white"
+                  className: 'w-5 h-5 text-white',
                 })}
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {currentEvent.name}
-                  </span>
+                  <span className="font-semibold text-gray-900 text-sm">{currentEvent.name}</span>
                   {currentEvent.location && (
                     <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                       {currentEvent.location}
                     </span>
                   )}
                 </div>
-                
-                <p className="text-sm text-gray-700 mb-2">
-                  {currentEvent.message}
-                </p>
-                
+
+                <p className="text-sm text-gray-700 mb-2">{currentEvent.message}</p>
+
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    {currentEvent.timeAgo}
-                  </span>
-                  
+                  <span className="text-xs text-gray-500">{currentEvent.timeAgo}</span>
+
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs text-green-600 font-medium">
-                      Онлайн
-                    </span>
+                    <span className="text-xs text-green-600 font-medium">Онлайн</span>
                   </div>
                 </div>
               </div>
@@ -170,7 +164,11 @@ export function SocialProofNotifications() {
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
@@ -186,15 +184,15 @@ export function LiveStatsCounter() {
   const [stats, setStats] = useState({
     activeUsers: 47,
     consultationsToday: 12,
-    projectsCompleted: 156
+    happyClients: 28,
   })
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setStats(prev => ({
+      setStats((prev) => ({
         activeUsers: prev.activeUsers + Math.floor(Math.random() * 3) - 1,
         consultationsToday: prev.consultationsToday + (Math.random() > 0.7 ? 1 : 0),
-        projectsCompleted: prev.projectsCompleted + (Math.random() > 0.9 ? 1 : 0)
+        happyClients: prev.happyClients + (Math.random() > 0.95 ? 1 : 0),
       }))
     }, 30000) // Update every 30 seconds
 
@@ -203,10 +201,8 @@ export function LiveStatsCounter() {
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-      <h3 className="text-lg font-semibold text-white mb-4 text-center">
-        🔥 Прямо сейчас
-      </h3>
-      
+      <h3 className="text-lg font-semibold text-white mb-4 text-center">🔥 Прямо сейчас</h3>
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-white/80">Активных посетителей:</span>
@@ -215,15 +211,15 @@ export function LiveStatsCounter() {
             <span className="text-white font-bold">{stats.activeUsers}</span>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-white/80">Консультаций сегодня:</span>
           <span className="text-yellow-400 font-bold">{stats.consultationsToday}</span>
         </div>
-        
+
         <div className="flex items-center justify-between">
-          <span className="text-white/80">Проектов завершено:</span>
-          <span className="text-blue-400 font-bold">{stats.projectsCompleted}</span>
+          <span className="text-white/80">Довольных клиентов:</span>
+          <span className="text-blue-400 font-bold">{stats.happyClients}</span>
         </div>
       </div>
     </div>
@@ -233,11 +229,11 @@ export function LiveStatsCounter() {
 // Testimonial ticker
 export function TestimonialTicker() {
   const testimonials = [
-    "«ИИ увеличил наши продажи на 73% за месяц» — Алексей П., ТехноМаркет",
-    "«Сэкономили 120 часов в месяц на рутине» — Мария С., МедКлиника",
-    "«ROI 1200% за первые 3 недели» — Дмитрий К., СтройГрупп",
-    "«Лучшее решение для автоматизации» — Елена В., Ритейл Про",
-    "«Клиенты в восторге от скорости ответов» — Игорь Р., Консалт+"
+    '«ИИ увеличил наши продажи на 73% за месяц» — Алексей П., ТехноМаркет',
+    '«Сэкономили 120 часов в месяц на рутине» — Мария С., МедКлиника',
+    '«ROI 1200% за первые 3 недели» — Дмитрий К., СтройГрупп',
+    '«Лучшее решение для автоматизации» — Елена В., Ритейл Про',
+    '«Клиенты в восторге от скорости ответов» — Игорь Р., Консалт+',
   ]
 
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -254,7 +250,7 @@ export function TestimonialTicker() {
     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
       <div className="text-center">
         <h4 className="font-semibold text-gray-900 mb-4">💬 Что говорят клиенты</h4>
-        
+
         <AnimatePresence mode="wait">
           <motion.p
             key={currentIndex}
@@ -267,14 +263,14 @@ export function TestimonialTicker() {
             {testimonials[currentIndex]}
           </motion.p>
         </AnimatePresence>
-        
+
         <div className="flex justify-center space-x-2 mt-4">
           {testimonials.map((_, index) => (
             <div
               key={index}
               className={cn(
-                "w-2 h-2 rounded-full transition-colors duration-300",
-                index === currentIndex ? "bg-blue-600" : "bg-gray-300"
+                'w-2 h-2 rounded-full transition-colors duration-300',
+                index === currentIndex ? 'bg-blue-600' : 'bg-gray-300',
               )}
             />
           ))}
