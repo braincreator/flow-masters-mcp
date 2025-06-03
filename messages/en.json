@@ -1002,7 +1002,7 @@
       "viewAll": "View All Cases",
       "items": {
         "0": {
-          "company": "TechCorp",
+          "company": "ShopFlow Digital",
           "industry": "E-commerce",
           "challenge": "Low conversion rates",
           "solution": "AI chatbot implementation",
@@ -1010,7 +1010,7 @@
           "testimonial": "AI chatbot increased our sales by 40% in just 2 months"
         },
         "1": {
-          "company": "RetailPlus",
+          "company": "SmartStock Retail",
           "industry": "Retail",
           "challenge": "Manual inventory management",
           "solution": "Predictive analytics system",
@@ -1018,7 +1018,7 @@
           "testimonial": "Predictive analytics helped us optimize inventory and reduce waste"
         },
         "2": {
-          "company": "ServicePro",
+          "company": "HelpDesk Central",
           "industry": "Services",
           "challenge": "Customer support overload",
           "solution": "AI support automation",
@@ -1220,11 +1220,11 @@
           },
           "telegram": {
             "title": "Telegram",
-            "subtitle": "@ai_agency_bot"
+            "subtitle": "@flow_masters_bot"
           },
           "email": {
             "title": "Email",
-            "subtitle": "info@ai-agency.ru"
+            "subtitle": "admin@flow-masters.ru"
           }
         },
         "formTitle": "Get free audit",
@@ -1243,7 +1243,7 @@
           "title": "🎉 Thank you for your request!",
           "description": "We received your request and will contact you shortly to conduct a free audit.",
           "telegramText": "💬 For quick contact, write to us on Telegram:",
-          "telegramLink": "@ai_agency_bot"
+          "telegramLink": "@flow_masters_bot"
         },
         "finalMessage": "Don't miss the opportunity to outpace your competitors.",
         "finalUrgency": "Every day of delay = lost profit."

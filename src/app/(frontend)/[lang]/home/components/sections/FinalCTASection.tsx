@@ -86,27 +86,44 @@ export function FinalCTASection() {
 
             <div className="space-y-6">
               {[
-                {
-                  icon: Phone,
-                  title: t('contactMethods.phone.title'),
-                  subtitle: t('contactMethods.phone.subtitle'),
-                },
+                // Временно закомментирован телефон
+                // {
+                //   icon: Phone,
+                //   title: t('contactMethods.phone.title'),
+                //   subtitle: t('contactMethods.phone.subtitle'),
+                // },
                 {
                   icon: MessageCircle,
                   title: t('contactMethods.telegram.title'),
                   subtitle: t('contactMethods.telegram.subtitle'),
+                  href: 'https://t.me/flow_masters_bot?start=lead_form',
                 },
                 {
                   icon: Mail,
                   title: t('contactMethods.email.title'),
                   subtitle: t('contactMethods.email.subtitle'),
+                  href: 'mailto:admin@flow-masters.ru',
                 },
               ].map((method, index) => {
                 const Icon = method.icon
+                const ContactComponent = method.href ? 'a' : 'div'
+                const contactProps = method.href
+                  ? {
+                      href: method.href,
+                      target: method.href.startsWith('https://') ? '_blank' : undefined,
+                      rel: method.href.startsWith('https://') ? 'noopener noreferrer' : undefined,
+                    }
+                  : {}
+
                 return (
-                  <div
+                  <ContactComponent
                     key={index}
-                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                    {...contactProps}
+                    className={`bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 block ${
+                      method.href
+                        ? 'hover:bg-white/20 transition-all duration-300 cursor-pointer'
+                        : ''
+                    }`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -117,7 +134,7 @@ export function FinalCTASection() {
                         <p className="text-blue-200">{method.subtitle}</p>
                       </div>
                     </div>
-                  </div>
+                  </ContactComponent>
                 )
               })}
             </div>
@@ -205,7 +222,7 @@ export function FinalCTASection() {
                 <div className="bg-blue-600/30 border border-blue-500/30 rounded-lg p-4">
                   <p className="text-blue-100 text-sm mb-2">{t('success.telegramText')}</p>
                   <a
-                    href="https://t.me/ai_agency_bot"
+                    href="https://t.me/flow_masters_bot?start=lead_form"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-blue-300 hover:text-blue-200 font-semibold"
