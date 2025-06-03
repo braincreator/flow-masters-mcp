@@ -13,8 +13,6 @@ import { TechLogos } from '../TechLogos'
 const floatingElements = [
   { icon: Bot, delay: 0, x: 20, y: 30 },
   { icon: Zap, delay: 0.5, x: -30, y: 20 },
-  { icon: TrendingUp, delay: 1, x: 40, y: -20 },
-  { icon: Clock, delay: 1.5, x: -20, y: -30 },
 ]
 
 export function AIHeroSection() {
@@ -51,32 +49,25 @@ export function AIHeroSection() {
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
 
-        {/* Floating AI Elements */}
+        {/* Floating AI Elements - Simplified */}
         {floatingElements.map((element, index) => {
           const Icon = element.icon
           return (
             <motion.div
               key={index}
-              className="absolute text-primary/30"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{
-                opacity: [0.3, 0.7, 0.3],
-                scale: [1, 1.2, 1],
-                x: [element.x, element.x + 10, element.x],
-                y: [element.y, element.y - 10, element.y],
-              }}
+              className="absolute text-primary/20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
               transition={{
-                duration: 4,
+                duration: 1,
                 delay: element.delay,
-                repeat: Infinity,
-                ease: 'easeInOut',
               }}
               style={{
-                left: `${20 + index * 20}%`,
-                top: `${20 + index * 15}%`,
+                left: `${20 + index * 30}%`,
+                top: `${25 + index * 20}%`,
               }}
             >
-              <Icon size={40} />
+              <Icon size={32} />
             </motion.div>
           )
         })}

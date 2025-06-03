@@ -91,20 +91,20 @@ export function SocialProofNotifications() {
       setCurrentEvent(event)
       setIsVisible(true)
 
-      // Hide after 4 seconds
+      // Hide after 3 seconds
       setTimeout(() => {
         setIsVisible(false)
-      }, 4000)
+      }, 3000)
 
       // Move to next event
       setEventIndex((prev) => (prev + 1) % mockEvents.length)
     }
 
-    // Show first notification after 10 seconds
-    const initialTimer = setTimeout(showNotification, 10000)
+    // Show first notification after 15 seconds
+    const initialTimer = setTimeout(showNotification, 15000)
 
-    // Then show every 15 seconds
-    const interval = setInterval(showNotification, 15000)
+    // Then show every 25 seconds
+    const interval = setInterval(showNotification, 25000)
 
     return () => {
       clearTimeout(initialTimer)
@@ -190,11 +190,11 @@ export function LiveStatsCounter() {
   useEffect(() => {
     const interval = setInterval(() => {
       setStats((prev) => ({
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 3) - 1,
-        consultationsToday: prev.consultationsToday + (Math.random() > 0.7 ? 1 : 0),
-        happyClients: prev.happyClients + (Math.random() > 0.95 ? 1 : 0),
+        activeUsers: Math.max(40, prev.activeUsers + Math.floor(Math.random() * 3) - 1),
+        consultationsToday: prev.consultationsToday + (Math.random() > 0.8 ? 1 : 0),
+        happyClients: prev.happyClients + (Math.random() > 0.98 ? 1 : 0),
       }))
-    }, 30000) // Update every 30 seconds
+    }, 60000) // Update every 60 seconds
 
     return () => clearInterval(interval)
   }, [])

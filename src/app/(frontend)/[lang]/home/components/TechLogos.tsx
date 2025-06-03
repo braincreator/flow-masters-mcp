@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 // Логотипы технологий (SVG, изображения или текст)
-const TechIcon = ({
+const TechIcon = React.memo(function TechIcon({
   name,
   children,
   imageUrl,
@@ -12,23 +12,52 @@ const TechIcon = ({
   name: string
   children?: React.ReactNode
   imageUrl?: string
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: Math.random() * 0.5 }}
-    className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all duration-300 group"
-    title={name}
-  >
-    <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 group-hover:scale-110 transition-transform">
-      {imageUrl ? (
-        <img src={imageUrl} alt={name} className="w-full h-full object-contain" loading="lazy" />
-      ) : (
-        children
-      )}
+}) {
+  const [imageError, setImageError] = React.useState(false)
+  const [imageLoaded, setImageLoaded] = React.useState(false)
+
+  // Reset error state when imageUrl changes
+  React.useEffect(() => {
+    setImageError(false)
+    setImageLoaded(false)
+  }, [imageUrl])
+
+  return (
+    <div
+      className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all duration-300 group"
+      title={name}
+    >
+      <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 group-hover:scale-110 transition-transform">
+        {imageUrl && !imageError ? (
+          <>
+            {!imageLoaded && <div className="w-full h-full bg-white/20 animate-pulse rounded" />}
+            <Image
+              src={imageUrl}
+              alt={name}
+              width={32}
+              height={32}
+              className={`w-full h-full object-contain transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                console.warn(`Failed to load image: ${imageUrl}`)
+                setImageError(true)
+              }}
+            />
+          </>
+        ) : (
+          children || (
+            <div className="w-full h-full bg-white/30 rounded flex items-center justify-center text-white/60 text-xs font-medium">
+              {name.slice(0, 2).toUpperCase()}
+            </div>
+          )
+        )}
+      </div>
     </div>
-  </motion.div>
-)
+  )
+})
 
 export function TechLogos() {
   return (

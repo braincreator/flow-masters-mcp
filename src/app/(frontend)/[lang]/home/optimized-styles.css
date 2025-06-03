@@ -1,0 +1,131 @@
+/* Optimized AI Agency Landing Page Styles */
+
+/* Performance-optimized animations */
+@keyframes fadeInOptimized {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInOptimized {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleInOptimized {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Utility classes for optimized animations */
+.animate-fade-in-optimized {
+  animation: fadeInOptimized 0.6s ease-out forwards;
+}
+
+.animate-slide-in-optimized {
+  animation: slideInOptimized 0.5s ease-out forwards;
+}
+
+.animate-scale-in-optimized {
+  animation: scaleInOptimized 0.4s ease-out forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2s ease-in-out infinite;
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-optimized,
+  .animate-slide-in-optimized,
+  .animate-scale-in-optimized,
+  .animate-pulse-subtle {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Container optimizations */
+.optimized-container {
+  contain: layout style paint;
+}
+
+.optimized-section {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* Scroll performance */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Image optimization */
+.optimized-image {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+}
+
+/* Text rendering optimization */
+.optimized-text {
+  text-rendering: optimizeSpeed;
+  font-display: swap;
+}
+
+/* Layout shift prevention */
+.aspect-ratio-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-ratio-1-1 {
+  aspect-ratio: 1 / 1;
+}
+
+/* Intersection observer targets */
+.lazy-load-target {
+  min-height: 100px;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 100px;
+}

@@ -52,6 +52,30 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
       },
       {
+        protocol: 'https',
+        hostname: 'registry.npmmirror.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'unpkg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'docs.flowiseai.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.gitbook.io',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.appspot.com',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
       },
