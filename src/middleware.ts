@@ -12,7 +12,7 @@ const STATIC_FILE_REGEX = /\.[^/]+$/
 const intlMiddleware = createMiddleware({
   locales: SUPPORTED_LOCALES,
   defaultLocale: DEFAULT_LOCALE,
-  localePrefix: 'as-needed',
+  localePrefix: 'always',
 })
 
 // Наш основной middleware

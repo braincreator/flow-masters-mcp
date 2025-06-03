@@ -19,11 +19,11 @@ export const BlocksExample: React.FC = () => {
           children: [
             {
               children: [
-                { text: 'This flexible page builder allows you to create any layout you need.' }
-              ]
-            }
-          ]
-        }
+                { text: 'This flexible page builder allows you to create any layout you need.' },
+              ],
+            },
+          ],
+        },
       },
       layout: 'center',
       actions: [
@@ -37,7 +37,7 @@ export const BlocksExample: React.FC = () => {
           type: 'link',
           variant: 'outline',
           url: '#',
-        }
+        },
       ],
       settings: {
         fullWidth: true,
@@ -47,10 +47,10 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Features Block
     {
       blockType: 'featureGrid',
@@ -73,16 +73,16 @@ export const BlocksExample: React.FC = () => {
           title: 'Easy to Use',
           description: 'Simple drag-and-drop interface makes page building a breeze.',
           icon: '🚀',
-        }
+        },
       ],
       settings: {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Carousel Block
     {
       blockType: 'carousel',
@@ -91,7 +91,8 @@ export const BlocksExample: React.FC = () => {
         {
           heading: 'Build Beautiful Websites',
           caption: 'Slide 1',
-          content: 'Create stunning layouts and user experiences with our flexible building blocks.',
+          content:
+            'Create stunning layouts and user experiences with our flexible building blocks.',
           media: {
             url: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5',
             alt: 'Workspace with computer and notebook',
@@ -102,8 +103,8 @@ export const BlocksExample: React.FC = () => {
               type: 'link',
               url: '#',
               variant: 'outline',
-            }
-          ]
+            },
+          ],
         },
         {
           heading: 'Grow Your Business',
@@ -119,8 +120,8 @@ export const BlocksExample: React.FC = () => {
               type: 'button',
               url: '#',
               variant: 'primary',
-            }
-          ]
+            },
+          ],
         },
       ],
       autoplay: true,
@@ -131,10 +132,10 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Stats Block
     {
       blockType: 'stats',
@@ -159,8 +160,8 @@ export const BlocksExample: React.FC = () => {
         {
           value: '24/7',
           label: 'Support',
-          description: 'We\'re here to help',
-        }
+          description: "We're here to help",
+        },
       ],
       settings: {
         background: {
@@ -169,10 +170,10 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Video Block
     {
       blockType: 'video',
@@ -185,10 +186,10 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Gallery Block
     {
       blockType: 'gallery',
@@ -227,10 +228,10 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Countdown Block
     {
       blockType: 'countdown',
@@ -243,7 +244,7 @@ export const BlocksExample: React.FC = () => {
           label: 'Join Waitlist',
           type: 'button',
           variant: 'primary',
-        }
+        },
       ],
       settings: {
         background: {
@@ -252,31 +253,32 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // Testimonial Block
     {
       blockType: 'testimonial',
       id: 'testimonial-1',
       testimonials: [
         {
-          quote: 'This page builder has transformed how we create landing pages. It's so intuitive and the results are beautiful.',
+          quote:
+            "This page builder has transformed how we create landing pages. It's so intuitive and the results are beautiful.",
           author: 'Jane Cooper',
           role: 'CEO',
           company: 'Acme Inc',
-        }
+        },
       ],
       layout: 'single',
       settings: {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // FAQ Block
     {
       blockType: 'faq',
@@ -286,25 +288,28 @@ export const BlocksExample: React.FC = () => {
       items: [
         {
           question: 'How does the page builder work?',
-          answer: 'Our page builder uses a block-based system where you can add, remove, and rearrange different content blocks to create your perfect page layout.'
+          answer:
+            'Our page builder uses a block-based system where you can add, remove, and rearrange different content blocks to create your perfect page layout.',
         },
         {
           question: 'Can I customize the styles?',
-          answer: 'Yes, each block comes with numerous customization options, and you can also add custom CSS.'
+          answer:
+            'Yes, each block comes with numerous customization options, and you can also add custom CSS.',
         },
         {
           question: 'Is it responsive?',
-          answer: 'Absolutely! All blocks are designed to look great on any device, from mobile to desktop.'
-        }
+          answer:
+            'Absolutely! All blocks are designed to look great on any device, from mobile to desktop.',
+        },
       ],
       settings: {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
+        },
+      },
     },
-    
+
     // CTA Block
     {
       blockType: 'cta',
@@ -315,11 +320,13 @@ export const BlocksExample: React.FC = () => {
           children: [
             {
               children: [
-                { text: 'Join thousands of satisfied customers building beautiful web pages with our system.' }
-              ]
-            }
-          ]
-        }
+                {
+                  text: 'Join thousands of satisfied customers building beautiful web pages with our system.',
+                },
+              ],
+            },
+          ],
+        },
       },
       actions: [
         {
@@ -327,7 +334,7 @@ export const BlocksExample: React.FC = () => {
           type: 'button',
           variant: 'primary',
           size: 'large',
-        }
+        },
       ],
       layout: 'center',
       settings: {
@@ -339,9 +346,9 @@ export const BlocksExample: React.FC = () => {
         padding: {
           top: 'large',
           bottom: 'large',
-        }
-      }
-    }
+        },
+      },
+    },
   ]
 
   return (
@@ -349,4 +356,4 @@ export const BlocksExample: React.FC = () => {
       <RenderBlocks blocks={pageBlocks} />
     </div>
   )
-} 
+}

@@ -22,13 +22,29 @@ export function LanguageSwitcher() {
 
   // Use both providers for backward compatibility
   const { lang, setLang } = useI18n()
-  const { locale, setLocale, supportedLocales } = useLocale()
+
+  // Try to use LocaleProvider, but handle case when it's not available
+  let locale, setLocale, supportedLocales
+  try {
+    const localeContext = useLocale()
+    locale = localeContext.locale
+    setLocale = localeContext.setLocale
+    supportedLocales = localeContext.supportedLocales
+  } catch (error) {
+    // LocaleProvider not available, use fallback
+    locale = undefined
+    setLocale = undefined
+    supportedLocales = undefined
+  }
 
   const { openDropdown, setOpenDropdown } = useDropdown()
   const isOpen = openDropdown === 'language'
 
-  // Use locale from LocaleProvider if available, otherwise fallback to I18n or pathname
-  const currentLang = locale || pathname?.split('/')[1] || lang
+  // Use locale from LocaleProvider if available, otherwise determine from pathname
+  // With 'always' prefix: all locales have prefix (/ru/, /en/)
+  const pathSegments = pathname?.split('/').filter(Boolean) || []
+  const langFromPath = pathSegments.find((seg) => locales.some((loc) => loc.code === seg))
+  const currentLang = locale || langFromPath || 'ru' // Default to 'ru' if no locale in path
   const currentLanguage = locales.find((locale) => locale.code === currentLang)
 
   const handleToggle = () => {
@@ -48,14 +64,23 @@ export function LanguageSwitcher() {
 
     // Fallback to manual path manipulation if LocaleProvider is not available
     const segments = pathname?.split('/').filter(Boolean) || []
-    const langIndex = segments.findIndex((seg) => locales.some((loc) => loc.code === seg))
+    const currentLangInPath = segments.find((seg) => locales.some((loc) => loc.code === seg))
 
     let newPathname
-    if (langIndex !== -1) {
+
+    // Handle 'always' locale prefix behavior
+    // All locales have prefix (/ru/, /en/)
+    if (currentLangInPath) {
+      // Replace current locale
+      const langIndex = segments.findIndex((seg) => locales.some((loc) => loc.code === seg))
       segments[langIndex] = code
       newPathname = '/' + segments.join('/')
     } else {
-      newPathname = `/${code}${pathname || ''}`
+      // Add locale prefix to current path
+      const pathWithoutLeadingSlash = pathname?.startsWith('/')
+        ? pathname.substring(1)
+        : pathname || ''
+      newPathname = `/${code}${pathWithoutLeadingSlash ? `/${pathWithoutLeadingSlash}` : ''}`
     }
 
     router.push(newPathname)

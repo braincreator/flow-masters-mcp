@@ -82,17 +82,24 @@ export function LocaleProvider({
       // Redirect to the same page with the new locale
       if (pathname) {
         const segments = pathname.split('/').filter(Boolean)
-        const currentLocale = segments[0]
+        const currentLocaleInPath = segments.find((seg) =>
+          SUPPORTED_LOCALES.includes(seg as Locale),
+        )
 
-        if (SUPPORTED_LOCALES.includes(currentLocale as Locale)) {
-          // Replace the locale segment
-          segments[0] = newLocale
+        let newPath
+
+        // Handle 'always' locale prefix behavior
+        // All locales have prefix (/ru/, /en/)
+        if (currentLocaleInPath) {
+          // Replace current locale
+          const localeIndex = segments.findIndex((seg) => SUPPORTED_LOCALES.includes(seg as Locale))
+          segments[localeIndex] = newLocale
+          newPath = `/${segments.join('/')}`
         } else {
-          // Add locale segment at the beginning
-          segments.unshift(newLocale)
+          // Add locale prefix
+          newPath = `/${newLocale}${pathname}`
         }
 
-        const newPath = `/${segments.join('/')}`
         router.push(newPath)
       }
     },
@@ -104,17 +111,21 @@ export function LocaleProvider({
     (path: string, newLocale?: Locale): string => {
       const localeToUse = newLocale || locale
 
-      // If path already starts with locale, replace it
+      // Handle 'always' locale prefix behavior
+      // All locales have prefix (/ru/, /en/)
       const pathWithoutLeadingSlash = path.startsWith('/') ? path.substring(1) : path
-      const segments = pathWithoutLeadingSlash.split('/')
+      const segments = pathWithoutLeadingSlash.split('/').filter(Boolean)
+      const currentLocaleInPath = segments.find((seg) => SUPPORTED_LOCALES.includes(seg as Locale))
 
-      if (SUPPORTED_LOCALES.includes(segments[0] as Locale)) {
-        segments[0] = localeToUse
+      if (currentLocaleInPath) {
+        // Replace current locale
+        const localeIndex = segments.findIndex((seg) => SUPPORTED_LOCALES.includes(seg as Locale))
+        segments[localeIndex] = localeToUse
         return `/${segments.join('/')}`
+      } else {
+        // Add locale prefix
+        return `/${localeToUse}${path}`
       }
-
-      // Otherwise, add locale prefix
-      return `/${localeToUse}/${pathWithoutLeadingSlash}`
     },
     [locale],
   )
@@ -158,10 +169,14 @@ export function LocaleProvider({
   useEffect(() => {
     if (pathname) {
       const segments = pathname.split('/').filter(Boolean)
-      const urlLocale = segments[0]
+      const urlLocale = segments.find((seg) => SUPPORTED_LOCALES.includes(seg as Locale))
 
-      if (SUPPORTED_LOCALES.includes(urlLocale as Locale) && urlLocale !== locale) {
+      if (urlLocale && urlLocale !== locale) {
         setLocaleState(urlLocale as Locale)
+      } else if (!urlLocale) {
+        // No locale in URL with 'always' prefix means we need to redirect
+        // This shouldn't happen with 'always' prefix, but handle gracefully
+        setLocaleState(DEFAULT_LOCALE)
       }
     }
   }, [pathname, locale])

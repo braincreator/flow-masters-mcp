@@ -14,6 +14,8 @@ import { GeistMono } from 'geist/font/mono'
 import { cn } from '@/utilities/ui'
 import { ThemeProvider } from '@/providers/Theme'
 import { I18nProvider } from '@/providers/I18n'
+import { LocaleProvider } from '@/providers/LocaleProvider'
+import { DropdownProvider } from '@/providers/DropdownContext'
 import { setRequestLocale } from 'next-intl/server'
 import { NextIntlClientProvider } from 'next-intl'
 import { LoadingProvider } from '@/providers/LoadingProvider'
@@ -86,25 +88,29 @@ export default async function LangLayout({ children, params }: LayoutProps) {
           data-lang={lang}
         >
           <ThemeProvider>
-            <I18nProvider defaultLang={lang}>
-              <LoadingConfigProvider>
-                <LoadingProvider>
-                  {/* Add our smart loading component */}
-                  <SmartLoading />
+            <DropdownProvider>
+              <LocaleProvider initialLocale={lang}>
+                <I18nProvider defaultLang={lang}>
+                  <LoadingConfigProvider>
+                    <LoadingProvider>
+                      {/* Add our smart loading component */}
+                      <SmartLoading />
 
-                  {isDraftMode && <AdminBar />}
-                  <Header locale={lang} />
-                  <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
-                    {children}
-                  </main>
-                  <div id="pagination-slot" className="container py-8"></div>
-                  <Footer locale={lang} />
-                  <FloatingCartButtonWrapper locale={lang} />
-                  <CartModal locale={lang} />
-                  <CookieConsentBanner locale={lang} />
-                </LoadingProvider>
-              </LoadingConfigProvider>
-            </I18nProvider>
+                      {isDraftMode && <AdminBar />}
+                      <Header locale={lang} />
+                      <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
+                        {children}
+                      </main>
+                      <div id="pagination-slot" className="container py-8"></div>
+                      <Footer locale={lang} />
+                      <FloatingCartButtonWrapper locale={lang} />
+                      <CartModal locale={lang} />
+                      <CookieConsentBanner locale={lang} />
+                    </LoadingProvider>
+                  </LoadingConfigProvider>
+                </I18nProvider>
+              </LocaleProvider>
+            </DropdownProvider>
           </ThemeProvider>
         </div>
       </div>

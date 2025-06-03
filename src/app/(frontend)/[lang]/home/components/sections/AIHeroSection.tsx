@@ -163,9 +163,12 @@ export function AIHeroSection() {
             <Button
               variant="outline"
               size="lg"
-              className="bg-transparent border-2 border-transparent bg-clip-padding px-8 py-4 text-lg rounded-xl font-semibold transition-all duration-300
+              onClick={() => {
+                const benefitsSection = document.querySelector('[data-section="benefits"]')
+                benefitsSection?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="bg-transparent border-2 border-transparent px-8 py-4 text-lg rounded-xl font-semibold transition-all duration-300
                 text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text
-                border-gradient-to-r from-blue-600 to-purple-600
                 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:bg-opacity-60"
             >
               {t('buttons.learnMore')}

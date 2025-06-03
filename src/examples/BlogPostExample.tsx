@@ -31,7 +31,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Table of Contents Block
   {
     blockType: 'tableOfContents',
@@ -53,7 +53,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Content block for introduction
   {
     blockType: 'content',
@@ -63,24 +63,24 @@ const blogBlocks: Block[] = [
           root: {
             type: 'root',
             children: [
-              { 
-                type: 'h2', 
+              {
+                type: 'h2',
                 children: [{ text: 'Introduction', type: 'text' }],
                 id: 'introduction',
               },
-              { 
-                type: 'paragraph', 
+              {
+                type: 'paragraph',
                 children: [
-                  { 
-                    text: 'The web development landscape continues to evolve at a rapid pace. Each year brings new frameworks, tools, and methodologies that reshape how we approach building digital experiences. In this article, we\'ll explore the key trends that are defining the future of web development and how they might impact your projects in the coming years.',
-                    type: 'text' 
-                  }
-                ] 
+                  {
+                    text: "The web development landscape continues to evolve at a rapid pace. Each year brings new frameworks, tools, and methodologies that reshape how we approach building digital experiences. In this article, we'll explore the key trends that are defining the future of web development and how they might impact your projects in the coming years.",
+                    type: 'text',
+                  },
+                ],
               },
             ],
-          }
-        }
-      }
+          },
+        },
+      },
     ],
     settings: {
       padding: {
@@ -89,11 +89,12 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Blockquote Block
   {
     blockType: 'blockquote',
-    quote: 'The most important skill for a programmer is the ability to learn, unlearn, and relearn as technologies evolve.',
+    quote:
+      'The most important skill for a programmer is the ability to learn, unlearn, and relearn as technologies evolve.',
     author: 'John Doe',
     source: 'Web Development Summit 2023',
     alignment: 'center',
@@ -104,7 +105,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Content block for AI-Driven Development
   {
     blockType: 'content',
@@ -114,33 +115,33 @@ const blogBlocks: Block[] = [
           root: {
             type: 'root',
             children: [
-              { 
-                type: 'h2', 
+              {
+                type: 'h2',
                 children: [{ text: 'AI-Driven Development', type: 'text' }],
                 id: 'ai-driven-development',
               },
-              { 
-                type: 'paragraph', 
+              {
+                type: 'paragraph',
                 children: [
-                  { 
+                  {
                     text: 'Artificial Intelligence is revolutionizing how developers work. From code completion and bug detection to automated testing and optimization, AI tools are becoming an integral part of the development workflow. GitHub Copilot and similar AI pair programmers can suggest entire functions based on comments or previous code, significantly accelerating development speed.',
-                    type: 'text' 
-                  }
-                ] 
+                    type: 'text',
+                  },
+                ],
               },
-              { 
-                type: 'paragraph', 
+              {
+                type: 'paragraph',
                 children: [
-                  { 
+                  {
                     text: 'Beyond coding assistance, AI is being used to generate UI components, optimize performance, and even predict user behavior to create more personalized web experiences.',
-                    type: 'text' 
-                  }
-                ] 
+                    type: 'text',
+                  },
+                ],
               },
             ],
-          }
-        }
-      }
+          },
+        },
+      },
     ],
     settings: {
       padding: {
@@ -149,7 +150,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Audio Block (Podcast snippet)
   {
     blockType: 'audio',
@@ -167,9 +168,9 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // More content blocks omitted for brevity
-  
+
   // Author Bio Block
   {
     blockType: 'authorBio',
@@ -196,7 +197,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Social Share Block
   {
     blockType: 'socialShare',
@@ -211,7 +212,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Related Posts Block
   {
     blockType: 'relatedPosts',
@@ -219,7 +220,8 @@ const blogBlocks: Block[] = [
     posts: [
       {
         title: 'Getting Started with WebAssembly',
-        excerpt: 'Learn the basics of WebAssembly and how to integrate it into your web applications.',
+        excerpt:
+          'Learn the basics of WebAssembly and how to integrate it into your web applications.',
         featuredImage: {
           url: 'https://images.unsplash.com/photo-1618761714954-0b8cd0026356?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHdlYiUyMGRldmVsb3BtZW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60',
           alt: 'WebAssembly code',
@@ -239,7 +241,8 @@ const blogBlocks: Block[] = [
       },
       {
         title: 'Progressive Web Apps in 2023',
-        excerpt: 'Learn about the latest advancements in PWAs and how they're improving user experiences.',
+        excerpt:
+          "Learn about the latest advancements in PWAs and how they're improving user experiences.",
         featuredImage: {
           url: 'https://images.unsplash.com/photo-1520333789090-1afc82db536a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHdlYiUyMGRldmVsb3BtZW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60',
           alt: 'Progressive Web App',
@@ -257,7 +260,7 @@ const blogBlocks: Block[] = [
       },
     },
   },
-  
+
   // Comments Block
   {
     blockType: 'comments',
@@ -279,4 +282,4 @@ export default function BlogPostExample() {
       <RenderBlocks blocks={blogBlocks} />
     </article>
   )
-} 
+}
