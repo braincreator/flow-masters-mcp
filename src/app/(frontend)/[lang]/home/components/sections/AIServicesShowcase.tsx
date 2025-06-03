@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { GridContainer } from '@/components/GridContainer'
 import { useAIAgencyServices } from '../../hooks/useAIAgencyServices'
 import { getServiceIcon, getServiceColor } from '../../utils/serviceIconMapping'
-import { formatItemPrice } from '@/utilities/formatPrice'
+import { formatItemPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Service } from '@/payload-types'
 
 // Функции для получения CSS классов (статические для Tailwind)
@@ -168,9 +168,11 @@ export function AIServicesShowcase() {
           {services.map((service, index) => {
             const Icon = getServiceIcon(service.serviceType)
             const color = getServiceColor(service.serviceType)
+            const price = getLocalePrice(service, locale)
             const formattedPrice = formatItemPrice(service, locale)
             const duration = formatDuration(service.duration, t, locale)
             const isAuditService = service.serviceType === 'audit'
+            const isFreeService = price <= 0
 
             return (
               <motion.div
@@ -194,8 +196,8 @@ export function AIServicesShowcase() {
                 </p>
 
                 <div className="flex justify-between items-center mb-6">
-                  <div className={getPriceColorClass(color, isAuditService || service.price === 0)}>
-                    {service.price === 0 ? t('free') : formattedPrice}
+                  <div className={getPriceColorClass(color, isAuditService || isFreeService)}>
+                    {isFreeService ? t('free') : formattedPrice}
                   </div>
                   <div className="text-muted-foreground/70 text-sm">{duration}</div>
                 </div>
@@ -204,9 +206,9 @@ export function AIServicesShowcase() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={getButtonClass(color, isAuditService || service.price === 0)}
+                    className={getButtonClass(color, isAuditService || isFreeService)}
                   >
-                    {isAuditService || service.price === 0 ? t('getAudit') : t('order')}
+                    {isAuditService || isFreeService ? t('getAudit') : t('order')}
                   </motion.button>
                 </Link>
               </motion.div>

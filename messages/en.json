@@ -486,7 +486,7 @@
       "viewAllServices": "View All Services",
       "getAudit": "Get Audit",
       "order": "Order",
-      "free": "FREE",
+      "free": "Free",
       "duration": {
         "byAgreement": "By agreement",
         "days": "{count} days",
@@ -959,10 +959,10 @@
           "button": "Learn More"
         }
       },
-      "free": "Free",
       "getAudit": "Get Audit",
       "order": "Order Service",
       "viewAllServices": "View All Services",
+      "free": "Free",
       "duration": {
         "byAgreement": "By agreement",
         "days": "{count} days",

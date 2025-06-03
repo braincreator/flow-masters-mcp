@@ -501,7 +501,6 @@
       "viewAllServices": "Посмотреть все услуги",
       "getAudit": "Получить аудит",
       "order": "Заказать",
-      "free": "БЕСПЛАТНО",
       "duration": {
         "byAgreement": "По договоренности",
         "days": "{count} дн.",
@@ -981,10 +980,10 @@
           "button": "Узнать больше"
         }
       },
-      "free": "Бесплатно",
       "getAudit": "Получить аудит",
       "order": "Заказать услугу",
       "viewAllServices": "Посмотреть все услуги",
+      "free": "Бесплатно",
       "duration": {
         "byAgreement": "По договоренности",
         "days": "{count} дней",
