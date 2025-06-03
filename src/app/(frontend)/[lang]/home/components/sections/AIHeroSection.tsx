@@ -8,6 +8,7 @@ import { ArrowRight, Bot, Zap, TrendingUp, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import { TechLogos } from '../TechLogos'
 
 const floatingElements = [
   { icon: Bot, delay: 0, x: 20, y: 30 },
@@ -179,18 +180,7 @@ export function AIHeroSection() {
             className="text-center"
           >
             <p className="text-gray-200 mb-4">{t('socialProof')}</p>
-            <div className="flex justify-center items-center gap-8 opacity-60">
-              {/* Placeholder for company logos */}
-              <div className="w-24 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">LOGO</span>
-              </div>
-              <div className="w-24 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">LOGO</span>
-              </div>
-              <div className="w-24 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">LOGO</span>
-              </div>
-            </div>
+            <TechLogos />
           </motion.div>
         </div>
       </GridContainer>
