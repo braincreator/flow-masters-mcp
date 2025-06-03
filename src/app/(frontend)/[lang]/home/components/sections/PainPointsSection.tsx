@@ -28,7 +28,7 @@ export function PainPointsSection() {
   }))
 
   return (
-    <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
+    <section className="py-20 bg-gradient-to-b from-background to-muted/50">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -37,8 +37,8 @@ export function PainPointsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </motion.div>
@@ -58,7 +58,7 @@ export function PainPointsSection() {
               >
                 <div
                   className={cn(
-                    'p-8 rounded-2xl border-2 border-gray-200 bg-white transition-all duration-300 hover:shadow-xl hover:border-gray-300 h-full',
+                    'p-8 rounded-2xl border-2 border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-border/60 h-full',
                     'hover:-translate-y-2',
                   )}
                 >
@@ -72,10 +72,10 @@ export function PainPointsSection() {
                     <Icon className={cn('w-8 h-8', point.color)} />
                   </div>
 
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-gray-700 transition-colors">
+                  <h3 className="text-xl font-bold text-foreground mb-4 group-hover:text-foreground/80 transition-colors">
                     {point.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">{point.description}</p>
+                  <p className="text-muted-foreground leading-relaxed">{point.description}</p>
 
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
@@ -91,9 +91,9 @@ export function PainPointsSection() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="text-center mt-16"
         >
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 border border-red-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('urgency.title')}</h3>
-            <p className="text-lg text-gray-700 mb-6">{t('urgency.description')}</p>
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-2xl p-8 border border-red-200 dark:border-red-800">
+            <h3 className="text-2xl font-bold text-foreground mb-4">{t('urgency.title')}</h3>
+            <p className="text-lg text-foreground/80 mb-6">{t('urgency.description')}</p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

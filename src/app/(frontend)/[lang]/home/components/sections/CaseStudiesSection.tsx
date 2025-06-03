@@ -11,7 +11,7 @@ const caseStudyColors = ['bg-purple-600', 'bg-green-600', 'bg-blue-600']
 export function CaseStudiesSection() {
   const t = useTranslations('aiAgency.caseStudies')
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -20,8 +20,8 @@ export function CaseStudiesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </motion.div>
@@ -52,7 +52,7 @@ export function CaseStudiesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+                className="bg-card rounded-2xl p-8 border border-border shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full"
               >
                 <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -60,7 +60,7 @@ export function CaseStudiesSection() {
                   ))}
                 </div>
 
-                <p className="text-gray-700 mb-6 italic leading-relaxed flex-grow">
+                <p className="text-foreground/80 mb-6 italic leading-relaxed flex-grow">
                   "{caseStudy.testimonial}"
                 </p>
 
@@ -71,15 +71,17 @@ export function CaseStudiesSection() {
                     <span className="text-white font-semibold">{caseStudy.initials}</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{caseStudy.company}</div>
-                    <div className="text-gray-600 text-sm">{caseStudy.industry}</div>
-                    <div className="text-gray-500 text-xs">{caseStudy.challenge}</div>
+                    <div className="font-semibold text-foreground">{caseStudy.company}</div>
+                    <div className="text-muted-foreground text-sm">{caseStudy.industry}</div>
+                    <div className="text-muted-foreground/70 text-xs">{caseStudy.challenge}</div>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-200">
-                  <div className="text-2xl font-bold text-green-600 mb-1">{caseStudy.results}</div>
-                  <div className="text-gray-600">{caseStudy.solution}</div>
+                <div className="pt-6 border-t border-border">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+                    {caseStudy.results}
+                  </div>
+                  <div className="text-muted-foreground">{caseStudy.solution}</div>
                 </div>
               </motion.div>
             )

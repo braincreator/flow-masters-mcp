@@ -13,28 +13,32 @@ import { Service } from '@/payload-types'
 // Функции для получения CSS классов (статические для Tailwind)
 function getIconBackgroundClass(color: string): string {
   const classes = {
-    blue: 'w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6',
-    purple: 'w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6',
-    green: 'w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6',
-    orange: 'w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6',
-    indigo: 'w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6',
-    pink: 'w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center mb-6',
-    cyan: 'w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center mb-6',
-    gray: 'w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-6',
+    blue: 'w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6',
+    purple:
+      'w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6',
+    green:
+      'w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mb-6',
+    orange:
+      'w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center mb-6',
+    indigo:
+      'w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mb-6',
+    pink: 'w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center mb-6',
+    cyan: 'w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 rounded-2xl flex items-center justify-center mb-6',
+    gray: 'w-16 h-16 bg-gray-100 dark:bg-gray-900/30 rounded-2xl flex items-center justify-center mb-6',
   }
   return classes[color as keyof typeof classes] || classes.gray
 }
 
 function getIconColorClass(color: string): string {
   const classes = {
-    blue: 'w-8 h-8 text-blue-600',
-    purple: 'w-8 h-8 text-purple-600',
-    green: 'w-8 h-8 text-green-600',
-    orange: 'w-8 h-8 text-orange-600',
-    indigo: 'w-8 h-8 text-indigo-600',
-    pink: 'w-8 h-8 text-pink-600',
-    cyan: 'w-8 h-8 text-cyan-600',
-    gray: 'w-8 h-8 text-gray-600',
+    blue: 'w-8 h-8 text-blue-600 dark:text-blue-400',
+    purple: 'w-8 h-8 text-purple-600 dark:text-purple-400',
+    green: 'w-8 h-8 text-green-600 dark:text-green-400',
+    orange: 'w-8 h-8 text-orange-600 dark:text-orange-400',
+    indigo: 'w-8 h-8 text-indigo-600 dark:text-indigo-400',
+    pink: 'w-8 h-8 text-pink-600 dark:text-pink-400',
+    cyan: 'w-8 h-8 text-cyan-600 dark:text-cyan-400',
+    gray: 'w-8 h-8 text-gray-600 dark:text-gray-400',
   }
   return classes[color as keyof typeof classes] || classes.gray
 }
@@ -63,18 +67,18 @@ function getButtonClass(color: string, isSpecial: boolean): string {
 
 function getPriceColorClass(color: string, isSpecial: boolean): string {
   if (isSpecial) {
-    return 'font-bold text-lg text-green-600'
+    return 'font-bold text-lg text-green-600 dark:text-green-400'
   }
 
   const classes = {
-    blue: 'font-bold text-lg text-blue-600',
-    purple: 'font-bold text-lg text-purple-600',
-    green: 'font-bold text-lg text-green-600',
-    orange: 'font-bold text-lg text-orange-600',
-    indigo: 'font-bold text-lg text-indigo-600',
-    pink: 'font-bold text-lg text-pink-600',
-    cyan: 'font-bold text-lg text-cyan-600',
-    gray: 'font-bold text-lg text-gray-600',
+    blue: 'font-bold text-lg text-blue-600 dark:text-blue-400',
+    purple: 'font-bold text-lg text-purple-600 dark:text-purple-400',
+    green: 'font-bold text-lg text-green-600 dark:text-green-400',
+    orange: 'font-bold text-lg text-orange-600 dark:text-orange-400',
+    indigo: 'font-bold text-lg text-indigo-600 dark:text-indigo-400',
+    pink: 'font-bold text-lg text-pink-600 dark:text-pink-400',
+    cyan: 'font-bold text-lg text-cyan-600 dark:text-cyan-400',
+    gray: 'font-bold text-lg text-gray-600 dark:text-gray-400',
   }
   return classes[color as keyof typeof classes] || classes.gray
 }
@@ -105,11 +109,11 @@ export function AIServicesShowcase() {
 
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
         <GridContainer>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </div>
@@ -117,13 +121,13 @@ export function AIServicesShowcase() {
             {[...Array(6)].map((_, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-10 border border-gray-200 shadow-lg animate-pulse"
+                className="bg-card rounded-2xl p-10 border border-border shadow-lg animate-pulse"
               >
-                <div className="w-16 h-16 bg-gray-200 rounded-2xl mb-6"></div>
-                <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-6"></div>
-                <div className="h-4 bg-gray-200 rounded mb-6"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="w-16 h-16 bg-muted rounded-2xl mb-6"></div>
+                <div className="h-6 bg-muted rounded mb-4"></div>
+                <div className="h-4 bg-muted rounded mb-6"></div>
+                <div className="h-4 bg-muted rounded mb-6"></div>
+                <div className="h-10 bg-muted rounded"></div>
               </div>
             ))}
           </div>
@@ -134,17 +138,17 @@ export function AIServicesShowcase() {
 
   if (error) {
     return (
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
         <GridContainer>
           <div className="text-center">
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         </GridContainer>
       </section>
     )
   }
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -153,8 +157,8 @@ export function AIServicesShowcase() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </motion.div>
@@ -175,17 +179,17 @@ export function AIServicesShowcase() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-10 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full"
+                className="bg-card rounded-2xl p-10 border border-border shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full"
               >
                 <div className={getIconBackgroundClass(color)}>
                   <Icon className={getIconColorClass(color)} />
                 </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 min-h-[3.5rem] flex items-center">
+                <h3 className="text-2xl font-bold text-foreground mb-4 min-h-[3.5rem] flex items-center">
                   {service.title}
                 </h3>
 
-                <p className="text-gray-600 mb-6 leading-relaxed flex-grow">
+                <p className="text-muted-foreground mb-6 leading-relaxed flex-grow">
                   {service.shortDescription}
                 </p>
 
@@ -193,7 +197,7 @@ export function AIServicesShowcase() {
                   <div className={getPriceColorClass(color, isAuditService || service.price === 0)}>
                     {service.price === 0 ? t('free') : formattedPrice}
                   </div>
-                  <div className="text-gray-500 text-sm">{duration}</div>
+                  <div className="text-muted-foreground/70 text-sm">{duration}</div>
                 </div>
 
                 <Link href={`/${locale}/services/${service.slug}`}>
@@ -217,7 +221,7 @@ export function AIServicesShowcase() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-all duration-300"
+                className="px-8 py-4 bg-foreground text-background rounded-xl font-semibold hover:bg-foreground/90 transition-all duration-300"
               >
                 {t('viewAllServices')}
               </motion.button>

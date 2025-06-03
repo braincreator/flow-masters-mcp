@@ -21,11 +21,11 @@ export function PricingWithPrePayment() {
 
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
         <GridContainer>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </div>
@@ -33,22 +33,22 @@ export function PricingWithPrePayment() {
             {[...Array(3)].map((_, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl border-2 border-gray-200 p-8 animate-pulse"
+                className="bg-card rounded-2xl border-2 border-border p-8 animate-pulse"
               >
                 <div className="text-center mb-8">
-                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                  <div className="bg-gray-100 rounded-xl p-4 mb-6">
-                    <div className="h-4 bg-gray-200 rounded mb-1"></div>
-                    <div className="h-6 bg-gray-200 rounded"></div>
+                  <div className="h-6 bg-muted rounded mb-4"></div>
+                  <div className="h-8 bg-muted rounded mb-2"></div>
+                  <div className="bg-muted/50 rounded-xl p-4 mb-6">
+                    <div className="h-4 bg-muted rounded mb-1"></div>
+                    <div className="h-6 bg-muted rounded"></div>
                   </div>
                 </div>
                 <div className="space-y-4 mb-8">
                   {[...Array(3)].map((_, idx) => (
-                    <div key={idx} className="h-4 bg-gray-200 rounded"></div>
+                    <div key={idx} className="h-4 bg-muted rounded"></div>
                   ))}
                 </div>
-                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-muted rounded"></div>
               </div>
             ))}
           </div>
@@ -59,17 +59,17 @@ export function PricingWithPrePayment() {
 
   if (error) {
     return (
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
         <GridContainer>
           <div className="text-center">
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         </GridContainer>
       </section>
     )
   }
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -78,8 +78,8 @@ export function PricingWithPrePayment() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
           </motion.div>
@@ -98,8 +98,8 @@ export function PricingWithPrePayment() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative bg-white rounded-2xl border-2 p-8 transition-all duration-300 hover:shadow-xl flex flex-col ${
-                  plan.isPopular ? 'border-purple-500 shadow-lg scale-105' : 'border-gray-200'
+                className={`relative bg-card rounded-2xl border-2 p-8 transition-all duration-300 hover:shadow-xl flex flex-col ${
+                  plan.isPopular ? 'border-purple-500 shadow-lg scale-105' : 'border-border'
                 }`}
               >
                 {plan.isPopular && (
@@ -111,20 +111,22 @@ export function PricingWithPrePayment() {
                 )}
 
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{plan.name}</h3>
-                  <div className="text-4xl font-bold text-gray-900 mb-2">{formattedPrice}</div>
+                  <h3 className="text-2xl font-bold text-foreground mb-4">{plan.name}</h3>
+                  <div className="text-4xl font-bold text-foreground mb-2">{formattedPrice}</div>
 
-                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                    <div className="text-sm text-gray-600 mb-1">{t('prepaymentLabel')}</div>
-                    <div className="text-2xl font-bold text-blue-600">{formattedPrepayment}</div>
+                  <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-4 mb-6">
+                    <div className="text-sm text-muted-foreground mb-1">{t('prepaymentLabel')}</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {formattedPrepayment}
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
                   {plan.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
+                      <CheckCircle className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground text-sm">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -143,7 +145,7 @@ export function PricingWithPrePayment() {
                     className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
                       plan.isPopular
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                        : 'bg-foreground text-background hover:bg-foreground/90'
                     }`}
                   >
                     {t('selectPlan')}

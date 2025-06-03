@@ -28,7 +28,7 @@ export function AIFAQSection() {
   })
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-background">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -37,8 +37,8 @@ export function AIFAQSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">{t('subtitle')}</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">{t('subtitle')}</p>
           </motion.div>
         </div>
 
@@ -50,18 +50,18 @@ export function AIFAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden"
+              className="bg-muted/30 rounded-2xl border border-border overflow-hidden"
             >
               <button
                 onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
-                className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
+                className="w-full p-6 text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
               >
-                <h3 className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</h3>
+                <h3 className="text-lg font-semibold text-foreground pr-4">{faq.question}</h3>
                 <motion.div
                   animate={{ rotate: openQuestion === index ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ChevronDown className="w-6 h-6 text-gray-500" />
+                  <ChevronDown className="w-6 h-6 text-muted-foreground" />
                 </motion.div>
               </button>
 
@@ -76,7 +76,7 @@ export function AIFAQSection() {
                   >
                     <div className="px-6 pb-6">
                       <p
-                        className="text-gray-700 leading-relaxed"
+                        className="text-muted-foreground leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: faq.answer }}
                       />
                     </div>

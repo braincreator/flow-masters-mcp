@@ -152,7 +152,7 @@ export function AIQuizCalculator() {
 
   if (showResults && results) {
     return (
-      <section className="py-20 bg-gradient-to-b from-blue-50 to-white">
+      <section className="py-20 bg-gradient-to-b from-blue-50 to-background dark:from-blue-950/20 dark:to-background">
         <GridContainer>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -164,50 +164,50 @@ export function AIQuizCalculator() {
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('results.title')}</h2>
-              <p className="text-xl text-gray-600">{t('results.description')}</p>
+              <h2 className="text-4xl font-bold text-foreground mb-4">{t('results.title')}</h2>
+              <p className="text-xl text-muted-foreground">{t('results.description')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-lg text-center hover:shadow-xl transition-shadow">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-2xl font-bold text-foreground mb-2">
                   +{formatCurrencyLocalized(results.monthlyROI, locale)}
                 </div>
-                <div className="text-gray-600">{t('results.metrics.monthlyProfit')}</div>
+                <div className="text-muted-foreground">{t('results.metrics.monthlyProfit')}</div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-blue-600" />
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-lg text-center hover:shadow-xl transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-2xl font-bold text-foreground mb-2">
                   {results.timeSavings}
                   {t('results.metrics.hoursUnit')}
                 </div>
-                <div className="text-gray-600">{t('results.metrics.timeSavings')}</div>
+                <div className="text-muted-foreground">{t('results.metrics.timeSavings')}</div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-lg text-center hover:shadow-xl transition-shadow">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-2xl font-bold text-foreground mb-2">
                   +{results.conversionIncrease}%
                 </div>
-                <div className="text-gray-600">{t('results.metrics.conversionGrowth')}</div>
+                <div className="text-muted-foreground">{t('results.metrics.conversionGrowth')}</div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center hover:shadow-xl transition-shadow">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-6 h-6 text-orange-600" />
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-lg text-center hover:shadow-xl transition-shadow">
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-2xl font-bold text-foreground mb-2">
                   {t('results.metrics.investmentRange', { range: results.investmentRange })}
                 </div>
-                <div className="text-gray-600">{t('results.metrics.investment')}</div>
+                <div className="text-muted-foreground">{t('results.metrics.investment')}</div>
               </div>
             </div>
 
@@ -244,9 +244,9 @@ export function AIQuizCalculator() {
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-center">
-              <h4 className="font-bold text-gray-900 mb-2">{t('results.specialOffer.title')}</h4>
-              <p className="text-gray-700">{t('results.specialOffer.description')}</p>
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 text-center">
+              <h4 className="font-bold text-foreground mb-2">{t('results.specialOffer.title')}</h4>
+              <p className="text-foreground/80">{t('results.specialOffer.description')}</p>
             </div>
           </motion.div>
         </GridContainer>
@@ -255,7 +255,7 @@ export function AIQuizCalculator() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-blue-50">
+    <section className="py-20 bg-gradient-to-b from-background to-blue-50 dark:to-blue-950/20">
       <GridContainer>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -268,24 +268,24 @@ export function AIQuizCalculator() {
               <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Calculator className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{t('title')}</h2>
-              <p className="text-xl text-gray-600 leading-relaxed">{t('subtitle')}</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
+              <p className="text-xl text-muted-foreground leading-relaxed">{t('subtitle')}</p>
             </motion.div>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 {t('results.progress.step', { current: currentStep + 1, total: quizSteps.length })}
               </span>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 {t('results.progress.percentage', {
                   percent: Math.round(((currentStep + 1) / quizSteps.length) * 100),
                 })}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <motion.div
                 className="bg-blue-600 h-2 rounded-full"
                 initial={{ width: 0 }}
@@ -303,10 +303,10 @@ export function AIQuizCalculator() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3 }}
-              className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"
+              className="bg-card rounded-2xl p-8 shadow-lg border border-border"
             >
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{currentQuizStep.title}</h3>
-              <p className="text-gray-600 mb-8">{currentQuizStep.subtitle}</p>
+              <h3 className="text-2xl font-bold text-foreground mb-4">{currentQuizStep.title}</h3>
+              <p className="text-muted-foreground mb-8">{currentQuizStep.subtitle}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {currentQuizStep.options.map((option) => (
@@ -318,8 +318,8 @@ export function AIQuizCalculator() {
                     className={cn(
                       'p-4 rounded-xl border-2 text-left transition-all duration-300',
                       selectedOption === option.id
-                        ? 'border-blue-500 bg-blue-50 text-blue-900'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50',
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-100'
+                        : 'border-border bg-card text-foreground hover:border-border/60 hover:bg-muted/50',
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -339,8 +339,8 @@ export function AIQuizCalculator() {
                   className={cn(
                     'flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300',
                     currentStep === 0
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-gray-700 hover:bg-gray-100',
+                      ? 'text-muted-foreground/50 cursor-not-allowed'
+                      : 'text-foreground hover:bg-muted/50',
                   )}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -353,7 +353,7 @@ export function AIQuizCalculator() {
                   className={cn(
                     'flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-300',
                     !selectedOption
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-muted text-muted-foreground cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl',
                   )}
                 >
