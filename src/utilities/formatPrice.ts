@@ -28,6 +28,11 @@ export const DEFAULT_FORMATS: Record<string, LocaleCurrencySettings> = {
 
 // Main price formatting function
 export const formatPrice = (price: number, locale: string = 'en'): string => {
+  // Handle zero prices with localized "Free" text
+  if (price <= 0) {
+    return locale === 'ru' ? 'Бесплатно' : 'Free'
+  }
+
   const settings = DEFAULT_FORMATS[locale] || DEFAULT_FORMATS.en
 
   // Use custom formatting for Russian ruble

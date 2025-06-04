@@ -245,7 +245,7 @@ export default function ServiceCard({
           )}
 
           {/* Цена внизу изображения */}
-          {!hidePrice && service.price > 0 && (
+          {!hidePrice && (
             <div className="absolute bottom-4 left-4 right-4">
               {isLoaded ? (
                 <div className="mt-1 bg-primary/80 backdrop-blur-sm px-2 py-1 rounded-md inline-block text-white text-sm">

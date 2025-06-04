@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { formatPrice } from '@/utilities/formatPrice'
+import { formatPrice, formatItemPrice } from '@/utilities/formatPrice'
 import {
   ArrowRight,
   Clock,
@@ -54,7 +54,7 @@ export default function RelatedServiceCard({
 
   useEffect(() => {
     try {
-      setLocalizedPrice(formatPrice(service.price || 0, locale))
+      setLocalizedPrice(formatItemPrice(service, locale))
     } catch (error) {
       console.error('Error formatting price:', error)
       setLocalizedPrice(formatPrice(service.price || 0, locale))

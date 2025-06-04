@@ -340,13 +340,15 @@ export default async function ServicePage({ params }: { params: ServicePageParam
             <AnimateInView direction="up" className="mt-16 pt-8 border-t border-border/10">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl md:text-3xl font-semibold">{t('relatedServices')}</h2>
-                <Button variant="ghost" asChild>
-                  <Link
-                    href={`/${lang}/services`}
-                    className="text-muted-foreground hover:text-foreground flex items-center group"
-                  >
-                    {t('allServices')}{' '}
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="border-primary/20 bg-background hover:bg-primary/5 hover:border-primary/40 text-primary hover:text-primary transition-all duration-300 shadow-sm hover:shadow-md dark:border-primary/30 dark:bg-background dark:hover:bg-primary/10 dark:hover:border-primary/50"
+                >
+                  <Link href={`/${lang}/services`} className="flex items-center group font-medium">
+                    {t('allServices')}
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 duration-300" />
                   </Link>
                 </Button>
               </div>
