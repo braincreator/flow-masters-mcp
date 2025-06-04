@@ -163,7 +163,7 @@ export function TechIconsGrid({
   return (
     <div
       className={cn(
-        'grid gap-3 md:gap-4',
+        'grid gap-3 md:gap-4 justify-center justify-items-center',
         `grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-${columns}`,
         className,
       )}
