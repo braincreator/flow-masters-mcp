@@ -140,10 +140,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
   title: {
-    template: '%s | Your Site Name',
-    default: 'Your Site Name',
+    template: '%s | FlowMasters',
+    default: 'FlowMasters',
   },
-  description: 'Your site description',
+  description: 'FlowMasters - AI-powered solutions for your business',
 }
 
 // --- REMOVED global data fetching and cache invalidation from module scope ---
