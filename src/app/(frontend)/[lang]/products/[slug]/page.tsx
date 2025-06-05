@@ -113,7 +113,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
       ],
       locale: lang,
-      siteName: 'Flow Masters',
+      siteName: 'FlowMasters',
     },
     twitter: {
       card: 'summary_large_image',

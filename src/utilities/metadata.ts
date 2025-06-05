@@ -33,12 +33,12 @@ const DEFAULT_IMAGE: MetadataImage = {
 const BASE_URL = getServerSideURL()
 
 const DEFAULT_METADATA: Metadata = {
-  title: 'Flow Masters',
+  title: 'FlowMasters',
   description: 'Business Process Automation',
   metadataBase: new URL(BASE_URL),
   openGraph: {
     type: 'website',
-    siteName: 'Flow Masters',
+    siteName: 'FlowMasters',
     images: [DEFAULT_IMAGE],
   },
   twitter: {

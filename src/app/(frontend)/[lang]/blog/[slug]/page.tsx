@@ -254,7 +254,7 @@ export async function generateMetadata({
         title: metaTitle,
         description: metaDescription,
         url: `/blog/${slug}`,
-        siteName: 'Flow Masters', // Replace with your site name if different
+        siteName: 'FlowMasters', // Replace with your site name if different
         images: metaImage
           ? [
               {
