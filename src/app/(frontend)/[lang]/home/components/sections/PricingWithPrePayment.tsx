@@ -70,7 +70,7 @@ export function PricingWithPrePayment() {
   }
   return (
     <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
-      <GridContainer>
+      <GridContainer settings={{ fullWidth: true, padding: { left: 'large', right: 'large' } }}>
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -87,7 +87,7 @@ export function PricingWithPrePayment() {
 
         {/* Горизонтальный скролл для планов */}
         <div className="relative mb-16 pricing-scroll-container">
-          <div className="flex gap-8 overflow-x-auto pb-4 px-4 scrollbar-hide snap-x snap-mandatory">
+          <div className="flex gap-6 overflow-x-auto pb-4 px-4 scrollbar-hide snap-x snap-mandatory justify-center">
             {plans.map((plan, index) => {
               const formattedPrice = formatFullPrice(plan, locale, t)
               const formattedPrepayment = formatPrepayment(plan, locale)
