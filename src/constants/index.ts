@@ -82,9 +82,9 @@ export const CACHE_TAGS = {
 } as const
 
 // Site URLs
-export const SITE_URL = 
-  process.env.NEXT_PUBLIC_SERVER_URL || 
-  process.env.VERCEL_PROJECT_PRODUCTION_URL || 
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
   'https://example.com'
 
 // Media config
@@ -131,8 +131,8 @@ export const UPLOAD_CONFIG: UploadConfig = {
     TEMP: '/tmp',
   },
   IMAGE: {
-    MAX_CONCURRENCY: 4,
-    MAX_MEMORY_PER_TASK: 512,
+    MAX_CONCURRENCY: 2, // Reduced from 4 to 2
+    MAX_MEMORY_PER_TASK: 256, // Reduced from 512 to 256MB
   },
   ALLOWED_MIME_TYPES: {
     IMAGE: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
@@ -151,7 +151,7 @@ export const DATABASE_CONFIG: { CONNECTION: DatabaseConnectionConfig } = {
     retryWrites: true,
     retryReads: true,
     w: 'majority',
-    maxPoolSize: 10,
+    maxPoolSize: 5, // Reduced from 10 to 5
     minPoolSize: 1,
   },
 } as const

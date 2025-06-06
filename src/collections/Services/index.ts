@@ -10,8 +10,8 @@ export const Services: CollectionConfig = {
   admin: {
     group: 'E-commerce',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'serviceType', 'price', 'status'],
-    preview: (doc, { locale }) => formatPreviewURL('products', doc, locale), // Временно используем products для предпросмотра
+    defaultColumns: ['title', 'serviceType', 'price', 'status', 'publishedAt'],
+    preview: (doc, { locale }) => formatPreviewURL('services', doc, locale),
   },
   access: {
     read: () => true,
@@ -118,6 +118,7 @@ export const Services: CollectionConfig = {
     {
       name: 'features',
       type: 'array',
+      localized: true,
       fields: [
         {
           name: 'name',
@@ -142,6 +143,7 @@ export const Services: CollectionConfig = {
     {
       name: 'gallery',
       type: 'array',
+      localized: true,
       fields: [
         {
           name: 'image',
@@ -435,11 +437,13 @@ export const Services: CollectionConfig = {
           name: 'title',
           type: 'text',
           label: 'Meta Title',
+          localized: true,
         },
         {
           name: 'description',
           type: 'textarea',
           label: 'Meta Description',
+          localized: true,
         },
         {
           name: 'image',

@@ -63,15 +63,17 @@ export const getCachedDocument = (collection: Collection, slug: string, depth = 
   )
 }
 
-// More aggressive memory management
-if (typeof process !== 'undefined') {
-  process.on('memory', (info) => {
-    if (info.heapUsed / info.heapTotal > 0.8) {
-      // Lower threshold
-      console.warn('High memory usage detected, clearing document cache')
-      documentCache.reset()
-    }
-  })
+// Register cache with memory manager for automatic cleanup
+import { memoryManager } from './memoryManager'
+if (typeof documentCache.reset === 'function') {
+  // Create a wrapper to make documentCache compatible with LRUCache interface
+  const cacheWrapper = {
+    size: 0,
+    clear: () => documentCache.reset(),
+    delete: () => false,
+    keys: () => [][Symbol.iterator](),
+  }
+  memoryManager.registerCache(cacheWrapper as any)
 }
 
 // Export the direct function for cases where caching is not desired

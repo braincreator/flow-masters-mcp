@@ -226,6 +226,46 @@ export async function verifyWebhookSignature(request: Request): Promise<NextResp
   }
 }
 
+export async function getServerSession(): Promise<{
+  user?: any
+  isAuthenticated: boolean
+}> {
+  try {
+    const payload = await getPayloadClient()
+    const cookieStore = await cookies()
+    const payloadToken = cookieStore.get('payload-token')
+
+    if (!payloadToken?.value) {
+      return { isAuthenticated: false }
+    }
+
+    // Try to verify the token and get user
+    try {
+      const authResult = await payload.find({
+        collection: 'users',
+        where: {
+          id: { exists: true },
+        },
+        limit: 1,
+      })
+
+      if (authResult.docs && authResult.docs.length > 0) {
+        return {
+          user: authResult.docs[0],
+          isAuthenticated: true,
+        }
+      }
+    } catch (error) {
+      console.error('Session verification error:', error)
+    }
+
+    return { isAuthenticated: false }
+  } catch (error) {
+    console.error('getServerSession error:', error)
+    return { isAuthenticated: false }
+  }
+}
+
 export async function verifyAuth(request: Request): Promise<{
   isAuthenticated: boolean
   user?: any

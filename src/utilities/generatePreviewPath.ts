@@ -2,7 +2,7 @@ import type { PayloadRequest } from 'payload'
 import { getServerSideURL } from './getURL'
 
 type Args = {
-  collection: 'pages' | 'posts'
+  collection: 'pages' | 'posts' | 'products' | 'services'
   draft?: boolean
   req?: PayloadRequest
   slug?: string
@@ -17,7 +17,7 @@ export const generatePreviewPath = ({ collection, slug, locale }: Args): string 
   previewURL.searchParams.append('collection', collection)
   previewURL.searchParams.append('slug', slug || '')
   previewURL.searchParams.append('previewSecret', process.env.PREVIEW_SECRET || '')
-  
+
   // Add locale if provided
   if (locale) {
     previewURL.searchParams.append('locale', locale)

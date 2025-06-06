@@ -30,7 +30,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Continue with custom middleware logic if next-intl didn't handle it
-  const locale = pathname.split('/')[1] || DEFAULT_LOCALE
+  const pathSegments = pathname.split('/').filter(Boolean)
+  const locale =
+    pathSegments[0] && SUPPORTED_LOCALES.includes(pathSegments[0])
+      ? pathSegments[0]
+      : DEFAULT_LOCALE
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-locale', locale)
 

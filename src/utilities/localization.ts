@@ -22,41 +22,12 @@ const localeCache = new LRUCache({
   maxSize: 5000000, // 5MB total cache size
 })
 
-let memoryCheckInterval: NodeJS.Timeout | undefined
-
-// Memory pressure handling with proper cleanup
-const setupMemoryCheck = () => {
-  // Clear existing interval if it exists
-  if (memoryCheckInterval) {
-    clearInterval(memoryCheckInterval)
-    memoryCheckInterval = undefined
-  }
-
-  if (typeof process !== 'undefined') {
-    memoryCheckInterval = setInterval(() => {
-      try {
-        const usage = process.memoryUsage()
-        if (usage.heapUsed > usage.heapTotal * 0.8) {
-          localeCache.clear()
-          console.log('Locale cache cleared due to high memory usage')
-        }
-      } catch (error) {
-        console.error('Error in locale memory check interval:', error)
-      }
-    }, 300000) // 5 minutes
-  }
-}
-
-// Запускаем проверку памяти только на сервере
-if (typeof window === 'undefined') {
-  setupMemoryCheck()
-}
+// Register cache with memory manager for automatic cleanup
+import { memoryManager } from './memoryManager'
+memoryManager.registerCache(localeCache)
 
 export const cleanupLocaleCache = () => {
-  if (memoryCheckInterval) {
-    clearInterval(memoryCheckInterval)
-    memoryCheckInterval = undefined
-  }
+  memoryManager.unregisterCache(localeCache)
   localeCache.clear()
 }
 

@@ -672,7 +672,24 @@
     "errorLoading": "Failed to load subscription plans",
     "notFoundTitle": "Subscription Plans Not Found",
     "notFoundDescription": "There are currently no subscription plans available",
-    "noFeaturesDescription": "No feature description available"
+    "noFeaturesDescription": "No feature description available",
+    "popularBadge": "Popular",
+    "defaultHeading": "Choose Your Subscription Plan",
+    "defaultDescription": "Select the plan that best fits your needs",
+    "errorFetchPlans": "Error fetching plans",
+    "errorLoadingPlans": "Error loading subscription plans",
+    "errorGeneric": "An error occurred",
+    "errorPlanNotFound": "Plan not found",
+    "errorSubscribing": "Error subscribing to plan",
+    "trialPeriod": "Trial period: {count} days",
+    "priceFormat": "{price} / {period}",
+    "periods": {
+      "daily": "day",
+      "weekly": "week",
+      "monthly": "month",
+      "quarterly": "quarter",
+      "annual": "year"
+    }
   },
   "LessonProgress": {
     "lessonCompleted": "Lesson completed",
@@ -1096,6 +1113,7 @@
       "selectPlan": "Select Plan",
       "cost": "Cost",
       "from": "from",
+      "scrollToSeeMore": "Scroll to see more plans",
       "guaranteeSection": {
         "title": "100% Result Guarantee",
         "description": "We bring the project to full implementation according to specifications or refine it at our own expense.\nYou only pay for working results.",
@@ -1104,45 +1122,54 @@
       "plans": {
         "0": {
           "name": "Starter",
-          "price": "$299",
+          "price": "$999",
           "period": "/month",
-          "description": "Perfect for small businesses",
+          "description": "Perfect solution for small business",
           "features": {
-            "0": "AI Chatbot",
-            "1": "Basic Analytics",
-            "2": "Email Support",
-            "3": "Setup Included"
+            "0": "AI chatbot for 1 platform",
+            "1": "Basic CRM integration",
+            "2": "Auto-responder and FAQ bot",
+            "3": "30 days technical support",
+            "4": "Team training (4 hours)",
+            "5": "Setup included"
           },
-          "button": "Get Started",
+          "button": "Select Plan",
           "popular": false
         },
         "1": {
           "name": "Professional",
-          "price": "$599",
+          "price": "$2,099",
           "period": "/month",
-          "description": "For growing businesses",
+          "description": "For growing business with complete automation",
           "features": {
-            "0": "Advanced AI Chatbot",
-            "1": "Sales Automation",
-            "2": "Priority Support",
-            "3": "Custom Integration",
-            "4": "Analytics Dashboard"
+            "0": "AI chatbots for 3 platforms",
+            "1": "Advanced CRM/ERP integration",
+            "2": "Email and SMS marketing automation",
+            "3": "Real-time analytics and reports",
+            "4": "Lead scoring and segmentation",
+            "5": "90 days technical support",
+            "6": "Team training (12 hours)",
+            "7": "Business process setup"
           },
-          "button": "Get Started",
+          "button": "Select Plan",
           "popular": true
         },
         "2": {
           "name": "Enterprise",
-          "price": "$1299",
+          "price": "$4,399",
           "period": "/month",
-          "description": "For large organizations",
+          "description": "Maximum solution for large business",
           "features": {
-            "0": "Full AI Suite",
-            "1": "Custom Development",
-            "2": "Dedicated Manager",
-            "3": "24/7 Support",
-            "4": "Advanced Analytics",
-            "5": "API Access"
+            "0": "Unlimited AI solutions",
+            "1": "Custom development for specific needs",
+            "2": "Complete automation of all processes",
+            "3": "Dedicated project manager",
+            "4": "Priority 24/7 support",
+            "5": "Advanced analytics and BI",
+            "6": "Team training (40 hours)",
+            "7": "AI strategy consultations",
+            "8": "99.9% SLA guarantees",
+            "9": "API access and integrations"
           },
           "button": "Contact Sales",
           "popular": false

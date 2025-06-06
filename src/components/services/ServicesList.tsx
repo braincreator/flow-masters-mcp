@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { useLocale } from '@/providers/LocaleProvider'
 import { Service } from '@/types/service'
 import ServiceCard from './ServiceCard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -19,6 +20,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
   className = '',
 }) => {
   const t = useTranslations('Services')
+  const { locale } = useLocale()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,24 +30,24 @@ export const ServicesList: React.FC<ServicesListProps> = ({
       try {
         setLoading(true)
         setError(null)
-        
-        // Формируем URL с параметрами
-        let url = '/api/v1/services?status=published'
-        
+
+        // Формируем URL с параметрами, включая локаль
+        let url = `/api/v1/services?status=published&locale=${locale}`
+
         if (serviceType) {
           url += `&type=${serviceType}`
         }
-        
+
         if (limit) {
           url += `&limit=${limit}`
         }
-        
+
         const response = await fetch(url)
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch services')
         }
-        
+
         const data = await response.json()
         setServices(data.docs || [])
       } catch (err) {
@@ -55,9 +57,9 @@ export const ServicesList: React.FC<ServicesListProps> = ({
         setLoading(false)
       }
     }
-    
+
     fetchServices()
-  }, [serviceType, limit])
+  }, [serviceType, limit, locale])
 
   // Отображаем скелетон во время загрузки
   if (loading) {

@@ -40,25 +40,28 @@ interface LayoutProps {
 export default async function LangLayout({ children, params }: LayoutProps) {
   // Await params and then access its properties
   const paramsData = await Promise.resolve(params)
-  const lang = paramsData.lang
+  const lang = paramsData.lang || 'ru'
+
+  // Ensure lang is a valid string and supported locale
+  const validLang = typeof lang === 'string' && lang ? lang : 'ru'
 
   // Устанавливаем локаль для next-intl
-  setRequestLocale(lang)
+  setRequestLocale(validLang)
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
 
   // Проверяем, что локаль действительно поддерживается и не содержит специальных путей
   if (
-    locales.includes(lang as (typeof locales)[number]) &&
-    !lang.includes('/') &&
-    !lang.includes('fonts')
+    locales.includes(validLang as (typeof locales)[number]) &&
+    !validLang.includes('/') &&
+    !validLang.includes('fonts')
   ) {
     try {
       // Загружаем файл локализации для текущей локали
-      messages = (await import(`../../../../messages/${lang}.json`)).default
+      messages = (await import(`../../../../messages/${validLang}.json`)).default
     } catch (error) {
-      console.warn(`Could not load messages for locale: ${lang}`, error)
+      console.warn(`Could not load messages for locale: ${validLang}`, error)
       messages = {}
     }
   }
@@ -67,17 +70,17 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   // Перенаправляем на страницу 404 только если путь не содержит специальные пути
   if (
-    !locales.includes(lang as (typeof locales)[number]) &&
-    !lang.includes('/') &&
-    !lang.startsWith('_next') &&
-    !lang.startsWith('fonts')
+    !locales.includes(validLang as (typeof locales)[number]) &&
+    !validLang.includes('/') &&
+    !validLang.startsWith('_next') &&
+    !validLang.startsWith('fonts')
   ) {
     notFound()
   }
 
   return (
-    <NextIntlClientProvider locale={lang} messages={messages}>
-      <div lang={lang} className="h-full" suppressHydrationWarning>
+    <NextIntlClientProvider locale={validLang} messages={messages}>
+      <div lang={validLang} className="h-full" suppressHydrationWarning>
         <div
           className={cn(
             GeistSans.variable,
@@ -85,27 +88,27 @@ export default async function LangLayout({ children, params }: LayoutProps) {
             'flex flex-col min-h-screen bg-background font-sans antialiased',
           )}
           style={{ '--header-height': '4rem', '--footer-height': '12rem' } as React.CSSProperties}
-          data-lang={lang}
+          data-lang={validLang}
         >
           <ThemeProvider>
             <DropdownProvider>
-              <LocaleProvider initialLocale={lang}>
-                <I18nProvider defaultLang={lang}>
+              <LocaleProvider initialLocale={validLang}>
+                <I18nProvider defaultLang={validLang}>
                   <LoadingConfigProvider>
                     <LoadingProvider>
                       {/* Add our smart loading component */}
                       <SmartLoading />
 
                       {isDraftMode && <AdminBar />}
-                      <Header locale={lang} />
+                      <Header locale={validLang} />
                       <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
                         {children}
                       </main>
                       <div id="pagination-slot" className="container py-8"></div>
-                      <Footer locale={lang} />
-                      <FloatingCartButtonWrapper locale={lang} />
-                      <CartModal locale={lang} />
-                      <CookieConsentBanner locale={lang} />
+                      <Footer locale={validLang} />
+                      <FloatingCartButtonWrapper locale={validLang} />
+                      <CartModal locale={validLang} />
+                      <CookieConsentBanner locale={validLang} />
                     </LoadingProvider>
                   </LoadingConfigProvider>
                 </I18nProvider>

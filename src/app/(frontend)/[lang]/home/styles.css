@@ -2,7 +2,8 @@
 
 /* Custom animations */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -11,7 +12,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
   50% {
@@ -62,7 +64,9 @@
 
 /* Hover effects */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .hover-lift:hover {
@@ -75,9 +79,77 @@
   .mobile-stack {
     flex-direction: column;
   }
-  
+
   .mobile-center {
     text-align: center;
+  }
+}
+
+/* Horizontal scroll styles */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Smooth scrolling for horizontal containers */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Snap scrolling */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+/* Pricing section container */
+.pricing-scroll-container {
+  overflow: visible; /* Позволяет бейджам выходить за пределы */
+}
+
+/* Pricing cards responsive width and height */
+.pricing-card {
+  min-height: 570px; /* Уменьшено с 600px на 5% */
+  position: relative;
+  overflow: visible; /* Позволяет бейджу выходить за пределы карточки */
+}
+
+@media (max-width: 640px) {
+  .pricing-card {
+    width: 320px !important;
+    min-width: 320px !important;
+    min-height: 551px; /* Уменьшено с 580px на 5% */
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .pricing-card {
+    width: 360px !important;
+    min-width: 360px !important;
+    min-height: 589px; /* Уменьшено с 620px на 5% */
+  }
+}
+
+@media (min-width: 1025px) {
+  .pricing-card {
+    width: 400px !important;
+    min-width: 400px !important;
+    min-height: 608px; /* Уменьшено с 640px на 5% */
+  }
+}
+
+@media (min-width: 1440px) {
+  .pricing-card {
+    width: 420px !important;
+    min-width: 420px !important;
+    min-height: 627px; /* Уменьшено с 660px на 5% */
   }
 }
 

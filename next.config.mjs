@@ -92,6 +92,7 @@ const nextConfig = {
 
   experimental: {
     optimizeCss: true,
+    // Оптимизации памяти (убираем неподдерживаемые опции)
     serverActions: {
       allowedOrigins: [
         'flow-masters.ru',
@@ -128,13 +129,31 @@ const nextConfig = {
 
   // Add CSS optimization settings and fix worker_threads issue
   webpack: (config, { dev, isServer, webpack }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks.cacheGroups.styles = {
-        name: 'styles',
-        test: /\.(css|scss)$/,
-        chunks: 'all',
-        enforce: true,
+    // Оптимизации памяти для webpack
+    if (!dev) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        maxSize: 244000, // Ограничиваем размер чанков до 244KB
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          styles: {
+            name: 'styles',
+            test: /\.(css|scss)$/,
+            chunks: 'all',
+            enforce: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            maxSize: 244000,
+          },
+        },
       }
+
+      // Ограничиваем количество параллельных запросов
+      config.optimization.splitChunks.maxAsyncRequests = 5
+      config.optimization.splitChunks.maxInitialRequests = 3
     }
 
     // Правило для принудительного включения @aws-sdk/client-s3 в бандл

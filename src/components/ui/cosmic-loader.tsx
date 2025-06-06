@@ -24,9 +24,10 @@ export function CosmicLoader() {
 
   // Adjust number of stars based on device type and viewport size
   const starCount = React.useMemo(() => {
-    if (isMobile) return 20
-    if (isTablet) return 35
-    return 50
+    // Reduce star count for better performance and memory usage
+    if (isMobile) return 10 // Reduced from 20 to 10
+    if (isTablet) return 20 // Reduced from 35 to 20
+    return 30 // Reduced from 50 to 30
   }, [isMobile, isTablet])
 
   // Generate random stars for the background

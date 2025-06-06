@@ -19,16 +19,19 @@ export const pathnames = {
 export const localePrefix = 'always'
 
 export default getRequestConfig(async ({ locale }) => {
+  // Ensure locale is a string and validate it
+  const validLocale = typeof locale === 'string' && locale ? locale : defaultLocale
+
   // The `locale` parameter from getRequestConfig is guaranteed to be a string
   // and one of your configured locales if your middleware is set up correctly.
   // We'll cast to AppLocale for type safety with our defined locales.
-  const currentLocale = locales.includes(locale as AppLocale)
-    ? (locale as AppLocale)
+  const currentLocale = locales.includes(validLocale as AppLocale)
+    ? (validLocale as AppLocale)
     : defaultLocale
 
-  if (!locales.includes(locale as AppLocale)) {
+  if (!locales.includes(validLocale as AppLocale)) {
     console.warn(
-      `Unsupported locale: "${locale}". Falling back to default locale "${defaultLocale}".`,
+      `Unsupported locale: "${validLocale}". Falling back to default locale "${defaultLocale}".`,
     )
   }
 

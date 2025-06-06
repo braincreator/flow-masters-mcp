@@ -82,19 +82,19 @@ export function abortRegisteredController(controller: AbortController): void {
  */
 export function cleanupAllResources(): void {
   // Очищаем все интервалы
-  intervals.forEach(interval => {
+  intervals.forEach((interval) => {
     clearInterval(interval)
   })
   intervals.clear()
 
   // Очищаем все таймауты
-  timeouts.forEach(timeout => {
+  timeouts.forEach((timeout) => {
     clearTimeout(timeout)
   })
   timeouts.clear()
 
   // Отменяем все AbortController
-  controllers.forEach(controller => {
+  controllers.forEach((controller) => {
     controller.abort()
   })
   controllers.clear()
@@ -113,7 +113,7 @@ export function cleanupAllResources(): void {
 if (typeof process !== 'undefined') {
   process.on('SIGTERM', cleanupAllResources)
   process.on('SIGINT', cleanupAllResources)
-  
+
   // Регистрируем обработчик для очистки ресурсов при высокой нагрузке на память
   process.on('memoryPressure', () => {
     console.warn('Memory pressure detected, cleaning up resources')
@@ -124,6 +124,16 @@ if (typeof process !== 'undefined') {
 // Экспортируем функцию для создания AbortController с автоматической регистрацией
 export function createAbortController(): AbortController {
   const controller = new AbortController()
+
+  // Добавляем проверку на существование transformAlgorithm
+  if (typeof (controller as any)[Symbol.for('kState')] === 'object') {
+    const state = (controller as any)[Symbol.for('kState')]
+    if (state && typeof state.transformAlgorithm !== 'function') {
+      // Устанавливаем пустую функцию если transformAlgorithm отсутствует
+      state.transformAlgorithm = () => {}
+    }
+  }
+
   return registerController(controller)
 }
 

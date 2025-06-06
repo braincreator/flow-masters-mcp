@@ -11,11 +11,11 @@ export function getLocale(request?: Request): string {
     // If request is provided, use it to extract locale
     if (request) {
       const url = new URL(request.url)
-      const pathParts = url.pathname.split('/')
+      const pathParts = url.pathname.split('/').filter(Boolean)
 
       // Check if the path has a language segment (typically the first segment after the leading slash)
-      if (pathParts.length > 1 && pathParts[1]) {
-        const possibleLocale = pathParts[1]
+      if (pathParts.length > 0 && pathParts[0]) {
+        const possibleLocale = pathParts[0]
 
         // Validate if it's a supported locale
         if (['ru', 'en'].includes(possibleLocale)) {

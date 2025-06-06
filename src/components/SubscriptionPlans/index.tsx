@@ -46,7 +46,7 @@ export default function SubscriptionPlans({
     const fetchPlans = async () => {
       setLoading(true)
       try {
-        const response = await fetch('/api/v1/subscription/plans')
+        const response = await fetch(`/api/v1/subscription/plans?locale=${locale}&status=active`)
         if (!response.ok) throw new Error(t('errorFetchPlans'))
         const data = await response.json()
 
@@ -64,7 +64,7 @@ export default function SubscriptionPlans({
     }
 
     fetchPlans()
-  }, [t])
+  }, [t, locale])
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId)
@@ -120,19 +120,19 @@ export default function SubscriptionPlans({
   }
 
   const formatPeriod = (period: string) => {
-      switch (period) {
-        case 'daily':
+    switch (period) {
+      case 'daily':
         return t('periods.daily')
-        case 'weekly':
+      case 'weekly':
         return t('periods.weekly')
-        case 'monthly':
+      case 'monthly':
         return t('periods.monthly')
-        case 'quarterly':
+      case 'quarterly':
         return t('periods.quarterly')
-        case 'annual':
+      case 'annual':
         return t('periods.annual')
-        default:
-          return period
+      default:
+        return period
     }
   }
 
@@ -157,8 +157,15 @@ export default function SubscriptionPlans({
         {plans.map((plan) => (
           <Card
             key={plan.id}
-            className={`flex flex-col ${selectedPlanId === plan.id ? 'border-primary ring-2 ring-primary/20' : ''}`}
+            className={`flex flex-col relative ${selectedPlanId === plan.id ? 'border-primary ring-2 ring-primary/20' : ''} ${
+              plan.isPopular ? 'border-primary shadow-lg' : ''
+            }`}
           >
+            {plan.isPopular && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                {t('popularBadge')}
+              </div>
+            )}
             <CardHeader>
               <CardTitle>{plan.name}</CardTitle>
               <CardDescription>{plan.description}</CardDescription>
@@ -175,7 +182,7 @@ export default function SubscriptionPlans({
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
-                      <span>{feature}</span>
+                      <span>{typeof feature === 'string' ? feature : feature.feature}</span>
                     </li>
                   ))}
                 </ul>

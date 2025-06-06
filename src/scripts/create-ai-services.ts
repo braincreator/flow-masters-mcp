@@ -1,21 +1,31 @@
 #!/usr/bin/env tsx
 
 /**
- * Script to create AI Agency services for testing
+ * Script to create complete AI Agency services for both locales
  * Run with: npx tsx src/scripts/create-ai-services.ts
  */
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
-const aiServices = [
+// Русские услуги - консультации (3 уровня)
+const russianConsultationServices = [
   {
-    title: 'ИИ-агенты под ключ',
-    serviceType: 'automation',
-    shortDescription: 'Умные помощники для автоматизации бизнес-процессов',
+    title: 'Экспресс-консультация по ИИ',
+    serviceType: 'consultation',
+    shortDescription:
+      'Быстрая 30-минутная оценка потенциала ИИ с выявлением приоритетных точек автоматизации',
     description: {
       root: {
         type: 'root',
         children: [
+          {
+            type: 'heading',
+            version: 1,
+            tag: 'h2',
+            children: [
+              { type: 'text', version: 1, text: 'Быстрая оценка потенциала ИИ для вашего бизнеса' },
+            ],
+          },
           {
             type: 'paragraph',
             version: 1,
@@ -23,22 +33,123 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Создаем персональных ИИ-агентов для автоматизации рутинных задач в вашем бизнесе.'
-              }
-            ]
-          }
+                text: 'За 30 минут определим наиболее перспективные направления для внедрения искусственного интеллекта в ваши бизнес-процессы. Получите четкое понимание возможностей и приоритетов автоматизации.',
+              },
+            ],
+          },
+          {
+            type: 'heading',
+            version: 1,
+            tag: 'h3',
+            children: [{ type: 'text', version: 1, text: 'Что входит в консультацию:' }],
+          },
+          {
+            type: 'list',
+            version: 1,
+            listType: 'bullet',
+            start: 1,
+            children: [
+              {
+                type: 'listitem',
+                version: 1,
+                children: [
+                  {
+                    type: 'text',
+                    version: 1,
+                    text: 'Экспресс-анализ 2-3 ключевых бизнес-процессов',
+                  },
+                ],
+              },
+              {
+                type: 'listitem',
+                version: 1,
+                children: [
+                  { type: 'text', version: 1, text: 'Определение приоритетных направлений для ИИ' },
+                ],
+              },
+              {
+                type: 'listitem',
+                version: 1,
+                children: [
+                  { type: 'text', version: 1, text: 'Предварительная оценка ROI от автоматизации' },
+                ],
+              },
+              {
+                type: 'listitem',
+                version: 1,
+                children: [
+                  { type: 'text', version: 1, text: 'Рекомендации по подходящим ИИ-инструментам' },
+                ],
+              },
+            ],
+          },
+          {
+            type: 'paragraph',
+            version: 1,
+            children: [
+              {
+                type: 'text',
+                version: 1,
+                text: 'Идеально подходит для первого знакомства с возможностями ИИ и быстрого определения точек роста.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
-    price: 150000,
-    isPriceStartingFrom: true,
-    duration: 2160, // 36 часов = 3-6 недель
+    price: 3000,
+    isPriceStartingFrom: false,
+    duration: 30,
+    features: [
+      {
+        name: 'Экспресс-анализ процессов',
+        description: 'Быстрая оценка 2-3 ключевых бизнес-процессов на предмет автоматизации',
+        included: true,
+      },
+      {
+        name: 'Приоритизация возможностей',
+        description: 'Определение наиболее перспективных направлений для внедрения ИИ',
+        included: true,
+      },
+      {
+        name: 'Предварительная оценка ROI',
+        description: 'Ориентировочный расчет эффекта от автоматизации',
+        included: true,
+      },
+      {
+        name: 'Рекомендации по инструментам',
+        description: 'Краткий обзор подходящих ИИ-решений',
+        included: true,
+      },
+    ],
+    requiresBooking: true,
+    bookingSettings: {
+      provider: 'calendly',
+      calendlyUsername: 'flow-masters',
+      calendlyEventType: 'express-consulting',
+      hideEventTypeDetails: true,
+      hideGdprBanner: true,
+      enableAdditionalInfo: false,
+      additionalInfoFields: [],
+      additionalInfoRequired: false,
+    },
+    requiresPayment: true,
+    paymentSettings: {
+      paymentType: 'full_prepayment',
+      prepaymentPercentage: 100,
+    },
     status: 'published',
-    slug: 'ai-agents-turnkey'
+    publishedAt: new Date().toISOString(),
+    meta: {
+      title: 'Экспресс-консультация по ИИ | Быстрая оценка потенциала автоматизации',
+      description:
+        'Быстрая 30-минутная консультация по возможностям ИИ. Выявление приоритетных точек автоматизации, предварительная оценка ROI, рекомендации по инструментам.',
+    },
+    slug: 'express-ai-consultation',
   },
   {
     title: 'Чат-боты с нейросетями',
@@ -55,22 +166,22 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Разрабатываем умных чат-ботов с интеграцией нейросетей для всех популярных платформ.'
-              }
-            ]
-          }
+                text: 'Разрабатываем умных чат-ботов с интеграцией нейросетей для всех популярных платформ.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
     price: 80000,
     isPriceStartingFrom: true,
     duration: 1440, // 24 часа = 2-3 недели
     status: 'published',
-    slug: 'ai-chatbots'
+    slug: 'ai-chatbots',
   },
   {
     title: 'Интеграция ИИ в процессы',
@@ -87,22 +198,22 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Интегрируем ИИ-решения в ваши существующие бизнес-процессы и системы.'
-              }
-            ]
-          }
+                text: 'Интегрируем ИИ-решения в ваши существующие бизнес-процессы и системы.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
     price: 200000,
     isPriceStartingFrom: true,
     duration: 2880, // 48 часов = 4-8 недель
     status: 'published',
-    slug: 'ai-integration'
+    slug: 'ai-integration',
   },
   {
     title: 'Аудит и поиск точек для ИИ',
@@ -119,22 +230,22 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Бесплатный аудит ваших бизнес-процессов для выявления точек применения ИИ.'
-              }
-            ]
-          }
+                text: 'Бесплатный аудит ваших бизнес-процессов для выявления точек применения ИИ.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
     price: 0,
     isPriceStartingFrom: false,
     duration: 480, // 8 часов = 3-7 дней
     status: 'published',
-    slug: 'ai-audit-free'
+    slug: 'ai-audit-free',
   },
   {
     title: 'Автоворонки и персонализация',
@@ -151,22 +262,22 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Создаем автоматизированные воронки продаж с ИИ-персонализацией.'
-              }
-            ]
-          }
+                text: 'Создаем автоматизированные воронки продаж с ИИ-персонализацией.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
     price: 120000,
     isPriceStartingFrom: true,
     duration: 960, // 16 часов = 10-14 дней
     status: 'published',
-    slug: 'ai-sales-funnels'
+    slug: 'ai-sales-funnels',
   },
   {
     title: 'ИИ-консультации',
@@ -183,28 +294,28 @@ const aiServices = [
               {
                 type: 'text',
                 version: 1,
-                text: 'Индивидуальные консультации по стратегии внедрения ИИ в ваш бизнес.'
-              }
-            ]
-          }
+                text: 'Индивидуальные консультации по стратегии внедрения ИИ в ваш бизнес.',
+              },
+            ],
+          },
         ],
         direction: null,
         format: '',
         indent: 0,
-        version: 1
-      }
+        version: 1,
+      },
     },
     price: 15000,
     isPriceStartingFrom: false,
     duration: 60, // 1 час
     status: 'published',
-    slug: 'ai-consultation'
-  }
+    slug: 'ai-consultation',
+  },
 ]
 
 async function createAIServices() {
   console.log('🤖 Creating AI Agency services...')
-  
+
   try {
     const payload = await getPayloadClient()
     console.log('✅ Payload client initialized')
@@ -216,10 +327,10 @@ async function createAIServices() {
           collection: 'services',
           where: {
             slug: {
-              equals: serviceData.slug
-            }
+              equals: serviceData.slug,
+            },
           },
-          limit: 1
+          limit: 1,
         })
 
         if (existing.docs.length > 0) {
@@ -230,7 +341,7 @@ async function createAIServices() {
         // Создаем услугу
         const service = await payload.create({
           collection: 'services',
-          data: serviceData
+          data: serviceData,
         })
 
         console.log(`✅ Created service: ${service.title} (${service.id})`)

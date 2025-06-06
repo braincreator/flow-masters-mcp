@@ -112,7 +112,12 @@ export default buildConfig({
 
     // Custom components for the admin panel
     // Temporarily disable ALL custom components to fix React context issues
-    components: process.env.IS_GENERATING_TYPES === 'true' ? {} : {},
+    components:
+      process.env.IS_GENERATING_TYPES === 'true'
+        ? {}
+        : {
+            // Enable basic components for admin panel
+          },
 
     // Custom navigation is implemented through afterNavLinks component
     // In Payload v3, navigation groups are handled through custom components

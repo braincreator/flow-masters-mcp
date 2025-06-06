@@ -3,22 +3,39 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { getLocale } from '@/utilities/i18n'
 
+interface WhereCondition {
+  equals?: boolean | string | number
+  not_equals?: boolean | string | number
+  in?: (string | number)[]
+  not_in?: (string | number)[]
+  exists?: boolean
+  greater_than?: number
+  greater_than_equal?: number
+  less_than?: number
+  less_than_equal?: number
+  like?: string
+  contains?: string
+}
+
+type QueryWhere = Record<string, WhereCondition>
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const locale = getLocale(request)
     const status = searchParams.get('status')
+    const category = searchParams.get('category')
     const limit = parseInt(searchParams.get('limit') || '10')
     const page = parseInt(searchParams.get('page') || '1')
 
     const payload = await getPayloadClient()
 
     // Construct query for Payload CMS
-    const query: any = {
+    const query = {
       limit,
       page,
-      sort: 'price',
-      where: {},
+      sort: 'price' as const,
+      where: {} as QueryWhere,
     }
 
     // Filter by active status if specified
@@ -26,10 +43,15 @@ export async function GET(request: Request) {
       query.where.isActive = { equals: true }
     }
 
+    // Filter by category if specified (for AI Agency plans)
+    if (category) {
+      query.where['metadata.category'] = { equals: category }
+    }
+
     // Fetch subscription plans with localized fields
     const result = await payload.find({
       collection: 'subscription-plans',
-      locale,
+      locale: locale as 'en' | 'ru' | 'all',
       ...query,
     })
 
@@ -44,7 +66,10 @@ export async function GET(request: Request) {
       features: plan.features || [],
       isActive: plan.isActive,
       isPopular: plan.isPopular,
-      trialDays: plan.trialDays,
+      trialPeriodDays: plan.trialPeriodDays, // Исправлено: было trialDays
+      maxSubscriptionMonths: plan.maxSubscriptionMonths,
+      autoRenew: plan.autoRenew,
+      allowCancel: plan.allowCancel,
       metadata: plan.metadata,
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
@@ -52,6 +77,15 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
+      data: {
+        docs: plans,
+        totalPages: result.totalPages,
+        totalDocs: result.totalDocs,
+        page: result.page,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
+      // Для обратной совместимости
       plans,
       totalPages: result.totalPages,
       totalDocs: result.totalDocs,
@@ -65,62 +99,23 @@ export async function GET(request: Request) {
   }
 }
 
-// Mock response for development (use when Payload CMS is not available)
-function getMockSubscriptionPlans() {
-  return [
-    {
-      id: 'basic-plan',
-      name: 'Basic Plan',
-      description: 'Essential features for small projects',
-      price: 9.99,
-      currency: 'USD',
-      period: 'monthly',
-      features: ['Up to 3 projects', '1GB storage', 'Email support'],
-      isActive: true,
-      trialDays: 14,
-      metadata: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'pro-plan',
-      name: 'Pro Plan',
-      description: 'Advanced features for growing teams',
-      price: 29.99,
-      currency: 'USD',
-      period: 'monthly',
-      features: [
-        'Unlimited projects',
-        '10GB storage',
-        'Priority support',
-        'Advanced analytics',
-        'Custom domains',
-      ],
-      isActive: true,
-      trialDays: 7,
-      metadata: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'enterprise-plan',
-      name: 'Enterprise Plan',
-      description: 'Complete solution for large organizations',
-      price: 99.99,
-      currency: 'USD',
-      period: 'monthly',
-      features: [
-        'Unlimited everything',
-        '100GB storage',
-        '24/7 premium support',
-        'Dedicated account manager',
-        'Custom integrations',
-        'SLA guarantee',
-      ],
-      isActive: true,
-      metadata: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ]
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const payload = await getPayloadClient()
+
+    // Создаем новый план
+    const result = await payload.create({
+      collection: 'subscription-plans',
+      data: body,
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: result,
+    })
+  } catch (error) {
+    console.error('Error creating subscription plan:', error)
+    return errorResponse('Failed to create subscription plan', 500)
+  }
 }

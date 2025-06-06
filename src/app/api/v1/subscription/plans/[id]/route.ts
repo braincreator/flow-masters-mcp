@@ -33,7 +33,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
           period: plan.period,
           features: plan.features || [],
           isActive: plan.isActive,
-          trialDays: plan.trialDays,
+          trialPeriodDays: plan.trialPeriodDays,
           metadata: plan.metadata,
           createdAt: plan.createdAt,
           updatedAt: plan.updatedAt,
@@ -119,4 +119,30 @@ function getMockPlanById(id: string) {
   }
 
   return mockPlans[id as keyof typeof mockPlans]
+}
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const planId = params.id
+
+    if (!planId) {
+      return errorResponse('Plan ID is required', 400)
+    }
+
+    const payload = await getPayloadClient()
+
+    // Удаляем план
+    await payload.delete({
+      collection: 'subscription-plans',
+      id: planId,
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Subscription plan deleted successfully',
+    })
+  } catch (error) {
+    console.error('Error deleting subscription plan:', error)
+    return errorResponse('Failed to delete subscription plan', 500)
+  }
 }

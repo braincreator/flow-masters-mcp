@@ -42,7 +42,11 @@ export async function GET(request: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      let isClosed = false
+
       const sendMetrics = async () => {
+        if (isClosed) return
+
         try {
           const memoryMetrics = calculateMemoryUsage()
           const cpuUsage = calculateCpuUsage()
@@ -64,9 +68,18 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString(),
           }
 
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metrics)}\n\n`))
+          if (!isClosed) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(metrics)}\n\n`))
+          }
         } catch (error) {
           console.error('Error calculating metrics:', error)
+          if (!isClosed) {
+            try {
+              controller.error(error)
+            } catch (e) {
+              // Controller might already be closed
+            }
+          }
         }
       }
 
@@ -77,9 +90,20 @@ export async function GET(request: NextRequest) {
       const interval = setInterval(sendMetrics, 2000) // Increased frequency to 2 seconds
 
       // Clean up on connection close
-      request.signal.addEventListener('abort', () => {
+      const cleanup = () => {
+        isClosed = true
         clearInterval(interval)
-      })
+        try {
+          controller.close()
+        } catch (e) {
+          // Controller might already be closed
+        }
+      }
+
+      request.signal.addEventListener('abort', cleanup)
+
+      // Also handle manual cleanup
+      return cleanup
     },
   })
 

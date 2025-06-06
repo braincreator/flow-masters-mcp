@@ -4,17 +4,21 @@ export const SubscriptionPlans: CollectionConfig = {
   slug: 'subscription-plans',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'price', 'period', 'autoRenew'],
+    defaultColumns: ['name', 'price', 'currency', 'period', 'autoRenew'],
     group: 'Subscriptions',
   },
   access: {
     read: () => true,
+    create: () => true,
+    update: () => true,
+    delete: () => true,
   },
   fields: [
     {
       name: 'name',
       type: 'text',
       required: true,
+      localized: true,
       admin: {
         description: 'Name of the subscription plan',
       },
@@ -22,6 +26,7 @@ export const SubscriptionPlans: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
+      localized: true,
       admin: {
         description: 'Description of the subscription plan',
       },
@@ -29,6 +34,7 @@ export const SubscriptionPlans: CollectionConfig = {
     {
       name: 'features',
       type: 'array',
+      localized: true,
       admin: {
         description: 'List of features included in this plan',
       },
@@ -44,15 +50,19 @@ export const SubscriptionPlans: CollectionConfig = {
       name: 'price',
       type: 'number',
       required: true,
+      localized: true,
       admin: {
-        description: 'Price of the subscription',
+        description: 'Price of the subscription (localized by currency)',
       },
     },
     {
       name: 'currency',
       type: 'select',
       required: true,
-      defaultValue: 'RUB',
+      localized: true,
+      admin: {
+        description: 'Currency for the subscription plan',
+      },
       options: [
         {
           label: 'Russian Ruble (RUB)',
