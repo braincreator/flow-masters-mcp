@@ -84,7 +84,11 @@ function getPriceColorClass(color: string, isSpecial: boolean): string {
 }
 
 // Функция для локализованного форматирования времени выполнения
-function formatDuration(duration?: number | null, t: any, locale: 'en' | 'ru' = 'ru'): string {
+function formatDuration(
+  duration: number | null | undefined,
+  t: any,
+  locale: 'en' | 'ru' = 'ru',
+): string {
   if (!duration || duration === 0) {
     return t('duration.byAgreement')
   }

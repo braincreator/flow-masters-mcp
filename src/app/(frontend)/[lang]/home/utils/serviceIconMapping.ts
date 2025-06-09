@@ -1,16 +1,16 @@
-import { 
-  Bot, 
-  MessageSquare, 
-  Settings, 
-  Smartphone, 
-  Search, 
+import {
+  Bot,
+  MessageSquare,
+  Settings,
+  Smartphone,
+  Search,
   Zap,
   Brain,
   Code,
   Cog,
   FileText,
   Users,
-  LucideIcon
+  LucideIcon,
 } from 'lucide-react'
 
 // Маппинг типов услуг на иконки
@@ -27,7 +27,7 @@ export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
 
 // Функция для получения иконки по типу услуги
 export function getServiceIcon(serviceType: string): LucideIcon {
-  return SERVICE_TYPE_ICONS[serviceType] || SERVICE_TYPE_ICONS.other
+  return SERVICE_TYPE_ICONS[serviceType] ?? SERVICE_TYPE_ICONS.other
 }
 
 // Маппинг типов услуг на цвета
@@ -44,5 +44,5 @@ export const SERVICE_TYPE_COLORS: Record<string, string> = {
 
 // Функция для получения цвета по типу услуги
 export function getServiceColor(serviceType: string): string {
-  return SERVICE_TYPE_COLORS[serviceType] || SERVICE_TYPE_COLORS.other
+  return SERVICE_TYPE_COLORS[serviceType] ?? SERVICE_TYPE_COLORS.other
 }

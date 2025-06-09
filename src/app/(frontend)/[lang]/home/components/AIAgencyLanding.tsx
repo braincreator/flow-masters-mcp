@@ -37,9 +37,7 @@ import { AnalyticsTracker } from './AnalyticsTracker'
 const FeedbackWidget = lazy(() =>
   import('./FeedbackWidget').then((m) => ({ default: m.FeedbackWidget })),
 )
-const SocialProofNotifications = lazy(() =>
-  import('./SocialProofNotifications').then((m) => ({ default: m.SocialProofNotifications })),
-)
+
 import { LeadFormModalProvider } from './LeadFormModalProvider'
 import { PerformanceProvider } from '@/components/PerformanceManager'
 
@@ -134,9 +132,6 @@ export function AIAgencyLanding() {
             </LazySection>
 
             {/* Floating widgets - Lazy loaded */}
-            <Suspense fallback={null}>
-              <SocialProofNotifications />
-            </Suspense>
             <Suspense fallback={null}>
               <FeedbackWidget />
             </Suspense>

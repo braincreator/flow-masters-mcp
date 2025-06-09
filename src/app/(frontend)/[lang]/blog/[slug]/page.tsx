@@ -1,5 +1,3 @@
-'use server'
-
 import { Metadata } from 'next'
 import { getPayloadClient, retryOnSessionExpired } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'

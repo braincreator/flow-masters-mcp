@@ -81,6 +81,8 @@ import { Bookings } from './Bookings'
 import ExpertiseTags from './ExpertiseTags' // Import the new collection
 import { Leads } from './Leads' // Import Leads collection
 import { FeatureFlags } from './FeatureFlags' // Import FeatureFlags collection
+import { ServiceQuestions } from './ServiceQuestions' // Import ServiceQuestions collection
+import { ServiceFAQs } from './ServiceFAQs' // Import ServiceFAQs collection
 // import { Forms } from './Forms' // Removed custom Forms collection import - KEEPING COMMENTED FOR HISTORY
 
 const collections = [
