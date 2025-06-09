@@ -34,17 +34,18 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
   try {
     const payload = await getPayloadClient()
 
-    // Получаем все опубликованные услуги
+    // Получаем все активные услуги
     const services = await payload.find({
       collection: 'services',
       where: {
-        status: {
-          equals: 'published',
+        businessStatus: {
+          in: ['active'], // Показываем только активные услуги
         },
       },
       locale: lang as 'en' | 'ru',
       sort: '-createdAt',
       depth: 1,
+      limit: 100, // Увеличиваем лимит, чтобы получить все услуги
     })
 
     if (!services || services.docs.length === 0) {
@@ -87,7 +88,7 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
         bookingSettings: payloadService.bookingSettings,
         requiresPayment: payloadService.requiresPayment || false,
         paymentSettings: payloadService.paymentSettings,
-        status: (payloadService.status || 'draft') as Service['status'],
+        status: (payloadService.businessStatus || 'active') as Service['status'],
         publishedAt: payloadService.publishedAt,
         createdAt: payloadService.createdAt,
         updatedAt: payloadService.updatedAt,

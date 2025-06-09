@@ -112,8 +112,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
         slug: {
           equals: slug,
         },
-        status: {
-          equals: 'published',
+        businessStatus: {
+          in: ['active'],
         },
       },
       locale: lang as 'en' | 'ru', // Приводим к правильному типу
@@ -154,8 +154,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
         slug: {
           not_equals: slug,
         },
-        status: {
-          equals: 'published',
+        businessStatus: {
+          in: ['active'],
         },
       },
       locale: lang as 'en' | 'ru', // Приводим к правильному типу

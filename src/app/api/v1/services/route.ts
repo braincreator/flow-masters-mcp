@@ -17,15 +17,23 @@ export async function GET(request: NextRequest) {
     }
     const requiresBooking = searchParams.get('requiresBooking')
     const requiresPayment = searchParams.get('requiresPayment')
-    const status = searchParams.get('status') || 'published'
+    const businessStatus = searchParams.get('businessStatus') || searchParams.get('status')
 
     const payload = await getPayloadClient()
 
     // Формируем условия запроса
-    const where: any = {
-      status: {
-        equals: status,
-      },
+    const where: any = {}
+
+    // Используем только businessStatus, так как versions отключены
+    if (businessStatus) {
+      where.businessStatus = {
+        equals: businessStatus,
+      }
+    } else {
+      // По умолчанию показываем только активные услуги
+      where.businessStatus = {
+        in: ['active'],
+      }
     }
 
     // Добавляем фильтры, если они указаны
@@ -65,7 +73,11 @@ export async function GET(request: NextRequest) {
       findOptions.locale = locale
     }
 
+    // Не используем draft: true, так как это ограничивает результаты только черновиками
+    // Вместо этого полагаемся на фильтр where.status
+
     console.log('[API /services] Effective locale for query:', locale)
+    console.log('[API /services] Business status filter:', businessStatus)
     console.log('[API /services] Query where clause:', JSON.stringify(where, null, 2))
     console.log('[API /services] Payload find options:', JSON.stringify(findOptions, null, 2))
 

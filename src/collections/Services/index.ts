@@ -10,7 +10,7 @@ export const Services: CollectionConfig = {
   admin: {
     group: 'E-commerce',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'serviceType', 'price', 'status', 'publishedAt'],
+    defaultColumns: ['title', 'serviceType', 'price', 'businessStatus', 'publishedAt'],
     preview: (doc, { locale }) => formatPreviewURL('services', doc, locale),
   },
   access: {
@@ -23,9 +23,16 @@ export const Services: CollectionConfig = {
     afterChange: [revalidatePage],
     beforeChange: [populatePublishedAt],
   },
-  versions: {
-    drafts: true,
-  },
+  // Временно отключаем versions для проверки отображения
+  // versions: {
+  //   drafts: {
+  //     autosave: {
+  //       interval: 100, // Автосохранение каждые 100мс для live preview
+  //     },
+  //     schedulePublish: true, // Возможность запланировать публикацию
+  //   },
+  //   maxPerDoc: 50, // Максимум 50 версий на документ
+  // },
   fields: [
     {
       name: 'title',
@@ -408,17 +415,18 @@ export const Services: CollectionConfig = {
       ],
     },
     {
-      name: 'status',
+      name: 'businessStatus',
       type: 'select',
       required: true,
-      defaultValue: 'draft',
+      defaultValue: 'active',
       options: [
-        { label: 'Черновик', value: 'draft' },
-        { label: 'Опубликовано', value: 'published' },
+        { label: 'Активно', value: 'active' },
         { label: 'Архив', value: 'archived' },
+        { label: 'Скрыто', value: 'hidden' },
       ],
       admin: {
         position: 'sidebar',
+        description: 'Бизнес-статус услуги (отдельно от черновиков/публикации)',
       },
     },
     {
