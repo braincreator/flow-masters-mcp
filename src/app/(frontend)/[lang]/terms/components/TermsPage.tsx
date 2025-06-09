@@ -7,7 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { FileText, Users, Cog, ShoppingCart, Clock, Mail } from 'lucide-react'
 import { RichText } from '@/components/RichText'
-import type { TermsPage as TermsPageType } from '@/payload-types'
+// We'll use a generic type since the collection might not be generated yet
+interface TermsPageType {
+  id: string
+  title: string
+  tabType: 'services' | 'consulting' | 'systems' | 'products'
+  subtitle?: string
+  badge?: string
+  content: any // RichText content
+  importantNote?: any // RichText content
+  order?: number
+  isActive: boolean
+  publishedAt?: string
+}
 
 interface TermsPageProps {
   termsPages: TermsPageType[]
