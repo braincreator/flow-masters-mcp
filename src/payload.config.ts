@@ -54,7 +54,7 @@ import { AssessmentSubmissions } from './collections/AssessmentSubmissions/confi
 import { LearningPaths } from './collections/LearningPaths/config' // Import LearningPaths
 import { WaitingListEntries } from './collections/WaitingListEntries/config' // Import WaitingListEntries
 import { ProjectFiles } from './collections/ProjectFiles/config' // Import ProjectFiles
-import { TermsPages } from './collections/TermsPages' // Import TermsPages
+import { TermsPages } from './collections/TermsPages/index' // Import TermsPages
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
