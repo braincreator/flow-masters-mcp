@@ -44,27 +44,27 @@ export const Logo = (props: Props) => {
   const sizeConfig = {
     thumbnail: {
       container: 'h-8',
-      image: 'h-6 w-auto',
+      image: 'h-7 w-auto',
       text: 'text-lg font-bold',
-      gap: 'gap-2',
+      gap: 'gap-1.5',
     },
     small: {
-      container: 'h-10',
-      image: 'h-8 w-auto',
+      container: 'h-14',
+      image: 'h-12 w-auto',
       text: 'text-xl font-bold',
-      gap: 'gap-3',
+      gap: 'gap-1.5',
     },
     medium: {
-      container: 'h-12',
-      image: 'h-10 w-auto',
+      container: 'h-14',
+      image: 'h-12 w-auto',
       text: 'text-2xl font-bold',
-      gap: 'gap-3',
+      gap: 'gap-2.5',
     },
     large: {
-      container: 'h-16',
-      image: 'h-12 w-auto',
+      container: 'h-18',
+      image: 'h-14 w-auto',
       text: 'text-3xl font-bold',
-      gap: 'gap-4',
+      gap: 'gap-3',
     },
   }
 
