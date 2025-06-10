@@ -104,7 +104,7 @@ export const RichText = ({ data, className }: Props) => {
     <RichTextWithoutBlocks
       data={data}
       converters={jsxConverters}
-      className={cn('prose dark:prose-invert', className)}
+      className={cn('prose dark:prose-invert max-w-none w-full', className)}
     />
   )
 }

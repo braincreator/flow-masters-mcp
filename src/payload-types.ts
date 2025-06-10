@@ -157,6 +157,9 @@ export interface Config {
     'calendly-settings': CalendlySetting;
     bookings: Booking;
     'expertise-tags': ExpertiseTag;
+    leads: Lead;
+    'feature-flags': FeatureFlag;
+    'terms-pages': TermsPage;
     assessments: Assessment;
     'course-reviews': CourseReview;
     'assessment-submissions': AssessmentSubmission;
@@ -164,8 +167,6 @@ export interface Config {
     'waiting-list-entries': WaitingListEntry;
     'project-files': ProjectFile;
     redirects: Redirect;
-    forms: Form;
-    'form-submissions': FormSubmission;
     search: Search;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -237,6 +238,9 @@ export interface Config {
     'calendly-settings': CalendlySettingsSelect<false> | CalendlySettingsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'expertise-tags': ExpertiseTagsSelect<false> | ExpertiseTagsSelect<true>;
+    leads: LeadsSelect<false> | LeadsSelect<true>;
+    'feature-flags': FeatureFlagsSelect<false> | FeatureFlagsSelect<true>;
+    'terms-pages': TermsPagesSelect<false> | TermsPagesSelect<true>;
     assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
     'course-reviews': CourseReviewsSelect<false> | CourseReviewsSelect<true>;
     'assessment-submissions': AssessmentSubmissionsSelect<false> | AssessmentSubmissionsSelect<true>;
@@ -244,8 +248,6 @@ export interface Config {
     'waiting-list-entries': WaitingListEntriesSelect<false> | WaitingListEntriesSelect<true>;
     'project-files': ProjectFilesSelect<false> | ProjectFilesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
-    forms: FormsSelect<false> | FormsSelect<true>;
-    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     search: SearchSelect<false> | SearchSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -8700,9 +8702,12 @@ export interface SubscriptionPlan {
       }[]
     | null;
   /**
-   * Price of the subscription
+   * Price of the subscription (localized by currency)
    */
   price: number;
+  /**
+   * Currency for the subscription plan
+   */
   currency: 'RUB' | 'USD' | 'EUR';
   /**
    * Billing period
@@ -11705,6 +11710,210 @@ export interface Booking {
   createdAt: string;
 }
 /**
+ * Лиды с AI Agency Landing и других форм
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads".
+ */
+export interface Lead {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  comment?: string | null;
+  /**
+   * Тип кнопки или действия, которое привело к созданию лида
+   */
+  actionType?: string | null;
+  /**
+   * URL страницы или источник лида
+   */
+  source?: string | null;
+  /**
+   * Дополнительная информация о лиде (результаты калькулятора, выбранный тариф и т.д.)
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status?: ('new' | 'in_progress' | 'processed' | 'closed') | null;
+  /**
+   * Пользователь, ответственный за обработку лида
+   */
+  assignedTo?: (string | null) | User;
+  /**
+   * Внутренние заметки по лиду
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage feature flags for the application
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feature-flags".
+ */
+export interface FeatureFlag {
+  /**
+   * Unique identifier for the feature flag (e.g., "new_dashboard")
+   */
+  id: string;
+  /**
+   * Human-readable name for the feature flag
+   */
+  name: string;
+  /**
+   * Description of what this feature flag controls
+   */
+  description?: string | null;
+  /**
+   * Whether this feature flag is enabled
+   */
+  enabled: boolean;
+  /**
+   * User groups that have access to this feature (leave empty for all users)
+   */
+  userGroups?: ('admin' | 'instructor' | 'customer' | 'beta_tester')[] | null;
+  /**
+   * Specific user IDs that have access to this feature
+   */
+  userIds?:
+    | {
+        userId: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Percentage rollout (0-100). Leave empty for all users when enabled.
+   */
+  percentage?: number | null;
+  /**
+   * When this feature flag becomes active (optional)
+   */
+  startDate?: string | null;
+  /**
+   * When this feature flag expires (optional)
+   */
+  endDate?: string | null;
+  /**
+   * Other feature flags that must be enabled for this one to work
+   */
+  dependencies?:
+    | {
+        flagId: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A/B testing variants for this feature flag
+   */
+  variants?:
+    | {
+        id: string | null;
+        name: string;
+        weight: number;
+        metadata?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+      }[]
+    | null;
+  /**
+   * Additional metadata for this feature flag
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Управление контентом для табов на странице Terms
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-pages".
+ */
+export interface TermsPage {
+  id: string;
+  /**
+   * Название таба (например: "Услуги", "Консультации")
+   */
+  title: string;
+  /**
+   * Тип таба - определяет какой контент будет отображаться
+   */
+  tabType: 'services' | 'consulting' | 'systems' | 'products';
+  /**
+   * Подзаголовок таба (опционально)
+   */
+  subtitle?: string | null;
+  /**
+   * Основной контент таба с условиями и соглашениями
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Важная информация (отображается в отдельном блоке)
+   */
+  importantNote?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Порядок отображения табов (0 = первый)
+   */
+  order?: number | null;
+  /**
+   * Отображать ли этот таб на странице
+   */
+  isActive?: boolean | null;
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * User reviews and ratings for courses.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -11835,197 +12044,6 @@ export interface Redirect {
         } | null);
     url?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "forms".
- */
-export interface Form {
-  id: string;
-  title: string;
-  fields?:
-    | (
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            required?: boolean | null;
-            defaultValue?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'checkbox';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'country';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'email';
-          }
-        | {
-            message?: {
-              root: {
-                type: string;
-                children: {
-                  type: string;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            } | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'message';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            defaultValue?: number | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'number';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            defaultValue?: string | null;
-            placeholder?: string | null;
-            options?:
-              | {
-                  label: string;
-                  value: string;
-                  id?: string | null;
-                }[]
-              | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'select';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'state';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            defaultValue?: string | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'text';
-          }
-        | {
-            name: string;
-            label?: string | null;
-            width?: number | null;
-            defaultValue?: string | null;
-            required?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'textarea';
-          }
-      )[]
-    | null;
-  submitButtonLabel?: string | null;
-  /**
-   * Choose whether to display an on-page message or redirect to a different page after they submit the form.
-   */
-  confirmationType?: ('message' | 'redirect') | null;
-  confirmationMessage?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  redirect?: {
-    url: string;
-  };
-  /**
-   * Send custom emails when the form submits. Use comma separated lists to send the same email to multiple recipients. To reference a value from this form, wrap that field's name with double curly brackets, i.e. {{firstName}}. You can use a wildcard {{*}} to output all data and {{*:table}} to format it as an HTML table in the email.
-   */
-  emails?:
-    | {
-        emailTo?: string | null;
-        cc?: string | null;
-        bcc?: string | null;
-        replyTo?: string | null;
-        emailFrom?: string | null;
-        subject: string;
-        /**
-         * Enter the message that should be sent in this email.
-         */
-        message?: {
-          root: {
-            type: string;
-            children: {
-              type: string;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "form-submissions".
- */
-export interface FormSubmission {
-  id: string;
-  form: string | Form;
-  submissionData?:
-    | {
-        field: string;
-        value: string;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -12413,6 +12431,18 @@ export interface PayloadLockedDocument {
         value: string | ExpertiseTag;
       } | null)
     | ({
+        relationTo: 'leads';
+        value: string | Lead;
+      } | null)
+    | ({
+        relationTo: 'feature-flags';
+        value: string | FeatureFlag;
+      } | null)
+    | ({
+        relationTo: 'terms-pages';
+        value: string | TermsPage;
+      } | null)
+    | ({
         relationTo: 'assessments';
         value: string | Assessment;
       } | null)
@@ -12439,14 +12469,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'redirects';
         value: string | Redirect;
-      } | null)
-    | ({
-        relationTo: 'forms';
-        value: string | Form;
-      } | null)
-    | ({
-        relationTo: 'form-submissions';
-        value: string | FormSubmission;
       } | null)
     | ({
         relationTo: 'search';
@@ -17793,6 +17815,78 @@ export interface ExpertiseTagsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads_select".
+ */
+export interface LeadsSelect<T extends boolean = true> {
+  name?: T;
+  phone?: T;
+  email?: T;
+  comment?: T;
+  actionType?: T;
+  source?: T;
+  metadata?: T;
+  status?: T;
+  assignedTo?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feature-flags_select".
+ */
+export interface FeatureFlagsSelect<T extends boolean = true> {
+  id?: T;
+  name?: T;
+  description?: T;
+  enabled?: T;
+  userGroups?: T;
+  userIds?:
+    | T
+    | {
+        userId?: T;
+        id?: T;
+      };
+  percentage?: T;
+  startDate?: T;
+  endDate?: T;
+  dependencies?:
+    | T
+    | {
+        flagId?: T;
+        id?: T;
+      };
+  variants?:
+    | T
+    | {
+        id?: T;
+        name?: T;
+        weight?: T;
+        metadata?: T;
+      };
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-pages_select".
+ */
+export interface TermsPagesSelect<T extends boolean = true> {
+  title?: T;
+  tabType?: T;
+  subtitle?: T;
+  content?: T;
+  importantNote?: T;
+  order?: T;
+  isActive?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "assessments_select".
  */
 export interface AssessmentsSelect<T extends boolean = true> {
@@ -17905,155 +17999,6 @@ export interface RedirectsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "forms_select".
- */
-export interface FormsSelect<T extends boolean = true> {
-  title?: T;
-  fields?:
-    | T
-    | {
-        checkbox?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              required?: T;
-              defaultValue?: T;
-              id?: T;
-              blockName?: T;
-            };
-        country?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        email?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        message?:
-          | T
-          | {
-              message?: T;
-              id?: T;
-              blockName?: T;
-            };
-        number?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              defaultValue?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        select?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              defaultValue?: T;
-              placeholder?: T;
-              options?:
-                | T
-                | {
-                    label?: T;
-                    value?: T;
-                    id?: T;
-                  };
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        state?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        text?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              defaultValue?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-        textarea?:
-          | T
-          | {
-              name?: T;
-              label?: T;
-              width?: T;
-              defaultValue?: T;
-              required?: T;
-              id?: T;
-              blockName?: T;
-            };
-      };
-  submitButtonLabel?: T;
-  confirmationType?: T;
-  confirmationMessage?: T;
-  redirect?:
-    | T
-    | {
-        url?: T;
-      };
-  emails?:
-    | T
-    | {
-        emailTo?: T;
-        cc?: T;
-        bcc?: T;
-        replyTo?: T;
-        emailFrom?: T;
-        subject?: T;
-        message?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "form-submissions_select".
- */
-export interface FormSubmissionsSelect<T extends boolean = true> {
-  form?: T;
-  submissionData?:
-    | T
-    | {
-        field?: T;
-        value?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "search_select".
  */
 export interface SearchSelect<T extends boolean = true> {
@@ -18132,6 +18077,10 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Header {
   id: string;
+  /**
+   * Upload a custom logo for the site header. If not provided, the default logo will be used.
+   */
+  siteLogo?: (string | null) | Media;
   navItems?:
     | {
         link: {
@@ -18643,6 +18592,7 @@ export interface WebhookSetting {
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
+  siteLogo?: T;
   navItems?:
     | T
     | {

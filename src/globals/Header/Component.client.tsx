@@ -116,9 +116,9 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
                 <Logo
                   loading="eager"
                   priority="high"
-                  className="invert dark:invert-0 transition-all duration-300 hover:opacity-80"
-                  logo={data.logo}
+                  logo={data.siteLogo}
                   size="small"
+                  showText={true}
                 />
               </Link>
             </motion.div>

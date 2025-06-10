@@ -11,7 +11,8 @@ import {
   UploadFeature,
   AlignFeature,
   IndentFeature,
-  ListFeature,
+  OrderedListFeature,
+  UnorderedListFeature,
   TableFeature,
   RelationshipFeature,
   FixedToolbarFeature,
@@ -38,27 +39,28 @@ export const extendedLexicalEditor: Config['editor'] = lexicalEditor({
       BoldFeature(),
       ItalicFeature(),
       UnderlineFeature(),
-      
+
       // Заголовки и структура
       HeadingFeature({
         enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
       }),
-      
+
       // Списки и таблицы
-      ListFeature(),
+      OrderedListFeature(),
+      UnorderedListFeature(),
       TableFeature(),
-      
+
       // Выравнивание и отступы
       AlignFeature(),
       IndentFeature(),
-      
+
       // Цитаты и код
       QuoteFeature(),
       CodeFeature(),
-      
+
       // Разделители
       HorizontalRuleFeature(),
-      
+
       // Ссылки и отношения
       LinkFeature({
         enabledCollections: ['pages', 'posts', 'products'],
@@ -66,7 +68,7 @@ export const extendedLexicalEditor: Config['editor'] = lexicalEditor({
       RelationshipFeature({
         enabledCollections: ['pages', 'posts', 'products', 'media'],
       }),
-      
+
       // Загрузка медиа
       UploadFeature({
         collections: {
@@ -114,17 +116,12 @@ export const extendedLexicalEditor: Config['editor'] = lexicalEditor({
           },
         },
       }),
-      
+
       // Вставка блоков
       BlocksFeature({
-        blocks: [
-          Banner,
-          Code,
-          MediaBlock,
-          CallToAction,
-        ],
+        blocks: [Banner, Code, MediaBlock, CallToAction],
       }),
-      
+
       // Панели инструментов
       FixedToolbarFeature(),
       InlineToolbarFeature(),
@@ -148,7 +145,8 @@ export const simpleLexicalEditor: Config['editor'] = lexicalEditor({
       LinkFeature({
         enabledCollections: ['pages', 'posts'],
       }),
-      ListFeature(),
+      OrderedListFeature(),
+      UnorderedListFeature(),
       FixedToolbarFeature(),
       InlineToolbarFeature(),
     ]

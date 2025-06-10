@@ -14,6 +14,16 @@ export const Header: GlobalConfig = {
   },
   fields: [
     {
+      name: 'siteLogo',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Site Logo',
+      admin: {
+        description:
+          'Upload a custom logo for the site header. If not provided, the default logo will be used.',
+      },
+    },
+    {
       name: 'navItems',
       type: 'array',
       localized: true,

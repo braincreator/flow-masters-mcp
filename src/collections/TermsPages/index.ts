@@ -1,16 +1,15 @@
 import type { CollectionConfig } from 'payload'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { authenticated } from '../../access/authenticated'
-import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
+import { defaultLexical } from '../../fields/defaultLexical'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-import { revalidateTermsPage } from './hooks/revalidateTermsPages'
+// import { revalidateTermsPage } from './hooks/revalidateTermsPages'
 
 export const TermsPages: CollectionConfig = {
   slug: 'terms-pages',
   access: {
     create: authenticated,
     delete: authenticated,
-    read: authenticatedOrPublished,
+    read: () => true,
     update: authenticated,
   },
   admin: {
@@ -65,23 +64,9 @@ export const TermsPages: CollectionConfig = {
       },
     },
     {
-      name: 'badge',
-      type: 'text',
-      localized: true,
-      admin: {
-        description: 'Текст бейджа (например: "Основные", "Экспертиза")',
-      },
-    },
-    {
       name: 'content',
       type: 'richText',
-      editor: lexicalEditor({
-        features: ({ rootFeatures }) => {
-          return [
-            ...rootFeatures,
-          ]
-        },
-      }),
+      editor: defaultLexical,
       required: true,
       localized: true,
       admin: {
@@ -91,7 +76,7 @@ export const TermsPages: CollectionConfig = {
     {
       name: 'importantNote',
       type: 'richText',
-      editor: lexicalEditor({}),
+      editor: defaultLexical,
       localized: true,
       admin: {
         description: 'Важная информация (отображается в отдельном блоке)',
@@ -124,7 +109,7 @@ export const TermsPages: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [revalidateTermsPage],
+    // afterChange: [revalidateTermsPage],
     beforeChange: [populatePublishedAt],
   },
   versions: {
