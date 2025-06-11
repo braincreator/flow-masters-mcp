@@ -31,6 +31,7 @@ interface TermsPageType {
   order?: number
   isActive: boolean
   publishedAt?: string
+  updatedAt?: string
 }
 
 interface TermsPageProps {
@@ -230,8 +231,10 @@ export function TermsPage({ termsPages }: TermsPageProps) {
                               {t('common.lastUpdated')}
                             </p>
                             <p className="text-muted-foreground">
-                              {page.publishedAt
-                                ? new Date(page.publishedAt).toLocaleDateString('ru-RU')
+                              {page.updatedAt
+                                ? new Date(page.updatedAt).toLocaleDateString(
+                                    locale === 'ru' ? 'ru-RU' : 'en-US',
+                                  )
                                 : t('common.updateDate')}
                             </p>
                           </div>

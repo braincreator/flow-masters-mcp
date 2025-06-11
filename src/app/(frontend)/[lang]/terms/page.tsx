@@ -16,6 +16,7 @@ interface TermsPageType {
   order?: number
   isActive: boolean
   publishedAt?: string
+  updatedAt?: string
 }
 
 interface Props {
@@ -182,6 +183,7 @@ export default async function Terms({ params }: Props) {
         order: 0,
         isActive: true,
         publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         id: '2',
@@ -244,6 +246,7 @@ export default async function Terms({ params }: Props) {
         order: 1,
         isActive: true,
         publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         id: '3',
@@ -306,6 +309,7 @@ export default async function Terms({ params }: Props) {
         order: 2,
         isActive: true,
         publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         id: '4',
