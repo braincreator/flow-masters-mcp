@@ -33,6 +33,20 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
           </nav>
         </div>
 
+        {/* Legal Information Section */}
+        <div className="mt-8 inline-block">
+          <div className="p-4 bg-muted/30 rounded-lg border border-border/50 w-fit">
+            <h4 className="text-sm font-semibold text-foreground mb-2">{t.legalInfo.title}</h4>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>{t.legalInfo.legalName}</p>
+              <div className="flex flex-col sm:flex-row sm:gap-4">
+                <span>{t.legalInfo.inn}</span>
+                <span>{t.legalInfo.ogrnip}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <Separator className="my-8" />
 
         {/* Bottom Section */}

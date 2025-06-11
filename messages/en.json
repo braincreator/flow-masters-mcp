@@ -479,6 +479,69 @@
     "envSetupTitle": "Setting up Environment Variables",
     "checkWebhooksTitle": "Checking Webhooks Operation"
   },
+  "Terms": {
+    "metadata": {
+      "title": "Terms and Conditions - Flow Masters",
+      "description": "Review the terms and conditions for Flow Masters services, consulting, and systems"
+    },
+    "header": {
+      "badge": "Legal Information",
+      "title": "Terms and Conditions",
+      "description": "Review the terms and conditions for our services, consulting, and systems. Select the appropriate section for detailed information."
+    },
+    "tabs": {
+      "services": {
+        "label": "Services",
+        "badge": "Core",
+        "title": "Service Terms and Conditions",
+        "subtitle": "General terms for AI development and implementation services",
+
+        "note": "These terms apply to all AI development and implementation services. If you have any questions, please contact our specialists."
+      },
+      "consulting": {
+        "label": "Consulting",
+        "badge": "Expertise",
+        "title": "Consulting Services Terms",
+        "subtitle": "Rules for providing consultations and expert support",
+
+        "note": "Consulting services are provided by certified experts with over 5 years of experience in artificial intelligence."
+      },
+      "systems": {
+        "label": "Systems",
+        "badge": "Platforms",
+        "title": "System Usage Terms",
+        "subtitle": "Rules for using our online platforms and SaaS solutions",
+
+        "note": "All services operate on cloud infrastructure with 99.5% availability guarantee. Regular updates and feature improvements are conducted."
+      },
+      "products": {
+        "label": "Products",
+        "badge": "Digital",
+        "title": "Digital Products Sales Terms",
+        "subtitle": "Rules for purchasing and using digital products and electronic goods",
+
+        "note": "All digital products undergo thorough testing and come with detailed documentation. We guarantee compatibility with current platform versions."
+      }
+    },
+    "common": {
+      "importantNote": "Important Information",
+      "contactInfo": "Contact Information",
+      "email": "Email",
+      "lastUpdated": "Last Updated",
+      "updateDate": "Recently updated",
+      "legalName": "Legal Name",
+      "legalNameValue": "Individual Entrepreneur Yudin Alexander Evgenievich",
+      "inn": "INN",
+      "innValue": "032628977859",
+      "ogrnip": "OGRNIP",
+      "ogrnipValue": "325237500240543"
+    },
+
+    "footer": {
+      "text": "For questions regarding these terms, please contact our support team."
+    },
+    "noContent": "Content not found"
+  },
   "AIAgency": {
     "services": {
       "title": "Our Services",

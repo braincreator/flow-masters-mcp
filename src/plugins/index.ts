@@ -9,6 +9,7 @@ import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { searchPlugin } from '@payloadcms/plugin-search'
 import { s3Storage } from '@payloadcms/storage-s3'
+// import { betterLocalizedFields } from '@payload-enchants/better-localized-fields' // Temporarily disabled due to compatibility issues
 
 import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 
@@ -92,6 +93,7 @@ export const plugins: Plugin[] =
           collections: ['posts'],
         }),
         payloadCloudPlugin(),
+        // betterLocalizedFields(), // Temporarily disabled due to compatibility issues
         s3Storage({
           collections: {
             media: {

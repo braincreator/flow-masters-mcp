@@ -36,11 +36,8 @@ const TabsTrigger = React.forwardRef<
   >
     {props.children}
     {showIndicator && (
-      <motion.div
+      <div
         className="absolute bottom-0 left-0 right-0 h-full rounded-lg bg-background/90 shadow-md -z-10 border border-primary/20"
-        layoutId="tab-indicator"
-        initial={false}
-        transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
         style={{ display: 'var(--display-indicator, none)' }}
         data-state={props['data-state']}
       />
@@ -68,17 +65,8 @@ const TabsContent = React.forwardRef<
       'mt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       className,
     )}
-    asChild
-  >
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-    >
-      {props.children}
-    </motion.div>
-  </TabsPrimitive.Content>
+    {...props}
+  />
 ))
 TabsContent.displayName = TabsPrimitive.Content.displayName
 

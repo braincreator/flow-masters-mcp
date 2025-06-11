@@ -159,6 +159,7 @@ export interface Config {
     'expertise-tags': ExpertiseTag;
     leads: Lead;
     'feature-flags': FeatureFlag;
+    'terms-pages': TermsPage;
     assessments: Assessment;
     'course-reviews': CourseReview;
     'assessment-submissions': AssessmentSubmission;
@@ -239,6 +240,7 @@ export interface Config {
     'expertise-tags': ExpertiseTagsSelect<false> | ExpertiseTagsSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
     'feature-flags': FeatureFlagsSelect<false> | FeatureFlagsSelect<true>;
+    'terms-pages': TermsPagesSelect<false> | TermsPagesSelect<true>;
     assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
     'course-reviews': CourseReviewsSelect<false> | CourseReviewsSelect<true>;
     'assessment-submissions': AssessmentSubmissionsSelect<false> | AssessmentSubmissionsSelect<true>;
@@ -11845,6 +11847,76 @@ export interface FeatureFlag {
   createdAt: string;
 }
 /**
+
+ * Управление контентом для табов на странице Terms
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-pages".
+ */
+export interface TermsPage {
+  id: string;
+  /**
+   * Название таба (например: "Услуги", "Консультации")
+   */
+  title: string;
+  /**
+   * Тип таба - определяет какой контент будет отображаться
+   */
+  tabType: 'services' | 'consulting' | 'systems' | 'products';
+  /**
+   * Подзаголовок таба (опционально)
+   */
+  subtitle?: string | null;
+  /**
+   * Основной контент таба с условиями и соглашениями
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Важная информация (отображается в отдельном блоке)
+   */
+  importantNote?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Порядок отображения табов (0 = первый)
+   */
+  order?: number | null;
+  /**
+   * Отображать ли этот таб на странице
+   */
+  isActive?: boolean | null;
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * User reviews and ratings for courses.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -12368,6 +12440,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'feature-flags';
         value: string | FeatureFlag;
+      } | null)
+    | ({
+        relationTo: 'terms-pages';
+        value: string | TermsPage;
       } | null)
     | ({
         relationTo: 'assessments';
@@ -17796,6 +17872,23 @@ export interface FeatureFlagsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "terms-pages_select".
+ */
+export interface TermsPagesSelect<T extends boolean = true> {
+  title?: T;
+  tabType?: T;
+  subtitle?: T;
+  content?: T;
+  importantNote?: T;
+  order?: T;
+  isActive?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "assessments_select".
  */
 export interface AssessmentsSelect<T extends boolean = true> {
@@ -17986,6 +18079,10 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Header {
   id: string;
+  /**
+   * Upload a custom logo for the site header. If not provided, the default logo will be used.
+   */
+  siteLogo?: (string | null) | Media;
   navItems?:
     | {
         link: {
@@ -18497,6 +18594,7 @@ export interface WebhookSetting {
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
+  siteLogo?: T;
   navItems?:
     | T
     | {

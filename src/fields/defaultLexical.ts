@@ -6,6 +6,9 @@ import {
   ParagraphFeature,
   lexicalEditor,
   UnderlineFeature,
+  HeadingFeature,
+  OrderedListFeature,
+  UnorderedListFeature,
   type LinkFields,
 } from '@payloadcms/richtext-lexical'
 
@@ -16,6 +19,11 @@ export const defaultLexical: Config['editor'] = lexicalEditor({
       UnderlineFeature(),
       BoldFeature(),
       ItalicFeature(),
+      HeadingFeature({
+        enabledHeadingSizes: ['h2', 'h3', 'h4'],
+      }),
+      OrderedListFeature(),
+      UnorderedListFeature(),
       LinkFeature({
         enabledCollections: ['pages', 'posts'],
         fields: ({ defaultFields }) => {
@@ -66,6 +74,29 @@ export const defaultLexical: Config['editor'] = lexicalEditor({
             },
           ]
         },
+      }),
+    ]
+  },
+})
+
+/**
+ * Базовая конфигурация Lexical Editor для использования вместо пустого lexicalEditor({})
+ * Включает основные функции, включая HeadingFeature для предотвращения ошибок парсинга
+ */
+export const baseLexical: Config['editor'] = lexicalEditor({
+  features: () => {
+    return [
+      ParagraphFeature(),
+      BoldFeature(),
+      ItalicFeature(),
+      UnderlineFeature(),
+      HeadingFeature({
+        enabledHeadingSizes: ['h2', 'h3', 'h4'],
+      }),
+      OrderedListFeature(),
+      UnorderedListFeature(),
+      LinkFeature({
+        enabledCollections: ['pages', 'posts'],
       }),
     ]
   },

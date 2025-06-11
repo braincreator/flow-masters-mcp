@@ -54,6 +54,7 @@ import { AssessmentSubmissions } from './collections/AssessmentSubmissions/confi
 import { LearningPaths } from './collections/LearningPaths/config' // Import LearningPaths
 import { WaitingListEntries } from './collections/WaitingListEntries/config' // Import WaitingListEntries
 import { ProjectFiles } from './collections/ProjectFiles/config' // Import ProjectFiles
+// TermsPages is now included in collections array from collectionList
 
 // Import constants, utils, specific components needed here
 import { ENV } from '@/constants/env'
@@ -206,6 +207,7 @@ export default buildConfig({
     LearningPaths,
     WaitingListEntries,
     ProjectFiles, // Add ProjectFiles
+    // TermsPages is already included in collections array
   ], // Add WaitingListEntries (comment seems misplaced, but keeping structure)
   globals: [...globalsList],
   email: nodemailerAdapter({
