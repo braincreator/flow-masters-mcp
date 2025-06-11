@@ -1,0 +1,345 @@
+/**
+ * Простая миграция услуг через MongoDB напрямую
+ * Создает записи с правильной структурой данных
+ */
+
+const { MongoClient } = require('mongodb')
+require('dotenv').config()
+
+const DATABASE_URI = process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/flow-masters'
+const DB_NAME = 'flow-masters'
+
+// Данные услуг для миграции
+const servicesData = [
+  {
+    title: {
+      ru: "Экспресс-консультация по ИИ",
+      en: "Express AI Consultation"
+    },
+    serviceType: "consultation",
+    description: {
+      ru: {
+        root: {
+          type: "root",
+          children: [{
+            type: "paragraph",
+            version: 1,
+            children: [{
+              type: "text",
+              version: 1,
+              text: "За 30 минут определим наиболее перспективные направления для внедрения искусственного интеллекта в ваши бизнес-процессы. Получите четкое понимание возможностей и приоритетов автоматизации."
+            }]
+          }],
+          direction: null,
+          format: "",
+          indent: 0,
+          version: 1
+        }
+      },
+      en: {
+        root: {
+          type: "root",
+          children: [{
+            type: "paragraph",
+            version: 1,
+            children: [{
+              type: "text",
+              version: 1,
+              text: "In 30 minutes, we'll identify the most promising areas for implementing artificial intelligence in your business processes. Get a clear understanding of automation opportunities and priorities."
+            }]
+          }],
+          direction: null,
+          format: "",
+          indent: 0,
+          version: 1
+        }
+      }
+    },
+    shortDescription: {
+      ru: "Быстрая 30-минутная оценка потенциала ИИ с выявлением приоритетных точек автоматизации",
+      en: "Quick 30-minute AI potential assessment with identification of priority automation points"
+    },
+    price: {
+      ru: 3000,
+      en: 33
+    },
+    isPriceStartingFrom: false,
+    duration: 30,
+    status: "published",
+    _status: "published",
+    slug: "express-ai-consultation",
+    features: {
+      ru: [
+        {
+          name: "Экспресс-анализ процессов",
+          description: "Быстрая оценка 2-3 ключевых бизнес-процессов на предмет автоматизации",
+          included: true
+        },
+        {
+          name: "Приоритизация возможностей",
+          description: "Определение наиболее перспективных направлений для внедрения ИИ",
+          included: true
+        },
+        {
+          name: "Предварительная оценка ROI",
+          description: "Ориентировочный расчет эффекта от автоматизации",
+          included: true
+        },
+        {
+          name: "Рекомендации по инструментам",
+          description: "Краткий обзор подходящих ИИ-решений",
+          included: true
+        }
+      ],
+      en: [
+        {
+          name: "Express Process Analysis",
+          description: "Quick assessment of 2-3 key business processes for automation",
+          included: true
+        },
+        {
+          name: "Opportunity Prioritization",
+          description: "Identifying the most promising areas for AI implementation",
+          included: true
+        },
+        {
+          name: "Preliminary ROI Assessment",
+          description: "Approximate calculation of automation effects",
+          included: true
+        },
+        {
+          name: "Tool Recommendations",
+          description: "Brief overview of suitable AI solutions",
+          included: true
+        }
+      ]
+    },
+    meta: {
+      title: {
+        ru: "Экспресс-консультация по ИИ | Быстрая оценка потенциала автоматизации",
+        en: "Express AI Consultation | Quick Automation Potential Assessment"
+      },
+      description: {
+        ru: "Быстрая 30-минутная консультация по возможностям ИИ. Выявление приоритетных точек автоматизации, предварительная оценка ROI, рекомендации по инструментам.",
+        en: "Quick 30-minute AI consultation. Identifying priority automation points, preliminary ROI assessment, tool recommendations."
+      }
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Стандартная консультация по ИИ",
+      en: "Standard AI Consultation"
+    },
+    serviceType: "consultation",
+    shortDescription: {
+      ru: "Углубленный 90-минутный анализ с детальным планом внедрения и ROI-расчетами",
+      en: "In-depth 90-minute analysis with detailed implementation plan and ROI calculations"
+    },
+    price: {
+      ru: 8000,
+      en: 89
+    },
+    status: "published",
+    _status: "published",
+    slug: "standard-ai-consultation",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Премиум консультация по ИИ",
+      en: "Premium AI Consultation"
+    },
+    serviceType: "consultation",
+    shortDescription: {
+      ru: "VIP-сессия 3 часа с экспертом, включая стратегию, техзадание и план реализации",
+      en: "VIP 3-hour session with expert, including strategy, technical specification and implementation plan"
+    },
+    price: {
+      ru: 25000,
+      en: 278
+    },
+    status: "published",
+    _status: "published",
+    slug: "premium-ai-consultation",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Базовый ИИ-чатбот",
+      en: "Basic AI Chatbot"
+    },
+    serviceType: "development",
+    shortDescription: {
+      ru: "Простой чат-бот для одной платформы с базовым ИИ и готовыми сценариями",
+      en: "Simple chatbot for one platform with basic AI and ready-made scenarios"
+    },
+    price: {
+      ru: 25000,
+      en: 278
+    },
+    status: "published",
+    _status: "published",
+    slug: "basic-ai-chatbot",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Стандартный ИИ-чатбот",
+      en: "Standard AI Chatbot"
+    },
+    serviceType: "development",
+    shortDescription: {
+      ru: "Продвинутый чат-бот с интеграциями, аналитикой и мультиплатформенностью",
+      en: "Advanced chatbot with integrations, analytics and multi-platform support"
+    },
+    price: {
+      ru: 45000,
+      en: 500
+    },
+    status: "published",
+    _status: "published",
+    slug: "standard-ai-chatbot",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Премиум ИИ-чатбот",
+      en: "Premium AI Chatbot"
+    },
+    serviceType: "development",
+    shortDescription: {
+      ru: "Корпоративное решение с полной автоматизацией и интеграцией систем",
+      en: "Enterprise solution with full automation and system integration"
+    },
+    price: {
+      ru: 85000,
+      en: 944
+    },
+    status: "published",
+    _status: "published",
+    slug: "premium-ai-chatbot",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "ИИ-агенты под ключ",
+      en: "AI Agents Turnkey"
+    },
+    serviceType: "automation",
+    shortDescription: {
+      ru: "Автономные ИИ-агенты для полной автоматизации сложных бизнес-процессов",
+      en: "Autonomous AI agents for complete automation of complex business processes"
+    },
+    price: {
+      ru: 120000,
+      en: 1333
+    },
+    isPriceStartingFrom: true,
+    status: "published",
+    _status: "published",
+    slug: "ai-agents-turnkey",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Интеграция ИИ в процессы",
+      en: "AI Integration into Processes"
+    },
+    serviceType: "automation",
+    shortDescription: {
+      ru: "Полная интеграция ИИ-решений в существующие бизнес-процессы компании",
+      en: "Complete integration of AI solutions into existing company business processes"
+    },
+    price: {
+      ru: 80000,
+      en: 889
+    },
+    isPriceStartingFrom: true,
+    status: "published",
+    _status: "published",
+    slug: "ai-integration",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  },
+  {
+    title: {
+      ru: "Автоворонки и персонализация",
+      en: "AI Sales Funnels & Personalization"
+    },
+    serviceType: "automation",
+    shortDescription: {
+      ru: "Умные продажные воронки с ИИ-персонализацией и автоматической оптимизацией",
+      en: "Smart sales funnels with AI personalization and automatic optimization"
+    },
+    price: {
+      ru: 95000,
+      en: 1056
+    },
+    isPriceStartingFrom: true,
+    status: "published",
+    _status: "published",
+    slug: "ai-sales-funnels",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    __v: 0
+  }
+]
+
+async function migrateServices() {
+  console.log('🚀 Начинаем миграцию услуг...')
+  
+  const client = new MongoClient(DATABASE_URI)
+  
+  try {
+    await client.connect()
+    const db = client.db(DB_NAME)
+    
+    // Очищаем коллекцию
+    const deleteResult = await db.collection('services').deleteMany({})
+    console.log(`🧹 Удалено ${deleteResult.deletedCount} существующих записей`)
+    
+    // Вставляем новые записи
+    const insertResult = await db.collection('services').insertMany(servicesData)
+    console.log(`📝 Создано ${insertResult.insertedCount} новых услуг`)
+    
+    // Проверяем результат
+    const count = await db.collection('services').countDocuments()
+    console.log(`📊 Всего услуг в коллекции: ${count}`)
+    
+    console.log('\n🎯 Миграция завершена!')
+    console.log('🌐 Проверьте результат: http://localhost:3000/admin/collections/services')
+    
+  } catch (error) {
+    console.error('❌ Ошибка миграции:', error)
+  } finally {
+    await client.close()
+  }
+}
+
+// Запускаем миграцию
+migrateServices().catch(console.error)

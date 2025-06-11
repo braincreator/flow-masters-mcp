@@ -95,10 +95,10 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 relative"
+            className="bg-background border border-border rounded-2xl shadow-xl max-w-md w-full p-8 relative"
           >
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-2xl transition-colors"
               onClick={handleClose}
               aria-label={tCommon('close')}
             >
@@ -106,11 +106,11 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             </button>
             {!submitted ? (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <h2 className="text-2xl font-bold mb-2 text-gray-900">{modalTitle}</h2>
-                <p className="text-gray-600 mb-4">{modalDescription}</p>
+                <h2 className="text-2xl font-bold mb-2 text-foreground">{modalTitle}</h2>
+                <p className="text-muted-foreground mb-4">{modalDescription}</p>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
                     {error}
                   </div>
                 )}
@@ -119,7 +119,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   type="text"
                   required
                   placeholder={t('fields.name.placeholder')}
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.name}
                   onChange={handleChange}
                 />
@@ -128,7 +128,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   type="tel"
                   required
                   placeholder={t('fields.phone.placeholder')}
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.phone}
                   onChange={handleChange}
                 />
@@ -136,7 +136,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   name="email"
                   type="email"
                   placeholder={t('fields.email.placeholder')}
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.email}
                   onChange={handleChange}
                 />
@@ -149,7 +149,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                         ? t('fields.comment.placeholderUrgent')
                         : t('fields.comment.placeholder')
                   }
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground min-h-[80px] resize-none"
                   value={form.comment}
                   onChange={handleChange}
                 />
@@ -185,7 +185,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                 </motion.div>
 
                 <motion.div
-                  className="text-2xl font-bold mb-3 text-gray-900"
+                  className="text-2xl font-bold mb-3 text-foreground"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
@@ -194,7 +194,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                 </motion.div>
 
                 <motion.div
-                  className="text-gray-600 mb-8"
+                  className="text-muted-foreground mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.5 }}
@@ -220,7 +220,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   </a>
 
                   <button
-                    className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:bg-gray-200"
+                    className="w-full bg-muted text-muted-foreground font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:bg-muted/80"
                     onClick={handleClose}
                   >
                     {t('buttons.close')}

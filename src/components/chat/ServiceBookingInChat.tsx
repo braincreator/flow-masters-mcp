@@ -43,7 +43,7 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
 
         // Получаем услуги указанного типа
         const response = await fetch(
-          `/api/v1/services?type=${serviceType}&status=published&limit=1`,
+          `/api/v1/services?type=${serviceType}&businessStatus=active&limit=1`,
         )
 
         if (!response.ok) {

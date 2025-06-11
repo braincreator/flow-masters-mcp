@@ -1,0 +1,115 @@
+[
+  {
+    "title": {
+      "ru": "Экспресс-консультация по ИИ",
+      "en": "Express AI Consultation"
+    },
+    "serviceType": "consultation",
+    "description": {
+      "ru": {
+        "root": {
+          "type": "root",
+          "children": [{
+            "type": "paragraph",
+            "version": 1,
+            "children": [{
+              "type": "text",
+              "version": 1,
+              "text": "Получите профессиональную оценку потенциала внедрения искусственного интеллекта в ваш бизнес всего за 30 минут.\n\nНаш эксперт проведет экспресс-анализ ваших бизнес-процессов, выявит наиболее перспективные точки для автоматизации и предоставит четкие рекомендации по приоритетам внедрения ИИ.\n\nВ результате консультации вы получите:\n• Анализ текущих процессов с точки зрения автоматизации\n• Список приоритетных направлений для внедрения ИИ\n• Предварительную оценку ROI от автоматизации\n• Рекомендации по следующим шагам\n• Ответы на все ваши вопросы об ИИ\n\nИдеально подходит для первичного знакомства с возможностями ИИ и принятия решения о дальнейших инвестициях в автоматизацию."
+            }]
+          }],
+          "direction": null,
+          "format": "",
+          "indent": 0,
+          "version": 1
+        }
+      },
+      "en": {
+        "root": {
+          "type": "root",
+          "children": [{
+            "type": "paragraph",
+            "version": 1,
+            "children": [{
+              "type": "text",
+              "version": 1,
+              "text": "Get a professional assessment of AI implementation potential for your business in just 30 minutes.\n\nOur expert will conduct an express analysis of your business processes, identify the most promising automation points, and provide clear recommendations on AI implementation priorities.\n\nAs a result of the consultation, you will receive:\n• Analysis of current processes from an automation perspective\n• List of priority areas for AI implementation\n• Preliminary ROI assessment from automation\n• Recommendations for next steps\n• Answers to all your AI questions\n\nPerfect for initial familiarization with AI capabilities and making decisions about further automation investments."
+            }]
+          }],
+          "direction": null,
+          "format": "",
+          "indent": 0,
+          "version": 1
+        }
+      }
+    },
+    "shortDescription": {
+      "ru": "Быстрая 30-минутная оценка потенциала ИИ с выявлением приоритетных точек автоматизации",
+      "en": "Quick 30-minute AI potential assessment with identification of priority automation points"
+    },
+    "features": {
+      "ru": [
+        {
+          "name": "Экспресс-анализ процессов",
+          "description": "Быстрая оценка текущих бизнес-процессов на предмет автоматизации",
+          "included": true
+        },
+        {
+          "name": "Приоритизация направлений",
+          "description": "Определение наиболее перспективных областей для внедрения ИИ",
+          "included": true
+        },
+        {
+          "name": "ROI-оценка",
+          "description": "Предварительный расчет возврата инвестиций от автоматизации",
+          "included": true
+        },
+        {
+          "name": "Дорожная карта",
+          "description": "Краткий план следующих шагов по внедрению ИИ",
+          "included": true
+        },
+        {
+          "name": "Q&A сессия",
+          "description": "Ответы на все ваши вопросы об искусственном интеллекте",
+          "included": true
+        }
+      ],
+      "en": [
+        {
+          "name": "Express Process Analysis",
+          "description": "Quick assessment of current business processes for automation potential",
+          "included": true
+        },
+        {
+          "name": "Direction Prioritization",
+          "description": "Identification of the most promising areas for AI implementation",
+          "included": true
+        },
+        {
+          "name": "ROI Assessment",
+          "description": "Preliminary calculation of return on investment from automation",
+          "included": true
+        },
+        {
+          "name": "Roadmap",
+          "description": "Brief plan of next steps for AI implementation",
+          "included": true
+        },
+        {
+          "name": "Q&A Session",
+          "description": "Answers to all your questions about artificial intelligence",
+          "included": true
+        }
+      ]
+    },
+    "price": {
+      "ru": 3000,
+      "en": 33
+    },
+    "duration": 30,
+    "isPriceStartingFrom": false,
+    "requiresBooking": true,
+    "businessStatus": "active"
+  }
+]

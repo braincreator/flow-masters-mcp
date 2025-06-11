@@ -10,7 +10,7 @@ interface PostContentProps {
   postId: string // Add postId to props
 }
 
-export function PostContent({ content, postId }: PostContentProps) {
+export default function PostContent({ content, postId }: PostContentProps) {
   // Handle code syntax highlighting
   useEffect(() => {
     highlightCode()
@@ -126,8 +126,12 @@ export function PostContent({ content, postId }: PostContentProps) {
   }
 
   const trackScrollDepth = useCallback(() => {
-    // ... logic ...
-    console.log(`Track scroll depth: ${depth}%`)
+    // Calculate scroll depth
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+    const documentHeight = document.documentElement.scrollHeight - window.innerHeight
+    const scrollDepth = Math.round((scrollTop / documentHeight) * 100)
+
+    console.log(`Track scroll depth: ${scrollDepth}%`)
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

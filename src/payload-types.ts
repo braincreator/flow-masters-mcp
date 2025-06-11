@@ -8476,7 +8476,10 @@ export interface Service {
      */
     prepaymentPercentage?: number | null;
   };
-  status: 'draft' | 'published' | 'archived';
+  /**
+   * Бизнес-статус услуги (отдельно от черновиков/публикации)
+   */
+  businessStatus: 'active' | 'archived' | 'hidden';
   publishedAt?: string | null;
   meta?: {
     title?: string | null;
@@ -8487,7 +8490,6 @@ export interface Service {
   slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -11845,6 +11847,7 @@ export interface FeatureFlag {
   createdAt: string;
 }
 /**
+
  * Управление контентом для табов на странице Terms
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -16081,7 +16084,7 @@ export interface ServicesSelect<T extends boolean = true> {
         paymentType?: T;
         prepaymentPercentage?: T;
       };
-  status?: T;
+  businessStatus?: T;
   publishedAt?: T;
   meta?:
     | T
@@ -16094,7 +16097,6 @@ export interface ServicesSelect<T extends boolean = true> {
   slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

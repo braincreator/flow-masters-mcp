@@ -26,7 +26,8 @@ export class ServiceService extends BaseService {
         limit,
         where: {
           ...where,
-          status: where.status || { equals: 'published' },
+          // Используем только businessStatus, так как versions отключены
+          businessStatus: where.businessStatus || { in: ['active'] },
         },
         depth: 1,
       }
@@ -140,8 +141,8 @@ export class ServiceService extends BaseService {
           serviceType: {
             equals: type,
           },
-          status: {
-            equals: 'published',
+          businessStatus: {
+            in: ['active'],
           },
         },
         depth: 1,
@@ -162,7 +163,7 @@ export class ServiceService extends BaseService {
   async isServiceAvailable(id: string): Promise<boolean> {
     try {
       const service = await this.getServiceById(id)
-      return service.status === 'published'
+      return service.businessStatus === 'active'
     } catch (error) {
       return false
     }

@@ -112,8 +112,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
         slug: {
           equals: slug,
         },
-        status: {
-          equals: 'published',
+        businessStatus: {
+          in: ['active'],
         },
       },
       locale: lang as 'en' | 'ru', // Приводим к правильному типу
@@ -154,8 +154,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
         slug: {
           not_equals: slug,
         },
-        status: {
-          equals: 'published',
+        businessStatus: {
+          in: ['active'],
         },
       },
       locale: lang as 'en' | 'ru', // Приводим к правильному типу
@@ -273,7 +273,8 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                       {serviceData.requiresPayment ? t('paymentRequired') : t('noPaymentRequired')}
                     </p>
 
-                    <Button
+                    {/* TODO: Implement comprehensive "Have Questions?" flow */}
+                    {/* <Button
                       asChild
                       className="w-full group border-2 bg-primary/10 border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors"
                     >
@@ -283,7 +284,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
                           <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </span>
                       </Link>
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>

@@ -32,7 +32,8 @@ export const ServicesList: React.FC<ServicesListProps> = ({
         setError(null)
 
         // Формируем URL с параметрами, включая локаль
-        let url = `/api/v1/services?status=published&locale=${locale}`
+        // Используем businessStatus=active для получения активных записей
+        let url = `/api/v1/services?businessStatus=active&locale=${locale}`
 
         if (serviceType) {
           url += `&type=${serviceType}`

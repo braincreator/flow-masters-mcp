@@ -38,7 +38,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
         isPriceStartingFrom: true,
         duration: 2160,
         slug: 'ai-agents-turnkey',
-        status: 'published',
+        businessStatus: 'active',
       },
       {
         id: 'fallback-2',
@@ -49,7 +49,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
         isPriceStartingFrom: true,
         duration: 1440,
         slug: 'ai-chatbots',
-        status: 'published',
+        businessStatus: 'active',
       },
       {
         id: 'fallback-3',
@@ -60,7 +60,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
         isPriceStartingFrom: true,
         duration: 2880,
         slug: 'ai-integration',
-        status: 'published',
+        businessStatus: 'active',
       },
       {
         id: 'fallback-4',
@@ -71,7 +71,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
         isPriceStartingFrom: false,
         duration: 480,
         slug: 'ai-audit-free',
-        status: 'published',
+        businessStatus: 'active',
       },
     ] as Service[]
   }
@@ -86,7 +86,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: true,
       duration: 2160,
       slug: 'ai-agents-turnkey',
-      status: 'published',
+      businessStatus: 'active',
     },
     {
       id: 'fallback-2',
@@ -97,7 +97,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: true,
       duration: 1440,
       slug: 'ai-chatbots',
-      status: 'published',
+      businessStatus: 'active',
     },
     {
       id: 'fallback-3',
@@ -108,7 +108,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: true,
       duration: 2880,
       slug: 'ai-integration',
-      status: 'published',
+      businessStatus: 'active',
     },
     {
       id: 'fallback-4',
@@ -119,7 +119,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: false,
       duration: 480,
       slug: 'ai-audit-free',
-      status: 'published',
+      businessStatus: 'active',
     },
     {
       id: 'fallback-5',
@@ -130,7 +130,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: true,
       duration: 960,
       slug: 'ai-sales-funnels',
-      status: 'published',
+      businessStatus: 'active',
     },
     {
       id: 'fallback-6',
@@ -141,7 +141,7 @@ const getFallbackServices = (locale: 'en' | 'ru'): Service[] => {
       isPriceStartingFrom: false,
       duration: 60,
       slug: 'ai-consultation',
-      status: 'published',
+      businessStatus: 'active',
     },
   ] as Service[]
 }
@@ -161,7 +161,7 @@ export function useAIAgencyServices({
 
       // Формируем URL для получения AI-релевантных услуг
       const params = new URLSearchParams({
-        status: 'published',
+        businessStatus: 'active',
         locale,
         limit: limit.toString(),
       })
