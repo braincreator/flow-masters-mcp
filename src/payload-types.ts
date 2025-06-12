@@ -258,6 +258,7 @@ export interface Config {
     defaultIDType: string;
   };
   globals: {
+    'about-page': AboutPage;
     header: Header;
     footer: Footer;
     'email-settings': EmailSetting;
@@ -266,6 +267,7 @@ export interface Config {
     'webhook-settings': WebhookSetting;
   };
   globalsSelect: {
+    'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
@@ -11847,7 +11849,6 @@ export interface FeatureFlag {
   createdAt: string;
 }
 /**
-
  * Управление контентом для табов на странице Terms
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -18075,6 +18076,129 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about-page".
+ */
+export interface AboutPage {
+  id: string;
+  hero: {
+    title: string;
+    subtitle: string;
+    backgroundImage?: (string | null) | Media;
+  };
+  mission: {
+    title: string;
+    content?: {
+      root: {
+        type: string;
+        children: {
+          type: string;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  stats: {
+    title: string;
+    subtitle?: string | null;
+    items?:
+      | {
+          value: string;
+          label: string;
+          description?: string | null;
+          /**
+           * Lucide icon name
+           */
+          icon?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  founder: {
+    title: string;
+    name: string;
+    role: string;
+    bio?: {
+      root: {
+        type: string;
+        children: {
+          type: string;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    photo?: (string | null) | Media;
+    socialLinks?: {
+      linkedin?: string | null;
+      telegram?: string | null;
+      email?: string | null;
+      website?: string | null;
+    };
+  };
+  values: {
+    title: string;
+    subtitle?: string | null;
+    items?:
+      | {
+          title: string;
+          description: string;
+          /**
+           * Lucide icon name
+           */
+          icon?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  approach: {
+    title: string;
+    subtitle?: string | null;
+    steps?:
+      | {
+          title: string;
+          description: string;
+          /**
+           * Lucide icon name
+           */
+          icon?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  cta: {
+    title: string;
+    subtitle?: string | null;
+    primaryButton: {
+      text: string;
+      url: string;
+    };
+    secondaryButton?: {
+      text?: string | null;
+      url?: string | null;
+    };
+  };
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    keywords?: string | null;
+    ogImage?: (string | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header".
  */
 export interface Header {
@@ -18588,6 +18712,114 @@ export interface WebhookSetting {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about-page_select".
+ */
+export interface AboutPageSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        backgroundImage?: T;
+      };
+  mission?:
+    | T
+    | {
+        title?: T;
+        content?: T;
+      };
+  stats?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        items?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+              description?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  founder?:
+    | T
+    | {
+        title?: T;
+        name?: T;
+        role?: T;
+        bio?: T;
+        photo?: T;
+        socialLinks?:
+          | T
+          | {
+              linkedin?: T;
+              telegram?: T;
+              email?: T;
+              website?: T;
+            };
+      };
+  values?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  approach?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        steps?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  cta?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        primaryButton?:
+          | T
+          | {
+              text?: T;
+              url?: T;
+            };
+        secondaryButton?:
+          | T
+          | {
+              text?: T;
+              url?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        keywords?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
