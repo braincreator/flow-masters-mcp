@@ -799,6 +799,96 @@
     "sending": "Sending...",
     "required": "Required"
   },
+  "pages": {
+    "about": {
+      "title": "Making AI Accessible for Every Business",
+      "subtitle": "New agency with an experienced founder",
+      "mission": {
+        "title": "Our Mission",
+        "description": "We created Flow Masters because we believe that artificial intelligence technologies should not be a complex privilege of corporations, but an accessible tool for the growth of any business."
+      },
+      "founder": {
+        "title": "Founder",
+        "name": "Alexander Yudin",
+        "subtitle": "Expert with 2 years of experience in business process automation",
+        "bio": "Over the past 2 years, Alexander has successfully implemented automation projects for companies in various industries, allowing them to reduce costs and improve process efficiency.",
+        "experience": "2 years of automation experience",
+        "projects": "Dozens of successful projects",
+        "focus": "AI and business process automation"
+      },
+      "approach": {
+        "title": "Our Approach",
+        "subtitle": "Clear methodology for achieving results",
+        "steps": [
+          {
+            "number": "01",
+            "title": "Deep Dive",
+            "description": "We conduct a thorough analysis of your business processes and identify growth points"
+          },
+          {
+            "number": "02",
+            "title": "Strategy",
+            "description": "We develop an automation strategy with a clear ROI forecast"
+          },
+          {
+            "number": "03",
+            "title": "Implementation",
+            "description": "We implement AI solutions using proven technologies and best practices"
+          },
+          {
+            "number": "04",
+            "title": "Optimization",
+            "description": "We analyze results and refine the system for maximum efficiency"
+          }
+        ]
+      },
+      "values": {
+        "title": "Our Principles",
+        "items": [
+          {
+            "title": "Honesty",
+            "description": "We honestly discuss the capabilities and limitations of AI solutions"
+          },
+          {
+            "title": "Results",
+            "description": "We focus on measurable business results, not beautiful presentations"
+          },
+          {
+            "title": "Simplicity",
+            "description": "We make complex technologies simple and understandable for business"
+          },
+          {
+            "title": "Growth",
+            "description": "We constantly study new technologies and improve our approaches"
+          }
+        ]
+      },
+      "cta": {
+        "title": "Ready to discuss your project?",
+        "subtitle": "Tell us about your challenges, and we'll suggest the optimal solution",
+        "button": "Discuss Project",
+        "features": [
+          "Free consultation",
+          "Analysis of your processes",
+          "ROI calculation from automation",
+          "Implementation plan"
+        ]
+      }
+    },
+    "contact": {
+      "title": "Let's Start Automating Your Business",
+      "subtitle": "Get a free audit of your processes",
+      "aiGreeting": "Hi! I'm Flow Masters' AI assistant. How can I help you?",
+      "alternativeContact": "Or contact us directly:",
+      "calendlyButton": "Book a meeting with the founder",
+      "responseTime": "We usually respond within 2-3 business hours",
+      "channels": {
+        "email": "Email for contact",
+        "telegram": "Telegram for quick communication",
+        "phone": "Phone for urgent questions"
+      }
+    }
+  },
   "forms": {
     "leadForm": {
       "title": "Leave a Request",

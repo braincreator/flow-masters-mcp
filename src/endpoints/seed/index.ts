@@ -326,16 +326,18 @@ export const seed = async (options: SeedOptions): Promise<void> => {
       slug: 'site-config',
       data: {
         title: 'Flow Masters',
-        description: 'Your Business Process Automation Partner',
+        description: 'AI Business Automation Agency',
         company: {
-          legalName: 'Flow Masters LLC',
-          foundedYear: 2023,
+          legalName: 'ИП Юдин Александр Евгеньевич',
+          foundedYear: 2024,
+          inn: '032628977859',
+          ogrnip: '325237500240543',
         },
         contact: {
-          email: 'contact@example.com',
-          phone: '+1 234 567 8900',
-          address: '123 Business Street, Tech City, 12345',
-          workingHours: 'Mon-Fri: 9:00 AM - 6:00 PM',
+          email: 'admin@flow-masters.ru',
+          phone: '+7 900 230-67-02',
+          address: 'Краснодар, Россия',
+          workingHours: 'Пн-Пт: 9:00 - 18:00 (МСК)',
         },
         localization: {
           defaultTimeZone: 'UTC',
@@ -354,13 +356,14 @@ export const seed = async (options: SeedOptions): Promise<void> => {
           },
         },
         socialLinks: {
-          twitter: 'https://twitter.com/flowmasters',
-          linkedin: 'https://linkedin.com/company/flowmasters',
-          facebook: 'https://facebook.com/flowmasters',
+          telegram: 'https://t.me/flow_masters_bot',
+          linkedin: 'https://linkedin.com/in/alexander-yudin',
+          email: 'admin@flow-masters.ru',
         },
         seo: {
-          defaultMetaTitle: 'Flow Masters - Business Process Automation',
-          defaultMetaDescription: 'Transform your business with AI-powered automation solutions.',
+          defaultMetaTitle: 'Flow Masters - AI Business Automation Agency',
+          defaultMetaDescription:
+            'Делаем искусственный интеллект доступным для любого бизнеса. Автоматизация процессов с помощью ИИ.',
         },
         features: {
           blog: {
