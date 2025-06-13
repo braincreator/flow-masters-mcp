@@ -168,19 +168,19 @@ export function HeroSection({ data }: HeroSectionProps) {
             </Button>
           </motion.div>
         </motion.div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-primary/50 rounded-full mt-2 animate-bounce" />
-          </div>
-        </motion.div>
       </div>
+
+      {/* Scroll Indicator - positioned at the bottom of the section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 1.5 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+      >
+        <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-primary/50 rounded-full mt-2 animate-bounce" />
+        </div>
+      </motion.div>
     </section>
   )
 }

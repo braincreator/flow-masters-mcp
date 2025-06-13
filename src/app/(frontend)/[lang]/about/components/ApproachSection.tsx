@@ -55,14 +55,14 @@ export function ApproachSection({ data }: ApproachSectionProps) {
             const isLast = index === data.steps.length - 1
 
             return (
-              <div key={index} className="relative">
+              <div key={index} className="relative mb-16 lg:mb-20">
                 {/* Step Card */}
                 <motion.div
                   initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: index * 0.2 }}
                   viewport={{ once: true }}
-                  className={`flex flex-col lg:flex-row items-center gap-8 mb-12 ${
+                  className={`flex flex-col lg:flex-row items-center gap-8 ${
                     index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
                   }`}
                 >
@@ -72,13 +72,13 @@ export function ApproachSection({ data }: ApproachSectionProps) {
                       {/* Top accent line */}
                       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                      {/* Step Number */}
-                      <div className="absolute -top-3 -left-3 w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center text-primary-foreground font-bold text-lg shadow-xl">
+                      {/* Step Number - smaller size, centered in the blue background */}
+                      <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-br-xl flex items-center justify-center text-primary-foreground font-bold text-sm shadow-xl">
                         {index + 1}
                       </div>
 
-                      {/* Content */}
-                      <div className="relative z-10">
+                      {/* Content - with top-left padding to avoid overlap */}
+                      <div className="relative z-10 pt-2 pl-2">
                         <h3 className="text-2xl md:text-3xl font-bold mb-4 text-foreground tracking-tight">
                           {step.title}
                         </h3>
@@ -106,28 +106,49 @@ export function ApproachSection({ data }: ApproachSectionProps) {
                   </motion.div>
                 </motion.div>
 
-                {/* Connection Line */}
+                {/* Connection Line - Desktop */}
                 {!isLast && (
                   <motion.div
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     transition={{ duration: 0.8, delay: index * 0.2 + 0.5 }}
                     viewport={{ once: true }}
-                    className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-16 bg-gradient-to-b from-primary/50 to-secondary/50 -bottom-4 z-10"
-                    style={{ originY: 0 }}
+                    className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-primary/60 via-primary/40 to-primary/20 rounded-full z-10"
+                    style={{
+                      originY: 0,
+                      top: '100%',
+                      height: '60px',
+                      marginTop: '8px',
+                    }}
                   />
                 )}
 
-                {/* Arrow for mobile */}
+                {/* Connection Dots - Desktop */}
+                {!isLast && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    transition={{ duration: 0.6, delay: index * 0.2 + 0.8 }}
+                    viewport={{ once: true }}
+                    className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-3 h-3 bg-primary rounded-full z-20"
+                    style={{ top: '100%', marginTop: '30px' }}
+                  />
+                )}
+
+                {/* Arrow for mobile and tablet */}
                 {!isLast && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.2 + 0.7 }}
                     viewport={{ once: true }}
-                    className="flex justify-center mb-4 md:hidden"
+                    className="flex justify-center my-6 lg:hidden"
                   >
-                    <ArrowRight className="w-6 h-6 text-primary/60 rotate-90" />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-1 h-8 bg-gradient-to-b from-primary/60 to-primary/20 rounded-full" />
+                      <ArrowRight className="w-6 h-6 text-primary/60 rotate-90" />
+                      <div className="w-1 h-8 bg-gradient-to-b from-primary/20 to-primary/60 rounded-full" />
+                    </div>
                   </motion.div>
                 )}
               </div>

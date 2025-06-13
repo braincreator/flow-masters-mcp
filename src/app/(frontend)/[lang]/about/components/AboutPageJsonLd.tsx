@@ -38,7 +38,7 @@ export function AboutPageJsonLd({ data, locale }: AboutPageJsonLdProps) {
       '@type': 'ContactPoint',
       contactType: 'customer service',
       email: 'admin@flow-masters.ru',
-      telephone: '+7 900 230-67-02',
+      telephone: '+7 (995) 738-77-09',
       availableLanguage: ['Russian', 'English'],
     },
     address: {

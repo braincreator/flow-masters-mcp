@@ -335,7 +335,7 @@ export const seed = async (options: SeedOptions): Promise<void> => {
         },
         contact: {
           email: 'admin@flow-masters.ru',
-          phone: '+7 900 230-67-02',
+          phone: '+7 (995) 738-77-09',
           address: 'Краснодар, Россия',
           workingHours: 'Пн-Пт: 9:00 - 18:00 (МСК)',
         },
