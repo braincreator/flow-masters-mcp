@@ -38,22 +38,24 @@ export function EnhancedButton({
   className,
   fullWidth = false,
   gradient = false,
-  glow = false
+  glow = false,
 }: EnhancedButtonProps) {
   const sizeClasses = {
     sm: 'px-4 py-2 text-sm',
     md: 'px-6 py-3 text-base',
     lg: 'px-8 py-4 text-lg',
-    xl: 'px-10 py-5 text-xl'
+    xl: 'px-10 py-5 text-xl',
   }
 
   const variantClasses = {
-    primary: gradient 
-      ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground'
-      : 'bg-primary hover:bg-primary/90 text-primary-foreground',
-    secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground',
-    outline: 'border-2 border-primary/20 hover:border-primary/40 text-foreground hover:text-primary hover:bg-primary/10',
-    ghost: 'hover:bg-primary/10 text-foreground hover:text-primary'
+    primary: gradient
+      ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 dark:hover:from-primary/95 dark:hover:to-primary/80 text-primary-foreground'
+      : 'bg-primary hover:bg-primary/90 dark:hover:bg-primary/95 text-primary-foreground',
+    secondary:
+      'bg-secondary hover:bg-secondary/90 dark:hover:bg-secondary/95 text-secondary-foreground',
+    outline:
+      'border-2 border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60 text-foreground hover:text-primary hover:bg-primary/15 dark:hover:bg-primary/20',
+    ghost: 'hover:bg-primary/15 dark:hover:bg-primary/20 text-foreground hover:text-primary',
   }
 
   const baseClasses = cn(
@@ -61,15 +63,17 @@ export function EnhancedButton({
     sizeClasses[size],
     variantClasses[variant],
     fullWidth ? 'w-full' : '',
-    glow ? 'shadow-lg hover:shadow-2xl' : 'hover:shadow-lg',
-    className
+    glow
+      ? 'shadow-lg dark:shadow-primary/10 hover:shadow-2xl dark:hover:shadow-primary/20'
+      : 'hover:shadow-lg dark:hover:shadow-primary/10',
+    className,
   )
 
   const iconClasses = {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
     lg: 'w-5 h-5',
-    xl: 'w-6 h-6'
+    xl: 'w-6 h-6',
   }
 
   const content = (
@@ -80,28 +84,34 @@ export function EnhancedButton({
         )}
         {children}
         {Icon && iconPosition === 'right' && (
-          <Icon className={cn(iconClasses[size], 'transition-transform group-hover:translate-x-1')} />
+          <Icon
+            className={cn(iconClasses[size], 'transition-transform group-hover:translate-x-1')}
+          />
         )}
         {!Icon && iconPosition === 'right' && (
-          <ArrowRight className={cn(iconClasses[size], 'transition-transform group-hover:translate-x-1')} />
+          <ArrowRight
+            className={cn(iconClasses[size], 'transition-transform group-hover:translate-x-1')}
+          />
         )}
         {external && (
-          <ExternalLink className={cn(iconClasses[size], 'transition-transform group-hover:scale-110')} />
+          <ExternalLink
+            className={cn(iconClasses[size], 'transition-transform group-hover:scale-110')}
+          />
         )}
       </span>
-      
+
       {/* Hover effect overlay */}
       {variant === 'primary' && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute inset-0 bg-gradient-to-r from-primary/25 dark:from-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
         />
       )}
-      
+
       {/* Glow effect */}
       {glow && (
-        <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl scale-110 opacity-0 group-hover:opacity-50 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-primary/25 dark:bg-primary/30 rounded-2xl blur-xl scale-110 opacity-0 group-hover:opacity-50 dark:group-hover:opacity-60 transition-opacity duration-500" />
       )}
     </>
   )
@@ -158,13 +168,7 @@ export function EnhancedButton({
 // Specialized button components
 export function CTAButton({ children, ...props }: Omit<EnhancedButtonProps, 'variant' | 'size'>) {
   return (
-    <EnhancedButton 
-      variant="primary" 
-      size="lg" 
-      gradient 
-      glow 
-      {...props}
-    >
+    <EnhancedButton variant="primary" size="lg" gradient glow {...props}>
       {children}
     </EnhancedButton>
   )
@@ -172,20 +176,17 @@ export function CTAButton({ children, ...props }: Omit<EnhancedButtonProps, 'var
 
 export function SecondaryButton({ children, ...props }: Omit<EnhancedButtonProps, 'variant'>) {
   return (
-    <EnhancedButton 
-      variant="outline" 
-      {...props}
-    >
+    <EnhancedButton variant="outline" {...props}>
       {children}
     </EnhancedButton>
   )
 }
 
-export function SocialButton({ 
-  platform, 
-  href, 
-  icon: Icon 
-}: { 
+export function SocialButton({
+  platform,
+  href,
+  icon: Icon,
+}: {
   platform: string
   href: string
   icon: React.ComponentType<{ className?: string }>

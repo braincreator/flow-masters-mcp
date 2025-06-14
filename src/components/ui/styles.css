@@ -91,7 +91,7 @@
 }
 
 .btn-ghost {
-  @apply hover:bg-accent hover:text-accent-foreground;
+  @apply hover:bg-primary/10 dark:hover:bg-primary/15 hover:text-primary;
 }
 
 .btn-link {

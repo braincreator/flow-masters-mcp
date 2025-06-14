@@ -25,11 +25,11 @@ export function HeroSection({ data }: HeroSectionProps) {
       role="banner"
     >
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-secondary/8 dark:from-primary/12 dark:via-background dark:to-secondary/12" />
 
       {/* Background Image */}
       {data.backgroundImage && (
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 dark:opacity-15">
           <Image
             src={data.backgroundImage.url}
             alt={data.backgroundImage.alt || ''}
@@ -43,7 +43,7 @@ export function HeroSection({ data }: HeroSectionProps) {
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl"
+          className="absolute top-20 left-10 w-20 h-20 bg-primary/15 dark:bg-primary/20 rounded-full blur-xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -55,7 +55,7 @@ export function HeroSection({ data }: HeroSectionProps) {
           }}
         />
         <motion.div
-          className="absolute top-40 right-20 w-32 h-32 bg-secondary/10 rounded-full blur-xl"
+          className="absolute top-40 right-20 w-32 h-32 bg-secondary/15 dark:bg-secondary/20 rounded-full blur-xl"
           animate={{
             x: [0, -80, 0],
             y: [0, 60, 0],
@@ -67,7 +67,7 @@ export function HeroSection({ data }: HeroSectionProps) {
           }}
         />
         <motion.div
-          className="absolute bottom-20 left-1/4 w-16 h-16 bg-accent/10 rounded-full blur-xl"
+          className="absolute bottom-20 left-1/4 w-16 h-16 bg-accent/15 dark:bg-accent/20 rounded-full blur-xl"
           animate={{
             x: [0, 60, 0],
             y: [0, -40, 0],
@@ -96,11 +96,11 @@ export function HeroSection({ data }: HeroSectionProps) {
             className="flex justify-center mb-6"
           >
             <div className="relative">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-primary/15 dark:bg-primary/25 rounded-full flex items-center justify-center border border-primary/20 dark:border-primary/30 shadow-lg dark:shadow-primary/10">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <motion.div
-                className="absolute inset-0 bg-primary/20 rounded-full"
+                className="absolute inset-0 bg-primary/25 dark:bg-primary/35 rounded-full"
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -137,7 +137,7 @@ export function HeroSection({ data }: HeroSectionProps) {
           >
             <Button
               size="lg"
-              className="group relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl shadow-lg"
+              className="group relative overflow-hidden bg-primary hover:bg-primary/90 dark:hover:bg-primary/95 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:hover:shadow-primary/20 shadow-lg dark:shadow-primary/10"
               asChild
             >
               <Link href="/contact">
@@ -146,7 +146,7 @@ export function HeroSection({ data }: HeroSectionProps) {
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </span>
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
+                  className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 dark:from-primary dark:to-primary/90"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
                 />
@@ -156,7 +156,7 @@ export function HeroSection({ data }: HeroSectionProps) {
             <Button
               variant="outline"
               size="lg"
-              className="group border-2 border-primary/20 hover:border-primary/40 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg bg-background/80 backdrop-blur-sm"
+              className="group border-2 border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:shadow-primary/10 bg-background/90 dark:bg-background/95 backdrop-blur-sm"
               asChild
             >
               <Link href="/services">
@@ -177,8 +177,8 @@ export function HeroSection({ data }: HeroSectionProps) {
         transition={{ duration: 0.8, delay: 1.5 }}
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
       >
-        <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-primary/50 rounded-full mt-2 animate-bounce" />
+        <div className="w-6 h-10 border-2 border-primary/40 dark:border-primary/50 rounded-full flex justify-center bg-background/20 dark:bg-background/30 backdrop-blur-sm">
+          <div className="w-1 h-3 bg-primary/60 dark:bg-primary/70 rounded-full mt-2 animate-bounce" />
         </div>
       </motion.div>
     </section>

@@ -26,7 +26,7 @@ export function StatsSection({ data }: StatsSectionProps) {
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-secondary/8 dark:from-primary/12 dark:via-background dark:to-secondary/12" />
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
@@ -63,9 +63,9 @@ export function StatsSection({ data }: StatsSectionProps) {
                 viewport={{ once: true }}
                 className="group"
               >
-                <div className="relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md border border-border/30 rounded-3xl p-8 text-center hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:border-primary/40 overflow-hidden">
+                <div className="relative bg-gradient-to-br from-card/90 to-card/60 dark:from-card/95 dark:to-card/70 backdrop-blur-md border border-border/50 dark:border-border/70 rounded-3xl p-8 text-center hover:shadow-2xl dark:hover:shadow-primary/5 transition-all duration-500 hover:scale-[1.02] hover:border-primary/50 dark:hover:border-primary/60 overflow-hidden">
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-500">
+                  <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] group-hover:opacity-[0.05] dark:group-hover:opacity-[0.08] transition-opacity duration-500">
                     <div
                       className="absolute inset-0"
                       style={{
@@ -86,7 +86,7 @@ export function StatsSection({ data }: StatsSectionProps) {
                     viewport={{ once: true }}
                     className="relative z-10 flex justify-center mb-8"
                   >
-                    <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-500">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary/25 to-primary/15 dark:from-primary/30 dark:to-primary/20 rounded-2xl flex items-center justify-center shadow-lg dark:shadow-primary/10 group-hover:shadow-xl dark:group-hover:shadow-primary/15 transition-all duration-500 border border-primary/20 dark:border-primary/30">
                       <IconComponent className="w-10 h-10 text-primary" />
                     </div>
                   </motion.div>
@@ -114,7 +114,7 @@ export function StatsSection({ data }: StatsSectionProps) {
                       whileInView={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
                       viewport={{ once: true }}
-                      className="relative z-10 text-sm text-muted-foreground leading-relaxed"
+                      className="relative z-10 text-sm text-muted-foreground/90 dark:text-muted-foreground/80 leading-relaxed"
                     >
                       {stat.description}
                     </motion.p>

@@ -15,30 +15,33 @@ interface CardProps {
   delay?: number
 }
 
-export function Card({ 
-  children, 
-  className, 
+export function Card({
+  children,
+  className,
   variant = 'default',
   hover = true,
   accent = false,
   padding = 'lg',
   rounded = '3xl',
-  delay = 0
+  delay = 0,
 }: CardProps) {
   const baseClasses = 'relative overflow-hidden transition-all duration-500'
-  
+
   const variantClasses = {
-    default: 'bg-card border border-border/50',
-    elevated: 'bg-card border border-border/50 shadow-lg hover:shadow-xl',
-    glass: 'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md border border-border/30',
-    gradient: 'bg-gradient-to-br from-card via-card/90 to-card/70 border border-border/40'
+    default: 'bg-card border border-border/60 dark:border-border/80',
+    elevated:
+      'bg-card border border-border/60 dark:border-border/80 shadow-lg dark:shadow-primary/5 hover:shadow-xl dark:hover:shadow-primary/10',
+    glass:
+      'bg-gradient-to-br from-card/90 to-card/60 dark:from-card/95 dark:to-card/70 backdrop-blur-md border border-border/50 dark:border-border/70',
+    gradient:
+      'bg-gradient-to-br from-card via-card/90 to-card/70 dark:via-card/95 dark:to-card/80 border border-border/50 dark:border-border/70',
   }
 
   const paddingClasses = {
     sm: 'p-4',
     md: 'p-6',
     lg: 'p-8',
-    xl: 'p-12'
+    xl: 'p-12',
   }
 
   const roundedClasses = {
@@ -46,11 +49,11 @@ export function Card({
     lg: 'rounded-lg',
     xl: 'rounded-xl',
     '2xl': 'rounded-2xl',
-    '3xl': 'rounded-3xl'
+    '3xl': 'rounded-3xl',
   }
 
-  const hoverClasses = hover 
-    ? 'hover:scale-[1.02] hover:shadow-2xl hover:border-primary/40 group'
+  const hoverClasses = hover
+    ? 'hover:scale-[1.02] hover:shadow-2xl dark:hover:shadow-primary/5 hover:border-primary/50 dark:hover:border-primary/60 group'
     : ''
 
   const accentClasses = accent
@@ -70,7 +73,7 @@ export function Card({
         roundedClasses[rounded],
         hoverClasses,
         accentClasses,
-        className
+        className,
       )}
     >
       {children}
@@ -79,12 +82,12 @@ export function Card({
 }
 
 // Specialized card components
-export function StatCard({ 
-  icon: Icon, 
-  value, 
-  label, 
-  description, 
-  delay = 0 
+export function StatCard({
+  icon: Icon,
+  value,
+  label,
+  description,
+  delay = 0,
 }: {
   icon: React.ComponentType<{ className?: string }>
   value: string
@@ -95,13 +98,16 @@ export function StatCard({
   return (
     <Card variant="glass" hover accent delay={delay} className="text-center group">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-500">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 20px 20px, currentColor 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] group-hover:opacity-[0.05] dark:group-hover:opacity-[0.08] transition-opacity duration-500">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20px 20px, currentColor 1px, transparent 0)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
       </div>
-      
+
       {/* Icon */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -110,7 +116,7 @@ export function StatCard({
         viewport={{ once: true }}
         className="relative z-10 flex justify-center mb-8"
       >
-        <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-500">
+        <div className="w-20 h-20 bg-gradient-to-br from-primary/25 to-primary/15 dark:from-primary/30 dark:to-primary/20 rounded-2xl flex items-center justify-center shadow-lg dark:shadow-primary/10 group-hover:shadow-xl dark:group-hover:shadow-primary/15 transition-all duration-500 border border-primary/20 dark:border-primary/30">
           <Icon className="w-10 h-10 text-primary" />
         </div>
       </motion.div>
@@ -126,9 +132,7 @@ export function StatCard({
         <div className="text-5xl md:text-6xl font-bold text-foreground mb-3 tracking-tight">
           {value}
         </div>
-        <div className="text-lg font-semibold text-primary uppercase tracking-wide">
-          {label}
-        </div>
+        <div className="text-lg font-semibold text-primary uppercase tracking-wide">{label}</div>
       </motion.div>
 
       {/* Description */}
@@ -138,7 +142,7 @@ export function StatCard({
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: delay + 0.3 }}
           viewport={{ once: true }}
-          className="relative z-10 text-sm text-muted-foreground leading-relaxed"
+          className="relative z-10 text-sm text-muted-foreground/90 dark:text-muted-foreground/80 leading-relaxed"
         >
           {description}
         </motion.p>
@@ -147,11 +151,11 @@ export function StatCard({
   )
 }
 
-export function ValueCard({ 
-  icon: Icon, 
-  title, 
-  description, 
-  delay = 0 
+export function ValueCard({
+  icon: Icon,
+  title,
+  description,
+  delay = 0,
 }: {
   icon: React.ComponentType<{ className?: string }>
   title: string
@@ -168,7 +172,7 @@ export function ValueCard({
         viewport={{ once: true }}
         className="relative z-10 mb-8"
       >
-        <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-500 mx-auto">
+        <div className="w-20 h-20 bg-gradient-to-br from-primary/25 to-primary/15 dark:from-primary/30 dark:to-primary/20 rounded-2xl flex items-center justify-center shadow-lg dark:shadow-primary/10 group-hover:shadow-xl dark:group-hover:shadow-primary/15 transition-all duration-500 mx-auto border border-primary/20 dark:border-primary/30">
           <Icon className="w-10 h-10 text-primary" />
         </div>
       </motion.div>
@@ -190,14 +194,14 @@ export function ValueCard({
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: delay + 0.3 }}
           viewport={{ once: true }}
-          className="text-sm text-muted-foreground leading-relaxed"
+          className="text-sm text-muted-foreground/90 dark:text-muted-foreground/80 leading-relaxed"
         >
           {description}
         </motion.p>
       </div>
 
       {/* Bottom accent */}
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/60 dark:via-primary/70 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     </Card>
   )
 }

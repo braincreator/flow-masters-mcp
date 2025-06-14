@@ -24,12 +24,12 @@ export function CTASection({ data }: CTASectionProps) {
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-secondary/15 dark:from-primary/20 dark:via-background dark:to-secondary/20" />
 
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-20 left-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl"
+          className="absolute top-20 left-20 w-40 h-40 bg-primary/15 dark:bg-primary/20 rounded-full blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -42,7 +42,7 @@ export function CTASection({ data }: CTASectionProps) {
           }}
         />
         <motion.div
-          className="absolute top-40 right-20 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"
+          className="absolute top-40 right-20 w-32 h-32 bg-secondary/15 dark:bg-secondary/20 rounded-full blur-3xl"
           animate={{
             x: [0, -80, 0],
             y: [0, 60, 0],
@@ -55,7 +55,7 @@ export function CTASection({ data }: CTASectionProps) {
           }}
         />
         <motion.div
-          className="absolute bottom-20 left-1/4 w-24 h-24 bg-accent/10 rounded-full blur-3xl"
+          className="absolute bottom-20 left-1/4 w-24 h-24 bg-accent/15 dark:bg-accent/20 rounded-full blur-3xl"
           animate={{
             x: [0, 60, 0],
             y: [0, -40, 0],
@@ -77,7 +77,7 @@ export function CTASection({ data }: CTASectionProps) {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md border border-border/30 rounded-3xl p-8 md:p-12 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden"
+            className="relative bg-gradient-to-br from-card/90 to-card/60 dark:from-card/95 dark:to-card/70 backdrop-blur-md border border-border/50 dark:border-border/70 rounded-3xl p-8 md:p-12 shadow-2xl dark:shadow-primary/5 hover:shadow-3xl dark:hover:shadow-primary/10 transition-all duration-500 overflow-hidden"
           >
             {/* Icon */}
             <motion.div
@@ -88,11 +88,11 @@ export function CTASection({ data }: CTASectionProps) {
               className="relative z-10 flex justify-center mb-8"
             >
               <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center shadow-xl">
+                <div className="w-24 h-24 bg-gradient-to-br from-primary/25 to-primary/15 dark:from-primary/30 dark:to-primary/20 rounded-2xl flex items-center justify-center shadow-xl dark:shadow-primary/10 border border-primary/20 dark:border-primary/30">
                   <Sparkles className="w-12 h-12 text-primary" />
                 </div>
                 {/* Subtle glow effect */}
-                <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl scale-110" />
+                <div className="absolute inset-0 bg-primary/8 dark:bg-primary/12 rounded-2xl blur-xl scale-110" />
               </div>
             </motion.div>
 
@@ -114,7 +114,7 @@ export function CTASection({ data }: CTASectionProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
                 viewport={{ once: true }}
-                className="relative z-10 text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
+                className="relative z-10 text-lg md:text-xl text-muted-foreground/90 dark:text-muted-foreground/80 mb-10 max-w-2xl mx-auto leading-relaxed"
               >
                 {data.subtitle}
               </motion.p>
@@ -130,7 +130,7 @@ export function CTASection({ data }: CTASectionProps) {
             >
               <Button
                 size="lg"
-                className="group relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl shadow-lg"
+                className="group relative overflow-hidden bg-primary hover:bg-primary/90 dark:hover:bg-primary/95 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:hover:shadow-primary/20 shadow-lg dark:shadow-primary/10"
                 asChild
               >
                 <Link href={data.primaryButton.url}>
@@ -140,7 +140,7 @@ export function CTASection({ data }: CTASectionProps) {
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </span>
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"
+                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 dark:from-primary dark:to-primary/90"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   />
@@ -151,7 +151,7 @@ export function CTASection({ data }: CTASectionProps) {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="group border-2 border-primary/20 hover:border-primary/40 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg bg-background/80 backdrop-blur-sm"
+                  className="group border-2 border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:shadow-primary/10 bg-background/90 dark:bg-background/95 backdrop-blur-sm"
                   asChild
                 >
                   <Link href={data.secondaryButton.url}>
@@ -185,7 +185,7 @@ export function CTASection({ data }: CTASectionProps) {
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.7 + index * 0.1 }}
                   viewport={{ once: true }}
-                  className="flex items-center gap-3 text-sm text-muted-foreground"
+                  className="flex items-center gap-3 text-sm text-muted-foreground/90 dark:text-muted-foreground/80"
                 >
                   <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
                   <span>{feature}</span>
@@ -205,7 +205,7 @@ export function CTASection({ data }: CTASectionProps) {
             viewport={{ once: true }}
             className="mt-8"
           >
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground/90 dark:text-muted-foreground/80">
               Обычно отвечаем в течение 2-3 рабочих часов
             </p>
           </motion.div>

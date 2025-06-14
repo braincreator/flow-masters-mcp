@@ -15,7 +15,7 @@ export function MissionSection({ data }: MissionSectionProps) {
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/8 to-background dark:via-secondary/12" />
 
       <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
@@ -36,7 +36,7 @@ export function MissionSection({ data }: MissionSectionProps) {
               className="flex justify-center mb-8"
             >
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary/25 to-primary/15 dark:from-primary/30 dark:to-primary/20 rounded-2xl flex items-center justify-center shadow-lg dark:shadow-primary/10 border border-primary/20 dark:border-primary/30">
                   <Target className="w-10 h-10 text-primary" />
                 </div>
                 {/* Subtle glow effect */}
@@ -59,17 +59,17 @@ export function MissionSection({ data }: MissionSectionProps) {
             className="relative"
           >
             {/* Main Content Card */}
-            <div className="relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md border border-border/30 rounded-3xl p-8 md:p-12 shadow-2xl hover:shadow-3xl transition-all duration-500 group">
+            <div className="relative bg-gradient-to-br from-card/90 to-card/60 dark:from-card/95 dark:to-card/70 backdrop-blur-md border border-border/50 dark:border-border/70 rounded-3xl p-8 md:p-12 shadow-2xl dark:shadow-primary/5 hover:shadow-3xl dark:hover:shadow-primary/10 transition-all duration-500 group">
               {/* Subtle accent line */}
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full" />
 
               {/* Rich Text Content */}
-              <div className="prose prose-lg md:prose-xl max-w-none text-center prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed">
+              <div className="prose prose-lg md:prose-xl max-w-none text-center prose-headings:text-foreground prose-p:text-muted-foreground/90 dark:prose-p:text-muted-foreground/80 prose-p:leading-relaxed">
                 <RichText data={data.content} />
               </div>
 
               {/* Bottom accent */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/60 dark:via-primary/70 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
           </motion.div>
 
