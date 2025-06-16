@@ -33,6 +33,17 @@ export function FounderSection({ data }: FounderSectionProps) {
     website: ExternalLink,
   }
 
+  // Function to format URL based on platform
+  const formatUrl = (platform: string, url: string) => {
+    if (platform === 'email' && !url.startsWith('mailto:')) {
+      return `mailto:${url}`
+    }
+    if (platform === 'telegram' && !url.startsWith('https://') && !url.startsWith('tg://')) {
+      return `https://t.me/${url.replace('@', '')}`
+    }
+    return url
+  }
+
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden">
       {/* Background */}
@@ -121,17 +132,18 @@ export function FounderSection({ data }: FounderSectionProps) {
                       />
                     </div>
                   ) : (
-                    <div className="w-48 h-48 rounded-full bg-gradient-to-br from-primary/25 to-secondary/25 dark:from-primary/30 dark:to-secondary/30 border-4 border-primary/30 dark:border-primary/40 shadow-xl dark:shadow-primary/10 flex items-center justify-center">
-                      <User className="w-24 h-24 text-primary/60 dark:text-primary/70" />
+                    <div className="relative">
+                      <div className="w-48 h-48 rounded-full bg-gradient-to-br from-primary/25 to-secondary/25 dark:from-primary/30 dark:to-secondary/30 border-4 border-primary/30 dark:border-primary/40 shadow-xl dark:shadow-primary/10 flex items-center justify-center">
+                        <User className="w-24 h-24 text-primary/60 dark:text-primary/70" />
+                      </div>
+                      {/* Decorative Ring - only for placeholder */}
+                      <motion.div
+                        className="absolute inset-0 rounded-full border-2 border-primary/40 dark:border-primary/50"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                      />
                     </div>
                   )}
-
-                  {/* Decorative Ring */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-2 border-primary/40 dark:border-primary/50"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                  />
                 </div>
               </motion.div>
 
@@ -182,6 +194,8 @@ export function FounderSection({ data }: FounderSectionProps) {
 
                       const IconComponent =
                         socialIcons[platform as keyof typeof socialIcons] || ExternalLink
+                      const formattedUrl = formatUrl(platform, url)
+                      const isEmail = platform === 'email'
 
                       return (
                         <Button
@@ -192,9 +206,9 @@ export function FounderSection({ data }: FounderSectionProps) {
                           asChild
                         >
                           <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href={formattedUrl}
+                            target={isEmail ? undefined : '_blank'}
+                            rel={isEmail ? undefined : 'noopener noreferrer'}
                             className="flex items-center gap-2"
                           >
                             <IconComponent className="w-4 h-4 transition-transform group-hover:scale-110" />

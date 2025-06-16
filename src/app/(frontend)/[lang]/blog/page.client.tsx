@@ -569,8 +569,8 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
             {tags.length > 0 && (
               <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className="rounded-lg bg-secondary/10 p-2 transition-colors duration-300 hover:bg-secondary/20">
-                    <Tag className="h-5 w-5 text-secondary-foreground" />
+                  <div className="rounded-lg bg-primary/10 p-2 transition-colors duration-300 hover:bg-primary/20">
+                    <Tag className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold">{t('tags')}</h3>
                 </div>

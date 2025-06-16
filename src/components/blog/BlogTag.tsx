@@ -51,6 +51,11 @@ export const BlogTag: React.FC<BlogTagProps> = ({
     md: 'text-xs py-1 px-2.5',
   }
 
+  const iconSizeClasses = {
+    sm: 'h-2.5 w-2.5',
+    md: 'h-3 w-3',
+  }
+
   return (
     <Link
       href={`/${locale}/blog?tag=${tag.slug}`}
@@ -59,11 +64,11 @@ export const BlogTag: React.FC<BlogTagProps> = ({
         'font-medium whitespace-nowrap',
         getTagColor(tag.id),
         sizeClasses[size],
-        className
+        className,
       )}
       title={`View posts tagged with ${tag.title}`}
     >
-      {showIcon && <TagIcon className="mr-1 h-2.5 w-2.5" />}
+      {showIcon && <TagIcon className={cn('mr-1 opacity-70', iconSizeClasses[size])} />}
       {tag.title}
     </Link>
   )

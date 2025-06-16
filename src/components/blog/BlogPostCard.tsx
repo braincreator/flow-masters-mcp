@@ -264,7 +264,6 @@ export function BlogPostCard({
               )}
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">{post.author.name}</span>
-                <span className="text-xs text-muted-foreground">{t('author')}</span>
               </div>
             </div>
           ) : (

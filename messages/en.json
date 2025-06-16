@@ -1449,6 +1449,7 @@
       "integration": "Integration",
       "content_creation": "Content Creation",
       "automation": "Automation",
+      "training": "Training",
       "other": "Other Services"
     },
     "features": "Features",
@@ -1755,10 +1756,7 @@
     "updated": "Updated:",
     "readTime": "Read time:",
     "min": "min",
-    "categories": "Categories",
-    "tags": "Tags",
     "noTagsFound": "No tags found",
-    "author": "Author",
     "actions": "Actions",
     "comments": "Comments",
     "commentsCount": {

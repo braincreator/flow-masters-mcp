@@ -227,11 +227,6 @@ export default function RelatedServiceCard({
                   whileHover={{ scale: 1.05 }}
                   className="bg-primary/80 backdrop-blur-sm px-3 py-1.5 rounded-md inline-block text-white text-sm font-medium shadow-sm"
                 >
-                  {service.isPriceStartingFrom && (
-                    <span className="text-xs text-white/80 mr-1">
-                      {getTranslation('startingFrom', 'from')}
-                    </span>
-                  )}
                   {localizedPrice}
                 </motion.div>
               ) : (
