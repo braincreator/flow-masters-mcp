@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@/providers/Theme'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
-import type { Theme } from '@/providers/Theme/types'
+import type { Theme } from '@/config/theme'
 
 export function useThemeSwitch() {
   const { theme, setTheme } = useTheme()

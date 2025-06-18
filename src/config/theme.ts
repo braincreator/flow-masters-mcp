@@ -23,3 +23,7 @@ export function generateThemeColors(colors = defaultBrandingColors) {
     accent: colors.accent,
   }
 }
+
+export function themeIsValid(string: null | string): string is Theme {
+  return string ? ['dark', 'light', 'system'].includes(string) : false
+}
