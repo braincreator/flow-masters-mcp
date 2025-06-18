@@ -1,71 +1,116 @@
-# To use this Dockerfile, you have to set `output: 'standalone'` in your next.config.js file.
-# From https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
+# Optimized Dockerfile for FlowMasters Next.js Application
+# Enhanced version with security, performance, and size optimizations
 
 FROM node:22.12.0-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Install security updates and essential packages
+RUN apk update && apk upgrade && apk add --no-cache \
+    libc6-compat \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+# Create non-root user early
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 --ingroup nodejs nextjs
+
+# ================================
+# Dependencies stage
+# ================================
+FROM base AS deps
+
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml* package-lock.json* yarn.lock* ./
+
+# Install dependencies with optimizations
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
+  if [ -f pnpm-lock.yaml ]; then \
+    corepack enable pnpm && \
+    pnpm config set store-dir /tmp/.pnpm-store && \
+    pnpm i --frozen-lockfile --production=false; \
+  elif [ -f yarn.lock ]; then \
+    yarn config set cache-folder /tmp/.yarn-cache && \
+    yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then \
+    npm ci --cache /tmp/.npm-cache; \
+  else \
+    echo "Lockfile not found." && exit 1; \
   fi
 
-
-# Rebuild the source code only when needed
+# ================================
+# Builder stage
+# ================================
 FROM base AS builder
+
 WORKDIR /app
+
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code (excluding files via .dockerignore)
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# Set build-time environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PAYLOAD_TELEMETRY_DISABLED=true
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# Build the application with optimizations
 RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
-  elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-  else echo "Lockfile not found." && exit 1; \
+  if [ -f pnpm-lock.yaml ]; then \
+    corepack enable pnpm && pnpm run build; \
+  elif [ -f yarn.lock ]; then \
+    yarn run build; \
+  elif [ -f package-lock.json ]; then \
+    npm run build; \
+  else \
+    echo "Lockfile not found." && exit 1; \
   fi
 
-# Production image, copy all the files and run next
+# ================================
+# Production stage
+# ================================
 FROM base AS runner
+
 WORKDIR /app
 
-ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# Set production environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PAYLOAD_TELEMETRY_DISABLED=true
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy public assets from builder
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Remove this line if you do not have this folder
-COPY --from=builder /app/public ./public
+# Create .next directory with correct permissions
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Copy built application using output file tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Create cache directory
+RUN mkdir -p .next/cache && \
+    chown -R nextjs:nodejs .next && \
+    chmod -R 755 .next
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 3000
 
-ENV PORT 3000
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+# Start the application
+CMD ["node", "server.js"]

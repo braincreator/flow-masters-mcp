@@ -1,0 +1,33 @@
+# Git files
+.git
+.gitignore
+
+# Node modules
+node_modules
+
+# Build artifacts
+.next
+dist
+build
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env*
+!.env.example
+
+# Docker specific files (optional, if you have others)
+Dockerfile*
+.dockerignore
+
+# Other project specific ignores (add if needed)
+*.iml 
