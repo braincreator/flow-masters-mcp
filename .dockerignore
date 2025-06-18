@@ -166,7 +166,7 @@ migrate-services*.js
 migrate-services*.ts
 test-create-service.*
 terminal
-fix-importmap.js
+# fix-importmap.js is needed for build process.js
 generate-types.*
 loader.mjs
 transpile-module-allowlist.js
