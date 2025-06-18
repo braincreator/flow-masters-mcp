@@ -80,6 +80,11 @@ const nextConfig = {
         hostname: 'localhost',
       },
     ],
+    // Оптимизация изображений
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 86400, // 24 часа
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   output: 'standalone',
   distDir: '.next',
@@ -87,12 +92,12 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
-  // basePath: '', // Установите базовый путь, если ваше приложение развернуто не в корне домена
-  // trailingSlash: true, // Добавляет завершающий слэш ко всем URL-адресам
 
   experimental: {
     optimizeCss: true,
-    // Оптимизации памяти (убираем неподдерживаемые опции)
+    // Включаем оптимизацию пакетов
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@payloadcms/ui'],
+    // Оптимизации памяти
     serverActions: {
       allowedOrigins: [
         'flow-masters.ru',
@@ -104,6 +109,57 @@ const nextConfig = {
       ],
     },
   },
+  
+  // Настройки кэширования
+  async headers() {
+    return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=31536000',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=60, s-maxage=300',
+          },
+        ],
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ]
+  },
+
   turbopack: {},
   serverExternalPackages: ['mongoose'],
 
@@ -148,12 +204,40 @@ const nextConfig = {
             chunks: 'all',
             maxSize: 244000,
           },
+          // Отдельный чанк для Payload CMS
+          payload: {
+            test: /[\\/]node_modules[\\/]@payloadcms[\\/]/,
+            name: 'payload',
+            chunks: 'all',
+            priority: 10,
+          },
+          // Отдельный чанк для React
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react',
+            chunks: 'all',
+            priority: 20,
+          },
         },
       }
 
       // Ограничиваем количество параллельных запросов
       config.optimization.splitChunks.maxAsyncRequests = 5
       config.optimization.splitChunks.maxInitialRequests = 3
+      
+      // Минификация CSS
+      config.optimization.minimizer.push(
+        new (require('css-minimizer-webpack-plugin'))({
+          minimizerOptions: {
+            preset: [
+              'default',
+              {
+                discardComments: { removeAll: true },
+              },
+            ],
+          },
+        })
+      )
     }
 
     // Правило для принудительного включения @aws-sdk/client-s3 в бандл
