@@ -12,6 +12,11 @@ RUN apk update && apk upgrade && apk add --no-cache \
 
 WORKDIR /app
 
+# Set environment variables for memory optimization and E2BIG fix
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+ENV NEXT_JEST_WORKER_THREADS=false
+ENV UV_USE_IO_URING=0
+
 # Create non-root user early
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --ingroup nodejs nextjs
@@ -24,12 +29,15 @@ FROM base AS deps
 # Copy package files for dependency installation
 COPY package.json pnpm-lock.yaml* package-lock.json* yarn.lock* ./
 
-# Install dependencies with optimizations
+# Install dependencies with optimizations and E2BIG fix
 RUN \
   if [ -f pnpm-lock.yaml ]; then \
     corepack enable pnpm && \
     pnpm config set store-dir /tmp/.pnpm-store && \
-    pnpm i --frozen-lockfile --production=false; \
+    pnpm config set enable-pre-post-scripts false && \
+    pnpm config set side-effects-cache false && \
+    pnpm install --frozen-lockfile --production=false --ignore-scripts && \
+    pnpm rebuild --filter @swc/core --filter esbuild --filter sharp; \
   elif [ -f yarn.lock ]; then \
     yarn config set cache-folder /tmp/.yarn-cache && \
     yarn --frozen-lockfile; \

@@ -226,7 +226,9 @@
       "node-gyp",
       "fsevents",
       "cpu-features",
-      "deasync",
+      "deasync"
+    ],
+    "neverBuiltDependencies": [
       "core-js",
       "unrs-resolver"
     ],
