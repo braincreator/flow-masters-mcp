@@ -97,7 +97,7 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     // Включаем оптимизацию пакетов
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@payloadcms/ui'],
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
     // Оптимизации памяти
     serverActions: {
       allowedOrigins: [

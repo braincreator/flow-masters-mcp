@@ -113,12 +113,16 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
-    // Temporarily disable ALL custom components to fix React context issues
     components:
       process.env.IS_GENERATING_TYPES === 'true'
         ? {}
         : {
-            // Enable basic components for admin panel
+            // Custom navigation and dashboard components
+            afterNavLinks: ['@/components/admin/CustomNavigation'],
+            beforeDashboard: ['@/components/admin/CustomDashboard'],
+            afterDashboard: ['@/components/admin/MetricsDashboard'],
+            beforeLogin: ['@/components/admin/CustomHeader'],
+            actions: ['@/components/admin/CustomAction'],
           },
 
     // Custom navigation is implemented through afterNavLinks component
