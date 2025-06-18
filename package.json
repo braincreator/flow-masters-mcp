@@ -23,7 +23,7 @@
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation next lint --fix",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "reinstall": "cross-env NODE_OPTIONS=--no-deprecation rm -rf node_modules && rm pnpm-lock.yaml && pnpm --ignore-workspace install",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation node .next/standalone/server.js",
     "start:standalone": "./start-standalone.sh",
     "generate-encryption-key": "node scripts/generate-encryption-key.mjs",
     "fill-config": "tsx scripts/fill-site-config.ts",
