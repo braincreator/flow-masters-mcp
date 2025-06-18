@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 import { metricsCollector } from '@/utilities/payload/metrics'
 import createMiddleware from 'next-intl/middleware'
+import { corsMiddleware, addCorsToResponse } from '@/middleware/cors'
 
 // Move constants outside
 const SKIP_PATHS = ['/admin', '/_next', '/next/preview']
@@ -41,6 +42,13 @@ export function middleware(request: NextRequest) {
   try {
     metricsCollector.recordRequest()
 
+    // Handle CORS for API routes
+    const corsResponse = corsMiddleware(request)
+    if (corsResponse) {
+      metricsCollector.recordOperationDuration(Date.now() - startTime)
+      return corsResponse
+    }
+
     // Handle API requests without version specified
     if (pathname.startsWith('/api/') && !pathname.match(/\/api\/(v\d+|admin|docs)/)) {
       const newUrl = new URL(request.url)
@@ -51,11 +59,11 @@ export function middleware(request: NextRequest) {
 
     // Early return for static and system paths
     if (SKIP_PATHS.some((path) => pathname.startsWith(path)) || STATIC_FILE_REGEX.test(pathname)) {
-      return nextResponse(requestHeaders, startTime)
+      return nextResponse(requestHeaders, startTime, pathname, request)
     }
 
     // Default response with locale headers
-    return nextResponse(requestHeaders, startTime, pathname)
+    return nextResponse(requestHeaders, startTime, pathname, request)
   } catch (error) {
     metricsCollector.recordError(error instanceof Error ? error : new Error(String(error)))
     throw error
@@ -63,9 +71,15 @@ export function middleware(request: NextRequest) {
 }
 
 // Helper function
-function nextResponse(headers: Headers, startTime: number, pathname?: string) {
+function nextResponse(headers: Headers, startTime: number, pathname?: string, request?: NextRequest) {
   const response = NextResponse.next({ request: { headers } })
   if (pathname) response.headers.set('x-pathname', pathname)
+  
+  // Add CORS headers to API responses
+  if (request && pathname?.startsWith('/api/')) {
+    addCorsToResponse(request, response)
+  }
+  
   metricsCollector.recordOperationDuration(Date.now() - startTime)
   return response
 }
