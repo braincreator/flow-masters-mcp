@@ -3,6 +3,7 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import createNextIntlPlugin from 'next-intl/plugin'
+import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
 
 // Импортируем пакеты, которые использовались через require.resolve
 import cryptoBrowserify from 'crypto-browserify'
@@ -227,7 +228,7 @@ const nextConfig = {
       
       // Минификация CSS
       config.optimization.minimizer.push(
-        new (require('css-minimizer-webpack-plugin'))({
+        new CssMinimizerPlugin({
           minimizerOptions: {
             preset: [
               'default',
