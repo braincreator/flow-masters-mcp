@@ -87,7 +87,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  output: 'standalone',
+  // output: 'standalone', // Отключено для использования обычного режима с Turbopack
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,
@@ -110,7 +110,7 @@ const nextConfig = {
       ],
     },
   },
-  
+
   // Настройки кэширования
   async headers() {
     return [
@@ -225,7 +225,7 @@ const nextConfig = {
       // Ограничиваем количество параллельных запросов
       config.optimization.splitChunks.maxAsyncRequests = 5
       config.optimization.splitChunks.maxInitialRequests = 3
-      
+
       // Минификация CSS
       config.optimization.minimizer.push(
         new CssMinimizerPlugin({
@@ -237,7 +237,7 @@ const nextConfig = {
               },
             ],
           },
-        })
+        }),
       )
     }
 
