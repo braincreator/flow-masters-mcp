@@ -193,8 +193,8 @@ const nextConfig = {
   // Add CSS optimization settings and fix worker_threads issue
   // Only apply webpack config when not using turbopack
   webpack: (config, { dev, isServer, webpack }) => {
-    // Skip webpack config if using turbopack
-    if (process.env.TURBOPACK || process.env.NODE_ENV === 'development') {
+    // Skip webpack config if using turbopack in development
+    if (process.env.TURBOPACK && dev) {
       return config
     }
     // Оптимизации памяти для webpack
@@ -209,6 +209,14 @@ const nextConfig = {
             test: /\.(css|scss)$/,
             chunks: 'all',
             enforce: true,
+          },
+          // Отдельный чанк для стилей Payload CMS
+          payloadStyles: {
+            name: 'payload-styles',
+            test: /[\\/]node_modules[\\/]@payloadcms[\\/].*\.(css|scss)$/,
+            chunks: 'all',
+            enforce: true,
+            priority: 15,
           },
           vendor: {
             test: /[\\/]node_modules[\\/]/,
@@ -291,6 +299,32 @@ const nextConfig = {
           process: 'process/browser.js',
         }),
       )
+    }
+
+    // Специальная обработка CSS для Payload CMS админ панели
+    const cssRule = config.module.rules.find(
+      (rule) => rule.test && rule.test.toString().includes('css'),
+    )
+
+    if (cssRule && cssRule.use) {
+      // Убеждаемся, что CSS модули Payload CMS обрабатываются правильно
+      const cssLoaderIndex = cssRule.use.findIndex(
+        (loader) => loader.loader && loader.loader.includes('css-loader'),
+      )
+
+      if (cssLoaderIndex !== -1 && cssRule.use[cssLoaderIndex].options) {
+        cssRule.use[cssLoaderIndex].options.modules = {
+          ...cssRule.use[cssLoaderIndex].options.modules,
+          // Исключаем Payload CSS из модулей
+          auto: (resourcePath) => {
+            return (
+              !resourcePath.includes('@payloadcms') &&
+              !resourcePath.includes('payload-admin') &&
+              resourcePath.includes('.module.')
+            )
+          },
+        }
+      }
     }
 
     return config
