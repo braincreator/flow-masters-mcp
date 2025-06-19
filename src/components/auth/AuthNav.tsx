@@ -49,34 +49,45 @@ export function AuthNav() {
         <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="group relative h-8 w-8 rounded-full p-0 hover:bg-accent hover:text-foreground hover:ring-2 hover:ring-accent"
+          className="group relative h-8 w-8 rounded-full p-0 border-border/50 hover:bg-accent hover:text-accent-foreground hover:border-accent/50 transition-all duration-200 hover:shadow-md hover:scale-105"
           aria-label={t('userMenuLabel')}
         >
           <Avatar className="h-8 w-8 group-hover:bg-transparent">
             {user?.avatar ? (
-              <AvatarImage src={user.avatar} alt={user.name || 'User Avatar'} />
+              <AvatarImage
+                src={user.avatar}
+                alt={user.name || 'User Avatar'}
+                className="object-cover"
+              />
             ) : (
-              <AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
                 {user?.name ? (
                   user.name
                     .split(' ')
                     .map((n) => n[0])
                     .join('')
                     .toUpperCase()
+                    .slice(0, 2)
                 ) : (
-                  <User className="h-5 w-5" />
+                  <User className="h-4 w-4" />
                 )}
               </AvatarFallback>
             )}
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <div className="flex items-center justify-start gap-2 p-2">
+      <DropdownMenuContent
+        align="end"
+        className="w-56 bg-background border border-border/50 shadow-lg rounded-lg p-1 backdrop-blur-sm"
+        sideOffset={8}
+      >
+        <div className="flex items-center justify-start gap-3 p-3 border-b border-border/50">
           <div className="flex flex-col space-y-1 leading-none">
-            {user?.name && <p className="font-medium">{user.name}</p>}
+            {user?.name && (
+              <p className="font-medium text-foreground text-sm">{user.name}</p>
+            )}
             {user?.email && (
-              <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+              <p className="w-[180px] truncate text-xs text-muted-foreground">{user.email}</p>
             )}
           </div>
         </div>

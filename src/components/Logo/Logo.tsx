@@ -46,25 +46,25 @@ export const Logo = (props: Props) => {
       container: 'h-8',
       image: 'h-7 w-auto',
       text: 'text-lg font-bold',
-      gap: 'gap-1.5',
+      gap: 'gap-2',
     },
     small: {
       container: 'h-14',
       image: 'h-12 w-auto',
       text: 'text-xl font-bold',
-      gap: 'gap-1.5',
+      gap: 'gap-3',
     },
     medium: {
       container: 'h-14',
       image: 'h-12 w-auto',
       text: 'text-2xl font-bold',
-      gap: 'gap-2.5',
+      gap: 'gap-3',
     },
     large: {
       container: 'h-18',
       image: 'h-14 w-auto',
       text: 'text-3xl font-bold',
-      gap: 'gap-3',
+      gap: 'gap-4',
     },
   }
 

@@ -150,6 +150,8 @@ interface TechIconsGridProps {
   size?: TechIconProps['size']
   className?: string
   columns?: number
+  mobileColumns?: number
+  tabletColumns?: number
   onIconClick?: (slug: string) => void
 }
 
@@ -158,13 +160,24 @@ export function TechIconsGrid({
   size = 'md',
   className,
   columns = 10,
+  mobileColumns = 4,
+  tabletColumns = 6,
   onIconClick,
 }: TechIconsGridProps) {
+  // Создаем адаптивные классы колонок
+  const gridCols = cn(
+    `grid-cols-${mobileColumns}`,
+    `sm:grid-cols-${Math.min(mobileColumns + 1, tabletColumns)}`,
+    `md:grid-cols-${tabletColumns}`,
+    `lg:grid-cols-${Math.min(tabletColumns + 2, columns)}`,
+    `xl:grid-cols-${columns}`,
+  )
+
   return (
     <div
       className={cn(
-        'grid gap-3 md:gap-4 justify-center justify-items-center',
-        `grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-${columns}`,
+        'grid gap-2 sm:gap-3 md:gap-4 justify-center justify-items-center',
+        gridCols,
         className,
       )}
     >

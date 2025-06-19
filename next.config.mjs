@@ -75,17 +75,23 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  output: 'standalone',
+  // output: 'standalone', // Отключено для использования обычного режима с Turbopack
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,
   compress: true,
   reactStrictMode: true,
 
+  // Enable built-in SASS support
+  sassOptions: {
+    includePaths: ['./src', './node_modules'],
+  },
+
   experimental: {
-    optimizeCss: true,
+    // Disable aggressive CSS optimization that breaks admin panel
+    optimizeCss: false,
     // Включаем оптимизацию пакетов
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@payloadcms/ui'],
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
     // Оптимизации памяти
     serverActions: {
       allowedOrigins: [
@@ -98,7 +104,14 @@ const nextConfig = {
       ],
     },
   },
-  
+
+  // Конфигурация для Turbopack (перенесено из experimental.turbo)
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+    },
+  },
+
   // Настройки кэширования
   async headers() {
     return [
@@ -149,7 +162,6 @@ const nextConfig = {
     ]
   },
 
-  turbopack: {},
   serverExternalPackages: ['mongoose'],
 
   transpilePackages: [
@@ -173,7 +185,12 @@ const nextConfig = {
   },
 
   // Add CSS optimization settings and fix worker_threads issue
+  // Only apply webpack config when not using turbopack
   webpack: (config, { dev, isServer, webpack }) => {
+    // Skip webpack config if using turbopack in development
+    if (process.env.TURBOPACK && dev) {
+      return config
+    }
     // Оптимизации памяти для webpack
     if (!dev) {
       config.optimization.splitChunks = {
@@ -186,6 +203,14 @@ const nextConfig = {
             test: /\.(css|scss)$/,
             chunks: 'all',
             enforce: true,
+          },
+          // Отдельный чанк для стилей Payload CMS
+          payloadStyles: {
+            name: 'payload-styles',
+            test: /[\\/]node_modules[\\/]@payloadcms[\\/].*\.(css|scss)$/,
+            chunks: 'all',
+            enforce: true,
+            priority: 15,
           },
           vendor: {
             test: /[\\/]node_modules[\\/]/,
@@ -213,8 +238,8 @@ const nextConfig = {
       // Ограничиваем количество параллельных запросов
       config.optimization.splitChunks.maxAsyncRequests = 5
       config.optimization.splitChunks.maxInitialRequests = 3
-      
-      // Минификация CSS
+
+      // Минификация CSS - более консервативная настройка
       config.optimization.minimizer.push(
         new CssMinimizerPlugin({
           minimizerOptions: {
@@ -222,10 +247,27 @@ const nextConfig = {
               'default',
               {
                 discardComments: { removeAll: true },
+                // Preserve important CSS features for admin panel
+                normalizeWhitespace: false,
+                discardUnused: false,
+                mergeIdents: false,
+                reduceTransforms: false,
+                svgo: false,
+                // Don't optimize CSS custom properties
+                customProperties: false,
               },
             ],
           },
-        })
+          // Exclude Payload CMS files from aggressive optimization
+          exclude: [
+            /node_modules\/@payloadcms/,
+            /node_modules\/payload-admin/,
+            /src\/app\/\(payload\)/,
+            /src\/styles\/payload-admin/,
+            /payload-admin-override\.css/,
+            /custom\.scss/,
+          ],
+        }),
       )
     }
 
@@ -269,6 +311,38 @@ const nextConfig = {
         }),
       )
     }
+
+    // Специальная обработка CSS для Payload CMS админ панели
+    const cssRule = config.module.rules.find(
+      (rule) => rule.test && rule.test.toString().includes('css'),
+    )
+
+    if (cssRule && cssRule.use) {
+      // Убеждаемся, что CSS модули Payload CMS обрабатываются правильно
+      const cssLoaderIndex = cssRule.use.findIndex(
+        (loader) => loader.loader && loader.loader.includes('css-loader'),
+      )
+
+      if (cssLoaderIndex !== -1 && cssRule.use[cssLoaderIndex].options) {
+        cssRule.use[cssLoaderIndex].options.modules = {
+          ...cssRule.use[cssLoaderIndex].options.modules,
+          // Исключаем Payload CSS из модулей
+          auto: (resourcePath) => {
+            return (
+              !resourcePath.includes('@payloadcms') &&
+              !resourcePath.includes('payload-admin') &&
+              resourcePath.includes('.module.')
+            )
+          },
+        }
+
+        // Ensure source maps are enabled for better debugging
+        cssRule.use[cssLoaderIndex].options.sourceMap = !isServer && dev
+      }
+    }
+
+    // Simplified CSS handling - let Next.js handle most CSS processing
+    // Only customize CSS modules behavior for Payload CMS
 
     return config
   },

@@ -1,4 +1,4 @@
-import 'react-day-picker/dist/style.css';
+import 'react-day-picker/dist/style.css'
 import type { Metadata } from 'next'
 import React, { Suspense, lazy } from 'react'
 import { cookies } from 'next/headers'
@@ -41,27 +41,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       }
     }
 
-    console.log('Fetching header...');
-    const header = await getCachedGlobal({ slug: 'header', depth: 2, locale });
-    console.log('Header fetched:', header);
+    console.log('Fetching header...')
+    const header = await getCachedGlobal({ slug: 'header', depth: 2, locale })
+    console.log('Header fetched:', header)
 
-    console.log('Fetching footer...');
-    const footer = await getGlobal({ slug: 'footer', depth: 2, locale });
-    console.log('Footer fetched:', footer);
+    console.log('Fetching footer...')
+    const footer = await getGlobal({ slug: 'footer', depth: 2, locale })
+    console.log('Footer fetched:', footer)
 
-    console.log('Fetching navigation...');
+    console.log('Fetching navigation...')
     const navigation = await getCachedGlobal({
       slug: 'navigation',
       depth: 1,
       locale,
       forceFresh: true,
-    });
-    console.log('Navigation fetched:', navigation);
+    })
+    console.log('Navigation fetched:', navigation)
 
     // TODO: Pass header, footer, navigation to RootProvider or use them here
     // Example: <RootProvider lang={locale} header={header} footer={footer} navigation={navigation}>{children}</RootProvider>
 
-    console.log('Successfully fetched globals for RootLayout'); // Add logging
+    console.log('Successfully fetched globals for RootLayout') // Add logging
 
     return (
       <html lang={locale} className="h-full">
@@ -79,6 +79,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <>
               <Script id="yandex-metrika" strategy="afterInteractive">
                 {`
+                  console.log('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
+
                   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
                   m[i].l=1*new Date();
                   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
@@ -91,6 +93,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       accurateTrackBounce:true,
                       webvisor:true,
                       triggerEvent: true
+                  });
+
+                  console.log('Yandex Metrika: Script loaded and initialized');
+
+                  // Проверка загрузки через событие
+                  window.addEventListener('load', function() {
+                    if (typeof ym !== 'undefined') {
+                      console.log('Yandex Metrika: Successfully loaded and ready');
+                      // Отправляем тестовое событие
+                      ym(${YANDEX_METRIKA_ID}, 'reachGoal', 'page_loaded');
+                      console.log('Yandex Metrika: Test event "page_loaded" sent');
+                    } else {
+                      console.error('Yandex Metrika: Failed to load');
+                    }
                   });
                 `}
               </Script>
@@ -120,8 +136,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     )
   } catch (error) {
     // Handle error fetching globals
-    console.error('Failed to fetch globals for RootLayout:', error);
-    console.error(error); // Log the full error object
+    console.error('Failed to fetch globals for RootLayout:', error)
+    console.error(error) // Log the full error object
     // Render a fallback or error state
     return (
       <html lang={locale} className="h-full">
