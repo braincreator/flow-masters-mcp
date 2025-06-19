@@ -7,6 +7,7 @@ import { slugField } from '@/fields/slug'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { revalidatePage, revalidatePageDelete } from '@/hooks'
+import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
 
 import {
   MetaDescriptionField,
@@ -143,9 +144,9 @@ export const Pages: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePage],
+    afterChange: [revalidatePage, revalidateSitemap],
     beforeChange: [populatePublishedAt],
-    afterDelete: [revalidatePageDelete],
+    afterDelete: [revalidatePageDelete, revalidateSitemapDelete],
   },
   versions: {
     drafts: {

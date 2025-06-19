@@ -5,14 +5,15 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_JEST_WORKER_THREADS=false next build --no-lint",
-    "build:turbo": "node scripts/turbopack-admin-fix.js --turbopack && node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_JEST_WORKER_THREADS=false TURBOPACK=true next build --turbopack --no-lint",
-    "analyze": "cross-env ANALYZE=true next build",
-    "build:prod": "node fix-importmap.js && cross-env NODE_ENV=production NEXT_JEST_WORKER_THREADS=false next build",
+    "build": "node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_JEST_WORKER_THREADS=false next build --no-lint && npm run generate:sitemap",
+    "build:turbo": "node scripts/turbopack-admin-fix.js --turbopack && node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_JEST_WORKER_THREADS=false TURBOPACK=true next build --turbopack --no-lint && npm run generate:sitemap",
+    "analyze": "cross-env ANALYZE=true next build && npm run generate:sitemap",
+    "build:prod": "node fix-importmap.js && cross-env NODE_ENV=production NEXT_JEST_WORKER_THREADS=false next build && npm run generate:sitemap",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "rebuild": "pnpm clean && pnpm install && pnpm build",
-    "postbuild": "next-sitemap --config next-sitemap.config.cjs",
+    "generate:sitemap": "node scripts/generate-sitemap.cjs",
+    "postbuild": "npm run generate:sitemap",
     "dev": "node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=4096 --no-deprecation' next dev",
     "dev:fast": "node scripts/turbopack-admin-fix.js --turbopack && node fix-importmap.js && cross-env NODE_OPTIONS='--max-old-space-size=4096 --no-deprecation' TURBOPACK=true next dev --turbopack",
     "dev:preview": "node fix-importmap.js && cross-env NODE_OPTIONS=--no-deprecation next dev",
@@ -224,7 +225,20 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "sharp"
+      "sharp",
+      "@swc/core",
+      "@swc/jest",
+      "canvas",
+      "better-sqlite3",
+      "bcrypt",
+      "node-gyp",
+      "fsevents",
+      "cpu-features",
+      "deasync"
+    ],
+    "neverBuiltDependencies": [
+      "core-js",
+      "unrs-resolver"
     ],
     "overrides": {
       "@aws-sdk/client-s3": "3.779.0"

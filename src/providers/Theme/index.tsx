@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import type { Theme } from './types'
+import type { Theme } from '@/config/theme'
 import { themeLocalStorageKey } from './shared'
 import { themeConfig } from '@/config/theme'
 

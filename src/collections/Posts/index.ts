@@ -18,6 +18,7 @@ import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 import { populateReadingTime } from './hooks/populateReadingTime'
+import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
 
 import {
   MetaDescriptionField,
@@ -262,9 +263,9 @@ export const Posts: CollectionConfig<'posts'> = {
   ],
   hooks: {
     beforeChange: [populateReadingTime],
-    afterChange: [revalidatePost],
+    afterChange: [revalidatePost, revalidateSitemap],
     afterRead: [populateAuthors],
-    afterDelete: [revalidateDelete],
+    afterDelete: [revalidateDelete, revalidateSitemapDelete],
   },
   versions: {
     drafts: {

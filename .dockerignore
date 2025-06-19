@@ -1,33 +1,191 @@
-# Git files
-.git
-.gitignore
+# FlowMasters Optimized .dockerignore
+# Exclude unnecessary files to reduce build context and image size
 
-# Node modules
+# Dependencies
 node_modules
-
-# Build artifacts
-.next
-dist
-build
-
-# Log files
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Environment variables
-.env*
-!.env.example
+# Git
+.git/
+.gitignore
+.gitattributes
 
-# Docker specific files (optional, if you have others)
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+docs/
+
+# Testing
+coverage/
+.nyc_output/
+jest.config.js
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+testing/
+
+# Linting and formatting
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
+
+# Docker
 Dockerfile*
+docker-compose*
 .dockerignore
 
-# Other project specific ignores (add if needed)
-*.iml 
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Development scripts
+scripts/
+start-*.sh
+
+# Backup files
+*.bak
+*.backup
+
+# Local development
+.cursor/
+.roo/
+.roomodes
+.windsurfrules
+
+# Project specific
+analyze-services-issues.cjs
+check-services-data.cjs
+enhanced-services-data.json
+migrate-services*.js
+migrate-services*.ts
+test-create-service.*
+terminal
+# fix-importmap.js is needed for build process.js
+generate-types.*
+loader.mjs
+transpile-module-allowlist.js
+redirects.js
+run-migration.js
+
+# AI and development files
+AI_AGENCY_*.md
+CLEANUP_INSTRUCTIONS.md
+DEPLOYMENT*.md
+DOCKER.md
+FINAL_IMPLEMENTATION_GUIDE.md
+LANDING_PAGE_*.md
+SERVICES_*.md
+SERVICE_*.md
+*_development_plan_*.md
+*_improvement_plan.md
+*_readiness_plan.md
+notification_system_improvement_plan.md
+product_service_enhancement_plan.md
+production_readiness_plan.md
+project_user_flow_memory_bank*.md
