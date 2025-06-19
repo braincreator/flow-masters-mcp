@@ -90,9 +90,7 @@ const mongooseConfig = {
   },
 }
 
-// Use a string path for the MetricsDashboard component
-// This ensures compatibility with the importMap generation
-const dashboardPath = '@/components/admin/MetricsDashboard'
+// Custom components are disabled to restore native admin panel styling
 
 // --- Определяем интерфейс для входных данных задачи --- //
 interface RecalculateSegmentsInput {
@@ -113,16 +111,12 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
+    // Temporarily disable ALL custom components to restore native admin styles
     components:
       process.env.IS_GENERATING_TYPES === 'true'
         ? {}
         : {
-            // Custom navigation and dashboard components
-            afterNavLinks: ['@/components/admin/CustomNavigation'],
-            beforeDashboard: ['@/components/admin/CustomDashboard'],
-            afterDashboard: ['@/components/admin/MetricsDashboard'],
-            beforeLogin: ['@/components/admin/CustomHeader'],
-            actions: ['@/components/admin/CustomAction'],
+            // All custom components disabled to fix admin panel styling issues
           },
 
     // Custom navigation is implemented through afterNavLinks component

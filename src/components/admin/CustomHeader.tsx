@@ -1,6 +1,8 @@
 'use client'
 
 import React from 'react'
+import '@/styles/admin.css'
+import '@/styles/admin-overrides.scss'
 
 const CustomHeader: React.FC = () => {
   return (

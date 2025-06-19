@@ -166,30 +166,32 @@ export function AIHeroSection() {
             </Button>
           </motion.div>
 
-          {/* Social Proof */}
+          {/* Social Proof - улучшенная мобильная адаптация */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-center"
+            className="text-center mb-16 md:mb-20"
           >
-            <p className="text-gray-200 mb-4">{t('socialProof')}</p>
-            <TechLogos />
+            <p className="text-gray-200 mb-4 text-sm md:text-base">{t('socialProof')}</p>
+            <div className="px-2 md:px-4">
+              <TechLogos />
+            </div>
           </motion.div>
         </div>
       </GridContainer>
 
-      {/* Scroll Indicator */}
+      {/* Scroll Indicator - опущен ниже для мобильных устройств */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 z-10"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
+          className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center bg-black/20 backdrop-blur-sm"
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}

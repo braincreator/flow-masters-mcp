@@ -111,6 +111,13 @@ const nextConfig = {
     },
   },
 
+  // Конфигурация для Turbopack (перенесено из experimental.turbo)
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+    },
+  },
+
   // Настройки кэширования
   async headers() {
     return [
@@ -161,7 +168,6 @@ const nextConfig = {
     ]
   },
 
-  turbopack: {},
   serverExternalPackages: ['mongoose'],
 
   transpilePackages: [
@@ -185,7 +191,12 @@ const nextConfig = {
   },
 
   // Add CSS optimization settings and fix worker_threads issue
+  // Only apply webpack config when not using turbopack
   webpack: (config, { dev, isServer, webpack }) => {
+    // Skip webpack config if using turbopack
+    if (process.env.TURBOPACK || process.env.NODE_ENV === 'development') {
+      return config
+    }
     // Оптимизации памяти для webpack
     if (!dev) {
       config.optimization.splitChunks = {

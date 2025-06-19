@@ -61,7 +61,13 @@ export function TechLogos({ grouped = false, showGroupTitles = false }: TechLogo
           iconsPerRow={10}
         />
       ) : (
-        <TechIconsGrid icons={techIconSlugs} size="md" columns={10} />
+        <TechIconsGrid
+          icons={techIconSlugs}
+          size="md"
+          columns={10}
+          mobileColumns={4}
+          tabletColumns={6}
+        />
       )}
     </div>
   )
