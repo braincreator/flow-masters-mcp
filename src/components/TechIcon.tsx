@@ -94,8 +94,14 @@ export const TechIcon = React.memo(function TechIcon({
       className={cn(
         sizeClasses[size],
         'bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center',
-        'border border-white/30 hover:bg-white/30 hover:border-white/50 transition-all duration-300 group',
-        'shadow-lg hover:shadow-xl hover:scale-105',
+        'border border-white/30 transition-colors duration-200 group',
+        // Simplified hover effects for mobile performance
+        'hover:bg-white/30 hover:border-white/50',
+        // Only apply scale on larger screens to reduce mobile choppiness
+        'md:hover:shadow-xl md:hover:scale-105 md:transition-all md:duration-300',
+        'shadow-lg',
+        // Add mobile performance optimization class
+        'tech-icon-container',
         'cursor-pointer' && onClick,
         className,
       )}
@@ -105,19 +111,27 @@ export const TechIcon = React.memo(function TechIcon({
       <div
         className={cn(
           iconSizeClasses[size],
-          'group-hover:scale-110 transition-transform duration-200',
+          // Simplified transform for mobile
+          'md:group-hover:scale-110 md:transition-transform md:duration-200',
         )}
       >
         {shouldUseImage ? (
           <>
-            {!imageLoaded && <div className="w-full h-full bg-white/20 animate-pulse rounded" />}
+            {!imageLoaded && (
+              <div className="w-full h-full bg-white/20 rounded">
+                {/* Simplified placeholder without animation for mobile performance */}
+                <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/30 rounded" />
+              </div>
+            )}
             <Image
               src={imagePath}
               alt={techIcon.name}
               width={size === 'xl' ? 48 : size === 'lg' ? 38 : size === 'md' ? 29 : 19}
               height={size === 'xl' ? 48 : size === 'lg' ? 38 : size === 'md' ? 29 : 19}
               className={cn(
-                'w-full h-full object-contain transition-opacity duration-300',
+                'w-full h-full object-contain',
+                // Simplified transition for mobile performance
+                'transition-opacity duration-200',
                 imageLoaded ? 'opacity-100' : 'opacity-0',
               )}
               loading="lazy"
@@ -126,6 +140,8 @@ export const TechIcon = React.memo(function TechIcon({
                 console.warn(`Failed to load tech icon: ${imagePath}`)
                 setImageError(true)
               }}
+              // Add priority for above-the-fold icons
+              priority={false}
             />
           </>
         ) : techIcon.fallbackSvg ? (

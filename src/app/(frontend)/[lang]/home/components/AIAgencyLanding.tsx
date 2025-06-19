@@ -40,6 +40,7 @@ const FeedbackWidget = lazy(() =>
 
 import { LeadFormModalProvider } from './LeadFormModalProvider'
 import { PerformanceProvider } from '@/components/PerformanceManager'
+import { useMobileAnimations } from '@/hooks/useMobileAnimations'
 
 // Loading fallback component
 const SectionSkeleton = () => (
@@ -57,11 +58,15 @@ const SectionSkeleton = () => (
 )
 
 export function AIAgencyLanding() {
+  const animationConfig = useMobileAnimations()
+
   return (
     <PerformanceProvider>
       <LeadFormModalProvider>
         <AnalyticsTracker>
-          <div className="min-h-screen bg-background relative optimized-container smooth-scroll">
+          <div className={`min-h-screen bg-background relative optimized-container smooth-scroll ${
+            animationConfig.isMobile ? 'mobile-optimized-container' : ''
+          }`}>
             {/* Hero Section - Always loaded */}
             <section data-section="hero">
               <AIHeroSection />

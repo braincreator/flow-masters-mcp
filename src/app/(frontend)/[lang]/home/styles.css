@@ -123,9 +123,27 @@
 
 @media (max-width: 640px) {
   .pricing-card {
-    width: 320px !important;
-    min-width: 320px !important;
-    min-height: 551px; /* Уменьшено с 580px на 5% */
+    width: 280px !important; /* Reduced width to show more cards */
+    min-width: 280px !important;
+    min-height: 520px; /* Reduced height for mobile */
+  }
+
+  /* Ensure container shows partial next card */
+  .pricing-scroll-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Make scroll more obvious on mobile */
+  .pricing-scroll-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+    pointer-events: none;
   }
 }
 

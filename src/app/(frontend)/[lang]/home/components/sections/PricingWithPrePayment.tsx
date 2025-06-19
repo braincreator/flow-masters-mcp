@@ -86,8 +86,10 @@ export function PricingWithPrePayment() {
         </div>
 
         {/* Горизонтальный скролл для планов */}
-        <div className="relative mb-16 pricing-scroll-container">
-          <div className="flex gap-6 overflow-x-auto pb-4 px-4 scrollbar-hide snap-x snap-mandatory justify-center">
+        <div className="relative mb-16 pricing-scroll-container md:mobile-reduced-motion">
+          {/* Wider container for mobile to show more cards */}
+          <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 px-2 md:px-4 scrollbar-hide snap-x snap-mandatory justify-start md:justify-center">
+            {/* Mobile: show partial next card to indicate scrollability */}
             {plans.map((plan, index) => {
               const formattedPrice = formatFullPrice(plan, locale, t)
               const formattedPrepayment = formatPrepayment(plan, locale)
@@ -161,13 +163,15 @@ export function PricingWithPrePayment() {
             })}
           </div>
 
-          {/* Индикатор скролла */}
-          {plans.length > 3 && (
+          {/* Индикатор скролла - более заметный на мобильных */}
+          {plans.length > 2 && (
             <div className="flex justify-center mt-4">
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
-                <span>←</span>
-                <span>{t('scrollToSeeMore') || 'Прокрутите, чтобы увидеть больше планов'}</span>
-                <span>→</span>
+              <div className="text-sm text-muted-foreground flex items-center gap-2 bg-background/80 backdrop-blur-sm px-4 py-2 rounded-full border border-border/50">
+                <span className="animate-pulse">←</span>
+                <span className="font-medium">
+                  {t('scrollToSeeMore') || 'Прокрутите, чтобы увидеть больше планов'}
+                </span>
+                <span className="animate-pulse">→</span>
               </div>
             </div>
           )}
