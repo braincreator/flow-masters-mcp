@@ -4,6 +4,7 @@ import { slugField } from '@/fields/slug'
 import { populatePublishedAt } from '@/hooks/populatePublishedAt'
 import { formatPreviewURL } from '@/utilities/formatPreviewURL'
 import { revalidatePage } from '@/utilities/revalidatePage'
+import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
 
 export const Services: CollectionConfig = {
   slug: 'services',
@@ -20,8 +21,9 @@ export const Services: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    afterChange: [revalidatePage],
+    afterChange: [revalidatePage, revalidateSitemap],
     beforeChange: [populatePublishedAt],
+    afterDelete: [revalidateSitemapDelete],
   },
   // Временно отключаем versions для проверки отображения
   // versions: {
