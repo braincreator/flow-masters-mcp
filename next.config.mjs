@@ -105,7 +105,7 @@ const nextConfig = {
     },
   },
 
-  // Конфигурация для Turbopack (перенесено из experimental.turbo)
+  // Конфигурация для Turbopack (simplified for compatibility)
   turbopack: {
     resolveAlias: {
       '@': './src',
