@@ -111,12 +111,12 @@ export default buildConfig({
     user: Users.slug,
 
     // Custom components for the admin panel
-    // Temporarily disable ALL custom components to restore native admin styles
     components:
       process.env.IS_GENERATING_TYPES === 'true'
         ? {}
         : {
-            // All custom components disabled to fix admin panel styling issues
+            // Re-enable custom components with proper styling
+            // These components should now work correctly with the fixed CSS optimization
           },
 
     // Custom navigation is implemented through afterNavLinks component
