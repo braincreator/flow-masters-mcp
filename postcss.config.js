@@ -40,7 +40,7 @@ export default {
               deep: [
                 /^dark:/,
                 /^data-theme/,
-                // Payload CMS admin panel classes
+                // Payload CMS admin panel classes - comprehensive protection
                 /^payload/,
                 /^admin/,
                 /^collection/,
@@ -57,6 +57,31 @@ export default {
                 /^loading/,
                 /^error/,
                 /^success/,
+                /^warning/,
+                // Specific Payload admin classes
+                /payload__/,
+                /payload-admin/,
+                /payload-default/,
+                // Theme and elevation variables
+                /theme-/,
+                /elevation-/,
+                /color-base/,
+                /color-success/,
+                /color-error/,
+                /color-warning/,
+                /color-blue/,
+                // Layout and structure classes
+                /app__/,
+                /main__/,
+                /content__/,
+                /layout__/,
+                // Form and input classes
+                /input__/,
+                /form__/,
+                /select__/,
+                /textarea__/,
+                /checkbox__/,
+                /radio__/,
                 // UI component classes that might be dynamically generated
                 /^ui-/,
                 /^radix-/,

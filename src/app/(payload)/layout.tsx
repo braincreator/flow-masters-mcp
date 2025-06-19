@@ -10,6 +10,7 @@ import { importMap } from './admin/importMap'
 
 import '@payloadcms/next/css'
 import './custom.scss'
+import '../../styles/payload-admin-override.css'
 
 type Args = {
   children: React.ReactNode

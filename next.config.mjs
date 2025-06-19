@@ -274,6 +274,10 @@ const nextConfig = {
           exclude: [
             /node_modules\/@payloadcms/,
             /node_modules\/payload-admin/,
+            /src\/app\/\(payload\)/,
+            /src\/styles\/payload-admin/,
+            /payload-admin-override\.css/,
+            /custom\.scss/,
           ],
         }),
       )
