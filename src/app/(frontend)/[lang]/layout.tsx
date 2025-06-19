@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { ReactNode } from 'react'
+import Script from 'next/script'
 import { Header } from '@/globals/Header/Component'
 import { Footer } from '@/globals/Footer/Component'
 import { AdminBar } from '@/components/AdminBar'
@@ -21,6 +22,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
+import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -47,6 +49,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   // Устанавливаем локаль для next-intl
   setRequestLocale(validLang)
+
+  // Получаем ID Яндекс.Метрики
+  const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -109,12 +114,65 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                       <FloatingCartButtonWrapper locale={validLang} />
                       <CartModal locale={validLang} />
                       <CookieConsentBanner locale={validLang} />
+
+                      {/* Трекер SPA-переходов для Яндекс.Метрики */}
+                      {YANDEX_METRIKA_ID && (
+                        <YandexMetrikaTracker counterId={YANDEX_METRIKA_ID} />
+                      )}
                     </LoadingProvider>
                   </LoadingConfigProvider>
                 </I18nProvider>
               </LocaleProvider>
             </DropdownProvider>
           </ThemeProvider>
+
+          {/* Яндекс.Метрика */}
+          {YANDEX_METRIKA_ID && (
+            <>
+              <Script id="yandex-metrika" strategy="afterInteractive">
+                {`
+                  console.log('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
+
+                  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                  m[i].l=1*new Date();
+                  for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+                  k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+                  (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+                  ym(${YANDEX_METRIKA_ID}, "init", {
+                      clickmap:true,
+                      trackLinks:true,
+                      accurateTrackBounce:true,
+                      webvisor:true,
+                      triggerEvent: true
+                  });
+
+                  console.log('Yandex Metrika: Script loaded and initialized');
+
+                  // Проверка загрузки через событие
+                  window.addEventListener('load', function() {
+                    if (typeof ym !== 'undefined') {
+                      console.log('Yandex Metrika: Successfully loaded and ready');
+                      // Отправляем тестовое событие
+                      ym(${YANDEX_METRIKA_ID}, 'reachGoal', 'page_loaded');
+                      console.log('Yandex Metrika: Test event "page_loaded" sent');
+                    } else {
+                      console.error('Yandex Metrika: Failed to load');
+                    }
+                  });
+                `}
+              </Script>
+              <noscript>
+                <div>
+                  <img
+                    src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
+                    style={{ position: 'absolute', left: '-9999px' }}
+                    alt=""
+                  />
+                </div>
+              </noscript>
+            </>
+          )}
         </div>
       </div>
     </NextIntlClientProvider>
