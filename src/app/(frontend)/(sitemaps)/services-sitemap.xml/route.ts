@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { unstable_cache } from 'next/cache'
 
-const getPostsSitemap = unstable_cache(
+const getServicesSitemap = unstable_cache(
   async () => {
     const payload = await getPayload({ config })
     const SITE_URL =
@@ -12,7 +12,7 @@ const getPostsSitemap = unstable_cache(
       'https://flow-masters.ru'
 
     const results = await payload.find({
-      collection: 'posts',
+      collection: 'services',
       overrideAccess: false,
       draft: false,
       depth: 0,
@@ -26,6 +26,7 @@ const getPostsSitemap = unstable_cache(
       select: {
         slug: true,
         updatedAt: true,
+        serviceType: true,
       },
     })
 
@@ -33,26 +34,26 @@ const getPostsSitemap = unstable_cache(
 
     const sitemap = results.docs
       ? results.docs
-          .filter((post) => Boolean(post?.slug))
-          .map((post) => ({
-            loc: `${SITE_URL}/posts/${post?.slug}`,
-            lastmod: post.updatedAt || dateFallback,
+          .filter((service) => Boolean(service?.slug))
+          .map((service) => ({
+            loc: `${SITE_URL}/services/${service?.slug}`,
+            lastmod: service.updatedAt || dateFallback,
             changefreq: 'weekly',
-            priority: 0.8,
+            priority: 0.9, // Высокий приоритет для услуг
           }))
       : []
 
     return sitemap
   },
-  ['posts-sitemap'],
+  ['services-sitemap'],
   {
-    tags: ['posts-sitemap'],
-    revalidate: 3600, // Кэш на 1 час
+    tags: ['services-sitemap'],
+    revalidate: 3600, // Обновляем каждый час
   },
 )
 
 export async function GET() {
-  const sitemap = await getPostsSitemap()
+  const sitemap = await getServicesSitemap()
 
   return getServerSideSitemap(sitemap)
 }
