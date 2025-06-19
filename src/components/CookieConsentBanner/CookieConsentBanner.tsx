@@ -82,7 +82,7 @@ const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ locale }) => 
           {t.rich('message', {
             a: (chunks) => (
               <a
-                href={`/${locale}/privacy-policy`}
+                href={`/${locale}/privacy`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-primary"

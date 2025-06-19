@@ -7,6 +7,8 @@ import { AlertTriangle, Clock, TrendingDown, Users, DollarSign, Target } from 'l
 import { cn } from '@/lib/utils'
 import { useLeadFormModal } from '../LeadFormModalProvider'
 import { useTranslations } from 'next-intl'
+import { MobileOptimizedMotion, MobileOptimizedMotionGroup, MobileOptimizedHover } from '@/components/MobileOptimizedMotion'
+import { useMobileAnimations } from '@/hooks/useMobileAnimations'
 
 const painPointIcons = [
   { icon: Clock, color: 'text-red-500', bgColor: 'bg-red-500/10' },
@@ -20,6 +22,7 @@ const painPointIcons = [
 export function PainPointsSection() {
   const { openModal } = useLeadFormModal()
   const t = useTranslations('aiAgency.painPoints')
+  const animationConfig = useMobileAnimations()
 
   const painPoints = painPointIcons.map((iconConfig, index) => ({
     title: t(`points.${index}.title`),
@@ -31,42 +34,33 @@ export function PainPointsSection() {
     <section className="py-20 bg-gradient-to-b from-background to-muted/50">
       <GridContainer>
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <MobileOptimizedMotion>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">{t('title')}</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
-          </motion.div>
+          </MobileOptimizedMotion>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <MobileOptimizedMotionGroup
+          staggerDelay={100}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           {painPoints.map((point, index) => {
             const Icon = point.icon
             return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group relative"
-              >
-                <div
+              <div key={index} className="group relative">
+                <MobileOptimizedHover
+                  hoverClassName={animationConfig.enableHoverAnimations ? "hover:shadow-xl hover:border-border/60 hover:-translate-y-2" : ""}
                   className={cn(
-                    'p-8 rounded-2xl border-2 border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-border/60 h-full',
-                    'hover:-translate-y-2',
+                    'p-8 rounded-2xl border-2 border-border bg-card transition-all duration-300 h-full',
                   )}
                 >
                   <div
                     className={cn(
                       'w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300',
                       point.bgColor,
-                      'group-hover:scale-110',
+                      animationConfig.enableHoverAnimations && 'group-hover:scale-110',
                     )}
                   >
                     <Icon className={cn('w-8 h-8', point.color)} />
@@ -77,33 +71,29 @@ export function PainPointsSection() {
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">{point.description}</p>
 
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-              </motion.div>
+                  {animationConfig.enableHoverAnimations && (
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
+                </MobileOptimizedHover>
+              </div>
             )
           })}
-        </div>
+        </MobileOptimizedMotionGroup>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-center mt-16"
-        >
+        <MobileOptimizedMotion delay={300} className="text-center mt-16">
           <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-2xl p-8 border border-red-200 dark:border-red-800">
             <h3 className="text-2xl font-bold text-foreground mb-4">{t('urgency.title')}</h3>
             <p className="text-lg text-foreground/80 mb-6">{t('urgency.description')}</p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => openModal({ type: 'urgent', title: t('urgency.button') })}
-            >
-              {t('urgency.button')} →
-            </motion.button>
+            <MobileOptimizedHover hoverClassName="hover:scale-105">
+              <button
+                className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => openModal({ type: 'urgent', title: t('urgency.button') })}
+              >
+                {t('urgency.button')} →
+              </button>
+            </MobileOptimizedHover>
           </div>
-        </motion.div>
+        </MobileOptimizedMotion>
       </GridContainer>
     </section>
   )
