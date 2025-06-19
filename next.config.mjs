@@ -94,8 +94,14 @@ const nextConfig = {
   compress: true,
   reactStrictMode: true,
 
+  // Enable built-in SASS support
+  sassOptions: {
+    includePaths: ['./src', './node_modules'],
+  },
+
   experimental: {
-    optimizeCss: true,
+    // Disable aggressive CSS optimization that breaks admin panel
+    optimizeCss: false,
     // Включаем оптимизацию пакетов
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
     // Оптимизации памяти
@@ -245,7 +251,7 @@ const nextConfig = {
       config.optimization.splitChunks.maxAsyncRequests = 5
       config.optimization.splitChunks.maxInitialRequests = 3
 
-      // Минификация CSS
+      // Минификация CSS - более консервативная настройка
       config.optimization.minimizer.push(
         new CssMinimizerPlugin({
           minimizerOptions: {
@@ -253,9 +259,22 @@ const nextConfig = {
               'default',
               {
                 discardComments: { removeAll: true },
+                // Preserve important CSS features for admin panel
+                normalizeWhitespace: false,
+                discardUnused: false,
+                mergeIdents: false,
+                reduceTransforms: false,
+                svgo: false,
+                // Don't optimize CSS custom properties
+                customProperties: false,
               },
             ],
           },
+          // Exclude Payload CMS files from aggressive optimization
+          exclude: [
+            /node_modules\/@payloadcms/,
+            /node_modules\/payload-admin/,
+          ],
         }),
       )
     }
@@ -324,8 +343,14 @@ const nextConfig = {
             )
           },
         }
+
+        // Ensure source maps are enabled for better debugging
+        cssRule.use[cssLoaderIndex].options.sourceMap = !isServer && dev
       }
     }
+
+    // Simplified CSS handling - let Next.js handle most CSS processing
+    // Only customize CSS modules behavior for Payload CMS
 
     return config
   },

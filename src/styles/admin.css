@@ -1,4 +1,5 @@
 /* Custom Admin CSS for Payload CMS */
+@import './admin-fixes.css';
 
 /* Global styles */
 :root {
