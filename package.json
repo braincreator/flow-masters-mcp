@@ -50,7 +50,12 @@
     "test:direct-email": "tsx src/scripts/direct-email-test.js",
     "test:email-service": "tsx src/scripts/email-service-test.js",
     "test:standalone-email": "node src/scripts/standalone-email-test.js",
-    "migrate:services": "node src/scripts/migrate-services-simple.cjs"
+    "migrate:services": "node src/scripts/migrate-services-simple.cjs",
+    "debug:database": "node src/scripts/fix-restored-database.cjs",
+    "debug:database:fix": "node src/scripts/fix-restored-database.cjs --fix",
+    "debug:database:force": "node src/scripts/fix-restored-database.cjs --fix --force",
+    "debug:posts": "node src/scripts/test-posts-api-direct.cjs",
+    "test:blog-api": "node src/scripts/test-blog-api.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.779.0",
