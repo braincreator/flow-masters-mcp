@@ -4,7 +4,8 @@ export default {
     tailwindcss: {},
     autoprefixer: {},
     cssnano:
-      process.env.NODE_ENV === 'production'
+      // Disable CSS optimization when using Turbopack or in development
+      process.env.NODE_ENV === 'production' && !process.env.TURBOPACK
         ? {
             preset: [
               'default',
@@ -23,7 +24,8 @@ export default {
           }
         : false,
     '@fullhuman/postcss-purgecss':
-      process.env.NODE_ENV === 'production'
+      // Disable PurgeCSS when using Turbopack to prevent admin panel style removal
+      process.env.NODE_ENV === 'production' && !process.env.TURBOPACK
         ? {
             content: [
               './pages/**/*.{js,jsx,ts,tsx}',
