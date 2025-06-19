@@ -12,6 +12,9 @@ import '@payloadcms/next/css'
 import './custom.scss'
 import '../../styles/payload-admin-override.css'
 
+// Import Turbopack-specific styles for guaranteed loading
+import '../../styles/turbopack-admin-styles'
+
 type Args = {
   children: React.ReactNode
 }
