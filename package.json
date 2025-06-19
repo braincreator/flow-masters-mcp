@@ -236,10 +236,6 @@
       "cpu-features",
       "deasync"
     ],
-    "neverBuiltDependencies": [
-      "core-js",
-      "unrs-resolver"
-    ],
     "overrides": {
       "@aws-sdk/client-s3": "3.779.0"
     }
