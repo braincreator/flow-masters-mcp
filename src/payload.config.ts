@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 import cron from 'node-cron' // Added for job scheduling
 
 import { getServerSideURL } from './utilities/getURL'
+import { getAllowedOrigins } from './utilities/cors'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { authConfig } from './auth/config'
 
@@ -195,7 +196,7 @@ export default buildConfig({
     fallback: true,
   },
 
-  cors: [getServerSideURL()].filter(Boolean),
+  cors: getAllowedOrigins(),
   collections: [
     // Restore the main list
     ...collections,

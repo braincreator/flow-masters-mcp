@@ -1,4 +1,4 @@
-import type { Theme } from './types'
+import type { Theme } from '@/config/theme'
 
 export const themeLocalStorageKey = 'payload-theme'
 

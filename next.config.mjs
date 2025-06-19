@@ -5,18 +5,6 @@ import { fileURLToPath } from 'url'
 import createNextIntlPlugin from 'next-intl/plugin'
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
 
-// Импортируем пакеты, которые использовались через require.resolve
-import cryptoBrowserify from 'crypto-browserify'
-import streamBrowserify from 'stream-browserify'
-import buffer from 'buffer'
-import util from 'util'
-import pathBrowserify from 'path-browserify'
-import osBrowserify from 'os-browserify/browser.js'
-import streamHttp from 'stream-http'
-import httpsBrowserify from 'https-browserify'
-import zlib from 'browserify-zlib'
-import process from 'process/browser.js'
-
 // Получаем пути к модулям
 const getModulePath = (pkg) => {
   try {
@@ -318,8 +306,8 @@ const nextConfig = {
       // Добавляем полифиллы для буфера и других необходимых модулей
       config.plugins.push(
         new webpack.ProvidePlugin({
-          Buffer: ['buffer', 'Buffer'],
-          process: 'process/browser.js',
+          Buffer: ['buffer/', 'Buffer'],
+          process: ['process/browser.js'],
         }),
       )
     }
