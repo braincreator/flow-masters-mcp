@@ -1,5 +1,5 @@
 // FlowMasters AI Agents - Service Clients
-// Uses Google Vertex AI instead of OpenAI
+// Uses Google Generative AI (Gemini)
 
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
@@ -17,7 +17,8 @@ export class AgentClients {
   private vertexModel: any
   
   private constructor() {
-    // Initialize Google Vertex AI model
+    // Initialize Google Generative AI model (Gemini)
+    // API key will be read from GOOGLE_GENERATIVE_AI_API_KEY environment variable automatically
     this.vertexModel = google('gemini-pro')
   }
 
@@ -29,7 +30,7 @@ export class AgentClients {
   }
 
   /**
-   * Generate AI response using Google Vertex AI
+   * Generate AI response using Google Generative AI (Gemini)
    */
   async generateResponse(
     systemPrompt: string,
@@ -37,6 +38,11 @@ export class AgentClients {
     context?: any
   ): Promise<string> {
     try {
+      // Check if API key is available
+      if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        throw new Error('GOOGLE_GENERATIVE_AI_API_KEY environment variable is required')
+      }
+
       let prompt = systemPrompt + '\n\nUser: ' + userMessage
       
       if (context) {
@@ -53,8 +59,7 @@ export class AgentClients {
       return text || 'No response generated'
     } catch (error) {
       console.error('Error generating AI response:', error)
-      // Fallback to mock response if Vertex AI fails
-      return `Привет! Это ответ от AI агента FlowMasters. Ваш запрос: "${userMessage}". AI модуль работает в тестовом режиме.`
+      throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -62,7 +67,6 @@ export class AgentClients {
    * Search documents (mock implementation for now)
    */
   async searchDocuments(query: SearchQuery): Promise<SearchResult[]> {
-    // Mock implementation - replace with actual Qdrant integration
     return [
       {
         id: '1',
