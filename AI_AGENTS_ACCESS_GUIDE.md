@@ -117,7 +117,7 @@ POST /api/agents/multimodal    # Прямой доступ к мультимод
 AGENTS_ENABLED=true
 AGENTS_DEBUG=true
 AGENTS_PROVIDER=vertex-ai
-AGENTS_DEFAULT_MODEL=gemini-pro
+AGENTS_DEFAULT_MODEL=gemini-2.5-flash
 
 # Лимиты и производительность
 AGENTS_MAX_TOKENS=4000

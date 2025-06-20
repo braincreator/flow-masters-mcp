@@ -22,7 +22,7 @@ export class AgentClients {
     // - GOOGLE_GENERATIVE_AI_API_KEY (for API key auth)
     // - GOOGLE_APPLICATION_CREDENTIALS (for service account file path)
     // - Or service account JSON from GOOGLE_SERVICE_ACCOUNT_KEY
-    this.vertexModel = google('gemini-pro')
+    this.vertexModel = google('gemini-2.5-flash')
   }
 
   public static getInstance(): AgentClients {

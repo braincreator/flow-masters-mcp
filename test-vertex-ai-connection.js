@@ -36,7 +36,7 @@ async function testVertexAI() {
     console.log('🧪 Testing Vertex AI API endpoint...');
     
     const testResponse = await fetch(
-      `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-pro:generateContent`,
+      `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent`,
       {
         method: 'POST',
         headers: {

@@ -109,7 +109,7 @@ else
     exit 1
 fi
 
-if grep -q "AGENTS_DEFAULT_MODEL=gemini-pro" .env.local; then
+if grep -q "AGENTS_DEFAULT_MODEL=gemini-2.5-flash" .env.local; then
     print_status "Default model set to Gemini Pro"
 else
     print_warning "Default model not set to Gemini Pro"

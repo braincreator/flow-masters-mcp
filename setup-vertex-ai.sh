@@ -90,7 +90,7 @@ else
         echo "GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json" >> .env.local
         echo "GOOGLE_TRANSLATE_API_KEY=your-google-translate-api-key" >> .env.local
         echo "AGENTS_PROVIDER=vertex-ai" >> .env.local
-        echo "AGENTS_DEFAULT_MODEL=gemini-pro" >> .env.local
+        echo "AGENTS_DEFAULT_MODEL=gemini-2.5-flash" >> .env.local
         echo "VERTEX_AI_ENABLE_MULTIMODAL=true" >> .env.local
         echo "ENABLE_IMAGE_ANALYSIS=true" >> .env.local
         echo "ENABLE_MULTILINGUAL_SUPPORT=true" >> .env.local

@@ -76,7 +76,7 @@ FlowMasters - это комплексная платформа для автом
         request.message,
         enhancedContext,
         {
-          model: 'gemini-pro',
+          model: 'gemini-2.5-flash',
           temperature: 0.7,
         }
       )

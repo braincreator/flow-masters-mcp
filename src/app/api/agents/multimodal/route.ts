@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       data: response,
       timestamp: new Date(),
       provider: 'vertex-ai',
-      model: 'gemini-pro-vision',
+      model: 'gemini-2.5-flash-vision',
     })
 
   } catch (error) {

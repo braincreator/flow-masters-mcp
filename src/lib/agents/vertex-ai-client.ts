@@ -49,7 +49,7 @@ export class VertexAIClient {
     userMessage: string,
     context?: any,
     options: {
-      model?: 'gemini-pro' | 'gemini-pro-vision' | 'gemini-ultra'
+      model?: 'gemini-2.5-flash' | 'gemini-2.5-flash-vision' | 'gemini-ultra'
       temperature?: number
       maxTokens?: number
       stream?: boolean
@@ -57,7 +57,7 @@ export class VertexAIClient {
   ): Promise<string> {
     try {
       const {
-        model = 'gemini-pro',
+        model = 'gemini-2.5-flash',
         temperature = 0.7,
         maxTokens = 4000,
         stream = false
@@ -149,12 +149,12 @@ export class VertexAIClient {
     prompt: string,
     schema: any,
     options: {
-      model?: 'gemini-pro' | 'gemini-ultra'
+      model?: 'gemini-2.5-flash' | 'gemini-ultra'
       temperature?: number
     } = {}
   ): Promise<T> {
     try {
-      const { model = 'gemini-pro', temperature = 0.3 } = options
+      const { model = 'gemini-2.5-flash', temperature = 0.3 } = options
 
       const result = await generateObject({
         model: google(model),
@@ -185,7 +185,7 @@ export class VertexAIClient {
       const { temperature = 0.7, maxTokens = 2000 } = options
 
       const result = await generateText({
-        model: google('gemini-pro-vision'),
+        model: google('gemini-2.5-flash-vision'),
         messages: [
           {
             role: 'user',

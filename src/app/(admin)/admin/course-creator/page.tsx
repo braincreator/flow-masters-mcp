@@ -58,7 +58,7 @@ interface CourseOptions {
   includeFunnel: boolean
   language: string
   provider: 'openai' | 'google' | 'deepseek'
-  model: 'gpt-4-turbo' | 'gpt-4o' | 'gpt-3.5-turbo' | 'gemini-pro' | 'deepseek-chat'
+  model: 'gpt-4-turbo' | 'gpt-4o' | 'gpt-3.5-turbo' | 'gemini-2.5-flash' | 'deepseek-chat'
   apiKey?: string
 }
 
@@ -1059,7 +1059,7 @@ export default function CourseCreatorPage() {
                                 <SelectContent>
                                   {options.provider === 'google' ? (
                                     <>
-                                      <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                                      <SelectItem value="gemini-2.5-flash">Gemini Pro</SelectItem>
                                     </>
                                   ) : options.provider === 'deepseek' ? (
                                     <>

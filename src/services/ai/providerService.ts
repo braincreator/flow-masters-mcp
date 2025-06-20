@@ -461,13 +461,13 @@ export class ProviderService implements AIProviderService {
           provider: 'google',
         },
         {
-          id: 'models/gemini-pro',
+          id: 'gemini-2.5-flash',
           name: 'Gemini Pro',
           description: 'Контекст: 32K токенов | Вход: 32K | Выход: 8192',
           provider: 'google',
         },
         {
-          id: 'models/gemini-pro-vision',
+          id: 'gemini-2.5-flash-vision',
           name: 'Gemini Pro Vision',
           description: 'Контекст: 32K токенов | Мультимодальная | Выход: 4096',
           provider: 'google',
@@ -497,13 +497,13 @@ export class ProviderService implements AIProviderService {
           provider: 'google',
         },
         {
-          id: 'models/gemini-pro',
+          id: 'gemini-2.5-flash',
           name: 'Gemini Pro',
           description: 'Контекст: 32K токенов | Вход: 32K | Выход: 8192',
           provider: 'google',
         },
         {
-          id: 'models/gemini-pro-vision',
+          id: 'gemini-2.5-flash-vision',
           name: 'Gemini Pro Vision',
           description: 'Контекст: 32K токенов | Мультимодальная | Выход: 4096',
           provider: 'google',

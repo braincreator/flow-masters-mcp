@@ -129,7 +129,7 @@ export class MultimodalAgent extends BaseAgent {
         metadata: {
           processingTime: Date.now() - startTime,
           confidence: 0.9,
-          model: 'gemini-pro-vision',
+          model: 'gemini-2.5-flash-vision',
         },
       })
 
@@ -158,7 +158,7 @@ export class MultimodalAgent extends BaseAgent {
           examples: this.getUsageExamples(),
         },
         {
-          model: 'gemini-pro',
+          model: 'gemini-2.5-flash',
           temperature: 0.7,
         }
       )

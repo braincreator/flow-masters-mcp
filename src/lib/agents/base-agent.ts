@@ -54,7 +54,7 @@ export abstract class BaseAgent {
     userMessage: string,
     context?: any,
     options: {
-      model?: 'gemini-pro' | 'gemini-pro-vision' | 'gemini-ultra'
+      model?: 'gemini-2.5-flash' | 'gemini-2.5-flash-vision' | 'gemini-ultra'
       temperature?: number
       stream?: boolean
     } = {}
@@ -68,7 +68,7 @@ export abstract class BaseAgent {
         userMessage,
         context,
         {
-          model: options.model || 'gemini-pro',
+          model: options.model || 'gemini-2.5-flash',
           temperature: options.temperature || this.temperature,
           maxTokens: this.maxTokens,
           stream: options.stream || false,
@@ -82,7 +82,7 @@ export abstract class BaseAgent {
         agentType: this.agentType,
         processingTime,
         success: true,
-        model: options.model || 'gemini-pro',
+        model: options.model || 'gemini-2.5-flash',
       })
 
       return response

@@ -77,7 +77,7 @@ GOOGLE_CLOUD_LOCATION=asia-southeast1
 ### Доступные модели Gemini:
 - `gemini-1.5-pro` (рекомендуется)
 - `gemini-1.5-flash` (быстрее, дешевле)
-- `gemini-pro-vision` (для изображений)
+- `gemini-2.5-flash-vision` (для изображений)
 
 ### Обновите конфигурацию в .env.local:
 ```env

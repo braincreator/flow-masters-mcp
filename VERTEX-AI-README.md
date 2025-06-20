@@ -48,7 +48,7 @@ GOOGLE_TRANSLATE_API_KEY=your-translate-api-key
 
 # Agent Configuration
 AGENTS_PROVIDER=vertex-ai
-AGENTS_DEFAULT_MODEL=gemini-pro
+AGENTS_DEFAULT_MODEL=gemini-2.5-flash
 VERTEX_AI_ENABLE_MULTIMODAL=true
 ENABLE_IMAGE_ANALYSIS=true
 ENABLE_MULTILINGUAL_SUPPORT=true
@@ -160,7 +160,7 @@ const response = await vertexAIClient.generateResponse(
   userMessage,
   context,
   {
-    model: 'gemini-pro',
+    model: 'gemini-2.5-flash',
     temperature: 0.7,
     maxTokens: 4000
   }
@@ -177,7 +177,7 @@ const analysis = await vertexAIClient.analyzeImage(
 const data = await vertexAIClient.generateStructuredResponse(
   prompt,
   schema,
-  { model: 'gemini-pro' }
+  { model: 'gemini-2.5-flash' }
 )
 ```
 
@@ -232,7 +232,7 @@ import { AgentChat } from '@/components/agents/AgentChat'
 // Расширенные метрики с информацией о модели
 {
   agentType: 'multimodal',
-  model: 'gemini-pro-vision',
+  model: 'gemini-2.5-flash-vision',
   provider: 'vertex-ai',
   processingTime: 1200,
   tokensUsed: 1500,

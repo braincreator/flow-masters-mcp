@@ -49,7 +49,7 @@ AGENTS_DEBUG=false
 ## 🔧 Техническая информация:
 
 ### Используемая модель:
-- **Google Gemini Pro** (`gemini-pro`)
+- **Google Gemini Pro** (`gemini-2.5-flash`)
 - **SDK**: `@ai-sdk/google`
 - **Температура**: 0.7 (баланс креативности и точности)
 - **Максимум токенов**: 4000
@@ -58,7 +58,7 @@ AGENTS_DEBUG=false
 ```typescript
 import { google } from '@ai-sdk/google'
 
-const model = google('gemini-pro', {
+const model = google('gemini-2.5-flash', {
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
 })
 ```

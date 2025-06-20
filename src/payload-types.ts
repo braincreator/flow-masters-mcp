@@ -6068,7 +6068,7 @@ export interface AiAssistantBlock {
     apiUrl: string;
     apiKey?: string | null;
     /**
-     * Например, gpt-4, gemini-pro и т.д.
+     * Например, gpt-4, gemini-2.5-flash и т.д.
      */
     modelName?: string | null;
     maxTokens?: number | null;
