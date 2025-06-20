@@ -1,4 +1,5 @@
 import { YandexMetrikaTest } from '@/components/YandexMetrikaTest'
+import { YandexMetrikaDebug } from '@/components/YandexMetrika/YandexMetrikaDebug'
 import { Locale } from '@/constants'
 
 interface MetrikaTestPageProps {
@@ -9,6 +10,9 @@ interface MetrikaTestPageProps {
 
 export default async function MetrikaTestPage({ params }: MetrikaTestPageProps) {
   const { lang } = await Promise.resolve(params)
+
+  // Get Metrika ID from environment variable on server side
+  const metrikaId = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
   return (
     <div className="container mx-auto py-8">
@@ -43,7 +47,8 @@ export default async function MetrikaTestPage({ params }: MetrikaTestPageProps) 
           </ul>
         </div>
 
-        <YandexMetrikaTest />
+        <YandexMetrikaDebug />
+        <YandexMetrikaTest metrikaId={metrikaId} />
         
         <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
           <h3 className="text-lg font-semibold mb-2">

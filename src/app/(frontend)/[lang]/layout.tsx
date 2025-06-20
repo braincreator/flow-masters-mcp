@@ -53,6 +53,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   // Получаем ID Яндекс.Метрики
   const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
+  // Debug log
+  console.log('Layout: YANDEX_METRIKA_ID =', YANDEX_METRIKA_ID)
+
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
 
