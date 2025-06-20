@@ -38,6 +38,8 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [layout, setLayout] = useState<'grid' | 'list'>('grid') // Add layout state
+  const [showAllCategories, setShowAllCategories] = useState(false) // State for expanding categories
+  const [showAllTags, setShowAllTags] = useState(false) // State for expanding tags
 
   // Remove debouncing for immediate search response
   // const debouncedSearchTerm = useDebounce(searchTerm, 300)
@@ -559,7 +561,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
                   activeTag={currentCategory}
                   type="categories"
                   showCount
+                  limit={showAllCategories ? undefined : 10} // Show 10 categories by default, all when expanded
                   onTagClick={handleCategoryChange} // Use client-side handler
+                  onShowAll={() => setShowAllCategories(true)} // Handler for expanding categories
                   // preserveParams is no longer needed
                 />
               </div>
@@ -580,8 +584,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
                   type="tags"
                   showCount
                   sizeFactor
-                  limit={20}
+                  limit={showAllTags ? undefined : 20} // Show 20 tags by default, all when expanded
                   onTagClick={handleTagChange} // Use client-side handler
+                  onShowAll={() => setShowAllTags(true)} // Handler for expanding tags
                   // preserveParams is no longer needed
                 />
               </div>
