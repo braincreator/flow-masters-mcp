@@ -68,15 +68,6 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
       },
-      // Добавляем домены для Яндекс.Метрики
-      {
-        protocol: 'https',
-        hostname: 'mc.yandex.ru',
-      },
-      {
-        protocol: 'https',
-        hostname: 'yastatic.net',
-      },
     ],
     // Оптимизация изображений
     formats: ['image/webp', 'image/avif'],
@@ -84,7 +75,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  output: 'standalone', // Отключено для использования обычного режима с Turbopack
+  // output: 'standalone', // Отключено для использования обычного режима с Turbopack
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,
@@ -121,7 +112,7 @@ const nextConfig = {
     },
   },
 
-  // Настройки кэширования и безопасности с поддержкой Яндекс.Метрики
+  // Настройки кэширования
   async headers() {
     return [
       {
@@ -155,35 +146,16 @@ const nextConfig = {
         source: '/(.*)',
         headers: [
           {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://yastatic.net",
-              "connect-src 'self' https://mc.yandex.ru https://yandex.ru https://metrika.yandex.ru wss: ws:",
-              "img-src 'self' data: https: https://mc.yandex.ru https://yandex.ru",
-              "style-src 'self' 'unsafe-inline' https://yastatic.net",
-              "font-src 'self' data: https://yastatic.net",
-              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'"
-            ].join('; ')
-          },
-          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            value: 'DENY',
           },
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
           },
         ],
       },
@@ -260,13 +232,6 @@ const nextConfig = {
             chunks: 'all',
             priority: 20,
           },
-          // Отдельный чанк для Яндекс.Метрики
-          metrika: {
-            name: 'metrika',
-            test: /metrika|yandex/,
-            chunks: 'all',
-            priority: 10
-          }
         },
       }
 
@@ -381,22 +346,12 @@ const nextConfig = {
 
     return config
   },
-  
-  // Проксирование запросов к Яндекс.Метрике (обход блокировщиков)
   async rewrites() {
     return [
       {
         source: '/api/:path*',
         destination: '/api/:path*',
         locale: false,
-      },
-      {
-        source: '/metrika/:path*',
-        destination: 'https://mc.yandex.ru/:path*',
-      },
-      {
-        source: '/ya-metrika/:path*',
-        destination: 'https://mc.yandex.ru/:path*',
       },
     ]
   },

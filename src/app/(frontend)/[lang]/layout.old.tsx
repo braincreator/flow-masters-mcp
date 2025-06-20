@@ -24,7 +24,6 @@ import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
 import YandexMetrikaRobust from '@/components/YandexMetrika/YandexMetrikaRobust'
-
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -90,18 +89,52 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   return (
     <NextIntlClientProvider locale={validLang} messages={messages}>
-      {/* Улучшенная Яндекс.Метрика */}
+      {/* Яндекс.Метрика в head */}
       {YANDEX_METRIKA_ID && (
-        <YandexMetrikaRobust 
-          counterId={YANDEX_METRIKA_ID}
-          enableClickmap={true}
-          enableTrackLinks={true}
-          enableAccurateTrackBounce={true}
-          enableWebvisor={false}
-          enableEcommerce={false}
-          defer={true}
-          debug={process.env.NODE_ENV === 'development'}
-        />
+        <>
+          <Script id="yandex-metrika" strategy="afterInteractive">
+            {`
+              console.log('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
+
+              (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+              m[i].l=1*new Date();
+              for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+              k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+              (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+              ym(${YANDEX_METRIKA_ID}, "init", {
+                  clickmap:true,
+                  trackLinks:true,
+                  accurateTrackBounce:true,
+                  webvisor:true,
+                  triggerEvent: true
+              });
+
+              console.log('Yandex Metrika: Script loaded and initialized');
+
+              // Проверка загрузки через событие
+              window.addEventListener('load', function() {
+                if (typeof ym !== 'undefined') {
+                  console.log('Yandex Metrika: Successfully loaded and ready');
+                  // Отправляем тестовое событие
+                  ym(${YANDEX_METRIKA_ID}, 'reachGoal', 'page_loaded');
+                  console.log('Yandex Metrika: Test event "page_loaded" sent');
+                } else {
+                  console.error('Yandex Metrika: Failed to load');
+                }
+              });
+            `}
+          </Script>
+          <noscript>
+            <div>
+              <img
+                src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
+                style={{ position: 'absolute', left: '-9999px' }}
+                alt=""
+              />
+            </div>
+          </noscript>
+        </>
       )}
 
       <div lang={validLang} className="h-full" suppressHydrationWarning>
@@ -144,6 +177,8 @@ export default async function LangLayout({ children, params }: LayoutProps) {
               </LocaleProvider>
             </DropdownProvider>
           </ThemeProvider>
+
+
         </div>
       </div>
     </NextIntlClientProvider>
