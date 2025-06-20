@@ -23,6 +23,7 @@ interface BlogTagCloudProps {
   preserveParams?: boolean
   className?: string
   onTagClick?: (slug: string | undefined) => void // Add onTagClick prop
+  onShowAll?: () => void // Add onShowAll prop for expanding the block
 }
 
 export function BlogTagCloud({
@@ -35,6 +36,7 @@ export function BlogTagCloud({
   preserveParams = false,
   className,
   onTagClick, // Destructure onTagClick prop
+  onShowAll, // Destructure onShowAll prop
 }: BlogTagCloudProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -155,15 +157,15 @@ export function BlogTagCloud({
         )
       })}
 
-      {/* "Show more" link if tags are limited */}
+      {/* "Show more" button if tags are limited */}
       {limit && validTags.length > limit && (
-        <Link
-          href={`/${currentLocale}/blog/${type === 'tags' ? 'tags' : 'categories'}`}
-          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-sm text-accent hover:bg-accent/20"
+        <button
+          onClick={onShowAll || (() => {})}
+          className="blog-tag inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-sm text-accent hover:bg-accent/20 transition-colors cursor-pointer"
         >
           {currentLocale === 'ru' ? 'Показать все' : 'Show all'}
           <span className="ml-1.5">({validTags.length})</span>
-        </Link>
+        </button>
       )}
     </div>
   )

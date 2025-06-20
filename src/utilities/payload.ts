@@ -1,5 +1,8 @@
 import { logger } from './logger'
 
+// Re-export getPayloadClient from the correct location
+export { getPayloadClient } from './payload/index'
+
 /**
  * Cleans up Payload CMS connections
  * This function is called during application shutdown
