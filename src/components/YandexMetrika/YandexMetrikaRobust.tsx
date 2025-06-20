@@ -38,13 +38,13 @@ export default function YandexMetrikaRobust({
 
   // Fallback функция для инициализации метрики без внешнего скрипта
   const initFallbackMetrika = () => {
-    if (debug) {
+    if (debug && process.env.NODE_ENV === 'development') {
       console.log('🔄 Initializing fallback Yandex Metrika (local mode)')
     }
 
     // Создаем заглушку для ym функции
     window.ym = window.ym || function(...args: any[]) {
-      if (debug) {
+      if (debug && process.env.NODE_ENV === 'development') {
         console.log('📊 Yandex Metrika (fallback):', args)
       }
       // Сохраняем вызовы для возможной отправки позже
@@ -81,7 +81,7 @@ export default function YandexMetrikaRobust({
         defer
       })
 
-      if (debug) {
+      if (debug && process.env.NODE_ENV === 'development') {
         console.log('✅ Yandex Metrika initialized successfully')
       }
       setIsLoaded(true)
@@ -96,7 +96,7 @@ export default function YandexMetrikaRobust({
 
   // Обработка ошибки загрузки
   const handleError = async () => {
-    if (debug) {
+    if (debug && process.env.NODE_ENV === 'development') {
       console.warn(`❌ Failed to load Yandex Metrika (attempt ${retryCount + 1}/${maxRetries})`)
     }
 
