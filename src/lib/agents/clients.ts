@@ -1,5 +1,5 @@
 // FlowMasters AI Agents - Service Clients
-// Uses Google Generative AI (Gemini)
+// Uses Google Vertex AI with service account or API key
 
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
@@ -17,8 +17,11 @@ export class AgentClients {
   private vertexModel: any
   
   private constructor() {
-    // Initialize Google Generative AI model (Gemini)
-    // API key will be read from GOOGLE_GENERATIVE_AI_API_KEY environment variable automatically
+    // Initialize Google Vertex AI model
+    // The @ai-sdk/google will automatically use environment variables:
+    // - GOOGLE_GENERATIVE_AI_API_KEY (for API key auth)
+    // - GOOGLE_APPLICATION_CREDENTIALS (for service account file path)
+    // - Or service account JSON from GOOGLE_SERVICE_ACCOUNT_KEY
     this.vertexModel = google('gemini-pro')
   }
 
@@ -30,7 +33,7 @@ export class AgentClients {
   }
 
   /**
-   * Generate AI response using Google Generative AI (Gemini)
+   * Generate AI response using Google Vertex AI
    */
   async generateResponse(
     systemPrompt: string,
@@ -38,9 +41,12 @@ export class AgentClients {
     context?: any
   ): Promise<string> {
     try {
-      // Check if API key is available
-      if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-        throw new Error('GOOGLE_GENERATIVE_AI_API_KEY environment variable is required')
+      // Check if any Google AI credentials are available
+      const hasApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+      const hasServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || process.env.GOOGLE_APPLICATION_CREDENTIALS
+      
+      if (!hasApiKey && !hasServiceAccount) {
+        throw new Error('Google AI credentials not found. Please set GOOGLE_GENERATIVE_AI_API_KEY or GOOGLE_SERVICE_ACCOUNT_KEY')
       }
 
       let prompt = systemPrompt + '\n\nUser: ' + userMessage
