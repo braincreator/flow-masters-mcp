@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import RichText from '@/components/RichText'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 
 // Типы для компонента
 export interface LeadMagnetOfferProps {

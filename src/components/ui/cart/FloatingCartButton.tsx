@@ -5,7 +5,7 @@ import { useCart } from '@/providers/CartProvider'
 import { useTranslations } from 'next-intl'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 import { Locale } from '@/constants'
 import { Skeleton } from '@/components/ui/skeleton'
 
