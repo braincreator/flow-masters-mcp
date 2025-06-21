@@ -1,7 +1,17 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import React from 'react'
+import {
+  MobileOptimizedMotion,
+  MobileOptimizedMotionGroup,
+  MobileOptimizedHover
+} from '@/components/MobileOptimizedMotion'
+import {
+  useMobileAnimations,
+  getSmoothAnimationProps,
+  getGPUAcceleratedStyles
+} from '@/hooks/useMobileAnimations'
+import { cn } from '@/lib/utils'
 
 interface AnimatedSectionProps {
   children: React.ReactNode
@@ -10,132 +20,75 @@ interface AnimatedSectionProps {
   direction?: 'up' | 'down' | 'left' | 'right' | 'fade'
   stagger?: boolean
   once?: boolean
+  fallbackAnimation?: 'fade' | 'slide' | 'scale'
 }
 
+/**
+ * Optimized AnimatedSection that uses our mobile-optimized animation system
+ * Automatically switches between CSS and JS animations based on device capabilities
+ */
 export function AnimatedSection({
   children,
   className,
   delay = 0,
   direction = 'up',
   stagger = false,
-  once = true
+  once = true,
+  fallbackAnimation = 'fade'
 }: AnimatedSectionProps) {
-  const shouldReduceMotion = useReducedMotion()
-  const [isMounted, setIsMounted] = useState(false)
+  const animationConfig = useMobileAnimations()
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  // Reduced motion variants
-  const reducedMotionVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 }
-  }
-
-  // Full motion variants
-  const motionVariants = {
-    up: {
-      hidden: { opacity: 0, y: 30 },
-      visible: { opacity: 1, y: 0 }
-    },
-    down: {
-      hidden: { opacity: 0, y: -30 },
-      visible: { opacity: 1, y: 0 }
-    },
-    left: {
-      hidden: { opacity: 0, x: -30 },
-      visible: { opacity: 1, x: 0 }
-    },
-    right: {
-      hidden: { opacity: 0, x: 30 },
-      visible: { opacity: 1, x: 0 }
-    },
-    fade: {
-      hidden: { opacity: 0 },
-      visible: { opacity: 1 }
+  // Map direction to fallback animation type
+  const getAnimationType = (dir: string): 'fade' | 'slide' | 'scale' => {
+    switch (dir) {
+      case 'up':
+      case 'down':
+      case 'left':
+      case 'right':
+        return 'slide'
+      case 'fade':
+        return 'fade'
+      default:
+        return fallbackAnimation
     }
   }
 
-  const staggerContainer = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: delay
-      }
-    }
-  }
+  const animationType = getAnimationType(direction)
 
-  const staggerItem = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: 'easeOut'
-      }
-    }
-  }
-
-  // Don't render animations on server
-  if (!isMounted) {
-    return <div className={className}>{children}</div>
-  }
-
-  const variants = shouldReduceMotion ? reducedMotionVariants : motionVariants[direction]
-  const transition = {
-    duration: shouldReduceMotion ? 0.3 : 0.6,
-    delay: shouldReduceMotion ? 0 : delay,
-    ease: 'easeOut'
-  }
-
+  // For staggered animations, use MobileOptimizedMotionGroup
   if (stagger) {
     return (
-      <motion.div
-        className={className}
-        variants={shouldReduceMotion ? reducedMotionVariants : staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once, margin: '-50px' }}
+      <MobileOptimizedMotionGroup
+        className={cn('mobile-optimized-container', className)}
+        staggerDelay={animationConfig.isMobile ? 50 : 100}
       >
-        {React.Children.map(children, (child, index) => (
-          <motion.div
-            key={index}
-            variants={shouldReduceMotion ? reducedMotionVariants : staggerItem}
-          >
-            {child}
-          </motion.div>
-        ))}
-      </motion.div>
+        {React.Children.toArray(children)}
+      </MobileOptimizedMotionGroup>
     )
   }
 
+  // For single animations, use MobileOptimizedMotion
   return (
-    <motion.div
-      className={className}
-      variants={variants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once, margin: '-50px' }}
-      transition={transition}
+    <MobileOptimizedMotion
+      className={cn('mobile-optimized-container', className)}
+      delay={delay}
+      fallbackAnimation={animationType}
     >
       {children}
-    </motion.div>
+    </MobileOptimizedMotion>
   )
 }
 
-// Specialized animation components
+// Specialized optimized animation components
 export function FadeInUp({ children, delay = 0, className }: {
   children: React.ReactNode
   delay?: number
   className?: string
 }) {
   return (
-    <AnimatedSection direction="up" delay={delay} className={className}>
+    <MobileOptimizedMotion delay={delay} className={className} fallbackAnimation="slide">
       {children}
-    </AnimatedSection>
+    </MobileOptimizedMotion>
   )
 }
 
@@ -145,9 +98,9 @@ export function FadeInLeft({ children, delay = 0, className }: {
   className?: string
 }) {
   return (
-    <AnimatedSection direction="left" delay={delay} className={className}>
+    <MobileOptimizedMotion delay={delay} className={className} fallbackAnimation="slide">
       {children}
-    </AnimatedSection>
+    </MobileOptimizedMotion>
   )
 }
 
@@ -157,9 +110,9 @@ export function FadeInRight({ children, delay = 0, className }: {
   className?: string
 }) {
   return (
-    <AnimatedSection direction="right" delay={delay} className={className}>
+    <MobileOptimizedMotion delay={delay} className={className} fallbackAnimation="slide">
       {children}
-    </AnimatedSection>
+    </MobileOptimizedMotion>
   )
 }
 
@@ -168,40 +121,20 @@ export function StaggeredFadeIn({ children, className }: {
   className?: string
 }) {
   return (
-    <AnimatedSection stagger className={className}>
-      {children}
-    </AnimatedSection>
+    <MobileOptimizedMotionGroup className={className}>
+      {React.Children.toArray(children)}
+    </MobileOptimizedMotionGroup>
   )
 }
 
-// Hook for scroll-triggered animations
-export function useScrollAnimation() {
-  const shouldReduceMotion = useReducedMotion()
-  
-  return {
-    fadeInUp: shouldReduceMotion 
-      ? { opacity: 1 }
-      : {
-          initial: { opacity: 0, y: 30 },
-          whileInView: { opacity: 1, y: 0 },
-          viewport: { once: true, margin: '-50px' },
-          transition: { duration: 0.6, ease: 'easeOut' }
-        },
-    fadeInLeft: shouldReduceMotion
-      ? { opacity: 1 }
-      : {
-          initial: { opacity: 0, x: -30 },
-          whileInView: { opacity: 1, x: 0 },
-          viewport: { once: true, margin: '-50px' },
-          transition: { duration: 0.6, ease: 'easeOut' }
-        },
-    fadeInRight: shouldReduceMotion
-      ? { opacity: 1 }
-      : {
-          initial: { opacity: 0, x: 30 },
-          whileInView: { opacity: 1, x: 0 },
-          viewport: { once: true, margin: '-50px' },
-          transition: { duration: 0.6, ease: 'easeOut' }
-        }
-  }
+// Optimized hover wrapper
+export function AnimatedHover({ children, className }: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <MobileOptimizedHover className={className}>
+      {children}
+    </MobileOptimizedHover>
+  )
 }
