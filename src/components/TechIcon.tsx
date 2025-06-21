@@ -145,10 +145,11 @@ export const TechIcon = React.memo(function TechIcon({
             />
           </>
         ) : techIcon.fallbackSvg ? (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ color: techIcon.color }}
-            dangerouslySetInnerHTML={{ __html: techIcon.fallbackSvg }}
+          <TechIconSVG
+            svgContent={techIcon.fallbackSvg}
+            color={techIcon.color}
+            name={techIcon.name}
+            className="w-full h-full"
           />
         ) : (
           <div className="w-full h-full bg-white/30 rounded flex items-center justify-center text-white/60 text-xs font-medium">
@@ -205,6 +206,91 @@ export function TechIconsGrid({
           onClick={onIconClick ? () => onIconClick(slug) : undefined}
         />
       ))}
+    </div>
+  )
+}
+
+/**
+ * Safe SVG component that renders SVG content without dangerouslySetInnerHTML
+ * Provides better mobile compatibility and error handling
+ */
+interface TechIconSVGProps {
+  svgContent: string
+  color?: string
+  name: string
+  className?: string
+}
+
+function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
+  const [svgError, setSvgError] = React.useState(false)
+
+  // Parse SVG content safely
+  const parseSVGContent = React.useCallback((content: string) => {
+    try {
+      // Handle simple SVG strings
+      if (content.includes('<svg')) {
+        // Extract viewBox and path data
+        const viewBoxMatch = content.match(/viewBox="([^"]*)"/)
+        const pathMatch = content.match(/<path[^>]*d="([^"]*)"[^>]*\/?>/)
+        const fillMatch = content.match(/fill="([^"]*)"/)
+
+        if (pathMatch) {
+          return {
+            viewBox: viewBoxMatch?.[1] || '0 0 24 24',
+            path: pathMatch[1],
+            fill: fillMatch?.[1] || color || 'currentColor'
+          }
+        }
+      }
+
+      // Handle simple div content (like AG-UI)
+      if (content.includes('<div')) {
+        return { isDiv: true, content }
+      }
+
+      return null
+    } catch (error) {
+      console.warn(`Failed to parse SVG for ${name}:`, error)
+      return null
+    }
+  }, [content, color, name])
+
+  const svgData = parseSVGContent(svgContent)
+
+  if (svgError || !svgData) {
+    return (
+      <div className={cn(className, "flex items-center justify-center text-xs font-medium")}>
+        {name.slice(0, 2).toUpperCase()}
+      </div>
+    )
+  }
+
+  // Render div content (for text-based icons like AG-UI)
+  if (svgData.isDiv) {
+    return (
+      <div
+        className={cn(className, "flex items-center justify-center")}
+        style={{ color }}
+      >
+        <div className="text-xs font-bold px-1 py-0.5 rounded border border-current/20 bg-current/10">
+          {name.replace('-', '')}
+        </div>
+      </div>
+    )
+  }
+
+  // Render SVG content
+  return (
+    <div className={cn(className, "flex items-center justify-center")} style={{ color }}>
+      <svg
+        viewBox={svgData.viewBox}
+        className="w-full h-full"
+        fill={svgData.fill}
+        xmlns="http://www.w3.org/2000/svg"
+        onError={() => setSvgError(true)}
+      >
+        <path d={svgData.path} />
+      </svg>
     </div>
   )
 }
