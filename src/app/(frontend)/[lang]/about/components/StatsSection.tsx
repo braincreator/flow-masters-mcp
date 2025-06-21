@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { MobileOptimizedMotion, MobileOptimizedMotionGroup } from '@/components/MobileOptimizedMotion'
 import { useMobileAnimations, getGPUAcceleratedStyles } from '@/hooks/useMobileAnimations'
 import { TrendingUp, Award, Users, Clock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface StatsSectionProps {
   data: {
