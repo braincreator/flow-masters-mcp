@@ -12,9 +12,10 @@ import { cn } from '@/utilities/ui'
 interface HeaderNavProps {
   data: HeaderType
   mobile?: boolean
+  onMobileMenuClose?: () => void
 }
 
-export const HeaderNav: React.FC<HeaderNavProps> = ({ data, mobile = false }) => {
+export const HeaderNav: React.FC<HeaderNavProps> = ({ data, mobile = false, onMobileMenuClose }) => {
   // Ensure navItems is an array with proper type checking
   const navItems = Array.isArray(data?.navItems) ? data.navItems : []
   const { itemCount = 0 } = useCart()
@@ -31,6 +32,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, mobile = false }) =>
             size="lg"
             className="relative text-foreground/90 active:text-accent active:scale-98 transition-all duration-300
               text-xl font-medium py-3 w-full border-b border-border/10 flex items-center"
+            onClick={() => {
+              // Закрываем мобильное меню при клике на ссылку
+              if (onMobileMenuClose) {
+                onMobileMenuClose()
+              }
+            }}
           />
         ))}
       </nav>
