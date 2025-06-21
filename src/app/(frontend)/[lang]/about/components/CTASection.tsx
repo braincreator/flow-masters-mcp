@@ -1,7 +1,10 @@
+'use client'
+
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, MessageCircle, Calendar, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { useLocale } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { MobileOptimizedMotion, MobileOptimizedHover } from '@/components/MobileOptimizedMotion'
@@ -24,8 +27,32 @@ interface CTASectionProps {
 }
 
 export function CTASection({ data }: CTASectionProps) {
+  const locale = useLocale()
   const animationConfig = useMobileAnimations()
   const gpuStyles = getGPUAcceleratedStyles(animationConfig)
+
+  // Helper function to ensure URLs include locale
+  const ensureLocaleInUrl = (url: string) => {
+    if (!url) return url
+
+    // If it's an external URL, mailto, or already has locale, return as is
+    if (url.startsWith('http') || url.startsWith('mailto:') || url.includes(`/${locale}/`)) {
+      return url
+    }
+
+    // If it's an anchor link to the landing page (like #final-cta)
+    if (url.startsWith('#')) {
+      return `/${locale}${url}`
+    }
+
+    // If it starts with /, add locale
+    if (url.startsWith('/')) {
+      return `/${locale}${url}`
+    }
+
+    // Otherwise, add locale prefix
+    return `/${locale}/${url}`
+  }
 
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden mobile-optimized-container" style={gpuStyles}>
@@ -137,7 +164,7 @@ export function CTASection({ data }: CTASectionProps) {
                       className="group relative overflow-hidden bg-primary hover:bg-primary/90 dark:hover:bg-primary/95 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl shadow-lg dark:shadow-primary/10 hover:shadow-2xl dark:hover:shadow-primary/20"
                       asChild
                     >
-                      <Link href={data.primaryButton.url}>
+                      <Link href={ensureLocaleInUrl(data.primaryButton.url)}>
                         <span className="relative z-10 flex items-center gap-2">
                           <MessageCircle className="w-5 h-5" />
                           {data.primaryButton.text}
@@ -167,7 +194,7 @@ export function CTASection({ data }: CTASectionProps) {
                         className="group border-2 border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl bg-background/90 dark:bg-background/95 backdrop-blur-sm hover:shadow-lg dark:hover:shadow-primary/10"
                         asChild
                       >
-                        <Link href={data.secondaryButton.url}>
+                        <Link href={ensureLocaleInUrl(data.secondaryButton.url)}>
                           <span className="flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
                             {data.secondaryButton.text}
