@@ -253,7 +253,7 @@ function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
       console.warn(`Failed to parse SVG for ${name}:`, error)
       return null
     }
-  }, [content, color, name])
+  }, [svgContent, color, name])
 
   const svgData = parseSVGContent(svgContent)
 
