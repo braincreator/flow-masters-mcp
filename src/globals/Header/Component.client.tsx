@@ -68,7 +68,7 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
     }
   }, [handleScroll])
 
-  // Prevent scrolling when mobile menu is open
+  // Prevent scrolling when mobile menu is open and handle Escape key
   useEffect(() => {
     if (typeof document === 'undefined') return
 
@@ -76,6 +76,20 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
 
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
+
+      // Добавляем обработчик клавиши Escape
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setMobileMenuOpen(false)
+        }
+      }
+
+      document.addEventListener('keydown', handleEscape)
+
+      return () => {
+        document.body.style.overflow = originalOverflow
+        document.removeEventListener('keydown', handleEscape)
+      }
     } else {
       document.body.style.overflow = ''
     }
@@ -173,9 +187,21 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
 
       {/* Mobile menu as a separate component outside the header */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 pt-16 bg-background z-40 md:hidden overflow-auto">
+        <div
+          className="fixed inset-0 pt-16 bg-background z-40 md:hidden overflow-auto"
+          onClick={(e) => {
+            // Закрываем меню при клике на фон, но не на содержимое
+            if (e.target === e.currentTarget) {
+              setMobileMenuOpen(false)
+            }
+          }}
+        >
           <div className="container py-6">
-            <HeaderNav data={data} mobile={true} />
+            <HeaderNav
+              data={data}
+              mobile={true}
+              onMobileMenuClose={() => setMobileMenuOpen(false)}
+            />
             <div className="flex items-center justify-center gap-6 pt-6 mt-6 border-t border-border/40">
               <NotificationCenter />
               <AuthNav />
