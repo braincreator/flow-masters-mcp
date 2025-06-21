@@ -54,22 +54,22 @@ export function useMobileAnimations(): AnimationConfig {
       navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4
 
     // Very aggressive optimization for mobile
-    const shouldReduceMotion = prefersReducedMotion || isLowPerformance || isMobile
-    const animationDuration = shouldReduceMotion ? 0.2 : isMobile ? 0.25 : 0.5
+    const finalShouldReduceMotion = prefersReducedMotion || isLowPerformance || isMobile
+    const animationDuration = finalShouldReduceMotion ? 0.2 : isMobile ? 0.25 : 0.5
 
     // Disable complex animations on mobile entirely
-    const enableComplexAnimations = !isMobile && !shouldReduceMotion && !isLowPerformance
-    const enableStaggeredAnimations = !isMobile && !shouldReduceMotion
+    const enableComplexAnimations = !isMobile && !finalShouldReduceMotion && !isLowPerformance
+    const enableStaggeredAnimations = !isMobile && !finalShouldReduceMotion
     const enableHoverAnimations = !isMobile && !('ontouchstart' in window)
 
     // Always use GPU acceleration when available
     const useGPUAcceleration = true
 
     // Prefer CSS animations on mobile and low-performance devices
-    const preferCSSAnimations = isMobile || isLowPerformance || shouldReduceMotion
+    const preferCSSAnimations = isMobile || isLowPerformance || finalShouldReduceMotion
 
     setConfig({
-      shouldReduceMotion,
+      shouldReduceMotion: finalShouldReduceMotion,
       isMobile,
       isLowPerformance,
       animationDuration,
@@ -84,15 +84,15 @@ export function useMobileAnimations(): AnimationConfig {
     const handleResize = () => {
       const newIsMobile = window.innerWidth < 768 || 'ontouchstart' in window
       if (newIsMobile !== isMobile) {
-        const newShouldReduceMotion = prefersReducedMotion || isLowPerformance || newIsMobile
+        const newFinalShouldReduceMotion = prefersReducedMotion || isLowPerformance || newIsMobile
         setConfig(prev => ({
           ...prev,
           isMobile: newIsMobile,
-          shouldReduceMotion: newShouldReduceMotion,
-          enableComplexAnimations: !newIsMobile && !newShouldReduceMotion && !isLowPerformance,
-          enableStaggeredAnimations: !newIsMobile && !newShouldReduceMotion,
+          shouldReduceMotion: newFinalShouldReduceMotion,
+          enableComplexAnimations: !newIsMobile && !newFinalShouldReduceMotion && !isLowPerformance,
+          enableStaggeredAnimations: !newIsMobile && !newFinalShouldReduceMotion,
           enableHoverAnimations: !newIsMobile && !('ontouchstart' in window),
-          preferCSSAnimations: newIsMobile || isLowPerformance || newShouldReduceMotion,
+          preferCSSAnimations: newIsMobile || isLowPerformance || newFinalShouldReduceMotion,
         }))
       }
     }
