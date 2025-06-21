@@ -1,8 +1,11 @@
+'use client'
+
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useLocale } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { MobileOptimizedMotion, MobileOptimizedHover } from '@/components/MobileOptimizedMotion'
@@ -21,6 +24,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ data }: HeroSectionProps) {
+  const locale = useLocale()
   const animationConfig = useMobileAnimations()
   const gpuStyles = getGPUAcceleratedStyles(animationConfig)
   const hoverProps = getOptimizedHoverProps(animationConfig)
@@ -157,7 +161,7 @@ export function HeroSection({ data }: HeroSectionProps) {
                     className="group relative overflow-hidden bg-primary hover:bg-primary/90 dark:hover:bg-primary/95 text-primary-foreground px-10 py-5 text-lg font-semibold rounded-2xl shadow-lg dark:shadow-primary/10 hover:shadow-xl dark:hover:shadow-primary/20"
                     asChild
                   >
-                    <Link href="/contact">
+                    <Link href={`/${locale}#final-cta`}>
                       <span className="relative z-10 flex items-center gap-2">
                         Обсудить проект
                         <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -185,7 +189,7 @@ export function HeroSection({ data }: HeroSectionProps) {
                     className="group border-2 border-primary/30 dark:border-primary/40 hover:border-primary/50 dark:hover:border-primary/60 text-foreground hover:text-primary px-8 py-4 text-base font-medium rounded-2xl bg-background/90 dark:bg-background/95 backdrop-blur-sm hover:shadow-lg dark:hover:shadow-primary/10"
                     asChild
                   >
-                    <Link href="/services">
+                    <Link href={`/${locale}/services`}>
                       <span className="flex items-center gap-2">
                         Наши услуги
                         <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
