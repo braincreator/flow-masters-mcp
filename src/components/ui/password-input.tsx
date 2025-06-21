@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Input, InputProps } from '@/components/ui/input'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 
 export interface PasswordInputProps extends Omit<InputProps, 'type'> {

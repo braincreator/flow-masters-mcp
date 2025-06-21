@@ -149,7 +149,7 @@ export function AboutPageComponent({ data }: AboutPageComponentProps) {
         },
       }
 
-  const sectionVariants = shouldReduceMotion
+  const sectionVariants = animationConfig.shouldReduceMotion
     ? { visible: { opacity: 1 } }
     : {
         hidden: { opacity: 0, y: 20 },
