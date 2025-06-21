@@ -136,8 +136,8 @@ export const TechIcon = React.memo(function TechIcon({
               )}
               loading="lazy"
               onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                console.warn(`Failed to load tech icon: ${imagePath}`)
+              onError={(e) => {
+                console.warn(`Failed to load tech icon: ${imagePath} for ${techIcon.name}`, e)
                 setImageError(true)
               }}
               // Add priority for above-the-fold icons
@@ -251,6 +251,7 @@ function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
       return null
     } catch (error) {
       console.warn(`Failed to parse SVG for ${name}:`, error)
+      console.log(`SVG content that failed:`, svgContent.substring(0, 200) + '...')
       return null
     }
   }, [svgContent, color, name])
