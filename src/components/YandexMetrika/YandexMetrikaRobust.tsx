@@ -116,8 +116,8 @@ export default function YandexMetrikaRobust({
   // Noscript fallback для пользователей без JavaScript
   const noscriptContent = `
     <div>
-      <img src="https://mc.yandex.ru/watch/${counterId}" 
-           style="position:absolute; left:-9999px;" 
+      <img src="/metrika/watch/${counterId}"
+           style="position:absolute; left:-9999px;"
            alt="" />
     </div>
   `
@@ -149,7 +149,7 @@ export default function YandexMetrikaRobust({
     <>
       <Script
         id={`yandex-metrika-${counterId}`}
-        src="https://mc.yandex.ru/metrika/tag.js"
+        src="/metrika/tag.js"
         strategy={defer ? 'lazyOnload' : 'afterInteractive'}
         onLoad={handleLoad}
         onError={handleError}

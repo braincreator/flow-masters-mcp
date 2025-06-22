@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
 interface ModalLeadFormProps {
   open: boolean
@@ -27,6 +28,12 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
   const [form, setForm] = useState({ name: '', phone: '', email: '', comment: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Аналитика форм
+  const formAnalytics = useFormAnalytics({
+    formName: 'lead_form',
+    formType: actionType
+  })
 
   // Use translations as defaults if not provided
   const modalTitle = title || t('title')
@@ -73,9 +80,13 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
       }
 
       setSubmitted(true)
+      // Трекаем успешную отправку
+      formAnalytics.handleFormSubmit(true)
     } catch (err) {
       console.error('Form submission error:', err)
       setError(err instanceof Error ? err.message : t('errors.tryLater'))
+      // Трекаем ошибку отправки
+      formAnalytics.handleFormSubmit(false)
     } finally {
       setLoading(false)
     }
@@ -122,6 +133,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.name}
                   onChange={handleChange}
+                  onFocus={() => formAnalytics.handleFieldFocus('name')}
                 />
                 <input
                   name="phone"
