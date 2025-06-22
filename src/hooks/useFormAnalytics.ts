@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { useAnalytics } from '@/components/Analytics/AnalyticsProvider'
+import { usePixelEvents } from '@/hooks/usePixelEvents'
 
 interface FormAnalyticsOptions {
   formName: string
@@ -12,7 +12,7 @@ interface FormAnalyticsOptions {
 }
 
 export function useFormAnalytics(options: FormAnalyticsOptions) {
-  const { trackFormStart, trackFormSubmit, trackFormFieldFocus } = useAnalytics()
+  const pixelEvents = usePixelEvents()
   const formStartedRef = useRef(false)
   const fieldsInteractedRef = useRef<Set<string>>(new Set())
 
@@ -21,15 +21,22 @@ export function useFormAnalytics(options: FormAnalyticsOptions) {
   // Трекинг начала заполнения формы
   const handleFormStart = useCallback(() => {
     if (!formStartedRef.current) {
-      trackFormStart(formName, formType)
+      pixelEvents.trackEvent('form_start', {
+        content_name: formName,
+        content_category: formType,
+      })
       formStartedRef.current = true
     }
-  }, [formName, formType, trackFormStart])
+  }, [formName, formType, pixelEvents])
 
   // Трекинг отправки формы
   const handleFormSubmit = useCallback((success: boolean = true) => {
-    trackFormSubmit(formName, formType, success)
-  }, [formName, formType, trackFormSubmit])
+    const eventName = success ? 'form_submit_success' : 'form_submit_error'
+    pixelEvents.trackEvent(eventName, {
+      content_name: formName,
+      content_category: formType,
+    })
+  }, [formName, formType, pixelEvents])
 
   // Трекинг фокуса на поле
   const handleFieldFocus = useCallback((fieldName: string) => {
@@ -39,11 +46,15 @@ export function useFormAnalytics(options: FormAnalyticsOptions) {
       
       // Трекаем фокус на поле (только первый раз)
       if (!fieldsInteractedRef.current.has(fieldName)) {
-        trackFormFieldFocus(formName, fieldName)
+        pixelEvents.trackEvent('form_field_focus', {
+          content_name: formName,
+          content_category: formType,
+          field_name: fieldName,
+        })
         fieldsInteractedRef.current.add(fieldName)
       }
     }
-  }, [formName, trackFieldFocus, trackFormFieldFocus, handleFormStart])
+  }, [formName, formType, trackFieldFocus, pixelEvents, handleFormStart])
 
   // Трекинг ошибок валидации
   const handleFieldError = useCallback((fieldName: string, errorMessage: string) => {
