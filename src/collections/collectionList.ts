@@ -86,7 +86,17 @@ import { TermsPages } from './TermsPages' // Import TermsPages collection
 import { ServiceQuestions } from './ServiceQuestions' // Import ServiceQuestions collection
 import { ServiceFAQs } from './ServiceFAQs' // Import ServiceFAQs collection
 
-// import { Forms } from './Forms' // Removed custom Forms collection import - KEEPING COMMENTED FOR HISTORY
+// Forms
+import { Forms } from './Forms' // Import Forms collection
+import { FormSubmissions } from './FormSubmissions' // Import FormSubmissions collection
+
+// Events and Integrations
+import { EventSubscriptions } from './EventSubscriptions' // Import EventSubscriptions collection
+import { EventLogs } from './EventLogs' // Import EventLogs collection
+import { WebhookLogs } from './WebhookLogs' // Import WebhookLogs collection
+
+// Marketing and Analytics
+import { Pixels } from './Pixels' // Import Pixels collection
 
 const collections = [
   // Core / Site
@@ -176,7 +186,18 @@ const collections = [
   Leads, // Add Leads collection to the array
   FeatureFlags, // Add FeatureFlags collection to the array
   TermsPages, // Add TermsPages collection to the array
-  // Forms, // Removed custom Forms collection - KEEPING COMMENTED FOR HISTORY
+
+  // Forms
+  Forms, // Add Forms collection to the array
+  FormSubmissions, // Add FormSubmissions collection to the array
+
+  // Events and Integrations
+  EventSubscriptions, // Add EventSubscriptions collection to the array
+  EventLogs, // Add EventLogs collection to the array
+  WebhookLogs, // Add WebhookLogs collection to the array
+
+  // Marketing and Analytics
+  Pixels, // Add Pixels collection to the array
 ]
 
 export default collections

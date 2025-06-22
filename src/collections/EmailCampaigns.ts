@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const EmailCampaigns: CollectionConfig = {
   slug: 'email-campaigns',
@@ -349,5 +350,109 @@ export const EmailCampaigns: CollectionConfig = {
       ],
     },
   ],
+  hooks: {
+    afterChange: [
+      // Добавляем хук для событий email кампаний
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания кампании
+          await eventService.publishEvent('campaign.created', {
+            id: doc.id,
+            name: doc.name,
+            description: doc.description,
+            triggerType: doc.triggerType,
+            status: doc.status,
+            targetAudience: doc.targetAudience,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'campaign_creation',
+            collection: 'email-campaigns',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие запуска кампании
+          if (doc.status === 'active' && previousDoc.status === 'draft') {
+            await eventService.publishEvent('campaign.started', {
+              id: doc.id,
+              name: doc.name,
+              description: doc.description,
+              triggerType: doc.triggerType,
+              targetAudience: doc.targetAudience,
+              startedAt: new Date().toISOString(),
+            }, {
+              source: 'campaign_start',
+              collection: 'email-campaigns',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие завершения кампании
+          if (doc.status === 'completed' && previousDoc.status === 'active') {
+            const openRate = doc.stats?.totalSent ? (doc.stats.opened / doc.stats.totalSent * 100) : 0
+            const clickRate = doc.stats?.totalSent ? (doc.stats.clicked / doc.stats.totalSent * 100) : 0
+
+            await eventService.publishEvent('campaign.completed', {
+              id: doc.id,
+              name: doc.name,
+              description: doc.description,
+              triggerType: doc.triggerType,
+              targetAudience: doc.targetAudience,
+              stats: doc.stats,
+              openRate: Math.round(openRate * 100) / 100,
+              clickRate: Math.round(clickRate * 100) / 100,
+              completedAt: new Date().toISOString(),
+            }, {
+              source: 'campaign_completion',
+              collection: 'email-campaigns',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+
+            // Событие высокого open rate (>25%)
+            if (openRate > 25) {
+              await eventService.publishEvent('campaign.high_open_rate', {
+                id: doc.id,
+                name: doc.name,
+                openRate,
+                stats: doc.stats,
+              }, {
+                source: 'campaign_high_performance',
+                collection: 'email-campaigns',
+                operation,
+                userId: req.user?.id,
+                userEmail: req.user?.email,
+              })
+            }
+
+            // Событие низкого open rate (<10%)
+            if (openRate < 10 && doc.stats?.totalSent > 10) {
+              await eventService.publishEvent('campaign.low_open_rate', {
+                id: doc.id,
+                name: doc.name,
+                openRate,
+                stats: doc.stats,
+              }, {
+                source: 'campaign_low_performance',
+                collection: 'email-campaigns',
+                operation,
+                userId: req.user?.id,
+                userEmail: req.user?.email,
+              })
+            }
+          }
+        }
+      },
+    ],
+  },
   timestamps: true,
 }

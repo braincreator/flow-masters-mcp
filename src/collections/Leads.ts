@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { anyone } from '@/access/anyone'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Leads: CollectionConfig = {
   slug: 'leads',
@@ -98,4 +99,80 @@ export const Leads: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation === 'create') {
+          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+
+          // Новая система событий
+          const eventService = serviceRegistry.getEventService()
+          if (eventService) {
+            await eventService.publishEvent('lead.created', {
+              id: doc.id,
+              name: doc.name,
+              phone: doc.phone,
+              email: doc.email,
+              comment: doc.comment,
+              actionType: doc.actionType,
+              source: doc.source,
+              metadata: doc.metadata,
+              status: doc.status,
+              assignedTo: doc.assignedTo,
+              createdAt: doc.createdAt,
+            }, {
+              source: 'lead_creation',
+              collection: 'leads',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+
+        if (operation === 'update') {
+          const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+
+          // Событие обновления лида
+          const eventService = serviceRegistry.getEventService()
+          if (eventService) {
+            await eventService.publishEvent('lead.updated', {
+              id: doc.id,
+              name: doc.name,
+              phone: doc.phone,
+              email: doc.email,
+              status: doc.status,
+              assignedTo: doc.assignedTo,
+              updatedAt: doc.updatedAt,
+            }, {
+              source: 'lead_update',
+              collection: 'leads',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+
+            // Специальное событие при конвертации лида
+            if (doc.status === 'processed') {
+              await eventService.publishEvent('lead.converted', {
+                id: doc.id,
+                name: doc.name,
+                phone: doc.phone,
+                email: doc.email,
+                source: doc.source,
+                actionType: doc.actionType,
+                convertedAt: new Date().toISOString(),
+              }, {
+                source: 'lead_conversion',
+                collection: 'leads',
+                operation,
+                userId: req.user?.id,
+                userEmail: req.user?.email,
+              })
+            }
+          }
+        }
+      },
+    ],
+  },
 }

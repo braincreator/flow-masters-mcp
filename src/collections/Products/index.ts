@@ -8,6 +8,7 @@ import { slugField } from '@/fields/slug'
 import { PRODUCT_TYPE_LABELS } from '@/constants/localization'
 import { DEFAULT_LOCALE } from '@/constants'
 import type { Product } from '@/payload-types'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Simple pricing hook for discount calculation
 const pricingHook: FieldHook = ({ value }) => {
@@ -48,7 +49,95 @@ export const Products: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    afterChange: [revalidatePage],
+    afterChange: [
+      revalidatePage,
+      // Добавляем хук для событий продуктов
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания продукта
+          await eventService.publishEvent('product.created', {
+            id: doc.id,
+            title: doc.title,
+            productType: doc.productType,
+            price: doc.pricing?.price,
+            finalPrice: doc.pricing?.finalPrice,
+            category: typeof doc.productCategory === 'object' ? doc.productCategory.title : null,
+            status: doc.status,
+            isFeatured: doc.isFeatured,
+            isCourse: doc.isCourse,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'product_creation',
+            collection: 'products',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие публикации продукта
+          if (doc.status === 'published' && previousDoc.status === 'draft') {
+            await eventService.publishEvent('product.published', {
+              id: doc.id,
+              title: doc.title,
+              productType: doc.productType,
+              price: doc.pricing?.price,
+              finalPrice: doc.pricing?.finalPrice,
+              category: typeof doc.productCategory === 'object' ? doc.productCategory.title : null,
+              publishedAt: doc.publishedAt,
+            }, {
+              source: 'product_publication',
+              collection: 'products',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие изменения цены
+          if (doc.pricing?.price !== previousDoc.pricing?.price) {
+            await eventService.publishEvent('product.price_changed', {
+              id: doc.id,
+              title: doc.title,
+              previousPrice: previousDoc.pricing?.price,
+              newPrice: doc.pricing?.price,
+              priceChange: (doc.pricing?.price || 0) - (previousDoc.pricing?.price || 0),
+              priceChangePercent: previousDoc.pricing?.price ?
+                Math.round(((doc.pricing?.price || 0) - previousDoc.pricing?.price) / previousDoc.pricing?.price * 100) : 0,
+            }, {
+              source: 'product_price_change',
+              collection: 'products',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие обновления продукта (если опубликован)
+          if (doc.status === 'published') {
+            await eventService.publishEvent('product.updated', {
+              id: doc.id,
+              title: doc.title,
+              productType: doc.productType,
+              price: doc.pricing?.price,
+              finalPrice: doc.pricing?.finalPrice,
+              category: typeof doc.productCategory === 'object' ? doc.productCategory.title : null,
+              updatedAt: new Date().toISOString(),
+            }, {
+              source: 'product_update',
+              collection: 'products',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
     beforeChange: [populatePublishedAt],
   },
   versions: {

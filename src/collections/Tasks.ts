@@ -1,5 +1,6 @@
 import { CollectionConfig, Access } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Функция доступа для проверки является ли пользователь заказчиком проекта задачи или администратором
 const isAdminOrProjectCustomer: Access = async ({ req, id, data }) => {
@@ -182,6 +183,114 @@ const Tasks: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      // Добавляем хук для событий задач
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания задачи
+          await eventService.publishEvent('task.created', {
+            id: doc.id,
+            title: doc.title,
+            description: doc.description,
+            project: typeof doc.project === 'object' ? doc.project.id : doc.project,
+            projectName: typeof doc.project === 'object' ? doc.project.name : null,
+            assignedTo: typeof doc.assignedTo === 'object' ? doc.assignedTo.id : doc.assignedTo,
+            assignedToName: typeof doc.assignedTo === 'object' ? doc.assignedTo.name : null,
+            assignedToEmail: typeof doc.assignedTo === 'object' ? doc.assignedTo.email : null,
+            priority: doc.priority,
+            status: doc.status,
+            dueDate: doc.dueDate,
+            estimatedHours: doc.estimatedHours,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'task_creation',
+            collection: 'tasks',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие назначения задачи
+          if (doc.assignedTo !== previousDoc.assignedTo) {
+            await eventService.publishEvent('task.assigned', {
+              id: doc.id,
+              title: doc.title,
+              project: typeof doc.project === 'object' ? doc.project.id : doc.project,
+              projectName: typeof doc.project === 'object' ? doc.project.name : null,
+              previousAssignee: typeof previousDoc.assignedTo === 'object' ? previousDoc.assignedTo.id : previousDoc.assignedTo,
+              newAssignee: typeof doc.assignedTo === 'object' ? doc.assignedTo.id : doc.assignedTo,
+              newAssigneeName: typeof doc.assignedTo === 'object' ? doc.assignedTo.name : null,
+              newAssigneeEmail: typeof doc.assignedTo === 'object' ? doc.assignedTo.email : null,
+              priority: doc.priority,
+              dueDate: doc.dueDate,
+              assignedAt: new Date().toISOString(),
+            }, {
+              source: 'task_assignment',
+              collection: 'tasks',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие завершения задачи
+          if (doc.status === 'completed' && previousDoc.status !== 'completed') {
+            await eventService.publishEvent('task.completed', {
+              id: doc.id,
+              title: doc.title,
+              description: doc.description,
+              project: typeof doc.project === 'object' ? doc.project.id : doc.project,
+              projectName: typeof doc.project === 'object' ? doc.project.name : null,
+              assignedTo: typeof doc.assignedTo === 'object' ? doc.assignedTo.id : doc.assignedTo,
+              assignedToName: typeof doc.assignedTo === 'object' ? doc.assignedTo.name : null,
+              assignedToEmail: typeof doc.assignedTo === 'object' ? doc.assignedTo.email : null,
+              priority: doc.priority,
+              estimatedHours: doc.estimatedHours,
+              actualHours: doc.actualHours,
+              completedAt: doc.completedAt,
+              duration: doc.createdAt && doc.completedAt ?
+                Math.round((new Date(doc.completedAt).getTime() - new Date(doc.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : null,
+            }, {
+              source: 'task_completion',
+              collection: 'tasks',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие просрочки задачи
+          if (doc.dueDate && new Date(doc.dueDate) < new Date() && doc.status !== 'completed') {
+            await eventService.publishEvent('task.overdue', {
+              id: doc.id,
+              title: doc.title,
+              project: typeof doc.project === 'object' ? doc.project.id : doc.project,
+              projectName: typeof doc.project === 'object' ? doc.project.name : null,
+              assignedTo: typeof doc.assignedTo === 'object' ? doc.assignedTo.id : doc.assignedTo,
+              assignedToName: typeof doc.assignedTo === 'object' ? doc.assignedTo.name : null,
+              assignedToEmail: typeof doc.assignedTo === 'object' ? doc.assignedTo.email : null,
+              priority: doc.priority,
+              dueDate: doc.dueDate,
+              daysOverdue: Math.floor((Date.now() - new Date(doc.dueDate).getTime()) / (1000 * 60 * 60 * 24)),
+              status: doc.status,
+            }, {
+              source: 'task_overdue',
+              collection: 'tasks',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
+  },
   timestamps: true,
 }
 

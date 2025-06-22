@@ -10,6 +10,7 @@ import {
 import { anyone } from '@/access/anyone'
 import { isAdmin } from '@/access/isAdmin'
 import { checkRole } from '@/access/checkRole'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Subscriptions: CollectionConfig = {
   slug: 'subscriptions',
@@ -200,6 +201,165 @@ export const Subscriptions: CollectionConfig = {
         return data
       },
     ],
-    afterChange: [],
+    afterChange: [
+      // Добавляем хук для событий подписок
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания подписки
+          await eventService.publishEvent('subscription.created', {
+            id: doc.id,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userName: typeof doc.user === 'object' ? doc.user.name : null,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+            planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+            planPrice: typeof doc.plan === 'object' ? doc.plan.price : null,
+            status: doc.status,
+            paymentMethod: doc.paymentMethod,
+            startedAt: doc.startedAt,
+            expiresAt: doc.expiresAt,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'subscription_creation',
+            collection: 'subscriptions',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие продления подписки
+          if (doc.renewedAt && doc.renewedAt !== previousDoc.renewedAt) {
+            await eventService.publishEvent('subscription.renewed', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              planPrice: typeof doc.plan === 'object' ? doc.plan.price : null,
+              previousExpiresAt: previousDoc.expiresAt,
+              newExpiresAt: doc.expiresAt,
+              renewedAt: doc.renewedAt,
+            }, {
+              source: 'subscription_renewal',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие отмены подписки
+          if (doc.status === SubscriptionStatusEnum.CANCELED && previousDoc.status !== SubscriptionStatusEnum.CANCELED) {
+            await eventService.publishEvent('subscription.cancelled', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              previousStatus: previousDoc.status,
+              canceledAt: doc.canceledAt,
+              expiresAt: doc.expiresAt,
+            }, {
+              source: 'subscription_cancellation',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие истечения подписки
+          if (doc.status === SubscriptionStatusEnum.EXPIRED && previousDoc.status !== SubscriptionStatusEnum.EXPIRED) {
+            await eventService.publishEvent('subscription.expired', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              previousStatus: previousDoc.status,
+              expiresAt: doc.expiresAt,
+              expiredAt: new Date().toISOString(),
+            }, {
+              source: 'subscription_expiration',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие приостановки подписки
+          if (doc.status === SubscriptionStatusEnum.PAUSED && previousDoc.status !== SubscriptionStatusEnum.PAUSED) {
+            await eventService.publishEvent('subscription.paused', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              previousStatus: previousDoc.status,
+              pausedAt: doc.pausedAt,
+            }, {
+              source: 'subscription_pause',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие неудачной попытки оплаты
+          if (doc.lastPaymentAttemptFailed && !previousDoc.lastPaymentAttemptFailed) {
+            await eventService.publishEvent('subscription.payment_failed', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              paymentRetryAttempt: doc.paymentRetryAttempt,
+              expiresAt: doc.expiresAt,
+            }, {
+              source: 'subscription_payment_failure',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие скорого истечения подписки (за 7 дней)
+          const daysUntilExpiry = doc.expiresAt ?
+            Math.ceil((new Date(doc.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0
+
+          if (daysUntilExpiry <= 7 && daysUntilExpiry > 0 && doc.status === SubscriptionStatusEnum.ACTIVE) {
+            await eventService.publishEvent('subscription.expiring_soon', {
+              id: doc.id,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              plan: typeof doc.plan === 'object' ? doc.plan.id : doc.plan,
+              planName: typeof doc.plan === 'object' ? doc.plan.name : null,
+              expiresAt: doc.expiresAt,
+              daysUntilExpiry,
+            }, {
+              source: 'subscription_expiring_soon',
+              collection: 'subscriptions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
   },
 }

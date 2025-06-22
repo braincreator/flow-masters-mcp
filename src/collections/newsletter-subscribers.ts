@@ -1,5 +1,6 @@
 import { CollectionConfig, PayloadRequest } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import { ServiceRegistry } from '@/services/service.registry'
 import { isAdminOrHasSiteAccess } from '@/access/isAdminOrHasSiteAccess'
 import { generateUniqueToken } from '@/utilities/generateUniqueToken'
 import { ServiceRegistry } from '@/services/service.registry'
@@ -93,6 +94,70 @@ export const NewsletterSubscribers: CollectionConfig = {
           }
         }
         return doc // Хук afterChange должен возвращать документ
+      },
+      // Добавляем хук для событий подписок на рассылку
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие подписки на рассылку
+          await eventService.publishEvent('newsletter.subscribed', {
+            id: doc.id,
+            email: doc.email,
+            name: doc.name,
+            source: doc.source,
+            locale: doc.locale,
+            status: doc.status,
+            subscribedAt: doc.createdAt,
+          }, {
+            source: 'newsletter_subscription',
+            collection: 'newsletter-subscribers',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие отписки от рассылки
+          if (doc.status === 'unsubscribed' && previousDoc.status === 'active') {
+            await eventService.publishEvent('newsletter.unsubscribed', {
+              id: doc.id,
+              email: doc.email,
+              name: doc.name,
+              source: doc.source,
+              locale: doc.locale,
+              previousStatus: previousDoc.status,
+              unsubscribedAt: new Date().toISOString(),
+            }, {
+              source: 'newsletter_unsubscription',
+              collection: 'newsletter-subscribers',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие повторной подписки
+          if (doc.status === 'active' && previousDoc.status === 'unsubscribed') {
+            await eventService.publishEvent('newsletter.resubscribed', {
+              id: doc.id,
+              email: doc.email,
+              name: doc.name,
+              source: doc.source,
+              locale: doc.locale,
+              previousStatus: previousDoc.status,
+              resubscribedAt: new Date().toISOString(),
+            }, {
+              source: 'newsletter_resubscription',
+              collection: 'newsletter-subscribers',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
       },
     ],
   },

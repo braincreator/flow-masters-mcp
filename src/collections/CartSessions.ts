@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const CartSessions: CollectionConfig = {
   slug: 'cart-sessions',
@@ -179,6 +180,96 @@ export const CartSessions: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    afterChange: [
+      // Добавляем хук для событий корзины
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания корзины (первое добавление товара)
+          await eventService.publishEvent('cart.created', {
+            id: doc.id,
+            sessionId: doc.sessionId,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            itemCount: doc.itemCount,
+            total: doc.total,
+            currency: doc.currency,
+            items: doc.items,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'cart_creation',
+            collection: 'cart-sessions',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие добавления товара в корзину
+          if (doc.itemCount > previousDoc.itemCount) {
+            await eventService.publishEvent('cart.item_added', {
+              id: doc.id,
+              sessionId: doc.sessionId,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              previousItemCount: previousDoc.itemCount,
+              newItemCount: doc.itemCount,
+              previousTotal: previousDoc.total,
+              newTotal: doc.total,
+              currency: doc.currency,
+              addedItems: doc.items?.slice(previousDoc.items?.length || 0),
+            }, {
+              source: 'cart_item_added',
+              collection: 'cart-sessions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие удаления товара из корзины
+          if (doc.itemCount < previousDoc.itemCount) {
+            await eventService.publishEvent('cart.item_removed', {
+              id: doc.id,
+              sessionId: doc.sessionId,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              previousItemCount: previousDoc.itemCount,
+              newItemCount: doc.itemCount,
+              previousTotal: previousDoc.total,
+              newTotal: doc.total,
+              currency: doc.currency,
+            }, {
+              source: 'cart_item_removed',
+              collection: 'cart-sessions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие конверсии корзины в заказ
+          if (doc.convertedToOrder && !previousDoc.convertedToOrder) {
+            await eventService.publishEvent('cart.converted', {
+              id: doc.id,
+              sessionId: doc.sessionId,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              orderId: typeof doc.convertedToOrderId === 'object' ? doc.convertedToOrderId.id : doc.convertedToOrderId,
+              itemCount: doc.itemCount,
+              total: doc.total,
+              currency: doc.currency,
+              conversionTime: new Date().toISOString(),
+            }, {
+              source: 'cart_conversion',
+              collection: 'cart-sessions',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
       },
     ],
   },
