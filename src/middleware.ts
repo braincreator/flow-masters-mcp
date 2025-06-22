@@ -9,11 +9,38 @@ import { corsMiddleware, addCorsToResponse } from '@/middleware/cors'
 const SKIP_PATHS = ['/admin', '/_next', '/next/preview']
 const STATIC_FILE_REGEX = /\.[^/]+$/
 
-// Создаем middleware для next-intl
+// Функция для определения предпочтительного языка
+function getPreferredLocale(request: NextRequest): string {
+  // 1. Проверяем cookie с сохраненным языком
+  const savedLocale = request.cookies.get('preferred-locale')?.value
+  if (savedLocale && SUPPORTED_LOCALES.includes(savedLocale as any)) {
+    return savedLocale
+  }
+
+  // 2. Анализируем Accept-Language заголовок
+  const acceptLanguage = request.headers.get('accept-language')
+  if (acceptLanguage) {
+    const languages = acceptLanguage.split(',')
+    for (const lang of languages) {
+      const [language] = lang.trim().split(';')
+      const code = language.split('-')[0].toLowerCase()
+
+      if (SUPPORTED_LOCALES.includes(code as any)) {
+        return code
+      }
+    }
+  }
+
+  return DEFAULT_LOCALE
+}
+
+// Создаем middleware для next-intl с кастомной логикой
 const intlMiddleware = createMiddleware({
   locales: SUPPORTED_LOCALES,
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'always',
+  // Кастомная функция для определения локали
+  localeDetection: false, // Отключаем автоопределение next-intl
 })
 
 // Наш основной middleware
@@ -21,18 +48,61 @@ export function middleware(request: NextRequest) {
   const startTime = Date.now()
   const pathname = request.nextUrl.pathname
 
-  // 🎯 ДОБАВЛЕНО: Проксирование для Яндекс.Метрики (в самом начале, до всей остальной логики)
+  // 🎯 ДОБАВЛЕНО: Проксирование для аналитических сервисов (в самом начале, до всей остальной логики)
+
+  // Яндекс.Метрика
   if (pathname === '/metrika/tag.js') {
     const metrikaUrl = 'https://mc.yandex.ru/metrika/tag.js'
     return NextResponse.rewrite(new URL(metrikaUrl))
   }
-
-  if (pathname === '/metrika/watch') {
-    const metrikaUrl = 'https://mc.yandex.ru/watch'
+  if (pathname.startsWith('/metrika/watch')) {
+    const searchParams = request.nextUrl.searchParams.toString()
+    const metrikaUrl = `https://mc.yandex.ru/watch${searchParams ? `?${searchParams}` : ''}`
     return NextResponse.rewrite(new URL(metrikaUrl))
   }
 
-  // Apply next-intl middleware first
+  // VK Pixel
+  if (pathname.startsWith('/vk-pixel/')) {
+    const vkUrl = pathname.replace('/vk-pixel/', 'https://vk.com/')
+    return NextResponse.rewrite(new URL(vkUrl))
+  }
+
+  // Top.Mail.Ru
+  if (pathname.startsWith('/top-mailru/')) {
+    const topMailRuUrl = pathname.replace('/top-mailru/', 'https://top-fwz1.mail.ru/')
+    return NextResponse.rewrite(new URL(topMailRuUrl))
+  }
+
+  // 🎯 УЛУЧШЕННАЯ ЛОГИКА: Обработка корневого домена с сохранением UTM
+  if (pathname === '/' || (pathname === '' && !pathname.startsWith('/api'))) {
+    const preferredLocale = getPreferredLocale(request)
+    const url = new URL(request.url)
+
+    // Сохраняем все query параметры (включая UTM-метки)
+    const searchParams = url.searchParams.toString()
+    const newPath = `/${preferredLocale}${searchParams ? `?${searchParams}` : ''}`
+
+    const response = NextResponse.redirect(new URL(newPath, request.url))
+
+    // Сохраняем выбранный язык в cookie на 1 год
+    response.cookies.set('preferred-locale', preferredLocale, {
+      maxAge: 365 * 24 * 60 * 60, // 1 год
+      httpOnly: false, // Доступно для JS
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    })
+
+    // Сохраняем referer для аналитики
+    const referer = request.headers.get('referer')
+    if (referer) {
+      response.headers.set('x-original-referer', referer)
+    }
+
+    metricsCollector.recordOperationDuration(Date.now() - startTime)
+    return response
+  }
+
+  // Apply next-intl middleware для остальных путей
   const intlResponse = intlMiddleware(request)
 
   // If next-intl middleware returned a response (e.g., redirect), use it
@@ -97,8 +167,10 @@ function nextResponse(headers: Headers, startTime: number, pathname?: string, re
 
 export const config = {
   matcher: [
-    // 🎯 ДОБАВЛЕНО: Метрика проксирование
+    // 🎯 ДОБАВЛЕНО: Аналитические сервисы проксирование
     '/metrika/:path*',
+    '/vk-pixel/:path*',
+    '/top-mailru/:path*',
     // Match all request paths except for the ones starting with:
     // - api (API routes)
     // - _next (Next.js internals)

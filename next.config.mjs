@@ -382,7 +382,7 @@ const nextConfig = {
     return config
   },
   
-  // Проксирование запросов к Яндекс.Метрике (обход блокировщиков)
+  // Проксирование запросов к аналитическим сервисам (обход блокировщиков)
   async rewrites() {
     return [
       {
@@ -390,6 +390,7 @@ const nextConfig = {
         destination: '/api/:path*',
         locale: false,
       },
+      // Яндекс.Метрика
       {
         source: '/metrika/:path*',
         destination: 'https://mc.yandex.ru/:path*',
@@ -397,6 +398,16 @@ const nextConfig = {
       {
         source: '/ya-metrika/:path*',
         destination: 'https://mc.yandex.ru/:path*',
+      },
+      // VK Pixel
+      {
+        source: '/vk-pixel/:path*',
+        destination: 'https://vk.com/:path*',
+      },
+      // Top.Mail.Ru
+      {
+        source: '/top-mailru/:path*',
+        destination: 'https://top-fwz1.mail.ru/:path*',
       },
     ]
   },

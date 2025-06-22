@@ -23,7 +23,7 @@ import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
-import YandexMetrikaRobust from '@/components/YandexMetrika/YandexMetrikaRobust'
+import AnalyticsProvider from '@/components/Analytics/AnalyticsProvider'
 
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
@@ -52,11 +52,17 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   // Устанавливаем локаль для next-intl
   setRequestLocale(validLang)
 
-  // Получаем ID Яндекс.Метрики
+  // Получаем ID всех аналитических сервисов
   const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
+  const VK_PIXEL_ID = process.env.NEXT_PUBLIC_VK_PIXEL_ID
+  const TOP_MAILRU_ID = process.env.NEXT_PUBLIC_TOP_MAILRU_ID
 
   // Debug log
-  console.log('Layout: YANDEX_METRIKA_ID =', YANDEX_METRIKA_ID)
+  console.log('Layout Analytics IDs:', {
+    yandex: YANDEX_METRIKA_ID,
+    vk: VK_PIXEL_ID,
+    topMailRu: TOP_MAILRU_ID
+  })
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -90,19 +96,13 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   return (
     <NextIntlClientProvider locale={validLang} messages={messages}>
-      {/* Улучшенная Яндекс.Метрика */}
-      {YANDEX_METRIKA_ID && (
-        <YandexMetrikaRobust 
-          counterId={YANDEX_METRIKA_ID}
-          enableClickmap={true}
-          enableTrackLinks={true}
-          enableAccurateTrackBounce={true}
-          enableWebvisor={false}
-          enableEcommerce={false}
-          defer={true}
-          debug={process.env.NODE_ENV === 'development'}
-        />
-      )}
+      {/* Все аналитические сервисы */}
+      <AnalyticsProvider
+        yandexMetrikaId={YANDEX_METRIKA_ID}
+        vkPixelId={VK_PIXEL_ID}
+        topMailRuId={TOP_MAILRU_ID}
+        debug={process.env.NODE_ENV === 'development'}
+      />
 
       <div lang={validLang} className="h-full" suppressHydrationWarning>
         <div
