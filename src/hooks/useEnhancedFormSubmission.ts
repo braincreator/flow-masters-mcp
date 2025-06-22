@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
-import { usePixelEvents } from '@/hooks/usePixelEvents'
+import { useAnalytics } from '@/providers/AnalyticsProvider'
 import {
   createFormMetadata,
   initializeMetadataTracking,
@@ -84,7 +84,7 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
     trackFieldBlur: enableTracking,
     trackFieldErrors: enableTracking,
   })
-  const pixelEvents = usePixelEvents()
+  const analytics = useAnalytics()
 
   // Трекер пользователя
   const userTracker = useRef(enableTracking ? getUserTracker() : null)
@@ -169,14 +169,13 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
       
       if (enableAnalytics) {
         formAnalytics.handleFormStart()
-        pixelEvents.trackEvent('form_start', {
-          content_name: formName,
-          content_category: formType,
+        analytics.trackEvent('interaction', 'form_start', formName, undefined, {
+          form_type: formType,
           form_location: formLocation,
         })
       }
     }
-  }, [enableAnalytics, formAnalytics, pixelEvents, formName, formType, formLocation])
+  }, [enableAnalytics, formAnalytics, analytics, formName, formType, formLocation])
 
   /**
    * Обрабатывает взаимодействие с полем формы
@@ -286,9 +285,8 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
       // Аналитика успешной отправки
       if (enableAnalytics) {
         formAnalytics.handleFormSubmit(true)
-        pixelEvents.trackEvent('form_submit_success', {
-          content_name: formName,
-          content_category: formType,
+        analytics.trackEvent('interaction', 'form_submit_success', formName, undefined, {
+          form_type: formType,
           form_location: formLocation,
           submission_id: responseData.submission?.id || responseData.id,
         })
@@ -314,9 +312,8 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
       // Аналитика ошибки
       if (enableAnalytics) {
         formAnalytics.handleFormSubmit(false)
-        pixelEvents.trackEvent('form_submit_error', {
-          content_name: formName,
-          content_category: formType,
+        analytics.trackEvent('interaction', 'form_submit_error', formName, undefined, {
+          form_type: formType,
           form_location: formLocation,
           error: errorMessage,
         })
@@ -336,7 +333,7 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
     apiEndpoint,
     enableAnalytics,
     formAnalytics,
-    pixelEvents,
+    analytics,
     formName,
     formType,
     formLocation,
