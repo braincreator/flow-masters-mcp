@@ -63,7 +63,9 @@ export function middleware(request: NextRequest) {
 
   // VK Pixel
   if (pathname.startsWith('/vk-pixel/')) {
-    const vkUrl = pathname.replace('/vk-pixel/', 'https://vk.com/')
+    const vkPath = pathname.replace('/vk-pixel/', '')
+    const searchParams = request.nextUrl.searchParams.toString()
+    const vkUrl = `https://vk.com/${vkPath}${searchParams ? `?${searchParams}` : ''}`
     return NextResponse.rewrite(new URL(vkUrl))
   }
 
