@@ -45,7 +45,8 @@ export function PixelDebug() {
           id.includes('metrika') || 
           id.includes('gtag') || 
           id.includes('fbevents') ||
-          id.includes('vk-')
+          id.includes('vk-') ||
+          id.includes('vk-pixel')
         ))
 
       // Проверяем глобальные объекты

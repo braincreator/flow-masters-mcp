@@ -107,13 +107,13 @@ export default function PixelManager({
                 r.type="text/javascript",r.async=!0,r.src=a;
                 var o=t.getElementsByTagName("script")[0];
                 o.parentNode.insertBefore(r,o)
-              }(window,document,"https://vk.com/js/api/openapi.js?169","vk_callbacks");
+              }(window,document,"/vk-pixel/js/api/openapi.js?169","vk_callbacks");
             `
           }}
         />
         <noscript>
           <img
-            src={`https://vk.com/rtrg?p=${pixel.pixelId}`}
+            src={`/vk-pixel/rtrg?p=${pixel.pixelId}`}
             style={{ position: 'absolute', left: '-9999px' }}
             alt=""
           />
