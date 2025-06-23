@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url)
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
       page: templates.page,
     })
   } catch (error) {
-    console.error('Error fetching templates:', error)
+    logError('Error fetching templates:', error)
     return NextResponse.json(
       {
         success: false,
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       data: template,
     })
   } catch (error) {
-    console.error('Error creating template:', error)
+    logError('Error creating template:', error)
     return NextResponse.json(
       {
         success: false,

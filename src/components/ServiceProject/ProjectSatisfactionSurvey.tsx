@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { StarRating } from '@/components/ui/StarRating'
 import { useNotification } from '@/hooks/useNotification'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProjectSatisfactionSurveyProps {
   projectId: string
   surveyType: 'survey' | 'completion'
@@ -77,7 +78,7 @@ export default function ProjectSatisfactionSurvey({
         onSurveySubmitted()
       }
     } catch (error) {
-      console.error('Error submitting feedback:', error)
+      logError('Error submitting feedback:', error)
       showNotification('error', t('errorSubmittingFeedback', { defaultValue: 'Error submitting feedback' }))
     } finally {
       setIsSubmitting(false)

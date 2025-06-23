@@ -27,6 +27,7 @@ import {
 // Custom icons
 import { TenChatIcon } from '@/components/icons/TenChatIcon'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Локализованные тексты
 const LOCALIZED_TEXTS = {
   en: {
@@ -211,7 +212,7 @@ export function SocialShareButtons({
     if (!trackShares) return
 
     // Здесь можно добавить код для отправки аналитики
-    console.log(`Shared on ${platform}`, { trackingId, url: fullUrl, title })
+    logDebug(`Shared on ${platform}`, { trackingId, url: fullUrl, title })
 
     // Пример отправки аналитики через API
     if (trackingId) {
@@ -227,7 +228,7 @@ export function SocialShareButtons({
           }),
         })
       } catch (error) {
-        console.error('Failed to track share:', error)
+        logError('Failed to track share:', error)
       }
     }
   }
@@ -294,7 +295,7 @@ export function SocialShareButtons({
     const config = PLATFORM_CONFIG[platform]
 
     if (!config) {
-      console.warn(`Missing config for platform: ${platform}`)
+      logWarn(`Missing config for platform: ${platform}`)
       return null
     }
 

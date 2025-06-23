@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { fetchNotifications } from '@/lib/api/notifications'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UseNotificationsReturn {
   unreadCount: number
   notifications: any[]
@@ -23,7 +24,7 @@ export function useNotifications(): UseNotificationsReturn {
       setNotifications(data || [])
       setError(null)
     } catch (err) {
-      console.error('Error fetching notifications:', err)
+      logError('Error fetching notifications:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch notifications'))
     } finally {
       setIsLoading(false)

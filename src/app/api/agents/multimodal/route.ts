@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { MultimodalAgent } from '@/lib/agents/implementations/multimodal-agent'
 import type { AgentRequest } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const multimodalAgent = new MultimodalAgent()
 
 /**
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Multimodal agent error:', error)
+    logError('Multimodal agent error:', error)
     return NextResponse.json(
       { 
         success: false,

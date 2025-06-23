@@ -9,6 +9,7 @@ import { Locale } from '@/constants'
 import { Product } from '@/payload-types'
 import { useState, useMemo } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define localized texts for each supported locale
 const LOCALIZED_TEXTS = {
   en: {
@@ -168,7 +169,7 @@ export function AddToCartButton({
         onClick(product)
       }
     } catch (error) {
-      console.error('Error in AddToCartButton click handler:', error)
+      logError('Error in AddToCartButton click handler:', error)
     } finally {
       setIsProcessing(false)
     }

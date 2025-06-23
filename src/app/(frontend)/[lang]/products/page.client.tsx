@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProductsClientProps {
   products: Product[]
   categories: Category[]
@@ -53,7 +54,7 @@ export default function ProductsClient({
   // Debug: Log categories to see their structure
   useEffect(() => {
     if (categories && categories.length > 0) {
-      console.log('Categories in client component:', categories)
+      logDebug('Categories in client component:', categories)
     }
   }, [categories])
 
@@ -72,7 +73,7 @@ export default function ProductsClient({
 
   // Debug the categoriesList
   useEffect(() => {
-    console.log('Processed categoriesList:', categoriesList)
+    logDebug('Processed categoriesList:', categoriesList)
   }, [categoriesList])
 
   const productTypes = [
@@ -86,47 +87,47 @@ export default function ProductsClient({
   // с учетом конвертации валют
   const calculateMaxPrice = () => {
     if (!initialProducts || initialProducts.length === 0) {
-      console.log('DEBUG: Нет продуктов, возвращаем 1000')
+      logDebug('DEBUG: Нет продуктов, возвращаем 1000')
       return 1000 // Значение по умолчанию, если продуктов нет
     }
 
-    console.log('DEBUG: Количество продуктов для анализа:', initialProducts.length)
+    logDebug('DEBUG: Количество продуктов для анализа:', initialProducts.length)
 
     // Находим максимальную цену среди всех продуктов
     let maxPrice = 0
     initialProducts.forEach((product, index) => {
       let productPrice = 0
-      console.log(`DEBUG: Анализ продукта #${index}:`, product.title || product.id)
+      logDebug(`DEBUG: Анализ продукта #${index}:`, product.title || product.id)
 
       // Get price using the simplified getLocalePrice function
       if (product.pricing) {
         // Check if price is localized
         if (product.pricing.price && typeof product.pricing.price === 'object') {
           productPrice = product.pricing.price[currentLocale] || product.pricing.price.en || 0
-          console.log(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
+          logDebug(`DEBUG: Найдена локализованная цена для ${currentLocale}:`, productPrice)
         } else {
           // Use finalPrice if available, otherwise use price
           productPrice = product.pricing.finalPrice || product.pricing.price || 0
-          console.log(`DEBUG: Используем цену:`, productPrice)
+          logDebug(`DEBUG: Используем цену:`, productPrice)
         }
       }
 
       // Обновляем максимальную цену
       if (productPrice > maxPrice) {
         maxPrice = productPrice
-        console.log(`DEBUG: Новая максимальная цена:`, maxPrice)
+        logDebug(`DEBUG: Новая максимальная цена:`, maxPrice)
       }
     })
 
-    console.log(`DEBUG: Максимальная цена до запаса и округления:`, maxPrice)
+    logDebug(`DEBUG: Максимальная цена до запаса и округления:`, maxPrice)
 
     // Добавляем 20% запас, чтобы слайдер был немного шире, чем самый дорогой товар
     maxPrice = Math.ceil(maxPrice * 1.2)
-    console.log(`DEBUG: После добавления 20% запаса:`, maxPrice)
+    logDebug(`DEBUG: После добавления 20% запаса:`, maxPrice)
 
     // Округляем до ближайшей сотни для более "красивого" отображения
     const roundedMaxPrice = Math.ceil(maxPrice / 100) * 100
-    console.log(`DEBUG: После округления до сотен:`, roundedMaxPrice)
+    logDebug(`DEBUG: После округления до сотен:`, roundedMaxPrice)
 
     return roundedMaxPrice
   }
@@ -141,29 +142,29 @@ export default function ProductsClient({
       const queryString = searchParams.toString()
 
       const apiUrl = `/api/v1/products?${queryString}&locale=${currentLocale}`
-      console.log('Fetching products from:', apiUrl)
+      logDebug('Fetching products from:', apiUrl)
 
       // Fetch products from API
       const response = await fetch(apiUrl)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('API Error:', response.status, errorText)
+        logError('API Error:', response.status, errorText)
         throw new Error(`API error ${response.status}: ${errorText}`)
       }
 
       const data = await response.json()
-      console.log('API response received:', data)
+      logDebug('API response received:', data)
 
       // Check if the response contains an error field
       if (data.error) {
-        console.error('API returned error:', data.error, data.details)
+        logError('API returned error:', data.error, data.details)
         throw new Error(data.error)
       }
 
       // Verify the response has the expected structure
       if (!Array.isArray(data.docs)) {
-        console.error('API returned unexpected data structure:', data)
+        logError('API returned unexpected data structure:', data)
         throw new Error('Invalid API response format')
       }
 
@@ -180,7 +181,7 @@ export default function ProductsClient({
       setCurrentTotalPages(data.totalPages || 1)
       setCurrentPageNum(data.page || 1)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      logError('Error fetching products:', error)
       // Fall back to initial products on error
       setDisplayProducts(initialProducts)
       // Show some indication to user that we fell back to initial data
@@ -205,22 +206,22 @@ export default function ProductsClient({
     const currentRelevantParamsString = currentParams.toString()
 
     // Log для отладки сравнения параметров
-    console.log('Current relevant params:', currentRelevantParamsString)
-    console.log('Previous relevant params:', prevRelevantParamsRef.current)
+    logDebug('Current relevant params:', currentRelevantParamsString)
+    logDebug('Previous relevant params:', prevRelevantParamsRef.current)
 
     // Вызываем fetchProducts только если релевантные параметры изменились
     // или если это первая загрузка (prevRelevantParamsRef.current пуст)
     if (currentRelevantParamsString !== prevRelevantParamsRef.current) {
-      console.log('Relevant params changed, fetching products...')
+      logDebug('Relevant params changed, fetching products...')
       fetchProducts()
       // Обновляем реф *после* вызова fetchProducts
       prevRelevantParamsRef.current = currentRelevantParamsString
     } else {
-      console.log('Relevant params did not change, skipping fetch.')
+      logDebug('Relevant params did not change, skipping fetch.')
     }
 
     // Log the full current search params for debugging
-    console.log('Full search params changed:', Object.fromEntries(searchParams.entries()))
+    logDebug('Full search params changed:', Object.fromEntries(searchParams.entries()))
     // Зависимости: fetchProducts все еще нужен, т.к. он используется внутри
     // searchParams нужен, чтобы эффект срабатывал при их изменении
   }, [searchParams, fetchProducts])

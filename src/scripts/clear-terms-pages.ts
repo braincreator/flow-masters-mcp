@@ -7,12 +7,13 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 async function clearTermsPages() {
-  console.log('🗑️  Clearing TermsPages collection...')
+  logDebug('🗑️  Clearing TermsPages collection...')
 
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Find all existing terms pages
     const existing = await payload.find({
@@ -20,7 +21,7 @@ async function clearTermsPages() {
       limit: 100,
     })
 
-    console.log(`Found ${existing.docs.length} existing terms pages to delete`)
+    logDebug(`Found ${existing.docs.length} existing terms pages to delete`)
 
     // Delete each document
     for (const doc of existing.docs) {
@@ -29,15 +30,15 @@ async function clearTermsPages() {
           collection: 'terms-pages',
           id: doc.id,
         })
-        console.log(`✅ Deleted terms page: ${doc.id} (${doc.title || doc.tabType})`)
+        logDebug(`✅ Deleted terms page: ${doc.id} (${doc.title || doc.tabType})`)
       } catch (error) {
-        console.error(`❌ Error deleting terms page ${doc.id}:`, error)
+        logError(`❌ Error deleting terms page ${doc.id}:`, error)
       }
     }
 
-    console.log('🎉 All terms pages cleared!')
+    logDebug('🎉 All terms pages cleared!')
   } catch (error) {
-    console.error('❌ Error:', error)
+    logError('❌ Error:', error)
     process.exit(1)
   }
 }

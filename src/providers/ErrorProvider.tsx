@@ -12,6 +12,7 @@ import React, {
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define error severity levels
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical'
 
@@ -139,7 +140,7 @@ export function ErrorProvider({
 
       // Log to console
       if (logToConsole) {
-        console.error(`[${severity.toUpperCase()}] ${category}: ${message}`, {
+        logError(`[${severity.toUpperCase()}] ${category}: ${message}`, {
           errorId,
           code: options?.code,
           context: options?.context,
@@ -220,7 +221,7 @@ export function ErrorProvider({
           }),
         })
       } catch (err) {
-        console.error('Failed to report error:', err)
+        logError('Failed to report error:', err)
       }
     },
     [errors, reportingEndpoint],
@@ -269,7 +270,7 @@ export function ErrorProvider({
               router.push('/login')
             } else {
               // No default recovery action for other uncategorized errors to prevent loops
-              console.warn(
+              logWarn(
                 `No default recovery action for error: ${error.id}, category: ${error.category}, code: ${error.code}`,
               )
             }

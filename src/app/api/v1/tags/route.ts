@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -9,10 +10,10 @@ export async function GET(request: NextRequest) {
     // Extract query parameters
     const locale = (searchParams.get('locale') as Locale) || DEFAULT_LOCALE
 
-    console.log(`Tags API: Fetching tags for locale ${locale}`)
+    logDebug(`Tags API: Fetching tags for locale ${locale}`)
 
     const payload = await getPayloadClient()
-    console.log('Tags API: Payload client initialized')
+    logDebug('Tags API: Payload client initialized')
 
     // Fetch tags
     try {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
         limit: 100, // Fetch up to 100 tags
         locale,
       })
-      console.log(`Tags API: Found ${tags.docs.length} tags`)
+      logDebug(`Tags API: Found ${tags.docs.length} tags`)
 
       // Fetch post counts for each tag
       const tagsWithCount = await Promise.all(
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
               count: postsCount.totalDocs,
             }
           } catch (err) {
-            console.error(`Tags API: Error fetching post count for tag ${tag.id}:`, err)
+            logError(`Tags API: Error fetching post count for tag ${tag.id}:`, err)
             // Return the tag without count in case of error
             return {
               id: tag.id,
@@ -64,14 +65,14 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(sortedTags)
     } catch (collectionError) {
-      console.error('Tags API: Error accessing tags collection:', collectionError)
+      logError('Tags API: Error accessing tags collection:', collectionError)
       return NextResponse.json(
         { error: 'Error accessing tags collection', details: String(collectionError) },
         { status: 500 },
       )
     }
   } catch (error) {
-    console.error('Tags API: Error fetching tags:', error)
+    logError('Tags API: Error fetching tags:', error)
     return NextResponse.json(
       { error: 'Internal Server Error', details: String(error) },
       { status: 500 },

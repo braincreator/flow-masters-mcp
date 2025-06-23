@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseAnalyticsProps {
   courseId?: string
 }
@@ -44,7 +45,7 @@ export function CourseAnalytics({ courseId }: CourseAnalyticsProps) {
       setAnalytics(result.data)
       setSelectedCourseId(id)
     } catch (error) {
-      console.error('Error fetching course analytics:', error)
+      logError('Error fetching course analytics:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setLoading(false)
@@ -70,7 +71,7 @@ export function CourseAnalytics({ courseId }: CourseAnalyticsProps) {
         setSelectedCourseId(result.data[0].course)
       }
     } catch (error) {
-      console.error('Error fetching all courses analytics:', error)
+      logError('Error fetching all courses analytics:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setLoading(false)

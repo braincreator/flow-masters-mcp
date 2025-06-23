@@ -9,6 +9,7 @@ import { getRandomFallbackResponse } from '@/utilities/chat'
 import { parseJsonSafely } from '@/utils/jsonFixer'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export type ChatProps = {
   heading?: string
   subheading?: string
@@ -136,7 +137,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
           if (response.ok) {
             const data = await response.json()
             if (debugMode) {
-              console.log('Получены данные интеграции:', data.doc)
+              logDebug('Получены данные интеграции:', data.doc)
             }
             setWebhookData({
               webhookUrl: data.doc.webhookUrl,
@@ -156,17 +157,17 @@ export const ChatBlock: React.FC<ChatProps> = ({
               }),
             }).catch((err) => {
               if (debugMode) {
-                console.error('Ошибка при обновлении даты использования интеграции:', err)
+                logError('Ошибка при обновлении даты использования интеграции:', err)
               }
             })
           } else {
             if (debugMode) {
-              console.error('Ошибка при загрузке данных вебхука:', await response.text())
+              logError('Ошибка при загрузке данных вебхука:', await response.text())
             }
           }
         } catch (err) {
           if (debugMode) {
-            console.error('Ошибка при загрузке данных вебхука:', err)
+            logError('Ошибка при загрузке данных вебхука:', err)
           }
         }
       }
@@ -244,7 +245,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
         ) {
           resolve({
             response:
-              '# Поддержка Markdown\n\n- Можно использовать **жирный** и *курсив*\n- Списки и заголовки\n\n```js\nconst code = "formatted code block";\nconsole.log(code);\n```',
+              '# Поддержка Markdown\n\n- Можно использовать **жирный** и *курсив*\n- Списки и заголовки\n\n```js\nconst code = "formatted code block";\nlogDebug("Debug:", code);\n```',
             type: 'markdown',
           })
         } else if (
@@ -478,7 +479,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
             throw new Error('Не удалось получить настройки Calendly')
           }
         } catch (error) {
-          console.error('Ошибка при загрузке настроек Calendly:', error)
+          logError('Ошибка при загрузке настроек Calendly:', error)
           setCollectionCalendlySettings({
             isLoading: false,
             error: error instanceof Error ? error.message : 'Неизвестная ошибка',
@@ -620,7 +621,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
       // Если включен тестовый режим, используем локальные ответы
       if (testMode) {
         if (debugMode) {
-          console.log('Используется тестовый режим без отправки запросов на сервер')
+          logDebug('Используется тестовый режим без отправки запросов на сервер')
         }
         data = await generateTestResponse(content)
       } else {
@@ -637,7 +638,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
         // Отправляем запрос на сервер
         // Отладочный вывод
         if (debugMode) {
-          console.log('Отправляем запрос с параметрами:', {
+          logDebug('Отправляем запрос с параметрами:', {
             webhookSource,
             webhookUrl,
             webhookData,
@@ -671,7 +672,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
         if (!response.ok) {
           // Получаем детали ошибки
           const errorText = await response.text().catch(() => 'No error details available')
-          console.error(`Ошибка API: ${response.status}`, errorText)
+          logError(`Ошибка API: ${response.status}`, errorText)
 
           // Проверяем, есть ли детали ошибки в JSON формате
           let errorDetails: { error?: string } = {}
@@ -706,7 +707,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
         })
 
         if (debugMode && parsedData) {
-          console.log('Полученный ответ:', parsedData)
+          logDebug('Полученный ответ:', parsedData)
         }
 
         data = parsedData
@@ -760,7 +761,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
       })
     } catch (err) {
       if (debugMode) {
-        console.error('Ошибка при отправке сообщения:', err)
+        logError('Ошибка при отправке сообщения:', err)
       }
 
       // Удаляем индикатор набора текста
@@ -868,7 +869,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
                         setMessages((prev) => [...prev, bookingMessage])
                       })
                       .catch((error) => {
-                        console.error('Failed to load ConsultingBookingFlow component:', error)
+                        logError('Failed to load ConsultingBookingFlow component:', error)
 
                         // Если не удалось загрузить компонент, показываем ошибку
                         const errorMessage: Message = {

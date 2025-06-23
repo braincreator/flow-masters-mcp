@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Default feature flags to use when no flags are found in the database
 const defaultFeatureFlags = [
   {
@@ -50,7 +51,7 @@ export async function GET(_request: NextRequest) {
         flags,
       })
     } catch (collectionError) {
-      console.warn('Feature flags collection not found or error accessing it:', collectionError)
+      logWarn('Feature flags collection not found or error accessing it:', collectionError)
 
       // Return default flags if collection doesn't exist or has issues
       return NextResponse.json({
@@ -59,7 +60,7 @@ export async function GET(_request: NextRequest) {
       })
     }
   } catch (error) {
-    console.error('Error initializing Payload client:', error)
+    logError('Error initializing Payload client:', error)
 
     // Return default flags on any error
     return NextResponse.json({

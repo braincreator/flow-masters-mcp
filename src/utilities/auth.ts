@@ -46,7 +46,7 @@ async function authenticateApiRequest(req: Request): Promise<AuthResult> {
       // Optionally return key info: user: isValid ? apiKeyQuery.docs[0] : undefined
     }
   } catch (error) {
-    console.error('API Key Authentication Error:', error)
+    logError('API Key Authentication Error:', error)
     return {
       isAuthenticated: false,
       error: 'Failed to verify API key',
@@ -106,6 +106,7 @@ import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { User } from '@/payload-types'
 import { ENV } from '@/constants/env'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 async function authenticateUser(req: Request): Promise<AuthResult> {
   try {
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -115,7 +116,7 @@ async function authenticateUser(req: Request): Promise<AuthResult> {
 
     const jwksUri = process.env.JWKS_URI // Ensure this is set in your environment
     if (!jwksUri) {
-      console.error('JWKS_URI is not set in environment variables')
+      logError('JWKS_URI is not set in environment variables')
       return { isAuthenticated: false, error: 'JWKS_URI not configured' }
     }
 
@@ -147,11 +148,11 @@ async function authenticateUser(req: Request): Promise<AuthResult> {
         user: user, // Return the user object
       }
     } catch (err) {
-      console.error('JWT Verification Error:', err)
+      logError('JWT Verification Error:', err)
       return { isAuthenticated: false, error: 'Invalid authentication token' }
     }
   } catch (error) {
-    console.error('Authentication Error:', error)
+    logError('Authentication Error:', error)
     return {
       isAuthenticated: false,
       error: 'Failed to verify user authentication',
@@ -190,7 +191,7 @@ export async function verifyApiKey(request: Request): Promise<NextResponse | nul
     // Key is valid
     return null // Indicate success
   } catch (error) {
-    console.error('verifyApiKey Error:', error)
+    logError('verifyApiKey Error:', error)
     return errorResponse('Failed to verify API key', 500)
   }
 }
@@ -221,7 +222,7 @@ export async function verifyWebhookSignature(request: Request): Promise<NextResp
 
     return null
   } catch (error) {
-    console.error('Webhook signature verification error:', error)
+    logError('Webhook signature verification error:', error)
     return errorResponse('Failed to verify webhook signature', 500)
   }
 }
@@ -256,12 +257,12 @@ export async function getServerSession(): Promise<{
         }
       }
     } catch (error) {
-      console.error('Session verification error:', error)
+      logError('Session verification error:', error)
     }
 
     return { isAuthenticated: false }
   } catch (error) {
-    console.error('getServerSession error:', error)
+    logError('getServerSession error:', error)
     return { isAuthenticated: false }
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Интерфейс для тела запроса
 interface SubscribeRequest {
   email: string
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       message: 'Subscribed successfully',
     })
   } catch (error) {
-    console.error('Error subscribing to newsletter:', error)
+    logError('Error subscribing to newsletter:', error)
 
     return NextResponse.json(
       {

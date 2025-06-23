@@ -8,6 +8,7 @@ import { cn } from '@/utilities/ui'
 import { SocialShareButtons } from '@/components/shared/SocialShareButtons'
 import type { SharingPlatform } from '@/utilities/share'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Локализованные тексты
 const LOCALIZED_TEXTS = {
   en: {
@@ -135,7 +136,7 @@ export function UniversalShareButton({
           }),
         })
       } catch (error) {
-        console.error('Failed to track blog share:', error)
+        logError('Failed to track blog share:', error)
       }
     }
 
@@ -153,7 +154,7 @@ export function UniversalShareButton({
           }),
         })
       } catch (error) {
-        console.error('Failed to track share:', error)
+        logError('Failed to track share:', error)
       }
     }
   }

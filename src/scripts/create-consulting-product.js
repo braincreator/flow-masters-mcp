@@ -1,5 +1,6 @@
 import { getPayloadClient } from '../utilities/payload/index.ts'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Script to create a consulting product
  */
@@ -8,7 +9,7 @@ async function createConsultingProduct() {
     // Initialize Payload
     const payload = await getPayloadClient()
 
-    console.log('Creating consulting product...')
+    logDebug('Creating consulting product...')
 
     // Check if a consulting product already exists
     const existingProducts = await payload.find({
@@ -21,7 +22,7 @@ async function createConsultingProduct() {
     })
 
     if (existingProducts.docs.length > 0) {
-      console.log('Consulting product already exists:', existingProducts.docs[0].id)
+      logDebug('Consulting product already exists:', existingProducts.docs[0].id)
       return existingProducts.docs[0].id
     }
 
@@ -45,10 +46,10 @@ async function createConsultingProduct() {
       },
     })
 
-    console.log('Consulting product created:', product.id)
+    logDebug('Consulting product created:', product.id)
     return product.id
   } catch (error) {
-    console.error('Error creating consulting product:', error)
+    logError('Error creating consulting product:', error)
     throw error
   }
 }
@@ -56,10 +57,10 @@ async function createConsultingProduct() {
 // Run the script
 createConsultingProduct()
   .then(() => {
-    console.log('Script completed successfully')
+    logDebug('Script completed successfully')
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Script failed:', error)
+    logError('Script failed:', error)
     process.exit(1)
   })

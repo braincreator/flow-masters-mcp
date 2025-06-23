@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getSiteConfig } from './get-site-config'
 import { getServerSideURL } from './getURL'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Types
 interface MetadataImage {
   url: string
@@ -203,7 +204,7 @@ export async function generateDefaultMetadata(): Promise<Metadata> {
 
     return validateMetadata(metadata)
   } catch (error) {
-    console.error('Error generating metadata:', error)
+    logError('Error generating metadata:', error)
     return DEFAULT_METADATA
   }
 }

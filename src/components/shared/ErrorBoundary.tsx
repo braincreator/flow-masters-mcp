@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Props {
   children: ReactNode
   fallback: ReactNode
@@ -23,8 +24,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Ошибка рендеринга компонента:', error)
-    console.error('Информация о компоненте:', errorInfo)
+    logError('Ошибка рендеринга компонента:', error)
+    logError('Информация о компоненте:', errorInfo)
     
     // Здесь можно добавить отправку ошибки в сервис аналитики
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {

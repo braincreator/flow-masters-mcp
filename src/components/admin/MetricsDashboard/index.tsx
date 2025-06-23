@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Line } from 'react-chartjs-2'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -93,12 +94,12 @@ const MetricsDashboard: React.FC = () => {
           return updated
         })
       } catch (error) {
-        console.error('Error parsing metrics:', error)
+        logError('Error parsing metrics:', error)
       }
     }
 
     eventSource.onerror = (error) => {
-      console.error('EventSource error:', error)
+      logError('EventSource error:', error)
       setIsConnected(false)
       setError('Connection lost. Attempting to reconnect...')
     }

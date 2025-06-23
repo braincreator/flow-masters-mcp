@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * GET /api/v1/services
  * Получение списка услуг
@@ -76,10 +77,10 @@ export async function GET(request: NextRequest) {
     // Не используем draft: true, так как это ограничивает результаты только черновиками
     // Вместо этого полагаемся на фильтр where.status
 
-    console.log('[API /services] Effective locale for query:', locale)
-    console.log('[API /services] Business status filter:', businessStatus)
-    console.log('[API /services] Query where clause:', JSON.stringify(where, null, 2))
-    console.log('[API /services] Payload find options:', JSON.stringify(findOptions, null, 2))
+    logDebug('[API /services] Effective locale for query:', locale)
+    logDebug('[API /services] Business status filter:', businessStatus)
+    logDebug('[API /services] Query where clause:', JSON.stringify(where, null, 2))
+    logDebug('[API /services] Payload find options:', JSON.stringify(findOptions, null, 2))
 
     // Добавляем обработку таймаута для безопасности
     const timeoutPromise = new Promise((_, reject) => {
@@ -91,17 +92,17 @@ export async function GET(request: NextRequest) {
     const services = await Promise.race([servicesPromise, timeoutPromise])
 
     // Log successful fetch for debugging
-    console.log('[API /services] Successfully fetched services:', (services as any).docs.length)
+    logDebug('[API /services] Successfully fetched services:', (services as any).docs.length)
 
     return NextResponse.json(services)
   } catch (error) {
-    console.error('Error fetching services:', error)
+    logError('Error fetching services:', error)
 
     // Provide more detailed error information for debugging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
 
-    console.error('Error details:', {
+    logError('Error details:', {
       message: errorMessage,
       stack: errorStack,
       timestamp: new Date().toISOString(),
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(service)
   } catch (error) {
-    console.error('Error creating service:', error)
+    logError('Error creating service:', error)
     return NextResponse.json({ error: 'Failed to create service' }, { status: 500 })
   }
 }

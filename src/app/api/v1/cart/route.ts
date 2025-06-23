@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // GET /api/v1/cart - получение корзины
 export async function GET(req: NextRequest) {
   try {
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
     // Возвращаем найденную корзину
     return Response.json(result.docs[0], { status: 200 })
   } catch (error) {
-    console.error('Error fetching cart:', error)
+    logError('Error fetching cart:', error)
     return Response.json(
       {
         message: 'Failed to retrieve cart',
@@ -127,7 +128,7 @@ export async function DELETE(req: NextRequest) {
 
     return Response.json({ success: true }, { status: 200 })
   } catch (error) {
-    console.error('Error clearing cart:', error)
+    logError('Error clearing cart:', error)
     return Response.json(
       {
         message: 'Failed to clear cart',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -55,7 +56,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error fetching user level info:', error)
+    logError('Error fetching user level info:', error)
     return NextResponse.json(
       { error: 'Failed to fetch user level info' },
       { status: 500 }

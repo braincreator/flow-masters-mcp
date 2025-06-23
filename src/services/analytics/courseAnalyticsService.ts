@@ -1,6 +1,7 @@
 import { Payload } from 'payload'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для аналитики курса
 export interface CourseAnalyticsData {
   course: string // ID курса
@@ -124,7 +125,7 @@ export class CourseAnalyticsService {
 
       return newAnalytics
     } catch (error) {
-      console.error('Error getting or creating course analytics:', error)
+      logError('Error getting or creating course analytics:', error)
       throw error
     }
   }
@@ -303,10 +304,10 @@ export class CourseAnalyticsService {
           data: finalUpdateData,
         });
       } else {
-        console.log('No analytics updates needed for event:', event.eventType);
+        logDebug('No analytics updates needed for event:', event.eventType);
       }
     } catch (error) {
-      console.error('Error tracking analytics event:', error)
+      logError('Error tracking analytics event:', error)
       throw error
     }
   }
@@ -319,7 +320,7 @@ export class CourseAnalyticsService {
       const analytics = await this.getOrCreateAnalytics(courseId)
       return analytics
     } catch (error) {
-      console.error('Error getting course analytics:', error)
+      logError('Error getting course analytics:', error)
       throw error
     }
   }
@@ -336,7 +337,7 @@ export class CourseAnalyticsService {
 
       return analytics.docs
     } catch (error) {
-      console.error('Error getting all courses analytics:', error)
+      logError('Error getting all courses analytics:', error)
       throw error
     }
   }

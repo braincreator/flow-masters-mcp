@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Loader2, Trophy } from 'lucide-react'
 import Link from 'next/link'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface TopUsersProps {
   limit?: number
   showTitle?: boolean
@@ -30,7 +31,7 @@ export default function TopUsers({
         const data = await getTopUsers(limit)
         setTopUsers(data)
       } catch (err) {
-        console.error('Error loading top users:', err)
+        logError('Error loading top users:', err)
         setError('Не удалось загрузить топ пользователей')
       } finally {
         setLoading(false)

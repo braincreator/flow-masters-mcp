@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { formatDate } from '@/utilities/formatDate'
 import FileUpload from '@/components/FileUpload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface User {
   id: string
   name: string
@@ -101,7 +102,7 @@ const ProjectDiscussionsSection: React.FC<ProjectDiscussionsSectionProps> = ({
       setFiles([])
       window.location.reload()
     } catch (error) {
-      console.error('Error sending message:', error)
+      logError('Error sending message:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setIsLoading(false)

@@ -4,6 +4,7 @@ import { getAuth } from '../helpers/auth'
 import config from '@/payload.config'
 import { TaskItem, TaskStatus, TaskPriority, TaskStats, CreateTaskRequest } from '@/types/tasks'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 let cachedPayload = null
 
 async function getPayloadInstance() {
@@ -261,7 +262,7 @@ export async function GET(req: NextRequest) {
     const stats = calculateTaskStats(tasks)
     return NextResponse.json({ tasks, stats })
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    logError('Error fetching tasks:', error)
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
   }
 }
@@ -339,7 +340,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(taskItem, { status: 201 })
   } catch (error) {
-    console.error('Error creating task:', error)
+    logError('Error creating task:', error)
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
   }
 }

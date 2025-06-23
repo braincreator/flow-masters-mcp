@@ -32,6 +32,7 @@ import type {
 } from '@/types/blocks'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const aspectRatios = {
   '16/9': 'aspect-video',
   '4/3': 'aspect-[4/3]',
@@ -165,7 +166,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         try {
           video.pause()
         } catch (e) {
-          console.error('Error pausing video:', e)
+          logError('Error pausing video:', e)
         }
       }
 

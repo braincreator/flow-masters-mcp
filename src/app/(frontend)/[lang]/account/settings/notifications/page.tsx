@@ -1,5 +1,6 @@
 import React from 'react';
 import { getTranslations } from 'next-intl/server';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { auth } from '@/auth'; // Assuming NextAuth.js or similar
 // import { getUserNotificationPreferences, updateUserNotificationPreferences } from '@/actions/user'; // Placeholder server actions
 // import { UserNotificationPreferences, UserNotificationFrequency } from '@/types/user'; // Placeholder types
@@ -102,7 +103,7 @@ export default async function NotificationPreferencesPage() {
     'use server';
     // const userId = (await auth())?.user?.id; // Re-fetch userId in server action
     // if (!userId) {
-    //   console.error("User not authenticated");
+    //   logError("User not authenticated");
     //   return { error: "User not authenticated" };
     // }
 
@@ -119,13 +120,13 @@ export default async function NotificationPreferencesPage() {
       notificationFrequency: formData.get('notificationFrequency') as UserNotificationFrequency,
     };
 
-    console.log('Updating notification preferences:', preferencesToUpdate);
+    logDebug('Updating notification preferences:', preferencesToUpdate);
     // const result = await updateUserNotificationPreferences(userId, preferencesToUpdate);
     // if (result.error) {
-    //   console.error('Failed to update preferences:', result.error);
+    //   logError('Failed to update preferences:', result.error);
     //   // Handle error display, perhaps by returning a message
     // } else {
-    //   console.log('Preferences updated successfully');
+    //   logDebug('Preferences updated successfully');
     //   // Handle success display, perhaps by returning a message or revalidating path
     //   // revalidatePath('/account/settings/notifications');
     // }

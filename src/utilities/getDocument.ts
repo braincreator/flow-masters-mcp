@@ -28,7 +28,7 @@ async function getDocument(collection: Collection, slug: string, depth = 0) {
 
     return page.docs[0]
   } catch (error) {
-    console.error(`Error fetching document from ${collection}:`, error)
+    logError(`Error fetching document from ${collection}:`, error)
     throw error
   }
 }
@@ -65,6 +65,7 @@ export const getCachedDocument = (collection: Collection, slug: string, depth = 
 
 // Register cache with memory manager for automatic cleanup
 import { memoryManager } from './memoryManager'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 if (typeof documentCache.reset === 'function') {
   // Create a wrapper to make documentCache compatible with LRUCache interface
   const cacheWrapper = {

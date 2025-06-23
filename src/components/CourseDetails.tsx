@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { Course } from '@/payload-types'; // Assuming payload types are in @/payload-types
 import RichText from './RichText'; // Assuming a RichText component exists
 
@@ -79,7 +80,7 @@ const CourseDetails: React.FC<CourseDetailsProps> = ({
       return tDuration(unitKey, { count });
     } catch (e) {
       // Log error if translation fails (e.g., key doesn't exist in messages/ru.json)
-      console.error(`Error translating duration unit '${unitKey}' with count ${count}:`, e);
+      logError(`Error translating duration unit '${unitKey}' with count ${count}:`, e);
       return durationString; // Fallback to original string on error
     }
   };

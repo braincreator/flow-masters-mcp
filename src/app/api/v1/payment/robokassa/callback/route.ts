@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: Request) {
   try {
     const formData = await req.formData()
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     // Return success response
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Robokassa notification handling error:', error)
+    logError('Robokassa notification handling error:', error)
     return NextResponse.json({ error: 'Failed to process notification' }, { status: 500 })
   }
 }

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useCart } from '@/providers/CartProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * This component manually hydrates the cart state from localStorage
  * due to using skipHydration: true in the Zustand store configuration
@@ -34,7 +35,7 @@ export function CartHydration() {
         }
       }
     } catch (error) {
-      console.error('Error hydrating cart from localStorage:', error)
+      logError('Error hydrating cart from localStorage:', error)
     }
   }, [addItem, clearCart, mutateCart])
 

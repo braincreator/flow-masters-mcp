@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает информацию о пользователе
  * @param userId ID пользователя
@@ -9,7 +10,7 @@ export async function getUser(userId: string) {
     const response = await fetchFromAPI(`/api/users/${userId}`)
     return response
   } catch (error) {
-    console.error('Error getting user:', error)
+    logError('Error getting user:', error)
     throw error
   }
 }
@@ -23,7 +24,7 @@ export async function getUserLevelInfo(userId: string) {
     const response = await fetchFromAPI(`/api/users/${userId}/level`)
     return response
   } catch (error) {
-    console.error('Error getting user level info:', error)
+    logError('Error getting user level info:', error)
     throw error
   }
 }
@@ -36,7 +37,7 @@ export async function getAllLevels() {
     const response = await fetchFromAPI('/api/levels')
     return response
   } catch (error) {
-    console.error('Error getting levels:', error)
+    logError('Error getting levels:', error)
     throw error
   }
 }
@@ -54,7 +55,7 @@ export async function updateUserProfile(userId: string, data: any) {
     })
     return response
   } catch (error) {
-    console.error('Error updating user profile:', error)
+    logError('Error updating user profile:', error)
     throw error
   }
 }

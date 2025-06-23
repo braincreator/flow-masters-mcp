@@ -2,6 +2,7 @@ import { LRUCache } from 'lru-cache'
 import { unstable_cache } from 'next/cache'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Add LRU cache for frequently accessed redirects
 const redirectCache = new LRUCache({
   max: 100,
@@ -21,7 +22,7 @@ export async function getRedirects(depth = 1) {
 
     return redirects
   } catch (error) {
-    console.error('Error in getRedirects:', error)
+    logError('Error in getRedirects:', error)
     // ISSUE: Should return cached data if available during error
     const cached = redirectCache.get('redirects')
     if (cached) return cached

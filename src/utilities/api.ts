@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { CartSession, Product, User, UserFavorite } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Helper function to create a standardized error response
  * @param message Error message
@@ -68,7 +69,7 @@ export async function fetchPayloadAPI<T>(endpoint: string, options: RequestInit 
         errorData = { message: response.statusText }
       }
 
-      console.error(`API Error (${response.status}): ${url}`, errorData)
+      logError(`API Error (${response.status}): ${url}`, errorData)
 
       // Улучшенное сообщение об ошибке
       const errorMessage =
@@ -87,24 +88,24 @@ export async function fetchPayloadAPI<T>(endpoint: string, options: RequestInit 
     }
 
     const data = await response.json()
-    console.log(`API Response: ${url}`, { status: response.status })
+    logDebug(`API Response: ${url}`, { status: response.status })
     return data as T
   } catch (e) {
     // Обрабатываем ошибки сети или парсинга JSON
     if (e instanceof Error) {
       // Если это уже ошибка API, пробрасываем ее дальше
       if (e.message.startsWith('API Error')) {
-        console.error(`API Error Details:`, e.message)
+        logError(`API Error Details:`, e.message)
         throw e
       }
 
       // Сетевые ошибки и т.п.
-      console.error('API request failed:', e.message)
+      logError('API request failed:', e.message)
       throw new Error(`Failed to fetch data: ${e.message}`)
     }
 
     // Неизвестная ошибка
-    console.error('Unknown API error', e)
+    logError('Unknown API error', e)
     throw new Error('Unknown error occurred during API request')
   }
 }
@@ -129,15 +130,15 @@ type PayloadCollectionResponse<T> = {
  * Получить корзину пользователя (или анонимную)
  */
 export const getCart = (): Promise<CartSession | null> => {
-  console.log('API: Fetching cart data')
+  logDebug('API: Fetching cart data')
   // Используем правильный путь к API
   return fetchPayloadAPI<CartSession>('/v1/cart', { method: 'GET' })
     .then((response) => {
-      console.log('API: Cart data received:', response)
+      logDebug('API: Cart data received:', response)
       return response
     })
     .catch((err) => {
-      console.error('API: Error fetching cart:', err)
+      logError('API: Error fetching cart:', err)
       // Возвращаем null вместо выбрасывания исключения для запросов к корзине
       return null
     })
@@ -151,17 +152,17 @@ export const addToCart = (
   itemType: 'product' | 'service' = 'product',
   quantity: number = 1,
 ): Promise<CartSession> => {
-  console.log('API: Sending request to add to cart:', { itemId, itemType, quantity })
+  logDebug('API: Sending request to add to cart:', { itemId, itemType, quantity })
   return fetchPayloadAPI<CartSession>('/v1/cart/add', {
     method: 'POST',
     body: JSON.stringify({ itemId, itemType, quantity }),
   })
     .then((response) => {
-      console.log('API: Cart updated successfully:', response)
+      logDebug('API: Cart updated successfully:', response)
       return response
     })
     .catch((error) => {
-      console.error('API: Error updating cart with API:', error)
+      logError('API: Error updating cart with API:', error)
       throw error
     })
 }
@@ -174,17 +175,17 @@ export const updateCartItemQuantity = (
   itemType: 'product' | 'service' = 'product',
   quantity: number,
 ): Promise<CartSession> => {
-  console.log('API: Updating cart item quantity:', { itemId, itemType, quantity })
+  logDebug('API: Updating cart item quantity:', { itemId, itemType, quantity })
   return fetchPayloadAPI<CartSession>('/v1/cart/update', {
     method: 'PATCH',
     body: JSON.stringify({ itemId, itemType, quantity }),
   })
     .then((response) => {
-      console.log('API: Cart item quantity updated successfully')
+      logDebug('API: Cart item quantity updated successfully')
       return response
     })
     .catch((error) => {
-      console.error('API: Error updating cart item quantity:', error)
+      logError('API: Error updating cart item quantity:', error)
       throw error
     })
 }
@@ -196,17 +197,17 @@ export const removeFromCart = (
   itemId: string,
   itemType: 'product' | 'service' = 'product',
 ): Promise<CartSession> => {
-  console.log('API: Removing item from cart:', { itemId, itemType })
+  logDebug('API: Removing item from cart:', { itemId, itemType })
   return fetchPayloadAPI<CartSession>('/v1/cart/remove', {
     method: 'DELETE',
     body: JSON.stringify({ itemId, itemType }),
   })
     .then((response) => {
-      console.log('API: Cart item removed successfully')
+      logDebug('API: Cart item removed successfully')
       return response
     })
     .catch((error) => {
-      console.error('API: Error removing cart item:', error)
+      logError('API: Error removing cart item:', error)
       throw error
     })
 }
@@ -215,15 +216,15 @@ export const removeFromCart = (
  * Очистить корзину
  */
 export const clearCart = (): Promise<void> => {
-  console.log('API: Clearing cart')
+  logDebug('API: Clearing cart')
   return fetchPayloadAPI<void>('/v1/cart', {
     method: 'DELETE',
   })
     .then(() => {
-      console.log('API: Cart cleared successfully')
+      logDebug('API: Cart cleared successfully')
     })
     .catch((error) => {
-      console.error('API: Error clearing cart:', error)
+      logError('API: Error clearing cart:', error)
       throw error
     })
 }
@@ -240,7 +241,7 @@ export const getFavorites = (): Promise<string[]> => {
       .catch((error) => {
         // Если не авторизован (401) или другая ошибка, возвращаем пустой массив
         // чтобы приложение не падало
-        console.error('Failed to fetch favorites:', error)
+        logError('Failed to fetch favorites:', error)
         return []
       })
   )

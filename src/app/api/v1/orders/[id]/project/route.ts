@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/utilities/auth/getServerSession'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * GET /api/v1/orders/:id/project
  * Get the service project associated with an order
@@ -63,7 +64,7 @@ export async function GET(
       projectStatus: project.status,
     })
   } catch (error) {
-    console.error('Error fetching project for order:', error)
+    logError('Error fetching project for order:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

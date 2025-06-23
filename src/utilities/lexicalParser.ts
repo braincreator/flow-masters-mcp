@@ -1,5 +1,6 @@
 import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Utility functions for parsing Lexical rich text content
  */
@@ -310,7 +311,7 @@ export function convertPayloadDataToLexical(payloadData: any): SerializedEditorS
       return createTextNodeFromString(JSON.stringify(payloadData))
     }
   } catch (e) {
-    console.error('Ошибка преобразования данных Payload в Lexical:', e)
+    logError('Ошибка преобразования данных Payload в Lexical:', e)
   }
 
   // В крайнем случае возвращаем пустую структуру
@@ -366,13 +367,13 @@ export function extractTextFromLexical(content: any): string {
 
   // Диагностика для отладки
   if (process.env.NODE_ENV === 'development') {
-    console.log('extractTextFromLexical diagnostics:')
-    console.log('- Content type:', typeof content)
-    console.log('- Is Lexical content:', isLexicalContent(content))
+    logDebug('extractTextFromLexical diagnostics:')
+    logDebug('- Content type:', typeof content)
+    logDebug('- Is Lexical content:', isLexicalContent(content))
 
     if (typeof content === 'object') {
-      console.log('- Has root:', Boolean(content.root))
-      console.log('- Has nodes:', Boolean(content.nodes))
+      logDebug('- Has root:', Boolean(content.root))
+      logDebug('- Has nodes:', Boolean(content.nodes))
 
       // Попытка определить конкретный формат
       const format = (() => {
@@ -386,7 +387,7 @@ export function extractTextFromLexical(content: any): string {
         return 'Unknown format'
       })()
 
-      console.log('- Detected format:', format)
+      logDebug('- Detected format:', format)
     }
   }
 
@@ -396,9 +397,7 @@ export function extractTextFromLexical(content: any): string {
 
     // Вывод диагностики для нормализованного контента
     if (process.env.NODE_ENV === 'development') {
-      console.log(
-        '- After normalization:',
-        normalizedContent?.root?.children
+      logDebug('- After normalization:', normalizedContent?.root?.children
           ? `Has ${normalizedContent.root.children.length} children`
           : 'No valid structure',
       )
@@ -431,7 +430,7 @@ export function extractTextFromLexical(content: any): string {
 
     return ''
   } catch (error) {
-    console.error('Error extracting text from Lexical:', error)
+    logError('Error extracting text from Lexical:', error)
     return ''
   }
 }
@@ -488,7 +487,7 @@ export function extractHeadingsFromLexical(
     processNodes(nodes)
     return headings
   } catch (error) {
-    console.error('Error extracting headings from Lexical:', error)
+    logError('Error extracting headings from Lexical:', error)
     return []
   }
 }

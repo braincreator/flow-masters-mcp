@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { formatDate } from '@/utilities/formatDate'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface User {
   id: string
   name: string
@@ -71,7 +72,7 @@ const ProjectTasksSection: React.FC<ProjectTasksSectionProps> = ({ projectId, ta
       // Обновляем задачу на странице (в реальном приложении здесь должен быть запрос на обновление состояния)
       window.location.reload()
     } catch (error) {
-      console.error('Error updating task status:', error)
+      logError('Error updating task status:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setIsLoading(false)

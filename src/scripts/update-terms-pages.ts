@@ -7,6 +7,7 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Helper function to create proper Lexical text node
 function createTextNode(text: string) {
   return {
@@ -212,11 +213,11 @@ const termsUpdates = {
 }
 
 async function updateTermsPages() {
-  console.log('🔄 Updating TermsPages collection with proper Lexical format...')
+  logDebug('🔄 Updating TermsPages collection with proper Lexical format...')
 
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     const locales = ['ru', 'en']
 
@@ -253,16 +254,16 @@ async function updateTermsPages() {
             },
           })
 
-          console.log(`✅ Updated terms page: ${tabType} for ${locale} (${updated.id})`)
+          logDebug(`✅ Updated terms page: ${tabType} for ${locale} (${updated.id})`)
         } catch (error) {
-          console.error(`❌ Error updating terms page "${tabType}" for locale "${locale}":`, error)
+          logError(`❌ Error updating terms page "${tabType}" for locale "${locale}":`, error)
         }
       }
     }
 
-    console.log('🎉 TermsPages update completed!')
+    logDebug('🎉 TermsPages update completed!')
   } catch (error) {
-    console.error('❌ Error:', error)
+    logError('❌ Error:', error)
     process.exit(1)
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для управления событиями
  * GET /api/events - получить список событий
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting events:', error)
+    logError('Error getting events:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating event:', error)
+    logError('Error creating event:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

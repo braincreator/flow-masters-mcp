@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NotificationPreferences {
   email?: {
     orderUpdates?: boolean
@@ -70,7 +71,7 @@ export function NotificationsTab({ preferences, onUpdate }: NotificationsTabProp
       setIsSuccess(true)
       setTimeout(() => setIsSuccess(false), 3000)
     } catch (error) {
-      console.error('Failed to update notification preferences:', error)
+      logError('Failed to update notification preferences:', error)
     } finally {
       setIsLoading(false)
     }

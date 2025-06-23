@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 import type { Product, ProductType } from '../types/product'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Initialize dotenv with proper path
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -136,9 +137,9 @@ async function main() {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
   const API_URL = `${baseUrl}/api/v1/products`
 
-  console.log('\n🚀 Starting product import process...')
-  console.log(`📡 API URL: ${API_URL}`)
-  console.log(`🔑 Using PAYLOAD_SECRET: ${process.env.PAYLOAD_SECRET?.substring(0, 8)}...`)
+  logDebug('\n🚀 Starting product import process...')
+  logDebug(`📡 API URL: ${API_URL}`)
+  logDebug(`🔑 Using PAYLOAD_SECRET: ${process.env.PAYLOAD_SECRET?.substring(0, 8)}...`)
 
   let successCount = 0
   let failureCount = 0
@@ -151,7 +152,7 @@ async function main() {
         throw new Error('API health check failed - server might be down')
       }
 
-      console.log(`\n📦 Processing product: ${product.title.en}`)
+      logDebug(`\n📦 Processing product: ${product.title.en}`)
       
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -168,31 +169,31 @@ async function main() {
         throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(responseData)}`)
       }
 
-      console.log(`✅ Successfully added product: ${product.title.en}`)
-      console.log('   ID:', responseData.id)
+      logDebug(`✅ Successfully added product: ${product.title.en}`)
+      logDebug('   ID:', responseData.id)
       successCount++
 
     } catch (error) {
-      console.error(`❌ Error adding ${product.title.en}:`)
+      logError(`❌ Error adding ${product.title.en}:`)
       if (error instanceof Error) {
-        console.error('   Error details:', error.message)
+        logError('   Error details:', error.message)
       }
       failureCount++
     }
   }
 
   // Print summary
-  console.log('\n📊 Import Summary:')
-  console.log(`   ✅ Successful imports: ${successCount}`)
-  console.log(`   ❌ Failed imports: ${failureCount}`)
-  console.log(`   📈 Success rate: ${((successCount / testProducts.length) * 100).toFixed(1)}%\n`)
+  logDebug('\n📊 Import Summary:')
+  logDebug(`   ✅ Successful imports: ${successCount}`)
+  logDebug(`   ❌ Failed imports: ${failureCount}`)
+  logDebug(`   📈 Success rate: ${((successCount / testProducts.length) * 100).toFixed(1)}%\n`)
 }
 
 // Run the script
 main().catch(error => {
-  console.error('💥 Fatal error:', error)
+  logError('💥 Fatal error:', error)
   process.exit(1)
 }).finally(() => {
-  console.log('👋 Import process completed')
+  logDebug('👋 Import process completed')
   process.exit(0)
 })

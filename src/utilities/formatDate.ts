@@ -29,7 +29,7 @@ export function formatDate(
 
     return new Intl.DateTimeFormat(locale, options).format(date)
   } catch (error) {
-    console.error('Error formatting date:', error)
+    logError('Error formatting date:', error)
     return ''
   }
 }
@@ -78,7 +78,7 @@ export function formatRelativeTime(isoDate: string, locale: string = 'ru'): stri
       return formatDate(isoDate, locale)
     }
   } catch (error) {
-    console.error('Error formatting relative time:', error)
+    logError('Error formatting relative time:', error)
     return ''
   }
 }

@@ -4,6 +4,7 @@ import { generateSecurePassword } from '@/utilities/generatePassword'
 import path from 'path'
 import fs from 'fs'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export class AutoAccountService extends BaseService {
   constructor(payload: Payload) {
     super(payload)
@@ -117,7 +118,7 @@ export class AutoAccountService extends BaseService {
         html: template,
       })
     } catch (error) {
-      console.error('Failed to send account creation email:', error)
+      logError('Failed to send account creation email:', error)
       // Не выбрасываем ошибку, чтобы не прерывать процесс создания аккаунта
     }
   }

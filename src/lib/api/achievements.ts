@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает достижения пользователя
  * @param userId ID пользователя
@@ -9,7 +10,7 @@ export async function fetchUserAchievements(userId: string) {
     const response = await fetchFromAPI(`/api/achievements/user/${userId}`)
     return response
   } catch (error) {
-    console.error('Error fetching user achievements:', error)
+    logError('Error fetching user achievements:', error)
     throw error
   }
 }
@@ -22,7 +23,7 @@ export async function fetchAllAchievements() {
     const response = await fetchFromAPI('/api/achievements')
     return response
   } catch (error) {
-    console.error('Error fetching achievements:', error)
+    logError('Error fetching achievements:', error)
     throw error
   }
 }

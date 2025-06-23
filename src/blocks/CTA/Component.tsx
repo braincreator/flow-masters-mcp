@@ -8,6 +8,7 @@ import type { BlockStyleProps } from '@/types/block-styles'
 import { blockSizeStyles, blockStyleVariants, blockAnimationStyles } from '@/styles/block-styles'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CTAProps extends CTABlockType, BlockStyleProps {}
 
 export const CTA: React.FC<CTAProps> = ({
@@ -23,7 +24,7 @@ export const CTA: React.FC<CTAProps> = ({
   const styleVariant = blockStyleVariants[style] || blockStyleVariants.default
 
   if (!blockStyleVariants[style]) {
-    console.warn(`[CTA Block] Invalid style '${style}' provided. Falling back to default style.`)
+    logWarn(`[CTA Block] Invalid style '${style}' provided. Falling back to default style.`)
   }
 
   return (

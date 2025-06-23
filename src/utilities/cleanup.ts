@@ -4,6 +4,7 @@ import { cleanupPayloadConnections } from './payload'
 import { connectionMonitor } from './payload/monitoring'
 import { databaseConnection } from './payload/database/connection'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function cleanupResources() {
   // Clear all intervals and timeouts
   const globalThis = (typeof window !== 'undefined' ? window : global) as any

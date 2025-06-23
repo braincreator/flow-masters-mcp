@@ -7,6 +7,7 @@ import { Payload } from 'payload'
 import { replacePlaceholders } from '../utilities/emailTemplateHelpers'
 import { lexicalToHtml } from '../utilities/lexicalToHtml'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const previewEmailTemplate = async (req: any, res: any): Promise<void> => {
   const payload: Payload = req.payload
   
@@ -92,7 +93,7 @@ export const previewEmailTemplate = async (req: any, res: any): Promise<void> =>
       previewUrl: `/api/preview-email?slug=${slug}&locale=${locale}`
     })
   } catch (error) {
-    console.error('Error previewing email template:', error)
+    logError('Error previewing email template:', error)
     res.status(500).json({ error: 'Failed to preview email template' })
   }
 }

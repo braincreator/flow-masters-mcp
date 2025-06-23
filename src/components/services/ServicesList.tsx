@@ -8,6 +8,7 @@ import ServiceCard from './ServiceCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ServicesListProps = {
   serviceType?: string
   limit?: number
@@ -52,7 +53,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
         const data = await response.json()
         setServices(data.docs || [])
       } catch (err) {
-        console.error('Error fetching services:', err)
+        logError('Error fetching services:', err)
         setError('Failed to load services')
       } finally {
         setLoading(false)

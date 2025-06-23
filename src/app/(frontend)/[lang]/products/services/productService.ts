@@ -3,6 +3,7 @@ import configPromise from '@/payload.config'
 import { Locale } from '@/constants'
 import type { ProductType } from '@/types/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProductQueryParams {
   category?: string
   search?: string
@@ -135,7 +136,7 @@ export async function getProduct({ slug, locale }: GetProductParams) {
 
     return { item: product.docs[0] }
   } catch (error) {
-    console.error('Error fetching product:', error)
+    logError('Error fetching product:', error)
     return { item: null, error }
   }
 }

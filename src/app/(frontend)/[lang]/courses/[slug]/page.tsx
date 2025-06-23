@@ -1,5 +1,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { getPayloadClient } from '@/utilities/payload/index'; // Assuming this path is correct
 import type { Course, Review, User } from '@/payload-types'; // Assuming this path is correct
 // import type { Block } from '@/types/blocks'; // Removed unused import
@@ -67,7 +68,7 @@ async function getCourseData(slug: string, locale: string): Promise<CoursePageDa
 
     return { course, reviews };
   } catch (error) {
-    console.error('Error fetching course data:', error);
+    logError('Error fetching course data:', error);
     // Return null or throw error based on desired handling
     return { course: null, reviews: [] };
   }

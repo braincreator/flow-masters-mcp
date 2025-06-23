@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Loader2, Send, CheckCircle, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define the Zod schema for form validation
 const createFormSchema = (validationMessages: {
   nameMin: string
@@ -103,7 +104,7 @@ export default function OrderContactForm({
           throw new Error('"General Lead Form" not found.')
         }
       } catch (error) {
-        console.error('Error fetching formId:', error)
+        logError('Error fetching formId:', error)
         const errorMessage =
           translations.formNotAvailable || 'Could not load form. Please try again later.'
         setFormLoadingError(errorMessage)
@@ -170,7 +171,7 @@ export default function OrderContactForm({
         className: 'bg-green-500 text-white',
       })
     } catch (error: any) {
-      console.error('Submission error:', error)
+      logError('Submission error:', error)
       const errorMsg =
         error.message ||
         translations.errorMessage ||

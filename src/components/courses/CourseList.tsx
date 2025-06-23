@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardData } from '@/components/Card';
 import { Course, Category, Tag } from '@/payload-types';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { usePayloadAPI } from '@/hooks/usePayloadAPI'; // Assuming this hook exists for API calls
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // For filters/sort
@@ -33,7 +34,7 @@ export const CourseList: React.FC = () => {
       setError(null);
       try {
         // TODO: Replace with actual API call using usePayloadAPI or fetch
-        console.log('Fetching courses with filters:', filters, 'and sort:', sortOrder);
+        logDebug('Fetching courses with filters:', filters, 'and sort:', sortOrder);
         // Construct query parameters based on filters and sortOrder
         const queryParams = new URLSearchParams();
         if (filters.category) queryParams.append('where[category][equals]', filters.category);
@@ -64,7 +65,7 @@ export const CourseList: React.FC = () => {
         ]);
 
       } catch (err) {
-        console.error("Error fetching courses:", err);
+        logError("Error fetching courses:", err);
         setError('Failed to load courses.');
       } finally {
         setIsLoading(false);

@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useEffect } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Хук для безопасного использования контекста в асинхронных операциях
  * Предотвращает ошибки "Context can only be read while React is rendering"
@@ -25,7 +26,7 @@ export function useSafeContext<T>(contextValue: T) {
   // Безопасная функция для получения контекста
   const getSafeContext = useCallback(() => {
     if (!isMountedRef.current) {
-      console.warn('Attempting to access context after component unmount')
+      logWarn('Attempting to access context after component unmount')
       return null
     }
     return contextRef.current
@@ -40,7 +41,7 @@ export function useSafeContext<T>(contextValue: T) {
       try {
         return operation(context)
       } catch (error) {
-        console.warn('Error in safe context operation:', error)
+        logWarn('Error in safe context operation:', error)
         return null
       }
     },
@@ -69,12 +70,12 @@ export function useSafeAsyncContext<T>(contextValue: T) {
         const result = await operation(context)
         // Проверяем, что компонент все еще смонтирован после асинхронной операции
         if (!isMounted()) {
-          console.warn('Component unmounted during async operation')
+          logWarn('Component unmounted during async operation')
           return null
         }
         return result
       } catch (error) {
-        console.warn('Error in safe async context operation:', error)
+        logWarn('Error in safe async context operation:', error)
         return null
       }
     },
@@ -113,7 +114,7 @@ export function useSafeTimeout() {
         try {
           callback()
         } catch (error) {
-          console.warn('Error in safe timeout callback:', error)
+          logWarn('Error in safe timeout callback:', error)
         }
       }
       timeoutsRef.current.delete(timeoutId)
@@ -159,7 +160,7 @@ export function useSafeInterval() {
         try {
           callback()
         } catch (error) {
-          console.warn('Error in safe interval callback:', error)
+          logWarn('Error in safe interval callback:', error)
         }
       } else {
         clearInterval(intervalId)

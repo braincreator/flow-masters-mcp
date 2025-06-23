@@ -1,6 +1,7 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Основные блоки
 const ContentBlock = dynamic(() => import('./Content/Component').then((mod) => mod.ContentBlock))
 const CallToActionBlock = dynamic(() =>
@@ -156,12 +157,12 @@ type Props = {
 
 export const RenderBlocks: React.FC<Props> = ({ blocks = [] }) => {
   if (!Array.isArray(blocks)) {
-    console.warn('RenderBlocks: blocks is not an array', blocks)
+    logWarn('RenderBlocks: blocks is not an array', blocks)
     return null
   }
 
   if (blocks.length === 0) {
-    console.info('RenderBlocks: blocks array is empty')
+    logInfo('RenderBlocks: blocks array is empty')
   }
 
   return (
@@ -171,7 +172,7 @@ export const RenderBlocks: React.FC<Props> = ({ blocks = [] }) => {
         const Block = blockComponents[blockType]
 
         if (!Block) {
-          console.warn(`RenderBlocks: No component found for blockType '${blockType}'`, block)
+          logWarn(`RenderBlocks: No component found for blockType '${blockType}'`, block)
           return (
             <div key={i} className="p-4 border border-red-300 bg-red-50 text-red-700 rounded my-4">
               <p>Unknown block type: {blockType}</p>
@@ -182,7 +183,7 @@ export const RenderBlocks: React.FC<Props> = ({ blocks = [] }) => {
         try {
           return <Block key={i} {...(block as any)} />
         } catch (error) {
-          console.error(`Error rendering block of type '${blockType}':`, error)
+          logError(`Error rendering block of type '${blockType}':`, error)
           return (
             <div key={i} className="p-4 border border-red-300 bg-red-50 text-red-700 rounded my-4">
               <p>Error rendering {blockType} block</p>

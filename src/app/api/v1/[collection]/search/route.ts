@@ -7,6 +7,7 @@ import { calculateSimilarity } from './similarity'
 import { geoSearch } from './geo'
 import { formatPriceAsync, getLocalePrice } from '@/utilities/formatPrice'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: Request, { params }: { params: { collection: string } }) {
   try {
     const { searchParams } = new URL(req.url)
@@ -134,7 +135,7 @@ export async function GET(req: Request, { params }: { params: { collection: stri
       },
     })
   } catch (error) {
-    console.error('Search API error:', error)
+    logError('Search API error:', error)
     return NextResponse.json({ error: 'Search failed' }, { status: 500 })
   }
 }

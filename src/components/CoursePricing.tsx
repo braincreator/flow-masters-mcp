@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Product } from '@/payload-types';
 import { AddToCartButton } from '@/components/ui/AddToCartButton';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define Locale type directly based on payload-types.ts
 export type Locale = 'en' | 'ru';
 
@@ -23,7 +24,7 @@ const formatPrice = (amount: number, currencyCode: string, locale: string) => {
       maximumFractionDigits: 2, // Adjust as needed
     }).format(amount);
   } catch (error) {
-    console.error('Error formatting price:', error);
+    logError('Error formatting price:', error);
     // Fallback formatting
     return `${currencyCode} ${amount.toFixed(2)}`;
   }
@@ -34,7 +35,7 @@ export const CoursePricing: React.FC<CoursePricingProps> = ({ product, locale })
 
   // Handle cases where product is null, undefined, or just an ID string
   if (typeof product === 'string' || !product) {
-    console.warn('CoursePricing: Product data is not fully populated.');
+    logWarn('CoursePricing: Product data is not fully populated.');
     return null; // Or display loading/unavailable state
   }
 
@@ -52,9 +53,9 @@ export const CoursePricing: React.FC<CoursePricingProps> = ({ product, locale })
     if (typeof baseAmount === 'number') {
       // Attempt formatting with a default currency (e.g., USD) or just show number
       formattedPrice = formatPrice(baseAmount, 'USD', 'en-US'); // Adjust default currency/locale as needed
-      console.warn(`CoursePricing: Locale price for '${locale}' not found, using base price.`);
+      logWarn(`CoursePricing: Locale price for '${locale}' not found, using base price.`);
     } else {
-       console.warn('CoursePricing: Price amount or currency is missing.');
+       logWarn('CoursePricing: Price amount or currency is missing.');
     }
   }
 

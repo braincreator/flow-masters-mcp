@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает лидерборд
  * @param limit Максимальное количество записей
@@ -10,7 +11,7 @@ export async function getLeaderboard(limit: number = 10, page: number = 1) {
     const response = await fetchFromAPI(`/api/leaderboard?limit=${limit}&page=${page}`)
     return response
   } catch (error) {
-    console.error('Error getting leaderboard:', error)
+    logError('Error getting leaderboard:', error)
     throw error
   }
 }
@@ -24,7 +25,7 @@ export async function getUserRank(userId: string) {
     const response = await fetchFromAPI(`/api/leaderboard/user/${userId}`)
     return response
   } catch (error) {
-    console.error('Error getting user rank:', error)
+    logError('Error getting user rank:', error)
     throw error
   }
 }
@@ -38,7 +39,7 @@ export async function getTopUsers(limit: number = 5) {
     const response = await fetchFromAPI(`/api/leaderboard/top?limit=${limit}`)
     return response
   } catch (error) {
-    console.error('Error getting top users:', error)
+    logError('Error getting top users:', error)
     throw error
   }
 }

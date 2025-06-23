@@ -23,6 +23,7 @@ import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -54,7 +55,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
   // Debug log
-  console.log('Layout: YANDEX_METRIKA_ID =', YANDEX_METRIKA_ID)
+  logDebug('Layout: YANDEX_METRIKA_ID =', YANDEX_METRIKA_ID)
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -69,7 +70,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
       // Загружаем файл локализации для текущей локали
       messages = (await import(`../../../../messages/${validLang}.json`)).default
     } catch (error) {
-      console.warn(`Could not load messages for locale: ${validLang}`, error)
+      logWarn(`Could not load messages for locale: ${validLang}`, error)
       messages = {}
     }
   }
@@ -93,7 +94,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
         <>
           <Script id="yandex-metrika" strategy="afterInteractive">
             {`
-              console.log('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
+              logDebug('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
 
               (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
               m[i].l=1*new Date();
@@ -109,17 +110,17 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                   triggerEvent: true
               });
 
-              console.log('Yandex Metrika: Script loaded and initialized');
+              logDebug('Yandex Metrika: Script loaded and initialized');
 
               // Проверка загрузки через событие
               window.addEventListener('load', function() {
                 if (typeof ym !== 'undefined') {
-                  console.log('Yandex Metrika: Successfully loaded and ready');
+                  logDebug('Yandex Metrika: Successfully loaded and ready');
                   // Отправляем тестовое событие
                   ym(${YANDEX_METRIKA_ID}, 'reachGoal', 'page_loaded');
                   console.log('Yandex Metrika: Test event "page_loaded" sent');
                 } else {
-                  console.error('Yandex Metrika: Failed to load');
+                  logError('Yandex Metrika: Failed to load');
                 }
               });
             `}

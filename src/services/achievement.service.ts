@@ -3,6 +3,7 @@ import { BaseService } from './base.service'
 import { IntegrationService } from './integration.service'
 import { UserLevelService } from './user-level.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы событий для достижений
 export enum AchievementEventType {
   // Курсы
@@ -69,7 +70,7 @@ export class AchievementService extends BaseService {
    */
   async processEvent(data: AchievementEventData): Promise<void> {
     try {
-      console.log(`Processing achievement event ${data.eventType}:`, data)
+      logDebug(`Processing achievement event ${data.eventType}:`, data)
 
       // Находим все достижения, которые могут быть разблокированы этим событием
       const achievements = await this.payload.find({
@@ -87,7 +88,7 @@ export class AchievementService extends BaseService {
       })
 
       if (achievements.docs.length === 0) {
-        console.log(`No achievements found for event ${data.eventType}`)
+        logDebug(`No achievements found for event ${data.eventType}`)
         return
       }
 
@@ -101,7 +102,7 @@ export class AchievementService extends BaseService {
         await this.integrationService.processEvent(data.eventType, data)
       }
     } catch (error) {
-      console.error(`Error processing achievement event:`, error)
+      logError(`Error processing achievement event:`, error)
     }
   }
 
@@ -131,7 +132,7 @@ export class AchievementService extends BaseService {
       })
 
       if (existingUserAchievements.docs.length > 0) {
-        console.log(`User ${data.userId} already has achievement ${achievement.title}`)
+        logDebug(`User ${data.userId} already has achievement ${achievement.title}`)
         return
       }
 
@@ -185,7 +186,7 @@ export class AchievementService extends BaseService {
         await this.awardAchievement(data.userId, achievement)
       }
     } catch (error) {
-      console.error(`Error checking achievement ${achievement.title}:`, error)
+      logError(`Error checking achievement ${achievement.title}:`, error)
     }
   }
 
@@ -196,7 +197,7 @@ export class AchievementService extends BaseService {
    */
   private async awardAchievement(userId: string, achievement: any): Promise<void> {
     try {
-      console.log(`Awarding achievement ${achievement.title} to user ${userId}`)
+      logDebug(`Awarding achievement ${achievement.title} to user ${userId}`)
 
       // Создаем запись о достижении пользователя
       const userAchievement = await this.payload.create({
@@ -209,7 +210,7 @@ export class AchievementService extends BaseService {
         },
       })
 
-      console.log(`Achievement awarded: ${userAchievement.id}`)
+      logDebug(`Achievement awarded: ${userAchievement.id}`)
 
       // Обновляем счетчик XP пользователя, если достижение дает XP
       if (achievement.xpValue && achievement.xpValue > 0) {
@@ -229,7 +230,7 @@ export class AchievementService extends BaseService {
         await this.leaderboardService.updateLeaderboard()
       }
     } catch (error) {
-      console.error(`Error awarding achievement:`, error)
+      logError(`Error awarding achievement:`, error)
     }
   }
 
@@ -259,14 +260,14 @@ export class AchievementService extends BaseService {
         },
       })
 
-      console.log(`Updated user ${userId} XP: ${currentXP} -> ${newXP}`)
+      logDebug(`Updated user ${userId} XP: ${currentXP} -> ${newXP}`)
 
       // Обновляем уровень пользователя
       if (this.userLevelService) {
         await this.userLevelService.updateUserLevel(userId)
       }
     } catch (error) {
-      console.error(`Error updating user XP:`, error)
+      logError(`Error updating user XP:`, error)
     }
   }
 
@@ -297,7 +298,7 @@ export class AchievementService extends BaseService {
         })
       }
     } catch (error) {
-      console.error(`Error sending achievement notification:`, error)
+      logError(`Error sending achievement notification:`, error)
     }
   }
 
@@ -319,7 +320,7 @@ export class AchievementService extends BaseService {
 
       return userAchievements.docs
     } catch (error) {
-      console.error(`Error getting user achievements:`, error)
+      logError(`Error getting user achievements:`, error)
       return []
     }
   }
@@ -392,7 +393,7 @@ export class AchievementService extends BaseService {
         categories: achievementsByCategory,
       }
     } catch (error) {
-      console.error(`Error getting user achievement progress:`, error)
+      logError(`Error getting user achievement progress:`, error)
       return {
         totalAchievements: 0,
         earnedAchievements: 0,

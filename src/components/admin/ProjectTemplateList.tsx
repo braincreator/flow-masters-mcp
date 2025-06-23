@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2, Plus, Search, Filter, Tag, Clock, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProjectTemplate {
   id: string
   name: string
@@ -76,7 +77,7 @@ export default function ProjectTemplateList({
         
         setTemplates(responseData.data)
       } catch (error) {
-        console.error('Error fetching project templates:', error)
+        logError('Error fetching project templates:', error)
         showNotification('error', t('errorFetchingTemplates', { defaultValue: 'Error fetching project templates' }))
       } finally {
         setIsLoading(false)

@@ -1,5 +1,6 @@
 import { getRequestConfig } from 'next-intl/server'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -18,7 +19,7 @@ export default getRequestConfig(async ({ locale }) => {
     messages = (await import(`../messages/${localeToUse}.json`)).default
   } catch (error) {
     // If the messages file is not found, use an empty object
-    console.warn(`Could not load messages for locale: ${localeToUse}`, error)
+    logWarn(`Could not load messages for locale: ${localeToUse}`, error)
     messages = {}
   }
 

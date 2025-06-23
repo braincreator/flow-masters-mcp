@@ -21,6 +21,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NotificationPreferencesProps {
   onSave: (preferences: NotificationPreferences) => Promise<void>
   initialPreferences?: NotificationPreferences
@@ -213,7 +214,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({
         duration: 3000,
       })
     } catch (error) {
-      console.error('Failed to save notification preferences:', error)
+      logError('Failed to save notification preferences:', error)
       toast({
         description: t('saveError'),
         variant: 'destructive',

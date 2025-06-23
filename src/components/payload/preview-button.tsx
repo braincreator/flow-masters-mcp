@@ -5,6 +5,7 @@ import { Button, Modal } from '@payloadcms/ui'
 // import { useField } from 'payload/components/forms' // Removed
 import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Стили для модального окна и iframe
 // const modalStyles: React.CSSProperties = { // Removed
 //   position: 'fixed',
@@ -70,7 +71,7 @@ export const PreviewButton: React.FC = () => {
       const html = await response.text()
       setPreviewHtml(html)
     } catch (error: any) {
-      console.error('Ошибка предпросмотра:', error)
+      logError('Ошибка предпросмотра:', error)
       setPreviewHtml(`<p style="color: red;">Ошибка загрузки предпросмотра: ${error.message}</p>`)
     } finally {
       setIsLoading(false)

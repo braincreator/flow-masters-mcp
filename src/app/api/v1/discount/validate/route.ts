@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
       discountCode: code,
     })
   } catch (error) {
-    console.error('Error validating discount:', error)
+    logError('Error validating discount:', error)
     return NextResponse.json(
       { error: 'Failed to validate discount' },
       { status: 500 }

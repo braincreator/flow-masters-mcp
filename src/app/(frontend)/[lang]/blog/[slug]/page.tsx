@@ -9,6 +9,7 @@ import { isLexicalContent } from '@/utilities/lexicalParser'
 import { BlogPostPageClient } from './page-client'
 import type { Post, Category, Tag, Media, User } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Импортируем стили
 import '@/components/blog/blog-page.css'
 
@@ -88,8 +89,8 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
         }),
       )
     } catch (error) {
-      console.error('Error loading blog post data:', error)
-      console.error('Error details:', {
+      logError('Error loading blog post data:', error)
+      logError('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       })
@@ -103,7 +104,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
         try {
           processedContent = JSON.parse(processedContent)
         } catch (e) {
-          console.log('[Blog] Контент не является JSON строкой')
+          logDebug('[Blog] Контент не является JSON строкой')
         }
       }
     }
@@ -193,7 +194,7 @@ export default async function BlogPostPage({ params: paramsPromise }: Props) {
       />
     )
   } catch (error) {
-    console.error('Error rendering blog post page:', error)
+    logError('Error rendering blog post page:', error)
     throw error
   }
 }
@@ -274,7 +275,7 @@ export async function generateMetadata({
       },
     }
   } catch (error) {
-    console.error(`Error generating metadata for blog post ${slug}:`, error)
+    logError(`Error generating metadata for blog post ${slug}:`, error)
     return {
       title: 'Error',
       description: 'Failed to load post metadata',

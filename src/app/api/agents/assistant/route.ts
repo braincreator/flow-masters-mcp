@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { FlowMastersAssistantAgent } from '@/lib/agents/implementations/assistant-agent'
 import type { AgentRequest } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const assistantAgent = new FlowMastersAssistantAgent()
 
 /**
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Assistant agent error:', error)
+    logError('Assistant agent error:', error)
     return NextResponse.json(
       { 
         success: false,

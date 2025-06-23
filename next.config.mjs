@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import createNextIntlPlugin from 'next-intl/plugin'
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
+import bundleAnalyzer from '@next/bundle-analyzer'
 
 // Получаем пути к модулям
 const getModulePath = (pkg) => {
@@ -414,5 +415,8 @@ const nextConfig = {
 }
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts')
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
 
-export default withNextIntl(withPayload(nextConfig))
+export default withBundleAnalyzer(withNextIntl(withPayload(nextConfig)))

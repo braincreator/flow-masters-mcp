@@ -17,6 +17,7 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import AnimateInView from '@/components/AnimateInView'
 import ServicePrice from '@/components/services/ServicePrice'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export default function ServiceBookPage() {
   const params = useParams()
   const t = useTranslations('Services')
@@ -44,7 +45,7 @@ export default function ServiceBookPage() {
 
         setService(data.docs[0])
       } catch (err) {
-        console.error('Error fetching service:', err)
+        logError('Error fetching service:', err)
         setError(err instanceof Error ? err.message : 'Failed to load service')
       } finally {
         setLoading(false)
@@ -103,7 +104,7 @@ export default function ServiceBookPage() {
   const serviceTypeLabel = t(`serviceTypes.${service.serviceType}`) || service.serviceType
 
   // Логирование для отладки
-  console.log('Full service data on book page:', JSON.stringify(service, null, 2))
+  logDebug('Full service data on book page:', JSON.stringify(service, null, 2))
 
   if (!service.id) {
     return (

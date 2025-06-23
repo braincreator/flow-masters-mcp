@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getProviderService } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z.object({
   provider: z.enum([
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       data: models,
     })
   } catch (error) {
-    console.error('Error fetching AI models:', error)
+    logError('Error fetching AI models:', error)
     return NextResponse.json(
       {
         success: false,

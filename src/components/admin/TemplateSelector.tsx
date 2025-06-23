@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loader2, AlertCircle, CheckCircle2, File } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Template {
   id: string
   name: string
@@ -48,7 +49,7 @@ export function TemplateSelector({ onSelectTemplate }: TemplateSelectorProps) {
       
       setTemplates(result.data)
     } catch (error) {
-      console.error('Error fetching templates:', error)
+      logError('Error fetching templates:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setLoading(false)
@@ -63,7 +64,7 @@ export function TemplateSelector({ onSelectTemplate }: TemplateSelectorProps) {
       // Передаем результат родительскому компоненту
       onSelectTemplate(jsonString)
     } catch (error) {
-      console.error('Error selecting template:', error)
+      logError('Error selecting template:', error)
       setError('Ошибка при выборе шаблона')
     }
   }

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define types for blog posts
 export interface BlogPost {
   id: string
@@ -143,7 +144,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
           setReadingHistory(JSON.parse(storedHistory))
         }
       } catch (err) {
-        console.error('Error loading blog data from localStorage:', err)
+        logError('Error loading blog data from localStorage:', err)
       }
     }
   }, [])
@@ -200,7 +201,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
           setFeaturedPost((prev) => prev || data.docs[0])
         }
       } catch (err) {
-        console.error('Error fetching blog posts:', err)
+        logError('Error fetching blog posts:', err)
         setError(err instanceof Error ? err.message : 'An error occurred while fetching posts')
       } finally {
         setIsLoading(false)
@@ -232,7 +233,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
 
         return post
       } catch (err) {
-        console.error(`Error fetching blog post with slug "${slug}":`, err)
+        logError(`Error fetching blog post with slug "${slug}":`, err)
         setError(err instanceof Error ? err.message : 'An error occurred while fetching the post')
         return null
       } finally {
@@ -260,7 +261,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
       const data = await blogApi.searchPosts(query)
       setSearchResults(data.docs || [])
     } catch (err) {
-      console.error('Error searching blog posts:', err)
+      logError('Error searching blog posts:', err)
       setSearchError(err instanceof Error ? err.message : 'An error occurred while searching')
     } finally {
       setIsSearching(false)
@@ -280,7 +281,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
       const data = await blogApi.getComments(postId)
       setComments(data.comments || [])
     } catch (err) {
-      console.error('Error fetching comments:', err)
+      logError('Error fetching comments:', err)
       setCommentError(
         err instanceof Error ? err.message : 'An error occurred while loading comments',
       )
@@ -294,7 +295,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
     async (postId: string, content: string, parentCommentId?: string) => {
       // Only handle authenticated users - guest comments should use the fallback in CommentForm
       if (!user || !user.email) {
-        console.warn(
+        logWarn(
           'BlogProvider.addComment called without authenticated user - falling back to CommentForm direct API call',
         )
         return false
@@ -320,7 +321,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
         await fetchComments(postId)
         return true
       } catch (err) {
-        console.error('Error adding comment:', err)
+        logError('Error adding comment:', err)
         setCommentError(
           err instanceof Error ? err.message : 'An error occurred while submitting your comment',
         )
@@ -360,7 +361,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
       // Track post view using the API utility function
       await blogApi.trackPostView(slug)
     } catch (err) {
-      console.error('Error tracking post view:', err)
+      logError('Error tracking post view:', err)
     }
   }, [])
 
@@ -373,7 +374,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
       // Track reading progress using the API utility function
       await blogApi.trackMetrics(postId, 'progress', { progress })
     } catch (err) {
-      console.error('Error tracking reading progress:', err)
+      logError('Error tracking reading progress:', err)
     }
   }, [])
 
@@ -386,7 +387,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
       // Track share using the API utility function
       await blogApi.trackMetrics(postId, 'share', { platform })
     } catch (err) {
-      console.error(`Error tracking share on ${platform}:`, err)
+      logError(`Error tracking share on ${platform}:`, err)
     }
   }, [])
 

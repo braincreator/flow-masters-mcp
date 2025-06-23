@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseCertificateProps {
   course: any
   completionDate: string
@@ -53,7 +54,7 @@ export function CourseCertificate({
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`${course.title.replace(/\s+/g, '_')}_Certificate.pdf`)
     } catch (error) {
-      console.error('Error generating PDF:', error)
+      logError('Error generating PDF:', error)
     }
   }
 

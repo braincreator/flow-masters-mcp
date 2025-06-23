@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getLandingGeneratorService, LandingGeneratorOptions } from '@/services/landing/landingGeneratorService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z.object({
   title: z.string().min(3).max(100),
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
       data: landing,
     })
   } catch (error) {
-    console.error('Error generating landing:', error)
+    logError('Error generating landing:', error)
     return NextResponse.json(
       {
         success: false,

@@ -95,7 +95,7 @@ export class MCPClient {
 
       return await response.json()
     } catch (error) {
-      console.error('MCP client error:', error)
+      logError('MCP client error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -129,7 +129,7 @@ export class MCPClient {
 
       return await response.json()
     } catch (error) {
-      console.error('MCP proxy error:', error)
+      logError('MCP proxy error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

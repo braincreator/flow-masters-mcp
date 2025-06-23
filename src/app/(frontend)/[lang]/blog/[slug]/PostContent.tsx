@@ -5,6 +5,7 @@ import RichText from '@/components/RichText'
 import { useInView } from 'react-intersection-observer'
 import { highlightCode } from '@/utilities/highlightCode'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PostContentProps {
   content: any // This should be the rich text content from the CMS
   postId: string // Add postId to props
@@ -44,7 +45,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
           }),
         })
       } catch (error) {
-        console.error('Failed to track reading progress:', error)
+        logError('Failed to track reading progress:', error)
       }
     }
   }, [section1InView, postId])
@@ -65,7 +66,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
           }),
         })
       } catch (error) {
-        console.error('Failed to track reading progress:', error)
+        logError('Failed to track reading progress:', error)
       }
     }
   }, [section2InView, postId])
@@ -94,7 +95,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
           // Remove event listener after tracking completion once
           window.removeEventListener('scroll', handleScroll)
         } catch (error) {
-          console.error('Failed to track reading completion:', error)
+          logError('Failed to track reading completion:', error)
         }
       }
     }
@@ -110,7 +111,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
   const section2Position = contentHeight * 0.75
 
   const trackLinkClick = (url: string) => {
-    console.log('Track link click:', url)
+    logDebug('Track link click:', url)
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -118,7 +119,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
   }
 
   const trackShare = (platform: string) => {
-    console.log('Track share:', platform)
+    logDebug('Track share:', platform)
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -131,7 +132,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
     const documentHeight = document.documentElement.scrollHeight - window.innerHeight
     const scrollDepth = Math.round((scrollTop / documentHeight) * 100)
 
-    console.log(`Track scroll depth: ${scrollDepth}%`)
+    logDebug(`Track scroll depth: ${scrollDepth}%`)
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

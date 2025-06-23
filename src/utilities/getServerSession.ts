@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { getPayloadClient } from './getPayloadClient'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Тип для данных пользователя в сессии
 export interface SessionUser {
   id: string
@@ -56,11 +57,11 @@ export async function getServerSession(): Promise<Session | null> {
         token: payloadToken,
       }
     } catch (verifyError) {
-      console.error('Token verification failed:', verifyError)
+      logError('Token verification failed:', verifyError)
       return { user: null }
     }
   } catch (error) {
-    console.error('Error getting server session:', error)
+    logError('Error getting server session:', error)
     return { user: null }
   }
 }

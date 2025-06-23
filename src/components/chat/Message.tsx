@@ -28,6 +28,7 @@ import {
 import { useTranslations } from 'next-intl'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type MessageProps = {
   message: MessageType
   showTimestamp?: boolean
@@ -60,7 +61,7 @@ const Message: React.FC<MessageProps> = ({
             message.timestamp instanceof Date ? message.timestamp : new Date(message.timestamp)
           return format(date, 'HH:mm', { locale: dateLocale })
         } catch (e) {
-          console.warn('Invalid timestamp format:', message.timestamp)
+          logWarn('Invalid timestamp format:', message.timestamp)
           return format(new Date(), 'HH:mm', { locale: dateLocale })
         }
       })()

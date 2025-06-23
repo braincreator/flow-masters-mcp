@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface User {
   id: string
   name: string
@@ -92,7 +93,7 @@ export function PrivacySettings({ user, locale: _locale }: PrivacySettingsProps)
       form.reset()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('changePassword.errorMessage'))
-      console.error('Error updating password:', err)
+      logError('Error updating password:', err)
     } finally {
       setIsLoading(false)
     }

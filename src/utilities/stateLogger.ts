@@ -246,19 +246,19 @@ class StateLogger {
       console.groupCollapsed(`%c${message}`, logColor)
       
       if (prevState !== undefined) {
-        console.log('%cPrevious State:', 'color: #9e9e9e; font-weight: bold', prevState)
+        logDebug('%cPrevious State:', 'color: #9e9e9e; font-weight: bold', prevState)
       }
       
       if (nextState !== undefined) {
-        console.log('%cNext State:', 'color: #4caf50; font-weight: bold', nextState)
+        logDebug('%cNext State:', 'color: #4caf50; font-weight: bold', nextState)
       }
       
       if (payload !== undefined) {
-        console.log('%cPayload:', 'color: #ff9800; font-weight: bold', payload)
+        logDebug('%cPayload:', 'color: #ff9800; font-weight: bold', payload)
       }
       
       if (metadata !== undefined) {
-        console.log('%cMetadata:', 'color: #9c27b0; font-weight: bold', metadata)
+        logDebug('%cMetadata:', 'color: #9c27b0; font-weight: bold', metadata)
       }
       
       console.groupEnd()
@@ -281,6 +281,7 @@ export const stateLogger = StateLogger.getInstance()
 
 import { useCallback, useMemo } from 'react';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Create a hook for logging state changes in React components
 export function useStateLogger(componentName: string) {
   const trace = useCallback(

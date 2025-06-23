@@ -1,4 +1,5 @@
 import React from 'react';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { Lesson } from '@/payload-types'; // Assuming Lesson type includes layout
 import RichText from '@/components/RichText'; // For 'content' blocks or rich text within blocks
 import { VideoMedia } from '@/components/Media/VideoMedia'; // For video blocks
@@ -99,7 +100,7 @@ const LessonContentDisplay: React.FC<LessonContentDisplayProps> = ({ layout }) =
 
 
           default:
-            console.warn(`Unsupported lesson block type: ${block.blockType}`);
+            logWarn(`Unsupported lesson block type: ${block.blockType}`);
             return <div key={key}>[Unsupported Block: {block.blockType}]</div>;
         }
       })}

@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Рассчитывает схожесть документов на основе указанного ID
  */
@@ -65,7 +66,7 @@ export async function calculateSimilarity(collection: string, documentId: string
       score: calculateSimilarityScore(document, doc),
     }))
   } catch (error) {
-    console.error('Error calculating similarity:', error)
+    logError('Error calculating similarity:', error)
     return []
   }
 }

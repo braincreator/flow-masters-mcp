@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { formatDate } from '@/utilities/formatDate'
 import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Types
 interface FeedbackItem {
   id: string
@@ -90,7 +91,7 @@ const FeedbackTabContent: React.FC<FeedbackTabContentProps> = (props) => {
 
       setIsFeedbackFormOpen(false)
     } catch (error) {
-      console.error('Error submitting feedback:', error)
+      logError('Error submitting feedback:', error)
     }
   }
 

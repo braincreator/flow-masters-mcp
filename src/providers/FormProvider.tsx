@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, React
 import { z } from 'zod'
 import { toast } from 'sonner'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define form field types
 export type FieldValue = string | number | boolean | null | undefined | string[] | number[]
 export type FieldValues = Record<string, FieldValue>
@@ -449,7 +450,7 @@ export function FormProvider<T extends FieldValues = FieldValues>({
         try {
           await onSubmit(formState.values)
         } catch (error) {
-          console.error('Form submission error:', error)
+          logError('Form submission error:', error)
 
           if (error instanceof z.ZodError) {
             const errors: FieldErrors = {}

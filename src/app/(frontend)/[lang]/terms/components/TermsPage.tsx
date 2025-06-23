@@ -10,6 +10,7 @@ import { FileText, Users, Cog, ShoppingCart, Clock, Mail, AlertCircle } from 'lu
 import { RichText } from '@/components/RichText'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Helper function to get localized value
 const getLocalizedValue = (
   value: string | { ru?: string; en?: string } | undefined,
@@ -64,7 +65,7 @@ export function TermsPage({ termsPages }: TermsPageProps) {
     .sort((a, b) => (a.order || 0) - (b.order || 0))
 
   // Debug logging
-  console.log('TermsPage received:', {
+  logDebug('TermsPage received:', {
     totalPages: termsPages.length,
     activePages: activeTabs.length,
     pages: activeTabs.map((p) => ({

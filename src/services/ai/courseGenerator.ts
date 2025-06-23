@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import JSON5 from 'json5'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // We'll use OpenAI client for DeepSeek as they have compatible APIs
 
 export interface AIProvider {
@@ -734,7 +735,7 @@ ${additionalInstructions}
       let responseText = result.response.text()
 
       // Для Google API делаем специальную обработку
-      console.log('Raw Google API response:', responseText)
+      logDebug('Raw Google API response:', responseText)
 
       // Ищем JSON в ответе с помощью регулярного выражения
       const jsonRegex = /\{[\s\S]*\}/
@@ -743,7 +744,7 @@ ${additionalInstructions}
       if (jsonMatch) {
         // Если нашли JSON, используем только его
         responseText = jsonMatch[0]
-        console.log('Extracted JSON from Google API response:', responseText)
+        logDebug('Extracted JSON from Google API response:', responseText)
       }
 
       response = { choices: [{ message: { content: responseText } }] }
@@ -813,7 +814,7 @@ ${additionalInstructions}
     }
 
     // Обрабатываем ответ для всех провайдеров
-    console.log('Raw content:', content)
+    logDebug('Raw content:', content)
 
     // Ищем JSON в ответе с помощью регулярного выражения
     const jsonRegex = /\{[\s\S]*?\}/g
@@ -828,8 +829,8 @@ ${additionalInstructions}
         }
       }
 
-      console.log('Found JSON objects:', jsonMatches.length)
-      console.log('Using largest JSON:', largestJson.substring(0, 100) + '...')
+      logDebug('Found JSON objects:', jsonMatches.length)
+      logDebug('Using largest JSON:', largestJson.substring(0, 100) + '...')
 
       // Используем самый большой JSON-объект
       // content = largestJson
@@ -935,7 +936,7 @@ ${additionalInstructions}
     // Например: "type": "video] -> "type": "video"]
     // content = content.replace(/"([^"]+)"\s*:\s*"([^"]+)\s*\]/g, '"$1": "$2"]')
 
-    console.log('Processed content:', content)
+    logDebug('Processed content:', content)
 
     // Парсим JSON и проверяем структуру
     try {
@@ -945,12 +946,12 @@ ${additionalInstructions}
         // Сначала пробуем стандартный JSON.parse
         parsedContent = JSON.parse(content) as CourseStructure
       } catch (jsonError) {
-        console.warn('Standard JSON parsing failed, trying JSON5:', jsonError)
+        logWarn('Standard JSON parsing failed, trying JSON5:', jsonError)
         // Если стандартный парсинг не удался, используем JSON5
         try {
           parsedContent = JSON5.parse(content) as CourseStructure
         } catch (json5Error) {
-          console.error('JSON5 parsing also failed:', json5Error)
+          logError('JSON5 parsing also failed:', json5Error)
           // Если и JSON5 не смог парсить, пробуем исправить еще некоторые распространенные ошибки
 
           // Исправляем некорректные символы переноса строки в строках
@@ -964,7 +965,7 @@ ${additionalInstructions}
           try {
             parsedContent = JSON5.parse(content) as CourseStructure
           } catch (finalError) {
-            console.error('All parsing attempts failed. Final content:', content)
+            logError('All parsing attempts failed. Final content:', content)
             throw finalError
           }
         }
@@ -977,13 +978,13 @@ ${additionalInstructions}
 
       return parsedContent
     } catch (error) {
-      console.error('Error parsing AI response:', error)
+      logError('Error parsing AI response:', error)
       throw new Error(
         `Не удалось парсить JSON ответ от ${provider}: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     }
   } catch (error) {
-    console.error('Error generating course:', error)
+    logError('Error generating course:', error)
     throw error
   }
 }

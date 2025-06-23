@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Category, Tag, User } from '@/payload-types'; // Assuming payload-types is generated
 import { DEFAULT_LOCALE, type Locale } from '@/constants';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface BlogFiltersProps {
   onFilterChange: (filters: { categories?: string[], tags?: string[], authors?: string[] }) => void;
   initialFilters?: { categories?: string[], tags?: string[], authors?: string[] };
@@ -55,7 +56,7 @@ const BlogFilters: React.FC<BlogFiltersProps> = ({ onFilterChange, initialFilter
         }
 
       } catch (error) {
-        console.error('Error fetching filter options and counts:', error);
+        logError('Error fetching filter options and counts:', error);
       }
     };
 

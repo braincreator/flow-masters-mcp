@@ -5,6 +5,7 @@
 
 import { lexicalToHtml } from './lexicalToHtml'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Replace placeholders in a string with values from data object
  * Supports nested properties with dot notation (e.g., {{user.name}})
@@ -172,7 +173,7 @@ export function richTextToHtml(richText: any): string {
   try {
     return lexicalToHtml(richText)
   } catch (error) {
-    console.error('Error converting rich text to HTML:', error)
+    logError('Error converting rich text to HTML:', error)
     return ''
   }
 }

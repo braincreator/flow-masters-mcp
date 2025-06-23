@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload/types'
 import { IntegrationEvents } from '@/types/events'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Коллекция для управления подписками на события
  * Позволяет настраивать автоматические уведомления и интеграции
@@ -392,7 +393,7 @@ export const EventSubscriptions: CollectionConfig = {
     afterChange: [
       async ({ doc, operation, req }) => {
         // Логируем изменения подписок
-        console.log(`Event subscription ${operation}: ${doc.name}`)
+        logDebug(`Event subscription ${operation}: ${doc.name}`)
 
         // Отправляем тестовое уведомление при создании (опционально)
         if (operation === 'create' && process.env.NODE_ENV !== 'production') {
@@ -400,10 +401,10 @@ export const EventSubscriptions: CollectionConfig = {
             const eventService = req.payload.services?.getEventService()
             if (eventService) {
               await eventService.testSubscription(doc.id, 'system.test')
-              console.log(`Test notification sent for subscription: ${doc.name}`)
+              logDebug(`Test notification sent for subscription: ${doc.name}`)
             }
           } catch (error) {
-            console.warn('Failed to send test notification:', error)
+            logWarn('Failed to send test notification:', error)
           }
         }
       },

@@ -8,6 +8,7 @@ import { getServerSession } from '@/utilities/auth/getServerSession'
 import { Button } from '@/components/ui/button'
 import ServiceBookingFlow from '@/components/services/ServiceBookingFlow'
 import { Container } from '@/components/ui/container'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type Locale = 'en' | 'ru'
 
 type ResumeBookingPageProps = {
@@ -104,7 +105,7 @@ export default async function ResumeBookingPage({
       </Container>
     )
   } catch (error) {
-    console.error('Error fetching order:', error)
+    logError('Error fetching order:', error)
     return notFound()
   }
 }

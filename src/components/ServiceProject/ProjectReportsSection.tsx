@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useNotification } from '@/hooks/useNotification'
 import { formatDate } from '@/utilities/formatDate'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Report {
   id: string
   title: string
@@ -86,7 +87,7 @@ export default function ProjectReportsSection({ projectId, isAdmin }: ProjectRep
         
         setReports(responseData.data)
       } catch (error) {
-        console.error('Error fetching project reports:', error)
+        logError('Error fetching project reports:', error)
         showNotification('error', t('errorFetchingReports', { defaultValue: 'Error fetching project reports' }))
       } finally {
         setIsLoading(false)
@@ -113,7 +114,7 @@ export default function ProjectReportsSection({ projectId, isAdmin }: ProjectRep
       
       setSelectedReport(responseData.data)
     } catch (error) {
-      console.error('Error fetching report details:', error)
+      logError('Error fetching report details:', error)
       showNotification('error', t('errorFetchingReportDetails', { defaultValue: 'Error fetching report details' }))
     } finally {
       setIsLoading(false)
@@ -145,7 +146,7 @@ export default function ProjectReportsSection({ projectId, isAdmin }: ProjectRep
         alert('PDF download would start here in the real implementation')
       }
     } catch (error) {
-      console.error('Error exporting report:', error)
+      logError('Error exporting report:', error)
       showNotification('error', t('errorExportingReport', { defaultValue: 'Error exporting report' }))
     }
   }

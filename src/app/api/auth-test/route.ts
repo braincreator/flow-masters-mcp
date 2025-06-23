@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     // Get session using getServerSession
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error('Error checking payload auth:', error)
+      logError('Error checking payload auth:', error)
     }
 
     return NextResponse.json({
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       ),
     })
   } catch (error) {
-    console.error('Auth test error:', error)
+    logError('Auth test error:', error)
     return NextResponse.json({ error: 'Auth test failed' }, { status: 500 })
   }
 }

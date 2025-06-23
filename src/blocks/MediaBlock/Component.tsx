@@ -4,6 +4,7 @@ import React from 'react'
 import { Media } from '@/components/Media'
 import { MediaResource } from '@/components/Media/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для проверки валидности медиа
 const isValidMedia = (media: any): media is MediaResource => {
   if (media === null || media === undefined) return false
@@ -67,7 +68,7 @@ export const MediaBlock: React.FC<{
 }) => {
   // Логируем информацию о медиа в режиме разработки
   if (process.env.NODE_ENV === 'development') {
-    console.log('MediaBlock component received:', {
+    logDebug('MediaBlock component received:', {
       mediaType: media ? typeof media : null,
       mediaIsArray: Array.isArray(media),
       mediaValue: media
@@ -101,7 +102,7 @@ export const MediaBlock: React.FC<{
       }
     }
   } catch (error) {
-    console.error('Error extracting caption:', error)
+    logError('Error extracting caption:', error)
   }
 
   return (

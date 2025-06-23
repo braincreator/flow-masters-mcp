@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface GeoPoint {
   lat: number
   lon: number
@@ -58,7 +59,7 @@ export async function geoSearch(geoQuery: string): Promise<GeoSearchResult[]> {
       .filter((result) => result.distance <= radius)
       .sort((a, b) => a.distance - b.distance)
   } catch (error) {
-    console.error('Geo search error:', error)
+    logError('Geo search error:', error)
     return []
   }
 }

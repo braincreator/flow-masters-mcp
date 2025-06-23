@@ -9,6 +9,7 @@ import { cn } from '@/utilities/ui'
 import { type Locale } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define localized texts for each supported locale
 const LOCALIZED_TEXTS = {
   en: {
@@ -83,7 +84,7 @@ export function FavoriteButton({
     const productName = getProductTitle()
     const currentState = isFavorite(productId)
 
-    console.log('[FavoriteButton] Toggling favorite for productId:', productId)
+    logDebug('[FavoriteButton] Toggling favorite for productId:', productId)
 
     await toggle(productId)
 

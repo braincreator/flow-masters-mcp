@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -56,7 +57,7 @@ export async function POST(
     
     return NextResponse.json(progress)
   } catch (error) {
-    console.error('Error marking lesson as viewed:', error)
+    logError('Error marking lesson as viewed:', error)
     return NextResponse.json(
       { error: 'Failed to mark lesson as viewed' },
       { status: 500 }

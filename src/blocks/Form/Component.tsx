@@ -12,6 +12,7 @@ import { FormTrackingContext } from './FieldWrapper'
 
 import { fields } from './fields'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export type FormBlockType = {
   blockName?: string
   blockType?: 'formBlock'
@@ -69,7 +70,7 @@ export const FormBlock: React.FC<
       }
     },
     onError: (error) => {
-      console.error('Form block submission error:', error)
+      logError('Form block submission error:', error)
     },
   })
 
@@ -85,7 +86,7 @@ export const FormBlock: React.FC<
         // Отправляем форму с полными метаданными
         await submitForm(formData)
       } catch (err) {
-        console.error('Form submission error:', err)
+        logError('Form submission error:', err)
       }
     },
     [submitForm],

@@ -11,6 +11,7 @@ import { FAQSection } from './components/FAQSection'
 import { ResourcesSection } from './components/ResourcesSection'
 import { ContactSupport } from './components/ContactSupport'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface HelpCenterProps {
   locale: string
 }
@@ -23,7 +24,7 @@ export function HelpCenter({ locale }: HelpCenterProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // In a real app, this would trigger a search through the help content
-    console.log('Searching for:', searchQuery)
+    logDebug('Searching for:', searchQuery)
   }
 
   return (

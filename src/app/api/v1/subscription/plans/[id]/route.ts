@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { getLocale } from '@/utilities/i18n'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const planId = params.id
@@ -54,7 +55,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return errorResponse('Subscription plan not found', 404)
     }
   } catch (error) {
-    console.error('Error fetching subscription plan:', error)
+    logError('Error fetching subscription plan:', error)
     return errorResponse('Failed to fetch subscription plan', 500)
   }
 }
@@ -142,7 +143,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       message: 'Subscription plan deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting subscription plan:', error)
+    logError('Error deleting subscription plan:', error)
     return errorResponse('Failed to delete subscription plan', 500)
   }
 }

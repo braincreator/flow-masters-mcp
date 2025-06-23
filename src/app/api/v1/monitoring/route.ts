@@ -4,6 +4,7 @@ import { metricsCollector } from '@/utilities/payload/metrics'
 import { headers } from 'next/headers'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET() {
   try {
     const detailedMetrics = connectionMonitor.getDetailedMetrics()
@@ -16,7 +17,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('Monitoring API error:', error)
+    logError('Monitoring API error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

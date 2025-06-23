@@ -12,6 +12,7 @@ import React, {
 import { useAuth } from '@/hooks/useAuth'
 import { useError } from '@/providers/ErrorProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define feature flag types
 export interface FeatureFlag {
   id: string
@@ -157,7 +158,7 @@ export function FeatureFlagsProvider({
             }
           }
         } catch (cacheErr) {
-          console.error('Failed to load cached feature flags:', cacheErr)
+          logError('Failed to load cached feature flags:', cacheErr)
         }
       }
     } finally {
@@ -367,7 +368,7 @@ export function FeatureFlagsProvider({
           fetchFlags()
         }
       } catch (err) {
-        console.error('Failed to load cached feature flags:', err)
+        logError('Failed to load cached feature flags:', err)
         fetchFlags()
       }
     } else {

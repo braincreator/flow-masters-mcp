@@ -3,6 +3,7 @@ import path from 'path'
 import payload from 'payload'
 import { addProductsAndUpdateHeader } from '../endpoints/seed/add-products'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables from .env file
 dotenv.config({
   path: path.resolve(__dirname, '../../.env'),
@@ -27,11 +28,11 @@ const init = async () => {
       req,
     })
 
-    console.log('✨ Successfully added test products')
+    logDebug('✨ Successfully added test products')
     
     process.exit(0)
   } catch (error) {
-    console.error('Error seeding products:', error)
+    logError('Error seeding products:', error)
     process.exit(1)
   }
 }

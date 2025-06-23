@@ -11,6 +11,7 @@ import { motion } from 'framer-motion'
 import { Star, Clock, Users, TrendingUp } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface RecommendedCoursesProps {
   userId: string
   locale: string
@@ -58,7 +59,7 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
         if (!response.ok) {
           // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
           if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
-            console.warn('Authentication error, refreshing auth and retrying...')
+            logWarn('Authentication error, refreshing auth and retrying...')
             await refreshAuth()
             return fetchCourses(true) // Retry with the retryAfterRefresh flag set to true
           }
@@ -72,12 +73,12 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
         } else {
           // If no courses or error, set empty array
           setCourses([])
-          console.warn('No recommended courses found or invalid response format:', result)
+          logWarn('No recommended courses found or invalid response format:', result)
         }
 
         setIsLoading(false)
       } catch (error) {
-        console.error('Error fetching recommended courses:', error)
+        logError('Error fetching recommended courses:', error)
         setCourses([])
         setIsLoading(false)
       }

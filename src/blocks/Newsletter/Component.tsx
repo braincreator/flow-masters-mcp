@@ -12,6 +12,7 @@ import { Loader2, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 import { RichText } from '@/components/RichText'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type NewsletterStyle = 'default' | 'card' | 'minimal'
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -63,7 +64,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
           setIsSubscribed(true)
         }
       } catch (e) {
-        console.error('Error parsing subscription status from localStorage', e)
+        logError('Error parsing subscription status from localStorage', e)
         localStorage.removeItem(storageKey)
       }
     }
@@ -81,7 +82,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     setError('')
 
     try {
-      console.log(`Subscribing ${email}... (Simulated API Call)`)
+      logDebug(`Subscribing ${email}... (Simulated API Call)`)
       await new Promise((resolve) => setTimeout(resolve, 1000))
       setStatus('success')
 
@@ -96,12 +97,12 @@ export const Newsletter: React.FC<NewsletterProps> = ({
         )
         setIsSubscribed(true)
       } catch (storageError) {
-        console.error('Failed to save subscription status to localStorage', storageError)
+        logError('Failed to save subscription status to localStorage', storageError)
       }
     } catch (err) {
       setStatus('error')
       setError(t('errors.submitError'))
-      console.error('Subscription error:', err)
+      logError('Subscription error:', err)
     }
   }
 

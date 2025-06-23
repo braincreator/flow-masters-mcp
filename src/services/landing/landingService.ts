@@ -2,6 +2,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
 import type { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для преобразования массива в строку
 function arrayToString(value: any): string {
   if (Array.isArray(value)) {
@@ -200,7 +201,7 @@ export class LandingService {
 
       return landing
     } catch (error) {
-      console.error('Error updating landing:', error)
+      logError('Error updating landing:', error)
       throw error
     }
   }
@@ -343,7 +344,7 @@ export class LandingService {
 
       return landing
     } catch (error) {
-      console.error('Error creating landing:', error)
+      logError('Error creating landing:', error)
       throw error
     }
   }

@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ContactFormData = {
   name: string
   email: string
@@ -72,7 +73,7 @@ export function ContactForm() {
       })
       reset() // Очистить форму после успешной отправки
     } catch (error) {
-      console.error('Ошибка отправки формы:', error)
+      logError('Ошибка отправки формы:', error)
 
       // Трекаем ошибку отправки
       formAnalytics.handleFormSubmit(false)

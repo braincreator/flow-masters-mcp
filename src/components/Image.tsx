@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { formatImageSize } from '@/lib/utils'
 import AnimateInView from '@/components/AnimateInView'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ImageProps extends Omit<NextImageProps, 'width' | 'height' | 'fill'> {
   width?: number // Made optional
   height?: number // Made optional
@@ -52,7 +53,7 @@ export const Image = ({
   } else {
     // This case should ideally be prevented by prop validation or clear usage guidelines.
     // If not `fill`, then `width` and `height` are expected.
-    console.warn(
+    logWarn(
       'Image component: `fill` is not true, and `width` or `height` are missing or invalid. Rendering with 0x0.',
     )
     nextImageFinalProps.width = 0

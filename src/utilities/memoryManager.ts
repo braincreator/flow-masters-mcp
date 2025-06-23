@@ -5,6 +5,7 @@
 import { LRUCache } from 'lru-cache'
 import { EventEmitter } from 'events'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface MemoryStats {
   heapUsed: number
   heapTotal: number
@@ -62,7 +63,7 @@ class MemoryManager extends EventEmitter {
     if (this.isRunning) return
     
     if (typeof process === 'undefined') {
-      console.warn('Memory manager can only run on the server side')
+      logWarn('Memory manager can only run on the server side')
       return
     }
     
@@ -74,7 +75,7 @@ class MemoryManager extends EventEmitter {
     }, this.checkIntervalMs)
     
     if (this.debug) {
-      console.log(`Memory manager started. Checking every ${this.checkIntervalMs / 1000} seconds`)
+      logDebug(`Memory manager started. Checking every ${this.checkIntervalMs / 1000} seconds`)
     }
   }
 
@@ -92,7 +93,7 @@ class MemoryManager extends EventEmitter {
     this.isRunning = false
     
     if (this.debug) {
-      console.log('Memory manager stopped')
+      logDebug('Memory manager stopped')
     }
   }
 
@@ -116,7 +117,7 @@ class MemoryManager extends EventEmitter {
     }
     
     if (this.debug) {
-      console.log(`Cleared ${totalCleared} items from ${this.caches.size} caches`)
+      logDebug(`Cleared ${totalCleared} items from ${this.caches.size} caches`)
     }
     
     // Принудительный вызов сборщика мусора, если доступен
@@ -147,7 +148,7 @@ class MemoryManager extends EventEmitter {
     }
     
     if (this.debug) {
-      console.log(`Partially cleared ${totalCleared} items from ${this.caches.size} caches`)
+      logDebug(`Partially cleared ${totalCleared} items from ${this.caches.size} caches`)
     }
     
     // Принудительный вызов сборщика мусора, если доступен
@@ -178,7 +179,7 @@ class MemoryManager extends EventEmitter {
       this.emit('stats', stats)
       
       if (this.debug) {
-        console.log(`Memory usage: ${Math.round(stats.usage * 100)}% (${this.formatBytes(stats.heapUsed)} / ${this.formatBytes(stats.heapTotal)})`)
+        logDebug(`Memory usage: ${Math.round(stats.usage * 100)}% (${this.formatBytes(stats.heapUsed)} / ${this.formatBytes(stats.heapTotal)})`)
       }
       
       // Проверяем пороги использования памяти
@@ -187,7 +188,7 @@ class MemoryManager extends EventEmitter {
         
         if (this.autoCleanup) {
           if (this.debug) {
-            console.warn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%. Clearing all caches...`)
+            logWarn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%. Clearing all caches...`)
           }
           this.clearAllCaches()
         }
@@ -196,13 +197,13 @@ class MemoryManager extends EventEmitter {
         
         if (this.autoCleanup) {
           if (this.debug) {
-            console.warn(`High memory usage detected: ${Math.round(stats.usage * 100)}%. Partial cleanup...`)
+            logWarn(`High memory usage detected: ${Math.round(stats.usage * 100)}%. Partial cleanup...`)
           }
           this.partialCleanup(0.5) // Удаляем 50% при высоком потреблении
         }
       }
     } catch (error) {
-      console.error('Error checking memory usage:', error)
+      logError('Error checking memory usage:', error)
     }
   }
 

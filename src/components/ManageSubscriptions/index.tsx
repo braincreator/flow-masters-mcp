@@ -19,6 +19,7 @@ import {
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ManageSubscriptionsProps {
   userId: string
   locale?: string
@@ -74,7 +75,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
                   }
                 }
               } catch (error) {
-                console.error(`Error fetching plan for subscription ${subscription.id}:`, error)
+                logError(`Error fetching plan for subscription ${subscription.id}:`, error)
               }
               return subscription
             }),
@@ -85,7 +86,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
           throw new Error(data.error || t('errorFetchGeneric'))
         }
       } catch (error) {
-        console.error('Error fetching user subscriptions:', error)
+        logError('Error fetching user subscriptions:', error)
         setError(error instanceof Error ? error.message : t('errorFetchGeneric'))
       } finally {
         setLoading(false)
@@ -195,7 +196,7 @@ export default function ManageSubscriptions({ userId, locale = 'ru' }: ManageSub
 
       setSubscriptions(updatedSubscriptions)
     } catch (error) {
-      console.error(`Error ${actionType} subscription:`, error)
+      logError(`Error ${actionType} subscription:`, error)
       setError(error instanceof Error ? error.message : t('errorActionGeneric'))
     } finally {
       setProcessingSubscriptionId(null)

@@ -6,6 +6,7 @@ import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea'; // Assuming Textarea component exists
 import { Label } from '@/components/ui/label';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Assuming a StarRatingInput component exists or can be created
 // import StarRatingInput from '@/components/ui/StarRatingInput';
 
@@ -49,7 +50,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ courseId, enrollmentId, onRevie
         onReviewSubmitted(); // Trigger callback if provided
       }
     } catch (err: any) {
-      console.error('Failed to submit review:', err);
+      logError('Failed to submit review:', err);
       setError(err?.response?.data?.message || t('submitError'));
     } finally {
       setIsSubmitting(false);

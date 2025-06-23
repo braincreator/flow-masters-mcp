@@ -7,6 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Get the current file's directory
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -110,4 +111,4 @@ methodsToUpdate.forEach(({ methodName, templateSlug, dataParam, emailField }) =>
 // Write the updated content back to the file
 fs.writeFileSync(emailServicePath, content, 'utf8')
 
-console.log('Email methods updated successfully!')
+logDebug('Email methods updated successfully!')

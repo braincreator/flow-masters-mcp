@@ -4,6 +4,7 @@ import { getAuth } from '../../helpers/auth'
 import config from '@/payload.config'
 import { TaskItem, TaskStatus, TaskPriority } from '@/types/tasks'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 let cachedPayload = null
 
 async function getPayloadInstance() {
@@ -107,7 +108,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(taskItem)
   } catch (error) {
-    console.error('Error updating task:', error)
+    logError('Error updating task:', error)
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
   }
 }
@@ -157,7 +158,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting task:', error)
+    logError('Error deleting task:', error)
     return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
   }
 }
@@ -227,7 +228,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(taskItem)
   } catch (error) {
-    console.error('Error fetching task:', error)
+    logError('Error fetching task:', error)
     return NextResponse.json({ error: 'Failed to fetch task' }, { status: 500 })
   }
 }

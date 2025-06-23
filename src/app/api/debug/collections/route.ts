@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest) {
   try {
-    console.log('GET /api/debug/collections: Received request')
+    logDebug('GET /api/debug/collections: Received request')
 
     // Get the Payload client
     const payload = await getPayloadClient()
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
       totalCollections: collections.length,
     })
   } catch (error) {
-    console.error('Error in debug collections endpoint:', error)
+    logError('Error in debug collections endpoint:', error)
     return NextResponse.json({
       error: 'Failed to get collections',
       details: error instanceof Error ? error.message : String(error),

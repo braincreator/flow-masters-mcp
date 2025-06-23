@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useLocale } from 'next-intl'
 import { Service } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UseAIAgencyServicesOptions {
   limit?: number
 }
@@ -169,7 +170,7 @@ export function useAIAgencyServices({
       const response = await fetch(`/api/v1/services?${params}`)
 
       if (!response.ok) {
-        console.warn('Failed to fetch services from API, using fallback data')
+        logWarn('Failed to fetch services from API, using fallback data')
         // Используем fallback данные, если API недоступен
         const fallbackServices = getFallbackServices(locale).slice(0, limit)
         setServices(fallbackServices)
@@ -185,15 +186,15 @@ export function useAIAgencyServices({
 
       // Если нет услуг из API, используем fallback
       if (aiServices.length === 0) {
-        console.warn('No AI services found in API, using fallback data')
+        logWarn('No AI services found in API, using fallback data')
         const fallbackServices = getFallbackServices(locale).slice(0, limit)
         setServices(fallbackServices)
       } else {
         setServices(aiServices)
       }
     } catch (err) {
-      console.error('Error fetching AI Agency services:', err)
-      console.warn('Using fallback data due to error')
+      logError('Error fetching AI Agency services:', err)
+      logWarn('Using fallback data due to error')
       // В случае ошибки используем fallback данные
       const fallbackServices = getFallbackServices(locale).slice(0, limit)
       setServices(fallbackServices)

@@ -1,6 +1,7 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface EmailCampaignJobData {
   campaignId: string
   eventData?: {
@@ -58,7 +59,7 @@ interface EmailCampaign {
  */
 export const processEmailCampaign = async (data: EmailCampaignJobData) => {
   try {
-    console.log(`Running email campaign job for campaign ID: ${data.campaignId}`)
+    logDebug(`Running email campaign job for campaign ID: ${data.campaignId}`)
     const payload = await getPayloadClient()
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const emailService = serviceRegistry.getEmailService()
@@ -74,7 +75,7 @@ export const processEmailCampaign = async (data: EmailCampaignJobData) => {
     const campaign = campaignData
 
     if (!campaign) {
-      console.error(`Campaign with ID ${data.campaignId} not found`)
+      logError(`Campaign with ID ${data.campaignId} not found`)
       return
     }
 
@@ -269,9 +270,9 @@ export const processEmailCampaign = async (data: EmailCampaignJobData) => {
       },
     })
 
-    console.log(`Email campaign job completed for campaign ID: ${data.campaignId}`)
+    logDebug(`Email campaign job completed for campaign ID: ${data.campaignId}`)
   } catch (error) {
-    console.error('Failed to process email campaign:', error)
+    logError('Failed to process email campaign:', error)
   }
 }
 
@@ -401,14 +402,14 @@ async function getEventRelatedRecipients(
         break
 
       default:
-        console.log(`Unhandled event type: ${eventType}`)
+        logDebug(`Unhandled event type: ${eventType}`)
         break
     }
 
     // If we couldn't find any recipients or the event type is not handled
     return []
   } catch (error) {
-    console.error('Error getting event-related recipients:', error)
+    logError('Error getting event-related recipients:', error)
     return []
   }
 }
@@ -438,7 +439,7 @@ async function addCampaignLog(payload: any, campaignId: string, level: string, m
       },
     })
   } catch (error) {
-    console.error(`Failed to add log to campaign ${campaignId}:`, error)
+    logError(`Failed to add log to campaign ${campaignId}:`, error)
   }
 }
 

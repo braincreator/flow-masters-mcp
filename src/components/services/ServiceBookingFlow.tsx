@@ -17,6 +17,7 @@ import { format } from 'date-fns' // Import format function
 import { formatOrderNumberForDisplay } from '@/utilities/orderNumber' // Import order number utility
 import { Service } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define Locale type based on linter error
 export type Locale = 'en' | 'ru'
 
@@ -105,7 +106,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         setError(null)
         try {
           // Log the authentication state and user info for debugging
-          console.log('Authentication state:', {
+          logDebug('Authentication state:', {
             isAuthenticated,
             userId: user?.id,
             email: user?.email || customerEmail || prefill?.email,
@@ -146,7 +147,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
             setBookingComplete(true)
           }
         } catch (err) {
-          console.error('Error creating provisional order:', err)
+          logError('Error creating provisional order:', err)
           setError(
             err instanceof Error
               ? err.message
@@ -187,9 +188,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       // For this task, we assume the main checkout handles payment verification.
       // If payment is successful, the user might be redirected back here with an orderId.
       // In such a case, we might want to setPaymentVerified(true) based on order status.
-      console.log(
-        `ServiceBookingFlow: Order ID ${orderId} present, payment verification would happen here if re-entering flow.`,
-      )
+      logDebug(`ServiceBookingFlow: Order ID ${orderId} present, payment verification would happen here if re-entering flow.`,  )
     }
   }, [orderId, paymentVerified, skipPayment, initialOrderId])
 
@@ -220,7 +219,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       return
     }
 
-    console.log('ServiceBookingFlow: Attempting to add to cart:', {
+    logDebug('ServiceBookingFlow: Attempting to add to cart:', {
       serviceId,
       type: 'service',
       locale,
@@ -233,24 +232,24 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       // Очищаем корзину перед добавлением новой услуги, чтобы избежать конфликтов
       if (typeof emptyCart === 'function') {
         await emptyCart()
-        console.log('ServiceBookingFlow: Cart cleared before adding new service.')
+        logDebug('ServiceBookingFlow: Cart cleared before adding new service.')
       } else {
         // Этого не должно произойти, если useCart предоставляет emptyCart
-        console.warn('ServiceBookingFlow: emptyCart function is not available from useCart.')
+        logWarn('ServiceBookingFlow: emptyCart function is not available from useCart.')
       }
 
       // Последовательные шаги для гарантированного добавления в корзину
-      console.log('ServiceBookingFlow: 1. Calling addItem with params:', serviceId, 'service', 1)
+      logDebug('ServiceBookingFlow: 1. Calling addItem with params:', serviceId, 'service', 1)
       await addItem(serviceId, 'service', 1)
 
-      console.log('ServiceBookingFlow: 2. Explicitly refreshing cart')
+      logDebug('ServiceBookingFlow: 2. Explicitly refreshing cart')
       await refreshCart()
 
       // Проверка данных корзины
-      console.log('ServiceBookingFlow: 3. Waiting for state to settle')
+      logDebug('ServiceBookingFlow: 3. Waiting for state to settle')
       await new Promise((resolve) => setTimeout(resolve, 800))
 
-      console.log('ServiceBookingFlow: 4. Redirect preparation complete, redirecting to checkout')
+      logDebug('ServiceBookingFlow: 4. Redirect preparation complete, redirecting to checkout')
 
       // Сохраняем ID услуги в sessionStorage для дополнительной проверки при загрузке чекаута
       sessionStorage.setItem('last_added_service', serviceId)
@@ -263,7 +262,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       // Используем window.location для полной перезагрузки страницы
       window.location.href = `/${locale}/checkout`
     } catch (err) {
-      console.error('ServiceBookingFlow: Error adding to cart:', err)
+      logError('ServiceBookingFlow: Error adding to cart:', err)
       setError(err instanceof Error ? err.message : 'Failed to add service to cart or redirect.')
       setIsLoading(false) // Ensure loading is stopped on error
     }
@@ -341,7 +340,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
         }
         uploadedFileUrls = uploadResult.uploadedFiles // Assuming API returns URLs like { fieldName: [url1, url2] }
       } catch (err) {
-        console.error('Error uploading files:', err)
+        logError('Error uploading files:', err)
         setError(
           err instanceof Error
             ? err.message
@@ -381,7 +380,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
           setBookingComplete(true)
         }
       } catch (err) {
-        console.error('Error submitting confirmed info:', err)
+        logError('Error submitting confirmed info:', err)
         setError(
           err instanceof Error
             ? err.message
@@ -425,7 +424,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       }
       return false
     } catch (err) {
-      console.error('Error creating service project:', err)
+      logError('Error creating service project:', err)
       return false
     }
   }
@@ -450,7 +449,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
       }
       return false
     } catch (err) {
-      console.error('Error checking for service project:', err)
+      logError('Error checking for service project:', err)
       return false
     } finally {
       setIsCheckingProject(false)

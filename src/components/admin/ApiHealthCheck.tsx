@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { checkPayloadConnection } from '@/utilities/payload/auth'
 import { getServerSideURL } from '@/utilities/getURL'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface HealthStatus {
   connected: boolean
   status?: number
@@ -37,7 +38,7 @@ const ApiHealthCheck: React.FC = () => {
           setCorsStatus(corsResponse.ok ? 'ok' : 'error')
         } catch (e) {
           setCorsStatus('error')
-          console.error('CORS check failed:', e)
+          logError('CORS check failed:', e)
         }
 
         // Check auth endpoint
@@ -50,7 +51,7 @@ const ApiHealthCheck: React.FC = () => {
           setAuthStatus(authResponse.ok ? 'ok' : 'error')
         } catch (e) {
           setAuthStatus('error')
-          console.error('Auth check failed:', e)
+          logError('Auth check failed:', e)
         }
 
         // Try to fetch admin collections list
@@ -63,10 +64,10 @@ const ApiHealthCheck: React.FC = () => {
           setAdminFetchStatus(adminResponse.ok ? 'ok' : 'error')
         } catch (e) {
           setAdminFetchStatus('error')
-          console.error('Admin API check failed:', e)
+          logError('Admin API check failed:', e)
         }
       } catch (error) {
-        console.error('Health check failed:', error)
+        logError('Health check failed:', error)
         setHealthStatus({
           connected: false,
           error: error instanceof Error ? error.message : 'Unknown error',

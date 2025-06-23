@@ -2,13 +2,14 @@
 
 import { getServerSideURL } from '@/utilities/getURL'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Generates a PayloadCMS API token for client-side authentication
  */
 export async function generatePayloadToken() {
   const url = `${getServerSideURL()}/api/users/login`
 
-  console.log(`Attempting to generate token from: ${url}`)
+  logDebug(`Attempting to generate token from: ${url}`)
 
   try {
     const response = await fetch(url, {
@@ -26,7 +27,7 @@ export async function generatePayloadToken() {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text available')
-      console.error(
+      logError(
         `Failed to generate token: Status ${response.status} ${response.statusText}`,
         errorText,
       )
@@ -36,17 +37,17 @@ export async function generatePayloadToken() {
     }
 
     const data = await response.json()
-    console.log('Token generated successfully')
+    logDebug('Token generated successfully')
     return data.token
   } catch (error) {
-    console.error('Error generating PayloadCMS token:', error)
+    logError('Error generating PayloadCMS token:', error)
 
     // For debugging - log more details about the error
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      console.error(
+      logError(
         'Network error detected. This could be due to CORS issues or server unavailability.',
       )
-      console.error('Check that the server is running and properly configured for CORS.')
+      logError('Check that the server is running and properly configured for CORS.')
     }
 
     return null
@@ -79,7 +80,7 @@ export async function checkPayloadConnection() {
       data: await response.json(),
     }
   } catch (error) {
-    console.error('API connection check failed:', error)
+    logError('API connection check failed:', error)
     return {
       connected: false,
       error: error instanceof Error ? error.message : 'Unknown error',

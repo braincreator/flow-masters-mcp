@@ -8,6 +8,7 @@ import { Post, Category, Media } from '@/payload-types'
 import { BlogPost, BlogTag } from '@/types/blocks'
 import { getTranslations } from 'next-intl/server'
 import { setRequestLocale } from 'next-intl/server'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import BlogPageClient from './page.client' // Import the client component
 
 // Get properly typed params
@@ -51,16 +52,16 @@ export default async function BlogPage(props: PageParams) {
     // Ensure we have a valid server URL for Payload
     // This is critical for resolving the "Failed to fetch" error
     const serverUrl = getServerSideURL()
-    console.log(`Using server URL: ${serverUrl}`)
+    logDebug(`Using server URL: ${serverUrl}`)
 
     // Initialize PayloadCMS client with proper error handling
     let payload
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize PayloadCMS client:', error)
+      logError('Failed to initialize PayloadCMS client:', error)
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        console.error('Network error detected. Check server connectivity and CORS configuration.')
+        logError('Network error detected. Check server connectivity and CORS configuration.')
         throw new Error(
           'Database connection error: Cannot connect to Payload API. Please ensure the API server is running.',
         )
@@ -83,7 +84,7 @@ export default async function BlogPage(props: PageParams) {
         locale: locale,
       })
     } catch (error) {
-      console.error('Error fetching posts:', error)
+      logError('Error fetching posts:', error)
       throw new Error('Failed to fetch blog posts. Please try again later.')
     }
 
@@ -96,7 +97,7 @@ export default async function BlogPage(props: PageParams) {
         locale: locale,
       })
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      logError('Error fetching categories:', error)
       // Continue with empty categories
       categories = { docs: [] }
     }
@@ -121,7 +122,7 @@ export default async function BlogPage(props: PageParams) {
             count: postsInCategory.totalDocs,
           }
         } catch (error) {
-          console.error(`Error fetching posts for category ${cat.id}:`, error)
+          logError(`Error fetching posts for category ${cat.id}:`, error)
           return {
             id: cat.id,
             title: cat.title,
@@ -161,7 +162,7 @@ export default async function BlogPage(props: PageParams) {
               count: postsWithTag.totalDocs,
             }
           } catch (error) {
-            console.error(`Error fetching posts for tag ${tagItem.id}:`, error)
+            logError(`Error fetching posts for tag ${tagItem.id}:`, error)
             return {
               id: tagItem.id,
               title: tagItem.title || '',
@@ -172,7 +173,7 @@ export default async function BlogPage(props: PageParams) {
         }),
       )
     } catch (err) {
-      console.error('Error fetching tags:', err)
+      logError('Error fetching tags:', err)
       // Continue with empty tags array
     }
 
@@ -194,7 +195,7 @@ export default async function BlogPage(props: PageParams) {
           }
         }
       } catch (err) {
-        console.error('Error processing hero image:', err)
+        logError('Error processing hero image:', err)
       }
 
       return {
@@ -260,7 +261,7 @@ export default async function BlogPage(props: PageParams) {
       />
     )
   } catch (error) {
-    console.error('Error loading blog page:', error)
+    logError('Error loading blog page:', error)
     return notFound()
   }
 }

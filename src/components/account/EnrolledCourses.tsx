@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface EnrolledCoursesProps {
   userId: string
   locale: string
@@ -50,7 +51,7 @@ export function EnrolledCourses({ userId, locale }: EnrolledCoursesProps) {
         const data = await response.json()
         setCourses(data.courses || [])
       } catch (err) {
-        console.error('Error fetching enrolled courses:', err)
+        logError('Error fetching enrolled courses:', err)
         setError(t('errorLoadingCourses'))
       } finally {
         setIsLoading(false)

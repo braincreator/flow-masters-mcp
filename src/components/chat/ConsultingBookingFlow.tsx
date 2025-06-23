@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import CalendlyBooking from './CalendlyBooking'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ConsultingBookingFlowProps = {
   username: string
   eventType: string
@@ -52,7 +53,7 @@ export const ConsultingBookingFlow: React.FC<ConsultingBookingFlowProps> = ({
             setStep('booking')
           }
         } catch (err) {
-          console.error('Error verifying payment:', err)
+          logError('Error verifying payment:', err)
         }
       }
 

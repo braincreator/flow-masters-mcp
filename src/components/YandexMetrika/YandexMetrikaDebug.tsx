@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export function YandexMetrikaDebug() {
   const [debugInfo, setDebugInfo] = useState<any>({})
 
@@ -28,7 +29,7 @@ export function YandexMetrikaDebug() {
       }
       
       setDebugInfo(info)
-      console.log('Yandex Metrika Debug Info:', info)
+      logDebug('Yandex Metrika Debug Info:', info)
     }
 
     checkEnvironment()

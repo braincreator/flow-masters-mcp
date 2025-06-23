@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { getLocale as getNextIntlLocale } from 'next-intl/server'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Get locale from request
  * @param request Request object or undefined to get from headers()
@@ -56,7 +57,7 @@ export function getLocale(request?: Request): string {
     // Default to Russian
     return 'ru'
   } catch (error) {
-    console.error('Error getting locale:', error)
+    logError('Error getting locale:', error)
     return 'ru'
   }
 }

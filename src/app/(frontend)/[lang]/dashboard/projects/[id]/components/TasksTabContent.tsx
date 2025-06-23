@@ -41,6 +41,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProjectDetails {
   id: string
   name: string
@@ -150,7 +151,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
         setTasksData(data)
       }
     } catch (error) {
-      console.error('Failed to fetch tasks:', error)
+      logError('Failed to fetch tasks:', error)
     } finally {
       setIsRefreshing(false)
     }
@@ -224,7 +225,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
           throw new Error('Failed to update task')
         }
       } catch (error) {
-        console.error('Failed to update task:', error)
+        logError('Failed to update task:', error)
         // Refresh from server to ensure consistency
         await fetchTasks()
         throw error
@@ -274,7 +275,7 @@ const TasksTabContent: React.FC<TasksTabContentProps> = ({
           throw new Error('Failed to delete task')
         }
       } catch (error) {
-        console.error('Failed to delete task:', error)
+        logError('Failed to delete task:', error)
         // Refresh from server to ensure consistency
         await fetchTasks()
         throw error

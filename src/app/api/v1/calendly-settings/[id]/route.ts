@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const payload = await getPayloadClient()
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         },
       })
     } catch (updateError) {
-      console.error('Ошибка при обновлении даты последнего использования:', updateError)
+      logError('Ошибка при обновлении даты последнего использования:', updateError)
       // Продолжаем выполнение, так как это не критичная ошибка
     }
 
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       },
     })
   } catch (error) {
-    console.error('Ошибка при получении настроек Calendly:', error)
+    logError('Ошибка при получении настроек Calendly:', error)
     return NextResponse.json(
       {
         status: 'error',

@@ -6,6 +6,7 @@ import { ProductCard } from '@/components/ProductCard/index'
 import { useTranslations } from '@/hooks/useTranslations'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Определяем EnhancedProduct для совместимости с ProductCard
 interface EnhancedProduct extends Product {
   productType: 'physical' | 'digital' | 'subscription' | 'service' | 'access'
@@ -50,7 +51,7 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
         setRelatedProducts(enhancedProducts)
         setHasProducts(enhancedProducts.length > 0)
       } catch (error) {
-        console.error('Error fetching related products:', error)
+        logError('Error fetching related products:', error)
         setRelatedProducts([])
         setHasProducts(false)
       } finally {
@@ -63,7 +64,7 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
 
   const handleAddToCart = (product: EnhancedProduct) => {
     // Here you would add logic to add the product to cart
-    console.log('Adding to cart:', product.title)
+    logDebug('Adding to cart:', product.title)
   }
 
   // Не отображаем ничего во время загрузки или если нет товаров

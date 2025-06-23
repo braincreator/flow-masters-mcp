@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PostViewRequest {
   slug: string
 }
@@ -12,15 +13,15 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as PostViewRequest
     postSlug = body.slug // Store slug for error logging
-    console.log('[Post View API] Received request for slug:', postSlug)
+    logDebug('[Post View API] Received request for slug:', postSlug)
 
     if (!postSlug) {
-      console.error('[Post View API] Missing slug in request')
+      logError('[Post View API] Missing slug in request')
       return NextResponse.json({ error: 'Post slug is required' }, { status: 400 })
     }
 
     const payload = await getPayloadClient()
-    console.log('[Post View API] Payload client initialized')
+    logDebug('[Post View API] Payload client initialized')
 
     const posts = await payload.find({
       collection: 'posts',
@@ -32,19 +33,17 @@ export async function POST(req: NextRequest) {
       depth: 0, // We only need the ID and title
     })
 
-    console.log(
-      '[Post View API] Post search result:',
-      posts.docs.length > 0 ? 'found' : 'not found',
+    logDebug('[Post View API] Post search result:', posts.docs.length > 0 ? 'found' : 'not found',
     )
 
     if (!posts.docs.length || !posts.docs[0].id) {
-      console.error('[Post View API] Post not found or missing ID for slug:', postSlug)
+      logError('[Post View API] Post not found or missing ID for slug:', postSlug)
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
     const post = posts.docs[0]
     postId = post.id // Store postId for error logging
-    console.log('[Post View API] Found post ID:', postId)
+    logDebug('[Post View API] Found post ID:', postId)
 
     const metricsResult = await payload.find({
       collection: 'post-metrics',
@@ -56,9 +55,7 @@ export async function POST(req: NextRequest) {
     })
 
     const now = new Date().toISOString()
-    console.log(
-      '[Post View API] Found existing metrics:',
-      metricsResult.docs.length > 0 ? 'yes' : 'no',
+    logDebug('[Post View API] Found existing metrics:', metricsResult.docs.length > 0 ? 'yes' : 'no',
     )
 
     if (metricsResult.docs.length > 0 && metricsResult.docs[0].id) {
@@ -74,7 +71,7 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      console.log('[Post View API] Updated view count for post ID:', postId)
+      logDebug('[Post View API] Updated view count for post ID:', postId)
       return NextResponse.json({ success: true, message: 'View count updated' })
     } else {
       // Check if post title exists, provide fallback
@@ -96,11 +93,11 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      console.log('[Post View API] Created new metrics for post ID:', postId)
+      logDebug('[Post View API] Created new metrics for post ID:', postId)
       return NextResponse.json({ success: true, message: 'Metrics created with view' })
     }
   } catch (error) {
-    console.error(
+    logError(
       `[Post View API] Error tracking post view for slug '${postSlug || 'unknown'}' (Post ID: ${postId || 'unknown'}):`,
       error,
     )

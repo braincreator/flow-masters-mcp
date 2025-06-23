@@ -18,10 +18,10 @@ export function fixJson(content: string): string {
     JSON.parse(content)
     return content // Если JSON валидный, возвращаем как есть
   } catch (error) {
-    console.log('JSON is invalid, attempting to fix...')
+    logDebug('JSON is invalid, attempting to fix...')
 
     // Логируем первые 100 символов контента для отладки
-    console.log('Content preview:', content.substring(0, 100) + (content.length > 100 ? '...' : ''))
+    logDebug('Content preview:', content.substring(0, 100) + (content.length > 100 ? '...' : ''))
 
     // Серия преобразований для исправления распространенных ошибок в JSON
 
@@ -144,20 +144,20 @@ export function fixJson(content: string): string {
     // Проверяем, удалось ли исправить JSON
     try {
       JSON.parse(content)
-      console.log('JSON fixed successfully!')
+      logDebug('JSON fixed successfully!')
       return content
     } catch (jsonError) {
-      console.warn('Standard JSON parsing still failed, trying JSON5...')
+      logWarn('Standard JSON parsing still failed, trying JSON5...')
 
       try {
         // Если стандартный JSON.parse не работает, пробуем использовать JSON5
         // Для этого нужно установить пакет json5: npm install json5
         const JSON5 = require('json5')
         JSON5.parse(content)
-        console.log('JSON5 parsing successful!')
+        logDebug('JSON5 parsing successful!')
         return content
       } catch (json5Error) {
-        console.error('JSON5 parsing also failed, applying additional fixes...')
+        logError('JSON5 parsing also failed, applying additional fixes...')
 
         // Дополнительные исправления для особо сложных случаев
 
@@ -188,12 +188,12 @@ export function fixJson(content: string): string {
         try {
           const JSON5 = require('json5')
           JSON5.parse(content)
-          console.log('JSON5 parsing successful after additional fixes!')
+          logDebug('JSON5 parsing successful after additional fixes!')
           return content
         } catch (finalError) {
-          console.error('All parsing attempts failed. Original content:', originalContent)
-          console.error('Final content after fixes:', content)
-          console.error('Final error:', finalError)
+          logError('All parsing attempts failed. Original content:', originalContent)
+          logError('Final content after fixes:', content)
+          logError('Final error:', finalError)
 
           // Возвращаем исправленный контент, даже если он все еще не является валидным JSON
           // Это позволит вызывающему коду решить, что делать дальше
@@ -213,13 +213,13 @@ export function fixJson(content: string): string {
 export function parseJsonSafely<T>(content: string, defaultValue?: T): T | null {
   // Проверяем, является ли контент строкой
   if (typeof content !== 'string') {
-    console.warn('parseJsonSafely: content is not a string', content)
+    logWarn('parseJsonSafely: content is not a string', content)
     return defaultValue || null
   }
 
   // Проверяем, не пустая ли строка
   if (!content.trim()) {
-    console.warn('parseJsonSafely: content is empty')
+    logWarn('parseJsonSafely: content is empty')
     return defaultValue || null
   }
 
@@ -227,7 +227,7 @@ export function parseJsonSafely<T>(content: string, defaultValue?: T): T | null 
     // Сначала пробуем стандартный JSON.parse
     return JSON.parse(content) as T
   } catch (jsonError) {
-    console.log('Standard JSON parsing failed, attempting to fix...')
+    logDebug('Standard JSON parsing failed, attempting to fix...')
     // Если не удалось, пробуем исправить JSON
     const fixedContent = fixJson(content)
 
@@ -240,9 +240,9 @@ export function parseJsonSafely<T>(content: string, defaultValue?: T): T | null 
         const JSON5 = require('json5')
         return JSON5.parse(fixedContent) as T
       } catch (json5Error) {
-        console.error('Failed to parse JSON even after fixes:', json5Error)
-        console.error('Original content:', content)
-        console.error('Fixed content:', fixedContent)
+        logError('Failed to parse JSON even after fixes:', json5Error)
+        logError('Original content:', content)
+        logError('Fixed content:', fixedContent)
         return defaultValue || null
       }
     }

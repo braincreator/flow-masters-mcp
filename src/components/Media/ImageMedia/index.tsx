@@ -5,6 +5,7 @@ import NextImage from 'next/image'
 import { cn } from '@/utilities/ui'
 import type { Props } from '../types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для проверки валидности URL
 const isValidURL = (url: string): boolean => {
   try {
@@ -67,7 +68,7 @@ const ImageMedia: React.FC<Props> = ({
   // Если URL невалидный или произошла ошибка загрузки, показываем заглушку
   if (!imageSrc || !isValidURL(imageSrc) || error) {
     if (process.env.NODE_ENV === 'development' && imageSrc) {
-      console.warn('Invalid image URL or loading error:', imageSrc)
+      logWarn('Invalid image URL or loading error:', imageSrc)
     }
 
     return (

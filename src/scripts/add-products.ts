@@ -7,6 +7,7 @@ import payloadConfig from '@/payload-config'
 import { addProductsAndUpdateHeader } from '@/utilities/products'
 import { logger } from '@/utilities/logger'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Get the directory name properly in ESM
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,9 +16,9 @@ const envPath = path.resolve(__dirname, '../../.env')
 dotenv.config({ path: envPath })
 
 // Debug logging to verify environment variables
-console.log('Environment variables loaded from:', envPath)
-console.log('PAYLOAD_SECRET:', process.env.PAYLOAD_SECRET)
-console.log('DATABASE_URI:', process.env.DATABASE_URI)
+logDebug('Environment variables loaded from:', envPath)
+logDebug('PAYLOAD_SECRET:', process.env.PAYLOAD_SECRET)
+logDebug('DATABASE_URI:', process.env.DATABASE_URI)
 
 if (!process.env.PAYLOAD_SECRET) {
   throw new Error(`PAYLOAD_SECRET not found in environment.
@@ -49,13 +50,13 @@ const init = async () => {
       req,
     })
 
-    console.log('Successfully added products and updated header')
+    logDebug('Successfully added products and updated header')
 
     if (payload && typeof payload.db?.destroy === 'function') {
       await payload.db.destroy()
     }
   } catch (error) {
-    console.error('Error details:', error)
+    logError('Error details:', error)
     process.exit(1)
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const userId = params.id
@@ -46,7 +47,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       updatedAt: cartSession.updatedAt,
     })
   } catch (error) {
-    console.error('Error fetching user cart:', error)
+    logError('Error fetching user cart:', error)
     return NextResponse.json({ error: 'Failed to fetch cart' }, { status: 500 })
   }
 }

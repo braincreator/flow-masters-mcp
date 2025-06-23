@@ -10,6 +10,7 @@ import {
   trackPageVisit
 } from '@/utilities/formMetadata'
 import { getUserTracker } from '@/utilities/userTracking'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { 
   FormMetadata, 
   FormContext, 
@@ -153,7 +154,7 @@ export function useEnhancedFormSubmission(config: UseEnhancedFormSubmissionConfi
           metadata.location_info = { ...metadata.location_info, ...locationInfo }
         }
       } catch (error) {
-        console.warn('Could not get location:', error)
+        logWarn('Could not get location:', error)
       }
     }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import Script from 'next/script'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Pixel {
   id: string
   name: string
@@ -53,10 +54,10 @@ export default function PixelManager({
         const data = await response.json()
         setPixels(data.pixels || [])
       } else {
-        console.warn('Failed to load pixels:', response.statusText)
+        logWarn('Failed to load pixels:', response.statusText)
       }
     } catch (error) {
-      console.error('Failed to load pixels:', error)
+      logError('Failed to load pixels:', error)
     } finally {
       setLoading(false)
     }
@@ -251,7 +252,7 @@ export default function PixelManager({
       case 'custom':
         return renderCustomPixel(pixel)
       default:
-        console.warn(`Unsupported pixel type: ${pixel.type}`)
+        logWarn(`Unsupported pixel type: ${pixel.type}`)
         return null
     }
   }

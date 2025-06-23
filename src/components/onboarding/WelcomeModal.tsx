@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth'; // Use the actual auth hook
 import { useTranslations } from '@/hooks/useTranslations';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { updateUserProfile } from '@/lib/api/users'; // Placeholder for API call
 
 interface WelcomeModalProps {
@@ -39,7 +40,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
     //     await updateUserProfile(user.id, { hasCompletedOnboarding: true }); // Example API call
     //   }
     // } catch (error) {
-    //   console.error("Failed to update user onboarding status:", error);
+    //   logError("Failed to update user onboarding status:", error);
     //   // Handle error appropriately, maybe show a toast notification
     // }
     onClose(); // Call the passed onClose handler

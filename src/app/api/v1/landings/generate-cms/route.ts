@@ -4,6 +4,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
 import { parseHTML } from '@/utilities/parseHTML'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Интерфейс для параметров запроса
 interface GenerateLandingParams {
   focus: string
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
     const params = (await req.json()) as GenerateLandingParams
     const { focus, utp, title, slug, llmProvider, llmModel, apiKey: userApiKey } = params
 
-    console.log('Received data:', {
+    logDebug('Received data:', {
       focus,
       utp,
       title,
@@ -259,7 +260,7 @@ export async function POST(req: NextRequest) {
           ],
         }
       } catch (googleError) {
-        console.error('Google API error:', googleError)
+        logError('Google API error:', googleError)
         throw new Error(
           `Google API error: ${googleError instanceof Error ? googleError.message : String(googleError)}`,
         )
@@ -290,7 +291,7 @@ export async function POST(req: NextRequest) {
           response_format: { type: 'json_object' },
         })
       } catch (openaiError) {
-        console.error('OpenAI API error:', openaiError)
+        logError('OpenAI API error:', openaiError)
         throw new Error(
           `OpenAI API error: ${openaiError instanceof Error ? openaiError.message : String(openaiError)}`,
         )
@@ -303,14 +304,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Парсим JSON ответ
-    console.log('Raw response content:', landingPageContent.substring(0, 200) + '...')
+    logDebug('Raw response content:', landingPageContent.substring(0, 200) + '...')
 
     // Проверяем, не является ли ответ HTML документом
     if (
       landingPageContent.trim().startsWith('<!DOCTYPE') ||
       landingPageContent.trim().startsWith('<html')
     ) {
-      console.error('Received HTML instead of JSON')
+      logError('Received HTML instead of JSON')
       throw new Error(
         'Получен HTML вместо JSON. Пожалуйста, попробуйте еще раз или выберите другую модель.',
       )
@@ -321,14 +322,14 @@ export async function POST(req: NextRequest) {
     const jsonMatch = landingPageContent.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       jsonContent = jsonMatch[0]
-      console.log('Extracted JSON content:', jsonContent.substring(0, 200) + '...')
+      logDebug('Extracted JSON content:', jsonContent.substring(0, 200) + '...')
     }
 
     let landingData
     try {
       landingData = JSON.parse(jsonContent)
     } catch (parseError) {
-      console.error('Error parsing JSON:', parseError)
+      logError('Error parsing JSON:', parseError)
       // Пытаемся исправить JSON и распарсить снова
       try {
         // Удаляем комментарии и исправляем распространенные ошибки в JSON
@@ -341,10 +342,10 @@ export async function POST(req: NextRequest) {
           .replace(/\\/g, '\\\\') // Экранируем обратные слеши
           .replace(/\n/g, '\\n') // Экранируем переносы строк
 
-        console.log('Fixed JSON:', fixedJson.substring(0, 200) + '...')
+        logDebug('Fixed JSON:', fixedJson.substring(0, 200) + '...')
         landingData = JSON.parse(fixedJson)
       } catch (fixError) {
-        console.error('Error parsing fixed JSON:', fixError)
+        logError('Error parsing fixed JSON:', fixError)
 
         // Если не удалось парсить JSON, создаем базовую структуру
         landingData = {
@@ -441,7 +442,7 @@ export async function POST(req: NextRequest) {
           ],
         }
 
-        console.log('Using default landing structure')
+        logDebug('Using default landing structure')
       }
     }
 
@@ -487,7 +488,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error generating landing page:', error)
+    logError('Error generating landing page:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 },

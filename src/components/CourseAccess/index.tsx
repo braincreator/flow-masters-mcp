@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseAccessProps {
   courseId: string
   productId?: string
@@ -50,7 +51,7 @@ export const CourseAccess: React.FC<CourseAccessProps> = ({
         const data = await response.json()
         setHasAccess(data.hasAccess)
       } catch (err) {
-        console.error('Error checking course access:', err)
+        logError('Error checking course access:', err)
         setError('Failed to check course access')
         setHasAccess(false)
       } finally {

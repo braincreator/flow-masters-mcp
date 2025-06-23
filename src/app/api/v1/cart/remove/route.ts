@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // DELETE /api/v1/cart/remove - удаление товара или услуги из корзины
 export async function DELETE(req: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function DELETE(req: NextRequest) {
     const actualItemId = itemId || productId
     const actualItemType = itemId ? itemType : 'product'
 
-    console.log('Cart remove request received:', {
+    logDebug('Cart remove request received:', {
       productId,
       itemId,
       itemType,
@@ -117,7 +118,7 @@ export async function DELETE(req: NextRequest) {
 
     return Response.json(updatedCart, { status: 200 })
   } catch (error) {
-    console.error('Error removing cart item:', error)
+    logError('Error removing cart item:', error)
     return Response.json(
       {
         message: 'Failed to remove cart item',

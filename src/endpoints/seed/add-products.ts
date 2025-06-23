@@ -1,6 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 import { testProducts } from './test-products'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const addProductsAndUpdateHeader = async ({
   payload,
   req,
@@ -95,17 +96,17 @@ export const addProductsAndUpdateHeader = async ({
 }
 
 export async function fixProductCategories(payload: Payload) {
-  console.log('Starting product category migration...')
+  logDebug('Starting product category migration...')
 
   // Check if categories collection exists and create a default product category if needed
   try {
     const collections = await payload.find({ collection: 'collections' })
     if (!collections.docs.find((col) => col.slug === 'categories')) {
-      console.error('Categories collection does not exist!')
+      logError('Categories collection does not exist!')
       return
     }
   } catch (error) {
-    console.error('Error checking collections:', error)
+    logError('Error checking collections:', error)
   }
 
   // First, get a valid product category to use as a fallback
@@ -119,10 +120,10 @@ export async function fixProductCategories(payload: Payload) {
     limit: 100,
   })
 
-  console.log(`Found ${productCategories.totalDocs} product categories`)
+  logDebug(`Found ${productCategories.totalDocs} product categories`)
 
   if (!productCategories.docs.length) {
-    console.log('No product categories found. Creating a default one...')
+    logDebug('No product categories found. Creating a default one...')
 
     try {
       const defaultCategory = await payload.create({
@@ -134,27 +135,27 @@ export async function fixProductCategories(payload: Payload) {
         },
       })
 
-      console.log(`Created default product category: ${defaultCategory.id}`)
+      logDebug(`Created default product category: ${defaultCategory.id}`)
 
       const fallbackCategory = defaultCategory.id
 
       // Update all products with the new fallback category
       await updateAllProductsWithCategory(payload, fallbackCategory)
 
-      console.log('Completed product category migration with new default category')
+      logDebug('Completed product category migration with new default category')
       return
     } catch (error) {
-      console.error('Failed to create default product category:', error)
+      logError('Failed to create default product category:', error)
       return
     }
   }
 
   const fallbackCategory = productCategories.docs[0].id
-  console.log(`Using fallback category: ${fallbackCategory}`)
+  logDebug(`Using fallback category: ${fallbackCategory}`)
 
   await updateAllProductsWithCategory(payload, fallbackCategory)
 
-  console.log('Completed product category migration')
+  logDebug('Completed product category migration')
 }
 
 // Helper function to update all products with a valid category
@@ -165,7 +166,7 @@ async function updateAllProductsWithCategory(payload: Payload, fallbackCategoryI
     limit: 250,
   })
 
-  console.log(`Checking ${allProducts.totalDocs} products...`)
+  logDebug(`Checking ${allProducts.totalDocs} products...`)
 
   let updatedCount = 0
   let validCount = 0
@@ -186,18 +187,16 @@ async function updateAllProductsWithCategory(payload: Payload, fallbackCategoryI
           })
 
           if (!category) {
-            console.log(`Product ${product.id}: Category ${product.category} not found`)
+            logDebug(`Product ${product.id}: Category ${product.category} not found`)
             needsUpdate = true
           } else if (category.categoryType !== 'product') {
-            console.log(
-              `Product ${product.id}: Category ${product.category} is not a product category`,
-            )
+            logDebug(`Product ${product.id}: Category ${product.category} is not a product category`,  )
             needsUpdate = true
           } else {
             validCount++
           }
         } catch (error) {
-          console.error(`Error checking product ${product.id} category:`, error)
+          logError(`Error checking product ${product.id} category:`, error)
           needsUpdate = true
         }
       }
@@ -210,14 +209,14 @@ async function updateAllProductsWithCategory(payload: Payload, fallbackCategoryI
             category: fallbackCategoryId,
           },
         })
-        console.log(`Fixed product: ${product.title || product.id}`)
+        logDebug(`Fixed product: ${product.title || product.id}`)
         updatedCount++
       }
     } catch (error) {
-      console.error(`Failed to process product ${product.id}:`, error)
+      logError(`Failed to process product ${product.id}:`, error)
     }
   }
 
-  console.log(`${validCount} products already had valid categories`)
-  console.log(`Updated ${updatedCount} products with the fallback category`)
+  logDebug(`${validCount} products already had valid categories`)
+  logDebug(`Updated ${updatedCount} products with the fallback category`)
 }

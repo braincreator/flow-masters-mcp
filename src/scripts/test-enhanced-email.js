@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables
 dotenv.config()
 
@@ -16,7 +17,7 @@ async function sendTestEmail() {
   let payload = null
 
   try {
-    console.log('Starting email test using enhanced EmailService...')
+    logDebug('Starting email test using enhanced EmailService...')
 
     // Import the Payload config
     const { default: payloadConfig } = await import('../payload.config.ts')
@@ -32,7 +33,7 @@ async function sendTestEmail() {
       return module.default
     })
 
-    console.log('Connected to Payload CMS')
+    logDebug('Connected to Payload CMS')
 
     // Import the ServiceRegistry
     const { ServiceRegistry } = await import('../services/service.registry.js')
@@ -41,10 +42,10 @@ async function sendTestEmail() {
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const emailService = serviceRegistry.getEmailService()
 
-    console.log('Email service initialized')
+    logDebug('Email service initialized')
 
     // Test welcome email
-    console.log(`Sending welcome email to ${TEST_EMAIL}...`)
+    logDebug(`Sending welcome email to ${TEST_EMAIL}...`)
     const welcomeResult = await emailService.sendWelcomeEmail({
       email: TEST_EMAIL,
       name: 'Test User',
@@ -55,7 +56,7 @@ async function sendTestEmail() {
     console.log(`Welcome email result: ${welcomeResult ? 'Success' : 'Failed'}`)
 
     // Test course enrollment email
-    console.log(`Sending course enrollment email to ${TEST_EMAIL}...`)
+    logDebug(`Sending course enrollment email to ${TEST_EMAIL}...`)
     const enrollmentResult = await emailService.sendCourseEnrollmentEmail({
       userName: 'Test User',
       email: TEST_EMAIL,
@@ -69,7 +70,7 @@ async function sendTestEmail() {
     console.log(`Course enrollment email result: ${enrollmentResult ? 'Success' : 'Failed'}`)
 
     // Test using template slug directly
-    console.log(`Sending email using template slug to ${TEST_EMAIL}...`)
+    logDebug(`Sending email using template slug to ${TEST_EMAIL}...`)
     const templateResult = await emailService.sendTemplateEmail(
       'course-completion',
       TEST_EMAIL,
@@ -87,16 +88,16 @@ async function sendTestEmail() {
 
     console.log(`Template email result: ${templateResult ? 'Success' : 'Failed'}`)
 
-    console.log('Email template tests completed')
+    logDebug('Email template tests completed')
 
     return true
   } catch (error) {
-    console.error('Error running tests:', error)
+    logError('Error running tests:', error)
     return false
   } finally {
     // Cleanup
     if (payload) {
-      console.log('Closing Payload connection')
+      logDebug('Closing Payload connection')
       await payload.disconnect()
     }
   }
@@ -109,6 +110,6 @@ sendTestEmail()
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Test script failed:', error)
+    logError('Test script failed:', error)
     process.exit(1)
   })

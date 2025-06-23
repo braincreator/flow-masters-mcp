@@ -19,6 +19,7 @@ import LandingPreview from '@/components/admin/LandingPreview'
 import { useAIProviders } from '@/hooks/useAIProviders'
 import { AIProvider } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface LandingOptions {
   focus: 'leads' | 'sales' | 'awareness' | 'engagement'
   utp?: string
@@ -87,7 +88,7 @@ export default function LandingGeneratorPage() {
       setIsLocalLoading(true)
       setError(null)
 
-      console.log('Загружаем модели для провайдера:', selectedProvider)
+      logDebug('Загружаем модели для провайдера:', selectedProvider)
 
       // Запрашиваем список моделей напрямую
       let url = `/api/v1/ai/providers/models?provider=${selectedProvider}`
@@ -96,20 +97,20 @@ export default function LandingGeneratorPage() {
       if (apiKey) {
         // Добавляем API ключ в запрос независимо от источника
         url += `&apiKey=${encodeURIComponent(apiKey)}`
-        console.log('Adding API key to request, source:', apiKeySource)
+        logDebug('Adding API key to request, source:', apiKeySource)
       } else {
-        console.log('No API key available, source:', apiKeySource)
+        logDebug('No API key available, source:', apiKeySource)
       }
 
-      console.log('Запрашиваем модели по URL:', url)
+      logDebug('Запрашиваем модели по URL:', url)
 
       const response = await fetch(url)
       const data = await response.json()
 
-      console.log('Полученный ответ:', data)
+      logDebug('Полученный ответ:', data)
 
       if (data.success) {
-        console.log('Список моделей от сервера:', data.data)
+        logDebug('Список моделей от сервера:', data.data)
         setLocalModels(data.data)
 
         // Если есть модели, выбираем первую по умолчанию
@@ -120,12 +121,12 @@ export default function LandingGeneratorPage() {
         setSuccess('Список моделей обновлен')
         setTimeout(() => setSuccess(null), 3000) // Скрываем сообщение через 3 секунды
       } else {
-        console.error('Ошибка при получении моделей:', data.error)
+        logError('Ошибка при получении моделей:', data.error)
         setError(data.error || 'Ошибка загрузки моделей')
         setLocalModels([])
       }
     } catch (err) {
-      console.error('Error loading models:', err)
+      logError('Error loading models:', err)
       setError('Ошибка загрузки моделей. Пожалуйста, попробуйте еще раз.')
       setLocalModels([])
     } finally {
@@ -153,10 +154,10 @@ export default function LandingGeneratorPage() {
           const data = await response.json()
 
           if (data.success && data.hasKey) {
-            console.log('Found stored API key for provider:', selectedProvider)
+            logDebug('Found stored API key for provider:', selectedProvider)
           }
         } catch (err) {
-          console.error('Error checking stored API key:', err)
+          logError('Error checking stored API key:', err)
         }
       }
 
@@ -242,7 +243,7 @@ export default function LandingGeneratorPage() {
       } catch (fetchError) {
         if (fetchError instanceof SyntaxError) {
           // Ошибка парсинга JSON
-          console.error('JSON parsing error:', fetchError)
+          logError('JSON parsing error:', fetchError)
           throw new Error(
             'Ошибка парсинга ответа. Пожалуйста, попробуйте еще раз или выберите другую модель.',
           )
@@ -250,7 +251,7 @@ export default function LandingGeneratorPage() {
         throw fetchError
       }
     } catch (err) {
-      console.error('Generation error:', err)
+      logError('Generation error:', err)
       setError(err instanceof Error ? err.message : 'Произошла ошибка при генерации лендинга')
     } finally {
       setLoading(false)
@@ -430,17 +431,17 @@ export default function LandingGeneratorPage() {
                             setError(null)
                             setSuccess(null)
 
-                            console.log('Проверяем API ключ для провайдера:', selectedProvider)
+                            logDebug('Проверяем API ключ для провайдера:', selectedProvider)
 
                             // Проверяем валидность ключа
                             const isValid = await validateApiKey(apiKey)
-                            console.log('Результат проверки ключа:', isValid)
+                            logDebug('Результат проверки ключа:', isValid)
 
                             if (isValid) {
                               // Сохраняем ключ
-                              console.log('Сохраняем API ключ...')
+                              logDebug('Сохраняем API ключ...')
                               const saved = await saveApiKey(apiKey)
-                              console.log('Результат сохранения ключа:', saved)
+                              logDebug('Результат сохранения ключа:', saved)
 
                               if (saved) {
                                 setApiKeySource('stored')
@@ -454,7 +455,7 @@ export default function LandingGeneratorPage() {
                               setError('Неверный API ключ')
                             }
                           } catch (err) {
-                            console.error('Ошибка при сохранении API ключа:', err)
+                            logError('Ошибка при сохранении API ключа:', err)
                             setError(
                               err instanceof Error
                                 ? err.message
@@ -496,11 +497,11 @@ export default function LandingGeneratorPage() {
                               setError(null)
                               setSuccess(null)
 
-                              console.log('Удаляем API ключ для провайдера:', selectedProvider)
+                              logDebug('Удаляем API ключ для провайдера:', selectedProvider)
 
                               // Удаляем ключ
                               const deleted = await deleteApiKey()
-                              console.log('Результат удаления ключа:', deleted)
+                              logDebug('Результат удаления ключа:', deleted)
 
                               if (deleted) {
                                 setApiKeySource('env')
@@ -511,7 +512,7 @@ export default function LandingGeneratorPage() {
                                 setError('Ошибка удаления ключа')
                               }
                             } catch (err) {
-                              console.error('Ошибка при удалении API ключа:', err)
+                              logError('Ошибка при удалении API ключа:', err)
                               setError(
                                 err instanceof Error
                                   ? err.message

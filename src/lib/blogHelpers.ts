@@ -5,6 +5,7 @@
 import { format, parseISO } from 'date-fns'
 import { HeadingItem } from '@/components/blog/TableOfContents'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Format a date string into a human-readable format
  * @param dateString The date string to format
@@ -18,7 +19,7 @@ export function formatDate(dateString: string, formatPattern = 'MMM d, yyyy'): s
     const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString)
     return format(date, formatPattern)
   } catch (error) {
-    console.error('Error formatting date:', error)
+    logError('Error formatting date:', error)
     return dateString
   }
 }
@@ -230,7 +231,7 @@ export async function trackPostView(postId: string): Promise<void> {
       }),
     })
   } catch (error) {
-    console.error('Failed to track post view:', error)
+    logError('Failed to track post view:', error)
   }
 }
 
@@ -250,7 +251,7 @@ export function formatBlogDate(date: string | Date, locale: string = 'en'): stri
       hour12: false, // Use 24-hour format if preferred
     }).format(dateObj)
   } catch (error) {
-    console.error('Error formatting date:', error)
+    logError('Error formatting date:', error)
     // Fallback to a simpler format in case of error
     return dateObj.toLocaleDateString(locale)
   }
@@ -268,6 +269,6 @@ export const sendMetric = async (type: string, postId: string) => {
       }),
     })
   } catch (error) {
-    console.error('Failed to send metric:', error)
+    logError('Failed to send metric:', error)
   }
 }

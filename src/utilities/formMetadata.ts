@@ -60,7 +60,7 @@ export function getSessionId(): string {
       return data.session_id
     }
   } catch (error) {
-    console.warn('Error reading session data:', error)
+    logWarn('Error reading session data:', error)
   }
   
   const sessionId = generateSessionId()
@@ -87,7 +87,7 @@ function initializeSession(sessionId: string): void {
   try {
     sessionStorage.setItem(STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
   } catch (error) {
-    console.warn('Error saving session data:', error)
+    logWarn('Error saving session data:', error)
   }
 }
 
@@ -368,7 +368,7 @@ export function trackPageVisit(page?: string): void {
     try {
       sessionStorage.setItem(STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
     } catch (error) {
-      console.warn('Error updating session data:', error)
+      logWarn('Error updating session data:', error)
     }
   }
 }
@@ -658,7 +658,7 @@ export function updateVisitCounters(): void {
 
     localStorage.setItem('fm_last_visit', now)
   } catch (error) {
-    console.warn('Error updating visit counters:', error)
+    logWarn('Error updating visit counters:', error)
   }
 }
 
@@ -762,7 +762,7 @@ export function addTouchPoint(source: string, medium: string, campaign?: string)
   try {
     sessionStorage.setItem(STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
   } catch (error) {
-    console.warn('Error saving touchpoint:', error)
+    logWarn('Error saving touchpoint:', error)
   }
 }
 

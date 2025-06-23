@@ -3,6 +3,7 @@ import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const FormSubmissions: CollectionConfig = {
   slug: 'form-submissions',
   admin: {
@@ -49,7 +50,7 @@ export const FormSubmissions: CollectionConfig = {
                   })
                   formTitle = formDoc?.title || 'Unknown Form'
                 } catch (error) {
-                  console.warn('Could not fetch form title:', error)
+                  logWarn('Could not fetch form title:', error)
                 }
               }
 
@@ -87,7 +88,7 @@ export const FormSubmissions: CollectionConfig = {
               })
             }
           } catch (error) {
-            console.error('Error processing form submission:', error)
+            logError('Error processing form submission:', error)
             // Don't throw error to prevent form submission failure
           }
         }

@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Get the directory name (for ESM)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is authenticated
     if (!session?.user) {
-      console.error('Setup rewards: User not authenticated')
+      logError('Setup rewards: User not authenticated')
       return NextResponse.json(
         {
           success: false,
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is admin
     if (!session.user.isAdmin && session.user.role !== 'admin') {
-      console.error('Setup rewards: User not admin', {
+      logError('Setup rewards: User not admin', {
         role: session.user.role,
         isAdmin: session.user.isAdmin,
       })
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Get payload client
     const payload = await getPayloadClient()
-    console.log('Setting up reward system...')
+    logDebug('Setting up reward system...')
 
     // Initialize results
     const results = {
@@ -146,7 +147,7 @@ export async function POST(request: NextRequest) {
       try {
         templateContent = 'This is a test email template.'
       } catch (error: unknown) {
-        console.error(`Error reading template file ${template.templatePath}:`, error)
+        logError(`Error reading template file ${template.templatePath}:`, error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         return NextResponse.json(
           {
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
 
       // Check if file exists
       if (!fs.existsSync(template.templatePath)) {
-        console.error(`Template file not found: ${template.templatePath}`)
+        logError(`Template file not found: ${template.templatePath}`)
         return NextResponse.json(
           {
             success: false,
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Log template content
-      console.log(`Template content for ${template.slug}:`, templateContent)
+      logDebug(`Template content for ${template.slug}:`, templateContent)
 
       // Create template
       const createdTemplate = await payload.create({
@@ -186,10 +187,10 @@ export async function POST(request: NextRequest) {
 
       createdTemplates.push(createdTemplate)
       results.templates.created++
-      console.log(`Added template: ${template.slug}`)
+      logDebug(`Added template: ${template.slug}`)
     }
 
-    console.log('All reward email templates added successfully!')
+    logDebug('All reward email templates added successfully!')
 
     // Create campaign for reward.awarded event
     const awardedCampaign = {
@@ -238,7 +239,7 @@ export async function POST(request: NextRequest) {
       })
 
       results.campaigns.created++
-      console.log(`Added campaign: ${awardedCampaign.name}`)
+      logDebug(`Added campaign: ${awardedCampaign.name}`)
     }
 
     // Create campaign for reward.expiring event
@@ -284,11 +285,11 @@ export async function POST(request: NextRequest) {
       })
 
       results.campaigns.created++
-      console.log(`Added campaign: ${expiringCampaign.name}`)
+      logDebug(`Added campaign: ${expiringCampaign.name}`)
     }
 
-    console.log('All reward email campaigns added successfully!')
-    console.log('Reward system setup completed successfully!')
+    logDebug('All reward email campaigns added successfully!')
+    logDebug('Reward system setup completed successfully!')
 
     return NextResponse.json({
       success: true,
@@ -296,7 +297,7 @@ export async function POST(request: NextRequest) {
       results,
     })
   } catch (error: unknown) {
-    console.error('Error setting up reward system:', error)
+    logError('Error setting up reward system:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
       {

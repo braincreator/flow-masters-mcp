@@ -15,6 +15,7 @@ import { add } from 'date-fns'
 import type { Duration } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Local definition for EmailOrderConfirmationArgs
 interface LocalEmailOrderItem {
   id: string
@@ -147,7 +148,7 @@ export class PaymentService extends BaseService {
     super(payload)
     this.paymentProviders = this.initializePaymentProviders()
     this.loadSettings().catch((err) =>
-      console.error('Failed to load settings during initialization:', err),
+      logError('Failed to load settings during initialization:', err),
     )
   }
 
@@ -166,14 +167,14 @@ export class PaymentService extends BaseService {
         })
 
         if (paymentProvidersGlobal) {
-          console.log('Retrieved payment-providers global')
+          logDebug('Retrieved payment-providers global')
           this.settings = this.transformPaymentProviders(paymentProvidersGlobal)
           this.settingsLoaded = true
           this.paymentProviders = this.initializePaymentProviders()
           return
         }
       } catch (error) {
-        console.warn('Failed to retrieve payment-providers global:', error)
+        logWarn('Failed to retrieve payment-providers global:', error)
       }
 
       this.settings = {
@@ -191,7 +192,7 @@ export class PaymentService extends BaseService {
       this.settingsLoaded = true
       this.paymentProviders = this.initializePaymentProviders()
     } catch (error) {
-      console.error('Error in loadSettings:', error)
+      logError('Error in loadSettings:', error)
       this.settings = {
         providers: [{ id: 'robokassa', name: 'Robokassa', enabled: true }],
         defaultProvider: 'robokassa',
@@ -223,7 +224,7 @@ export class PaymentService extends BaseService {
 
   getSettings(): GlobalSettings {
     if (!this.settingsLoaded || !this.settings) {
-      console.warn(
+      logWarn(
         'Settings not loaded yet, returning default settings. This should have been handled by ensureSettingsLoaded.',
       )
       return {
@@ -437,7 +438,7 @@ export class PaymentService extends BaseService {
         confirmationUrl: result.confirmationUrl,
       }
     } catch (error) {
-      console.error('Payment creation error:', error)
+      logError('Payment creation error:', error)
       return {
         status: 'failed',
         paymentId: '',
@@ -459,7 +460,7 @@ export class PaymentService extends BaseService {
       await this.ensureSettingsLoaded()
       const providerService = this.paymentProviders[paymentProviderId]
       if (!providerService) {
-        console.error(
+        logError(
           `Payment provider ${paymentProviderId} not found or not configured for recurring payments.`,
         )
         return {
@@ -472,7 +473,7 @@ export class PaymentService extends BaseService {
         !('chargeWithToken' in providerService) ||
         typeof providerService.chargeWithToken !== 'function'
       ) {
-        console.error(`Provider ${paymentProviderId} does not support chargeWithToken.`)
+        logError(`Provider ${paymentProviderId} does not support chargeWithToken.`)
         return {
           status: 'failed',
           errorMessage: `Provider ${paymentProviderId} does not support tokenized payments.`,
@@ -535,7 +536,7 @@ export class PaymentService extends BaseService {
         }
       }
     } catch (error) {
-      console.error(
+      logError(
         `Error processing recurring payment for order ${orderId} with ${paymentProviderId}:`,
         error,
       )
@@ -565,11 +566,11 @@ export class PaymentService extends BaseService {
         case 'crypto':
           return await this.checkCryptoPaymentStatus(paymentId)
         default:
-          console.warn(`No status check method for provider: ${provider}`)
+          logWarn(`No status check method for provider: ${provider}`)
           return { status: 'unknown' }
       }
     } catch (error: unknown) {
-      console.error(`Error checking payment status with ${provider}:`, error)
+      logError(`Error checking payment status with ${provider}:`, error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return { status: 'error', details: { error: errorMessage } }
     }
@@ -758,7 +759,7 @@ export class PaymentService extends BaseService {
     if (webhookData.InvId && webhookData.OutSum && webhookData.SignatureValue) {
       return 'robokassa'
     }
-    console.warn('Could not detect payment provider from webhook data:', webhookData)
+    logWarn('Could not detect payment provider from webhook data:', webhookData)
     return null
   }
 
@@ -767,13 +768,13 @@ export class PaymentService extends BaseService {
     const signatureHeader = req.headers['sha1_hash']
 
     if (!notificationBody) {
-      console.error(
+      logError(
         'YooMoney Webhook Error: Missing raw body. Ensure rawBody middleware is configured for the webhook endpoint.',
       )
       return false
     }
     if (!signatureHeader) {
-      console.error('YooMoney Webhook Error: Missing sha1_hash header.')
+      logError('YooMoney Webhook Error: Missing sha1_hash header.')
       return false
     }
 
@@ -782,7 +783,7 @@ export class PaymentService extends BaseService {
     const secretKey = providerConfig?.secretKey
 
     if (!secretKey) {
-      console.error(
+      logError(
         'YooMoney Webhook Error: Secret key is not configured in Payment Provider settings.',
       )
       return false
@@ -800,23 +801,23 @@ export class PaymentService extends BaseService {
       )
 
       if (!signaturesMatch) {
-        console.warn(
+        logWarn(
           `YooMoney Webhook Signature Verification Failed. Expected: ${expectedSignature}, Received: ${signatureHeader}`,
         )
         return false
       }
 
-      console.log('YooMoney Webhook Signature Verified Successfully.')
+      logDebug('YooMoney Webhook Signature Verified Successfully.')
       return true
     } catch (error) {
-      console.error('Error during YooMoney signature verification:', error)
+      logError('Error during YooMoney signature verification:', error)
       return false
     }
   }
 
   private verifyRobokassaWebhook(webhookData: any): boolean {
     if (!webhookData || !webhookData.InvId || !webhookData.OutSum || !webhookData.SignatureValue) {
-      console.error('Invalid Robokassa notification format')
+      logError('Invalid Robokassa notification format')
       return false
     }
 
@@ -827,7 +828,7 @@ export class PaymentService extends BaseService {
     const config = providersConfig.robokassa
 
     if (!config?.password2) {
-      console.error('Robokassa password2 is not configured in Payment Provider settings.')
+      logError('Robokassa password2 is not configured in Payment Provider settings.')
       return false
     }
 
@@ -844,13 +845,13 @@ export class PaymentService extends BaseService {
     )
 
     if (!signaturesMatch) {
-      console.warn(
+      logWarn(
         `Robokassa Webhook Signature Verification Failed. Expected: ${expectedSignature}, Received: ${SignatureValue.toUpperCase()}. String: ${signatureString}`,
       )
       return false
     }
 
-    console.log('Robokassa Webhook Signature Verified Successfully.')
+    logDebug('Robokassa Webhook Signature Verified Successfully.')
     return true
   }
 
@@ -858,7 +859,7 @@ export class PaymentService extends BaseService {
     const provider = this.detectProviderFromWebhook(req.body)
 
     if (!provider) {
-      console.warn(
+      logWarn(
         'Webhook Verification: Could not detect payment provider from request body:',
         req.body,
       )
@@ -871,7 +872,7 @@ export class PaymentService extends BaseService {
       case 'robokassa':
         return this.verifyRobokassaWebhook(req.body)
       default:
-        console.warn(`Webhook Verification: Provider ${provider} not supported for verification.`)
+        logWarn(`Webhook Verification: Provider ${provider} not supported for verification.`)
         return false
     }
   }
@@ -957,7 +958,7 @@ export class PaymentService extends BaseService {
   } {
     const orderId = webhookData.InvId
     if (!orderId) {
-      console.error('Robokassa Webhook Error: Missing orderId (InvId)')
+      logError('Robokassa Webhook Error: Missing orderId (InvId)')
       throw new Error('Missing orderId in Robokassa webhook data')
     }
     const status = PaymentStatus.COMPLETED
@@ -973,12 +974,10 @@ export class PaymentService extends BaseService {
     provider: PaymentProviderKey,
   ): string | null {
     if (!paymentData) {
-      console.warn(`No paymentData provided to extract token for provider: ${provider}`)
+      logWarn(`No paymentData provided to extract token for provider: ${provider}`)
       return null
     }
-    console.log(
-      `Attempting to extract payment token for provider: ${provider} from data:`,
-      JSON.stringify(paymentData, null, 2),
+    logDebug(`Attempting to extract payment token for provider: ${provider} from data:`, JSON.stringify(paymentData, null, 2),
     )
 
     let potentialToken: string | undefined | null = null
@@ -997,38 +996,30 @@ export class PaymentService extends BaseService {
 
     switch (provider) {
       case 'yoomoney':
-        console.log(
-          'YooMoney: Check paymentData for a recurring token if applicable for their API (e.g., saved payment method ID).',
-        )
+        logDebug('YooMoney: Check paymentData for a recurring token if applicable for their API (e.g., saved payment method ID).',  )
         if (paymentData?.payment_method_data?.id) {
           potentialToken = paymentData.payment_method_data.id
         }
         break
       case 'robokassa':
-        console.log(
-          'Robokassa: Check if InvId (initial order ID) is available in paymentData to be used as a token for recurring.',
-        )
+        logDebug('Robokassa: Check if InvId (initial order ID) is available in paymentData to be used as a token for recurring.',  )
         if (paymentData?.InvId) {
           potentialToken = String(paymentData.InvId)
         }
         break
       case 'crypto':
-        console.log('Crypto: Unlikely to have standard payment tokens for recurring billing.')
+        logDebug('Crypto: Unlikely to have standard payment tokens for recurring billing.')
         break
       default:
-        console.log(
-          `No specific token extraction logic for provider: ${provider}. Relying on generic patterns.`,
-        )
+        logDebug(`No specific token extraction logic for provider: ${provider}. Relying on generic patterns.`,  )
     }
 
     if (potentialToken) {
-      console.log(
-        `Potential payment token found: ${String(potentialToken)} for provider ${provider}`,
-      )
+      logDebug(`Potential payment token found: ${String(potentialToken)} for provider ${provider}`,  )
       return String(potentialToken)
     }
 
-    console.warn(
+    logWarn(
       `Could not extract a reusable payment token for provider ${provider} from the provided paymentData. Recurring payments may fail or require manual setup.`,
     )
     return null
@@ -1162,7 +1153,7 @@ export class PaymentService extends BaseService {
               locale: customerLocale as AppLocale,
             })
           } catch (emailError) {
-            console.error('Failed to send order confirmation email:', emailError)
+            logError('Failed to send order confirmation email:', emailError)
           }
 
           const displayTotalNotif =
@@ -1200,7 +1191,7 @@ export class PaymentService extends BaseService {
                   : null
 
             if (!userId) {
-              console.error(`Cannot enroll in course: User ID not found for order ${orderId}.`)
+              logError(`Cannot enroll in course: User ID not found for order ${orderId}.`)
             } else {
               for (const orderItem of orderWithItems.items) {
                 const mappedItem = items.find(
@@ -1257,7 +1248,7 @@ export class PaymentService extends BaseService {
                             durationOptions[unit] = courseDetails.accessDuration.duration
                             expiresAt = add(new Date(), durationOptions).toISOString()
                           } else {
-                            console.warn(
+                            logWarn(
                               `Invalid duration unit '${courseDetails.accessDuration.unit}' for course ${courseId}`,
                             )
                           }
@@ -1270,17 +1261,15 @@ export class PaymentService extends BaseService {
                           orderId: orderId,
                           expiresAt: expiresAt,
                         })
-                        console.log(
-                          `Successfully enrolled user ${userId} in course ${courseId} from order ${orderId}.`,
-                        )
+                        logDebug(`Successfully enrolled user ${userId} in course ${courseId} from order ${orderId}.`,  )
                       } catch (enrollmentError) {
-                        console.error(
+                        logError(
                           `Failed to enroll user ${userId} in course ${courseId} for order ${orderId}:`,
                           enrollmentError,
                         )
                       }
                     } else {
-                      console.warn(
+                      logWarn(
                         `Product ${product.id} in order ${orderId} is marked as course but has no valid course linked.`,
                       )
                     }
@@ -1290,11 +1279,11 @@ export class PaymentService extends BaseService {
             }
           }
         } catch (notifError) {
-          console.error('Failed to send payment notification or enroll user:', notifError)
+          logError('Failed to send payment notification or enroll user:', notifError)
         }
 
         if (order.orderType === 'subscription' && !order.subscriptionProcessedToken) {
-          console.log(`Processing token for initial subscription payment for order ${order.id}`)
+          logDebug(`Processing token for initial subscription payment for order ${order.id}`)
           const paymentToken = this.extractPaymentTokenFromProviderData(
             update.paymentData,
             order.paymentProvider as PaymentProviderKey,
@@ -1329,8 +1318,7 @@ export class PaymentService extends BaseService {
                       status: 'active',
                     },
                   })
-                  console.log(
-                    `Stored payment token and set status to 'active' for subscription ${subscription.id} (order ${order.id})`,
+                  logDebug("Debug:",  `Stored payment token and set status to 'active' for subscription ${subscription.id} (order ${order.id})`,
                   )
 
                   await this.payload.update({
@@ -1340,25 +1328,25 @@ export class PaymentService extends BaseService {
                       subscriptionProcessedToken: true,
                     },
                   })
-                  console.log(`Marked order ${order.id} as subscription token processed.`)
+                  logDebug(`Marked order ${order.id} as subscription token processed.`)
                 } else {
-                  console.warn(
+                  logWarn(
                     `Subscription ${subscription.id} (order ${order.id}) is not in a pending/incomplete state (current: ${subscription.status}) or already has a token. Token storage skipped.`,
                   )
                 }
               } else {
-                console.error(
+                logError(
                   `No subscription found linked to successful order ${order.id} to store payment token.`,
                 )
               }
             } catch (tokenError) {
-              console.error(
+              logError(
                 `Error storing payment token for subscription linked to order ${order.id}:`,
                 tokenError,
               )
             }
           } else {
-            console.warn(
+            logWarn(
               `No payment token found/extracted from provider data for subscription order ${order.id} with provider ${order.paymentProvider}. Recurring payments may fail.`,
             )
           }
@@ -1367,7 +1355,7 @@ export class PaymentService extends BaseService {
 
       return true
     } catch (error) {
-      console.error(`Failed to update order ${orderId} status:`, error)
+      logError(`Failed to update order ${orderId} status:`, error)
       return false
     }
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '../../../../../payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Cache for suggestions
 const suggestionsCache = new Map<string, { data: string[]; timestamp: number }>()
 const CACHE_DURATION = 10 * 60 * 1000 // 10 minutes
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
       })
     } catch (error) {
       // Categories might not exist, continue without them
-      console.warn('Categories collection not found or error:', error)
+      logWarn('Categories collection not found or error:', error)
     }
 
     // Search in tags
@@ -130,7 +131,7 @@ export async function GET(request: NextRequest) {
       })
     } catch (error) {
       // Tags might not exist, continue without them
-      console.warn('Tags collection not found or error:', error)
+      logWarn('Tags collection not found or error:', error)
     }
 
     // Add common search variations
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ suggestions: finalSuggestions })
   } catch (error) {
-    console.error('Error fetching search suggestions:', error)
+    logError('Error fetching search suggestions:', error)
     return NextResponse.json(
       {
         error: 'Error fetching suggestions',

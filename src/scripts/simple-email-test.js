@@ -5,6 +5,7 @@
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables
 dotenv.config()
 
@@ -13,7 +14,7 @@ const TEST_EMAIL = 'ay.krasnodar@gmail.com'
 
 async function sendTestEmail() {
   try {
-    console.log('Starting simple email test...')
+    logDebug('Starting simple email test...')
 
     // Use production SMTP settings
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
@@ -33,7 +34,7 @@ async function sendTestEmail() {
       },
     })
 
-    console.log('Created transporter')
+    logDebug('Created transporter')
 
     // Send a test email
     const info = await transporter.sendMail({
@@ -51,12 +52,12 @@ async function sendTestEmail() {
       `,
     })
 
-    console.log('Message sent: %s', info.messageId)
-    console.log(`Email successfully sent to ${TEST_EMAIL}. Please check the inbox.`)
+    logDebug('Message sent: %s', info.messageId)
+    logDebug(`Email successfully sent to ${TEST_EMAIL}. Please check the inbox.`)
 
     return true
   } catch (error) {
-    console.error('Error sending test email:', error)
+    logError('Error sending test email:', error)
     return false
   }
 }
@@ -68,6 +69,6 @@ sendTestEmail()
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Test script failed:', error)
+    logError('Test script failed:', error)
     process.exit(1)
   })

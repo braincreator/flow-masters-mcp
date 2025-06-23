@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { generateCourseStructure, CourseGenerationParams } from '@/services/ai/courseGenerator'
 import { getProviderService, AIProvider } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z.object({
   topic: z.string().min(3).max(200),
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
       message: 'Course structure generated successfully',
     })
   } catch (error) {
-    console.error('Error generating course:', error)
+    logError('Error generating course:', error)
     return NextResponse.json(
       {
         success: false,

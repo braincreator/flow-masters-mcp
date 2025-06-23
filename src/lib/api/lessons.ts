@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Отмечает урок как просмотренный
  * @param lessonId ID урока
@@ -13,7 +14,7 @@ export async function markLessonAsViewed(lessonId: string, courseId: string) {
     })
     return response
   } catch (error) {
-    console.error('Error marking lesson as viewed:', error)
+    logError('Error marking lesson as viewed:', error)
     throw error
   }
 }
@@ -27,7 +28,7 @@ export async function getLessonProgressStatus(lessonId: string) {
     const response = await fetchFromAPI(`/api/lessons/${lessonId}/progress/status`)
     return response
   } catch (error) {
-    console.error('Error getting lesson progress status:', error)
+    logError('Error getting lesson progress status:', error)
     throw error
   }
 }
@@ -41,7 +42,7 @@ export async function getLesson(lessonId: string) {
     const response = await fetchFromAPI(`/api/lessons/${lessonId}`)
     return response
   } catch (error) {
-    console.error('Error getting lesson:', error)
+    logError('Error getting lesson:', error)
     throw error
   }
 }

@@ -5,6 +5,7 @@ import { BaseAgent } from '../base-agent'
 import { agentClients } from '../clients'
 import type { AgentRequest, AgentResponse, WorkflowTemplate } from '../types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Quick Automation Builder Agent
  * Helps users create and manage automated workflows using n8n and Flowise
@@ -113,7 +114,7 @@ export class QuickAutomationBuilderAgent extends BaseAgent {
 
       return response
     } catch (error) {
-      console.error('Quick Automation Builder error:', error)
+      logError('Quick Automation Builder error:', error)
       return this.createErrorResponse(error)
     }
   }
@@ -361,7 +362,7 @@ export class QuickAutomationBuilderAgent extends BaseAgent {
     try {
       this.workflowTemplates = await agentClients.getWorkflowTemplates()
     } catch (error) {
-      console.error('Failed to load workflow templates:', error)
+      logError('Failed to load workflow templates:', error)
       // Use fallback templates
       this.initializeTemplates()
     }

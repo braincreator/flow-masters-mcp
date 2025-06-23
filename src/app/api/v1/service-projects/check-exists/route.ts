@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const payload = await getPayloadClient()
     
-    console.log(`[check-exists] Checking if service project exists for order ${orderId}`)
+    logDebug(`[check-exists] Checking if service project exists for order ${orderId}`)
     
     // Check if a service project already exists for this order
     const existingProjects = await payload.find({
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     })
 
     const exists = existingProjects.totalDocs > 0
-    console.log(`[check-exists] Service project exists for order ${orderId}: ${exists}`)
+    logDebug(`[check-exists] Service project exists for order ${orderId}: ${exists}`)
     
     return NextResponse.json({ 
       exists,
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       count: existingProjects.totalDocs
     })
   } catch (error) {
-    console.error('[check-exists] Error checking if service project exists:', error)
+    logError('[check-exists] Error checking if service project exists:', error)
     let message = 'Failed to check if service project exists'
     if (error instanceof Error) message = error.message
     return NextResponse.json({ error: message }, { status: 500 })

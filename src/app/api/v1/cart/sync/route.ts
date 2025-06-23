@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest) {
   try {
     const payload = await getPayloadClient()
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error syncing cart:', error)
+    logError('Error syncing cart:', error)
     return NextResponse.json(
       {
         error: 'Failed to sync cart',

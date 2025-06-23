@@ -10,6 +10,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientSession } from 'mongoose';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const moduleSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -37,7 +38,7 @@ async function uploadImageFromUrl(
   session?: ClientSession | null,
 ): Promise<string | null> {
   try {
-    console.log(`Fetching image from URL: ${imageUrl}`);
+    logDebug(`Fetching image from URL: ${imageUrl}`);
     const response = await fetch(imageUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -50,9 +51,7 @@ async function uploadImageFromUrl(
     const extension = path.extname(originalFilename) || '.jpg';
     const filename = `${uuidv4()}${extension}`;
 
-    console.log(
-      `Uploading image to Payload Media collection. Filename: ${filename}, Type: ${contentType}`,
-    );
+    logDebug(`Uploading image to Payload Media collection. Filename: ${filename}, Type: ${contentType}`,  );
 
     const mediaDoc = await payload.create<'media', MediaSelect<true>>({
       collection: 'media',
@@ -71,10 +70,10 @@ async function uploadImageFromUrl(
       } as any,
     });
 
-    console.log(`Image uploaded successfully within transaction. Media ID: ${mediaDoc?.id}`);
+    logDebug(`Image uploaded successfully within transaction. Media ID: ${mediaDoc?.id}`);
     return mediaDoc?.id || null;
   } catch (error) {
-    console.error(`Error uploading image from URL ${imageUrl}:`, error);
+    logError(`Error uploading image from URL ${imageUrl}:`, error);
     return null;
   }
 }
@@ -88,11 +87,11 @@ const getPayloadInstance = async (): Promise<Payload> => {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('Received POST request to /api/v1/generate-course');
+  logDebug('Received POST request to /api/v1/generate-course');
 
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.warn('Missing or invalid Authorization header');
+    logWarn('Missing or invalid Authorization header');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -101,9 +100,7 @@ export async function POST(request: NextRequest) {
   const payload = await getPayloadInstance();
 
   try {
-    console.log(
-      `Attempting to authenticate with provided key prefix: ${providedKey.substring(0, 4)}...`,
-    );
+    logDebug(`Attempting to authenticate with provided key prefix: ${providedKey.substring(0, 4)}...`,  );
     const apiKeyQuery = await payload.find({
       collection: 'users', // Assuming apiKeys is a user
       where: {
@@ -115,19 +112,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (apiKeyQuery.docs.length === 0) {
-      console.warn('Provided API Key not found or not enabled in the collection.');
+      logWarn('Provided API Key not found or not enabled in the collection.');
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const validApiKey = apiKeyQuery.docs[0];
     if (validApiKey) {
-      console.log(`API Key validation successful. Key Name: ${validApiKey.email}`);
+      logDebug(`API Key validation successful. Key Name: ${validApiKey.email}`);
     } else {
-      console.warn('Valid API key not found in query result.');
+      logWarn('Valid API key not found in query result.');
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   } catch (authError) {
-    console.error('Error during API key authentication:', authError);
+    logError('Error during API key authentication:', authError);
     return NextResponse.json(
       { error: 'Internal Server Error during authentication' },
       { status: 500 },
@@ -140,12 +137,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const requestData = await request.json();
-    console.log('Raw Request Body:', JSON.stringify(requestData, null, 2));
+    logDebug('Raw Request Body:', JSON.stringify(requestData, null, 2));
 
     const validationResult = courseGenerationPayloadSchema.safeParse(requestData);
 
     if (!validationResult.success) {
-      console.error('Input validation failed:', validationResult.error.errors);
+      logError('Input validation failed:', validationResult.error.errors);
       return NextResponse.json(
         { error: 'Invalid request data', details: validationResult.error.errors },
         { status: 400 },
@@ -153,10 +150,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CourseGenerationPayload = validationResult.data;
-    console.log('Validated Request Body:', JSON.stringify(body, null, 2));
+    logDebug('Validated Request Body:', JSON.stringify(body, null, 2));
 
     const courseTitleToCheck = body.course.title;
-    console.log(`Checking for existing course with title: ${courseTitleToCheck}`);
+    logDebug(`Checking for existing course with title: ${courseTitleToCheck}`);
     const existingCourses = await payload.find({
       collection: 'courses',
       where: {
@@ -168,23 +165,20 @@ export async function POST(request: NextRequest) {
 
     if (existingCourses.docs.length > 0 && existingCourses.docs[0]) {
       const existingCourseId = existingCourses.docs[0].id;
-      console.log(
-        `Course with title '${courseTitleToCheck}' already exists. ID: ${existingCourseId}. Skipping creation.`,
+      logDebug("Debug:",  `Course with title '${courseTitleToCheck}' already exists. ID: ${existingCourseId}. Skipping creation.`,
       );
       return NextResponse.json(
         { success: true, courseId: existingCourseId, message: 'Course already exists' },
         { status: 200 },
       );
     }
-    console.log(
-      `No existing course found with title: ${courseTitleToCheck}. Proceeding with creation.`,
-    );
+    logDebug(`No existing course found with title: ${courseTitleToCheck}. Proceeding with creation.`,  );
 
     const reqWithTransaction = {
       payload: payload,
     } as any;
 
-    console.log('Creating course:', body.course.title);
+    logDebug('Creating course:', body.course.title);
     // const newCourse = await payload.create<'courses', CoursesSelect>({
     //   collection: 'courses',
     //   data: {
@@ -198,10 +192,10 @@ export async function POST(request: NextRequest) {
     //   req: reqWithTransaction,
     // });
     const courseId = 'testCourseId';
-    console.log(`Course created with ID: ${courseId}`);
+    logDebug(`Course created with ID: ${courseId}`);
 
 
-    console.log(`Successfully generated course ${courseId} and all related content.`);
+    logDebug(`Successfully generated course ${courseId} and all related content.`);
 
     return NextResponse.json({
       success: true,
@@ -209,7 +203,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
 
-    console.error('Error processing course generation request:', error);
+    logError('Error processing course generation request:', error);
 
     let errorMessage = 'Internal Server Error during course generation';
     let statusCode = 500;

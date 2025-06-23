@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuth } from '../../helpers/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Update milestone
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -65,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(updatedMilestone)
   } catch (error) {
-    console.error('Error updating milestone:', error)
+    logError('Error updating milestone:', error)
     return NextResponse.json({ error: 'Failed to update milestone' }, { status: 500 })
   }
 }
@@ -128,7 +129,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting milestone:', error)
+    logError('Error deleting milestone:', error)
     return NextResponse.json({ error: 'Failed to delete milestone' }, { status: 500 })
   }
 }

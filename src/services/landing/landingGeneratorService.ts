@@ -2,6 +2,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
 import type { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Типы для генерации лендинга
  */
@@ -208,7 +209,7 @@ export class LandingGeneratorService {
 
       return landing
     } catch (error) {
-      console.error('Error generating landing:', error)
+      logError('Error generating landing:', error)
       throw error
     }
   }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Newsletter } from '@/components/Newsletter'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NewsletterWrapperProps {
   locale: string
   storageKey: string
@@ -33,7 +34,7 @@ export const NewsletterWrapper: React.FC<NewsletterWrapperProps> = ({
           setIsSubscribed(true)
         }
       } catch (e) {
-        console.error('Error parsing subscription status:', e)
+        logError('Error parsing subscription status:', e)
         localStorage.removeItem(storageKey)
       }
     }

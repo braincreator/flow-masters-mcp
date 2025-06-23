@@ -11,6 +11,7 @@ import { translations } from '@/app/(frontend)/[lang]/products/translations'
 import LoadingIndicator from '@/components/ui/LoadingIndicator'
 import { useState, useEffect } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProductsListProps {
   heading?: string
   subheading?: string
@@ -54,7 +55,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({
       setTotalPages(data.totalPages || 1)
       setCurrentPage(data.page || 1)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      logError('Error fetching products:', error)
     } finally {
       setIsLoading(false)
     }

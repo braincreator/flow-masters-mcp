@@ -5,6 +5,7 @@ import { WebhookService } from './webhook.service'
 import { TelegramService } from './telegram.service'
 import { EmailService } from './email.service'
 import { WhatsAppService } from './whatsapp.service'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type {
   Event,
   EventSubscription,
@@ -202,11 +203,11 @@ export class EventService extends BaseService {
         },
       })
 
-      console.log(`Created event subscription: ${newSubscription.name}`)
+      logDebug(`Created event subscription: ${newSubscription.name}`)
       return newSubscription as EventSubscription
 
     } catch (error) {
-      console.error('Error creating event subscription:', error)
+      logError('Error creating event subscription:', error)
       throw error
     }
   }
@@ -228,11 +229,11 @@ export class EventService extends BaseService {
         },
       })
 
-      console.log(`Updated event subscription: ${id}`)
+      logDebug(`Updated event subscription: ${id}`)
       return updatedSubscription as EventSubscription
 
     } catch (error) {
-      console.error('Error updating event subscription:', error)
+      logError('Error updating event subscription:', error)
       throw error
     }
   }
@@ -247,10 +248,10 @@ export class EventService extends BaseService {
         id,
       })
 
-      console.log(`Deleted event subscription: ${id}`)
+      logDebug(`Deleted event subscription: ${id}`)
 
     } catch (error) {
-      console.error('Error deleting event subscription:', error)
+      logError('Error deleting event subscription:', error)
       throw error
     }
   }
@@ -279,7 +280,7 @@ export class EventService extends BaseService {
       return result.docs as EventSubscription[]
 
     } catch (error) {
-      console.error('Error getting event subscriptions:', error)
+      logError('Error getting event subscriptions:', error)
       throw error
     }
   }
@@ -315,7 +316,7 @@ export class EventService extends BaseService {
       return await this.processEventForSubscription(testEvent, subscription)
 
     } catch (error) {
-      console.error('Error testing subscription:', error)
+      logError('Error testing subscription:', error)
       return {
         success: false,
         error: error as Error,
@@ -360,14 +361,12 @@ export class EventService extends BaseService {
       const successCount = results.filter(r => r.status === 'fulfilled').length
       const failureCount = results.length - successCount
 
-      console.log(
-        `Event ${event.type} processed: ${successCount} success, ${failureCount} failures`
-      )
+      logDebug(`Event ${event.type} processed: ${successCount} success, ${failureCount} failures`)
 
       return { success: true }
 
     } catch (error) {
-      console.error('Error handling event:', error)
+      logError('Error handling event:', error)
       return {
         success: false,
         error: error as Error,
@@ -397,7 +396,7 @@ export class EventService extends BaseService {
       return result.docs as EventSubscription[]
 
     } catch (error) {
-      console.error('Error getting subscriptions for event:', error)
+      logError('Error getting subscriptions for event:', error)
       return []
     }
   }
@@ -433,7 +432,7 @@ export class EventService extends BaseService {
       }
 
     } catch (error) {
-      console.error('Error processing event for subscription:', error)
+      logError('Error processing event for subscription:', error)
       await this.logEventError(event, subscription, error as Error)
       
       return {
@@ -474,7 +473,7 @@ export class EventService extends BaseService {
         break
 
       default:
-        console.warn(`Unsupported notification channel: ${channel}`)
+        logWarn(`Unsupported notification channel: ${channel}`)
     }
   }
 
@@ -553,7 +552,7 @@ export class EventService extends BaseService {
     subscription: EventSubscription
   ): Promise<void> {
     // TODO: Реализовать Slack интеграцию
-    console.log('Slack notifications not implemented yet')
+    logDebug('Slack notifications not implemented yet')
   }
 
   /**
@@ -573,7 +572,7 @@ export class EventService extends BaseService {
       const result = await this.whatsappService.sendMessage(contact.phoneNumber, message)
 
       if (!result.success) {
-        console.error(`Failed to send WhatsApp message to ${contact.phoneNumber}:`, result.error)
+        logError(`Failed to send WhatsApp message to ${contact.phoneNumber}:`, result.error)
       }
     }
   }
@@ -605,7 +604,7 @@ export class EventService extends BaseService {
         case 'nin':
           return Array.isArray(filter.value) && !filter.value.includes(value)
         default:
-          console.warn(`Unknown filter operator: ${filter.operator}`)
+          logWarn(`Unknown filter operator: ${filter.operator}`)
           return true
       }
     })
@@ -766,7 +765,7 @@ ${this.formatEventDataForWhatsApp(event.data)}`.trim()
         })
       }
     } catch (error) {
-      console.error('Error logging event processing:', error)
+      logError('Error logging event processing:', error)
     }
   }
 
@@ -795,7 +794,7 @@ ${this.formatEventDataForWhatsApp(event.data)}`.trim()
         },
       })
     } catch (logError) {
-      console.error('Error logging event error:', logError)
+      logError('Error logging event error:', logError)
     }
   }
 

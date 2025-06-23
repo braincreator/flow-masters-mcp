@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     // Verify auth
@@ -78,7 +79,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         nextPaymentDate: nextPaymentDate.toISOString(),
       })
     } catch (error) {
-      console.error('Error resuming subscription:', error)
+      logError('Error resuming subscription:', error)
 
       // In development, just return success for testing
       if (process.env.NODE_ENV === 'development') {
@@ -95,7 +96,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return errorResponse('Failed to resume subscription', 500)
     }
   } catch (error) {
-    console.error('Error in resume subscription route:', error)
+    logError('Error in resume subscription route:', error)
     return errorResponse('Failed to process request', 500)
   }
 }

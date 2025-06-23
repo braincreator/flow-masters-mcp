@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { ServiceRegistry } from '@/services/service.registry' // Not strictly needed if using payload.update directly
 
 export async function POST(request: NextRequest, { params }: { params: { notificationId: string } }) {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: { notific
 
     return NextResponse.json({ success: true, notification: updatedNotification })
   } catch (error) {
-    console.error('Error marking notification as unread:', error)
+    logError('Error marking notification as unread:', error)
     let errorMessage = 'Failed to mark notification as unread'
     if (error instanceof Error) {
         errorMessage = error.message

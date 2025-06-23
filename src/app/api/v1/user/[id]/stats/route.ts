@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyAuth } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define extended User interface with additional properties
 interface ExtendedUser {
   id: string
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Check if user is authenticated
     if (!auth.isAuthenticated || !auth.user) {
-      console.error('User stats API: Authentication failed', {
+      logError('User stats API: Authentication failed', {
         error: auth.error,
         isAuthenticated: auth.isAuthenticated,
         hasUser: !!auth.user,
@@ -93,16 +94,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Log for debugging authorization
-    console.log('Authorization Check Details for /user/[id]/stats:');
-    console.log('Path ID (id):', id, typeof id);
-    console.log('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
-    console.log('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
-    // console.log('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
+    logDebug('Authorization Check Details for /user/[id]/stats:');
+    logDebug('Path ID (id):', id, typeof id);
+    logDebug('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
+    logDebug('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
+    // logDebug('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
 
     // Check if user has access to this data
     // (only admin or the user themselves)
     if (auth.user.id !== id && !auth.user.roles?.includes('admin')) {
-      console.warn('Authorization failed in /user/[id]/stats:', {
+      logWarn('Authorization failed in /user/[id]/stats:', {
         pathId: id,
         authUserId: auth.user.id,
         userRoles: auth.user.roles,
@@ -236,7 +237,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     })
   } catch (error) {
-    console.error('Error fetching user stats:', error)
+    logError('Error fetching user stats:', error)
     return NextResponse.json(
       {
         success: false,

@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, ExternalLink, Play } from 'lucide-react'
 import type { AgentType, AgentResponse, Message } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface AgentChatProps {
   agentType: AgentType
   placeholder?: string
@@ -97,7 +98,7 @@ export function AgentChat({
       setMessages(prev => [...prev, assistantMessage])
 
     } catch (err) {
-      console.error('Chat error:', err)
+      logError('Chat error:', err)
       setError(err instanceof Error ? err.message : 'Произошла ошибка')
       
       const errorMessage: Message = {

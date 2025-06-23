@@ -1,5 +1,6 @@
 import { Payload } from 'payload'
 import { BaseService } from '../base.service'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { ServiceRegistry } from '../service.registry' // Added import
 import { Lesson, LessonProgress } from '@/payload-types' // Import types
 
@@ -200,17 +201,17 @@ export class LessonProgressService extends BaseService {
 
             // Update overall course progress (asynchronously, don't wait)
             this.updateCourseProgress(userId, courseId).catch((err) =>
-              console.error('Background course progress update failed:', err),
+              logError('Background course progress update failed:', err),
             )
           }
         } catch (eventError) {
-          console.error('Error processing lesson completion events:', eventError)
+          logError('Error processing lesson completion events:', eventError)
         }
       }
 
       return progressRecord
     } catch (error) {
-      console.error(`Error marking lesson ${lessonId} progress for user ${userId}:`, error)
+      logError(`Error marking lesson ${lessonId} progress for user ${userId}:`, error)
       throw error
     }
   }
@@ -235,7 +236,7 @@ export class LessonProgressService extends BaseService {
 
       return progress.docs[0] ?? null // Use nullish coalescing directly
     } catch (error) {
-      console.error('Error getting lesson progress:', error)
+      logError('Error getting lesson progress:', error)
       return null
     }
   }
@@ -266,7 +267,7 @@ export class LessonProgressService extends BaseService {
          return typeof lessonRef === 'string' ? lessonRef : lessonRef?.id;
       }).filter((id): id is string => !!id); // Filter out undefined/null IDs and ensure string array
     } catch (error) {
-      console.error('Error getting completed lessons:', error)
+      logError('Error getting completed lessons:', error)
       return []
     }
   }
@@ -286,10 +287,10 @@ export class LessonProgressService extends BaseService {
         // Let enrollmentService recalculate progress based on the latest completed lesson count
         await enrollmentService.updateCourseProgress(userId, courseId)
       } else {
-         console.error('ServiceRegistry not available in LessonProgressService.updateCourseProgress')
+         logError('ServiceRegistry not available in LessonProgressService.updateCourseProgress')
       }
     } catch (error) {
-      console.error(`Error triggering course progress update for user ${userId}, course ${courseId}:`, error)
+      logError(`Error triggering course progress update for user ${userId}, course ${courseId}:`, error)
       // Don't re-throw, let the primary action (e.g., marking lesson complete) succeed
     }
   }

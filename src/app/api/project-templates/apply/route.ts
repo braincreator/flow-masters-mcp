@@ -4,6 +4,7 @@ import { getAuth } from '../../helpers/auth'
 import { z } from 'zod'
 import { addDays } from 'date-fns'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Validation schema for request parameters
 const requestBodySchema = z.object({
   templateId: z.string().uuid({ message: 'Invalid template ID format' }),
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     try {
       validatedBody = requestBodySchema.parse(body)
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -218,7 +219,7 @@ export async function POST(req: NextRequest) {
       message: 'Template applied successfully',
     })
   } catch (error) {
-    console.error('Error applying template to project:', error)
+    logError('Error applying template to project:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({

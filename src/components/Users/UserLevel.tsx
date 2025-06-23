@@ -6,6 +6,7 @@ import { getUserLevelInfo } from '@/lib/api/users'
 import { Progress } from '@/components/ui/progress'
 import { Loader2 } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UserLevelProps {
   userId?: string
   showDetails?: boolean
@@ -46,7 +47,7 @@ export default function UserLevel({ userId, showDetails = true, className = '' }
         const info = await getUserLevelInfo(userIdToUse)
         setLevelInfo(info)
       } catch (err) {
-        console.error('Error loading level info:', err)
+        logError('Error loading level info:', err)
         setError('Не удалось загрузить информацию о уровне')
       } finally {
         setLoading(false)

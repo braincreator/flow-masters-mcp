@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Обработчик POST запросов для сохранения form submissions с метаданными
  */
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Form not found' }, { status: 404 })
         }
       } catch (error) {
-        console.warn('Form validation error:', error)
+        logWarn('Form validation error:', error)
         // Продолжаем без проверки формы для совместимости
       }
     }
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
       message: 'Form submitted successfully'
     })
   } catch (error) {
-    console.error('Form submission error:', error)
+    logError('Form submission error:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -174,7 +175,7 @@ function processMetadata(metadata: any): any {
 
     return processed
   } catch (error) {
-    console.warn('Error processing metadata:', error)
+    logWarn('Error processing metadata:', error)
     return {}
   }
 }
@@ -215,7 +216,7 @@ export async function GET(req: NextRequest) {
       hasPrevPage: result.hasPrevPage,
     })
   } catch (error) {
-    console.error('Form submissions fetch error:', error)
+    logError('Form submissions fetch error:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',

@@ -7,6 +7,7 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Terms pages data for both locales
 const termsPages = [
   {
@@ -501,11 +502,11 @@ const termsPages = [
 ]
 
 async function seedTermsPages() {
-  console.log('📄 Seeding TermsPages collection...')
+  logDebug('📄 Seeding TermsPages collection...')
 
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Create pages for each locale
     const locales = ['ru', 'en']
@@ -526,8 +527,7 @@ async function seedTermsPages() {
           })
 
           if (existing.docs.length > 0) {
-            console.log(
-              `⚠️  Terms page "${pageData.tabType}" for locale "${locale}" already exists, skipping...`,
+            logDebug("Debug:",  `⚠️  Terms page "${pageData.tabType}" for locale "${locale}" already exists, skipping...`,
             )
             continue
           }
@@ -552,9 +552,9 @@ async function seedTermsPages() {
             data: localizedData,
           })
 
-          console.log(`✅ Created terms page: ${pageData.tabType} for ${locale} (${page.id})`)
+          logDebug(`✅ Created terms page: ${pageData.tabType} for ${locale} (${page.id})`)
         } catch (error) {
-          console.error(
+          logError(
             `❌ Error creating terms page "${pageData.tabType}" for locale "${locale}":`,
             error,
           )
@@ -562,9 +562,9 @@ async function seedTermsPages() {
       }
     }
 
-    console.log('🎉 TermsPages seeding completed!')
+    logDebug('🎉 TermsPages seeding completed!')
   } catch (error) {
-    console.error('❌ Error:', error)
+    logError('❌ Error:', error)
     process.exit(1)
   }
 }

@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NewsletterProps {
   title?: string
   description?: string
@@ -138,7 +139,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       // Трекаем успешную подписку
       formAnalytics.handleFormSubmit(true)
     } catch (error) {
-      console.error('Newsletter subscription error:', error)
+      logError('Newsletter subscription error:', error)
       setError(error instanceof Error ? error.message : messages.networkError)
       toast.error(error instanceof Error ? error.message : messages.networkError)
       // Трекаем ошибку подписки

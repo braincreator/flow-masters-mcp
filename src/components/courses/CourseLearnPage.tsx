@@ -12,6 +12,7 @@ import { CourseOverview } from './CourseOverview'
 import { CourseNotes } from './CourseNotes'
 import { CourseDiscussion } from './CourseDiscussion'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseLearnPageProps {
   course: any
   modules: any[]
@@ -76,7 +77,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
           }
         }
       } catch (error) {
-        console.error('Error checking course access:', error)
+        logError('Error checking course access:', error)
         setHasAccess(false)
       } finally {
         setAccessLoading(false)
@@ -108,7 +109,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
         setProgress(newProgress)
       }
     } catch (error) {
-      console.error('Error updating progress:', error)
+      logError('Error updating progress:', error)
     }
   }
 

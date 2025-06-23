@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import { isAdmin } from '@/access/isAdmin'
 import { EmailTemplate, EmailCampaign } from '../payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Get the directory name
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -36,7 +37,7 @@ const setupRewardsEndpoint = {
       }
       // Продолжаем выполнение эндпоинта
       const payload = req.payload
-      console.log('Setting up reward system...')
+      logDebug('Setting up reward system...')
 
       // Get default sender
       const senders = await payload.find({
@@ -136,7 +137,7 @@ const setupRewardsEndpoint = {
         })
 
         if (existingTemplate.docs.length > 0) {
-          console.log(`Template ${template.slug} already exists, skipping...`)
+          logDebug(`Template ${template.slug} already exists, skipping...`)
           createdTemplates.push(existingTemplate.docs[0]!)
           results.templates.existing++
           continue
@@ -147,7 +148,7 @@ const setupRewardsEndpoint = {
         try {
           templateContent = fs.readFileSync(template.templatePath, 'utf-8')
         } catch (error: unknown) {
-          console.error(`Error reading template file ${template.templatePath}:`, error)
+          logError(`Error reading template file ${template.templatePath}:`, error)
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
           return res.status(500).json({
             success: false,
@@ -169,10 +170,10 @@ const setupRewardsEndpoint = {
 
         createdTemplates.push(createdTemplate)
         results.templates.created++
-        console.log(`Added template: ${template.slug}`)
+        logDebug(`Added template: ${template.slug}`)
       }
 
-      console.log('All reward email templates added successfully!')
+      logDebug('All reward email templates added successfully!')
 
       // Create campaign for reward.awarded event
       const awardedCampaign = {
@@ -235,7 +236,7 @@ const setupRewardsEndpoint = {
         })
 
         results.campaigns.created++
-        console.log(`Added campaign: ${awardedCampaign.name}`)
+        logDebug(`Added campaign: ${awardedCampaign.name}`)
       }
 
       // Create campaign for reward.expiring event
@@ -283,11 +284,11 @@ const setupRewardsEndpoint = {
         })
 
         results.campaigns.created++
-        console.log(`Added campaign: ${expiringCampaign.name}`)
+        logDebug(`Added campaign: ${expiringCampaign.name}`)
       }
 
-      console.log('All reward email campaigns added successfully!')
-      console.log('Reward system setup completed successfully!')
+      logDebug('All reward email campaigns added successfully!')
+      logDebug('Reward system setup completed successfully!')
 
       return res.status(200).json({
         success: true,
@@ -295,7 +296,7 @@ const setupRewardsEndpoint = {
         results,
       })
     } catch (error: unknown) {
-      console.error('Error setting up reward system:', error)
+      logError('Error setting up reward system:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return res.status(500).json({
         success: false,

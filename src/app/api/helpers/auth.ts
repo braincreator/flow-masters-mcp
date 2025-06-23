@@ -2,10 +2,11 @@ import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для получения текущего пользователя из запроса
 export async function getAuth(req: NextRequest) {
   try {
-    console.log('[getAuth] Starting authentication process')
+    logDebug('[getAuth] Starting authentication process')
 
     // Получение куки из запроса
     const cookieStore = await cookies()
@@ -18,13 +19,13 @@ export async function getAuth(req: NextRequest) {
     const payloadToken = cookieStore.get('payload-token')?.value
 
     if (!payloadToken) {
-      console.log('[getAuth] Authentication failed: No payload-token cookie found')
+      logDebug('[getAuth] Authentication failed: No payload-token cookie found')
 
       // Check if there's an Authorization header as fallback
       const authHeader = req.headers.get('Authorization')
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const tokenFromHeader = authHeader.substring(7)
-        console.log('[getAuth] Found token in Authorization header, trying to use it')
+        logDebug('[getAuth] Found token in Authorization header, trying to use it')
 
         try {
           // Get the Payload client
@@ -38,17 +39,17 @@ export async function getAuth(req: NextRequest) {
           })
 
           if (user) {
-            console.log(`[getAuth] User authenticated successfully from header token: ${user.id}`)
+            logDebug(`[getAuth] User authenticated successfully from header token: ${user.id}`)
             return { user }
           }
         } catch (headerAuthError) {
-          console.error('[getAuth] Header token authentication error:', headerAuthError)
+          logError('[getAuth] Header token authentication error:', headerAuthError)
         }
       }
 
       // For development environment, try to use a default admin user
       if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_AUTH === 'true') {
-        console.log('[getAuth] Development mode: Using default admin user')
+        logDebug('[getAuth] Development mode: Using default admin user')
 
         try {
           // Get the Payload client
@@ -68,12 +69,12 @@ export async function getAuth(req: NextRequest) {
           if (adminUsers.docs.length > 0) {
             const adminUser = adminUsers.docs[0]
             if (adminUser && adminUser.id) {
-              console.log(`[getAuth] Using admin user: ${adminUser.id}`)
+              logDebug(`[getAuth] Using admin user: ${adminUser.id}`)
               return { user: adminUser }
             }
           }
         } catch (devAuthError) {
-          console.error('[getAuth] Dev auth error:', devAuthError)
+          logError('[getAuth] Dev auth error:', devAuthError)
         }
       }
 
@@ -81,7 +82,7 @@ export async function getAuth(req: NextRequest) {
     }
 
     try {
-      console.log('[getAuth] Authenticating with token')
+      logDebug('[getAuth] Authenticating with token')
 
       // Get the Payload client
       const payloadClient = await getPayloadClient()
@@ -110,7 +111,7 @@ export async function getAuth(req: NextRequest) {
             const tokenData = JSON.parse(jsonStr);
 
             if (tokenData && tokenData.id) {
-              console.log(`[getAuth] Token contains user ID: ${tokenData.id}`);
+              logDebug(`[getAuth] Token contains user ID: ${tokenData.id}`);
 
               // Now fetch the user with that ID
               const user = await payloadClient.findByID({
@@ -119,26 +120,26 @@ export async function getAuth(req: NextRequest) {
               });
 
               if (!user) {
-                console.log('[getAuth] User not found with ID from token');
+                logDebug('[getAuth] User not found with ID from token');
                 return { user: null, error: 'User not found' };
               }
 
-              console.log(`[getAuth] User authenticated successfully: ${user.id}`);
+              logDebug(`[getAuth] User authenticated successfully: ${user.id}`);
               return { user };
             }
           } catch (decodeError) {
-            console.error('[getAuth] Error decoding token payload:', decodeError);
+            logError('[getAuth] Error decoding token payload:', decodeError);
           }
         }
 
-        console.log('[getAuth] Invalid token format');
+        logDebug('[getAuth] Invalid token format');
         return { user: null, error: 'Invalid token format' };
       } catch (tokenError) {
-        console.error('[getAuth] Error processing token:', tokenError);
+        logError('[getAuth] Error processing token:', tokenError);
         return { user: null, error: 'Failed to authenticate token' };
       }
     } catch (authError) {
-      console.error('[getAuth] Token authentication error:', authError)
+      logError('[getAuth] Token authentication error:', authError)
 
       // Check if token is expired
       if (authError instanceof Error &&
@@ -151,7 +152,7 @@ export async function getAuth(req: NextRequest) {
       return { user: null, error: 'Authentication failed' }
     }
   } catch (error) {
-    console.error('[getAuth] Authentication error:', error)
+    logError('[getAuth] Authentication error:', error)
     return {
       user: null,
       error: error instanceof Error ? error.message : 'Unknown authentication error'

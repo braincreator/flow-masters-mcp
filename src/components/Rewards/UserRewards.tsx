@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Gift, Check, Clock, X } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UserRewardsProps {
   userId?: string
   showAll?: boolean
@@ -54,7 +55,7 @@ export default function UserRewards({ userId, showAll = true, className = '' }: 
         const data = await getUserRewards(userIdToUse)
         setRewards(data)
       } catch (err) {
-        console.error('Error loading rewards:', err)
+        logError('Error loading rewards:', err)
         setError('Не удалось загрузить награды')
       } finally {
         setLoading(false)
@@ -106,7 +107,7 @@ export default function UserRewards({ userId, showAll = true, className = '' }: 
         )
       }
     } catch (err) {
-      console.error('Error using reward:', err)
+      logError('Error using reward:', err)
       setError('Не удалось использовать награду')
     } finally {
       setUsingReward(null)

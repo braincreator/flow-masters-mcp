@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import type { ServiceQueryOptions } from '@/types/service' // Changed from ServiceOptions
 
 import { logger } from '@/utilities/logger'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { ErrorHandler } from '@/utilities/errorHandling' // Removed unused import
 // import { ServiceRegistry } from './service.registry' // Remove top-level import
 
@@ -29,7 +30,7 @@ export abstract class BaseService {
     try {
       return await operation()
     } catch (error) {
-      console.error(errorMessage, error)
+      logError(errorMessage, error)
       throw error
     }
   }

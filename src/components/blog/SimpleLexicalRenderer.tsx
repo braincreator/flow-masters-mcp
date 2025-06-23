@@ -4,6 +4,7 @@ import React from 'react'
 import { cn } from '@/utilities/ui'
 import Link from 'next/link'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SimpleLexicalRendererProps {
   content: any
   className?: string
@@ -289,7 +290,7 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
 
       // Общая отладка блоков
       if (process.env.NODE_ENV === 'development') {
-        console.log('Обработка блока:', {
+        logDebug('Обработка блока:', {
           type: node.type,
           blockType,
           data: blockData,
@@ -412,7 +413,7 @@ const SimpleLexicalRenderer: React.FC<SimpleLexicalRendererProps> = ({ content, 
 
   const rootNode = normalizedContent.root
   if (!rootNode || !rootNode.children) {
-    console.error(
+    logError(
       'SimpleLexicalRenderer: Некорректная структура Lexical контента',
       normalizedContent,
     )

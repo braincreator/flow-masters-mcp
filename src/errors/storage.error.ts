@@ -17,7 +17,7 @@ export class StorageError extends Error {
 
 export const handleStorageError = (error: unknown): never => {
   if (error instanceof StorageError) {
-    console.error('Storage operation error:', error.message, error.details);
+    logError('Storage operation error:', error.message, error.details);
     throw error;
   }
   throw error instanceof Error ? error : new StorageError(String(error));

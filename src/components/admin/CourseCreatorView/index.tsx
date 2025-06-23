@@ -5,6 +5,7 @@ import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { useRouter } from 'next/navigation'
 import { Button, Gutter, Card } from '@payloadcms/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import './index.scss'
 
 const CourseCreatorView: React.FC = () => {
@@ -14,7 +15,7 @@ const CourseCreatorView: React.FC = () => {
 
   // Simple toast implementation
   const addToast = (toast: { type: string; message: string }) => {
-    console.log(`Toast: [${toast.type}] ${toast.message}`)
+    logDebug(`Toast: [${toast.type}] ${toast.message}`)
     new AppError({
       message: toast.message,
       severity: toast.type === 'error' ? ErrorSeverity.ERROR : ErrorSeverity.INFO,
@@ -106,7 +107,7 @@ const CourseCreatorView: React.FC = () => {
       // Redirect to the course edit page
       router.push(`/admin/collections/courses/${course.doc.id}`)
     } catch (error) {
-      console.error('Error creating course:', error)
+      logError('Error creating course:', error)
       addToast({
         type: 'error',
         message: 'Failed to create course. Please try again.',

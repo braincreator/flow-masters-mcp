@@ -6,6 +6,7 @@ import { AboutPageComponent } from '../AboutPageComponent'
 import { AboutPageJsonLd } from './AboutPageJsonLd'
 import { transformAboutPageData } from '../utils/transformData'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface AboutPageContentProps {
   lang: string
 }
@@ -33,7 +34,7 @@ export async function AboutPageContent({ lang }: AboutPageContentProps) {
       </>
     )
   } catch (error) {
-    console.error('Error fetching about page data:', error)
+    logError('Error fetching about page data:', error)
     return notFound()
   }
 }

@@ -18,6 +18,7 @@ import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
 import { X, Search, GridIcon, ListIcon, Sparkles, TrendingUp, FolderOpen, Tag } from 'lucide-react' // Added GridIcon, ListIcon
 import { Button } from '@/components/ui/button'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import Link from 'next/link' // Although client component, Link is still useful for navigation
 
 // Define the props for the client component
@@ -77,7 +78,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
         params.set('limit', '9') // Set consistent limit
         params.set('sort', '-publishedAt') // Sort by newest first
 
-        console.log('Fetching posts with params:', params.toString())
+        logDebug('Fetching posts with params:', params.toString())
 
         const response = await fetch(`/api/v1/posts?${params.toString()}`, {
           signal,
@@ -103,10 +104,10 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
         setPosts(data)
         setCurrentPage(page)
 
-        console.log(`Fetched ${data.docs.length} posts, total: ${data.totalDocs}`)
+        logDebug(`Fetched ${data.docs.length} posts, total: ${data.totalDocs}`)
       } catch (error: any) {
         if (error.name !== 'AbortError') {
-          console.error('Error fetching posts:', error)
+          logError('Error fetching posts:', error)
           // Set empty results on error to show "no posts found" message
           setPosts({
             docs: [],
@@ -141,7 +142,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
 
   // Handle search input change
   const handleSearchChange = useCallback((searchQuery: string | undefined) => {
-    console.log('handleSearchChange called with:', searchQuery)
+    logDebug('handleSearchChange called with:', searchQuery)
     setSearchTerm(searchQuery)
     setCurrentPage(1) // Reset to first page on search change
   }, []) // No dependencies needed as it only updates state
@@ -188,7 +189,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
   useEffect(() => {
     if (isInitialMount.current) {
       // TODO: Replace with actual analytics event emission code
-      console.log('Analytics: Blog page viewed (initial load)')
+      logDebug('Analytics: Blog page viewed (initial load)')
       isInitialMount.current = false
     }
   }, []) // Empty dependency array ensures this runs only on mount
@@ -242,7 +243,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
         } catch (error: any) {
           // Error handling is now primarily within fetchPosts
           if (error.name !== 'AbortError') {
-            console.error('Debounced fetch error (should be handled in fetchPosts):', error)
+            logError('Debounced fetch error (should be handled in fetchPosts):', error)
           }
         } finally {
           // Clear the ref if this controller is still the active one
@@ -491,7 +492,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
 
                       // Add a check to ensure the post object is valid before rendering
                       if (!post || !post.id) {
-                        console.warn('Skipping rendering for invalid post object:', post)
+                        logWarn('Skipping rendering for invalid post object:', post)
                         return null // Skip rendering if post is null, undefined, or missing an id
                       }
                       return (

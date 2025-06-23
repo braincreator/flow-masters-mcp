@@ -8,6 +8,7 @@ import { QuickAutomationBuilderAgent } from '@/lib/agents/implementations/automa
 import { MultimodalAgent } from '@/lib/agents/implementations/multimodal-agent'
 import type { AgentRequest, AgentResponse, AgentType } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Initialize agents with Vertex AI support
 const agents = {
   assistant: new FlowMastersAssistantAgent(),
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(apiResponse)
 
   } catch (error) {
-    console.error('Agent API error:', error)
+    logError('Agent API error:', error)
     
     const errorResponse = {
       success: false,
@@ -135,7 +136,7 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Error getting agent info:', error)
+    logError('Error getting agent info:', error)
     
     return NextResponse.json({
       success: false,

@@ -14,6 +14,7 @@ import { Loader2, CheckCircle2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SupportFormProps {
   locale: string
 }
@@ -84,7 +85,7 @@ export function SupportForm({ locale }: SupportFormProps) {
       setSuccess(t('successMessage'))
       reset()
     } catch (err) {
-      console.error('Error submitting support request:', err)
+      logError('Error submitting support request:', err)
       setError(t('errorMessage'))
     } finally {
       setIsLoading(false)

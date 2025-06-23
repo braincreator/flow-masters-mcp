@@ -13,6 +13,7 @@ import { PostsGrid } from '@/components/posts/PostsGrid'
 import { PostsFilters } from '@/components/posts/PostsFilters'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   Sheet,
   SheetContent,
@@ -269,7 +270,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
       </div>
     )
   } catch (error) {
-    console.error('Error loading posts page:', error)
+    logError('Error loading posts page:', error)
     return notFound()
   }
 }

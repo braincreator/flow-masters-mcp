@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 import { BarChart, Activity, Award, Clock, Calendar, TrendingUp, Flame } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UserStatsProps {
   userId: string
   locale: string
@@ -53,7 +54,7 @@ export function UserStats({ userId, locale }: UserStatsProps) {
         if (!response.ok) {
           // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
           if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
-            console.warn('Authentication error, refreshing auth and retrying...')
+            logWarn('Authentication error, refreshing auth and retrying...')
             await refreshAuth()
             return fetchStats(true) // Retry with the retryAfterRefresh flag set to true
           }
@@ -80,12 +81,12 @@ export function UserStats({ userId, locale }: UserStatsProps) {
             achievements: 0,
             totalAchievements: 0,
           })
-          console.warn('No user stats found or invalid response format:', result)
+          logWarn('No user stats found or invalid response format:', result)
         }
 
         setIsLoading(false)
       } catch (error) {
-        console.error('Error fetching user stats:', error)
+        logError('Error fetching user stats:', error)
 
         // If we already tried refreshing auth and still got an error, just log it
         // The retry logic is now handled in the fetch call itself

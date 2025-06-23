@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useNotification } from '@/context/NotificationContext'
 import { formatDate } from '@/utilities/formatDate'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   BarChart,
   Bar,
@@ -112,7 +113,7 @@ export default function ProjectAnalyticsSection({ projectId }: ProjectAnalyticsS
 
         setAnalytics(responseData.data)
       } catch (error) {
-        console.error('Error fetching project analytics:', error)
+        logError('Error fetching project analytics:', error)
         showNotification('error', t('errorFetchingAnalytics', { defaultValue: 'Error fetching project analytics' }))
       } finally {
         setIsLoading(false)

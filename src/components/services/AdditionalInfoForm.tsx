@@ -34,6 +34,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import FileUpload from '@/components/FileUpload'
 import type { AdditionalInfoField } from '@/types/service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define a generic type for the form data
 type FormData = Record<string, any>
 
@@ -161,7 +162,7 @@ const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
     setIsSubmitting(true)
     try {
       // Log form data for debugging (remove in production)
-      console.log('Submitting form data:', data)
+      logDebug('Submitting form data:', data)
 
       // Check for file uploads and validate file sizes
       const hasLargeFiles = Object.entries(data).some(([key, value]) => {
@@ -185,7 +186,7 @@ const AdditionalInfoForm: React.FC<AdditionalInfoFormProps> = ({
         await result
       }
     } catch (error) {
-      console.error('Error submitting form:', error)
+      logError('Error submitting form:', error)
 
       // Show error message to user
       form.setError('root', {

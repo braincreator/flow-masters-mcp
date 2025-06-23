@@ -6,6 +6,7 @@ import { RichTextContent } from 'payload/types' // Use the actual type if availa
 import { SenderEmails } from '@/collections/SenderEmails'
 import { EmailTemplates } from '@/collections/EmailTemplates'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Placeholder: Implement a robust RichText to HTML converter
 // Consider using @payloadcms/richtext-lexical renderer or a custom one.
 function richTextToHtml(content: RichTextContent | any): string {
@@ -147,8 +148,8 @@ export async function sendTemplatedEmail({
       try {
         payload = await getPayload({ config: payloadConfig })
       } catch (initError) {
-        console.error('Failed to initialize Payload for error logging:', initError)
-        console.error(
+        logError('Failed to initialize Payload for error logging:', initError)
+        logError(
           `Original Error sending email using template "${templateSlug}" to ${to}: ${error.message}`,
         )
         return false
@@ -157,7 +158,7 @@ export async function sendTemplatedEmail({
     payload.logger.error(
       `Error sending email using template "${templateSlug}" to ${to}: ${error.message}`,
     )
-    console.error(error) // Log the full error for debugging
+    logError(error) // Log the full error for debugging
     return false
   }
 }

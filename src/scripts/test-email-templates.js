@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables
 dotenv.config();
 
@@ -59,7 +60,7 @@ async function sendTestEmailWithTemplate(templateSlug, data) {
   let transport;
   
   try {
-    console.log(`Sending test email using template: ${templateSlug}`);
+    logDebug(`Sending test email using template: ${templateSlug}`);
     
     // Connect to MongoDB
     client = new MongoClient(mongoUri);
@@ -113,18 +114,18 @@ async function sendTestEmailWithTemplate(templateSlug, data) {
     
     // In development mode with Ethereal, show preview URL
     if (isEtherealEmail && info.messageId) {
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+      logDebug(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
     }
     
     // If using real email in development, log a clear message
     if (process.env.NODE_ENV !== 'production' && useRealEmailInDev) {
-      console.log(`REAL EMAIL SENT to ${data.email} - Check the actual inbox!`);
+      logDebug(`REAL EMAIL SENT to ${data.email} - Check the actual inbox!`);
     }
     
-    console.log(`Email sent successfully. Message ID: ${info.messageId}`);
+    logDebug(`Email sent successfully. Message ID: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error(`Error sending test email with template ${templateSlug}:`, error);
+    logError(`Error sending test email with template ${templateSlug}:`, error);
     return false;
   } finally {
     if (client) {
@@ -152,7 +153,7 @@ function replacePlaceholders(text, data) {
 // Main function to run tests
 async function runTests() {
   try {
-    console.log('Starting email template tests...');
+    logDebug('Starting email template tests...');
     
     // Test welcome email
     await sendTestEmailWithTemplate('welcome-email', {
@@ -191,19 +192,19 @@ async function runTests() {
       description: 'Course enrollment email test'
     });
     
-    console.log('Email template tests completed');
+    logDebug('Email template tests completed');
   } catch (error) {
-    console.error('Error running tests:', error);
+    logError('Error running tests:', error);
   }
 }
 
 // Run the tests
 runTests()
   .then(() => {
-    console.log('Test script completed successfully');
+    logDebug('Test script completed successfully');
     process.exit(0);
   })
   .catch(error => {
-    console.error('Test script failed:', error);
+    logError('Test script failed:', error);
     process.exit(1);
   });

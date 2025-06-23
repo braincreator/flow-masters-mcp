@@ -53,6 +53,7 @@ import FileUpload from '@/components/admin/FileUpload'
 import AIGenerator from '@/components/admin/AIGenerator'
 import TemplateSelector from '@/components/admin/TemplateSelector'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseOptions {
   includeLanding: boolean
   includeFunnel: boolean
@@ -152,7 +153,7 @@ export default function CourseCreatorPage() {
       }
 
       // Отправляем запрос на создание курса
-      console.log('Sending request to create course:', requestData)
+      logDebug('Sending request to create course:', requestData)
 
       try {
         const response = await fetch('/api/v1/courses/create-from-content', {
@@ -164,13 +165,13 @@ export default function CourseCreatorPage() {
         })
 
         const result = await response.json()
-        console.log('API response:', result)
+        logDebug('API response:', result)
 
         if (!response.ok) {
           throw new Error(result.error || 'Ошибка при создании курса')
         }
       } catch (apiError) {
-        console.error('API error:', apiError)
+        logError('API error:', apiError)
         throw new Error(
           `Ошибка при вызове API: ${apiError instanceof Error ? apiError.message : 'Неизвестная ошибка'}`,
         )
@@ -208,7 +209,7 @@ export default function CourseCreatorPage() {
         setActiveTab('preview')
       }
     } catch (error) {
-      console.error('Error creating course:', error)
+      logError('Error creating course:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setTimeout(() => {
@@ -253,9 +254,9 @@ export default function CourseCreatorPage() {
         // Используем более надежный способ парсинга JSON
         const jsonString = courseData.trim()
         parsedData = JSON.parse(jsonString)
-        console.log('Successfully parsed JSON data:', parsedData)
+        logDebug('Successfully parsed JSON data:', parsedData)
       } catch (e) {
-        console.error('JSON parse error:', e)
+        logError('JSON parse error:', e)
         throw new Error('Неверный формат JSON. Пожалуйста, проверьте данные курса.')
       }
 
@@ -277,12 +278,12 @@ export default function CourseCreatorPage() {
 
       // Проверяем, что course содержит необходимые поля
       if (!previewData.course.title) {
-        console.warn('Course title is missing')
+        logWarn('Course title is missing')
       }
 
       // Проверяем, что modules существует и является массивом
       if (!Array.isArray(previewData.course.modules)) {
-        console.warn('Course modules is not an array, initializing empty array')
+        logWarn('Course modules is not an array, initializing empty array')
         previewData.course.modules = []
       }
 
@@ -295,11 +296,11 @@ export default function CourseCreatorPage() {
         delete previewData.funnel
       }
 
-      console.log('Preview data prepared:', previewData)
+      logDebug('Preview data prepared:', previewData)
       setPreviewData(previewData)
       setActiveTab('preview')
     } catch (error) {
-      console.error('Preview error:', error)
+      logError('Preview error:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     }
   }

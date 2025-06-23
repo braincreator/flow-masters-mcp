@@ -5,6 +5,7 @@ import { ENV } from '@/constants/env'
 import { IntegrationService } from './integration.service'
 import { IntegrationEvents } from '@/types/events'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для событий Calendly API v2
 export type CalendlyEventType =
   | 'invitee.created'
@@ -105,7 +106,7 @@ export class CalendlyService extends BaseService {
       // Сравниваем вычисленную подпись с полученной
       return crypto.timingSafeEqual(Buffer.from(computedSignature), Buffer.from(signature))
     } catch (error) {
-      console.error('Error verifying Calendly signature:', error)
+      logError('Error verifying Calendly signature:', error)
       return false
     }
   }
@@ -141,7 +142,7 @@ export class CalendlyService extends BaseService {
           break
 
         default:
-          console.log(`Unhandled Calendly event type: ${event}`)
+          logDebug(`Unhandled Calendly event type: ${event}`)
           return {
             success: true,
             message: `Event ${event} received but not processed`,
@@ -150,7 +151,7 @@ export class CalendlyService extends BaseService {
 
       return { success: true }
     } catch (error) {
-      console.error('Error processing Calendly webhook:', error)
+      logError('Error processing Calendly webhook:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -181,7 +182,7 @@ export class CalendlyService extends BaseService {
       })
 
       if (existingBookings.docs.length > 0) {
-        console.log(`Booking with UUID ${scheduled_event.uuid} already exists, skipping creation`)
+        logDebug(`Booking with UUID ${scheduled_event.uuid} already exists, skipping creation`)
         return
       }
 
@@ -276,7 +277,7 @@ export class CalendlyService extends BaseService {
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.created', booking)
     } catch (error) {
-      console.error('Error handling invitee.created event:', error)
+      logError('Error handling invitee.created event:', error)
       throw error
     }
   }
@@ -304,7 +305,7 @@ export class CalendlyService extends BaseService {
       })
 
       if (existingBookings.docs.length === 0) {
-        console.log(`Booking with UUID ${scheduled_event.uuid} not found, cannot cancel`)
+        logDebug(`Booking with UUID ${scheduled_event.uuid} not found, cannot cancel`)
         return
       }
 
@@ -323,7 +324,7 @@ export class CalendlyService extends BaseService {
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.canceled', booking)
     } catch (error) {
-      console.error('Error handling invitee.canceled event:', error)
+      logError('Error handling invitee.canceled event:', error)
       throw error
     }
   }
@@ -351,9 +352,7 @@ export class CalendlyService extends BaseService {
       })
 
       if (existingBookings.docs.length === 0) {
-        console.log(
-          `Booking with UUID ${old_scheduled_event?.uuid || scheduled_event.uuid} not found, creating new booking instead`,
-        )
+        logDebug(`Booking with UUID ${old_scheduled_event?.uuid || scheduled_event.uuid} not found, creating new booking instead`,  )
         // Если старое бронирование не найдено, создаем новое
         return this.handleInviteeCreated(webhookData)
       }
@@ -379,7 +378,7 @@ export class CalendlyService extends BaseService {
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.rescheduled', booking)
     } catch (error) {
-      console.error('Error handling invitee.rescheduled event:', error)
+      logError('Error handling invitee.rescheduled event:', error)
       throw error
     }
   }
@@ -407,7 +406,7 @@ export class CalendlyService extends BaseService {
       })
 
       if (existingBookings.docs.length === 0) {
-        console.log(`Booking with UUID ${scheduled_event.uuid} not found, cannot mark as no-show`)
+        logDebug(`Booking with UUID ${scheduled_event.uuid} not found, cannot mark as no-show`)
         return
       }
 
@@ -424,7 +423,7 @@ export class CalendlyService extends BaseService {
       // Вызываем событие для интеграций
       await this.integrationService.processEvent('booking.no_show', booking)
     } catch (error) {
-      console.error('Error handling invitee_no_show.created event:', error)
+      logError('Error handling invitee_no_show.created event:', error)
       throw error
     }
   }
@@ -439,7 +438,7 @@ export class CalendlyService extends BaseService {
         id,
       })
     } catch (error) {
-      console.error('Error fetching Calendly settings:', error)
+      logError('Error fetching Calendly settings:', error)
       throw error
     }
   }
@@ -460,7 +459,7 @@ export class CalendlyService extends BaseService {
 
       return result.docs
     } catch (error) {
-      console.error('Error fetching active Calendly settings:', error)
+      logError('Error fetching active Calendly settings:', error)
       throw error
     }
   }

@@ -4,6 +4,7 @@ import { getCourseService } from '@/services/courses/courseService'
 import { getLandingService } from '@/services/landing/landingService'
 import { getFunnelService } from '@/services/funnel/funnelService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема для урока
 const lessonSchema = z.object({
   title: z.string().min(1),
@@ -182,7 +183,7 @@ export async function POST(req: Request) {
       message: 'Course created successfully from provided content',
     })
   } catch (error) {
-    console.error('Error creating course from content:', error)
+    logError('Error creating course from content:', error)
     return NextResponse.json(
       {
         success: false,

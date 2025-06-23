@@ -3,6 +3,7 @@ import { blocks } from '@/blocks'
 import { verifyApiKey } from '@/utilities/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define block usage types for better MCP integration
 type BlockUsage =
   | 'lead-generation'
@@ -111,7 +112,7 @@ export async function GET(req: NextRequest) {
       data: blocksList,
     })
   } catch (error) {
-    console.error('Error fetching blocks:', error)
+    logError('Error fetching blocks:', error)
     return NextResponse.json(
       {
         success: false,

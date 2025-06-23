@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error marking all notifications as read:', error)
+    logError('Error marking all notifications as read:', error)
     return NextResponse.json({ error: 'Failed to mark all notifications as read' }, { status: 500 })
   }
 }

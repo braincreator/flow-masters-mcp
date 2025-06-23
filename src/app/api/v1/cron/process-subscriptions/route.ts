@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Защищаем маршрут с помощью API ключа
 const validateApiKey = (req: NextRequest): boolean => {
   const apiKey = req.headers.get('x-api-key')
   const validApiKey = process.env.CRON_API_KEY
 
   if (!validApiKey) {
-    console.warn('CRON_API_KEY not configured in environment variables')
+    logWarn('CRON_API_KEY not configured in environment variables')
     return false
   }
 
@@ -27,24 +28,24 @@ export async function POST(req: NextRequest) {
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
+      logError('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
-    console.log('Starting subscription payments processing...')
+    logDebug('Starting subscription payments processing...')
 
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const subscriptionService = serviceRegistry.getSubscriptionService()
     const results = await subscriptionService.processRecurringPayments()
 
-    console.log('Subscription processing completed:', results)
+    logDebug('Subscription processing completed:', results)
 
     return NextResponse.json({
       success: true,
       processed: results,
     })
   } catch (error) {
-    console.error('Error processing subscription payments:', error)
+    logError('Error processing subscription payments:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',

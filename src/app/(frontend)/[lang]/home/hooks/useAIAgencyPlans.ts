@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useLocale } from 'next-intl'
 import { SubscriptionPlan } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UseAIAgencyPlansOptions {
   limit?: number
 }
@@ -198,7 +199,7 @@ export function useAIAgencyPlans({
     try {
       setLoading(true)
       setError(null)
-      console.log('Loading AI Agency plans for locale:', locale)
+      logDebug('Loading AI Agency plans for locale:', locale)
 
       // Формируем URL для получения планов из нашего API
       const params = new URLSearchParams({
@@ -210,13 +211,13 @@ export function useAIAgencyPlans({
       const response = await fetch(`/api/v1/subscription/plans?${params}`)
 
       if (!response.ok) {
-        console.warn(
+        logWarn(
           'Failed to fetch plans from API, using fallback data. Status:',
           response.status,
         )
         // Используем fallback данные, если API недоступен
         const fallbackPlans = getFallbackPlans(locale).slice(0, limit)
-        console.log('Using fallback plans:', fallbackPlans.length)
+        logDebug('Using fallback plans:', fallbackPlans.length)
         setPlans(fallbackPlans)
         return
       }
@@ -232,25 +233,25 @@ export function useAIAgencyPlans({
 
         // Если нет планов из API, используем fallback
         if (aiPlans.length === 0) {
-          console.warn('No active AI agency plans found in API, using fallback data')
+          logWarn('No active AI agency plans found in API, using fallback data')
           const fallbackPlans = getFallbackPlans(locale).slice(0, limit)
           setPlans(fallbackPlans)
         } else {
-          console.log('Loaded plans from API:', aiPlans.length)
+          logDebug('Loaded plans from API:', aiPlans.length)
           setPlans(aiPlans)
         }
       } else {
         // Если структура ответа не соответствует ожидаемой, используем fallback
-        console.warn('Invalid API response format, using fallback data')
+        logWarn('Invalid API response format, using fallback data')
         const fallbackPlans = getFallbackPlans(locale).slice(0, limit)
         setPlans(fallbackPlans)
       }
     } catch (err) {
-      console.error('Error loading AI Agency plans:', err)
-      console.warn('Using fallback data due to error')
+      logError('Error loading AI Agency plans:', err)
+      logWarn('Using fallback data due to error')
       // В случае ошибки используем fallback данные
       const fallbackPlans = getFallbackPlans(locale).slice(0, limit)
-      console.log('Fallback plans loaded:', fallbackPlans.length, 'for locale:', locale)
+      logDebug('Fallback plans loaded:', fallbackPlans.length, 'for locale:', locale)
       setPlans(fallbackPlans)
       setError(null) // Не показываем ошибку, так как у нас есть fallback
     } finally {

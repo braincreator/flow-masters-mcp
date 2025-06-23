@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import nodemailer from 'nodemailer'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z.object({
   to: z.string().email(),
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
       messageId: info.messageId,
     })
   } catch (error) {
-    console.error('Error sending email:', error)
+    logError('Error sending email:', error)
     return NextResponse.json(
       {
         success: false,

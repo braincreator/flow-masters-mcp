@@ -1,6 +1,7 @@
 import { Payload } from 'payload'
 import { BaseService } from './base.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Конфигурация уровней
 // Каждый уровень требует определенное количество XP
 // Формула: level N требует BASE_XP * (LEVEL_MULTIPLIER ^ (N-1)) XP
@@ -162,7 +163,7 @@ export class UserLevelService extends BaseService {
 
       return updatedUser
     } catch (error) {
-      console.error('Error updating user level:', error)
+      logError('Error updating user level:', error)
       throw error
     }
   }
@@ -189,7 +190,7 @@ export class UserLevelService extends BaseService {
         })
       }
     } catch (error) {
-      console.error('Error sending level up notification:', error)
+      logError('Error sending level up notification:', error)
     }
   }
 

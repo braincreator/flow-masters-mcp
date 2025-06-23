@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react'
 import { trackPostView } from '@/lib/blogHelpers'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Props {
   children: React.ReactNode
   params: {
@@ -33,7 +34,7 @@ export default function BlogPostLayout({ children, params }: Props) {
         }
       })
       .catch((error) => {
-        console.error('Failed to track post view:', error)
+        logError('Failed to track post view:', error)
       })
   }, [slug])
 

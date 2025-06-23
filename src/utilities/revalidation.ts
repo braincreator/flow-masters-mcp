@@ -1,4 +1,5 @@
 import type { PayloadRequest } from 'payload'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type {
   RevalidateOptions,
   RevalidateCollectionArgs,
@@ -54,7 +55,7 @@ export async function revalidateContent({
     if (payload?.logger) {
       payload.logger.error(`Revalidation error: ${errorMessage}`)
     } else {
-      console.error('Revalidation error:', errorMessage)
+      logError('Revalidation error:', errorMessage)
     }
     throw error
   }

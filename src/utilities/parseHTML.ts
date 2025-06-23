@@ -3,6 +3,7 @@
  */
 
 import { JSDOM } from 'jsdom'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Add type declarations by installing @types/jsdom:
 // npm install --save-dev @types/jsdom
 
@@ -277,7 +278,7 @@ export function parseHTML(html: string): ParsedBlock[] {
       layout,
     }
   } catch (error) {
-    console.error('Error parsing HTML:', error)
+    logError('Error parsing HTML:', error)
     return {
       title: 'Generated Landing Page',
       layout: [],

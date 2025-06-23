@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest) {
   try {
     // Initialize services
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     try {
       webhookData = await req.json()
     } catch (error) {
-      console.error('Failed to parse webhook data:', error)
+      logError('Failed to parse webhook data:', error)
       return NextResponse.json({ error: 'Invalid webhook format' }, { status: 400 })
     }
 
@@ -23,11 +24,11 @@ export async function POST(req: NextRequest) {
     try {
       const isValid = await paymentService.verifyWebhook(webhookData)
       if (!isValid) {
-        console.error('Invalid webhook signature')
+        logError('Invalid webhook signature')
         return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 403 })
       }
     } catch (error) {
-      console.error('Error verifying webhook:', error)
+      logError('Error verifying webhook:', error)
       // Continue processing as some providers don't require verification
       // but log the error for monitoring
     }
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const { orderId, status, transactionId } = await paymentService.processWebhookData(webhookData)
 
     if (!orderId) {
-      console.error('No order ID found in webhook data')
+      logError('No order ID found in webhook data')
       return NextResponse.json({ error: 'No order ID in webhook data' }, { status: 400 })
     }
 
@@ -48,12 +49,12 @@ export async function POST(req: NextRequest) {
         id: orderId,
       })
     } catch (error) {
-      console.error(`Failed to find order ${orderId}:`, error)
+      logError(`Failed to find order ${orderId}:`, error)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
     if (!order) {
-      console.error(`Order ${orderId} not found`)
+      logError(`Order ${orderId} not found`)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
         },
       })
     } catch (error) {
-      console.error(`Failed to update order ${orderId}:`, error)
+      logError(`Failed to update order ${orderId}:`, error)
       return NextResponse.json({ error: 'Failed to update order' }, { status: 500 })
     }
 
@@ -87,13 +88,13 @@ export async function POST(req: NextRequest) {
         })
       } catch (error) {
         // Log but don't fail the webhook on notification error
-        console.error('Failed to send payment confirmation notification:', error)
+        logError('Failed to send payment confirmation notification:', error)
       }
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Webhook processing error:', error)
+    logError('Webhook processing error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card'
 import { Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SubscriptionResultProps {
   locale: string
   status: string
@@ -49,7 +50,7 @@ export function SubscriptionResult({
           throw new Error(data.error || t('errors.invalidSubscription'))
         }
       } catch (error) {
-        console.error('Error fetching subscription:', error)
+        logError('Error fetching subscription:', error)
         setLoadError(error instanceof Error ? error.message : t('errors.unknown'))
       } finally {
         setLoading(false)

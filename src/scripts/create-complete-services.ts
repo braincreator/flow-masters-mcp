@@ -8,9 +8,10 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для создания услуг для русской локали
 async function createRussianServices(payload: any) {
-  console.log('🇷🇺 Creating Russian services...')
+  logDebug('🇷🇺 Creating Russian services...')
 
   // Русские консультации (3 уровня)
   const consultationServices = [
@@ -238,16 +239,16 @@ async function createRussianServices(payload: any) {
         data: serviceData,
         locale: 'ru',
       })
-      console.log(`✅ Created Russian service: ${service.title} (${service.id})`)
+      logDebug(`✅ Created Russian service: ${service.title} (${service.id})`)
     } catch (error) {
-      console.error(`❌ Error creating Russian service "${serviceData.title}":`, error)
+      logError(`❌ Error creating Russian service "${serviceData.title}":`, error)
     }
   }
 }
 
 // Функция для создания услуг для английской локали
 async function createEnglishServices(payload: any) {
-  console.log('🇺🇸 Creating English services...')
+  logDebug('🇺🇸 Creating English services...')
 
   const englishServices = [
     {
@@ -364,19 +365,19 @@ async function createEnglishServices(payload: any) {
         data: serviceData,
         locale: 'en',
       })
-      console.log(`✅ Created English service: ${service.title} (${service.id})`)
+      logDebug(`✅ Created English service: ${service.title} (${service.id})`)
     } catch (error) {
-      console.error(`❌ Error creating English service "${serviceData.title}":`, error)
+      logError(`❌ Error creating English service "${serviceData.title}":`, error)
     }
   }
 }
 
 async function createCompleteServices() {
-  console.log('🚀 Creating complete AI Agency services for both locales...')
+  logDebug('🚀 Creating complete AI Agency services for both locales...')
 
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Создаем русские услуги
     await createRussianServices(payload)
@@ -384,10 +385,10 @@ async function createCompleteServices() {
     // Создаем английские услуги
     await createEnglishServices(payload)
 
-    console.log('🎉 Complete services creation finished!')
+    logDebug('🎉 Complete services creation finished!')
   } catch (error) {
-    console.error('❌ Error:', error)
-    console.error('Stack trace:', error.stack)
+    logError('❌ Error:', error)
+    logError('Stack trace:', error.stack)
     process.exit(1)
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Settings {
   [key: string]: any
   currencies?: {
@@ -59,7 +60,7 @@ export function useSettings(): UseSettingsResult {
       const data = await response.json()
       setSettings(data)
     } catch (err) {
-      console.error('Error fetching settings:', err)
+      logError('Error fetching settings:', err)
       setError(err instanceof Error ? err : new Error('Unknown error occurred'))
     } finally {
       setLoading(false)

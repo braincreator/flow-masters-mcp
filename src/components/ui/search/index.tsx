@@ -5,6 +5,7 @@ import { SearchIcon, X, Clock, TrendingUp } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SearchProps {
   value?: string
   onChange?: (value: string) => void
@@ -53,7 +54,7 @@ export function Search({
         try {
           setRecentSearches(JSON.parse(stored).slice(0, 5))
         } catch (error) {
-          console.error('Error loading recent searches:', error)
+          logError('Error loading recent searches:', error)
         }
       }
     }
@@ -77,7 +78,7 @@ export function Search({
         const results = await onSuggestionsFetch(query)
         setSuggestions(results)
       } catch (error) {
-        console.error('Error fetching suggestions:', error)
+        logError('Error fetching suggestions:', error)
         setSuggestions([])
       } finally {
         setIsLoading(false)
@@ -101,7 +102,7 @@ export function Search({
   }
 
   const handleSuggestionClick = (suggestion: string) => {
-    console.log('Suggestion clicked:', suggestion)
+    logDebug('Suggestion clicked:', suggestion)
 
     setInternalValue(suggestion)
     // Call onChange immediately when suggestion is clicked

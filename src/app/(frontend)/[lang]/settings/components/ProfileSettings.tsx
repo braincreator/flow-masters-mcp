@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Upload, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define User interface based on AuthProvider
 interface User {
   id: string
@@ -68,7 +69,7 @@ export function ProfileSettings({ user, locale }: ProfileSettingsProps) {
       setSuccess(t('successMessage'))
     } catch (err) {
       setError(t('errorMessage'))
-      console.error('Error updating profile:', err)
+      logError('Error updating profile:', err)
     } finally {
       setIsLoading(false)
     }

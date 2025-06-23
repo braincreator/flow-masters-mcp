@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Share, Facebook, Twitter, Linkedin, Copy, Check, Mail } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface BlogSocialShareProps {
   url: string
   title: string
@@ -42,7 +43,7 @@ export function BlogSocialShare({ url, title, description = '', postId }: BlogSo
   // Отслеживание аналитики шаринга
   const trackShare = (platform: string) => {
     // В реальном проекте здесь будет код аналитики
-    console.log(`Shared on ${platform}. Post ID: ${postId}`)
+    logDebug(`Shared on ${platform}. Post ID: ${postId}`)
   }
 
   return (

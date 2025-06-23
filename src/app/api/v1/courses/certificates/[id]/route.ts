@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const certificateId = params.id
@@ -25,7 +26,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     return NextResponse.json({ certificate: certificates.docs[0] }, { status: 200 })
   } catch (error) {
-    console.error('Error getting certificate:', error)
+    logError('Error getting certificate:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Failed to get certificate',

@@ -8,6 +8,7 @@
 import { getPayload } from 'payload'
 import config from '../../payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Helper function to create Lexical paragraph
 function createParagraph(text: string) {
   return {
@@ -387,11 +388,11 @@ const englishConsultingImportantNote = createLexicalRoot([
 ])
 
 async function updateConsultingOffer() {
-  console.log('📄 Updating consulting offer content in TermsPages collection...')
+  logDebug('📄 Updating consulting offer content in TermsPages collection...')
 
   try {
     const payload = await getPayload({ config })
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Update Russian content
     const russianResult = await payload.update({
@@ -410,7 +411,7 @@ async function updateConsultingOffer() {
       },
     })
 
-    console.log(`✅ Updated ${russianResult.docs.length} Russian consulting terms page(s)`)
+    logDebug(`✅ Updated ${russianResult.docs.length} Russian consulting terms page(s)`)
 
     // Update English content
     const englishResult = await payload.update({
@@ -429,10 +430,10 @@ async function updateConsultingOffer() {
       },
     })
 
-    console.log(`✅ Updated ${englishResult.docs.length} English consulting terms page(s)`)
-    console.log('🎉 Consulting offer content updated successfully!')
+    logDebug(`✅ Updated ${englishResult.docs.length} English consulting terms page(s)`)
+    logDebug('🎉 Consulting offer content updated successfully!')
   } catch (error) {
-    console.error('❌ Error updating consulting offer:', error)
+    logError('❌ Error updating consulting offer:', error)
     process.exit(1)
   }
 }

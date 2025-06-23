@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { Comment } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type CommentRequest = {
   postId: string
   author: {
@@ -43,7 +44,7 @@ async function fetchReplies(payload: Payload, commentId: string): Promise<Commen
     depth: 1,
   })
 
-  console.log(`Replies for comment ${commentId}:`, replies.docs.length)
+  logDebug(`Replies for comment ${commentId}:`, replies.docs.length)
 
   const repliesWithNestedReplies = await Promise.all(
     replies.docs.map(async (reply) => {
@@ -61,18 +62,18 @@ async function fetchReplies(payload: Payload, commentId: string): Promise<Commen
 export async function POST(req: NextRequest) {
   try {
     const requestBody = await req.json()
-    console.log('Comment API received:', JSON.stringify(requestBody, null, 2))
+    logDebug('Comment API received:', JSON.stringify(requestBody, null, 2))
 
     const { postId, author, content, parentComment } = requestBody as Omit<
       CommentRequest,
       'author'
     > & { author: { name: string; email: string } }
 
-    console.log('Extracted fields:', { postId, author, content, parentComment })
+    logDebug('Extracted fields:', { postId, author, content, parentComment })
 
     // Validate required fields
     if (!postId || !author?.name || !author?.email || !content) {
-      console.log('Validation failed - missing fields:', {
+      logDebug('Validation failed - missing fields:', {
         postId: !!postId,
         authorName: !!author?.name,
         authorEmail: !!author?.email,
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
       commentId: newComment.id,
     })
   } catch (error) {
-    console.error('Error creating comment:', error)
+    logError('Error creating comment:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -153,7 +154,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
-    console.log(`Fetching comments for post: ${postId}`)
+    logDebug(`Fetching comments for post: ${postId}`)
 
     const payload = await getPayloadClient()
 
@@ -176,9 +177,9 @@ export async function GET(req: NextRequest) {
       depth: 1,
     })
 
-    console.log(`Found ${topLevelComments.docs.length} top level comments`)
+    logDebug(`Found ${topLevelComments.docs.length} top level comments`)
     if (topLevelComments.docs.length > 0) {
-      console.log('First comment status:', topLevelComments.docs[0].status)
+      logDebug('First comment status:', topLevelComments.docs[0].status)
     }
 
     // Используем рекурсивную функцию для загрузки всех вложенных ответов
@@ -192,9 +193,7 @@ export async function GET(req: NextRequest) {
       }),
     )
 
-    console.log(
-      'Final comments structure (first item):',
-      commentsWithNestedReplies.length > 0
+    logDebug('Final comments structure (first item):', commentsWithNestedReplies.length > 0
         ? JSON.stringify(commentsWithNestedReplies[0], null, 2).substring(0, 500) + '...'
         : 'No comments',
     )
@@ -204,7 +203,7 @@ export async function GET(req: NextRequest) {
       comments: commentsWithNestedReplies,
     })
   } catch (error) {
-    console.error('Error fetching comments:', error)
+    logError('Error fetching comments:', error)
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // GET handler to fetch project feedback
 export async function GET(req: NextRequest) {
   try {
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
     
     return NextResponse.json(feedback)
   } catch (error) {
-    console.error('Error fetching project feedback:', error)
+    logError('Error fetching project feedback:', error)
     return NextResponse.json({ error: 'Failed to fetch project feedback' }, { status: 500 })
   }
 }
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json(feedback)
   } catch (error) {
-    console.error('Error creating project feedback:', error)
+    logError('Error creating project feedback:', error)
     return NextResponse.json({ error: 'Failed to create project feedback' }, { status: 500 })
   }
 }

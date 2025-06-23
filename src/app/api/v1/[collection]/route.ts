@@ -4,6 +4,7 @@ import { withAuth } from '@/utilities/auth'
 import { createCollectionHandlers, isSpecialCollection } from '@/factories/collectionHandlers'
 import type { Config } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type CollectionNames = keyof Config['collections']
 
 export async function GET(
@@ -33,7 +34,7 @@ export async function GET(
 
       return NextResponse.json(result)
     } catch (error) {
-      console.error(`API error:`, error)
+      logError(`API error:`, error)
       return NextResponse.json(
         {
           error: 'Internal Server Error',
@@ -84,7 +85,7 @@ export async function POST(
 
       return NextResponse.json(result)
     } catch (error) {
-      console.error(`API error:`, error)
+      logError(`API error:`, error)
       return NextResponse.json(
         {
           error: 'Internal Server Error',
@@ -145,7 +146,7 @@ export async function PUT(
 
       return NextResponse.json(result)
     } catch (error) {
-      console.error(`API error:`, error)
+      logError(`API error:`, error)
       return NextResponse.json(
         {
           error: 'Internal Server Error',
@@ -190,7 +191,7 @@ export async function DELETE(
 
       return NextResponse.json(result)
     } catch (error) {
-      console.error(`API error:`, error)
+      logError(`API error:`, error)
       return NextResponse.json(
         {
           error: 'Internal Server Error',

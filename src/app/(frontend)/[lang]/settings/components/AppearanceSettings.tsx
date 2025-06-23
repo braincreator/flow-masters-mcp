@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { useThemeSwitch } from '@/hooks/useThemeSwitch'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define User interface based on AuthProvider
 interface User {
   id: string
@@ -55,7 +56,7 @@ export function AppearanceSettings({ user: _user, locale: _locale }: AppearanceS
       setSuccess(t('successMessage'))
     } catch (err) {
       setError(t('errorMessage'))
-      console.error('Error updating appearance settings:', err)
+      logError('Error updating appearance settings:', err)
     } finally {
       setIsLoading(false)
     }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 // Remove Payload hooks that aren't needed
 import { Gutter, Card } from '@payloadcms/ui'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -64,7 +65,7 @@ const AnalyticsView: React.FC = () => {
         const mockData = generateMockData(timePeriod)
         setAnalyticsData(mockData)
       } catch (err) {
-        console.error('Error fetching analytics:', err)
+        logError('Error fetching analytics:', err)
         setError('Failed to load analytics data. Please try again.')
       } finally {
         setIsLoading(false)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuth } from '../helpers/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Получение списка этапов проекта
 export async function GET(req: NextRequest) {
   try {
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(milestonesResponse.docs)
   } catch (error) {
-    console.error('Error fetching project milestones:', error)
+    logError('Error fetching project milestones:', error)
     return NextResponse.json({ error: 'Failed to fetch milestones' }, { status: 500 })
   }
 }
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(newMilestone)
   } catch (error) {
-    console.error('Error creating milestone:', error)
+    logError('Error creating milestone:', error)
     return NextResponse.json({ error: 'Failed to create milestone' }, { status: 500 })
   }
 }

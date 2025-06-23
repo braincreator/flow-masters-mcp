@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Хук для безопасного использования AbortController в React компонентах
  * Автоматически отменяет контроллер при размонтировании компонента
@@ -26,7 +27,7 @@ export function useAbortController() {
       }
     } catch (error) {
       // Игнорируем ошибки при попытке исправить transformAlgorithm
-      console.debug('Could not fix transformAlgorithm:', error)
+      logDebug('Could not fix transformAlgorithm:', error)
     }
   }
 

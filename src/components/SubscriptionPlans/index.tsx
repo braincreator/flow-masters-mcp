@@ -15,6 +15,7 @@ import {
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SubscriptionPlansProps {
   userId: string
   locale?: string
@@ -56,7 +57,7 @@ export default function SubscriptionPlans({
           throw new Error(data.error || t('errorLoadingPlans'))
         }
       } catch (error) {
-        console.error('Error fetching subscription plans:', error)
+        logError('Error fetching subscription plans:', error)
         setError(error instanceof Error ? error.message : t('errorGeneric'))
       } finally {
         setLoading(false)
@@ -84,7 +85,7 @@ export default function SubscriptionPlans({
 
       router.push(`/${locale}/subscription/checkout?planId=${planId}&userId=${userId}`)
     } catch (error) {
-      console.error('Error subscribing to plan:', error)
+      logError('Error subscribing to plan:', error)
       setError(error instanceof Error ? error.message : t('errorSubscribing'))
     } finally {
       setProcessingPlanId(null)

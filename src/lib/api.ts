@@ -5,6 +5,7 @@
 
 import { useCache, CacheContextType } from '@/providers/CacheProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Generic fetch function that integrates with our CacheProvider
  * @param url The URL to fetch
@@ -41,7 +42,7 @@ export async function apiFetch<T = any>(
   // Handle errors
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
-    console.log('API error response:', error)
+    logDebug('API error response:', error)
     throw new Error(error.error || error.message || `API error: ${response.status}`)
   }
 
@@ -159,7 +160,7 @@ export const blogApi = {
       commentData.parentComment = parentCommentId
     }
 
-    console.log('blogApi.addComment sending:', JSON.stringify(commentData, null, 2))
+    logDebug('blogApi.addComment sending:', JSON.stringify(commentData, null, 2))
 
     // Submit comment
     return apiFetch('/api/v1/blog/comment', {

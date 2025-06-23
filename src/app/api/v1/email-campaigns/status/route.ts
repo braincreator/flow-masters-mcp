@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to check the status of an email campaign
  * GET /api/v1/email-campaigns/status?id=campaignId
@@ -13,13 +14,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Check if user is authenticated
     if (!session?.user) {
-      console.error('Email campaigns status: User not authenticated')
+      logError('Email campaigns status: User not authenticated')
       return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 })
     }
 
     // Check if user is admin
     if (!session.user.isAdmin && session.user.role !== 'admin') {
-      console.error('Email campaigns status: User not admin', {
+      logError('Email campaigns status: User not admin', {
         role: session.user.role,
         isAdmin: session.user.isAdmin,
       })
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       recentLogs: campaign.logs?.slice(-5) || [],
     })
   } catch (error) {
-    console.error('Error checking email campaign status:', error)
+    logError('Error checking email campaign status:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
     return NextResponse.json(
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       page: campaigns.page,
     })
   } catch (error) {
-    console.error('Error listing email campaigns:', error)
+    logError('Error listing email campaigns:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
     return NextResponse.json(

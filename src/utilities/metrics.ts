@@ -9,7 +9,7 @@ export class MetricsCollector {
 
   recordError(error: Error) {
     this.errorCount++
-    console.error('Middleware error:', error)
+    logError('Middleware error:', error)
   }
 
   recordOperationDuration(duration: number) {

@@ -1,11 +1,12 @@
 import collections from './collectionList'
 import type { CollectionConfig } from 'payload'
 
-console.log('[slugs.ts Module] Initializing.') // HMR Debug Log
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
+logDebug('[slugs.ts Module] Initializing.') // HMR Debug Log
 
 // Export a function that returns the array
 export const getCollections = (): CollectionConfig[] => {
-  console.log('[slugs.ts Function] getCollections() called.') // HMR Debug Log
+  logDebug('[slugs.ts Function] getCollections() called.') // HMR Debug Log
   return collections
 }
 

@@ -1,6 +1,7 @@
 import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import { normalizeLexicalContent, isLexicalContent } from './lexicalParser'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Converts Lexical editor content to HTML for email templates
  * @param content Lexical content from Payload CMS
@@ -21,7 +22,7 @@ export function lexicalToHtml(content: any): string {
     // Convert the content to HTML
     return processNodes(normalizedContent.root.children)
   } catch (error) {
-    console.error('Error converting Lexical content to HTML:', error)
+    logError('Error converting Lexical content to HTML:', error)
     return ''
   }
 }

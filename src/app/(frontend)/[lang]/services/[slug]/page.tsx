@@ -19,6 +19,7 @@ import Breadcrumbs from '@/components/Breadcrumbs'
 import ServiceHero from '@/components/services/ServiceHero'
 import ServicePrice from '@/components/services/ServicePrice'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ServicePageParams = {
   lang: string
   slug: string
@@ -90,7 +91,7 @@ export async function generateMetadata({
         : undefined,
     }
   } catch (error) {
-    console.error('Error generating metadata:', error)
+    logError('Error generating metadata:', error)
     return {}
   }
 }
@@ -375,7 +376,7 @@ export default async function ServicePage({ params }: { params: ServicePageParam
       </Container>
     )
   } catch (error) {
-    console.error('Error fetching service data:', error)
+    logError('Error fetching service data:', error)
     notFound()
   }
 }

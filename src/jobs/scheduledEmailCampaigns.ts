@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Scheduled job that checks for email campaigns that need to be run
  * This should be run periodically (e.g., every hour) to check for scheduled campaigns
@@ -7,7 +8,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
  */
 export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
   try {
-    console.log('Checking for scheduled email campaigns...')
+    logDebug('Checking for scheduled email campaigns...')
     const payload = payloadInstance || (await getPayloadClient())
 
     // Get current date
@@ -37,7 +38,7 @@ export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
       },
     })
 
-    console.log(`Found ${scheduledCampaigns.docs.length} campaigns to process`)
+    logDebug(`Found ${scheduledCampaigns.docs.length} campaigns to process`)
 
     // Process each campaign
     for (const campaign of scheduledCampaigns.docs) {
@@ -52,17 +53,13 @@ export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
 
           // If it's not time to run yet, skip this campaign
           if (nextRun > now) {
-            console.log(
-              `Campaign ${campaign.id} (${campaign.name}) is not due to run yet. Next run: ${nextRun.toISOString()}`,
-            )
+            logDebug(`Campaign ${campaign.id} (${campaign.name}) is not due to run yet. Next run: ${nextRun.toISOString()}`,  )
             continue
           }
 
           // If there's an end date and we've passed it, skip this campaign
           if (campaign.schedule.endDate && new Date(campaign.schedule.endDate) < now) {
-            console.log(
-              `Campaign ${campaign.id} (${campaign.name}) has ended. Updating status to completed.`,
-            )
+            logDebug(`Campaign ${campaign.id} (${campaign.name}) has ended. Updating status to completed.`,  )
 
             // Update campaign status to completed
             await payload.update({
@@ -86,7 +83,7 @@ export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
         }
 
         // Queue the campaign job
-        console.log(`Queueing campaign ${campaign.id} (${campaign.name})`)
+        logDebug(`Queueing campaign ${campaign.id} (${campaign.name})`)
 
         await payload.jobs.queue({
           task: 'email-campaign',
@@ -124,7 +121,7 @@ export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
           })
         }
       } catch (error) {
-        console.error(`Error processing campaign ${campaign.id}:`, error)
+        logError(`Error processing campaign ${campaign.id}:`, error)
 
         // Update campaign status to error
         await payload.update({
@@ -145,9 +142,9 @@ export const checkScheduledEmailCampaigns = async (payloadInstance?: any) => {
       }
     }
 
-    console.log('Finished checking scheduled email campaigns')
+    logDebug('Finished checking scheduled email campaigns')
   } catch (error) {
-    console.error('Failed to check scheduled email campaigns:', error)
+    logError('Failed to check scheduled email campaigns:', error)
   }
 }
 

@@ -6,6 +6,7 @@ import ImageMedia from './ImageMedia'
 import VideoMedia from './VideoMedia'
 import PDFMedia from './PDFMedia'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для проверки валидности медиа-ресурса
 const isValidMediaResource = (resource: any): resource is MediaResource => {
   if (resource === null || resource === undefined) return false
@@ -75,7 +76,7 @@ export const Media: React.FC<Props> = (props) => {
 
   // Логирование в режиме разработки
   if (process.env.NODE_ENV === 'development') {
-    console.log('Media component received:', {
+    logDebug('Media component received:', {
       resource,
       src,
       resourceType: resource ? typeof resource : null,

@@ -22,6 +22,7 @@ import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import RichText from '@/components/RichText'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для компонента
 export interface LeadMagnetOfferProps {
   heading: string
@@ -211,7 +212,7 @@ export const LeadMagnetOfferBlock: React.FC<LeadMagnetOfferProps> = ({
         document.body.removeChild(link)
       }
     } catch (err) {
-      console.error('Error submitting form:', err)
+      logError('Error submitting form:', err)
       setError(err instanceof Error ? err.message : 'Произошла ошибка при отправке формы')
     } finally {
       setIsSubmitting(false)

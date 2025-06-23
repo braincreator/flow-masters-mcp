@@ -38,7 +38,7 @@ export async function fetchFromAPI<T = any>(endpoint: string, options: RequestIn
         errorData = { message: response.statusText }
       }
 
-      console.error(`API Error (${response.status}): ${url}`, errorData)
+      logError(`API Error (${response.status}): ${url}`, errorData)
 
       // Улучшенное сообщение об ошибке
       const errorMessage =
@@ -57,24 +57,24 @@ export async function fetchFromAPI<T = any>(endpoint: string, options: RequestIn
     }
 
     const data = await response.json()
-    console.log(`API Response: ${url}`, { status: response.status })
+    logDebug(`API Response: ${url}`, { status: response.status })
     return data as T
   } catch (e) {
     // Обрабатываем ошибки сети или парсинга JSON
     if (e instanceof Error) {
       // Если это уже ошибка API, пробрасываем ее дальше
       if (e.message.startsWith('API Error')) {
-        console.error(`API Error Details:`, e.message)
+        logError(`API Error Details:`, e.message)
         throw e
       }
 
       // Сетевые ошибки и т.п.
-      console.error('API request failed:', e.message)
+      logError('API request failed:', e.message)
       throw new Error(`Failed to fetch data: ${e.message}`)
     }
 
     // Неизвестная ошибка
-    console.error('Unknown API error', e)
+    logError('Unknown API error', e)
     throw new Error('Unknown error occurred during API request')
   }
 }

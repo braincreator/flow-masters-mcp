@@ -1,5 +1,6 @@
 import { toast } from '@/components/ui/use-toast'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Error types
 export enum ErrorType {
   NETWORK = 'network',
@@ -89,19 +90,19 @@ export class AppError extends Error {
 
     switch (this.severity) {
       case ErrorSeverity.INFO:
-        console.info('App Error (INFO):', errorInfo)
+        logInfo('App Error (INFO):', errorInfo)
         break
       case ErrorSeverity.WARNING:
-        console.warn('App Error (WARNING):', errorInfo)
+        logWarn('App Error (WARNING):', errorInfo)
         break
       case ErrorSeverity.CRITICAL:
-        console.error('App Error (CRITICAL):', errorInfo)
+        logError('App Error (CRITICAL):', errorInfo)
         // Here you could add additional reporting for critical errors
         // e.g., send to error monitoring service
         break
       case ErrorSeverity.ERROR:
       default:
-        console.error('App Error:', errorInfo)
+        logError('App Error:', errorInfo)
         break
     }
   }
@@ -270,7 +271,7 @@ export class PriceError extends Error {
 
 export const handlePriceError = (error: unknown): never => {
   if (error instanceof PriceError) {
-    console.error('Price processing error:', error.message, error.details)
+    logError('Price processing error:', error.message, error.details)
 
     // Transform to application error
     const appError = new AppError({

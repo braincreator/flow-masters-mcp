@@ -7,6 +7,7 @@ import { Payload } from 'payload'
 import { replacePlaceholders } from '../utilities/emailTemplateHelpers'
 import { lexicalToHtml } from '../utilities/lexicalToHtml'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const previewEmail = async (req: any, res: any): Promise<void> => {
   const payload: Payload = req.payload
   
@@ -79,7 +80,7 @@ export const previewEmail = async (req: any, res: any): Promise<void> => {
     res.setHeader('Content-Type', 'text/html')
     res.send(body)
   } catch (error) {
-    console.error('Error rendering email preview:', error)
+    logError('Error rendering email preview:', error)
     res.status(500).send('Failed to render email preview')
   }
 }

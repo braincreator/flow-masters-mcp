@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ApiError {
   message: string
   details?: any
@@ -40,8 +41,8 @@ function createApiResponse(
 
 export async function GET(request: Request) {
   try {
-    console.log('=== Products API Request ===')
-    console.log('URL:', request.url)
+    logDebug('=== Products API Request ===')
+    logDebug('URL:', request.url)
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
       ? parseInt(searchParams.get('maxPrice')!)
       : undefined
 
-    console.log('API Request params:', {
+    logDebug('API Request params:', {
       page,
       limit,
       locale,
@@ -72,22 +73,22 @@ export async function GET(request: Request) {
 
     // Validate parameters
     if (isNaN(page) || page < 1) {
-      console.error('Invalid page parameter:', searchParams.get('page'))
+      logError('Invalid page parameter:', searchParams.get('page'))
       return createApiResponse(false, null, { message: 'Invalid page parameter' }, 400)
     }
 
     if (isNaN(limit) || limit < 1) {
-      console.error('Invalid limit parameter:', searchParams.get('limit'))
+      logError('Invalid limit parameter:', searchParams.get('limit'))
       return createApiResponse(false, null, { message: 'Invalid limit parameter' }, 400)
     }
 
     if (minPrice !== undefined && isNaN(minPrice)) {
-      console.error('Invalid minPrice parameter:', searchParams.get('minPrice'))
+      logError('Invalid minPrice parameter:', searchParams.get('minPrice'))
       return createApiResponse(false, null, { message: 'Invalid minPrice parameter' }, 400)
     }
 
     if (maxPrice !== undefined && isNaN(maxPrice)) {
-      console.error('Invalid maxPrice parameter:', searchParams.get('maxPrice'))
+      logError('Invalid maxPrice parameter:', searchParams.get('maxPrice'))
       return createApiResponse(false, null, { message: 'Invalid maxPrice parameter' }, 400)
     }
 
@@ -98,19 +99,17 @@ export async function GET(request: Request) {
       // Log the product collection structure to understand available fields
       try {
         const productCollection = await payload.collections.products.config
-        console.log(
-          'Product collection fields:',
-          productCollection.fields.map((field: any) => ({
+        logDebug('Product collection fields:', productCollection.fields.map((field: any) => ({
             name: field.name,
             type: field.type,
             required: field.required || false,
           })),
         )
       } catch (err) {
-        console.log('Could not log product collection structure:', err)
+        logDebug('Could not log product collection structure:', err)
       }
     } catch (payloadError: any) {
-      console.error('Failed to initialize Payload client:', payloadError)
+      logError('Failed to initialize Payload client:', payloadError)
       return createApiResponse(
         false,
         null,
@@ -174,7 +173,7 @@ export async function GET(request: Request) {
       sortOption = '-pricing.finalPrice' // Price high to low
     }
 
-    console.log('Payload query:', {
+    logDebug('Payload query:', {
       collection: 'products',
       where,
       page,
@@ -186,7 +185,7 @@ export async function GET(request: Request) {
     try {
       // Check if collection exists
       if (!payload.collections || !payload.collections.products) {
-        console.error('Products collection not found in Payload')
+        logError('Products collection not found in Payload')
         return createApiResponse(false, null, { message: 'Products collection not found' }, 500)
       }
 
@@ -196,14 +195,12 @@ export async function GET(request: Request) {
           collection: 'products',
           limit: 1,
         })
-        console.log(
-          'Sample product structure:',
-          sampleProduct.docs && sampleProduct.docs.length > 0
+        logDebug('Sample product structure:', sampleProduct.docs && sampleProduct.docs.length > 0
             ? Object.keys(sampleProduct.docs[0] as object)
             : 'No products found',
         )
       } catch (err: any) {
-        console.log('Sample query failed:', err.message)
+        logDebug('Sample query failed:', err.message)
       }
 
       // Fetch products
@@ -216,11 +213,11 @@ export async function GET(request: Request) {
         sort: sortOption,
       })
 
-      console.log(`Found ${products.docs?.length || 0} products, total: ${products.totalDocs || 0}`)
+      logDebug(`Found ${products.docs?.length || 0} products, total: ${products.totalDocs || 0}`)
 
       // Apply price filtering client-side if needed
       if (priceFilters.shouldFilter && Array.isArray(products.docs)) {
-        console.log('Applying client-side price filtering:', priceFilters)
+        logDebug('Applying client-side price filtering:', priceFilters)
 
         const filteredDocs = products.docs.filter((product) => {
           // Get the price from the nested pricing structure
@@ -240,11 +237,10 @@ export async function GET(request: Request) {
           }
 
           // Логируем исходную цену и конвертированную
-          console.log(`Продукт: ${productWithPrice.title}`)
-          console.log(`- Цена в USD: ${productPrice}$`)
-          console.log(`- Цена в локальной валюте: ${comparePrice}`)
-          console.log(
-            `- Фильтр: от ${priceFilters.minPrice || 0} до ${priceFilters.maxPrice || '∞'}`,
+          logDebug(`Продукт: ${productWithPrice.title}`)
+          logDebug(`- Цена в USD: ${productPrice}$`)
+          logDebug(`- Цена в локальной валюте: ${comparePrice}`)
+          logDebug("Debug:",  `- Фильтр: от ${priceFilters.minPrice || 0} до ${priceFilters.maxPrice || '∞'}`,
           )
 
           // Делаем сравнение
@@ -255,8 +251,7 @@ export async function GET(request: Request) {
 
           const isMatching = meetsMinPrice && meetsMaxPrice
           console.log(`- Результат: ${isMatching ? 'СООТВЕТСТВУЕТ' : 'НЕ СООТВЕТСТВУЕТ'} диапазону`)
-          console.log(
-            `- Причина: мин=${meetsMinPrice ? 'ДА' : 'НЕТ'}, макс=${meetsMaxPrice ? 'ДА' : 'НЕТ'}`,
+          logDebug("Debug:",  `- Причина: мин=${meetsMinPrice ? 'ДА' : 'НЕТ'}, макс=${meetsMaxPrice ? 'ДА' : 'НЕТ'}`,
           )
 
           return isMatching
@@ -270,15 +265,13 @@ export async function GET(request: Request) {
           // We're not recalculating pagination here, which is a limitation
         }
 
-        console.log(
-          `После фильтрации по цене: найдено ${filteredDocs.length} товаров из ${products.docs.length}`,
-        )
+        logDebug(`После фильтрации по цене: найдено ${filteredDocs.length} товаров из ${products.docs.length}`,  )
         return createApiResponse(true, filteredProducts)
       }
 
       return createApiResponse(true, products)
     } catch (payloadError: any) {
-      console.error('Payload query error:', payloadError)
+      logError('Payload query error:', payloadError)
       return createApiResponse(
         false,
         null,
@@ -287,7 +280,7 @@ export async function GET(request: Request) {
       )
     }
   } catch (error: any) {
-    console.error('Error fetching products:', error)
+    logError('Error fetching products:', error)
     return createApiResponse(
       false,
       null,

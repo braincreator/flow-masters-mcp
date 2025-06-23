@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest) {
   try {
     const { focus, utp, llmProvider, llmModel } = await req.json()
 
-    console.log('Received data:', { focus, utp, llmProvider, llmModel });
+    logDebug('Received data:', { focus, utp, llmProvider, llmModel });
 
     // Replace with actual LLM-based block selection logic
     const selectedBlocks = [
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: selectedBlocks })
   } catch (error) {
-    console.error('Error selecting blocks:', error)
+    logError('Error selecting blocks:', error)
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
   }
 }

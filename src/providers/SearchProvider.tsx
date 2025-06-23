@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/providers/I18n'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { useCache } from '@/providers/CacheProvider' // Import useCache
 
 // Define search result types
@@ -102,7 +103,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
           setRecentSearches(recent)
         }
       } catch (err) {
-        console.error('Error loading search history from localStorage:', err)
+        logError('Error loading search history from localStorage:', err)
       }
     }
   }, [])
@@ -195,7 +196,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         // Add to search history
         setQuery(searchQuery)
       } catch (err) {
-        console.error('Error performing search:', err)
+        logError('Error performing search:', err)
         setError(err instanceof Error ? err.message : 'An error occurred while searching')
         setResults([])
         setTotalResults(0)
@@ -276,7 +277,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       const data = await searchApi.getSuggestions(input, cache) // Pass cache instance
       return data.suggestions || []
     } catch (err) {
-      console.error('Error fetching search suggestions:', err)
+      logError('Error fetching search suggestions:', err)
       return []
     }
   }, [])

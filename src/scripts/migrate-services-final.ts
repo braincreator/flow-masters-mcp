@@ -8,6 +8,7 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Данные услуг для миграции
 const servicesData = [
   {
@@ -265,11 +266,11 @@ const servicesData = [
 ]
 
 async function migrateServices() {
-  console.log('🚀 Начинаем миграцию услуг через Payload Local API...')
+  logDebug('🚀 Начинаем миграцию услуг через Payload Local API...')
   
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload клиент инициализирован')
+    logDebug('✅ Payload клиент инициализирован')
     
     // Очищаем коллекцию
     const existingServices = await payload.find({
@@ -278,7 +279,7 @@ async function migrateServices() {
     })
     
     if (existingServices.totalDocs > 0) {
-      console.log(`🧹 Удаляем ${existingServices.totalDocs} существующих записей...`)
+      logDebug(`🧹 Удаляем ${existingServices.totalDocs} существующих записей...`)
       for (const service of existingServices.docs) {
         await payload.delete({
           collection: 'services',
@@ -288,7 +289,7 @@ async function migrateServices() {
     }
     
     // Создаем новые записи
-    console.log(`📝 Создаем ${servicesData.length} новых услуг...`)
+    logDebug(`📝 Создаем ${servicesData.length} новых услуг...`)
     
     for (let i = 0; i < servicesData.length; i++) {
       const serviceData = servicesData[i]
@@ -303,10 +304,10 @@ async function migrateServices() {
           }
         })
         
-        console.log(`✅ Создана услуга ${i + 1}: ${result.title.ru}`)
+        logDebug(`✅ Создана услуга ${i + 1}: ${result.title.ru}`)
         
       } catch (error) {
-        console.error(`❌ Ошибка создания услуги ${i + 1}:`, error.message)
+        logError(`❌ Ошибка создания услуги ${i + 1}:`, error.message)
       }
     }
     
@@ -316,12 +317,12 @@ async function migrateServices() {
       limit: 1
     })
     
-    console.log(`\n🎯 Миграция завершена!`)
-    console.log(`📊 Всего услуг в коллекции: ${finalCount.totalDocs}`)
-    console.log(`🌐 Проверьте результат: http://localhost:3000/admin/collections/services`)
+    logDebug(`\n🎯 Миграция завершена!`)
+    logDebug(`📊 Всего услуг в коллекции: ${finalCount.totalDocs}`)
+    logDebug(`🌐 Проверьте результат: http://localhost:3000/admin/collections/services`)
     
   } catch (error) {
-    console.error('❌ Ошибка миграции:', error)
+    logError('❌ Ошибка миграции:', error)
     process.exit(1)
   }
 }

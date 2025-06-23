@@ -38,6 +38,7 @@ import {
 import NotificationFilterSidebar from './NotificationFilterSidebar'
 import { toast } from '@/components/ui/use-toast'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NotificationsPageProps {
   lang: string
 }
@@ -107,7 +108,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
           totalCount: data.totalCount,
         }
       } catch (error) {
-        console.error('Error fetching notifications:', error)
+        logError('Error fetching notifications:', error)
         throw error
       } finally {
         setIsLoading(false)
@@ -123,7 +124,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
       if (!response.ok) throw new Error(t('errors.markReadFailed'))
       return Promise.resolve()
     } catch (error) {
-      console.error('Failed to mark as read:', error)
+      logError('Failed to mark as read:', error)
       return Promise.reject(error)
     }
   }
@@ -134,7 +135,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
       if (!response.ok) throw new Error(t('errors.markUnreadFailed'))
       return Promise.resolve()
     } catch (error) {
-      console.error('Failed to mark as unread:', error)
+      logError('Failed to mark as unread:', error)
       return Promise.reject(error)
     }
   }
@@ -146,7 +147,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
       if (!response.ok) throw new Error(t('errors.deleteFailed'))
       return Promise.resolve()
     } catch (error) {
-      console.error('Failed to delete notification:', error)
+      logError('Failed to delete notification:', error)
       return Promise.reject(error)
     }
   }
@@ -184,7 +185,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
       // После успешного запроса обновляем данные с сервера для синхронизации
       setIsInitialLoad(true)
     } catch (error) {
-      console.error('Failed to mark all as read:', error)
+      logError('Failed to mark all as read:', error)
       toast({
         description: t('errors.markAllReadFailed'),
         variant: 'destructive',
@@ -224,7 +225,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
         duration: 1500,
       })
     } catch (error) {
-      console.error('Failed to delete all notifications:', error)
+      logError('Failed to delete all notifications:', error)
       toast({
         description: t('errors.deleteAllFailed'),
         variant: 'destructive',
@@ -281,7 +282,7 @@ const NotificationsPageWithInfiniteScroll: React.FC<NotificationsPageProps> = ({
         duration: 1500,
       })
     } catch (error) {
-      console.error('Failed to delete read notifications:', error)
+      logError('Failed to delete read notifications:', error)
       toast({
         description: t('errors.deleteReadFailed'),
         variant: 'destructive',

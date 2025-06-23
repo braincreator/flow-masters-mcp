@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface TelegramConfig {
   botToken: string
   chatId: string
@@ -53,10 +54,10 @@ export class TelegramService extends BaseService {
 
       // Проверяем, что все необходимые параметры заданы
       if (!this.botToken || !this.chatId) {
-        console.warn('Telegram notification service is not fully configured')
+        logWarn('Telegram notification service is not fully configured')
       }
     } catch (error) {
-      console.error('Failed to initialize Telegram service:', error)
+      logError('Failed to initialize Telegram service:', error)
     }
   }
 
@@ -65,7 +66,7 @@ export class TelegramService extends BaseService {
    */
   async sendMessage(text: string, options: MessageOptions = {}): Promise<boolean> {
     if (!this.botToken || !this.chatId) {
-      console.warn('Telegram service is not configured, message will not be sent')
+      logWarn('Telegram service is not configured, message will not be sent')
       return false
     }
 
@@ -87,13 +88,13 @@ export class TelegramService extends BaseService {
 
       const data = await response.json()
       if (!data.ok) {
-        console.error('Telegram API error:', data.description)
+        logError('Telegram API error:', data.description)
         return false
       }
 
       return true
     } catch (error) {
-      console.error('Failed to send Telegram message:', error)
+      logError('Failed to send Telegram message:', error)
       return false
     }
   }

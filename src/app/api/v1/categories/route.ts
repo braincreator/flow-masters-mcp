@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const locale = (searchParams.get('locale') as Locale) || DEFAULT_LOCALE
 
-    console.log(`Categories API: Fetching blog categories for locale ${locale}`)
+    logDebug(`Categories API: Fetching blog categories for locale ${locale}`)
 
     try {
       const payload = await getPayloadClient()
-      console.log('Categories API: Payload client initialized')
+      logDebug('Categories API: Payload client initialized')
 
       // Fetch categories
       try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
           limit: 100,
           locale,
         })
-        console.log(`Categories API: Found ${categories.docs.length} categories`)
+        logDebug(`Categories API: Found ${categories.docs.length} categories`)
 
         // Упрощаем маппинг: считаем посты для всех категорий (теперь это только категории блога)
         const categoriesWithCount = await Promise.all(
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
                   : {}),
               }
             } catch (err) {
-              console.error(
+              logError(
                 `Categories API: Error fetching post count for category ${category.id}:`,
                 err,
               )
@@ -72,21 +73,21 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(sortedCategories)
       } catch (collectionError) {
-        console.error('Categories API: Error accessing categories collection:', collectionError)
+        logError('Categories API: Error accessing categories collection:', collectionError)
         return NextResponse.json(
           { error: 'Error accessing categories collection', details: String(collectionError) },
           { status: 500 },
         )
       }
     } catch (payloadError) {
-      console.error('Categories API: Error initializing Payload client:', payloadError)
+      logError('Categories API: Error initializing Payload client:', payloadError)
       return NextResponse.json(
         { error: 'Error initializing Payload client', details: String(payloadError) },
         { status: 500 },
       )
     }
   } catch (error) {
-    console.error('Categories API: General error:', error)
+    logError('Categories API: General error:', error)
     return NextResponse.json(
       { error: 'Internal Server Error', details: String(error) },
       { status: 500 },

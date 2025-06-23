@@ -7,6 +7,7 @@ import { Search } from '@/components/ui/search'
 import { cn } from '@/lib/utils'
 import { useSearch } from '@/providers/SearchProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export interface BlogSearchProps {
   onSearch?: (query: string) => void
   initialQuery?: string
@@ -71,7 +72,7 @@ export function BlogSearch({
         return data.suggestions || []
       }
     } catch (error) {
-      console.error('Error fetching blog suggestions:', error)
+      logError('Error fetching blog suggestions:', error)
     }
 
     // Fallback suggestions
@@ -80,7 +81,7 @@ export function BlogSearch({
 
   // Wrapper function to add logging
   const handleSearchChange = (query: string) => {
-    console.log('BlogSearch onChange called with:', query)
+    logDebug('BlogSearch onChange called with:', query)
     onSearch?.(query)
   }
 

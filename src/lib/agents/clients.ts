@@ -3,6 +3,7 @@
 
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { 
   SearchQuery, 
   SearchResult,
@@ -64,7 +65,7 @@ export class AgentClients {
 
       return text || 'No response generated'
     } catch (error) {
-      console.error('Error generating AI response:', error)
+      logError('Error generating AI response:', error)
       throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }

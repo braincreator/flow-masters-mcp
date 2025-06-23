@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     // Get the order ID from the query parameters
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     // Return the verification status
     return NextResponse.json({ verified: isPaid })
   } catch (error) {
-    console.error('Error verifying payment:', error)
+    logError('Error verifying payment:', error)
     return NextResponse.json(
       { error: 'Failed to verify payment status' },
       { status: 500 }

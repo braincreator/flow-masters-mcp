@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession()
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
     const sortDirection = sortOrderParam === 'asc' ? '' : '-'
     const sortString = `${sortDirection}${sortBy}`
 
-    console.log('API /notifications: Запрос уведомлений с параметрами:', {
+    logDebug('API /notifications: Запрос уведомлений с параметрами:', {
       userId,
       limit,
       page,
@@ -94,24 +95,20 @@ export async function GET(request: NextRequest) {
       depth: 0,
     })
 
-    console.log(
-      `API /notifications: Найдено ${notifications.docs.length} уведомлений из ${notifications.totalDocs} всего`,
-    )
+    logDebug(`API /notifications: Найдено ${notifications.docs.length} уведомлений из ${notifications.totalDocs} всего`,  )
 
     // Подробный лог типов уведомлений
-    console.log(
-      'API /notifications: Типы уведомлений:',
-      notifications.docs.map((doc) => ({ id: doc.id, type: doc.type })),
+    logDebug('API /notifications: Типы уведомлений:', notifications.docs.map((doc) => ({ id: doc.id, type: doc.type })),
     )
 
     // Проверяем, что уведомления имеют нужные поля
     const processedDocs = notifications.docs.map((doc) => {
       // Если какие-то поля отсутствуют, добавим логи
       if (!doc.type) {
-        console.warn('API /notifications: Уведомление без поля type:', doc.id)
+        logWarn('API /notifications: Уведомление без поля type:', doc.id)
       }
       if (!doc.title) {
-        console.warn('API /notifications: Уведомление без поля title:', doc.id)
+        logWarn('API /notifications: Уведомление без поля title:', doc.id)
       }
 
       // Явно преобразуем isRead в status для корректного отображения в интерфейсе
@@ -127,7 +124,7 @@ export async function GET(request: NextRequest) {
       currentPage: notifications.page,
     })
   } catch (error) {
-    console.error('Error fetching notifications:', error)
+    logError('Error fetching notifications:', error)
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
   }
 }
@@ -180,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success, sent: success.some((result) => result === true) })
   } catch (error) {
-    console.error('Error creating notification:', error)
+    logError('Error creating notification:', error)
     return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 })
   }
 }
@@ -259,7 +256,7 @@ export async function DELETE(request: NextRequest) {
     // If there were errors for some IDs, `deleteResult.errors` might be populated.
 
     if (deleteResult.errors && deleteResult.errors.length > 0) {
-      console.error('Errors during batch deletion:', deleteResult.errors)
+      logError('Errors during batch deletion:', deleteResult.errors)
       // Decide if this is a partial success or full failure
       return NextResponse.json(
         {
@@ -276,7 +273,7 @@ export async function DELETE(request: NextRequest) {
       { status: 200 },
     )
   } catch (error) {
-    console.error('Error deleting notifications:', error)
+    logError('Error deleting notifications:', error)
     let errorMessage = 'Failed to delete notifications'
     if (error instanceof Error) {
       errorMessage = error.message

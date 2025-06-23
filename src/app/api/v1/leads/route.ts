@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Обработчик POST запросов для сохранения лидов
  */
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, lead })
   } catch (e) {
-    console.error('Lead form error:', e)
+    logError('Lead form error:', e)
     return NextResponse.json({
       error: e instanceof Error ? e.message : String(e)
     }, { status: 500 })

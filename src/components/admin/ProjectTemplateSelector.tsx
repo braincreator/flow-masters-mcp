@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, Calendar, Clock, FileText, Check } from 'lucide-react'
 import ProjectTemplateList from './ProjectTemplateList'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProjectTemplate {
   id: string
   name: string
@@ -84,7 +85,7 @@ export default function ProjectTemplateSelector({ projectId, onTemplateApplied }
         onTemplateApplied()
       }
     } catch (error) {
-      console.error('Error applying template:', error)
+      logError('Error applying template:', error)
       showNotification('error', t('errorApplyingTemplate', { defaultValue: 'Error applying template' }))
     } finally {
       setIsApplying(false)

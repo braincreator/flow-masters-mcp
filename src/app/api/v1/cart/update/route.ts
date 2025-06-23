@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 import { Product, Service } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type CartItem = {
   itemType: 'product' | 'service'
   product?: string | Product | null
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest) {
     const actualItemId = itemId || productId
     const actualItemType = itemId ? itemType : 'product'
 
-    console.log('Cart update request received:', {
+    logDebug('Cart update request received:', {
       productId,
       itemId,
       itemType,
@@ -175,7 +176,7 @@ export async function PATCH(req: NextRequest) {
 
     return Response.json(updatedCart, { status: 200 })
   } catch (error) {
-    console.error('Error updating cart item:', error)
+    logError('Error updating cart item:', error)
     return Response.json(
       {
         message: 'Failed to update cart item',

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для получения статистики webhook вызовов
  * GET /api/webhooks/stats - получить статистику
@@ -75,7 +76,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting webhook stats:', error)
+    logError('Error getting webhook stats:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

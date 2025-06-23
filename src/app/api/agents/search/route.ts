@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SmartDocumentationSearchAgent } from '@/lib/agents/implementations/search-agent'
 import type { AgentRequest } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const searchAgent = new SmartDocumentationSearchAgent()
 
 /**
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Search agent error:', error)
+    logError('Search agent error:', error)
     return NextResponse.json(
       { 
         success: false,

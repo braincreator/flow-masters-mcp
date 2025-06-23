@@ -23,6 +23,7 @@ import TasksTabContent from './components/TasksTabContent'
 import DiscussionsTabContent from './components/DiscussionsTabContent'
 import FilesTabContent from './components/FilesTabContent'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Определение типа для проекта
 interface ProjectDetails {
   id: string
@@ -168,7 +169,7 @@ export default function ProjectDetailsPage({
     const fetchProjectDetails = async () => {
       try {
         setIsLoading(true)
-        console.log('Initial load: isLoading set to true')
+        logDebug('Initial load: isLoading set to true')
         const response = await fetch(`/api/service-projects/${id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -180,15 +181,15 @@ export default function ProjectDetailsPage({
 
         const data = await response.json()
         setProject(data)
-        console.log('Initial load: isLoading set to false. Project data:', data)
+        logDebug('Initial load: isLoading set to false. Project data:', data)
       } catch (err) {
-        console.error('Error fetching project details:', err)
+        logError('Error fetching project details:', err)
         setError(err instanceof Error ? err.message : t('unknownError'))
-        console.log('Initial load: isLoading set to false. Error:', err)
+        logDebug('Initial load: isLoading set to false. Error:', err)
         showNotification('error', t('errorLoadingProject'))
       } finally {
         setIsLoading(false)
-        console.log('Initial load: fetchProjectDetails finally block, isLoading set to false')
+        logDebug('Initial load: fetchProjectDetails finally block, isLoading set to false')
       }
     }
 
@@ -199,13 +200,13 @@ export default function ProjectDetailsPage({
   useEffect(() => {
     const fetchTasks = async () => {
       if (activeTab !== 'tasks' || !project) {
-        if (activeTab === 'tasks') console.log('Tasks load: Skipped, project not yet loaded.')
+        if (activeTab === 'tasks') logDebug('Tasks load: Skipped, project not yet loaded.')
         return
       }
       console.log('Tasks load: activeTab is "tasks" and project exists. Fetching tasks.')
       try {
         setIsLoadingTasks(true)
-        console.log('Tasks load: isLoadingTasks set to true')
+        logDebug('Tasks load: isLoadingTasks set to true')
         const response = await fetch(`/api/tasks?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -227,18 +228,16 @@ export default function ProjectDetailsPage({
         // Ensure tasks is always an array
         const tasksArray = Array.isArray(data) ? data : data?.tasks || data?.docs || []
         setTasks(tasksArray)
-        console.log(
-          'Tasks load: isLoadingTasks set to false. Tasks data:',
-          data,
+        logDebug('Tasks load: isLoadingTasks set to false. Tasks data:', data,
           'Processed tasks:',
           tasksArray,
         )
       } catch (err) {
-        console.error('Error fetching tasks:', err)
-        console.log('Tasks load: isLoadingTasks set to false. Error:', err)
+        logError('Error fetching tasks:', err)
+        logDebug('Tasks load: isLoadingTasks set to false. Error:', err)
       } finally {
         setIsLoadingTasks(false)
-        console.log('Tasks load: fetchTasks finally block, isLoadingTasks set to false')
+        logDebug('Tasks load: fetchTasks finally block, isLoadingTasks set to false')
       }
     }
 
@@ -250,15 +249,14 @@ export default function ProjectDetailsPage({
     const fetchMilestones = async () => {
       if (activeTab !== 'milestones' || !project) {
         if (activeTab === 'milestones')
-          console.log('Milestones load: Skipped, project not yet loaded.')
+          logDebug('Milestones load: Skipped, project not yet loaded.')
         return
       }
-      console.log(
-        'Milestones load: activeTab is "milestones" and project exists. Fetching milestones.',
+      logDebug("Debug:",  'Milestones load: activeTab is "milestones" and project exists. Fetching milestones.',
       )
       try {
         setIsLoadingMilestones(true)
-        console.log('Milestones load: isLoadingMilestones set to true')
+        logDebug('Milestones load: isLoadingMilestones set to true')
 
         // In the future, this would be an actual API call
         // For now, we'll just simulate a delay and return dummy data
@@ -369,18 +367,14 @@ export default function ProjectDetailsPage({
         })
 
         setMilestones(dummyMilestones)
-        console.log(
-          'Milestones load: isLoadingMilestones set to false. Milestones data:',
-          dummyMilestones,
+        logDebug('Milestones load: isLoadingMilestones set to false. Milestones data:', dummyMilestones,
         )
       } catch (err) {
-        console.error('Error fetching milestones:', err)
-        console.log('Milestones load: isLoadingMilestones set to false. Error:', err)
+        logError('Error fetching milestones:', err)
+        logDebug('Milestones load: isLoadingMilestones set to false. Error:', err)
       } finally {
         setIsLoadingMilestones(false)
-        console.log(
-          'Milestones load: fetchMilestones finally block, isLoadingMilestones set to false',
-        )
+        logDebug('Milestones load: fetchMilestones finally block, isLoadingMilestones set to false',  )
       }
 
       // Функция для создания нового этапа
@@ -410,7 +404,7 @@ export default function ProjectDetailsPage({
           showNotification('success', t('milestoneCreatedSuccess'))
           setIsMilestoneModalOpen(false)
         } catch (err) {
-          console.error('Error creating milestone:', err)
+          logError('Error creating milestone:', err)
           showNotification('error', t('errorCreatingMilestone'))
           throw err
         }
@@ -445,7 +439,7 @@ export default function ProjectDetailsPage({
           showNotification('success', t('feedbackCreatedSuccess'))
           return newFeedback
         } catch (err) {
-          console.error('Error creating feedback:', err)
+          logError('Error creating feedback:', err)
           showNotification('error', t('errorCreatingFeedback'))
           throw err
         }
@@ -459,28 +453,26 @@ export default function ProjectDetailsPage({
   useEffect(() => {
     const fetchCalendarData = async () => {
       if (activeTab !== 'calendar' || !project) {
-        if (activeTab === 'calendar') console.log('Calendar load: Skipped, project not yet loaded.')
+        if (activeTab === 'calendar') logDebug('Calendar load: Skipped, project not yet loaded.')
         return
       }
       console.log('Calendar load: activeTab is "calendar" and project exists.')
 
       try {
         setIsLoadingCalendarData(true)
-        console.log('Calendar load: isLoadingCalendarData set to true')
+        logDebug('Calendar load: isLoadingCalendarData set to true')
 
         // Calendar data is a combination of milestones and tasks
         // We'll use the existing data, so just simulate a delay
         await new Promise((resolve) => setTimeout(resolve, 500))
 
-        console.log('Calendar load: isLoadingCalendarData set to false.')
+        logDebug('Calendar load: isLoadingCalendarData set to false.')
       } catch (err) {
-        console.error('Error preparing calendar data:', err)
-        console.log('Calendar load: isLoadingCalendarData set to false. Error:', err)
+        logError('Error preparing calendar data:', err)
+        logDebug('Calendar load: isLoadingCalendarData set to false. Error:', err)
       } finally {
         setIsLoadingCalendarData(false)
-        console.log(
-          'Calendar load: fetchCalendarData finally block, isLoadingCalendarData set to false',
-        )
+        logDebug('Calendar load: fetchCalendarData finally block, isLoadingCalendarData set to false',  )
       }
     }
 
@@ -491,14 +483,14 @@ export default function ProjectDetailsPage({
   useEffect(() => {
     const fetchFeedback = async () => {
       if (activeTab !== 'feedback' || !project) {
-        if (activeTab === 'feedback') console.log('Feedback load: Skipped, project not yet loaded.')
+        if (activeTab === 'feedback') logDebug('Feedback load: Skipped, project not yet loaded.')
         return
       }
       console.log('Feedback load: activeTab is "feedback" and project exists. Fetching feedback.')
 
       try {
         setIsLoadingFeedback(true)
-        console.log('Feedback load: isLoadingFeedback set to true')
+        logDebug('Feedback load: isLoadingFeedback set to true')
 
         // In the future, this would be an actual API call
         // For now, we'll just simulate a delay and return dummy data
@@ -539,13 +531,13 @@ export default function ProjectDetailsPage({
         ]
 
         setFeedback(dummyFeedback)
-        console.log('Feedback load: isLoadingFeedback set to false. Feedback data:', dummyFeedback)
+        logDebug('Feedback load: isLoadingFeedback set to false. Feedback data:', dummyFeedback)
       } catch (err) {
-        console.error('Error fetching feedback:', err)
-        console.log('Feedback load: isLoadingFeedback set to false. Error:', err)
+        logError('Error fetching feedback:', err)
+        logDebug('Feedback load: isLoadingFeedback set to false. Error:', err)
       } finally {
         setIsLoadingFeedback(false)
-        console.log('Feedback load: fetchFeedback finally block, isLoadingFeedback set to false')
+        logDebug('Feedback load: fetchFeedback finally block, isLoadingFeedback set to false')
       }
     }
 
@@ -557,15 +549,14 @@ export default function ProjectDetailsPage({
     const fetchMessages = async () => {
       if (activeTab !== 'discussions' || !project) {
         if (activeTab === 'discussions')
-          console.log('Messages load: Skipped, project not yet loaded.')
+          logDebug('Messages load: Skipped, project not yet loaded.')
         return
       }
-      console.log(
-        'Messages load: activeTab is "discussions" and project exists. Fetching messages.',
+      logDebug("Debug:",  'Messages load: activeTab is "discussions" and project exists. Fetching messages.',
       )
       try {
         setIsLoadingMessages(true)
-        console.log('Messages load: isLoadingMessages set to true')
+        logDebug('Messages load: isLoadingMessages set to true')
         const response = await fetch(`/api/project-messages?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -577,13 +568,13 @@ export default function ProjectDetailsPage({
 
         const data = await response.json()
         setMessages(data)
-        console.log('Messages load: isLoadingMessages set to false. Messages data:', data)
+        logDebug('Messages load: isLoadingMessages set to false. Messages data:', data)
       } catch (err) {
-        console.error('Error fetching messages:', err)
-        console.log('Messages load: isLoadingMessages set to false. Error:', err)
+        logError('Error fetching messages:', err)
+        logDebug('Messages load: isLoadingMessages set to false. Error:', err)
       } finally {
         setIsLoadingMessages(false)
-        console.log('Messages load: fetchMessages finally block, isLoadingMessages set to false')
+        logDebug('Messages load: fetchMessages finally block, isLoadingMessages set to false')
       }
     }
 
@@ -594,13 +585,13 @@ export default function ProjectDetailsPage({
   useEffect(() => {
     const fetchFiles = async () => {
       if (activeTab !== 'files' || !project) {
-        if (activeTab === 'files') console.log('Files load: Skipped, project not yet loaded.')
+        if (activeTab === 'files') logDebug('Files load: Skipped, project not yet loaded.')
         return
       }
       console.log('Files load: activeTab is "files" and project exists. Fetching files.')
       try {
         setIsLoadingFiles(true)
-        console.log('Files load: isLoadingFiles set to true')
+        logDebug('Files load: isLoadingFiles set to true')
         const response = await fetch(`/api/project-files?projectId=${project.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -611,21 +602,21 @@ export default function ProjectDetailsPage({
         }
 
         const data = await response.json()
-        console.log('Files load: isLoadingFiles set to false. Files data:', data)
+        logDebug('Files load: isLoadingFiles set to false. Files data:', data)
         // API возвращает массив файлов напрямую
         if (Array.isArray(data)) {
           setProjectFiles(data)
         } else {
           // Если структура неизвестна или не массив, используем пустой массив
           setProjectFiles([])
-          console.error('Unexpected response format from project-files API:', data)
+          logError('Unexpected response format from project-files API:', data)
         }
       } catch (err) {
-        console.error('Error fetching files:', err)
-        console.log('Files load: isLoadingFiles set to false. Error:', err)
+        logError('Error fetching files:', err)
+        logDebug('Files load: isLoadingFiles set to false. Error:', err)
       } finally {
         setIsLoadingFiles(false)
-        console.log('Files load: fetchFiles finally block, isLoadingFiles set to false')
+        logDebug('Files load: fetchFiles finally block, isLoadingFiles set to false')
       }
     }
 
@@ -654,7 +645,7 @@ export default function ProjectDetailsPage({
       setTasks((prev) => [newTask, ...prev])
       showNotification('success', t('taskCreatedSuccess'))
     } catch (err) {
-      console.error('Error creating task:', err)
+      logError('Error creating task:', err)
       showNotification('error', t('errorCreatingTask'))
       throw err
     }
@@ -714,7 +705,7 @@ export default function ProjectDetailsPage({
       showNotification('success', t('milestoneCreatedSuccess'))
       setIsMilestoneModalOpen(false)
     } catch (err) {
-      console.error('Error creating milestone:', err)
+      logError('Error creating milestone:', err)
       showNotification('error', t('errorCreatingMilestone'))
       throw err
     }
@@ -749,7 +740,7 @@ export default function ProjectDetailsPage({
       showNotification('success', t('feedbackCreatedSuccess'))
       // No need to return the feedback object, as the component expects Promise<void>
     } catch (err) {
-      console.error('Error creating feedback:', err)
+      logError('Error creating feedback:', err)
       showNotification('error', t('errorCreatingFeedback'))
       throw err
     }
@@ -778,7 +769,7 @@ export default function ProjectDetailsPage({
       setNewMessage('') // Очищаем поле ввода
       showNotification('success', t('messageSentSuccess'))
     } catch (err) {
-      console.error('Error sending message:', err)
+      logError('Error sending message:', err)
       showNotification('error', t('errorSendingMessage'))
     }
   }
@@ -846,12 +837,12 @@ export default function ProjectDetailsPage({
         } else {
           // Если структура неизвестна, используем пустой массив
           setProjectFiles([])
-          console.error('Unexpected response format from project-files API:', data)
+          logError('Unexpected response format from project-files API:', data)
         }
         showNotification('success', t('filesUploadedSuccess', { count: files.length }))
       }
     } catch (err) {
-      console.error('Error uploading files:', err)
+      logError('Error uploading files:', err)
       showNotification('error', t('errorUploadingFiles'))
     } finally {
       setIsLoadingFiles(false) // Скрываем индикатор загрузки
@@ -892,7 +883,7 @@ export default function ProjectDetailsPage({
         showNotification('success', t('filesTab.fileDeletedSuccessfully'))
       }, 300) // Время должно соответствовать длительности анимации exit
     } catch (err) {
-      console.error('Error deleting project file:', err)
+      logError('Error deleting project file:', err)
       showNotification('error', err instanceof Error ? err.message : t('unknownError'))
       setDeletingFileId(null) // Сбрасываем ID удаляемого файла в случае ошибки
     }

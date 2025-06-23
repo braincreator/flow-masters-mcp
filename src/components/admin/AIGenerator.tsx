@@ -25,6 +25,7 @@ import { Loader2, AlertCircle, CheckCircle2, Sparkles, Eye, Code, Key, Trash2 } 
 import { useAIProviders } from '@/hooks/useAIProviders'
 import { AIProvider } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface AIGeneratorProps {
   onGeneratedContent: (content: string) => void
   onPreview?: () => void
@@ -173,7 +174,7 @@ export function AIGenerator({ onGeneratedContent, onPreview }: AIGeneratorProps)
         'Курс успешно сгенерирован! Теперь вы можете создать его в CMS или отредактировать данные.',
       )
     } catch (error) {
-      console.error('Error generating course:', error)
+      logError('Error generating course:', error)
       setError(error instanceof Error ? error.message : 'Неизвестная ошибка')
     } finally {
       setLoading(false)

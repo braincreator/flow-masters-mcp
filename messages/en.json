@@ -1,4 +1,14 @@
 {
+  "Accessibility": {
+    "skipNavigation": "Skip navigation",
+    "Skip to main content": "Skip to main content",
+    "Skip to navigation": "Skip to navigation",
+    "Skip to footer": "Skip to footer"
+  },
+  "SEO": {
+    "defaultTitle": "FlowMasters - AI-Powered Business Automation",
+    "defaultDescription": "AI-powered business process automation. We create smart solutions for your business."
+  },
   "FloatingCartButton": {
     "viewCart": "View Cart"
   },

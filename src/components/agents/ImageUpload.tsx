@@ -6,6 +6,7 @@
 import { useState, useRef } from 'react'
 import { Upload, X, Image as ImageIcon, FileText, Eye } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ImageUploadProps {
   onImageSelect: (imageUrl: string, file: File) => void
   onImageRemove: () => void
@@ -41,7 +42,7 @@ export function ImageUpload({
       const imageUrl = URL.createObjectURL(file)
       onImageSelect(imageUrl, file)
     } catch (error) {
-      console.error('Error processing image:', error)
+      logError('Error processing image:', error)
       alert('Ошибка при обработке изображения')
     } finally {
       setIsUploading(false)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { isAdmin } from '@/access/isAdmin'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest) {
   try {
     const payload = await getPayloadClient()
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       results,
     })
   } catch (error) {
-    console.error('Error updating categories:', error)
+    logError('Error updating categories:', error)
     return NextResponse.json(
       { error: 'Failed to process category updates', details: String(error) },
       { status: 500 },

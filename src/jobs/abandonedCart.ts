@@ -1,12 +1,13 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Job that processes abandoned carts and sends reminder emails
  */
 export const processAbandonedCarts = async () => {
   try {
-    console.log('Running abandoned cart job...')
+    logDebug('Running abandoned cart job...')
     const payload = await getPayloadClient()
     const serviceRegistry = ServiceRegistry.getInstance(payload)
     const notificationService = serviceRegistry.getNotificationService()
@@ -18,7 +19,7 @@ export const processAbandonedCarts = async () => {
 
     // Check if abandoned cart notifications are enabled
     if (!settings?.notificationSettings?.email?.enableAbandonedCartReminders) {
-      console.log('Abandoned cart reminders are disabled in settings')
+      logDebug('Abandoned cart reminders are disabled in settings')
       return
     }
 
@@ -53,7 +54,7 @@ export const processAbandonedCarts = async () => {
       depth: 2, // Load related entities
     })
 
-    console.log(`Found ${abandonedCarts.docs.length} abandoned carts to process`)
+    logDebug(`Found ${abandonedCarts.docs.length} abandoned carts to process`)
 
     // Process each abandoned cart
     for (const cart of abandonedCarts.docs) {
@@ -88,15 +89,15 @@ export const processAbandonedCarts = async () => {
           },
         })
 
-        console.log(`Sent abandoned cart reminder for cart ${cart.id} to user ${user.email}`)
+        logDebug(`Sent abandoned cart reminder for cart ${cart.id} to user ${user.email}`)
       } catch (error) {
-        console.error(`Error processing abandoned cart ${cart.id}:`, error)
+        logError(`Error processing abandoned cart ${cart.id}:`, error)
       }
     }
 
-    console.log('Abandoned cart job completed')
+    logDebug('Abandoned cart job completed')
   } catch (error) {
-    console.error('Failed to process abandoned carts:', error)
+    logError('Failed to process abandoned carts:', error)
   }
 }
 

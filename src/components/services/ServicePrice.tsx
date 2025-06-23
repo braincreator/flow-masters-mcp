@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { formatPrice, formatItemPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { Service } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ServicePriceProps = {
   service: Service
   locale: string
@@ -26,7 +27,7 @@ export default function ServicePrice({ service, locale, className = '' }: Servic
       // Use formatItemPrice to respect isStartingFrom parameter
       setLocalizedPrice(formatItemPrice(service, locale))
     } catch (error) {
-      console.error('Error formatting price:', error)
+      logError('Error formatting price:', error)
       // Fallback to basic price formatting
       const fallbackPrice = getLocalePrice(service, locale)
       setLocalizedPrice(formatPrice(fallbackPrice, locale))

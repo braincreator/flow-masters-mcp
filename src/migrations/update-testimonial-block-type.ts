@@ -1,5 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs } from 'payload/database'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function up({ payload }: MigrateUpArgs): Promise<void> {
   try {
     // Fetch all pages
@@ -33,15 +34,15 @@ export async function up({ payload }: MigrateUpArgs): Promise<void> {
                 layout: updatedLayout,
               },
             });
-            console.log(`Updated page: ${page.title}`);
+            logDebug(`Updated page: ${page.title}`);
           }
         }
       }
     }
 
-    console.log('Testimonial block type migration completed.');
+    logDebug('Testimonial block type migration completed.');
   } catch (error) {
-    console.error('Error during testimonial block type migration:', error);
+    logError('Error during testimonial block type migration:', error);
     throw error;
   }
 }
@@ -78,15 +79,15 @@ export async function down({ payload }: MigrateDownArgs): Promise<void> {
                 layout: updatedLayout,
               },
             });
-            console.log(`Reverted page: ${page.title}`);
+            logDebug(`Reverted page: ${page.title}`);
           }
         }
       }
     }
 
-    console.log('Testimonial block type reversion completed.');
+    logDebug('Testimonial block type reversion completed.');
   } catch (error) {
-    console.error('Error during testimonial block type reversion:', error);
+    logError('Error during testimonial block type reversion:', error);
     throw error;
   }
 }

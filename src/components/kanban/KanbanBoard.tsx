@@ -21,6 +21,7 @@ import { cn } from '@/utilities/ui'
 import { isValidStatusTransition } from '@/utilities/taskStatusTransitions'
 import { toast } from 'sonner'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface KanbanBoardProps {
   tasks: TaskItem[]
   onTaskUpdate: (taskId: string, updates: Partial<TaskItem>) => Promise<void>
@@ -207,7 +208,7 @@ export function KanbanBoard({
           await onTaskUpdate(activeTaskId, { status: destinationStatus })
         }
       } catch (error) {
-        console.error('Failed to move task:', error)
+        logError('Failed to move task:', error)
         toast.error('Failed to move task', {
           description: 'There was an error moving the task. Please try again.',
         })

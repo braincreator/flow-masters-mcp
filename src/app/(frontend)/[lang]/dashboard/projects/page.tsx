@@ -7,6 +7,7 @@ import { formatDate } from '@/utilities/formatDate'
 import { motion, AnimatePresence } from 'framer-motion'
 import AnimatedLoadingIndicator from '@/components/ui/AnimatedLoadingIndicator'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Определение типа для проекта в списке
 interface ProjectItem {
   id: string
@@ -68,7 +69,7 @@ function ProjectsPageContent({ lang }: { lang: string }) {
     const fetchProjects = async (retryCount = 0) => {
       try {
         setIsLoading(true)
-        console.log('Fetching projects from API...')
+        logDebug('Fetching projects from API...')
 
         const response = await fetch('/api/service-projects', {
           method: 'GET',
@@ -77,7 +78,7 @@ function ProjectsPageContent({ lang }: { lang: string }) {
           cache: 'no-store' // Prevent caching issues
         })
 
-        console.log(`Projects API response status: ${response.status}`)
+        logDebug(`Projects API response status: ${response.status}`)
 
         if (!response.ok) {
           // Try to get more detailed error information
@@ -86,19 +87,19 @@ function ProjectsPageContent({ lang }: { lang: string }) {
 
           try {
             const errorData = await response.json()
-            console.error('Error response data:', errorData)
+            logError('Error response data:', errorData)
             errorDetails = errorData.details || errorData.error || ''
           } catch (parseError) {
-            console.error('Could not parse error response:', parseError)
+            logError('Could not parse error response:', parseError)
           }
 
           // Handle specific status codes
           if (response.status === 401) {
-            console.error('User is not authenticated, redirecting to login page')
+            logError('User is not authenticated, redirecting to login page')
 
             // Check if we're in development mode and should retry
             if (process.env.NODE_ENV === 'development' && retryCount < 1) {
-              console.log('Development mode detected, retrying request...')
+              logDebug('Development mode detected, retrying request...')
               setTimeout(() => fetchProjects(retryCount + 1), 1000)
               return
             }
@@ -112,18 +113,18 @@ function ProjectsPageContent({ lang }: { lang: string }) {
         }
 
         const data = await response.json()
-        console.log(`Received ${data.length} projects`)
+        logDebug(`Received ${data.length} projects`)
         setProjects(data)
         setError(null) // Clear any previous errors
       } catch (err) {
-        console.error('Error fetching projects:', err)
+        logError('Error fetching projects:', err)
 
         // Check if it's a network error and retry if needed
         const isNetworkError = err instanceof TypeError &&
           (err.message.includes('fetch') || err.message.includes('network'));
 
         if (isNetworkError && retryCount < 2) {
-          console.log(`Network error, retrying (${retryCount + 1}/3)...`)
+          logDebug(`Network error, retrying (${retryCount + 1}/3)...`)
           setTimeout(() => fetchProjects(retryCount + 1), 1000)
           return
         }

@@ -1,4 +1,14 @@
 {
+  "Accessibility": {
+    "skipNavigation": "Навигация для быстрого перехода",
+    "Skip to main content": "Перейти к основному содержимому",
+    "Skip to navigation": "Перейти к навигации",
+    "Skip to footer": "Перейти к подвалу"
+  },
+  "SEO": {
+    "defaultTitle": "FlowMasters - AI-Powered Business Automation",
+    "defaultDescription": "Автоматизация бизнес-процессов с помощью ИИ. Создаем умные решения для вашего бизнеса."
+  },
   "FloatingCartButton": {
     "viewCart": "Посмотреть корзину"
   },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function withAuth(
   req: NextRequest,
   handler: (req: NextRequest, user: any) => Promise<NextResponse>,
@@ -20,7 +21,7 @@ export async function withAuth(
         req: { cookies: cookieStore.getAll() },
       })
     } catch (error) {
-      console.error('Error fetching user:', error)
+      logError('Error fetching user:', error)
     }
 
     // If no user is found, redirect to login
@@ -38,7 +39,7 @@ export async function withAuth(
     // User is authenticated, proceed with the handler
     return handler(req, user)
   } catch (error) {
-    console.error('Authentication error:', error)
+    logError('Authentication error:', error)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
   }
 }

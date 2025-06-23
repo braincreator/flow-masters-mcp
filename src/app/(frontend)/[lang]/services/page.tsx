@@ -9,6 +9,7 @@ import AnimateInView from '@/components/AnimateInView'
 import ServiceList from '@/components/services/ServiceList'
 import Breadcrumbs from '@/components/Breadcrumbs'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define the PageParams type for this page
 type PageParams = {
   lang: string
@@ -201,7 +202,7 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
       </>
     )
   } catch (error) {
-    console.error('Error fetching services:', error)
+    logError('Error fetching services:', error)
     notFound()
   }
 }

@@ -12,6 +12,7 @@ import { formatPrice } from '@/utilities/formatPrice'
 import { formatOrderNumberForDisplay } from '@/utilities/orderNumber'
 import { CalendarClock, AlertCircle } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type PendingBooking = {
   order: any
   service: any
@@ -48,7 +49,7 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
         const data = await response.json()
         setPendingBookings(data.pendingBookings || [])
       } catch (err) {
-        console.error('Error fetching pending bookings:', err)
+        logError('Error fetching pending bookings:', err)
         setError(err instanceof Error ? err.message : 'Failed to load pending bookings')
       } finally {
         setLoading(false)

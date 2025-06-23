@@ -14,6 +14,7 @@ import NotificationItem from './NotificationItem'
 import NotificationSkeletonItem from './NotificationSkeletonItem'
 import { toast } from '@/components/ui/use-toast'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface GroupedNotificationsListProps {
   lang: string
 }
@@ -74,7 +75,7 @@ const GroupedNotificationsList: React.FC<GroupedNotificationsListProps> = ({ lan
         // Обновляем данные
         await refetchNotifications()
       } catch (error) {
-        console.error('Error marking group as read:', error)
+        logError('Error marking group as read:', error)
         toast({
           description: t('errors.markGroupReadFailed'),
           variant: 'destructive',
