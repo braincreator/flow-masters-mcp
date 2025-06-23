@@ -85,6 +85,76 @@ export const CourseEnrollments: CollectionConfig = {
           }
         }
       },
+      // Добавляем хук для событий записи на курсы
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие записи на курс
+          await eventService.publishEvent('course.enrolled', {
+            id: doc.id,
+            course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+            courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userName: typeof doc.user === 'object' ? doc.user.name : null,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            status: doc.status,
+            enrolledAt: doc.enrolledAt,
+            expiresAt: doc.expiresAt,
+          }, {
+            source: 'course_enrollment',
+            collection: 'course-enrollments',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие завершения курса
+          if (doc.status === 'completed' && previousDoc.status !== 'completed') {
+            await eventService.publishEvent('course.completed', {
+              id: doc.id,
+              course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+              courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              enrolledAt: doc.enrolledAt,
+              completedAt: doc.completedAt,
+              duration: doc.enrolledAt && doc.completedAt ?
+                Math.round((new Date(doc.completedAt).getTime() - new Date(doc.enrolledAt).getTime()) / (1000 * 60 * 60 * 24)) : null,
+            }, {
+              source: 'course_completion',
+              collection: 'course-enrollments',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие начала курса (первый доступ)
+          if (doc.status === 'active' && previousDoc.status === 'enrolled') {
+            await eventService.publishEvent('course.started', {
+              id: doc.id,
+              course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+              courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              enrolledAt: doc.enrolledAt,
+              startedAt: new Date().toISOString(),
+            }, {
+              source: 'course_start',
+              collection: 'course-enrollments',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
       // Add the new afterChange hook for waiting list notification
       notifyWaitingListOnStatusChange,
     ],

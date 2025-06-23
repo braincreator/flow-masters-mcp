@@ -16,6 +16,12 @@ const RootProvider = lazy(() =>
   })),
 )
 
+const AnalyticsLayout = lazy(() =>
+  import('@/components/Layout/AnalyticsLayout').then((mod) => ({
+    default: mod.default,
+  })),
+)
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -79,7 +85,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Suspense fallback={<div>Loading...</div>}>
               {/* Pass fetched data to provider if needed */}
               <RootProvider lang={locale} /* header={header} footer={footer} etc */>
-                {children}
+                <Suspense fallback={null}>
+                  <AnalyticsLayout>
+                    {children}
+                  </AnalyticsLayout>
+                </Suspense>
               </RootProvider>
             </Suspense>
           </NextIntlClientProvider>

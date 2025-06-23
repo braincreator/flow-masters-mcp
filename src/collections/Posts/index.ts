@@ -19,6 +19,7 @@ import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 import { populateReadingTime } from './hooks/populateReadingTime'
 import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
+import { ServiceRegistry } from '@/services/service.registry'
 
 import {
   MetaDescriptionField,
@@ -263,7 +264,80 @@ export const Posts: CollectionConfig<'posts'> = {
   ],
   hooks: {
     beforeChange: [populateReadingTime],
-    afterChange: [revalidatePost, revalidateSitemap],
+    afterChange: [
+      revalidatePost,
+      revalidateSitemap,
+      // Добавляем хук для событий постов
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания поста
+          await eventService.publishEvent('post.created', {
+            id: doc.id,
+            title: doc.title,
+            slug: doc.slug,
+            excerpt: doc.excerpt,
+            categories: doc.categories,
+            tags: doc.tags,
+            authors: doc.authors,
+            publishedAt: doc.publishedAt,
+            _status: doc._status,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'post_creation',
+            collection: 'posts',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие публикации поста
+          if (doc._status === 'published' && previousDoc._status === 'draft') {
+            await eventService.publishEvent('post.published', {
+              id: doc.id,
+              title: doc.title,
+              slug: doc.slug,
+              excerpt: doc.excerpt,
+              categories: doc.categories,
+              tags: doc.tags,
+              authors: doc.authors,
+              publishedAt: doc.publishedAt,
+              readingTime: doc.readingTime,
+            }, {
+              source: 'post_publication',
+              collection: 'posts',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          } else if (doc._status === 'published') {
+            // Событие обновления опубликованного поста
+            await eventService.publishEvent('post.updated', {
+              id: doc.id,
+              title: doc.title,
+              slug: doc.slug,
+              excerpt: doc.excerpt,
+              categories: doc.categories,
+              tags: doc.tags,
+              authors: doc.authors,
+              publishedAt: doc.publishedAt,
+              readingTime: doc.readingTime,
+              updatedAt: new Date().toISOString(),
+            }, {
+              source: 'post_update',
+              collection: 'posts',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete, revalidateSitemapDelete],
   },

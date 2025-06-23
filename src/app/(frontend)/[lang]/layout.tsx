@@ -23,7 +23,7 @@ import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
-import AnalyticsProvider from '@/components/Analytics/AnalyticsProvider'
+
 
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
@@ -52,17 +52,8 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   // Устанавливаем локаль для next-intl
   setRequestLocale(validLang)
 
-  // Получаем ID всех аналитических сервисов
+  // Получаем ID Яндекс.Метрики для трекера SPA-переходов
   const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
-  const VK_PIXEL_ID = process.env.NEXT_PUBLIC_VK_PIXEL_ID
-  const TOP_MAILRU_ID = process.env.NEXT_PUBLIC_TOP_MAILRU_ID
-
-  // Debug log
-  console.log('Layout Analytics IDs:', {
-    yandex: YANDEX_METRIKA_ID,
-    vk: VK_PIXEL_ID,
-    topMailRu: TOP_MAILRU_ID
-  })
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -96,14 +87,6 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   return (
     <NextIntlClientProvider locale={validLang} messages={messages}>
-      {/* Все аналитические сервисы */}
-      <AnalyticsProvider
-        yandexMetrikaId={YANDEX_METRIKA_ID}
-        vkPixelId={VK_PIXEL_ID}
-        topMailRuId={TOP_MAILRU_ID}
-        debug={process.env.NODE_ENV === 'development'}
-      />
-
       <div lang={validLang} className="h-full" suppressHydrationWarning>
         <div
           className={cn(

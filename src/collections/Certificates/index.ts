@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrSelf } from '@/access/isAdminOrSelf'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Certificates: CollectionConfig = {
   slug: 'certificates',
@@ -114,5 +115,40 @@ export const Certificates: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      // Добавляем хук для событий сертификатов
+      async ({ doc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие выдачи сертификата
+          await eventService.publishEvent('certificate.issued', {
+            id: doc.id,
+            certificateNumber: doc.certificateNumber,
+            course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+            courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userName: typeof doc.user === 'object' ? doc.user.name : null,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            instructor: typeof doc.instructor === 'object' ? doc.instructor.id : doc.instructor,
+            instructorName: typeof doc.instructor === 'object' ? doc.instructor.name : null,
+            issuedAt: doc.issuedAt,
+            status: doc.status,
+            metadata: doc.metadata,
+          }, {
+            source: 'certificate_issued',
+            collection: 'certificates',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        }
+      },
+    ],
+  },
   timestamps: true,
 }

@@ -2,6 +2,7 @@ import type { CollectionConfig, Access } from 'payload'; // Import CollectionCon
 // Remove problematic import: import type { BeforeChangeHook } from 'payload/types';
 import { getPayloadClient } from '@/utilities/payload/index'; // Correct import path for getPayloadClient
 import type { User, Review, Course } from '@/payload-types'; // Import necessary types
+import { ServiceRegistry } from '@/services/service.registry'
 
 // Define reusable access control function for owner or admin
 const ownerOrAdmin: Access = async ({ req, id }: { req: { user?: User | null }, id?: string | number }) => {
@@ -113,6 +114,81 @@ export const Reviews: CollectionConfig = {
     beforeChange: [
       setUserBeforeChange, // Use the typed hook function
     ],
-    // Add afterChange hook to update course average rating if needed
+    afterChange: [
+      // Добавляем хук для событий отзывов
+      async ({ doc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Определяем тип отзыва по рейтингу
+          const isPositive = doc.rating >= 4
+          const isNegative = doc.rating <= 2
+
+          // Событие создания отзыва
+          await eventService.publishEvent('review.created', {
+            id: doc.id,
+            rating: doc.rating,
+            comment: doc.comment,
+            course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+            courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userName: typeof doc.user === 'object' ? doc.user.name : null,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            isPositive,
+            isNegative,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'review_creation',
+            collection: 'reviews',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+
+          // Событие позитивного отзыва
+          if (isPositive) {
+            await eventService.publishEvent('review.positive', {
+              id: doc.id,
+              rating: doc.rating,
+              comment: doc.comment,
+              course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+              courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            }, {
+              source: 'positive_review',
+              collection: 'reviews',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+
+          // Событие негативного отзыва (требует внимания)
+          if (isNegative) {
+            await eventService.publishEvent('review.negative', {
+              id: doc.id,
+              rating: doc.rating,
+              comment: doc.comment,
+              course: typeof doc.course === 'object' ? doc.course.id : doc.course,
+              courseTitle: typeof doc.course === 'object' ? doc.course.title : null,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            }, {
+              source: 'negative_review',
+              collection: 'reviews',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
   },
 };

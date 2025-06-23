@@ -5,6 +5,7 @@ import { populatePublishedAt } from '@/hooks/populatePublishedAt'
 import { formatPreviewURL } from '@/utilities/formatPreviewURL'
 import { revalidatePage } from '@/utilities/revalidatePage'
 import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Services: CollectionConfig = {
   slug: 'services',
@@ -21,7 +22,75 @@ export const Services: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    afterChange: [revalidatePage, revalidateSitemap],
+    afterChange: [
+      revalidatePage,
+      revalidateSitemap,
+      // Добавляем хук для событий услуг
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания услуги
+          await eventService.publishEvent('service.created', {
+            id: doc.id,
+            title: doc.title,
+            slug: doc.slug,
+            serviceType: doc.serviceType,
+            price: doc.price,
+            businessStatus: doc.businessStatus,
+            publishedAt: doc.publishedAt,
+            _status: doc._status,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'service_creation',
+            collection: 'services',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие публикации услуги
+          if (doc._status === 'published' && previousDoc._status === 'draft') {
+            await eventService.publishEvent('service.published', {
+              id: doc.id,
+              title: doc.title,
+              slug: doc.slug,
+              serviceType: doc.serviceType,
+              price: doc.price,
+              businessStatus: doc.businessStatus,
+              publishedAt: doc.publishedAt,
+            }, {
+              source: 'service_publication',
+              collection: 'services',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          } else if (doc._status === 'published') {
+            // Событие обновления опубликованной услуги
+            await eventService.publishEvent('service.updated', {
+              id: doc.id,
+              title: doc.title,
+              slug: doc.slug,
+              serviceType: doc.serviceType,
+              price: doc.price,
+              businessStatus: doc.businessStatus,
+              publishedAt: doc.publishedAt,
+              updatedAt: new Date().toISOString(),
+            }, {
+              source: 'service_update',
+              collection: 'services',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
     beforeChange: [populatePublishedAt],
     afterDelete: [revalidateSitemapDelete],
   },

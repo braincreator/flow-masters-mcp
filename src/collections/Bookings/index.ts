@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const Bookings: CollectionConfig = {
   slug: 'bookings',
@@ -249,6 +250,60 @@ hooks: {
       async ({ doc, previousDoc, operation, req }) => {
         const { payload } = req
         const logger = payload.logger || console // Fallback to console
+
+        // Добавляем события для бронирований
+        const serviceRegistry = ServiceRegistry.getInstance(payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (eventService) {
+          if (operation === 'create') {
+            // Событие создания бронирования
+            await eventService.publishEvent('booking.created', {
+              id: doc.id,
+              title: doc.title,
+              status: doc.status,
+              startDate: doc.startDate,
+              endDate: doc.endDate,
+              order: typeof doc.order === 'object' ? doc.order.id : doc.order,
+              service: typeof doc.service === 'object' ? doc.service.id : doc.service,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              createdAt: doc.createdAt,
+            }, {
+              source: 'booking_creation',
+              collection: 'bookings',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          } else if (operation === 'update' && previousDoc) {
+            // Событие изменения статуса бронирования
+            if (doc.status !== previousDoc.status) {
+              const eventType = doc.status === 'confirmed' ? 'booking.confirmed' :
+                              doc.status === 'completed' ? 'booking.completed' :
+                              doc.status === 'canceled' ? 'booking.cancelled' :
+                              'booking.status_changed'
+
+              await eventService.publishEvent(eventType, {
+                id: doc.id,
+                title: doc.title,
+                previousStatus: previousDoc.status,
+                newStatus: doc.status,
+                startDate: doc.startDate,
+                endDate: doc.endDate,
+                order: typeof doc.order === 'object' ? doc.order.id : doc.order,
+                service: typeof doc.service === 'object' ? doc.service.id : doc.service,
+                user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+                updatedAt: new Date().toISOString(),
+              }, {
+                source: 'booking_status_change',
+                collection: 'bookings',
+                operation,
+                userId: req.user?.id,
+                userEmail: req.user?.email,
+              })
+            }
+          }
+        }
 
         if (operation !== 'update') {
           return

@@ -18,6 +18,7 @@ import type {
 import { IntegrationEvents } from '../types/events'
 import { IntegrationService } from '../services/integration.service'
 import { NotificationService } from '../services/notification.service'
+import { ServiceRegistry } from '@/services/service.registry'
 
 import { generateOrderNumber, ORDER_PREFIXES } from '@/utilities/orderNumber'
 
@@ -1489,6 +1490,67 @@ export const Orders: CollectionConfig = {
   hooks: {
     beforeValidate: [validateOrderItemsHook],
     beforeChange: [calculateOrderTotalsHook],
-    afterChange: [afterChangeHook, createServiceProjectHook],
+    afterChange: [
+      afterChangeHook,
+      createServiceProjectHook,
+      // Добавляем хук для событий заказов
+      async ({ doc, previousDoc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие создания заказа
+          await eventService.publishEvent('order.created', {
+            id: doc.id,
+            orderNumber: doc.orderNumber,
+            orderType: doc.orderType,
+            status: doc.status,
+            total: doc.total,
+            currency: doc.currency,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            items: doc.items,
+            paymentProvider: doc.paymentProvider,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'order_creation',
+            collection: 'orders',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        } else if (operation === 'update' && previousDoc) {
+          // Событие изменения статуса заказа
+          if (doc.status !== previousDoc.status) {
+            const eventType = doc.status === 'paid' ? 'order.paid' :
+                            doc.status === 'completed' ? 'order.completed' :
+                            doc.status === 'cancelled' ? 'order.cancelled' :
+                            'order.status_changed'
+
+            await eventService.publishEvent(eventType, {
+              id: doc.id,
+              orderNumber: doc.orderNumber,
+              previousStatus: previousDoc.status,
+              newStatus: doc.status,
+              total: doc.total,
+              currency: doc.currency,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              paymentProvider: doc.paymentProvider,
+              paymentId: doc.paymentId,
+              updatedAt: new Date().toISOString(),
+            }, {
+              source: 'order_status_change',
+              collection: 'orders',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
   },
 }

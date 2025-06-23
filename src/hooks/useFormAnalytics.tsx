@@ -1,7 +1,14 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { useAnalytics } from '@/components/Analytics/AnalyticsProvider'
+import { useAnalytics } from '../providers/AnalyticsProvider'
+
+// Расширяем типы Window для Yandex Metrika
+declare global {
+  interface Window {
+    ym?: (id: number, method: string, ...args: any[]) => void
+  }
+}
 
 interface FormAnalyticsOptions {
   formName: string
@@ -12,7 +19,7 @@ interface FormAnalyticsOptions {
 }
 
 export function useFormAnalytics(options: FormAnalyticsOptions) {
-  const { trackFormStart, trackFormSubmit, trackFormFieldFocus } = useAnalytics()
+  const analytics = useAnalytics()
   const formStartedRef = useRef(false)
   const fieldsInteractedRef = useRef<Set<string>>(new Set())
 
@@ -21,15 +28,21 @@ export function useFormAnalytics(options: FormAnalyticsOptions) {
   // Трекинг начала заполнения формы
   const handleFormStart = useCallback(() => {
     if (!formStartedRef.current) {
-      trackFormStart(formName, formType)
+      analytics.trackEvent('interaction', 'form_start', formName, undefined, {
+        form_type: formType,
+      })
       formStartedRef.current = true
     }
-  }, [formName, formType, trackFormStart])
+  }, [formName, formType, analytics])
 
   // Трекинг отправки формы
   const handleFormSubmit = useCallback((success: boolean = true) => {
-    trackFormSubmit(formName, formType, success)
-  }, [formName, formType, trackFormSubmit])
+    const eventName = success ? 'form_submit_success' : 'form_submit_error'
+    analytics.trackEvent('interaction', eventName, formName, undefined, {
+      form_type: formType,
+      success,
+    })
+  }, [formName, formType, analytics])
 
   // Трекинг фокуса на поле
   const handleFieldFocus = useCallback((fieldName: string) => {
@@ -39,11 +52,14 @@ export function useFormAnalytics(options: FormAnalyticsOptions) {
       
       // Трекаем фокус на поле (только первый раз)
       if (!fieldsInteractedRef.current.has(fieldName)) {
-        trackFormFieldFocus(formName, fieldName)
+        analytics.trackEvent('interaction', 'form_field_focus', fieldName, undefined, {
+          form_name: formName,
+          form_type: formType,
+        })
         fieldsInteractedRef.current.add(fieldName)
       }
     }
-  }, [formName, trackFieldFocus, trackFormFieldFocus, handleFormStart])
+  }, [formName, formType, trackFieldFocus, analytics, handleFormStart])
 
   // Трекинг ошибок валидации
   const handleFieldError = useCallback((fieldName: string, errorMessage: string) => {
@@ -136,20 +152,4 @@ export function useAutoFormTracking(formName: string, formType?: string) {
   }
 }
 
-// Компонент-обертка для автоматического трекинга
-interface FormTrackerProps {
-  formName: string
-  formType?: string
-  children: React.ReactNode
-  className?: string
-}
-
-export function FormTracker({ formName, formType, children, className }: FormTrackerProps) {
-  const { formRef } = useAutoFormTracking(formName, formType)
-  
-  return (
-    <div ref={formRef} className={className}>
-      {children}
-    </div>
-  )
-}
+// Компонент FormTracker вынесен в отдельный файл FormTracker.tsx

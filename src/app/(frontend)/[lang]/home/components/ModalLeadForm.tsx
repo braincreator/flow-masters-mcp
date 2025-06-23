@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ExternalLink, MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useFormAnalytics } from '@/hooks/useFormAnalytics'
+import { useEnhancedFormSubmission } from '@/hooks/useEnhancedFormSubmission'
 
 interface ModalLeadFormProps {
   open: boolean
@@ -24,15 +24,32 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
   const t = useTranslations('forms.leadForm')
   const tCommon = useTranslations('common')
 
-  const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', comment: '' })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  // Аналитика форм
-  const formAnalytics = useFormAnalytics({
+  // Обогащенная отправка формы с максимальным сбором метаданных
+  const {
+    isLoading,
+    isSuccess,
+    error,
+    submitForm,
+    resetForm,
+    handleFormStart,
+    handleFieldInteraction,
+  } = useEnhancedFormSubmission({
     formName: 'lead_form',
-    formType: actionType
+    formType: actionType,
+    formLocation: 'modal_lead_form',
+    apiEndpoint: '/api/v1/leads', // Используем legacy API для совместимости
+    collectLocation: false, // Не запрашиваем геолокацию для лидформы
+    enableAnalytics: true,
+    enableTracking: true,
+    onSuccess: () => {
+      // Дополнительные действия при успехе
+      console.log('Lead form submitted successfully')
+    },
+    onError: (error) => {
+      console.error('Lead form submission error:', error)
+    },
   })
 
   // Use translations as defaults if not provided
@@ -40,55 +57,59 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
   const modalDescription = description || t('description')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setError(null) // Clear error when user starts typing
+    const { name, value } = e.target
+    setForm({ ...form, [name]: value })
+
+    // Отслеживаем взаимодействие с полем
+    handleFieldInteraction(name, 'change', value)
+  }
+
+  const handleFieldFocus = (fieldName: string) => {
+    // Запускаем отслеживание формы при первом фокусе
+    handleFormStart()
+    handleFieldInteraction(fieldName, 'focus')
+  }
+
+  const handleFieldBlur = (fieldName: string, value: string) => {
+    handleFieldInteraction(fieldName, 'blur', value)
   }
 
   const handleClose = () => {
     // Reset form state when closing
-    setSubmitted(false)
+    resetForm()
     setForm({ name: '', phone: '', email: '', comment: '' })
-    setError(null)
     onClose()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
 
     try {
-      const res = await fetch('/api/v1/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          actionType,
-          source: window.location.href,
-          metadata: {
-            modalTitle: title,
-            modalDescription: description,
-            timestamp: new Date().toISOString(),
-          },
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || t('errors.submitError'))
+      // Подготавливаем данные для отправки
+      const formData = {
+        ...form,
+        actionType,
+        source: window.location.href,
+        metadata: {
+          modalTitle: title,
+          modalDescription: description,
+          timestamp: new Date().toISOString(),
+        },
       }
 
-      setSubmitted(true)
-      // Трекаем успешную отправку
-      formAnalytics.handleFormSubmit(true)
+      // Отправляем форму с полными метаданными
+      await submitForm(formData, {
+        skipMetadata: false, // Собираем все метаданные
+        additionalData: {
+          // Дополнительные данные для legacy API
+          actionType,
+          source: window.location.href,
+        },
+      })
+
     } catch (err) {
+      // Ошибка уже обработана в хуке
       console.error('Form submission error:', err)
-      setError(err instanceof Error ? err.message : t('errors.tryLater'))
-      // Трекаем ошибку отправки
-      formAnalytics.handleFormSubmit(false)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -115,7 +136,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             >
               ×
             </button>
-            {!submitted ? (
+            {!isSuccess ? (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <h2 className="text-2xl font-bold mb-2 text-foreground">{modalTitle}</h2>
                 <p className="text-muted-foreground mb-4">{modalDescription}</p>
@@ -133,7 +154,8 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.name}
                   onChange={handleChange}
-                  onFocus={() => formAnalytics.handleFieldFocus('name')}
+                  onFocus={() => handleFieldFocus('name')}
+                  onBlur={() => handleFieldBlur('name', form.name)}
                 />
                 <input
                   name="phone"
@@ -143,6 +165,8 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.phone}
                   onChange={handleChange}
+                  onFocus={() => handleFieldFocus('phone')}
+                  onBlur={() => handleFieldBlur('phone', form.phone)}
                 />
                 <input
                   name="email"
@@ -151,6 +175,8 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
                   value={form.email}
                   onChange={handleChange}
+                  onFocus={() => handleFieldFocus('email')}
+                  onBlur={() => handleFieldBlur('email', form.email)}
                 />
                 <textarea
                   name="comment"
@@ -164,13 +190,15 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                   className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground min-h-[80px] resize-none"
                   value={form.comment}
                   onChange={handleChange}
+                  onFocus={() => handleFieldFocus('comment')}
+                  onBlur={() => handleFieldBlur('comment', form.comment)}
                 />
                 <button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       {t('buttons.sending')}

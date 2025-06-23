@@ -24,25 +24,48 @@ export const Users: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'role'],
   },
-  // hooks: {
-  //   afterChange: [
-  //     async ({ doc, req, operation }) => {
-  //       if (operation === 'create' || operation === 'update') {
-  //         // Temporarily commented out to debug generate:types hang
-  //         // const serviceRegistry = ServiceRegistry.getInstance(req.payload)
-  //         // const integrationService = serviceRegistry.getIntegrationService()
-  //         // await integrationService.processEvent('user.registered', {
-  //         //   id: doc.id,
-  //         //   email: doc.email,
-  //         //   name: doc.name,
-  //         //   role: doc.role, // Note: This might need updating to doc.roles if used
-  //         //   createdAt: doc.createdAt,
-  //         // })
-  //         req.payload.logger.info(`User hook triggered for ${operation} on doc ${doc.id} - Logic commented out.`);
-  //       }
-  //     },
-  //   ],
-  // },
+  hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие регистрации пользователя
+          await eventService.publishEvent('user.registered', {
+            id: doc.id,
+            email: doc.email,
+            name: doc.name,
+            roles: doc.roles,
+            createdAt: doc.createdAt,
+          }, {
+            source: 'user_registration',
+            collection: 'users',
+            operation,
+            userId: doc.id,
+            userEmail: doc.email,
+          })
+        } else if (operation === 'update') {
+          // Событие обновления профиля пользователя
+          await eventService.publishEvent('user.updated', {
+            id: doc.id,
+            email: doc.email,
+            name: doc.name,
+            roles: doc.roles,
+            updatedAt: new Date().toISOString(),
+          }, {
+            source: 'user_profile_update',
+            collection: 'users',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+        }
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
