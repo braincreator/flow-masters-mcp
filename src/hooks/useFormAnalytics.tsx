@@ -1,7 +1,14 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { useAnalytics } from '@/providers/AnalyticsProvider'
+import { useAnalytics } from '../providers/AnalyticsProvider'
+
+// Расширяем типы Window для Yandex Metrika
+declare global {
+  interface Window {
+    ym?: (id: number, method: string, ...args: any[]) => void
+  }
+}
 
 interface FormAnalyticsOptions {
   formName: string
@@ -145,20 +152,4 @@ export function useAutoFormTracking(formName: string, formType?: string) {
   }
 }
 
-// Компонент-обертка для автоматического трекинга
-interface FormTrackerProps {
-  formName: string
-  formType?: string
-  children: React.ReactNode
-  className?: string
-}
-
-export function FormTracker({ formName, formType, children, className }: FormTrackerProps) {
-  const { formRef } = useAutoFormTracking(formName, formType)
-  
-  return (
-    <div ref={formRef} className={className}>
-      {children}
-    </div>
-  )
-}
+// Компонент FormTracker вынесен в отдельный файл FormTracker.tsx
