@@ -1,4 +1,5 @@
 import { AnalyticsTestDashboard } from '@/components/AnalyticsTestDashboard'
+import { AnalyticsDiagnostics } from '@/components/AnalyticsDiagnostics'
 import { SecurityHeadersTest } from '@/components/SecurityHeadersTest'
 import { VKPixelTest } from '@/components/VKPixelTest'
 import { YandexMetrikaDebug } from '@/components/YandexMetrika/YandexMetrikaDebug'
@@ -13,6 +14,9 @@ export default function AnalyticsTestPage() {
           This page helps diagnose connectivity issues and ensures analytics tracking is functional.
         </p>
       </div>
+
+      {/* Comprehensive Analytics Diagnostics */}
+      <AnalyticsDiagnostics />
 
       {/* Main Analytics Test Dashboard */}
       <AnalyticsTestDashboard />
