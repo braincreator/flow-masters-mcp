@@ -70,7 +70,7 @@ export const Pixels: CollectionConfig = {
       required: true,
       label: 'ID пикселя',
       admin: {
-        description: 'ID пикселя или код отслеживания (например, для VK: VK-RTRG-XXXXXX-XXXXX)',
+        description: 'ID пикселя или код отслеживания (например, для VK Ads: только цифры без префиксов)',
       },
     },
     {
@@ -393,7 +393,8 @@ export const Pixels: CollectionConfig = {
 function validatePixelId(type: string, pixelId: string): boolean {
   switch (type) {
     case 'vk':
-      return /^VK-RTRG-\d+-[A-Z0-9]+$/.test(pixelId)
+      // VK Ads использует только цифры (например: 12345678)
+      return /^\d{6,10}$/.test(pixelId)
     case 'facebook':
       return /^\d{15,16}$/.test(pixelId)
     case 'ga4':

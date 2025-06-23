@@ -91,26 +91,34 @@ export default function PixelManager({
     const settings = pixel.vkSettings || {}
 
     return (
-      <Script
-        key={`vk-${pixel.id}`}
-        id={`vk-pixel-${pixel.id}`}
-        strategy={getScriptStrategy(pixel.loadPriority)}
-        dangerouslySetInnerHTML={{
-          __html: `
-            !function(){
-              var t=document.createElement("script");
-              t.type="text/javascript";
-              t.async=!0;
-              t.src='https://vk.com/js/api/openapi.js?169';
-              t.onload=function(){
-                VK.Retargeting.Init("${pixel.pixelId}");
-                ${settings.trackPageView !== false ? 'VK.Retargeting.Hit();' : ''}
-              };
-              document.head.appendChild(t);
-            }();
-          `
-        }}
-      />
+      <>
+        <Script
+          key={`vk-${pixel.id}`}
+          id={`vk-pixel-${pixel.id}`}
+          strategy={getScriptStrategy(pixel.loadPriority)}
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(e,t,a,n,g){
+                e[n]=e[n]||[],e[n].push(function(){
+                  VK.Retargeting.Init("${pixel.pixelId}");
+                  ${settings.trackPageView !== false ? 'VK.Goal("page_view");' : ''}
+                });
+                var r=t.createElement("script");
+                r.type="text/javascript",r.async=!0,r.src=a;
+                var o=t.getElementsByTagName("script")[0];
+                o.parentNode.insertBefore(r,o)
+              }(window,document,"https://vk.com/js/api/openapi.js?169","vk_callbacks");
+            `
+          }}
+        />
+        <noscript>
+          <img
+            src={`https://vk.com/rtrg?p=${pixel.pixelId}`}
+            style={{ position: 'absolute', left: '-9999px' }}
+            alt=""
+          />
+        </noscript>
+      </>
     )
   }
 
