@@ -588,15 +588,14 @@ function ProductPage() {
 - Учитывает категории cookies (аналитика, маркетинг, функциональные)
 
 ```tsx
-import { useCookieConsent } from '@/components/CookieConsent'
+import Cookies from 'js-cookie'
 
 function MyComponent() {
-  const { consent } = useCookieConsent()
+  const consent = Cookies.get('gdpr_consent_status')
 
   // Пиксели загружаются автоматически на основе согласия
-  // consent.analytics - Google Analytics
-  // consent.marketing - Facebook Pixel, VK Pixel
-  // consent.preferences - пользовательские настройки
+  // consent === 'all' - все пиксели разрешены
+  // consent === 'necessary' - только необходимые cookies
 }
 ```
 

@@ -173,7 +173,7 @@ export function RegisterForm({ locale = 'ru' }: RegisterFormProps) {
               {t('terms.termsOfService')}
             </Link>{' '}
             {t('terms.and')}{' '}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-800">
+            <Link href="/privacy" className="text-blue-600 hover:text-blue-800" target="_blank" rel="noopener noreferrer">
               {t('terms.privacyPolicy')}
             </Link>
           </label>

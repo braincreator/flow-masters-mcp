@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import PixelManager from '@/components/PixelManager'
-import CookieConsent, { useCookieConsent } from '@/components/CookieConsent'
 import { usePixelPageView } from '@/hooks/usePixelEvents'
 import { InteractionTracker } from '@/components/Analytics/ButtonTracker'
+import { useCookieConsent } from '@/hooks/useCookieConsent'
 
 interface AnalyticsLayoutProps {
   children: React.ReactNode
@@ -17,8 +17,8 @@ interface AnalyticsLayoutProps {
  */
 export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
   const pathname = usePathname()
-  const { consent, updateConsent } = useCookieConsent()
   const { trackPageView } = usePixelPageView()
+  const { hasAnalytics, hasMarketing, hasPreferences } = useCookieConsent()
   const [currentPage, setCurrentPage] = useState('all')
 
   // Определяем тип текущей страницы
@@ -29,7 +29,7 @@ export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
 
   // Отслеживаем просмотры страниц при изменении маршрута
   useEffect(() => {
-    if (consent?.analytics || consent?.marketing) {
+    if (hasAnalytics || hasMarketing) {
       // Небольшая задержка для загрузки пикселей
       const timer = setTimeout(() => {
         trackPageView(currentPage)
@@ -37,25 +37,10 @@ export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
 
       return () => clearTimeout(timer)
     }
-  }, [pathname, consent, currentPage, trackPageView])
-
-  const handleConsentChange = (newConsent: any) => {
-    updateConsent(newConsent)
-    
-    // Если пользователь дал согласие на аналитику, отслеживаем текущую страницу
-    if (newConsent.analytics || newConsent.marketing) {
-      setTimeout(() => {
-        trackPageView(currentPage)
-      }, 1000)
-    }
-  }
+  }, [pathname, hasAnalytics, hasMarketing, currentPage, trackPageView])
 
   // Определяем, нужно ли загружать пиксели
-  const shouldLoadPixels = consent && (
-    consent.analytics || 
-    consent.marketing || 
-    consent.preferences
-  )
+  const shouldLoadPixels = hasAnalytics || hasMarketing || hasPreferences
 
   return (
     <>
@@ -71,9 +56,6 @@ export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
 
       {/* Автоматическое отслеживание взаимодействий */}
       {shouldLoadPixels && <InteractionTracker />}
-
-      {/* Баннер согласия на cookies */}
-      <CookieConsent onConsentChange={handleConsentChange} />
     </>
   )
 }
@@ -144,13 +126,13 @@ function determinePageType(pathname: string): string {
  * Хук для отслеживания событий конверсии
  */
 export function useConversionTracking() {
-  const { consent } = useCookieConsent()
+  const { hasMarketing } = useCookieConsent()
 
   const trackConversion = async (
     conversionType: 'lead' | 'purchase' | 'registration' | 'contact',
     data: any = {}
   ) => {
-    if (!consent?.marketing) return
+    if (!hasMarketing) return
 
     try {
       // Отправляем событие конверсии в пиксели

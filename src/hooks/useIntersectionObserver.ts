@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 
 export function useIntersectionObserver(
   options = {},
@@ -7,28 +7,35 @@ export function useIntersectionObserver(
   const [entry, setEntry] = useState<IntersectionObserverEntry>()
   const [node, setNode] = useState<Element | null>(null)
   const frozen = entry?.isIntersecting && freezeOnceVisible
-  
+
   const observer = useRef<IntersectionObserver>()
-  
+
+  // Memoize options to prevent unnecessary re-renders
+  const memoizedOptions = useMemo(() => options, [
+    options.root,
+    options.rootMargin,
+    options.threshold
+  ])
+
   useEffect(() => {
     if (observer.current) {
       observer.current.disconnect()
     }
-    
+
     if (frozen) return
-    
+
     observer.current = new IntersectionObserver(([entry]) => {
       setEntry(entry)
-    }, options)
-    
+    }, memoizedOptions)
+
     const { current: currentObserver } = observer
-    
+
     if (node) currentObserver.observe(node)
-    
+
     return () => {
       currentObserver.disconnect()
     }
-  }, [node, JSON.stringify(options), frozen])
-  
+  }, [node, memoizedOptions, frozen])
+
   return [setNode, entry?.isIntersecting, entry] as const
 }

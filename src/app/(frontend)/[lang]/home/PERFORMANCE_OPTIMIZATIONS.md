@@ -7,10 +7,13 @@
 - **Lazy Loading**: Тяжелые секции загружаются только при приближении к ним
 - **React.Suspense**: Graceful loading с skeleton компонентами
 - **Dynamic Imports**: Уменьшение размера начального бандла
+- **Исключения**: FinalCTASection не использует LazySection для корректной работы якорных ссылок
 
 ```tsx
 const AIStatsSection = lazy(() => import('./sections/AIStatsSection'))
 ```
+
+**Важно**: FinalCTASection загружается сразу, чтобы якорные ссылки `#final-cta` работали при переходе с других страниц.
 
 ### 2. Intersection Observer для анимаций
 

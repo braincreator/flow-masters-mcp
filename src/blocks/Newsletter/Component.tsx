@@ -196,7 +196,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
           {status !== 'success' && (
             <p className="mt-4 text-xs text-center text-muted-foreground">
               By subscribing, you agree to our{' '}
-              <a href="/privacy" className="underline hover:text-foreground">
+              <a href="/privacy" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
                 Privacy Policy
               </a>
             </p>
