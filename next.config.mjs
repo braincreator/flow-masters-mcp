@@ -413,6 +413,11 @@ const nextConfig = {
         source: '/vk-pixel/:path*',
         destination: 'https://vk.com/:path*',
       },
+      // VK Ads
+      {
+        source: '/vk-ads/:path*',
+        destination: 'https://ads.vk.com/:path*',
+      },
       // Top.Mail.Ru
       {
         source: '/top-mailru/:path*',

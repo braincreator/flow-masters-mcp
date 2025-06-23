@@ -48,6 +48,7 @@ export const Pixels: CollectionConfig = {
       label: 'Тип пикселя',
       options: [
         { label: 'VK Pixel', value: 'vk' },
+        { label: 'VK Ads', value: 'vk_ads' },
         { label: 'Facebook Pixel', value: 'facebook' },
         { label: 'Google Analytics 4', value: 'ga4' },
         { label: 'Google Analytics Universal', value: 'ga_universal' },
@@ -175,6 +176,47 @@ export const Pixels: CollectionConfig = {
                   siblingData.trigger === 'button_click' || siblingData.trigger === 'form_submit',
                 description: 'CSS селектор элемента (для кликов и форм)',
               },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'vkAdsSettings',
+      type: 'group',
+      label: 'Настройки VK Ads',
+      admin: {
+        condition: (data) => data.type === 'vk_ads',
+        description: 'Дополнительные настройки для VK Ads пикселя',
+      },
+      fields: [
+        {
+          name: 'trackPageView',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Отслеживать просмотры страниц',
+        },
+        {
+          name: 'trackEvents',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Отслеживать события',
+        },
+        {
+          name: 'conversionGoals',
+          type: 'array',
+          label: 'Цели конверсии',
+          fields: [
+            {
+              name: 'goalName',
+              type: 'text',
+              required: true,
+              label: 'Название цели',
+            },
+            {
+              name: 'goalValue',
+              type: 'number',
+              label: 'Ценность цели',
             },
           ],
         },
@@ -393,6 +435,9 @@ export const Pixels: CollectionConfig = {
 function validatePixelId(type: string, pixelId: string): boolean {
   switch (type) {
     case 'vk':
+      // VK Pixel использует только цифры (например: 12345678)
+      return /^\d{6,10}$/.test(pixelId)
+    case 'vk_ads':
       // VK Ads использует только цифры (например: 12345678)
       return /^\d{6,10}$/.test(pixelId)
     case 'facebook':

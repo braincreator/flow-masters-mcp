@@ -61,12 +61,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL(metrikaUrl))
   }
 
-  // VK Pixel
+  // VK Pixel (vk.com)
   if (pathname.startsWith('/vk-pixel/')) {
     const vkPath = pathname.replace('/vk-pixel/', '')
     const searchParams = request.nextUrl.searchParams.toString()
     const vkUrl = `https://vk.com/${vkPath}${searchParams ? `?${searchParams}` : ''}`
     return NextResponse.rewrite(new URL(vkUrl))
+  }
+
+  // VK Ads (ads.vk.com)
+  if (pathname.startsWith('/vk-ads/')) {
+    const vkAdsPath = pathname.replace('/vk-ads/', '')
+    const searchParams = request.nextUrl.searchParams.toString()
+    const vkAdsUrl = `https://ads.vk.com/${vkAdsPath}${searchParams ? `?${searchParams}` : ''}`
+    return NextResponse.rewrite(new URL(vkAdsUrl))
   }
 
   // Top.Mail.Ru
@@ -172,6 +180,7 @@ export const config = {
     // 🎯 ДОБАВЛЕНО: Аналитические сервисы проксирование
     '/metrika/:path*',
     '/vk-pixel/:path*',
+    '/vk-ads/:path*',
     '/top-mailru/:path*',
     // Match all request paths except for the ones starting with:
     // - api (API routes)
