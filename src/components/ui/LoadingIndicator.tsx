@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/utilities/ui';
+import { cn } from '@/lib/utils';
 
 interface LoadingIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {}
 

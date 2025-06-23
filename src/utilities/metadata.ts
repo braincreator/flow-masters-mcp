@@ -45,8 +45,15 @@ const DEFAULT_METADATA: Metadata = {
     card: 'summary_large_image',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', type: 'image/x-icon' }
+    ],
+    apple: [
+      { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
   },
+  manifest: '/site.webmanifest',
 }
 
 // Utility functions
@@ -149,13 +156,20 @@ export async function generateDefaultMetadata(): Promise<Metadata> {
         icon: [
           {
             url: typeof branding?.favicon === 'object'
-              ? branding?.favicon?.url ?? (typeof branding?.favicon === 'string' ? branding.favicon : '/favicon.ico')
+              ? branding?.favicon?.url ?? (typeof branding?.favicon === 'string' ? branding.favicon : '/favicon.svg')
               : typeof branding?.favicon === 'string'
                 ? branding.favicon
-                : '/favicon.ico',
+                : '/favicon.svg',
+            type: 'image/svg+xml'
+          },
+          {
+            url: '/favicon.ico',
+            type: 'image/x-icon'
           }
         ],
-        apple: branding?.favicon && typeof branding.favicon === 'object' && (branding.favicon as any).url ? [{ url: (branding.favicon as any).url }] : [],
+        apple: branding?.favicon && typeof branding.favicon === 'object' && (branding.favicon as any).url
+          ? [{ url: (branding.favicon as any).url }]
+          : [{ url: '/icon.svg', type: 'image/svg+xml' }],
       },
 
       robots: {
@@ -183,6 +197,8 @@ export async function generateDefaultMetadata(): Promise<Metadata> {
           'ru': '/ru',
         },
       },
+
+      manifest: '/site.webmanifest',
     }
 
     return validateMetadata(metadata)

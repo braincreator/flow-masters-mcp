@@ -1,6 +1,7 @@
 import { CollectionConfig } from 'payload'
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrSelf } from '@/access/isAdminOrSelf'
+import { ServiceRegistry } from '@/services/service.registry'
 
 export const UserAchievements: CollectionConfig = {
   slug: 'user-achievements',
@@ -71,5 +72,61 @@ export const UserAchievements: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      // Добавляем хук для событий достижений
+      async ({ doc, operation, req }) => {
+        const serviceRegistry = ServiceRegistry.getInstance(req.payload)
+        const eventService = serviceRegistry.getEventService()
+
+        if (!eventService) return
+
+        if (operation === 'create') {
+          // Событие получения достижения
+          await eventService.publishEvent('achievement.earned', {
+            id: doc.id,
+            achievement: typeof doc.achievement === 'object' ? doc.achievement.id : doc.achievement,
+            achievementTitle: typeof doc.achievement === 'object' ? doc.achievement.title : null,
+            achievementDescription: typeof doc.achievement === 'object' ? doc.achievement.description : null,
+            achievementType: typeof doc.achievement === 'object' ? doc.achievement.type : null,
+            achievementPoints: typeof doc.achievement === 'object' ? doc.achievement.points : null,
+            user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+            userName: typeof doc.user === 'object' ? doc.user.name : null,
+            userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+            earnedAt: doc.earnedAt,
+            metadata: doc.metadata,
+          }, {
+            source: 'achievement_earned',
+            collection: 'user-achievements',
+            operation,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
+          })
+
+          // Событие важной вехи (если это milestone достижение)
+          if (typeof doc.achievement === 'object' && doc.achievement.type === 'milestone') {
+            await eventService.publishEvent('achievement.milestone', {
+              id: doc.id,
+              achievement: doc.achievement.id,
+              achievementTitle: doc.achievement.title,
+              achievementDescription: doc.achievement.description,
+              achievementPoints: doc.achievement.points,
+              user: typeof doc.user === 'object' ? doc.user.id : doc.user,
+              userName: typeof doc.user === 'object' ? doc.user.name : null,
+              userEmail: typeof doc.user === 'object' ? doc.user.email : null,
+              earnedAt: doc.earnedAt,
+              metadata: doc.metadata,
+            }, {
+              source: 'achievement_milestone',
+              collection: 'user-achievements',
+              operation,
+              userId: req.user?.id,
+              userEmail: req.user?.email,
+            })
+          }
+        }
+      },
+    ],
+  },
   timestamps: true,
 }

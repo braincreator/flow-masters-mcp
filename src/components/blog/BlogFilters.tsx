@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Category, Tag, User } from '@/payload-types'; // Assuming payload-types is generated
+import { DEFAULT_LOCALE, type Locale } from '@/constants';
 
 interface BlogFiltersProps {
   onFilterChange: (filters: { categories?: string[], tags?: string[], authors?: string[] }) => void;
@@ -9,6 +11,10 @@ interface BlogFiltersProps {
 }
 
 const BlogFilters: React.FC<BlogFiltersProps> = ({ onFilterChange, initialFilters = {} }) => {
+  const pathname = usePathname();
+  const segments = pathname.split('/');
+  const currentLocale = (segments.length > 1 ? segments[1] : DEFAULT_LOCALE) as Locale;
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [authors, setAuthors] = useState<User[]>([]);
@@ -20,14 +26,14 @@ const BlogFilters: React.FC<BlogFiltersProps> = ({ onFilterChange, initialFilter
     const fetchFilterOptionsAndCounts = async () => {
       try {
         // Fetch categories
-        const categoriesResponse = await fetch('/api/v1/categories');
+        const categoriesResponse = await fetch(`/api/v1/categories?locale=${currentLocale}`);
         const categoriesData = await categoriesResponse.json();
         if (categoriesData && categoriesData.docs) {
           setCategories(categoriesData.docs);
         }
 
         // Fetch tags
-        const tagsResponse = await fetch('/api/v1/tags');
+        const tagsResponse = await fetch(`/api/v1/tags?locale=${currentLocale}`);
         const tagsData = await tagsResponse.json();
         if (tagsData && tagsData.docs) {
           setTags(tagsData.docs);
@@ -41,7 +47,7 @@ const BlogFilters: React.FC<BlogFiltersProps> = ({ onFilterChange, initialFilter
         }
 
         // Fetch post counts from the posts API route
-        const postsCountResponse = await fetch('/api/v1/posts?limit=1'); // Fetching with limit 1 is sufficient to get filterCounts
+        const postsCountResponse = await fetch(`/api/v1/posts?limit=1&locale=${currentLocale}`); // Fetching with limit 1 is sufficient to get filterCounts
         const postsCountData = await postsCountResponse.json();
 
         if (postsCountData.filterCounts) {
@@ -54,7 +60,7 @@ const BlogFilters: React.FC<BlogFiltersProps> = ({ onFilterChange, initialFilter
     };
 
     fetchFilterOptionsAndCounts();
-  }, []);
+  }, [currentLocale]);
 
   useEffect(() => {
     // Notify parent component of filter changes

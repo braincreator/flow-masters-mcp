@@ -1725,7 +1725,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             условиями обслуживания
                           </a>{' '}
                           и{' '}
-                          <a href={`/${locale}/privacy`} className="text-primary hover:underline">
+                          <a href={`/${locale}/privacy`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
                             политикой конфиденциальности
                           </a>
                         </>
@@ -1736,7 +1736,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
                             terms of service
                           </a>{' '}
                           and{' '}
-                          <a href={`/${locale}/privacy`} className="text-primary hover:underline">
+                          <a href={`/${locale}/privacy`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
                             privacy policy
                           </a>
                         </>

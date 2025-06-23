@@ -221,7 +221,13 @@ export default buildConfig({
         user: ENV.PAYLOAD_SMTP_USER,
         pass: ENV.PAYLOAD_SMTP_PASSWORD,
       },
+      // Add connection timeout and retry settings
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 5000, // 5 seconds
+      socketTimeout: 10000, // 10 seconds
     },
+    // Skip verification in production to prevent startup failures
+    skipVerify: ENV.NODE_ENV === 'production',
   }),
 
   // Jobs configuration according to Payload CMS v3 documentation

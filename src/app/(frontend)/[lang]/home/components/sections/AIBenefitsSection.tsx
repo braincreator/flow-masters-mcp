@@ -6,6 +6,7 @@ import { GridContainer } from '@/components/GridContainer'
 import { TrendingUp, Clock, DollarSign, Users, CheckCircle } from 'lucide-react'
 import { useLeadFormModal } from '../LeadFormModalProvider'
 import { useTranslations } from 'next-intl'
+import { MobileOptimizedMotion, MobileOptimizedMotionGroup, MobileOptimizedHover } from '@/components/MobileOptimizedMotion'
 
 const benefitIcons = [TrendingUp, Clock, DollarSign, Users]
 
@@ -24,12 +25,7 @@ export function AIBenefitsSection() {
     <section className="py-20 bg-background">
       <GridContainer>
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <MobileOptimizedMotion>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
               {t('title')}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -40,20 +36,20 @@ export function AIBenefitsSection() {
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               {t('subtitle')}
             </p>
-          </motion.div>
+          </MobileOptimizedMotion>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <MobileOptimizedMotionGroup
+          staggerDelay={100}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        >
           {benefits.map((benefit, index) => {
             const Icon = benefit.icon
             return (
-              <motion.div
+              <MobileOptimizedHover
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="p-8 rounded-2xl border border-border bg-card hover:shadow-lg transition-all duration-300"
+                hoverClassName="hover:shadow-lg"
+                className="p-8 rounded-2xl border border-border bg-card transition-all duration-300"
               >
                 <div className="flex items-start gap-6">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
@@ -69,18 +65,12 @@ export function AIBenefitsSection() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </MobileOptimizedHover>
             )
           })}
-        </div>
+        </MobileOptimizedMotionGroup>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center mt-16"
-        >
+        <MobileOptimizedMotion className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center mt-16">
           <h3 className="text-2xl font-bold mb-6">{t('clientResults.title')}</h3>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -102,15 +92,15 @@ export function AIBenefitsSection() {
             </div>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => openModal({ type: 'results', title: t('button') })}
-          >
-            {t('button')} →
-          </motion.button>
-        </motion.div>
+          <MobileOptimizedHover hoverClassName="hover:scale-105 hover:shadow-xl">
+            <button
+              className="mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300"
+              onClick={() => openModal({ type: 'results', title: t('button') })}
+            >
+              {t('button')} →
+            </button>
+          </MobileOptimizedHover>
+        </MobileOptimizedMotion>
       </GridContainer>
     </section>
   )

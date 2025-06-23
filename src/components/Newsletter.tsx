@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
 interface NewsletterProps {
   title?: string
@@ -51,6 +52,12 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   const [error, setError] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isClient, setIsClient] = useState(false)
+
+  // Аналитика форм
+  const formAnalytics = useFormAnalytics({
+    formName: 'newsletter',
+    formType: 'subscription'
+  })
 
   const messages = {
     error: errorMessage || t('errorInvalidEmail'),
@@ -128,10 +135,14 @@ export const Newsletter: React.FC<NewsletterProps> = ({
 
       setIsSubmitted(true)
       setIsSubscribed(true)
+      // Трекаем успешную подписку
+      formAnalytics.handleFormSubmit(true)
     } catch (error) {
       console.error('Newsletter subscription error:', error)
       setError(error instanceof Error ? error.message : messages.networkError)
       toast.error(error instanceof Error ? error.message : messages.networkError)
+      // Трекаем ошибку подписки
+      formAnalytics.handleFormSubmit(false)
     } finally {
       setIsSubmitting(false)
     }
@@ -185,6 +196,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
               )}
               aria-label={t('emailInputLabel')}
               disabled={isSubmitting}
+              onFocus={() => formAnalytics.handleFieldFocus('email')}
             />
             {error && (
               <p className={cn('text-red-500 mt-1', isCompact ? 'text-[10px]' : 'text-xs')}>

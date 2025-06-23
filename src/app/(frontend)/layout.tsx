@@ -16,13 +16,17 @@ const RootProvider = lazy(() =>
   })),
 )
 
+const AnalyticsLayout = lazy(() =>
+  import('@/components/Layout/AnalyticsLayout').then((mod) => ({
+    default: mod.default,
+  })),
+)
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getCurrentLocale()
-
-  const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
   // --- Fetch global data inside the component ---
   try {
@@ -75,59 +79,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             type="font/woff2"
             crossOrigin="anonymous"
           />
-          {YANDEX_METRIKA_ID && (
-            <>
-              <Script id="yandex-metrika" strategy="afterInteractive">
-                {`
-                  console.log('Yandex Metrika: Initializing with ID ${YANDEX_METRIKA_ID}');
-
-                  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-                  m[i].l=1*new Date();
-                  for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-                  k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-                  (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-                  ym(${YANDEX_METRIKA_ID}, "init", {
-                      clickmap:true,
-                      trackLinks:true,
-                      accurateTrackBounce:true,
-                      webvisor:true,
-                      triggerEvent: true
-                  });
-
-                  console.log('Yandex Metrika: Script loaded and initialized');
-
-                  // Проверка загрузки через событие
-                  window.addEventListener('load', function() {
-                    if (typeof ym !== 'undefined') {
-                      console.log('Yandex Metrika: Successfully loaded and ready');
-                      // Отправляем тестовое событие
-                      ym(${YANDEX_METRIKA_ID}, 'reachGoal', 'page_loaded');
-                      console.log('Yandex Metrika: Test event "page_loaded" sent');
-                    } else {
-                      console.error('Yandex Metrika: Failed to load');
-                    }
-                  });
-                `}
-              </Script>
-              <noscript>
-                <div>
-                  <img
-                    src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
-                    style={{ position: 'absolute', left: '-9999px' }}
-                    alt=""
-                  />
-                </div>
-              </noscript>
-            </>
-          )}
         </head>
         <body>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="Europe/Moscow">
             <Suspense fallback={<div>Loading...</div>}>
               {/* Pass fetched data to provider if needed */}
               <RootProvider lang={locale} /* header={header} footer={footer} etc */>
-                {children}
+                <Suspense fallback={null}>
+                  <AnalyticsLayout>
+                    {children}
+                  </AnalyticsLayout>
+                </Suspense>
               </RootProvider>
             </Suspense>
           </NextIntlClientProvider>

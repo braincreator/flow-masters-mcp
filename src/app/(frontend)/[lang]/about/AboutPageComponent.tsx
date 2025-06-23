@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import React, { Suspense, lazy } from 'react'
+import { motion } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
 
 import { HeroSection } from './components/HeroSection'
@@ -12,7 +12,34 @@ import { ValuesSection } from './components/ValuesSection'
 import { ApproachSection } from './components/ApproachSection'
 import { CTASection } from './components/CTASection'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AnimatedSection } from './components/AnimatedSection'
+import { MobileOptimizedMotion, MobileOptimizedMotionGroup } from '@/components/MobileOptimizedMotion'
+import { useMobileAnimations, getSmoothAnimationProps, getGPUAcceleratedStyles } from '@/hooks/useMobileAnimations'
+
+// Lazy load heavy sections for better performance
+const LazyFounderSection = lazy(() =>
+  import('./components/FounderSection').then(m => ({ default: m.FounderSection }))
+)
+const LazyValuesSection = lazy(() =>
+  import('./components/ValuesSection').then(m => ({ default: m.ValuesSection }))
+)
+const LazyApproachSection = lazy(() =>
+  import('./components/ApproachSection').then(m => ({ default: m.ApproachSection }))
+)
+
+// Loading fallback component
+const SectionSkeleton = () => (
+  <div className="py-20 animate-pulse">
+    <div className="container mx-auto px-4">
+      <div className="h-8 bg-muted rounded w-1/3 mx-auto mb-4"></div>
+      <div className="h-4 bg-muted rounded w-2/3 mx-auto mb-8"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-32 bg-muted rounded"></div>
+        ))}
+      </div>
+    </div>
+  </div>
+)
 
 interface AboutPageData {
   hero: {
@@ -90,7 +117,8 @@ interface AboutPageComponentProps {
 }
 
 export function AboutPageComponent({ data }: AboutPageComponentProps) {
-  const shouldReduceMotion = useReducedMotion()
+  const animationConfig = useMobileAnimations()
+  const gpuStyles = getGPUAcceleratedStyles(animationConfig)
 
   // Проверка наличия обязательных данных
   if (!data) {
@@ -106,21 +134,22 @@ export function AboutPageComponent({ data }: AboutPageComponentProps) {
     )
   }
 
-  // Simplified container variants for better performance
-  const containerVariants = shouldReduceMotion
+  // Optimized container variants based on device capabilities
+  const containerVariants = animationConfig.shouldReduceMotion || animationConfig.preferCSSAnimations
     ? { visible: { opacity: 1 } }
     : {
         hidden: { opacity: 0 },
         visible: {
           opacity: 1,
           transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.1,
+            staggerChildren: animationConfig.isMobile ? 0.05 : 0.1,
+            delayChildren: animationConfig.isMobile ? 0.05 : 0.1,
+            ease: [0.25, 0.1, 0.25, 1], // Smooth easing
           },
         },
       }
 
-  const sectionVariants = shouldReduceMotion
+  const sectionVariants = animationConfig.shouldReduceMotion
     ? { visible: { opacity: 1 } }
     : {
         hidden: { opacity: 0, y: 20 },
@@ -133,58 +162,65 @@ export function AboutPageComponent({ data }: AboutPageComponentProps) {
 
   return (
     <motion.div
-      className="min-h-screen"
+      className="min-h-screen mobile-optimized-container"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      style={gpuStyles}
     >
-      {/* Hero Section */}
+      {/* Hero Section - Always loaded */}
       {data.hero && (
-        <AnimatedSection>
+        <MobileOptimizedMotion>
           <HeroSection data={data.hero} />
-        </AnimatedSection>
+        </MobileOptimizedMotion>
       )}
 
-      {/* Mission Section */}
+      {/* Mission Section - Always loaded */}
       {data.mission && (
-        <AnimatedSection delay={0.1}>
+        <MobileOptimizedMotion delay={100}>
           <MissionSection data={data.mission} />
-        </AnimatedSection>
+        </MobileOptimizedMotion>
       )}
 
-      {/* Stats Section */}
+      {/* Stats Section - Always loaded */}
       {data.stats && data.stats.items && data.stats.items.length > 0 && (
-        <AnimatedSection delay={0.2}>
+        <MobileOptimizedMotion delay={200}>
           <StatsSection data={data.stats} />
-        </AnimatedSection>
+        </MobileOptimizedMotion>
       )}
 
-      {/* Founder Section */}
+      {/* Founder Section - Lazy loaded */}
       {data.founder && (
-        <AnimatedSection delay={0.3}>
-          <FounderSection data={data.founder} />
-        </AnimatedSection>
+        <MobileOptimizedMotion delay={300}>
+          <Suspense fallback={<SectionSkeleton />}>
+            <LazyFounderSection data={data.founder} />
+          </Suspense>
+        </MobileOptimizedMotion>
       )}
 
-      {/* Values Section */}
+      {/* Values Section - Lazy loaded */}
       {data.values && data.values.items && data.values.items.length > 0 && (
-        <AnimatedSection delay={0.4}>
-          <ValuesSection data={data.values} />
-        </AnimatedSection>
+        <MobileOptimizedMotion delay={400}>
+          <Suspense fallback={<SectionSkeleton />}>
+            <LazyValuesSection data={data.values} />
+          </Suspense>
+        </MobileOptimizedMotion>
       )}
 
-      {/* Approach Section */}
+      {/* Approach Section - Lazy loaded */}
       {data.approach && data.approach.steps && data.approach.steps.length > 0 && (
-        <AnimatedSection delay={0.5}>
-          <ApproachSection data={data.approach} />
-        </AnimatedSection>
+        <MobileOptimizedMotion delay={500}>
+          <Suspense fallback={<SectionSkeleton />}>
+            <LazyApproachSection data={data.approach} />
+          </Suspense>
+        </MobileOptimizedMotion>
       )}
 
-      {/* CTA Section */}
+      {/* CTA Section - Always loaded */}
       {data.cta && (
-        <AnimatedSection delay={0.6}>
+        <MobileOptimizedMotion delay={600}>
           <CTASection data={data.cta} />
-        </AnimatedSection>
+        </MobileOptimizedMotion>
       )}
     </motion.div>
   )

@@ -7,7 +7,7 @@ import { AIHeroSection } from './sections/AIHeroSection'
 import { PainPointsSection } from './sections/PainPointsSection'
 import { AIBenefitsSection } from './sections/AIBenefitsSection'
 import { AIServicesShowcase } from './sections/AIServicesShowcase'
-import { LazySection } from './LazySection'
+import { LazySection } from './LazySection.debug'
 
 // Lazy load heavy components
 const AIStatsSection = lazy(() =>
@@ -40,6 +40,7 @@ const FeedbackWidget = lazy(() =>
 
 import { LeadFormModalProvider } from './LeadFormModalProvider'
 import { PerformanceProvider } from '@/components/PerformanceManager'
+import { useMobileAnimations } from '@/hooks/useMobileAnimations'
 
 // Loading fallback component
 const SectionSkeleton = () => (
@@ -57,11 +58,15 @@ const SectionSkeleton = () => (
 )
 
 export function AIAgencyLanding() {
+  const animationConfig = useMobileAnimations()
+
   return (
     <PerformanceProvider>
       <LeadFormModalProvider>
         <AnalyticsTracker>
-          <div className="min-h-screen bg-background relative optimized-container smooth-scroll">
+          <div className={`min-h-screen bg-background relative optimized-container smooth-scroll ${
+            animationConfig.isMobile ? 'mobile-optimized-container' : ''
+          }`}>
             {/* Hero Section - Always loaded */}
             <section data-section="hero">
               <AIHeroSection />
@@ -83,53 +88,51 @@ export function AIAgencyLanding() {
             </section>
 
             {/* Stats Section - Lazy loaded */}
-            <LazySection sectionId="stats">
+            <LazySection sectionId="stats" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <AIStatsSection />
               </Suspense>
             </LazySection>
 
             {/* Case Studies - Lazy loaded */}
-            <LazySection sectionId="cases">
+            <LazySection sectionId="cases" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <CaseStudiesSection />
               </Suspense>
             </LazySection>
 
             {/* Quiz Calculator - Lazy loaded */}
-            <LazySection sectionId="calculator">
+            <LazySection sectionId="calculator" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <AIQuizCalculator />
               </Suspense>
             </LazySection>
 
             {/* Pricing - Lazy loaded */}
-            <LazySection sectionId="pricing">
+            <LazySection sectionId="pricing" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <PricingWithPrePayment />
               </Suspense>
             </LazySection>
 
             {/* Urgency Section - Lazy loaded */}
-            <LazySection sectionId="urgency">
+            <LazySection sectionId="urgency" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <UrgencySection />
               </Suspense>
             </LazySection>
 
             {/* FAQ - Lazy loaded */}
-            <LazySection sectionId="faq">
+            <LazySection sectionId="faq" threshold={0.1} rootMargin="300px">
               <Suspense fallback={<SectionSkeleton />}>
                 <AIFAQSection />
               </Suspense>
             </LazySection>
 
-            {/* Final CTA - Lazy loaded */}
-            <LazySection sectionId="final-cta">
-              <Suspense fallback={<SectionSkeleton />}>
-                <FinalCTASection />
-              </Suspense>
-            </LazySection>
+            {/* Final CTA - Always loaded for anchor links */}
+            <Suspense fallback={<SectionSkeleton />}>
+              <FinalCTASection />
+            </Suspense>
 
             {/* Floating widgets - Lazy loaded */}
             <Suspense fallback={null}>

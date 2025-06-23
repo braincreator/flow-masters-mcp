@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
 type ContactFormData = {
   name: string
@@ -21,6 +22,12 @@ type ContactFormData = {
 export function ContactForm() {
   const t = useTranslations('forms.contactForm')
   const { toast } = useToast()
+
+  // Аналитика форм
+  const formAnalytics = useFormAnalytics({
+    formName: 'contact_form',
+    formType: 'contact'
+  })
 
   // Create schema with translations
   const contactFormSchema = z.object({
@@ -56,6 +63,9 @@ export function ContactForm() {
         throw new Error(result.error || t('errors.failedToSend'))
       }
 
+      // Трекаем успешную отправку
+      formAnalytics.handleFormSubmit(true)
+
       toast({
         title: t('success.title'),
         description: t('success.description'),
@@ -63,6 +73,10 @@ export function ContactForm() {
       reset() // Очистить форму после успешной отправки
     } catch (error) {
       console.error('Ошибка отправки формы:', error)
+
+      // Трекаем ошибку отправки
+      formAnalytics.handleFormSubmit(false)
+
       toast({
         title: t('errors.title'),
         description: error instanceof Error ? error.message : t('errors.description'),
@@ -85,6 +99,7 @@ export function ContactForm() {
           {...register('name')}
           className={errors.name ? 'border-destructive' : ''}
           aria-invalid={errors.name ? 'true' : 'false'}
+          onFocus={() => formAnalytics.handleFieldFocus('name')}
         />
         {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
       </div>

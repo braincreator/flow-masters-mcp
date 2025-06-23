@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 import { BlurImage } from '@/components/blog/BlurImage'
 import Prism from 'prismjs'
 import RichText from '@/components/RichText'

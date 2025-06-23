@@ -49,7 +49,7 @@ export function FinalCTASection() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-slate-900 to-blue-900 text-white">
+    <section id="final-cta" className="py-20 bg-gradient-to-b from-slate-900 to-blue-900 text-white">
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div

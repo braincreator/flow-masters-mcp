@@ -73,7 +73,7 @@ export const AiAssistant: Block = {
           type: 'text',
           label: 'Название модели',
           admin: {
-            description: 'Например, gpt-4, gemini-pro и т.д.',
+            description: 'Например, gpt-4, gemini-2.5-flash и т.д.',
           },
         },
         {

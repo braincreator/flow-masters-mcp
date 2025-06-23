@@ -65,8 +65,11 @@ export function TechLogos({ grouped = false, showGroupTitles = false }: TechLogo
           icons={techIconSlugs}
           size="md"
           columns={10}
-          mobileColumns={4}
-          tabletColumns={6}
+          // Increased mobile columns for better visibility
+          mobileColumns={5}
+          tabletColumns={7}
+          // Add performance optimization class
+          className="will-change-auto"
         />
       )}
     </div>

@@ -109,23 +109,72 @@
   scroll-snap-align: center;
 }
 
-/* Pricing section container */
+/* Enhanced pricing section container */
 .pricing-scroll-container {
   overflow: visible; /* Позволяет бейджам выходить за пределы */
+  scroll-behavior: smooth;
 }
 
-/* Pricing cards responsive width and height */
+/* Enhanced pricing cards with better responsive design */
 .pricing-card {
   min-height: 570px; /* Уменьшено с 600px на 5% */
   position: relative;
   overflow: visible; /* Позволяет бейджу выходить за пределы карточки */
+  /* Enhanced mobile scrolling */
+  scroll-snap-align: center;
+  scroll-margin: 16px;
+}
+
+/* Touch-friendly scrolling improvements */
+.touch-smooth {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth momentum scrolling for mobile */
+@media (max-width: 768px) {
+  .pricing-card {
+    min-width: 280px;
+    max-width: 320px;
+    flex-shrink: 0;
+  }
+
+  /* Enhanced scroll snap for mobile */
+  .snap-x {
+    scroll-snap-type: x mandatory;
+    scroll-padding: 16px;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
 }
 
 @media (max-width: 640px) {
   .pricing-card {
-    width: 320px !important;
-    min-width: 320px !important;
-    min-height: 551px; /* Уменьшено с 580px на 5% */
+    width: 280px !important; /* Reduced width to show more cards */
+    min-width: 280px !important;
+    min-height: 520px; /* Reduced height for mobile */
+  }
+
+  /* Ensure container shows partial next card */
+  .pricing-scroll-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Make scroll more obvious on mobile */
+  .pricing-scroll-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+    pointer-events: none;
   }
 }
 

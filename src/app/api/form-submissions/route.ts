@@ -2,56 +2,180 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
 /**
- * Обработчик POST запросов для сохранения form submissions
+ * Обработчик POST запросов для сохранения form submissions с метаданными
  */
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
-    const { form, submissionData } = data
+    const { form, submissionData, metadata, submissionStatus = 'success', errorMessage } = data
 
-    if (!form) {
-      return NextResponse.json({ error: 'Form ID is required' }, { status: 400 })
-    }
-
+    // Валидация основных данных
     if (!submissionData || !Array.isArray(submissionData)) {
       return NextResponse.json({ error: 'Submission data is required and must be an array' }, { status: 400 })
     }
 
     const payload = await getPayloadClient()
 
-    // Verify that the form exists
-    const formDoc = await payload.findByID({
-      collection: 'forms',
-      id: form,
-    })
+    // Проверяем форму, если ID предоставлен
+    if (form) {
+      try {
+        const formDoc = await payload.findByID({
+          collection: 'forms',
+          id: form,
+        })
 
-    if (!formDoc) {
-      return NextResponse.json({ error: 'Form not found' }, { status: 404 })
+        if (!formDoc) {
+          return NextResponse.json({ error: 'Form not found' }, { status: 404 })
+        }
+      } catch (error) {
+        console.warn('Form validation error:', error)
+        // Продолжаем без проверки формы для совместимости
+      }
     }
 
-    // Create the form submission
+    // Получаем IP адрес
+    const ipAddress = getClientIP(req)
+
+    // Подготавливаем данные для сохранения
+    const submissionPayload: any = {
+      submissionData,
+      submissionStatus,
+      ipAddress,
+      processedAt: new Date().toISOString(),
+    }
+
+    // Добавляем ID формы, если есть
+    if (form) {
+      submissionPayload.form = form
+    }
+
+    // Добавляем сообщение об ошибке, если есть
+    if (errorMessage) {
+      submissionPayload.errorMessage = errorMessage
+    }
+
+    // Обрабатываем метаданные, если предоставлены
+    if (metadata) {
+      submissionPayload.metadata = processMetadata(metadata)
+    }
+
+    // Создаем запись в базе данных
     const submission = await payload.create({
       collection: 'form-submissions',
-      data: {
-        form,
-        submissionData,
-      },
+      data: submissionPayload,
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       submission,
       message: 'Form submitted successfully'
     })
   } catch (error) {
     console.error('Form submission error:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
-      }, 
+      },
       { status: 500 }
     )
+  }
+}
+
+/**
+ * Получает IP адрес клиента
+ */
+function getClientIP(req: NextRequest): string {
+  // Проверяем различные заголовки для получения реального IP
+  const forwarded = req.headers.get('x-forwarded-for')
+  const realIP = req.headers.get('x-real-ip')
+  const cfConnectingIP = req.headers.get('cf-connecting-ip')
+
+  if (forwarded) {
+    return forwarded.split(',')[0].trim()
+  }
+
+  if (realIP) {
+    return realIP
+  }
+
+  if (cfConnectingIP) {
+    return cfConnectingIP
+  }
+
+  // Fallback к IP из connection
+  return req.ip || 'unknown'
+}
+
+/**
+ * Обрабатывает и структурирует метаданные для сохранения
+ */
+function processMetadata(metadata: any): any {
+  try {
+    const processed: any = {}
+
+    // UTM данные
+    if (metadata.utm_data) {
+      processed.utmData = metadata.utm_data
+    }
+
+    // Источник трафика
+    if (metadata.traffic_source) {
+      processed.trafficSource = metadata.traffic_source
+    }
+
+    // Информация об устройстве
+    if (metadata.device_info) {
+      processed.deviceInfo = metadata.device_info
+    }
+
+    // Поведенческие данные
+    if (metadata.user_behavior) {
+      const behavior = metadata.user_behavior
+      processed.userBehavior = {
+        session_id: behavior.session_id,
+        time_on_page: behavior.time_on_page,
+        time_on_site: behavior.time_on_site,
+        scroll_depth: behavior.scroll_depth,
+        max_scroll_depth: behavior.max_scroll_depth,
+        page_views_count: behavior.page_views_count,
+        is_returning_visitor: behavior.is_returning_visitor,
+        visit_count: behavior.visit_count,
+        mouse_movements: behavior.mouse_movements,
+        clicks_count: behavior.clicks_count,
+        pages_visited: behavior.pages_visited?.map((page: string) => ({ page })) || [],
+      }
+    }
+
+    // Информация о сессии
+    if (metadata.session_info) {
+      processed.sessionInfo = metadata.session_info
+    }
+
+    // Контекст формы
+    if (metadata.form_context) {
+      processed.formContext = metadata.form_context
+    }
+
+    // Технические метаданные
+    if (metadata.technical_metadata) {
+      processed.technicalMetadata = metadata.technical_metadata
+    }
+
+    // Геолокация
+    if (metadata.location_info) {
+      processed.locationInfo = metadata.location_info
+    }
+
+    // Дополнительные данные
+    if (metadata.custom_data) {
+      processed.customData = metadata.custom_data
+    }
+
+    return processed
+  } catch (error) {
+    console.warn('Error processing metadata:', error)
+    return {}
   }
 }
 

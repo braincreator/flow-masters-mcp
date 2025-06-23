@@ -21,6 +21,10 @@ import { LeaderboardService } from './leaderboard.service'
 import { RewardService } from './reward.service'
 import { RewardDiscountService } from './reward-discount.service'
 import { CourseAnalyticsService } from './analytics/courseAnalyticsService' // Import CourseAnalyticsService
+import { EventBusService } from './event-bus.service'
+import { EventService } from './event.service'
+import { WebhookService } from './webhook.service'
+import { WhatsAppService } from './whatsapp.service'
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry
@@ -47,9 +51,10 @@ export class ServiceRegistry {
     this.getIntegrationService()
     this.getStorageService()
 
-    // Телеграм и почта
+    // Телеграм, почта и WhatsApp
     this.getTelegramService()
     this.getEmailService()
+    this.getWhatsAppService()
 
     // Уведомления
     this.getNotificationService()
@@ -79,6 +84,11 @@ export class ServiceRegistry {
     // Интеграции с внешними сервисами
     this.getCalendlyService()
     this.getCourseAnalyticsService() // Initialize CourseAnalyticsService
+
+    // Система событий
+    this.getEventBusService()
+    this.getEventService()
+    this.getWebhookService()
   }
 
   getProductService(): ProductService {
@@ -248,6 +258,39 @@ export class ServiceRegistry {
     const key = 'autoAccount'
     if (!this.services.has(key)) {
       this.services.set(key, new AutoAccountService(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  // Система событий
+  getEventBusService(): EventBusService {
+    const key = 'eventBus'
+    if (!this.services.has(key)) {
+      this.services.set(key, EventBusService.getInstance(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getEventService(): EventService {
+    const key = 'event'
+    if (!this.services.has(key)) {
+      this.services.set(key, new EventService(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getWebhookService(): WebhookService {
+    const key = 'webhook'
+    if (!this.services.has(key)) {
+      this.services.set(key, new WebhookService(this.payload))
+    }
+    return this.services.get(key)
+  }
+
+  getWhatsAppService(): WhatsAppService {
+    const key = 'whatsapp'
+    if (!this.services.has(key)) {
+      this.services.set(key, WhatsAppService.getInstance(this.payload))
     }
     return this.services.get(key)
   }

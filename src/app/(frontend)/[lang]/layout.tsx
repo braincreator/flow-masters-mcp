@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { ReactNode } from 'react'
+import Script from 'next/script'
 import { Header } from '@/globals/Header/Component'
 import { Footer } from '@/globals/Footer/Component'
 import { AdminBar } from '@/components/AdminBar'
@@ -11,7 +12,7 @@ import { CartModal } from '@/components/Cart/CartModal'
 import CookieConsentBanner from '@/components/CookieConsentBanner/CookieConsentBanner'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 import { ThemeProvider } from '@/providers/Theme'
 import { I18nProvider } from '@/providers/I18n'
 import { LocaleProvider } from '@/providers/LocaleProvider'
@@ -21,6 +22,9 @@ import { NextIntlClientProvider } from 'next-intl'
 import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
+import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
+
+
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
@@ -47,6 +51,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
 
   // Устанавливаем локаль для next-intl
   setRequestLocale(validLang)
+
+  // Получаем ID Яндекс.Метрики для трекера SPA-переходов
+  const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -109,6 +116,11 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                       <FloatingCartButtonWrapper locale={validLang} />
                       <CartModal locale={validLang} />
                       <CookieConsentBanner locale={validLang} />
+
+                      {/* Трекер SPA-переходов для Яндекс.Метрики */}
+                      {YANDEX_METRIKA_ID && (
+                        <YandexMetrikaTracker counterId={YANDEX_METRIKA_ID} />
+                      )}
                     </LoadingProvider>
                   </LoadingConfigProvider>
                 </I18nProvider>

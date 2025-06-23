@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Bitcoin, Coins } from 'lucide-react'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils'
 
 // Translations for the component
 const translations = {

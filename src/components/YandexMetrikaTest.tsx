@@ -12,7 +12,11 @@ declare global {
   }
 }
 
-export const YandexMetrikaTest: React.FC = () => {
+interface YandexMetrikaTestProps {
+  metrikaId?: string | null
+}
+
+export const YandexMetrikaTest: React.FC<YandexMetrikaTestProps> = ({ metrikaId: propMetrikaId }) => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [metrikaId, setMetrikaId] = useState<string | null>(null)
   const [testResults, setTestResults] = useState<Array<{
@@ -23,18 +27,25 @@ export const YandexMetrikaTest: React.FC = () => {
   }>>([])
 
   useEffect(() => {
-    // Получаем ID Яндекс Метрики из переменной окружения
-    const id = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
+    // Используем ID из пропсов или пытаемся получить из переменной окружения
+    const id = propMetrikaId || process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
     setMetrikaId(id || null)
+
+    console.log('YandexMetrikaTest: Metrika ID from props:', propMetrikaId)
+    console.log('YandexMetrikaTest: Metrika ID from env:', process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID)
+    console.log('YandexMetrikaTest: Final Metrika ID:', id)
 
     // Проверяем загрузку Яндекс Метрики
     const checkMetrika = () => {
+      console.log('YandexMetrikaTest: Checking metrika...', typeof window.ym)
       if (typeof window.ym !== 'undefined') {
         setIsLoaded(true)
         addTestResult('Initialization', 'success', 'Yandex Metrika loaded successfully')
+        console.log('YandexMetrikaTest: Metrika loaded successfully!')
       } else {
         setIsLoaded(false)
         addTestResult('Initialization', 'error', 'Yandex Metrika not found')
+        console.log('YandexMetrikaTest: Metrika not found')
       }
     }
 
@@ -46,7 +57,7 @@ export const YandexMetrikaTest: React.FC = () => {
     setTimeout(() => clearInterval(interval), 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [propMetrikaId])
 
   const addTestResult = (test: string, status: 'success' | 'error' | 'pending', message: string) => {
     setTestResults(prev => [...prev, {

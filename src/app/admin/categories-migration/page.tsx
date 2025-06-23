@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -29,6 +30,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
 interface Category {
   id: string
@@ -38,6 +40,10 @@ interface Category {
 }
 
 export default function CategoriesMigrationPage() {
+  const pathname = usePathname()
+  const segments = pathname.split('/')
+  const currentLocale = (segments.length > 1 ? segments[1] : DEFAULT_LOCALE) as Locale
+
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategories, setSelectedCategories] = useState<Record<string, string>>({})
@@ -59,7 +65,7 @@ export default function CategoriesMigrationPage() {
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/v1/categories')
+      const response = await fetch(`/api/v1/categories?locale=${currentLocale}`)
       if (!response.ok) throw new Error('Failed to fetch categories')
       const data = await response.json()
       setCategories(data.docs)
