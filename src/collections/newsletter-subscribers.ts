@@ -3,7 +3,6 @@ import { isAdmin } from '@/access/isAdmin'
 import { ServiceRegistry } from '@/services/service.registry'
 import { isAdminOrHasSiteAccess } from '@/access/isAdminOrHasSiteAccess'
 import { generateUniqueToken } from '@/utilities/generateUniqueToken'
-import { ServiceRegistry } from '@/services/service.registry'
 
 // Тип для документа подписчика
 interface SubscriberDoc {
