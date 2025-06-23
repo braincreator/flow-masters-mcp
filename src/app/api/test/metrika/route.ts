@@ -13,7 +13,7 @@ export async function GET() {
 
     // Проверяем доступность скрипта Яндекс.Метрики
     try {
-      const response = await fetch('https://mc.yandex.ru/metrika/tag.js', {
+      const response = await fetch('https://mc.webvisor.org/metrika/tag_ww.js', {
         method: 'HEAD',
         signal: AbortSignal.timeout(5000)
       })

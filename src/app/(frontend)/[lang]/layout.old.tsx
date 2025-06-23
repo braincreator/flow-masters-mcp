@@ -101,7 +101,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
               m[i].l=1*new Date();
               for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
               k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-              (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+              (window, document, "script", "https://mc.webvisor.org/metrika/tag_ww.js", "ym");
 
               ym(${YANDEX_METRIKA_ID}, "init", {
                   clickmap:true,
@@ -129,7 +129,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
           <noscript>
             <div>
               <img
-                src={`https://mc.yandex.ru/watch/${YANDEX_METRIKA_ID}`}
+                src={`https://mc.webvisor.org/watch/${YANDEX_METRIKA_ID}`}
                 style={{ position: 'absolute', left: '-9999px' }}
                 alt=""
               />

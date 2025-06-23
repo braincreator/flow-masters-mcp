@@ -201,7 +201,7 @@ export const YandexMetrikaTest: React.FC<YandexMetrikaTestProps> = ({ metrikaId:
           <p><strong>How to verify:</strong></p>
           <p>1. Open browser DevTools (F12) → Console tab</p>
           <p>2. Look for "Yandex Metrika" log messages</p>
-          <p>3. Check Network tab for requests to mc.yandex.ru</p>
+          <p>3. Check Network tab for requests to mc.webvisor.org</p>
           <p>4. Visit your Yandex Metrika dashboard to see real-time data</p>
         </div>
       </CardContent>

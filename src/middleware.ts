@@ -52,12 +52,12 @@ export function middleware(request: NextRequest) {
 
   // Яндекс.Метрика
   if (pathname === '/metrika/tag.js') {
-    const metrikaUrl = 'https://mc.yandex.ru/metrika/tag.js'
+    const metrikaUrl = 'https://mc.webvisor.org/metrika/tag_ww.js'
     return NextResponse.rewrite(new URL(metrikaUrl))
   }
   if (pathname.startsWith('/metrika/watch')) {
     const searchParams = request.nextUrl.searchParams.toString()
-    const metrikaUrl = `https://mc.yandex.ru/watch${searchParams ? `?${searchParams}` : ''}`
+    const metrikaUrl = `https://mc.webvisor.org/watch${searchParams ? `?${searchParams}` : ''}`
     return NextResponse.rewrite(new URL(metrikaUrl))
   }
 

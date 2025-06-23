@@ -12,6 +12,7 @@ import { fetchNotifications, markNotificationAsRead } from '@/lib/api/notificati
 import { useAuth } from '@/hooks/useAuth'
 import { tryCatch, AppError, ErrorType, ErrorSeverity } from '@/utilities/errorHandling'
 import { useStateLogger } from '@/utilities/stateLogger'
+import { logError } from '@/utils/logger'
 import { toast } from 'sonner'
 
 export type NotificationType =
