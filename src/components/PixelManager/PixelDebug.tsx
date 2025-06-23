@@ -96,11 +96,13 @@ export function PixelDebug() {
       // Найдем первый счетчик Яндекс.Метрики
       const firstPixel = debugInfo?.pixelsFromAPI.find(p => p.type === 'yandex_metrica')
       if (firstPixel) {
-        (window as any).ym(firstPixel.pixelId, 'reachGoal', 'test_goal')
-        logInfo(`Yandex Metrika test goal sent to ${firstPixel.pixelId}`)
+        (window as any).ym(firstPixel.pixelId, 'reachGoal', 'test_goal', { value: 100 })
+        logInfo(`Yandex Metrika test goal sent to ${firstPixel.pixelId} with value 100`)
+      } else {
+        logWarn('No Yandex Metrika pixels found in API')
       }
     } else {
-      logWarn('Yandex Metrika not loaded')
+      logWarn('Yandex Metrika not loaded or ym function not available')
     }
   }
 

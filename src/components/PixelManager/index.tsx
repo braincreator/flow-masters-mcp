@@ -195,28 +195,45 @@ export default function PixelManager({
 
   const renderYandexPixel = (pixel: Pixel) => {
     const settings = pixel.yandexSettings || {}
-    
+
     return (
-      <Script
-        key={`ym-${pixel.id}`}
-        id={`yandex-metrica-${pixel.id}`}
-        strategy={getScriptStrategy(pixel.loadPriority)}
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-            
-            ym(${pixel.pixelId}, "init", {
-              clickmap: ${settings.clickmap !== false},
-              trackLinks: ${settings.trackLinks !== false},
-              accurateTrackBounce: ${settings.accurateTrackBounce !== false},
-              webvisor: ${settings.webvisor === true},
-              ecommerce: ${settings.ecommerce === true ? '"dataLayer"' : 'false'}
-            });
-          `
-        }}
-      />
+      <>
+        <Script
+          key={`ym-${pixel.id}`}
+          id={`yandex-metrica-${pixel.id}`}
+          strategy={getScriptStrategy(pixel.loadPriority)}
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(m,e,t,r,i,k,a){
+                m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                m[i].l=1*new Date();
+                k=e.createElement(t),
+                a=e.getElementsByTagName(t)[0],
+                k.async=1,
+                k.src=r,
+                a.parentNode.insertBefore(k,a)
+              })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+              ym(${pixel.pixelId}, "init", {
+                clickmap: ${settings.clickmap !== false},
+                trackLinks: ${settings.trackLinks !== false},
+                accurateTrackBounce: ${settings.accurateTrackBounce !== false},
+                webvisor: ${settings.webvisor === true},
+                ecommerce: ${settings.ecommerce === true ? '"dataLayer"' : 'false'}
+              });
+            `
+          }}
+        />
+        <noscript>
+          <div>
+            <img
+              src={`https://mc.yandex.ru/watch/${pixel.pixelId}`}
+              style={{ position: 'absolute', left: '-9999px' }}
+              alt=""
+            />
+          </div>
+        </noscript>
+      </>
     )
   }
 
