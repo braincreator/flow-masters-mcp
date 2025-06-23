@@ -1,8 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { User, Product, Order, Service } from '@/payload-types' // Added Service type
+
+// Helper function to get authenticated user from request
+async function getAuthenticatedUser(request: NextRequest, payload: any): Promise<User | null> {
+  try {
+    // Try to get user from Payload's built-in authentication
+    const { user } = await payload.auth({ headers: request.headers })
+    return user || null
+  } catch (error) {
+    logDebug('No authenticated user found:', error)
+    return null
+  }
+}
 
 // Define interfaces for request bodies based on orderType
 interface ProductOrderRequestBody {
@@ -22,7 +34,7 @@ interface ServiceOrderRequestBody {
 
 type UnifiedOrderRequestBody = ProductOrderRequestBody | ServiceOrderRequestBody
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const requestData = (await req.json()) as UnifiedOrderRequestBody
     const { customer: customerInfo, paymentMethod } = requestData
@@ -40,28 +52,41 @@ export async function POST(req: Request) {
 
     // 1. Customer Identifier Handling (Common Logic)
     let user: User
-    const existingUsers = await payload.find({
-      collection: 'users',
-      where: {
-        email: {
-          equals: customerInfo.email,
-        },
-      },
-      limit: 1,
-    })
 
-    if (existingUsers.docs.length > 0) {
-      user = existingUsers.docs[0]!
+    // First, try to get authenticated user
+    const authenticatedUser = await getAuthenticatedUser(req, payload)
+
+    if (authenticatedUser) {
+      // Use authenticated user
+      user = authenticatedUser
+      logDebug('Using authenticated user for order:', { userId: user.id, email: user.email })
     } else {
-      // Create new user
-      user = await payload.create({
+      // Find or create user based on provided email
+      const existingUsers = await payload.find({
         collection: 'users',
-        data: {
-          email: customerInfo.email,
-          name: customerInfo.name || customerInfo.email.split('@')[0],
-          roles: ['customer'],
+        where: {
+          email: {
+            equals: customerInfo.email,
+          },
         },
+        limit: 1,
       })
+
+      if (existingUsers.docs.length > 0) {
+        user = existingUsers.docs[0]!
+        logDebug('Found existing user for guest order:', { userId: user.id, email: user.email })
+      } else {
+        // Create new user
+        user = await payload.create({
+          collection: 'users',
+          data: {
+            email: customerInfo.email,
+            name: customerInfo.name || customerInfo.email.split('@')[0],
+            roles: ['customer'],
+          },
+        })
+        logDebug('Created new guest user for order:', { userId: user.id, email: user.email })
+      }
     }
 
     let order: Order
@@ -98,28 +123,19 @@ export async function POST(req: Request) {
 
       const orderData = {
         orderNumber: generateOrderNumber('SERV'), // Consistent format for service orders
-        customer: user.id,
+        user: user.id,
         items: [
           {
+            itemType: 'service',
             service: service.id,
             quantity: 1,
             price: totalAmount, // Price at time of order
-            product: null, // Explicitly null for service items
           },
         ],
-        total: {
-          en: { amount: totalAmount, currency: 'USD' }, // Adapt currency/localization as needed
-          ru: { amount: totalAmount, currency: 'RUB' }, // Placeholder conversion
-        },
+        total: totalAmount,
+        currency: 'USD', // Default currency
         status: 'pending' as const,
-        orderType: 'service' as const,
-        paymentMethod: paymentMethod,
-        serviceData: {
-          serviceId: service.id,
-          serviceType: service.serviceType,
-          requiresBooking: service.requiresBooking,
-          // Add other relevant service details from 'service' object if needed
-        },
+        paymentProvider: paymentMethod,
       }
 
       order = await payload.create({
@@ -142,6 +158,7 @@ export async function POST(req: Request) {
       }
 
       const orderItems = cartItems.map((item: { id: string; quantity: number; price: number }) => ({
+        itemType: 'product',
         product: item.id,
         quantity: item.quantity,
         price: item.price,
@@ -181,15 +198,12 @@ export async function POST(req: Request) {
       // Use the same utility function for product/subscription orders
       const orderData = {
         orderNumber: generateOrderNumber(finalOrderType.toUpperCase().substring(0, 4)),
-        customer: user.id,
+        user: user.id,
         items: orderItems,
-        total: {
-          en: { amount: totalAmount, currency: 'USD' },
-          ru: { amount: totalAmount, currency: 'RUB' },
-        },
+        total: totalAmount,
+        currency: 'USD', // Default currency
         status: 'pending' as const,
-        orderType: finalOrderType,
-        paymentMethod: paymentMethod,
+        paymentProvider: paymentMethod,
       }
 
       order = await payload.create({
