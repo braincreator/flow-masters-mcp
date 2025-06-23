@@ -1,4 +1,5 @@
 import { AnalyticsTestDashboard } from '@/components/AnalyticsTestDashboard'
+import { SecurityHeadersTest } from '@/components/SecurityHeadersTest'
 import { VKPixelTest } from '@/components/VKPixelTest'
 import { YandexMetrikaDebug } from '@/components/YandexMetrika/YandexMetrikaDebug'
 
@@ -15,6 +16,9 @@ export default function AnalyticsTestPage() {
 
       {/* Main Analytics Test Dashboard */}
       <AnalyticsTestDashboard />
+
+      {/* Security Headers Test */}
+      <SecurityHeadersTest />
 
       {/* Yandex Metrica Debug */}
       <YandexMetrikaDebug />
