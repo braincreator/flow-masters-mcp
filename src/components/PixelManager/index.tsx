@@ -87,15 +87,17 @@ interface Pixel {
 interface PixelManagerProps {
   currentPage?: string
   userConsent?: boolean
+  forceLoad?: boolean // Принудительная загрузка всех пикселей
 }
 
 /**
  * Компонент для управления пикселями аналитики и рекламы
  * Автоматически загружает и инициализирует пиксели на основе настроек из админки
  */
-export default function PixelManager({ 
-  currentPage = 'all', 
-  userConsent = true 
+export default function PixelManager({
+  currentPage = 'all',
+  userConsent = true,
+  forceLoad = false
 }: PixelManagerProps) {
   const [pixels, setPixels] = useState<Pixel[]>([])
   const [loading, setLoading] = useState(true)
@@ -136,16 +138,38 @@ export default function PixelManager({
   }, [currentPage])
 
   const shouldLoadPixel = (pixel: Pixel): boolean => {
+    // 🚀 ПРИНУДИТЕЛЬНЫЙ РЕЖИМ - игнорируем все ограничения
+    const forceLoadPixels = process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true' || forceLoad
+
+    if (forceLoadPixels) {
+      logInfo(`🚀 FORCE MODE: Loading pixel ${pixel.name} (${pixel.type}) regardless of settings`)
+      return true
+    }
+
+    // Обычная логика проверок
     // Проверяем активность
-    if (!pixel.isActive) return false
-    
+    if (!pixel.isActive) {
+      logDebug(`❌ Pixel ${pixel.name} is inactive`)
+      return false
+    }
+
     // Проверяем согласие пользователя для GDPR
-    if (pixel.gdprCompliant && !userConsent) return false
-    
+    if (pixel.gdprCompliant && !userConsent) {
+      logDebug(`❌ Pixel ${pixel.name} requires GDPR consent but user consent is false`)
+      return false
+    }
+
     // Проверяем страницы
-    if (pixel.pages.includes('all')) return true
-    if (pixel.pages.includes(currentPage)) return true
-    
+    if (pixel.pages.includes('all')) {
+      logDebug(`✅ Pixel ${pixel.name} is set for all pages`)
+      return true
+    }
+    if (pixel.pages.includes(currentPage)) {
+      logDebug(`✅ Pixel ${pixel.name} is set for current page: ${currentPage}`)
+      return true
+    }
+
+    logDebug(`❌ Pixel ${pixel.name} is not configured for current page: ${currentPage}`)
     return false
   }
 

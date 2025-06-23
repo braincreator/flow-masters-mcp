@@ -1,5 +1,6 @@
 import { AnalyticsTestDashboard } from '@/components/AnalyticsTestDashboard'
 import { AnalyticsDiagnostics } from '@/components/AnalyticsDiagnostics'
+import { ForcePixelActivator } from '@/components/ForcePixelActivator'
 import { PixelConfigurationAnalyzer } from '@/components/PixelConfigurationAnalyzer'
 import { SecurityHeadersTest } from '@/components/SecurityHeadersTest'
 import { VKPixelTest } from '@/components/VKPixelTest'
@@ -15,6 +16,9 @@ export default function AnalyticsTestPage() {
           This page helps diagnose connectivity issues and ensures analytics tracking is functional.
         </p>
       </div>
+
+      {/* Force Pixel Activator */}
+      <ForcePixelActivator />
 
       {/* Pixel Configuration Analysis */}
       <PixelConfigurationAnalyzer />

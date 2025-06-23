@@ -101,11 +101,18 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
   }, [pathname, hasAnalytics, hasMarketing, currentPage, trackPageView])
 
   // Мемоизируем определение загрузки пикселей
-  // ВРЕМЕННО: загружаем пиксели всегда для тестирования
   const shouldLoadPixels = useMemo(() => {
-    // В продакшене: hasAnalytics || hasMarketing || hasPreferences
-    // Для тестирования: всегда true
-    return process.env.NODE_ENV === 'development' ? true : (hasAnalytics || hasMarketing || hasPreferences)
+    // 🚀 ПРИНУДИТЕЛЬНЫЙ РЕЖИМ - загружаем всегда
+    if (process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true') {
+      console.log('🚀 FORCE MODE: Loading all pixels regardless of consent')
+      return true
+    }
+
+    // В development режиме всегда загружаем для тестирования
+    if (process.env.NODE_ENV === 'development') return true
+
+    // В production проверяем согласие
+    return hasAnalytics || hasMarketing || hasPreferences
   }, [hasAnalytics, hasMarketing, hasPreferences])
 
   return (
@@ -117,6 +124,7 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
         <PixelManager
           currentPage={currentPage}
           userConsent={true}
+          forceLoad={process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true'}
         />
       )}
 
