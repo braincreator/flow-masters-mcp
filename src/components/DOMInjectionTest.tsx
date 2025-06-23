@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
+import { useIsClient } from '@/hooks/useIsClient'
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
   RefreshCw,
   Code,
   Eye,
@@ -37,10 +38,16 @@ export function DOMInjectionTest() {
   const [result, setResult] = useState<DOMTestResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<string | null>(null)
+  const isClient = useIsClient()
 
   const runTest = () => {
+    if (!isClient) {
+      console.log('DOMInjectionTest: Skipping test on server')
+      return
+    }
+
     setIsLoading(true)
-    
+
     // Небольшая задержка для завершения загрузки скриптов
     setTimeout(() => {
       try {
@@ -135,11 +142,13 @@ export function DOMInjectionTest() {
   }
 
   useEffect(() => {
-    runTest()
-    // Повторяем тест каждые 10 секунд
-    const interval = setInterval(runTest, 10000)
-    return () => clearInterval(interval)
-  }, [])
+    if (isClient) {
+      runTest()
+      // Повторяем тест каждые 10 секунд
+      const interval = setInterval(runTest, 10000)
+      return () => clearInterval(interval)
+    }
+  }, [isClient])
 
   const getStatusIcon = (isGood: boolean) => {
     return isGood ? (
@@ -156,6 +165,11 @@ export function DOMInjectionTest() {
     ) : (
       <Badge variant="destructive">{count}</Badge>
     )
+  }
+
+  // Не рендерим на сервере
+  if (!isClient) {
+    return null
   }
 
   if (!result) {

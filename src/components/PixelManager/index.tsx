@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import Script from 'next/script'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
+import { useIsClient, useWindow, useClientEnv } from '@/hooks/useIsClient'
 
 // Enhanced script loading with retry mechanism
 const loadScriptWithRetry = (src: string, retries = 2): Promise<void> => {
@@ -39,16 +40,21 @@ const loadScriptWithRetry = (src: string, retries = 2): Promise<void> => {
   })
 }
 
-// Analytics health check function
-const checkAnalyticsHealth = () => {
+// Analytics health check function (SSR-safe)
+const checkAnalyticsHealth = (windowObj?: Window) => {
   const health = {
     yandexMetrica: false,
     vkPixel: false,
     timestamp: new Date().toISOString()
   }
 
+  if (!windowObj) {
+    logDebug('Analytics health check: Window not available (SSR)')
+    return health
+  }
+
   // Check Yandex Metrica
-  if (typeof window !== 'undefined' && window.ym) {
+  if ((windowObj as any).ym) {
     health.yandexMetrica = true
     logDebug('Yandex Metrica: ✅ Loaded and available')
   } else {
@@ -56,7 +62,7 @@ const checkAnalyticsHealth = () => {
   }
 
   // Check VK Pixel
-  if (typeof window !== 'undefined' && (window as any).VK && (window as any).VK.Retargeting) {
+  if ((windowObj as any).VK && (windowObj as any).VK.Retargeting) {
     health.vkPixel = true
     logDebug('VK Pixel: ✅ Loaded and available')
   } else {
@@ -91,19 +97,19 @@ interface PixelManagerProps {
 }
 
 /**
- * Создает fallback пиксели на основе переменных окружения
+ * Создает fallback пиксели на основе переменных окружения (SSR-safe)
  * Используется когда API недоступен или не возвращает пиксели
  */
-const createFallbackPixels = (): Pixel[] => {
+const createFallbackPixels = (env: any): Pixel[] => {
   const fallbackPixels: Pixel[] = []
 
   // Yandex Metrika
-  if (process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID) {
+  if (env.NEXT_PUBLIC_YANDEX_METRIKA_ID) {
     fallbackPixels.push({
       id: 'fallback-yandex',
       name: 'Yandex Metrika (Fallback)',
       type: 'yandex_metrica',
-      pixelId: process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID,
+      pixelId: env.NEXT_PUBLIC_YANDEX_METRIKA_ID,
       isActive: true,
       placement: 'head',
       pages: ['all'],
@@ -120,12 +126,12 @@ const createFallbackPixels = (): Pixel[] => {
   }
 
   // VK Pixel
-  if (process.env.NEXT_PUBLIC_VK_PIXEL_ID) {
+  if (env.NEXT_PUBLIC_VK_PIXEL_ID) {
     fallbackPixels.push({
       id: 'fallback-vk',
       name: 'VK Pixel (Fallback)',
       type: 'vk',
-      pixelId: process.env.NEXT_PUBLIC_VK_PIXEL_ID,
+      pixelId: env.NEXT_PUBLIC_VK_PIXEL_ID,
       isActive: true,
       placement: 'head',
       pages: ['all'],
@@ -139,12 +145,12 @@ const createFallbackPixels = (): Pixel[] => {
   }
 
   // Google Analytics
-  if (process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID) {
+  if (env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID) {
     fallbackPixels.push({
       id: 'fallback-ga4',
       name: 'Google Analytics (Fallback)',
       type: 'ga4',
-      pixelId: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+      pixelId: env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
       isActive: true,
       placement: 'head',
       pages: ['all'],
@@ -172,13 +178,20 @@ export default function PixelManager({
   const [pixels, setPixels] = useState<Pixel[]>([])
   const [loading, setLoading] = useState(true)
 
+  // SSR-safe hooks
+  const isClient = useIsClient()
+  const windowObj = useWindow()
+  const env = useClientEnv()
+
   useEffect(() => {
     loadPixels()
 
-    // Run health check after pixels are loaded
+    // Run health check after pixels are loaded (only on client)
     const healthCheckTimer = setTimeout(() => {
-      const health = checkAnalyticsHealth()
-      logInfo('Analytics Health Check:', health)
+      if (isClient && windowObj) {
+        const health = checkAnalyticsHealth(windowObj)
+        logInfo('Analytics Health Check:', health)
+      }
     }, 5000) // Check after 5 seconds
 
     return () => clearTimeout(healthCheckTimer)
@@ -209,22 +222,22 @@ export default function PixelManager({
       }
 
       // Fallback: создаем пиксели на основе переменных окружения
-      const fallbackPixels = createFallbackPixels()
+      const fallbackPixels = createFallbackPixels(env)
       logInfo(`Using fallback pixels (${fallbackPixels.length}):`, fallbackPixels)
       setPixels(fallbackPixels)
 
     } catch (error) {
       logError('Failed to load pixels:', error)
       // В крайнем случае используем fallback
-      setPixels(createFallbackPixels())
+      setPixels(createFallbackPixels(env))
     } finally {
       setLoading(false)
     }
   }, [currentPage])
 
   const shouldLoadPixel = (pixel: Pixel): boolean => {
-    // 🚀 ПРИНУДИТЕЛЬНЫЙ РЕЖИМ - игнорируем все ограничения
-    const forceLoadPixels = process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true' || forceLoad
+    // 🚀 ПРИНУДИТЕЛЬНЫЙ РЕЖИМ - игнорируем все ограничения (SSR-safe)
+    const forceLoadPixels = env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true' || forceLoad
 
     if (forceLoadPixels) {
       logInfo(`🚀 FORCE MODE: Loading pixel ${pixel.name} (${pixel.type}) regardless of settings`)
@@ -547,6 +560,11 @@ export default function PixelManager({
     }
   }
 
+  // Не рендерим на сервере (избегаем SSR/hydration проблем)
+  if (!isClient) {
+    return null
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'none' }}>
@@ -573,7 +591,9 @@ export default function PixelManager({
           currentPage,
           userConsent,
           forceLoad,
-          forceMode: process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true'
+          forceMode: env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true',
+          isClient,
+          hasWindow: !!windowObj
         })}
         {filteredPixels.length === 0 && logWarn('⚠️ No pixels to render! Check pixel configuration.')}
       </div>

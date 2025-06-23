@@ -7,6 +7,7 @@ import { PixelDebug } from '@/components/PixelManager/PixelDebug'
 import { usePixelPageView } from '@/hooks/usePixelEvents'
 import { InteractionTracker } from '@/components/Analytics/ButtonTracker'
 import { useCookieConsent } from '@/hooks/useCookieConsent'
+import { useIsClient, useClientEnv } from '@/hooks/useIsClient'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 
@@ -85,6 +86,10 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
   const { trackPageView } = usePixelPageView()
   const { hasAnalytics, hasMarketing, hasPreferences } = useCookieConsent()
 
+  // SSR-safe hooks
+  const isClient = useIsClient()
+  const env = useClientEnv()
+
   // Мемоизируем определение типа страницы
   const currentPage = useMemo(() => determinePageType(pathname), [pathname])
 
@@ -100,20 +105,23 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
     }
   }, [pathname, hasAnalytics, hasMarketing, currentPage, trackPageView])
 
-  // Мемоизируем определение загрузки пикселей
+  // Мемоизируем определение загрузки пикселей (SSR-safe)
   const shouldLoadPixels = useMemo(() => {
+    // Не загружаем на сервере
+    if (!isClient) return false
+
     // 🚀 ПРИНУДИТЕЛЬНЫЙ РЕЖИМ - загружаем всегда
-    if (process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true') {
+    if (env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true') {
       console.log('🚀 FORCE MODE: Loading all pixels regardless of consent')
       return true
     }
 
     // В development режиме всегда загружаем для тестирования
-    if (process.env.NODE_ENV === 'development') return true
+    if (env.NODE_ENV === 'development') return true
 
     // В production проверяем согласие
     return hasAnalytics || hasMarketing || hasPreferences
-  }, [hasAnalytics, hasMarketing, hasPreferences])
+  }, [isClient, env.NEXT_PUBLIC_FORCE_LOAD_PIXELS, env.NODE_ENV, hasAnalytics, hasMarketing, hasPreferences])
 
   return (
     <>
@@ -124,7 +132,7 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
         <PixelManager
           currentPage={currentPage}
           userConsent={true}
-          forceLoad={process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true'}
+          forceLoad={env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true'}
         />
       )}
 
@@ -132,7 +140,7 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
       {shouldLoadPixels && <InteractionTracker />}
 
       {/* Отладочная панель пикселей (только в development) */}
-      {process.env.NODE_ENV === 'development' && <PixelDebug />}
+      {isClient && env.NODE_ENV === 'development' && <PixelDebug />}
     </>
   )
 })
