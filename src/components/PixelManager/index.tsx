@@ -4,6 +4,67 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import Script from 'next/script'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
+
+// Enhanced script loading with retry mechanism
+const loadScriptWithRetry = (src: string, retries = 2): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = src
+    script.async = true
+
+    let attempts = 0
+
+    const tryLoad = () => {
+      attempts++
+
+      script.onload = () => {
+        logDebug(`Script loaded successfully: ${src}`)
+        resolve()
+      }
+
+      script.onerror = () => {
+        if (attempts < retries) {
+          logWarn(`Script failed to load (attempt ${attempts}/${retries}): ${src}`)
+          setTimeout(tryLoad, 1000 * attempts) // Exponential backoff
+        } else {
+          logError(`Script failed to load after ${retries} attempts: ${src}`)
+          reject(new Error(`Failed to load script: ${src}`))
+        }
+      }
+
+      document.head.appendChild(script)
+    }
+
+    tryLoad()
+  })
+}
+
+// Analytics health check function
+const checkAnalyticsHealth = () => {
+  const health = {
+    yandexMetrica: false,
+    vkPixel: false,
+    timestamp: new Date().toISOString()
+  }
+
+  // Check Yandex Metrica
+  if (typeof window !== 'undefined' && window.ym) {
+    health.yandexMetrica = true
+    logDebug('Yandex Metrica: ✅ Loaded and available')
+  } else {
+    logWarn('Yandex Metrica: ❌ Not loaded or not available')
+  }
+
+  // Check VK Pixel
+  if (typeof window !== 'undefined' && (window as any).VK && (window as any).VK.Retargeting) {
+    health.vkPixel = true
+    logDebug('VK Pixel: ✅ Loaded and available')
+  } else {
+    logWarn('VK Pixel: ❌ Not loaded or not available')
+  }
+
+  return health
+}
 interface Pixel {
   id: string
   name: string
@@ -40,6 +101,14 @@ export default function PixelManager({
 
   useEffect(() => {
     loadPixels()
+
+    // Run health check after pixels are loaded
+    const healthCheckTimer = setTimeout(() => {
+      const health = checkAnalyticsHealth()
+      logInfo('Analytics Health Check:', health)
+    }, 5000) // Check after 5 seconds
+
+    return () => clearTimeout(healthCheckTimer)
   }, [loadPixels])
 
   // Мемоизируем фильтрованные пиксели для производительности
@@ -105,6 +174,15 @@ export default function PixelManager({
                 });
                 var r=t.createElement("script");
                 r.type="text/javascript",r.async=!0,r.src=a;
+                r.onerror = function() {
+                  console.warn('VK Pixel: Script failed to load from proxy, trying direct fallback');
+                  // Try direct VK domain as fallback (may still be blocked)
+                  var fallback = t.createElement("script");
+                  fallback.type="text/javascript";
+                  fallback.async=!0;
+                  fallback.src="https://vk.com/js/api/openapi.js?169";
+                  o.parentNode.insertBefore(fallback,o);
+                };
                 var o=t.getElementsByTagName("script")[0];
                 o.parentNode.insertBefore(r,o)
               }(window,document,"/vk-pixel/js/api/openapi.js?169","vk_callbacks");
@@ -212,7 +290,15 @@ export default function PixelManager({
                 k.async=1,
                 k.src=r,
                 a.parentNode.insertBefore(k,a)
-              })(window, document, "script", "https://mc.webvisor.org/metrika/tag_ww.js", "ym");
+                // Add error handling and fallback
+                k.onerror = function() {
+                  console.warn('Yandex Metrica: Primary script failed, trying fallback');
+                  var fallback = e.createElement(t);
+                  fallback.async = 1;
+                  fallback.src = "/metrika/tag_ww.js";
+                  a.parentNode.insertBefore(fallback, a);
+                };
+              })(window, document, "script", "/metrika/tag_ww.js", "ym");
 
               ym(${pixel.pixelId}, "init", {
                 clickmap: ${settings.clickmap !== false},
@@ -227,7 +313,7 @@ export default function PixelManager({
         <noscript>
           <div>
             <img
-              src={`https://mc.webvisor.org/watch/${pixel.pixelId}`}
+              src={`/metrika/watch/${pixel.pixelId}`}
               style={{ position: 'absolute', left: '-9999px' }}
               alt=""
             />
