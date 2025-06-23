@@ -1,3 +1,5 @@
+import { logDebug, logError } from '@/utils/logger'
+
 /**
  * Базовый URL для API запросов
  */
