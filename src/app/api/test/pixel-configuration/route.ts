@@ -172,8 +172,8 @@ export async function GET(request: NextRequest) {
 function validatePixelId(type: string, pixelId: string): { valid: boolean; message?: string } {
   const patterns = {
     yandex_metrica: /^\d{8,9}$/,
-    vk: /^\d{6,10}$/,
-    vk_ads: /^\d{6,10}$/,
+    vk: /^(VK-RTRG-\d+-[a-zA-Z0-9]+|\d{6,10})$/,
+    vk_ads: /^(VK-RTRG-\d+-[a-zA-Z0-9]+|\d{6,10})$/,
     facebook: /^\d{15,16}$/,
     ga4: /^G-[A-Z0-9]{10}$/,
     google_ads: /^AW-\d{9,11}$/,
