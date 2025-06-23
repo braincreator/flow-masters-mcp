@@ -167,12 +167,12 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://vk.com https://yastatic.net",
-              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com wss: ws:",
-              "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://vk.com",
-              "style-src 'self' 'unsafe-inline' https://yastatic.net",
-              "font-src 'self' data: https://yastatic.net",
-              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://vk.com https://ads.vk.com https://yastatic.net https://www.googletagmanager.com https://www.google-analytics.com",
+              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://www.google-analytics.com https://analytics.google.com wss: ws:",
+              "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://vk.com https://ads.vk.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline' https://yastatic.net https://fonts.googleapis.com",
+              "font-src 'self' data: https://yastatic.net https://fonts.gstatic.com",
+              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'"
