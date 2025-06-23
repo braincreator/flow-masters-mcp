@@ -7,6 +7,7 @@ import { markLessonAsViewed, getLessonProgressStatus } from '@/lib/api/lessons'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Circle, Loader2 } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface LessonProgressProps {
   lessonId: string
   courseId: string
@@ -30,7 +31,7 @@ export default function LessonProgress({ lessonId, courseId, onComplete }: Lesso
         const response = await getLessonProgressStatus(lessonId)
         setIsCompleted(response.completed)
       } catch (err) {
-        console.error('Error checking lesson progress:', err)
+        logError('Error checking lesson progress:', err)
         setError(t('errorCheckingProgress'))
       } finally {
         setLoading(false)
@@ -49,7 +50,7 @@ export default function LessonProgress({ lessonId, courseId, onComplete }: Lesso
       setIsCompleted(true)
       if (onComplete) onComplete()
     } catch (err) {
-      console.error('Error marking lesson as completed:', err)
+      logError('Error marking lesson as completed:', err)
       setError(t('errorMarkingCompleted'))
     } finally {
       setMarking(false)

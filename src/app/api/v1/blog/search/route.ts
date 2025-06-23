@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest) {
   const payload = await getPayloadClient()
   try {
@@ -122,7 +123,7 @@ export async function GET(req: NextRequest) {
       nextPage: result.nextPage,
     })
   } catch (error) {
-    console.error('Error searching posts:', error)
+    logError('Error searching posts:', error)
 
     return NextResponse.json(
       {

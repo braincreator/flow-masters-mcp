@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import { slugify } from '@/utilities/strings'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { Payload, Where } from 'payload' // Import Where type
 import type { Course, Module, Lesson } from '../../payload-types' // Correct import path
 
@@ -160,7 +161,7 @@ export class CourseService {
         modules: updatedModulesData, // Return the updated data
       }
     } catch (error) {
-      console.error('Error updating course:', error)
+      logError('Error updating course:', error)
       throw error
     }
   }
@@ -246,7 +247,7 @@ export class CourseService {
         lessons,
       }
     } catch (error) {
-      console.error('Error updating module:', error)
+      logError('Error updating module:', error)
       throw error
     }
   }
@@ -285,7 +286,7 @@ export class CourseService {
       })
       return lesson
     } catch (error) {
-      console.error('Error updating lesson:', error)
+      logError('Error updating lesson:', error)
       throw error
     }
   }
@@ -418,7 +419,7 @@ export class CourseService {
         modules: createdModulesData, // Return created data
       }
     } catch (error) {
-      console.error('Error creating course:', error)
+      logError('Error creating course:', error)
       throw error
     }
   }
@@ -471,7 +472,7 @@ export class CourseService {
         lessons,
       }
     } catch (error) {
-      console.error('Error creating module:', error)
+      logError('Error creating module:', error)
       throw error
     }
   }
@@ -510,7 +511,7 @@ export class CourseService {
       })
       return lesson
     } catch (error) {
-      console.error('Error creating lesson:', error)
+      logError('Error creating lesson:', error)
       throw error
     }
   }
@@ -569,7 +570,7 @@ export class CourseService {
       })
       return result
     } catch (error) {
-      console.error('Error finding courses:', error)
+      logError('Error finding courses:', error)
       throw error
     }
   }
@@ -579,7 +580,7 @@ export class CourseService {
    * Intended for use by scheduled jobs or administrative actions.
    */
   async updateAllCourseBookingStatuses(): Promise<{ updatedCount: number; errors: { courseId: string; error: any }[] }> {
-    console.log('Starting course status update job...');
+    logDebug('Starting course status update job...');
     let updatedCount = 0;
     const errors: { courseId: string; error: any }[] = [];
     type BookingStatus = 'not_yet_open' | 'open' | 'closed' | 'in_progress'; // Keep type local
@@ -598,7 +599,7 @@ export class CourseService {
       });
 
       const now = new Date();
-      console.log(`Found ${courses.length} courses to check.`);
+      logDebug(`Found ${courses.length} courses to check.`);
 
       for (const course of courses as Course[]) { // Added type assertion for clarity
         // Ensure date fields exist before comparison
@@ -634,20 +635,20 @@ export class CourseService {
               depth: 0,
             });
             updatedCount++;
-            console.log(`Updated course ${course.id} status to ${expectedStatus}`);
+            logDebug(`Updated course ${course.id} status to ${expectedStatus}`);
           } catch (updateError) {
-            console.error(`Failed to update course ${course.id}:`, updateError);
+            logError(`Failed to update course ${course.id}:`, updateError);
             errors.push({ courseId: course.id, error: updateError });
             // Continue processing other courses even if one fails
           }
         }
       }
 
-      console.log(`Course status update finished. Updated ${updatedCount} courses. Encountered ${errors.length} errors.`);
+      logDebug(`Course status update finished. Updated ${updatedCount} courses. Encountered ${errors.length} errors.`);
       return { updatedCount, errors };
 
     } catch (fetchError) {
-      console.error('Fatal error fetching courses for status update:', fetchError);
+      logError('Fatal error fetching courses for status update:', fetchError);
       // Re-throw or handle as appropriate for the job context
       // Consider returning a specific error structure instead of throwing for job context
       return { updatedCount: 0, errors: [{ courseId: 'N/A', error: fetchError }] };

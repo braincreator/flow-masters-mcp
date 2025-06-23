@@ -3,6 +3,7 @@
 import { useCallback, useRef } from 'react'
 import { useAnalytics } from '../providers/AnalyticsProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Расширяем типы Window для Yandex Metrika
 declare global {
   interface Window {
@@ -75,7 +76,7 @@ export function useFormAnalytics(options: FormAnalyticsOptions) {
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Form field error tracked:', { formName, fieldName, errorMessage })
+      logDebug('📊 Form field error tracked:', { formName, fieldName, errorMessage })
     }
   }, [formName, trackFieldErrors])
 

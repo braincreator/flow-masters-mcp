@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getRequestConfig } from 'next-intl/server'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Этот файл используется для настройки next-intl
 // Он экспортирует функцию getRequestConfig, которая вызывается для каждого запроса
 
@@ -17,7 +18,7 @@ export default getRequestConfig(async ({ locale }) => {
     messages = (await import(`../messages/${locale}.json`)).default
   } catch (error) {
     // Если файл с сообщениями не найден, используем пустой объект
-    console.warn(`Could not load messages for locale: ${locale}`, error)
+    logWarn(`Could not load messages for locale: ${locale}`, error)
     messages = {}
   }
 

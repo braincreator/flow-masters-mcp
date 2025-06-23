@@ -8,6 +8,7 @@
 import { getPayload } from 'payload'
 import config from '../../payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Helper function to create Lexical paragraph
 function createParagraph(text: string) {
   return {
@@ -402,11 +403,11 @@ const englishImportantNote = createLexicalRoot([
 ])
 
 async function updateServiceOffer() {
-  console.log('📄 Updating service offer content in TermsPages collection...')
+  logDebug('📄 Updating service offer content in TermsPages collection...')
 
   try {
     const payload = await getPayload({ config })
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Update Russian content
     const russianResult = await payload.update({
@@ -425,7 +426,7 @@ async function updateServiceOffer() {
       },
     })
 
-    console.log(`✅ Updated ${russianResult.docs.length} Russian terms page(s)`)
+    logDebug(`✅ Updated ${russianResult.docs.length} Russian terms page(s)`)
 
     // Update English content
     const englishResult = await payload.update({
@@ -444,10 +445,10 @@ async function updateServiceOffer() {
       },
     })
 
-    console.log(`✅ Updated ${englishResult.docs.length} English terms page(s)`)
-    console.log('🎉 Service offer content updated successfully!')
+    logDebug(`✅ Updated ${englishResult.docs.length} English terms page(s)`)
+    logDebug('🎉 Service offer content updated successfully!')
   } catch (error) {
-    console.error('❌ Error updating service offer:', error)
+    logError('❌ Error updating service offer:', error)
     process.exit(1)
   }
 }

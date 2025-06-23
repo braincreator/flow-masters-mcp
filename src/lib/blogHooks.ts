@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Custom hook that tracks reading progress on a page
  * Returns a percentage value between 0 and 100
@@ -80,7 +81,7 @@ export function useReadingTime(
 
       lastUpdateRef.current = Date.now()
     } catch (error) {
-      console.error('Failed to update reading time:', error)
+      logError('Failed to update reading time:', error)
     }
   }
 
@@ -185,7 +186,7 @@ export function useSocialShare(postId: string, apiEndpoint = '/api/blog/metrics'
         }),
       })
     } catch (error) {
-      console.error(`Failed to track ${platform} share:`, error)
+      logError(`Failed to track ${platform} share:`, error)
     }
   }
 
@@ -230,7 +231,7 @@ export function useBlogSearch(options: BlogSearchHookOptions = {}) {
           onSearch(searchQuery)
         }
       } catch (err) {
-        console.error('Error searching posts:', err)
+        logError('Error searching posts:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
         setResults([])
       } finally {

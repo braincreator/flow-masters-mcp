@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { projectReportService } from '@/services/reports/projectReportService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API route for generating reports via cron job
  * This can be triggered by a scheduled job service like Vercel Cron
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
       })),
     })
   } catch (error) {
-    console.error('Error generating reports:', error)
+    logError('Error generating reports:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({
@@ -77,7 +78,7 @@ export async function GET(req: NextRequest) {
       })),
     })
   } catch (error) {
-    console.error('Error generating reports:', error)
+    logError('Error generating reports:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({

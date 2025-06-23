@@ -4,6 +4,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 import { revalidateContent } from '@/utilities/revalidation'
 import type { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define simplified input types if needed, or use Partial<Order>
 // Ensure these types align with your actual Order structure from payload-types.ts
 type OrderCreateInput = Partial<Omit<Order, 'id' | 'createdAt' | 'updatedAt'>> & {
@@ -57,7 +58,7 @@ export class OrderService extends BaseService {
 
           updatedItems.push(updatedItem)
         } catch (conversionError) {
-          console.error(`Error converting price for item ${item.product}:`, conversionError)
+          logError(`Error converting price for item ${item.product}:`, conversionError)
           // Если конвертация не удалась, используем оригинальную цену
           updatedItems.push(item)
         }
@@ -102,7 +103,7 @@ export class OrderService extends BaseService {
 
       return order
     } catch (error) {
-      console.error('Error creating order:', error)
+      logError('Error creating order:', error)
       return null
     }
   }

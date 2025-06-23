@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '../../../../payload.config'
 import { Post } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Cache for search results
 const searchCache = new Map<string, { data: any; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cachedResult)
     }
 
-    console.log('API received search query:', searchQuery)
+    logDebug('API received search query:', searchQuery)
 
     // Build where conditions
     const whereConditions: any[] = [
@@ -210,7 +211,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(transformedPosts)
   } catch (error) {
-    console.error('Error fetching posts:', error)
+    logError('Error fetching posts:', error)
     return NextResponse.json({ message: 'Error fetching posts' }, { status: 500 })
   }
 }

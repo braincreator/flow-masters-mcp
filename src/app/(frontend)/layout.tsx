@@ -9,6 +9,7 @@ import './globals.css'
 import { getCachedGlobal, getGlobal } from '@/utilities/getGlobals'
 import Script from 'next/script'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Lazy load non-critical components
 const RootProvider = lazy(() =>
   import('@/providers').then((mod) => ({
@@ -35,37 +36,37 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // Corrected path to messages directory from src/app/(frontend)/
       messages = (await import(`../../../messages/${locale}.json`)).default
     } catch (error) {
-      console.error(`Failed to load messages for locale ${locale}:`, error)
+      logError(`Failed to load messages for locale ${locale}:`, error)
       // Fallback to 'en' messages or handle error as appropriate
       try {
         messages = (await import(`../../../messages/en.json`)).default
       } catch (fallbackError) {
-        console.error('Failed to load fallback messages for en:', fallbackError)
+        logError('Failed to load fallback messages for en:', fallbackError)
         messages = {} // or throw an error / provide minimal messages
       }
     }
 
-    console.log('Fetching header...')
+    logDebug('Fetching header...')
     const header = await getCachedGlobal({ slug: 'header', depth: 2, locale })
-    console.log('Header fetched:', header)
+    logDebug('Header fetched:', header)
 
-    console.log('Fetching footer...')
+    logDebug('Fetching footer...')
     const footer = await getGlobal({ slug: 'footer', depth: 2, locale })
-    console.log('Footer fetched:', footer)
+    logDebug('Footer fetched:', footer)
 
-    console.log('Fetching navigation...')
+    logDebug('Fetching navigation...')
     const navigation = await getCachedGlobal({
       slug: 'navigation',
       depth: 1,
       locale,
       forceFresh: true,
     })
-    console.log('Navigation fetched:', navigation)
+    logDebug('Navigation fetched:', navigation)
 
     // TODO: Pass header, footer, navigation to RootProvider or use them here
     // Example: <RootProvider lang={locale} header={header} footer={footer} navigation={navigation}>{children}</RootProvider>
 
-    console.log('Successfully fetched globals for RootLayout') // Add logging
+    logDebug('Successfully fetched globals for RootLayout') // Add logging
 
     return (
       <html lang={locale} className="h-full">
@@ -98,8 +99,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     )
   } catch (error) {
     // Handle error fetching globals
-    console.error('Failed to fetch globals for RootLayout:', error)
-    console.error(error) // Log the full error object
+    logError('Failed to fetch globals for RootLayout:', error)
+    logError(error) // Log the full error object
     // Render a fallback or error state
     return (
       <html lang={locale} className="h-full">

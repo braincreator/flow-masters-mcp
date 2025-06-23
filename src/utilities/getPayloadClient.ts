@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Кэш для хранения экземпляра Payload для повторного использования
 let cachedPayload: Payload | null = null
 
@@ -28,7 +29,7 @@ export const getPayloadClient = async (): Promise<Payload> => {
 
     return payload
   } catch (error) {
-    console.error('Error initializing Payload client:', error)
+    logError('Error initializing Payload client:', error)
     throw error
   }
 }

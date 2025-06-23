@@ -21,6 +21,7 @@ import {
 import { toast } from '@/components/ui/use-toast'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Key for SWR
 export const CART_KEY = '/api/cart'
 
@@ -105,7 +106,7 @@ function debounce<T extends (...args: any[]) => any>(
         try {
           func(...args)
         } catch (error) {
-          console.warn('Debounced function execution failed:', error)
+          logWarn('Debounced function execution failed:', error)
         }
       }
     }
@@ -138,7 +139,7 @@ export function CartProvider({
     if (!cartA || !cartB) return cartA === cartB
 
     if (cartA.id !== cartB.id || cartA.userId !== cartB.userId) {
-      // console.log('CartProvider: areCartDataEqual: Basic props differ');
+      // logDebug('CartProvider: areCartDataEqual: Basic props differ');
       return false
     }
 
@@ -146,7 +147,7 @@ export function CartProvider({
     const itemsB = cartB.items || []
 
     if (itemsA.length !== itemsB.length) {
-      // console.log('CartProvider: areCartDataEqual: Item lengths differ');
+      // logDebug('CartProvider: areCartDataEqual: Item lengths differ');
       return false
     }
 
@@ -168,38 +169,38 @@ export function CartProvider({
 
     for (let i = 0; i < sortedItemsA.length; i++) {
       if (sortedItemsA[i] !== sortedItemsB[i]) {
-        // console.log(`CartProvider: areCartDataEqual: Item at index ${i} differs: ${sortedItemsA[i]} vs ${sortedItemsB[i]}`);
+        // logDebug(`CartProvider: areCartDataEqual: Item at index ${i} differs: ${sortedItemsA[i]} vs ${sortedItemsB[i]}`);
         return false
       }
     }
-    // console.log('CartProvider: areCartDataEqual: Carts are equal');
+    // logDebug('CartProvider: areCartDataEqual: Carts are equal');
     return true
   }
 
   const fetchCart = useCallback(async (): Promise<void> => {
     setIsLoading(true)
-    // console.log('CartProvider: Fetching cart data...')
+    // logDebug('CartProvider: Fetching cart data...')
     try {
       const data = await getCart()
-      // console.log('CartProvider: Cart data received:', data)
+      // logDebug('CartProvider: Cart data received:', data)
       setCart((currentCart) => {
         if (areCartDataEqual(currentCart, data)) {
-          // console.log('CartProvider: fetchCart - Cart data is the same, not updating state.');
+          // logDebug('CartProvider: fetchCart - Cart data is the same, not updating state.');
           return currentCart
         }
-        // console.log('CartProvider: fetchCart - Cart data changed, updating state.');
+        // logDebug('CartProvider: fetchCart - Cart data changed, updating state.');
         return data
       })
       setError(null)
     } catch (err) {
       if (err instanceof Error && !err.message.includes('404') && !err.message.includes('401')) {
-        console.error('CartProvider: Error fetching cart:', err)
+        logError('CartProvider: Error fetching cart:', err)
         setError(err)
       } else {
         // For 404 or 401, ensure cart is null if it wasn't already
         setCart((currentCart) => {
           if (currentCart !== null) {
-            // console.log('CartProvider: fetchCart - Setting cart to null due to 404/401.');
+            // logDebug('CartProvider: fetchCart - Setting cart to null due to 404/401.');
             return null
           }
           return currentCart
@@ -218,26 +219,26 @@ export function CartProvider({
 
     while (retries < maxRetries && !success) {
       try {
-        // console.log(`CartProvider: Attempting to fetch cart (attempt ${retries + 1}/${maxRetries})`);
+        // logDebug(`CartProvider: Attempting to fetch cart (attempt ${retries + 1}/${maxRetries})`);
         const data = await getCart()
         setCart((currentCart) => {
           if (areCartDataEqual(currentCart, data)) {
-            // console.log(`CartProvider: retryFetchCart - Cart data is the same on attempt ${retries + 1}, not updating state.`);
+            // logDebug(`CartProvider: retryFetchCart - Cart data is the same on attempt ${retries + 1}, not updating state.`);
             success = true // Consider it success if data is same or successfully fetched
             return currentCart
           }
           if (data) {
             // Ensure data is not null before considering it a successful fetch
-            // console.log(`CartProvider: retryFetchCart - Cart data changed/fetched on attempt ${retries + 1}, updating state.`);
+            // logDebug(`CartProvider: retryFetchCart - Cart data changed/fetched on attempt ${retries + 1}, updating state.`);
             success = true
             return data
           }
-          // console.log(`CartProvider: retryFetchCart - Empty/null cart data on attempt ${retries + 1}`);
+          // logDebug(`CartProvider: retryFetchCart - Empty/null cart data on attempt ${retries + 1}`);
           return currentCart // Keep current cart if new data is null and current isn't
         })
         if (success) setError(null)
       } catch (err) {
-        console.error(`CartProvider: Error fetching cart on attempt ${retries + 1}:`, err)
+        logError(`CartProvider: Error fetching cart on attempt ${retries + 1}:`, err)
         // Don't set global error on retry, let it fail if all retries exhausted
       }
       if (!success) {
@@ -247,7 +248,7 @@ export function CartProvider({
     }
 
     if (!success) {
-      console.error('CartProvider: Failed to fetch cart after multiple attempts')
+      logError('CartProvider: Failed to fetch cart after multiple attempts')
       // setError(new Error('Failed to load cart. Please try again.')); // Optionally set a final error
     }
     setIsLoading(false)
@@ -255,7 +256,7 @@ export function CartProvider({
 
   // Fetch cart on mount and when auth state changes
   useEffect(() => {
-    // console.log('CartProvider: Auth state changed or component mounted. isAuthenticated:', isAuthenticated);
+    // logDebug('CartProvider: Auth state changed or component mounted. isAuthenticated:', isAuthenticated);
     fetchCart()
   }, [fetchCart, isAuthenticated])
 
@@ -303,7 +304,7 @@ export function CartProvider({
       }
       return null
     } catch (err) {
-      console.error('Error in getItemId:', err)
+      logError('Error in getItemId:', err)
       return null
     }
   }, [])
@@ -406,7 +407,7 @@ export function CartProvider({
         // Оптимистичное обновление UI
         const success = updateItemQuantityLocally(itemId, itemType, quantity)
         if (!success) {
-          console.warn('Item not found in local cart for optimistic update')
+          logWarn('Item not found in local cart for optimistic update')
         }
 
         // Устанавливаем состояние загрузки для конкретного товара
@@ -431,7 +432,7 @@ export function CartProvider({
           areCartDataEqual(currentCart, newCartData) ? currentCart : newCartData,
         )
       } catch (err) {
-        console.error('Error updating cart item:', err)
+        logError('Error updating cart item:', err)
 
         // В случае ошибки возвращаем исходные данные
         await fetchCart()
@@ -458,7 +459,7 @@ export function CartProvider({
         // Оптимистичное обновление UI
         const success = removeItemLocally(itemId, itemType)
         if (!success) {
-          console.warn('Item not found in local cart for removal')
+          logWarn('Item not found in local cart for removal')
         }
 
         // Устанавливаем состояние загрузки для конкретного товара
@@ -472,7 +473,7 @@ export function CartProvider({
           areCartDataEqual(currentCart, newCartData) ? currentCart : newCartData,
         )
       } catch (err) {
-        console.error('Error removing cart item:', err)
+        logError('Error removing cart item:', err)
 
         // В случае ошибки возвращаем исходные данные
         await fetchCart()
@@ -499,7 +500,7 @@ export function CartProvider({
       maybeQuantity?: number,
     ): Promise<void> => {
       try {
-        console.log('CartProvider: addItem called with params:', {
+        logDebug('CartProvider: addItem called with params:', {
           itemId,
           itemTypeOrQuantity,
           maybeQuantity,
@@ -527,14 +528,14 @@ export function CartProvider({
           quantity = itemTypeOrQuantity
         }
 
-        console.log('CartProvider: Calling addToCart with params:', { itemId, itemType, quantity })
+        logDebug('CartProvider: Calling addToCart with params:', { itemId, itemType, quantity })
 
         if (!itemId) {
           throw new Error('Item ID is required')
         }
 
         await addToCart(itemId, itemType, quantity)
-        console.log('CartProvider: Item successfully added to cart, now refreshing cart data')
+        logDebug('CartProvider: Item successfully added to cart, now refreshing cart data')
 
         // Используем улучшенную функцию с повторными попытками обновления корзины
         await retryFetchCart()
@@ -543,9 +544,9 @@ export function CartProvider({
           title: 'Item added to cart',
           description: `${quantity} item(s) added to your cart.`,
         })
-        console.log('CartProvider: addItem complete, toast notification shown')
+        logDebug('CartProvider: addItem complete, toast notification shown')
       } catch (err) {
-        console.error('CartProvider: Error adding item to cart:', err)
+        logError('CartProvider: Error adding item to cart:', err)
         toast({
           title: 'Error adding item',
           description: err instanceof Error ? err.message : 'Failed to add item to cart',
@@ -586,7 +587,7 @@ export function CartProvider({
       // Обновляем корзину для синхронизации
       await fetchCart()
     } catch (err) {
-      console.error('Error clearing cart:', err)
+      logError('Error clearing cart:', err)
 
       // В случае ошибки возвращаем исходные данные
       await fetchCart()

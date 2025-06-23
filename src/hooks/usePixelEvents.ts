@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PixelEventData {
   value?: number
   currency?: string
@@ -92,17 +93,17 @@ export function usePixelEvents(): UsePixelEventsReturn {
               const func = new Function(script)
               func()
             } catch (error) {
-              console.warn('Failed to execute pixel event script:', error)
+              logWarn('Failed to execute pixel event script:', error)
             }
           })
         }
 
         console.log(`Pixel event "${eventName}" sent to ${result.pixelsTriggered} pixels`)
       } else {
-        console.error('Failed to send pixel event:', response.statusText)
+        logError('Failed to send pixel event:', response.statusText)
       }
     } catch (error) {
-      console.error('Error sending pixel event:', error)
+      logError('Error sending pixel event:', error)
     }
   }, [])
 

@@ -15,6 +15,7 @@ import { Loader2, Calendar as CalendarIcon, Download, Clock, CheckCircle, AlertC
 import { format, isToday, isFuture, isPast, addDays, isSameDay } from 'date-fns'
 import { ru, enUS } from 'date-fns/locale'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CalendarEvent {
   id: string
   title: string
@@ -56,7 +57,7 @@ export default function ProjectCalendarSection({ projectId, isAdmin }: ProjectCa
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
       setTimeZone(userTimeZone)
     } catch (error) {
-      console.error('Error getting timezone:', error)
+      logError('Error getting timezone:', error)
     }
   }, [])
   
@@ -83,7 +84,7 @@ export default function ProjectCalendarSection({ projectId, isAdmin }: ProjectCa
         
         setEvents(responseData.data.events)
       } catch (error) {
-        console.error('Error fetching calendar events:', error)
+        logError('Error fetching calendar events:', error)
         showNotification('error', t('errorFetchingEvents', { defaultValue: 'Error fetching calendar events' }))
       } finally {
         setIsLoading(false)
@@ -117,7 +118,7 @@ export default function ProjectCalendarSection({ projectId, isAdmin }: ProjectCa
       
       showNotification('success', t('calendarExported', { defaultValue: 'Calendar exported successfully' }))
     } catch (error) {
-      console.error('Error exporting calendar:', error)
+      logError('Error exporting calendar:', error)
       showNotification('error', t('errorExportingCalendar', { defaultValue: 'Error exporting calendar' }))
     }
   }

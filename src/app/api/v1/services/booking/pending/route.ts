@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/utilities/auth/getServerSession'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * GET /api/v1/services/booking/pending
  * Получение списка оплаченных услуг, для которых не завершено бронирование
@@ -75,7 +76,7 @@ export async function GET(_request: NextRequest) {
                 id: order.serviceData.serviceId,
               })
             } catch (error) {
-              console.error('Error fetching service:', error)
+              logError('Error fetching service:', error)
             }
           }
 
@@ -92,7 +93,7 @@ export async function GET(_request: NextRequest) {
       pendingBookings: pendingBookingOrders,
     })
   } catch (error) {
-    console.error('Error fetching pending bookings:', error)
+    logError('Error fetching pending bookings:', error)
     return NextResponse.json({ error: 'Failed to fetch pending bookings' }, { status: 500 })
   }
 }

@@ -75,7 +75,7 @@ export const getLocalePrice = (item: any, locale: string = 'en'): number => {
 
     return 0
   } catch (error) {
-    console.error('Error in getLocalePrice:', error)
+    logError('Error in getLocalePrice:', error)
     return 0
   }
 }

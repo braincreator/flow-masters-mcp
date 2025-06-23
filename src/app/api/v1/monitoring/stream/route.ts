@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { connectionMonitor } from '@/utilities/payload/monitoring'
 import { metricsCollector } from '@/utilities/payload/metrics'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(metrics)}\n\n`))
           }
         } catch (error) {
-          console.error('Error calculating metrics:', error)
+          logError('Error calculating metrics:', error)
           if (!isClosed) {
             try {
               controller.error(error)

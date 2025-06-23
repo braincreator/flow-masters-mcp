@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define the notification preference types based on your UserPreferences interface
 interface EmailNotifications {
   account: boolean
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
       notificationFrequency: user.notificationFrequency || 'immediately',
     })
   } catch (error) {
-    console.error('Error fetching notification preferences:', error)
+    logError('Error fetching notification preferences:', error)
     return NextResponse.json(
       { error: 'Failed to fetch notification preferences' },
       { status: 500 }
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error updating notification preferences:', error)
+    logError('Error updating notification preferences:', error)
     return NextResponse.json(
       { error: 'Failed to update notification preferences' },
       { status: 500 }

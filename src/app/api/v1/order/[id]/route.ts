@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Initialize Payload
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
+      logError('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         depth: 1, // Populate product references in items
       })
     } catch (error) {
-      console.error('Failed to fetch order:', error)
+      logError('Failed to fetch order:', error)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       order: safeOrder,
     })
   } catch (error) {
-    console.error('Order fetching error:', error)
+    logError('Order fetching error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',

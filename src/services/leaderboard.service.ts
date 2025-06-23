@@ -1,6 +1,7 @@
 import { Payload } from 'payload'
 import { BaseService } from './base.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export class LeaderboardService extends BaseService {
   private static instance: LeaderboardService | null = null
 
@@ -20,7 +21,7 @@ export class LeaderboardService extends BaseService {
    */
   async updateLeaderboard(): Promise<void> {
     try {
-      console.log('Updating leaderboard...')
+      logDebug('Updating leaderboard...')
       
       // Получаем всех пользователей с их XP и уровнем
       const users = await this.payload.find({
@@ -126,9 +127,9 @@ export class LeaderboardService extends BaseService {
         rank++
       }
       
-      console.log('Leaderboard updated successfully')
+      logDebug('Leaderboard updated successfully')
     } catch (error) {
-      console.error('Error updating leaderboard:', error)
+      logError('Error updating leaderboard:', error)
       throw error
     }
   }
@@ -150,7 +151,7 @@ export class LeaderboardService extends BaseService {
       
       return leaderboard
     } catch (error) {
-      console.error('Error getting leaderboard:', error)
+      logError('Error getting leaderboard:', error)
       throw error
     }
   }
@@ -208,7 +209,7 @@ export class LeaderboardService extends BaseService {
         usersBelow: usersBelow.docs,
       }
     } catch (error) {
-      console.error('Error getting user rank:', error)
+      logError('Error getting user rank:', error)
       throw error
     }
   }
@@ -228,7 +229,7 @@ export class LeaderboardService extends BaseService {
       
       return topUsers.docs
     } catch (error) {
-      console.error('Error getting top users:', error)
+      logError('Error getting top users:', error)
       throw error
     }
   }

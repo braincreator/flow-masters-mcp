@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Schema for enrollment update request
 const updateProgressSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ enrollment: enrollments.docs[0] }, { status: 200 })
   } catch (error) {
-    console.error('Error getting course enrollment:', error)
+    logError('Error getting course enrollment:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Failed to get course enrollment',
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, enrollment: updatedEnrollment }, { status: 200 })
   } catch (error) {
-    console.error('Error updating course progress:', error)
+    logError('Error updating course progress:', error)
     return NextResponse.json(
       {
         success: false,

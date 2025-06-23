@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { revalidateContent } from '@/utilities/revalidation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function bulkRevalidate(
   payload: Payload, 
   collections: string[],

@@ -19,6 +19,7 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Service } from '@/types/service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Константы стилей для компонента
 const CARD_VARIANT_STYLES = {
   default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-md',
@@ -56,7 +57,7 @@ export default function RelatedServiceCard({
     try {
       setLocalizedPrice(formatItemPrice(service, locale))
     } catch (error) {
-      console.error('Error formatting price:', error)
+      logError('Error formatting price:', error)
       setLocalizedPrice(formatPrice(service.price || 0, locale))
     } finally {
       setIsLoaded(true)

@@ -1,5 +1,6 @@
 import { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const connections = new WeakSet()
 const timeouts = new Map()
 
@@ -15,7 +16,7 @@ export const cleanupConnection = async (payload: Payload) => {
       }
       connections.delete(payload)
     } catch (error) {
-      console.error('Error cleaning up connection:', error)
+      logError('Error cleaning up connection:', error)
     }
   }, 5000) // 5 second timeout
 

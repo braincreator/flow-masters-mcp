@@ -21,6 +21,7 @@ import { format } from 'date-fns'
 import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { ru, enUS } from 'date-fns/locale'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Certificate {
   id: string
   title: string
@@ -101,7 +102,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
           }, 500)
         }
       } catch (error) {
-        console.error('Error fetching certificates:', error)
+        logError('Error fetching certificates:', error)
       } finally {
         setLoading(false)
       }
@@ -130,14 +131,14 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
   // Handle certificate download
   const handleDownload = (certificateId: string) => {
     // In a real app, this would trigger a download of the certificate
-    console.log(`Downloading certificate ${certificateId}`)
+    logDebug(`Downloading certificate ${certificateId}`)
     new AppError({ message: t('downloadStarted'), severity: ErrorSeverity.INFO }).notify()
   }
 
   // Handle certificate sharing
   const handleShare = (certificateId: string) => {
     // In a real app, this would open a sharing dialog
-    console.log(`Sharing certificate ${certificateId}`)
+    logDebug(`Sharing certificate ${certificateId}`)
 
     if (navigator.share) {
       navigator.share({

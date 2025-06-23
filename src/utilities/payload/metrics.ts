@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export interface SystemMetrics {
   timestamp: number
   requestCount: number
@@ -28,7 +29,7 @@ export class MetricsCollector {
 
   recordError(error: Error) {
     this.errorCount++
-    console.error('Error:', error)
+    logError('Error:', error)
   }
 
   recordOperationDuration(duration: number) {

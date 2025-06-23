@@ -22,6 +22,7 @@ import { Image } from '@/components/Image'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Добавляем интерфейс Media для типизации
 interface Media {
   url: string
@@ -76,7 +77,7 @@ export default function ServiceCard({
     try {
       setLocalizedPrice(formatItemPrice(service, locale))
     } catch (error) {
-      console.error('Error formatting price:', error)
+      logError('Error formatting price:', error)
       setLocalizedPrice(formatPrice(service.price || 0, locale))
     } finally {
       setIsLoaded(true)

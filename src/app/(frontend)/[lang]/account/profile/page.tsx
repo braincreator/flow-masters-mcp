@@ -11,6 +11,7 @@ import { AchievementsTab } from '@/components/account/tabs/AchievementsTab'
 import { useAuth } from '@/hooks/useAuth'
 import { PageHeading } from '@/components/PageHeading'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Extended User type that includes all the properties we need
 interface ExtendedUser {
   name?: string | null
@@ -34,21 +35,21 @@ interface ExtendedUser {
 
 // Placeholder server actions (implement these according to your backend logic)
 async function updateProfile(data: any) {
-  console.log('Updating profile with data:', data)
+  logDebug('Updating profile with data:', data)
   // Here you would call your actual API endpoint or server action
   await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
   return { success: true }
 }
 
 async function changePassword(data: any) {
-  console.log('Changing password with data:', data)
+  logDebug('Changing password with data:', data)
   // Here you would call your actual API endpoint or server action
   await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
   return { success: true }
 }
 
 async function updateNotificationPreferences(data: any) {
-  console.log('Updating notification preferences:', data)
+  logDebug('Updating notification preferences:', data)
   // Here you would call your actual API endpoint or server action
   await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
   return { success: true }
@@ -115,7 +116,7 @@ export default function ProfilePage() {
     try {
       await updateProfile(data)
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logError('Error updating profile:', error)
     }
   }
   
@@ -124,7 +125,7 @@ export default function ProfilePage() {
     try {
       await changePassword(data)
     } catch (error) {
-      console.error('Error changing password:', error)
+      logError('Error changing password:', error)
     }
   }
   
@@ -133,7 +134,7 @@ export default function ProfilePage() {
     try {
       await updateNotificationPreferences(data)
     } catch (error) {
-      console.error('Error updating notification preferences:', error)
+      logError('Error updating notification preferences:', error)
     }
   }
   

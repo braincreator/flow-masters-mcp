@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * POST /api/v1/services/booking/additional-info
  * Сохранение дополнительной информации для бронирования
@@ -107,9 +108,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) { // Changed to 'any' for broader error type compatibility
     // Log the specific error if it's from the order update, or a general one.
     if (error.message && error.message.includes('order with additional info')) { // Basic check
-      console.error('Specific error updating order with additional info:', error)
+      logError('Specific error updating order with additional info:', error)
     } else {
-      console.error('General error in POST /api/v1/services/booking/additional-info:', error)
+      logError('General error in POST /api/v1/services/booking/additional-info:', error)
     }
     return NextResponse.json({ error: 'Failed to save additional info' }, { status: 500 })
   }

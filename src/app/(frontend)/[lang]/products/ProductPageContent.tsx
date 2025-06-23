@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react'
 import { DEFAULT_LOCALE } from '@/constants'
 import type { ProductType } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SearchParams {
   search?: string
   category?: string
@@ -102,7 +103,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
           setProducts(result)
         }
       } catch (error) {
-        console.error('Failed to fetch products:', error)
+        logError('Failed to fetch products:', error)
       } finally {
         if (isMounted) {
           setLoading(false)

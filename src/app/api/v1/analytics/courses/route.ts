@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getCourseAnalyticsService } from '@/services/analytics/courseAnalyticsService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема для запроса на отслеживание события
 const trackEventSchema = z.object({
   courseId: z.string().min(1, 'Course ID is required'),
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
     }
     
   } catch (error) {
-    console.error('Error fetching course analytics:', error)
+    logError('Error fetching course analytics:', error)
     return NextResponse.json(
       { 
         success: false,
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
     })
     
   } catch (error) {
-    console.error('Error tracking analytics event:', error)
+    logError('Error tracking analytics event:', error)
     return NextResponse.json(
       { 
         success: false,

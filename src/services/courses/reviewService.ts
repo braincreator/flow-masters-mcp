@@ -1,5 +1,6 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import type { Payload } from 'payload'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { CourseReview, User, Course, CourseEnrollment } from '../../payload-types' // Import necessary types
 
 export interface SubmitReviewData {
@@ -57,7 +58,7 @@ export class ReviewService {
       }
 
     } catch (error) {
-       console.error('Error verifying enrollment for review:', error);
+       logError('Error verifying enrollment for review:', error);
        // Re-throw specific errors or a generic one
        if (error instanceof Error && error.message.includes('Invalid enrollment')) {
            throw error;
@@ -84,7 +85,7 @@ export class ReviewService {
       });
       return newReview;
     } catch (error) {
-      console.error('Error creating course review:', error);
+      logError('Error creating course review:', error);
       throw new Error('Failed to submit review.');
     }
   }
@@ -107,7 +108,7 @@ export class ReviewService {
        });
        return reviews;
      } catch (error) {
-       console.error(`Error fetching reviews for course ${courseId}:`, error);
+       logError(`Error fetching reviews for course ${courseId}:`, error);
        throw new Error('Failed to fetch reviews.');
      }
   }
@@ -144,7 +145,7 @@ export class ReviewService {
 
       return { average: parseFloat(average.toFixed(1)), count }; // Return average rounded to one decimal place
     } catch (error) {
-      console.error(`Error calculating average rating for course ${courseId}:`, error);
+      logError(`Error calculating average rating for course ${courseId}:`, error);
       throw new Error('Failed to calculate average rating.');
     }
   }

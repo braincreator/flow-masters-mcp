@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 declare global {
   interface Window {
     ym?: (counterId: number, action: string, url?: string, options?: any) => void
@@ -27,7 +28,7 @@ export function YandexMetrikaTracker({ counterId }: YandexMetrikaTrackerProps) {
     // Отправляем информацию о просмотре страницы при SPA-переходах
     window.ym(parseInt(counterId), 'hit', url)
     
-    console.log('Yandex Metrika: SPA page view tracked:', url)
+    logDebug('Yandex Metrika: SPA page view tracked:', url)
   }, [pathname, searchParams, counterId])
 
   return null

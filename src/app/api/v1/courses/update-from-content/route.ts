@@ -4,6 +4,7 @@ import { getCourseService } from '@/services/courses/courseService'
 import { getLandingService } from '@/services/landing/landingService'
 import { getFunnelService } from '@/services/funnel/funnelService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема для урока
 const lessonSchema = z.object({
   id: z.string().optional(), // ID существующего урока, если обновляем
@@ -146,7 +147,7 @@ export async function PUT(req: Request) {
     })
     
   } catch (error) {
-    console.error('Error updating course from content:', error)
+    logError('Error updating course from content:', error)
     return NextResponse.json(
       {
         success: false,

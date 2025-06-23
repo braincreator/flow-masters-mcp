@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define types for user preferences
 export interface EmailNotifications {
   account: boolean
@@ -184,7 +185,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
 
       setError(null)
     } catch (err) {
-      console.error('Error fetching user preferences:', err)
+      logError('Error fetching user preferences:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch user preferences'))
       // Fall back to defaults on error
       setPreferences(defaultPreferences)
@@ -235,7 +236,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
       // Revert to previous state on error
       await fetchPreferences()
 
-      console.error('Error updating user preferences:', err)
+      logError('Error updating user preferences:', err)
       throw err
     }
   }

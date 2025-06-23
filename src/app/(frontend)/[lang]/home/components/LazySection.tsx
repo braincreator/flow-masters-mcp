@@ -25,14 +25,8 @@ export function LazySection({
 
   useEffect(() => {
     if (isIntersecting && !shouldRender) {
-      console.log(`LazySection ${sectionId} is intersecting, loading...`)
       setShouldRender(true)
     }
-  }, [isIntersecting, shouldRender, sectionId])
-
-  // Debug logging
-  useEffect(() => {
-    console.log(`LazySection ${sectionId} - isIntersecting: ${isIntersecting}, shouldRender: ${shouldRender}`)
   }, [isIntersecting, shouldRender, sectionId])
 
   return (

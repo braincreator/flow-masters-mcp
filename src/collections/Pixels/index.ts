@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload/types'
 import { isAdmin } from '@/access/isAdmin'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Коллекция для управления пикселями аналитики и рекламы
  * Позволяет настраивать через админку различные пиксели:
@@ -374,7 +375,7 @@ export const Pixels: CollectionConfig = {
     afterChange: [
       async ({ doc, operation, req }) => {
         // Логируем изменения пикселей
-        console.log(`Pixel ${operation}: ${doc.name} (${doc.type})`)
+        logDebug(`Pixel ${operation}: ${doc.name} (${doc.type})`)
         
         // Можно добавить очистку кэша или перегенерацию статических файлов
         if (operation === 'create' || operation === 'update') {

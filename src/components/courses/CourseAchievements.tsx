@@ -6,6 +6,7 @@ import { fetchUserAchievements } from '@/lib/api/achievements'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseAchievementsProps {
   courseId: string
   className?: string
@@ -68,7 +69,7 @@ export default function CourseAchievements({ courseId, className = '' }: CourseA
         
         setAchievements(courseAchievements)
       } catch (err) {
-        console.error('Error loading achievements:', err)
+        logError('Error loading achievements:', err)
         setError('Не удалось загрузить достижения')
       } finally {
         setLoading(false)

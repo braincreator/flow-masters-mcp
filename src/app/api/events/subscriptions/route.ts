@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для управления подписками на события
  * GET /api/events/subscriptions - получить список подписок
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting event subscriptions:', error)
+    logError('Error getting event subscriptions:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating event subscription:', error)
+    logError('Error creating event subscription:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import type { Order, Service } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface LocalizedTitle {
   en: string
   ru: string
@@ -25,11 +26,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
     }
 
-    console.log(`[${requestId}] [create-from-order] Creating service project for order ${orderId}`)
+    logDebug(`[${requestId}] [create-from-order] Creating service project for order ${orderId}`)
 
     // Проверяем, не запущен ли уже процесс создания проекта для этого заказа
     if (global.creatingServiceProjects.has(orderId)) {
-      console.log(`[${requestId}] [create-from-order] Project creation already in progress for order ${orderId}, waiting...`);
+      logDebug(`[${requestId}] [create-from-order] Project creation already in progress for order ${orderId}, waiting...`);
 
       // Ждем небольшое время и проверяем, не создан ли уже проект
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingProjects.totalDocs > 0) {
-      console.log(`[create-from-order] Service project already exists for order ${orderId}`)
+      logDebug(`[create-from-order] Service project already exists for order ${orderId}`)
       return NextResponse.json({
         success: true,
         projectId: existingProjects.docs[0].id,
@@ -62,12 +63,12 @@ export async function POST(request: NextRequest) {
     }) as Order
 
     if (!order) {
-      console.error(`[create-from-order] Order ${orderId} not found`)
+      logError(`[create-from-order] Order ${orderId} not found`)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
     if (order.orderType !== 'service') {
-      console.error(`[create-from-order] Order ${orderId} is not a service order`)
+      logError(`[create-from-order] Order ${orderId} is not a service order`)
       return NextResponse.json({ error: 'Order is not a service order' }, { status: 400 })
     }
 
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
           } catch (error: unknown) {
             // Error getting service data
             const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-            console.error(`[create-from-order] Error getting service data: ${errorMessage}`)
+            logError(`[create-from-order] Error getting service data: ${errorMessage}`)
           }
         }
       }
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
     try {
       // Устанавливаем флаг, что мы начали создание проекта
       global.creatingServiceProjects.add(orderId);
-      console.log(`[${requestId}] [create-from-order] Added order ${orderId} to creation tracking`);
+      logDebug(`[${requestId}] [create-from-order] Added order ${orderId} to creation tracking`);
 
       // Ensure we have a valid customer ID
       let customerId = '';
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
 
       // If no customer is found, create a guest user
       if (!customerId) {
-        console.log(`[${requestId}] [create-from-order] No customer found for order, creating a guest user`);
+        logDebug(`[${requestId}] [create-from-order] No customer found for order, creating a guest user`);
         try {
           const randomEmail = `guest_${Date.now()}@example.com`;
           const guestUser = await payload.create({
@@ -162,9 +163,9 @@ export async function POST(request: NextRequest) {
             },
           });
           customerId = guestUser.id;
-          console.log(`[${requestId}] [create-from-order] Created guest user with ID: ${customerId}`);
+          logDebug(`[${requestId}] [create-from-order] Created guest user with ID: ${customerId}`);
         } catch (userError) {
-          console.error(`[${requestId}] [create-from-order] Error creating guest user:`, userError);
+          logError(`[${requestId}] [create-from-order] Error creating guest user:`, userError);
           throw new Error('Failed to create guest user');
         }
       }
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log(`[create-from-order] Service project created: ${createdProject.id}`)
+      logDebug(`[create-from-order] Service project created: ${createdProject.id}`)
 
       // Create system message in the project
       if (createdProject.id) {
@@ -232,14 +233,14 @@ export async function POST(request: NextRequest) {
           }
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-          console.error(`[create-from-order] Error creating system message: ${errorMessage}`)
+          logError(`[create-from-order] Error creating system message: ${errorMessage}`)
         }
       }
 
       // Удаляем заказ из множества создаваемых проектов
       if (global.creatingServiceProjects && global.creatingServiceProjects.has(orderId)) {
         global.creatingServiceProjects.delete(orderId);
-        console.log(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after success`);
+        logDebug(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after success`);
       }
 
       return NextResponse.json({
@@ -249,25 +250,25 @@ export async function POST(request: NextRequest) {
       })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.error(`[${requestId}] [create-from-order] Error creating service project: ${errorMessage}`)
+      logError(`[${requestId}] [create-from-order] Error creating service project: ${errorMessage}`)
 
       // Удаляем заказ из множества создаваемых проектов в случае ошибки
       if (global.creatingServiceProjects && global.creatingServiceProjects.has(orderId)) {
         global.creatingServiceProjects.delete(orderId);
-        console.log(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after error`);
+        logDebug(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after error`);
       }
 
       return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
   } catch (error) {
-    console.error(`[${requestId}] [create-from-order] Error creating service project from order:`, error)
+    logError(`[${requestId}] [create-from-order] Error creating service project from order:`, error)
     let message = 'Failed to create service project from order'
     if (error instanceof Error) message = error.message
 
     // Удаляем заказ из множества создаваемых проектов в случае ошибки
     if (orderId && global.creatingServiceProjects && global.creatingServiceProjects.has(orderId)) {
       global.creatingServiceProjects.delete(orderId);
-      console.log(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after outer error`);
+      logDebug(`[${requestId}] [create-from-order] Removed order ${orderId} from creation tracking after outer error`);
     }
 
     return NextResponse.json({ error: message }, { status: 500 })

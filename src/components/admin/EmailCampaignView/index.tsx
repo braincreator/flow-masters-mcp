@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { AppError, ErrorSeverity } from '@/utilities/errorHandling'
 import { Button, Gutter, Card } from '@payloadcms/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import './index.scss'
 
 // Email campaign types
@@ -28,7 +29,7 @@ const EmailCampaignView: React.FC = () => {
 
   // Simple toast implementation
   const addToast = (toast: { type: string; message: string }) => {
-    console.log(`Toast: [${toast.type}] ${toast.message}`)
+    logDebug(`Toast: [${toast.type}] ${toast.message}`)
     new AppError({
       message: toast.message,
       severity: toast.type === 'error' ? ErrorSeverity.ERROR : ErrorSeverity.INFO,
@@ -71,7 +72,7 @@ const EmailCampaignView: React.FC = () => {
         const mockCampaigns = generateMockCampaigns()
         setCampaigns(mockCampaigns)
       } catch (err) {
-        console.error('Error fetching campaigns:', err)
+        logError('Error fetching campaigns:', err)
         setError('Failed to load email campaigns. Please try again.')
       } finally {
         setIsLoading(false)
@@ -193,7 +194,7 @@ const EmailCampaignView: React.FC = () => {
         message: `Campaign "${title}" created successfully!`,
       })
     } catch (err) {
-      console.error('Error creating campaign:', err)
+      logError('Error creating campaign:', err)
       addToast({
         type: 'error',
         message: 'Failed to create campaign. Please try again.',
@@ -226,7 +227,7 @@ const EmailCampaignView: React.FC = () => {
         message: 'Campaign is now being sent!',
       })
     } catch (err) {
-      console.error('Error sending campaign:', err)
+      logError('Error sending campaign:', err)
       addToast({
         type: 'error',
         message: 'Failed to send campaign. Please try again.',

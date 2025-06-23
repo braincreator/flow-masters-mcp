@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -11,7 +12,7 @@ const __dirname = path.dirname(__filename)
  */
 async function addRewardEmailTemplates() {
   try {
-    console.log('Adding reward email templates to the database...')
+    logDebug('Adding reward email templates to the database...')
     const payload = await getPayloadClient()
 
     // Get default sender
@@ -21,7 +22,7 @@ async function addRewardEmailTemplates() {
     })
 
     if (senders.docs.length === 0) {
-      console.error('No sender emails found. Please create a sender email first.')
+      logError('No sender emails found. Please create a sender email first.')
       return
     }
 
@@ -98,7 +99,7 @@ async function addRewardEmailTemplates() {
       })
 
       if (existingTemplate.docs.length > 0) {
-        console.log(`Template ${template.slug} already exists, skipping...`)
+        logDebug(`Template ${template.slug} already exists, skipping...`)
         continue
       }
 
@@ -118,12 +119,12 @@ async function addRewardEmailTemplates() {
         },
       })
 
-      console.log(`Added template: ${template.slug}`)
+      logDebug(`Added template: ${template.slug}`)
     }
 
-    console.log('All reward email templates added successfully!')
+    logDebug('All reward email templates added successfully!')
   } catch (error) {
-    console.error('Error adding reward email templates:', error)
+    logError('Error adding reward email templates:', error)
   }
 }
 
@@ -131,6 +132,6 @@ async function addRewardEmailTemplates() {
 addRewardEmailTemplates()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('Script failed:', error)
+    logError('Script failed:', error)
     process.exit(1)
   })

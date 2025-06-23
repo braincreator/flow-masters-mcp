@@ -1,5 +1,6 @@
 import hljs from 'highlight.js'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface HighlightOptions {
   addCopyButton?: boolean
   copyButtonText?: string
@@ -120,7 +121,7 @@ export function highlightCodeBlocks(container: HTMLElement, options: HighlightOp
             }, copyTimeout)
           })
           .catch((err) => {
-            console.error('Failed to copy code: ', err)
+            logError('Failed to copy code: ', err)
             copyButton.textContent = 'Error!'
             copyButton.classList.add('bg-red-700')
             copyButton.classList.remove('bg-gray-700')

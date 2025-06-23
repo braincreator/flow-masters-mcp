@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Коллекция для логирования webhook вызовов
  * Хранит детальную информацию о всех исходящих webhook запросах
@@ -302,13 +303,13 @@ export const WebhookLogs: CollectionConfig = {
       async ({ doc, operation }) => {
         // Логируем критические ошибки
         if (doc.status === 'failed' && doc.attempt >= 3) {
-          console.error(`Critical webhook failure: ${doc.url} for event ${doc.eventType}`)
+          logError(`Critical webhook failure: ${doc.url} for event ${doc.eventType}`)
           // TODO: Отправить алерт администраторам
         }
         
         // Логируем медленные запросы
         if (doc.responseTime && doc.responseTime > 10000) { // > 10 секунд
-          console.warn(`Slow webhook response: ${doc.url} took ${doc.responseTime}ms`)
+          logWarn(`Slow webhook response: ${doc.url} took ${doc.responseTime}ms`)
         }
       },
     ],

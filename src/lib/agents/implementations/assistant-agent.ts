@@ -4,6 +4,7 @@
 import { BaseAgent } from '../base-agent'
 import type { AgentRequest, AgentResponse } from '../types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * FlowMasters Assistant Agent
  * Provides general help and guidance about the FlowMasters platform
@@ -102,7 +103,7 @@ FlowMasters - это комплексная платформа для автом
 
       return response
     } catch (error) {
-      console.error('FlowMasters Assistant error:', error)
+      logError('FlowMasters Assistant error:', error)
       return this.createErrorResponse(error)
     }
   }

@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { cn } from '@/utilities/cn'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface OptimizedImageProps {
   src: string
   alt: string
@@ -228,7 +229,7 @@ export const useImagePreloader = (urls: string[], maxConcurrent = 2) => {
       try {
         await preloadImage(url)
       } catch (error) {
-        console.warn('Failed to preload image:', error)
+        logWarn('Failed to preload image:', error)
       }
     }
 

@@ -3,6 +3,7 @@ import { getAuth } from '../../helpers/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { z } from 'zod'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Schema for validating request parameters
 const requestParamsSchema = z.object({
   id: z.string().min(1, 'Project ID is required'),
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   try {
     // Await params before accessing its properties
     const { id } = await params
-    console.log(`GET /api/service-projects/${id}: Received request`)
+    logDebug(`GET /api/service-projects/${id}: Received request`)
 
     // Получаем пользователя из запроса
     const { user, error: authError } = await getAuth(req)
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }, { status: 401 })
     }
 
-    console.log(`GET /api/service-projects/${id}: Processing request for user ${user.id}`)
+    logDebug(`GET /api/service-projects/${id}: Processing request for user ${user.id}`)
 
     // Validate and parse request parameters
     let validatedId: string
@@ -36,9 +37,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         id,
       })
       validatedId = validated.id
-      console.log(`GET /api/service-projects/${id}: Validated ID: ${validatedId}`)
+      logDebug(`GET /api/service-projects/${id}: Validated ID: ${validatedId}`)
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -47,14 +48,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     // Get the Payload client
-    console.log(`GET /api/service-projects/${id}: Getting Payload client`)
+    logDebug(`GET /api/service-projects/${id}: Getting Payload client`)
     const payload = await getPayloadClient()
 
     // Log available collections for debugging
-    console.log('GET /api/service-projects: Available collections:', Object.keys(payload.collections))
+    logDebug('GET /api/service-projects: Available collections:', Object.keys(payload.collections))
 
     // Проверяем доступ пользователя к проекту
-    console.log(`GET /api/service-projects/${id}: Fetching project from database`)
+    logDebug(`GET /api/service-projects/${id}: Fetching project from database`)
 
     try {
       const projectResponse = await payload.find({
@@ -79,10 +80,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         depth: 2, // Включаем связанные объекты
       })
 
-      console.log(`GET /api/service-projects/${id}: Found ${projectResponse.totalDocs} projects`)
+      logDebug(`GET /api/service-projects/${id}: Found ${projectResponse.totalDocs} projects`)
 
       if (projectResponse.totalDocs === 0) {
-        console.log(`GET /api/service-projects/${id}: Project not found or access denied`)
+        logDebug(`GET /api/service-projects/${id}: Project not found or access denied`)
         return NextResponse.json({
           error: 'Project not found or access denied',
           details: 'The requested project does not exist or you do not have permission to view it'
@@ -90,19 +91,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
 
       // Возвращаем данные проекта
-      console.log(`GET /api/service-projects/${id}: Returning project data`)
+      logDebug(`GET /api/service-projects/${id}: Returning project data`)
       return NextResponse.json(projectResponse.docs[0])
     } catch (findError) {
-      console.error(`GET /api/service-projects/${id}: Error finding project:`, findError)
+      logError(`GET /api/service-projects/${id}: Error finding project:`, findError)
 
       // Check if it's a collection not found error
       const errorMessage = findError instanceof Error ? findError.message : 'Unknown error'
       if (errorMessage.includes("can't be found") || errorMessage.includes("cannot find")) {
-        console.error('Collection not found error. Checking available collections...')
+        logError('Collection not found error. Checking available collections...')
 
         try {
           const collections = Object.keys(payload.collections)
-          console.error('Available collections:', collections)
+          logError('Available collections:', collections)
 
           return NextResponse.json({
             error: 'Collection not found',
@@ -110,20 +111,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             availableCollections: collections
           }, { status: 404 })
         } catch (collectionCheckError) {
-          console.error('Error checking available collections:', collectionCheckError)
+          logError('Error checking available collections:', collectionCheckError)
         }
       }
 
       throw findError; // Re-throw to be caught by the main try-catch
     }
   } catch (error) {
-    console.error('Error fetching project details:', error)
+    logError('Error fetching project details:', error)
 
     // Возвращаем более подробную информацию об ошибке
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
 
-    console.error('Error details:', { message: errorMessage, stack: errorStack })
+    logError('Error details:', { message: errorMessage, stack: errorStack })
 
     return NextResponse.json({
       error: 'Failed to fetch project details',
@@ -137,7 +138,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     // Await params before accessing its properties
     const { id } = await params
-    console.log(`PATCH /api/service-projects/${id}: Received request`)
+    logDebug(`PATCH /api/service-projects/${id}: Received request`)
 
     // Получаем пользователя из запроса
     const { user, error: authError } = await getAuth(req)
@@ -151,7 +152,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }, { status: 401 })
     }
 
-    console.log(`PATCH /api/service-projects/${id}: Processing request for user ${user.id}`)
+    logDebug(`PATCH /api/service-projects/${id}: Processing request for user ${user.id}`)
 
     // Validate and parse request parameters
     let validatedId: string
@@ -160,9 +161,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         id,
       })
       validatedId = validated.id
-      console.log(`PATCH /api/service-projects/${id}: Validated ID: ${validatedId}`)
+      logDebug(`PATCH /api/service-projects/${id}: Validated ID: ${validatedId}`)
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -174,9 +175,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     let body;
     try {
       body = await req.json()
-      console.log(`PATCH /api/service-projects/${id}: Request body:`, body)
+      logDebug(`PATCH /api/service-projects/${id}: Request body:`, body)
     } catch (parseError) {
-      console.error('Error parsing request body:', parseError)
+      logError('Error parsing request body:', parseError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request body',
@@ -189,7 +190,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     // Валидируем статус проекта
     const validStatuses = ['new', 'in_progress', 'on_review', 'completed', 'cancelled']
     if (status && !validStatuses.includes(status)) {
-      console.log(`PATCH /api/service-projects/${id}: Invalid status value: ${status}`)
+      logDebug(`PATCH /api/service-projects/${id}: Invalid status value: ${status}`)
       return NextResponse.json({
         error: 'Invalid status value',
         details: `Status must be one of: ${validStatuses.join(', ')}`
@@ -197,16 +198,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     // Get the Payload client
-    console.log(`PATCH /api/service-projects/${id}: Getting Payload client`)
+    logDebug(`PATCH /api/service-projects/${id}: Getting Payload client`)
     const payload = await getPayloadClient()
 
     // Проверяем доступ пользователя к проекту и его право на изменение
     // (для простоты MVP, только исполнитель или администратор может менять статус)
     const isAdmin = user.roles?.includes('admin')
-    console.log(`PATCH /api/service-projects/${id}: User is admin: ${isAdmin}`)
+    logDebug(`PATCH /api/service-projects/${id}: User is admin: ${isAdmin}`)
 
     try {
-      console.log(`PATCH /api/service-projects/${id}: Checking user access to project`)
+      logDebug(`PATCH /api/service-projects/${id}: Checking user access to project`)
       const projectResponse = await payload.find({
         collection: 'service-projects',
         where: {
@@ -223,10 +224,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         },
       })
 
-      console.log(`PATCH /api/service-projects/${id}: Found ${projectResponse.totalDocs} projects`)
+      logDebug(`PATCH /api/service-projects/${id}: Found ${projectResponse.totalDocs} projects`)
 
       if (projectResponse.totalDocs === 0) {
-        console.log(`PATCH /api/service-projects/${id}: Project not found or access denied`)
+        logDebug(`PATCH /api/service-projects/${id}: Project not found or access denied`)
         return NextResponse.json({
           error: 'Project not found or access denied',
           details: 'The requested project does not exist or you do not have permission to update it'
@@ -234,7 +235,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
 
       // Обновляем статус проекта
-      console.log(`PATCH /api/service-projects/${id}: Updating project status to ${status}`)
+      logDebug(`PATCH /api/service-projects/${id}: Updating project status to ${status}`)
       const updatedProject = await payload.update({
         collection: 'service-projects',
         id: validatedId,
@@ -244,7 +245,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       })
 
       // Создаем системное сообщение об изменении статуса
-      console.log(`PATCH /api/service-projects/${id}: Creating system message about status change`)
+      logDebug(`PATCH /api/service-projects/${id}: Creating system message about status change`)
       await payload.create({
         collection: 'project-messages',
         data: {
@@ -255,19 +256,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         },
       })
 
-      console.log(`PATCH /api/service-projects/${id}: Project updated successfully`)
+      logDebug(`PATCH /api/service-projects/${id}: Project updated successfully`)
       return NextResponse.json(updatedProject)
     } catch (operationError) {
-      console.error(`PATCH /api/service-projects/${id}: Error during operation:`, operationError)
+      logError(`PATCH /api/service-projects/${id}: Error during operation:`, operationError)
 
       // Check if it's a collection not found error
       const errorMessage = operationError instanceof Error ? operationError.message : 'Unknown error'
       if (errorMessage.includes("can't be found") || errorMessage.includes("cannot find")) {
-        console.error('Collection not found error. Checking available collections...')
+        logError('Collection not found error. Checking available collections...')
 
         try {
           const collections = Object.keys(payload.collections)
-          console.error('Available collections:', collections)
+          logError('Available collections:', collections)
 
           return NextResponse.json({
             error: 'Collection not found',
@@ -275,20 +276,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             availableCollections: collections
           }, { status: 404 })
         } catch (collectionCheckError) {
-          console.error('Error checking available collections:', collectionCheckError)
+          logError('Error checking available collections:', collectionCheckError)
         }
       }
 
       throw operationError; // Re-throw to be caught by the main try-catch
     }
   } catch (error) {
-    console.error('Error updating project:', error)
+    logError('Error updating project:', error)
 
     // Возвращаем более подробную информацию об ошибке
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
 
-    console.error('Error details:', { message: errorMessage, stack: errorStack })
+    logError('Error details:', { message: errorMessage, stack: errorStack })
 
     return NextResponse.json({
       error: 'Failed to update project',

@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { getPayload } from 'payload'
 import config from '../../../../payload.config'
 import { TermsPage } from './components/TermsPage'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // We'll use the type from the component
 interface TermsPageType {
   id: string
@@ -55,14 +56,14 @@ export default async function Terms({ params }: Props) {
       limit: 10,
     })
     termsPages = result.docs as TermsPageType[]
-    console.log(`Found ${termsPages.length} terms pages for locale ${lang}`)
+    logDebug(`Found ${termsPages.length} terms pages for locale ${lang}`)
   } catch (error) {
-    console.log('Terms pages collection not found or empty, using fallback:', error)
+    logDebug('Terms pages collection not found or empty, using fallback:', error)
   }
 
   // Enhanced fallback data for testing with multiple tabs
   if (termsPages.length === 0) {
-    console.log('Using fallback data for terms pages')
+    logDebug('Using fallback data for terms pages')
     termsPages = [
       {
         id: '1',

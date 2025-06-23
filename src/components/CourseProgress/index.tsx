@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Progress } from '@/components/ui/progress'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseProgressProps {
   courseId: string
   className?: string
@@ -38,7 +39,7 @@ export const CourseProgress: React.FC<CourseProgressProps> = ({ courseId, classN
           setProgress(0)
         }
       } catch (err) {
-        console.error('Error fetching course progress:', err)
+        logError('Error fetching course progress:', err)
         setError('Failed to load progress')
       } finally {
         setIsLoading(false)

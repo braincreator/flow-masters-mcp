@@ -1,5 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs } from 'payload/database'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type OldLinkType = {
   link?: {
     type?: 'reference' | 'custom' | null;
@@ -41,7 +42,7 @@ export async function up({ payload }: MigrateUpArgs): Promise<void> {
         depth: 10,
       });
 
-      console.log(`Processing ${collectionSlug}...`);
+      logDebug(`Processing ${collectionSlug}...`);
 
       const docs = result?.docs || [];
 
@@ -98,19 +99,19 @@ export async function up({ payload }: MigrateUpArgs): Promise<void> {
               },
               depth: 0,
             });
-            console.log(`Updated ${collectionSlug} document: ${doc.id}`);
+            logDebug(`Updated ${collectionSlug} document: ${doc.id}`);
           }
         }
       }
     }
 
-    console.log('Action migration completed successfully');
+    logDebug('Action migration completed successfully');
   } catch (error) {
-    console.error('Error migrating actions:', error);
+    logError('Error migrating actions:', error);
     throw error;
   }
 }
 
 export async function down({ payload }: MigrateDownArgs): Promise<void> {
-  console.log('No down migration implemented');
+  logDebug('No down migration implemented');
 }

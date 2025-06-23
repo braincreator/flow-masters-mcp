@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Check database connection and provide diagnostic information
 export const checkDatabaseConnection = async (): Promise<{
   status: 'connected' | 'disconnected' | 'connecting' | 'disconnecting' | 'unknown'
@@ -57,23 +58,23 @@ export const checkDatabaseConnection = async (): Promise<{
 const enhanceMongooseConnection = () => {
   // Add connection event handlers
   mongoose.connection.on('error', (err) => {
-    console.error('MongoDB connection error:', err)
+    logError('MongoDB connection error:', err)
     // Implement reconnection logic
     setTimeout(() => {
-      console.log('Attempting to reconnect to MongoDB...')
+      logDebug('Attempting to reconnect to MongoDB...')
       mongoose.connect(process.env.DATABASE_URI!)
     }, 5000)
   })
 
   mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected. Attempting to reconnect...')
+    logDebug('MongoDB disconnected. Attempting to reconnect...')
     setTimeout(() => {
       mongoose.connect(process.env.DATABASE_URI!)
     }, 5000)
   })
 
   mongoose.connection.on('connected', () => {
-    console.log('Successfully connected to MongoDB')
+    logDebug('Successfully connected to MongoDB')
   })
 
   // Add connection timeout handling

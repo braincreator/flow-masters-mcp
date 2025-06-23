@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useField, Button, useConfig } from '@payloadcms/ui'
 import type { FieldClientComponent, UIField } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // const OrderActions: FieldClientComponent<UIField, any> = (props: FieldProps<void, UIField, any>) => { // Reverting this change
 const OrderActions: FieldClientComponent = (props) => {
   // Restoring to the state after your first fix
@@ -40,7 +41,7 @@ const OrderActions: FieldClientComponent = (props) => {
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred while processing the refund.' })
-      console.error('Refund error:', error)
+      logError('Refund error:', error)
     }
     setIsLoading(false)
   }
@@ -70,7 +71,7 @@ const OrderActions: FieldClientComponent = (props) => {
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred while processing the void.' })
-      console.error('Void error:', error)
+      logError('Void error:', error)
     }
     setIsLoading(false)
   }

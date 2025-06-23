@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     // Ensure params is awaited before accessing properties
@@ -19,7 +20,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     return NextResponse.json({ courses }, { status: 200 })
   } catch (error) {
-    console.error('Error getting user courses:', error)
+    logError('Error getting user courses:', error)
     return NextResponse.json(
       {
         courses: [],

@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 import crypto from 'crypto'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Handler for forgot password requests
  */
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in forgot password:', error)
+    logError('Error in forgot password:', error)
     return NextResponse.json(
       { message: 'An error occurred while processing your request' },
       { status: 500 },

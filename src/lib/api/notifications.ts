@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает уведомления пользователя
  * @param limit Максимальное количество уведомлений
@@ -19,18 +20,16 @@ export async function fetchNotifications(
     if (onlyUnread !== undefined) {
       apiUrl += `&onlyUnread=${onlyUnread}`
     }
-    console.log(`fetchNotifications: Запрос к API: ${apiUrl}`)
+    logDebug(`fetchNotifications: Запрос к API: ${apiUrl}`)
 
     const response = await fetchFromAPI(apiUrl)
 
-    console.log(
-      'fetchNotifications: Данные получены от API:',
-      Array.isArray(response) ? `Массив из ${response.length} уведомлений` : response,
+    logDebug('fetchNotifications: Данные получены от API:', Array.isArray(response) ? `Массив из ${response.length} уведомлений` : response,
     )
     
     return response
   } catch (error) {
-    console.error('Error fetching notifications:', error)
+    logError('Error fetching notifications:', error)
     throw error
   }
 }
@@ -46,7 +45,7 @@ export async function markNotificationAsRead(notificationId: string) {
     })
     return response
   } catch (error) {
-    console.error('Error marking notification as read:', error)
+    logError('Error marking notification as read:', error)
     throw error
   }
 }
@@ -61,7 +60,7 @@ export async function markAllNotificationsAsRead() {
     })
     return response
   } catch (error) {
-    console.error('Error marking all notifications as read:', error)
+    logError('Error marking all notifications as read:', error)
     throw error
   }
 }

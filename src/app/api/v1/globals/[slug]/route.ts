@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import configPromise from '@/payload.config'
 import { getPayload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const dynamic = 'force-dynamic'
 
 // Use { params: { slug: string } } for context type matching the directory structure
@@ -39,11 +40,11 @@ async function handler(req: Request, context: { params: Promise<{ slug: string }
           } else {
             // For JSON content type
             const text = await req.text()
-            console.log('Received raw body:', text) // Keep log for debugging updates
+            logDebug('Received raw body:', text) // Keep log for debugging updates
             body = text ? JSON.parse(text) : {}
           }
         } catch (e) {
-          console.error('Error parsing request body:', e)
+          logError('Error parsing request body:', e)
           return NextResponse.json(
             {
               message: 'Invalid request body',
@@ -55,16 +56,16 @@ async function handler(req: Request, context: { params: Promise<{ slug: string }
           )
         }
 
-        console.log('Parsed body:', body) // Keep log for debugging updates
+        logDebug('Parsed body:', body) // Keep log for debugging updates
 
         // Extract data from _payload if it exists (This might be specific to certain forms/setups)
         let updateData = body
         if (body && typeof body._payload === 'string') {
           try {
             updateData = JSON.parse(body._payload)
-            console.log('Extracted data from _payload:', updateData)
+            logDebug('Extracted data from _payload:', updateData)
           } catch (e) {
-            console.error('Error parsing _payload JSON:', e)
+            logError('Error parsing _payload JSON:', e)
             return NextResponse.json({ message: 'Invalid _payload format' }, { status: 400 })
           }
         }
@@ -95,7 +96,7 @@ async function handler(req: Request, context: { params: Promise<{ slug: string }
     }
   } catch (error: any) {
     // Log the detailed error on the server
-    console.error(
+    logError(
       `Globals handler error for slug '${context.params ? (await context.params).slug : 'unknown'}':`,
       error,
     )

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { fetchUserAchievements } from '@/lib/api/achievements'
 import Image from 'next/image'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type AchievementCategory = {
   total: number
   earned: number
@@ -66,7 +67,7 @@ export default function UserAchievements() {
           setActiveCategory(Object.keys(progress.categories)[0])
         }
       } catch (err) {
-        console.error('Error loading achievements:', err)
+        logError('Error loading achievements:', err)
         setError('Не удалось загрузить достижения')
       } finally {
         setLoading(false)

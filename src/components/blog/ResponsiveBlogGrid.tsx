@@ -11,6 +11,7 @@ import { Locale } from '@/constants'
 import { Search, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ResponsiveBlogGridProps {
   posts: BlogPost[]
   layout: 'grid' | 'list'
@@ -109,7 +110,7 @@ export function ResponsiveBlogGrid({
           >
             {regularPosts.map((post, index) => {
               if (!post || !post.id) {
-                console.warn('Skipping invalid post:', post)
+                logWarn('Skipping invalid post:', post)
                 return null
               }
 

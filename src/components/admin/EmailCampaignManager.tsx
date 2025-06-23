@@ -19,6 +19,7 @@ import { AppError } from '@/utilities/errorHandling'
 import { usePayloadAPI } from '@/hooks/usePayloadAPI'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Campaign {
   id: string
   name: string
@@ -97,7 +98,7 @@ const EmailCampaignManager: React.FC = () => {
 
       handleRefresh()
     } catch (error: unknown) {
-      console.error('Error triggering campaign:', error)
+      logError('Error triggering campaign:', error)
       if (error instanceof Error) {
         new AppError({ message: `Error: ${error.message}` }).notify()
       } else {
@@ -124,7 +125,7 @@ const EmailCampaignManager: React.FC = () => {
 
       handleRefresh()
     } catch (error: unknown) {
-      console.error('Error pausing campaign:', error)
+      logError('Error pausing campaign:', error)
       if (error instanceof Error) {
         new AppError({ message: `Error: ${error.message}` }).notify()
       } else {
@@ -147,7 +148,7 @@ const EmailCampaignManager: React.FC = () => {
       const campaignDetails = await response.json()
       setSelectedCampaign(campaignDetails)
     } catch (error: unknown) {
-      console.error('Error getting campaign details:', error)
+      logError('Error getting campaign details:', error)
       if (error instanceof Error) {
         new AppError({ message: `Error: ${error.message}` }).notify()
       } else {

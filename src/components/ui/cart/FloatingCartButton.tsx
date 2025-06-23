@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { Locale } from '@/constants'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface FloatingCartButtonProps {
   locale: Locale
   className?: string
@@ -42,7 +43,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
           setPosition(JSON.parse(savedPosition))
         }
       } catch (error) {
-        console.error('Error loading cart button position:', error)
+        logError('Error loading cart button position:', error)
       }
     }
   }, [])
@@ -128,7 +129,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
           try {
             localStorage.setItem('cartButtonPosition', JSON.stringify(position))
           } catch (error) {
-            console.error('Error saving cart button position:', error)
+            logError('Error saving cart button position:', error)
           }
         }
       }
@@ -217,7 +218,7 @@ export default function FloatingCartButton({ locale, className }: FloatingCartBu
         try {
           localStorage.setItem('cartButtonPosition', JSON.stringify(position))
         } catch (error) {
-          console.error('Error saving cart button position:', error)
+          logError('Error saving cart button position:', error)
         }
       }
     }

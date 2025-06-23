@@ -32,6 +32,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Category {
   id: string
   title: string
@@ -70,7 +71,7 @@ export default function CategoriesMigrationPage() {
       const data = await response.json()
       setCategories(data.docs)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      logError('Error fetching categories:', error)
       setResult({
         success: false,
         message: 'Failed to load categories. Please try again.',
@@ -147,7 +148,7 @@ export default function CategoriesMigrationPage() {
       setSelectedCategories({})
       setSelectAll(null)
     } catch (error) {
-      console.error('Error updating categories:', error)
+      logError('Error updating categories:', error)
       setResult({
         success: false,
         message: error.message || 'Failed to update categories. Please try again.',

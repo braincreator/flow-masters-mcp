@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { formatChatHistory, sanitizeMessage, containsProhibitedContent } from '@/utilities/chat'
 import { parseJsonSafely } from '@/utils/jsonFixer'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z
   .object({
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
         throw new Error('Не указан URL вебхука')
       }
 
-      console.log(`Отправка запроса на webhook: ${webhookUrl}`)
+      logDebug(`Отправка запроса на webhook: ${webhookUrl}`)
 
       const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
 
       // Проверяем ответ от вебхука
       if (!webhookResponse.ok) {
-        console.error(`Ошибка от вебхука: ${webhookResponse.status} ${webhookResponse.statusText}`)
+        logError(`Ошибка от вебхука: ${webhookResponse.status} ${webhookResponse.statusText}`)
 
         // Добавляем больше информации в ответ для отладки
         return NextResponse.json(
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
       responseData = await webhookResponse.json()
     } catch (error) {
       // Обрабатываем ошибки сети и другие исключения
-      console.error('Ошибка при подключении к вебхуку:', error)
+      logError('Ошибка при подключении к вебхуку:', error)
 
       return NextResponse.json(
         {
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
         { status: 502 },
       )
     }
-    console.log('Ответ от вебхука:', responseData)
+    logDebug('Ответ от вебхука:', responseData)
 
     // Определяем типы для наших данных
     type MessageButton = {
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
         if (parsedJson) {
           return parsedJson
         } else {
-          console.error('Не удалось распарсить JSON из markdown даже с исправлениями')
+          logError('Не удалось распарсить JSON из markdown даже с исправлениями')
           // Возвращаем оригинальный текст, если не удалось распарсить
           return text
         }
@@ -243,7 +244,7 @@ export async function POST(req: NextRequest) {
       processedData = responseData as unknown as ChatResponse
     }
 
-    console.log('Обработанные данные:', processedData)
+    logDebug('Обработанные данные:', processedData)
 
     // Возвращаем ответ клиенту
     return NextResponse.json({
@@ -257,7 +258,7 @@ export async function POST(req: NextRequest) {
       quickReplies: processedData.quickReplies,
     })
   } catch (error) {
-    console.error('Ошибка при обработке запроса chat:', error)
+    logError('Ошибка при обработке запроса chat:', error)
 
     return NextResponse.json(
       {

@@ -1,4 +1,5 @@
 import { NotificationType } from '@/providers/NotificationsProvider'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { NotificationStoredType } from '@/types/notifications' // Import the enum
 
 /**
@@ -33,14 +34,14 @@ export function mapDbTypeToUiType(dbType: string): NotificationType {
   console.log(`mapDbTypeToUiType: Получен тип "${dbType}"`)
 
   if (!dbType) {
-    console.warn('mapDbTypeToUiType: Получен пустой тип уведомления, используем info по умолчанию')
+    logWarn('mapDbTypeToUiType: Получен пустой тип уведомления, используем info по умолчанию')
     return 'info'
   }
 
   const uiType = DB_TO_UI_TYPE_MAP[dbType as NotificationStoredType]
 
   if (!uiType) {
-    console.warn(
+    logWarn(
       `mapDbTypeToUiType: Тип "${dbType}" не найден в карте соответствий, используем info по умолчанию`,
     )
     return 'info'

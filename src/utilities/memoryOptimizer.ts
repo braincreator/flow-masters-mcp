@@ -4,6 +4,7 @@
 
 import { memoryManager } from './memoryManager'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface MemoryOptimizerOptions {
   enableGarbageCollection?: boolean
   enableProcessOptimization?: boolean
@@ -65,7 +66,7 @@ class MemoryOptimizer {
 
     try {
       if (this.options.debug) {
-        console.log(`🚨 Critical memory optimization started: ${Math.round(stats.usage * 100)}%`)
+        logDebug(`🚨 Critical memory optimization started: ${Math.round(stats.usage * 100)}%`)
       }
 
       // 1. Принудительная очистка всех кэшей
@@ -91,10 +92,10 @@ class MemoryOptimizer {
       if (this.options.debug) {
         const newStats = process.memoryUsage()
         const newUsage = newStats.heapUsed / newStats.heapTotal
-        console.log(`✅ Critical optimization completed: ${Math.round(newUsage * 100)}%`)
+        logDebug(`✅ Critical optimization completed: ${Math.round(newUsage * 100)}%`)
       }
     } catch (error) {
-      console.error('Error during critical memory optimization:', error)
+      logError('Error during critical memory optimization:', error)
     } finally {
       this.isOptimizing = false
     }
@@ -108,7 +109,7 @@ class MemoryOptimizer {
 
     try {
       if (this.options.debug) {
-        console.log(`⚠️ High memory optimization: ${Math.round(stats.usage * 100)}%`)
+        logDebug(`⚠️ High memory optimization: ${Math.round(stats.usage * 100)}%`)
       }
 
       // Частичная очистка кэшей
@@ -121,7 +122,7 @@ class MemoryOptimizer {
         }, 500)
       }
     } catch (error) {
-      console.error('Error during high memory optimization:', error)
+      logError('Error during high memory optimization:', error)
     }
   }
 
@@ -131,7 +132,7 @@ class MemoryOptimizer {
   private async performEmergencyOptimization(): Promise<void> {
     try {
       if (this.options.debug) {
-        console.log('🆘 Emergency memory optimization triggered')
+        logDebug('🆘 Emergency memory optimization triggered')
       }
 
       // Очистка всех возможных ресурсов
@@ -145,7 +146,7 @@ class MemoryOptimizer {
         }
       }
     } catch (error) {
-      console.error('Error during emergency optimization:', error)
+      logError('Error during emergency optimization:', error)
     }
   }
 
@@ -183,7 +184,7 @@ class MemoryOptimizer {
       }
     } catch (error) {
       if (this.options.debug) {
-        console.warn('Error clearing Node globals:', error)
+        logWarn('Error clearing Node globals:', error)
       }
     }
   }
@@ -209,7 +210,7 @@ class MemoryOptimizer {
       }
     } catch (error) {
       if (this.options.debug) {
-        console.warn('Error optimizing process:', error)
+        logWarn('Error optimizing process:', error)
       }
     }
   }
@@ -237,7 +238,7 @@ class MemoryOptimizer {
       }
     } catch (error) {
       if (this.options.debug) {
-        console.warn('Error clearing resources:', error)
+        logWarn('Error clearing resources:', error)
       }
     }
   }

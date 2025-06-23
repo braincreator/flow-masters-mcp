@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface LeaderboardProps {
   limit?: number
   showPagination?: boolean
@@ -49,7 +50,7 @@ export default function Leaderboard({
           setUserRankData(rankData)
         }
       } catch (err) {
-        console.error('Error loading leaderboard:', err)
+        logError('Error loading leaderboard:', err)
         setError('Не удалось загрузить таблицу лидеров')
       } finally {
         setLoading(false)

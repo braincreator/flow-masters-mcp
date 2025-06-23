@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import OpenAI from 'openai'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для провайдеров и моделей
 export type AIProvider =
   | 'openai'
@@ -131,7 +132,7 @@ export class ProviderService implements AIProviderService {
           throw new Error(`Unsupported provider: ${provider}`)
       }
     } catch (error) {
-      console.error(`Error fetching models for provider ${provider}:`, error)
+      logError(`Error fetching models for provider ${provider}:`, error)
       // Возвращаем дефолтные модели в случае ошибки
       return this.getDefaultModels(provider)
     }
@@ -170,7 +171,7 @@ export class ProviderService implements AIProviderService {
             const data = await response.json()
             return data && data.models && data.models.length > 0
           } catch (error) {
-            console.error('Error validating Google API key:', error)
+            logError('Error validating Google API key:', error)
             return false
           }
         case 'deepseek':
@@ -224,7 +225,7 @@ export class ProviderService implements AIProviderService {
           return false
       }
     } catch (error) {
-      console.error(`Error validating API key for provider ${provider}:`, error)
+      logError(`Error validating API key for provider ${provider}:`, error)
       return false
     }
   }
@@ -347,7 +348,7 @@ export class ProviderService implements AIProviderService {
         return this.getDefaultModels('openai')
       }
     } catch (error) {
-      console.error('Error fetching OpenAI models:', error)
+      logError('Error fetching OpenAI models:', error)
       return this.getDefaultModels('openai')
     }
   }
@@ -355,26 +356,24 @@ export class ProviderService implements AIProviderService {
   private async getGoogleModels(apiKey?: string): Promise<AIModel[]> {
     try {
       // Для Google всегда требуется API ключ для получения списка моделей
-      console.log(
-        'getGoogleModels called with apiKey:',
-        apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined',
+      logDebug('getGoogleModels called with apiKey:', apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined',
       )
 
       if (apiKey) {
         try {
           // Если есть API ключ, пытаемся получить список моделей
           const url = `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`
-          console.log('Fetching Google models from URL:', url)
+          logDebug('Fetching Google models from URL:', url)
 
           const response = await fetch(url)
-          console.log('Google API response status:', response.status, response.statusText)
+          logDebug('Google API response status:', response.status, response.statusText)
 
           if (!response.ok) {
             throw new Error(`Failed to fetch Google models: ${response.statusText}`)
           }
 
           const data = (await response.json()) as { models: GoogleModel[] }
-          console.log('Google API response data:', data)
+          logDebug('Google API response data:', data)
 
           // Фильтруем только модели Gemini
           const googleModels = data.models
@@ -430,15 +429,15 @@ export class ProviderService implements AIProviderService {
               }
             })
 
-          console.log('Filtered Google models:', googleModels)
+          logDebug('Filtered Google models:', googleModels)
           return googleModels
         } catch (error) {
-          console.error('Error fetching Google models with API key:', error)
+          logError('Error fetching Google models with API key:', error)
           // Если произошла ошибка при запросе с API ключом, возвращаем дефолтные модели
         }
       }
 
-      console.log('Returning default Google models')
+      logDebug('Returning default Google models')
 
       // Если API ключ не предоставлен, возвращаем дефолтные модели
       return [
@@ -474,7 +473,7 @@ export class ProviderService implements AIProviderService {
         },
       ]
     } catch (error) {
-      console.error('Error fetching Google models:', error)
+      logError('Error fetching Google models:', error)
 
       // Если произошла ошибка, возвращаем дефолтные модели
       return [
@@ -560,7 +559,7 @@ export class ProviderService implements AIProviderService {
         ]
       }
     } catch (error) {
-      console.error('Error fetching DeepSeek models:', error)
+      logError('Error fetching DeepSeek models:', error)
       return [
         {
           id: 'deepseek-chat',
@@ -648,7 +647,7 @@ export class ProviderService implements AIProviderService {
 
       return openrouterModels
     } catch (error) {
-      console.error('Error fetching OpenRouter models:', error)
+      logError('Error fetching OpenRouter models:', error)
 
       // Если произошла ошибка, возвращаем дефолтные модели
       return [
@@ -782,7 +781,7 @@ export class ProviderService implements AIProviderService {
         ]
       }
     } catch (error) {
-      console.error('Error fetching Mistral models:', error)
+      logError('Error fetching Mistral models:', error)
       return [
         {
           id: 'mistral-large-2',
@@ -836,7 +835,7 @@ export class ProviderService implements AIProviderService {
         ]
       }
     } catch (error) {
-      console.error('Error fetching OpenAI Compatible models:', error)
+      logError('Error fetching OpenAI Compatible models:', error)
       return [
         {
           id: 'compatible-model',

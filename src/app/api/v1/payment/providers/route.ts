@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Default providers to use as fallback
 const DEFAULT_PROVIDERS = [
   {
@@ -44,7 +45,7 @@ export async function GET() {
       defaultProvider: settings.defaultProvider || (providers.length > 0 ? providers[0]?.id : null),
     })
   } catch (error) {
-    console.error('Error getting payment providers:', error)
+    logError('Error getting payment providers:', error)
 
     // In development, return a sample Robokassa provider without exposing credentials to client
     if (process.env.NODE_ENV === 'development') {

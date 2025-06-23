@@ -9,6 +9,7 @@ import { Loader2, RotateCcw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   useEmailNotificationPreferences,
   usePushNotificationPreferences,
@@ -78,7 +79,7 @@ export function NotificationSettings(_props: NotificationSettingsProps) {
       setSuccess(t('successMessage'))
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorMessage'))
-      console.error('Error updating notification settings:', err)
+      logError('Error updating notification settings:', err)
     }
   }
 
@@ -96,7 +97,7 @@ export function NotificationSettings(_props: NotificationSettingsProps) {
       setSuccess(t('resetSuccess'))
     } catch (err) {
       setError(err instanceof Error ? err.message : t('resetError'))
-      console.error('Error resetting notification preferences:', err)
+      logError('Error resetting notification preferences:', err)
     }
   }
 

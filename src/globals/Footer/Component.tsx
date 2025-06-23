@@ -8,6 +8,7 @@ import { Locale } from '@/constants'
 
 import { FooterClient } from './Component.client'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface FooterProps {
   locale?: Locale
 }
@@ -30,7 +31,7 @@ export async function Footer({ locale: propLocale }: FooterProps = {}) {
 
     return <FooterClient data={footerData as PayloadGlobalResponse<Footer>} locale={locale} />
   } catch (error) {
-    console.error('Error loading footer:', error)
+    logError('Error loading footer:', error)
     return null // Or a fallback footer component
   }
 }

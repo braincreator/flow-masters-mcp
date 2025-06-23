@@ -1,6 +1,7 @@
 import { getPayloadClient } from '@/utilities/payload/index'
 import type { Payload } from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для данных воронки
 export interface EmailData {
   subject: string
@@ -61,7 +62,7 @@ export class FunnelService {
           }
         } catch (error) {
           // Если коллекция не существует, создаем новую воронку
-          console.warn('Funnels collection might not exist:', error.message)
+          logWarn('Funnels collection might not exist:', error.message)
           return this.createFunnel(funnelData, courseTitle, locale)
         }
       }
@@ -133,7 +134,7 @@ export class FunnelService {
         return funnel
       } catch (error) {
         // Если коллекция не существует, возвращаем данные
-        console.warn('Funnels collection might not exist:', error.message)
+        logWarn('Funnels collection might not exist:', error.message)
         return {
           id: funnelId,
           name: funnelData.name,
@@ -143,7 +144,7 @@ export class FunnelService {
         }
       }
     } catch (error) {
-      console.error('Error updating funnel:', error)
+      logError('Error updating funnel:', error)
       throw error
     }
   }
@@ -182,7 +183,7 @@ export class FunnelService {
         return emailTemplate
       } catch (error) {
         // Если коллекция не существует, возвращаем данные
-        console.warn('EmailTemplates collection might not exist:', error.message)
+        logWarn('EmailTemplates collection might not exist:', error.message)
         return {
           id,
           name,
@@ -191,7 +192,7 @@ export class FunnelService {
         }
       }
     } catch (error) {
-      console.error('Error updating email template:', error)
+      logError('Error updating email template:', error)
       throw error
     }
   }
@@ -253,7 +254,7 @@ export class FunnelService {
         })
         .catch((error) => {
           // Если коллекция не существует, просто возвращаем данные
-          console.warn('Funnels collection might not exist:', error.message)
+          logWarn('Funnels collection might not exist:', error.message)
           return {
             name: funnelData.name,
             course: funnelData.courseId,
@@ -264,7 +265,7 @@ export class FunnelService {
 
       return funnel
     } catch (error) {
-      console.error('Error creating funnel:', error)
+      logError('Error creating funnel:', error)
       throw error
     }
   }
@@ -299,7 +300,7 @@ export class FunnelService {
         })
         .catch((error) => {
           // Если коллекция не существует, просто возвращаем данные
-          console.warn('EmailTemplates collection might not exist:', error.message)
+          logWarn('EmailTemplates collection might not exist:', error.message)
           return {
             id: `template_${Date.now()}`,
             name,
@@ -310,7 +311,7 @@ export class FunnelService {
 
       return emailTemplate
     } catch (error) {
-      console.error('Error creating email template:', error)
+      logError('Error creating email template:', error)
       throw error
     }
   }

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Gets the current user from Payload CMS
  * @returns The user object or null if not authenticated
@@ -43,7 +44,7 @@ export async function getServerSession() {
 
       user = currentUser
     } catch (error) {
-      console.error('Error fetching user session:', error)
+      logError('Error fetching user session:', error)
       return null
     }
 
@@ -63,7 +64,7 @@ export async function getServerSession() {
       user,
     }
   } catch (error) {
-    console.error('Authentication error:', error)
+    logError('Authentication error:', error)
     return null
   }
 }

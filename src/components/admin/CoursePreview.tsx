@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/accordion'
 import LandingPreview from './LandingPreview'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CoursePreviewProps {
   courseData: any
 }
@@ -19,13 +20,13 @@ interface CoursePreviewProps {
 export function CoursePreview({ courseData }: CoursePreviewProps) {
   // Проверяем наличие данных
   if (!courseData) {
-    console.error('CoursePreview: courseData is undefined or null')
+    logError('CoursePreview: courseData is undefined or null')
     return <div>Нет данных для предпросмотра</div>
   }
 
   // Проверяем наличие данных курса
   if (!courseData.course) {
-    console.error('CoursePreview: courseData.course is undefined or null')
+    logError('CoursePreview: courseData.course is undefined or null')
     return <div>Структура данных курса некорректна</div>
   }
 
@@ -62,7 +63,7 @@ export function CoursePreview({ courseData }: CoursePreviewProps) {
 function CoursePreviewContent({ course }: { course: any }) {
   // Проверяем наличие обязательных полей
   if (!course) {
-    console.error('CoursePreviewContent: course is undefined or null')
+    logError('CoursePreviewContent: course is undefined or null')
     return <div>Нет данных курса</div>
   }
 
@@ -199,7 +200,7 @@ function CoursePreviewContent({ course }: { course: any }) {
 function LandingPreviewContent({ landing }: { landing: any }) {
   // Проверяем наличие обязательных полей
   if (!landing) {
-    console.error('LandingPreviewContent: landing is undefined or null')
+    logError('LandingPreviewContent: landing is undefined or null')
     return <div>Нет данных лендинга</div>
   }
 
@@ -317,7 +318,7 @@ function LandingPreviewContent({ landing }: { landing: any }) {
 function FunnelPreviewContent({ funnel }: { funnel: any }) {
   // Проверяем наличие обязательных полей
   if (!funnel) {
-    console.error('FunnelPreviewContent: funnel is undefined or null')
+    logError('FunnelPreviewContent: funnel is undefined or null')
     return <div>Нет данных воронки</div>
   }
 

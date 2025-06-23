@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuth } from '../../helpers/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Reorder milestones
 export async function PATCH(req: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error reordering milestones:', error)
+    logError('Error reordering milestones:', error)
     return NextResponse.json({ error: 'Failed to reorder milestones' }, { status: 500 })
   }
 }

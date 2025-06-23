@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -11,7 +12,7 @@ const __dirname = path.dirname(__filename)
  */
 async function addRewardEmailCampaign() {
   try {
-    console.log('Adding reward email campaign to the database...')
+    logDebug('Adding reward email campaign to the database...')
     const payload = await getPayloadClient()
 
     // Check if templates exist
@@ -25,7 +26,7 @@ async function addRewardEmailCampaign() {
     })
 
     if (templates.docs.length < 4) {
-      console.error(
+      logError(
         'Required email templates not found. Please run add-reward-email-templates.js first.',
       )
       return
@@ -86,7 +87,7 @@ async function addRewardEmailCampaign() {
         data: awardedCampaign,
       })
 
-      console.log(`Added campaign: ${awardedCampaign.name}`)
+      logDebug(`Added campaign: ${awardedCampaign.name}`)
     }
 
     // Create campaign for reward.expiring event
@@ -130,12 +131,12 @@ async function addRewardEmailCampaign() {
         data: expiringCampaign,
       })
 
-      console.log(`Added campaign: ${expiringCampaign.name}`)
+      logDebug(`Added campaign: ${expiringCampaign.name}`)
     }
 
-    console.log('All reward email campaigns added successfully!')
+    logDebug('All reward email campaigns added successfully!')
   } catch (error) {
-    console.error('Error adding reward email campaigns:', error)
+    logError('Error adding reward email campaigns:', error)
   }
 }
 
@@ -143,6 +144,6 @@ async function addRewardEmailCampaign() {
 addRewardEmailCampaign()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('Script failed:', error)
+    logError('Script failed:', error)
     process.exit(1)
   })

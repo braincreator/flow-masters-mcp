@@ -1,11 +1,75 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, memo } from 'react'
 import { usePathname } from 'next/navigation'
 import PixelManager from '@/components/PixelManager'
 import { usePixelPageView } from '@/hooks/usePixelEvents'
 import { InteractionTracker } from '@/components/Analytics/ButtonTracker'
 import { useCookieConsent } from '@/hooks/useCookieConsent'
+
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
+
+/**
+ * Определяет тип страницы на основе pathname
+ */
+function determinePageType(pathname: string): string {
+  // Главная страница
+  if (pathname === '/' || pathname === '/home') {
+    return 'home'
+  }
+
+  // Страницы продуктов и услуг
+  if (pathname.startsWith('/products') || pathname.includes('product')) {
+    return 'products'
+  }
+
+  if (pathname.startsWith('/services') || pathname.includes('service')) {
+    return 'services'
+  }
+
+  // Блог и статьи
+  if (pathname.startsWith('/blog') || pathname.startsWith('/posts') || pathname.includes('article')) {
+    return 'blog'
+  }
+
+  // Контакты
+  if (pathname.startsWith('/contact') || pathname.includes('contact')) {
+    return 'contacts'
+  }
+
+  // О нас
+  if (pathname.startsWith('/about') || pathname.includes('about')) {
+    return 'about'
+  }
+
+  // Формы
+  if (pathname.includes('form') || pathname.includes('application')) {
+    return 'forms'
+  }
+
+  // Оплата и заказы
+  if (pathname.includes('checkout') || pathname.includes('payment') || pathname.includes('order')) {
+    return 'checkout'
+  }
+
+  // Страницы благодарности
+  if (pathname.includes('thank') || pathname.includes('success') || pathname.includes('complete')) {
+    return 'thank_you'
+  }
+
+  // Курсы и обучение
+  if (pathname.includes('course') || pathname.includes('training') || pathname.includes('education')) {
+    return 'courses'
+  }
+
+  // Лендинги
+  if (pathname.includes('landing') || pathname.includes('promo')) {
+    return 'landing'
+  }
+
+  // По умолчанию
+  return 'all'
+}
 
 interface AnalyticsLayoutProps {
   children: React.ReactNode
@@ -15,17 +79,13 @@ interface AnalyticsLayoutProps {
  * Layout компонент для интеграции аналитики и пикселей
  * Автоматически загружает пиксели и отслеживает просмотры страниц
  */
-export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
+const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
   const pathname = usePathname()
   const { trackPageView } = usePixelPageView()
   const { hasAnalytics, hasMarketing, hasPreferences } = useCookieConsent()
-  const [currentPage, setCurrentPage] = useState('all')
 
-  // Определяем тип текущей страницы
-  useEffect(() => {
-    const page = determinePageType(pathname)
-    setCurrentPage(page)
-  }, [pathname])
+  // Мемоизируем определение типа страницы
+  const currentPage = useMemo(() => determinePageType(pathname), [pathname])
 
   // Отслеживаем просмотры страниц при изменении маршрута
   useEffect(() => {
@@ -39,8 +99,11 @@ export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
     }
   }, [pathname, hasAnalytics, hasMarketing, currentPage, trackPageView])
 
-  // Определяем, нужно ли загружать пиксели
-  const shouldLoadPixels = hasAnalytics || hasMarketing || hasPreferences
+  // Мемоизируем определение загрузки пикселей
+  const shouldLoadPixels = useMemo(() =>
+    hasAnalytics || hasMarketing || hasPreferences,
+    [hasAnalytics, hasMarketing, hasPreferences]
+  )
 
   return (
     <>
@@ -58,69 +121,8 @@ export default function AnalyticsLayout({ children }: AnalyticsLayoutProps) {
       {shouldLoadPixels && <InteractionTracker />}
     </>
   )
-}
+})
 
-/**
- * Определяет тип страницы на основе pathname
- */
-function determinePageType(pathname: string): string {
-  // Главная страница
-  if (pathname === '/' || pathname === '/home') {
-    return 'home'
-  }
-  
-  // Страницы продуктов и услуг
-  if (pathname.startsWith('/products') || pathname.includes('product')) {
-    return 'products'
-  }
-  
-  if (pathname.startsWith('/services') || pathname.includes('service')) {
-    return 'services'
-  }
-  
-  // Блог и статьи
-  if (pathname.startsWith('/blog') || pathname.startsWith('/posts') || pathname.includes('article')) {
-    return 'blog'
-  }
-  
-  // Контакты
-  if (pathname.startsWith('/contact') || pathname.includes('contact')) {
-    return 'contacts'
-  }
-  
-  // О нас
-  if (pathname.startsWith('/about') || pathname.includes('about')) {
-    return 'about'
-  }
-  
-  // Формы
-  if (pathname.includes('form') || pathname.includes('application')) {
-    return 'forms'
-  }
-  
-  // Оплата и заказы
-  if (pathname.includes('checkout') || pathname.includes('payment') || pathname.includes('order')) {
-    return 'checkout'
-  }
-  
-  // Страницы благодарности
-  if (pathname.includes('thank') || pathname.includes('success') || pathname.includes('complete')) {
-    return 'thank_you'
-  }
-  
-  // Курсы и обучение
-  if (pathname.includes('course') || pathname.includes('training') || pathname.includes('education')) {
-    return 'courses'
-  }
-  
-  // Лендинги
-  if (pathname.includes('landing') || pathname.includes('promo')) {
-    return 'landing'
-  }
-  
-  // По умолчанию
-  return 'all'
-}
 
 /**
  * Хук для отслеживания событий конверсии
@@ -158,15 +160,15 @@ export function useConversionTracking() {
               const func = new Function(script)
               func()
             } catch (error) {
-              console.warn('Failed to execute conversion script:', error)
+              logWarn('Failed to execute conversion script:', error)
             }
           })
         }
 
-        console.log(`Conversion "${conversionType}" tracked in ${result.pixelsTriggered} pixels`)
+        logInfo(`Conversion "${conversionType}" tracked in ${result.pixelsTriggered} pixels`)
       }
     } catch (error) {
-      console.error('Error tracking conversion:', error)
+      logError('Error tracking conversion:', error)
     }
   }
 
@@ -200,3 +202,5 @@ export function ConversionTracker({
 
   return null // Компонент невидимый
 }
+
+export default AnalyticsLayout

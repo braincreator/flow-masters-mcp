@@ -38,6 +38,7 @@ import { Label } from '@/components/ui/label'
 import NotificationItem from '@/components/Notifications/NotificationItem'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Notification {
   id: string
   title: string
@@ -86,7 +87,7 @@ export default function NotificationCenter() {
   const loadNotifications = useCallback(
     async (page: number, unreadOnly: boolean, isLoadMoreAction = false) => {
       if (!refetchNotificationsRef.current) {
-        console.error('NotificationCenter - refetchNotifications is not available')
+        logError('NotificationCenter - refetchNotifications is not available')
         return
       }
 
@@ -96,17 +97,15 @@ export default function NotificationCenter() {
         setDisplayedNotifications([])
       }
 
-      console.log(
-        `NotificationCenter - Loading notifications. Page: ${page}, UnreadOnly: ${unreadOnly}, IsLoadMore: ${isLoadMoreAction}`,
-      )
+      logDebug(`NotificationCenter - Loading notifications. Page: ${page}, UnreadOnly: ${unreadOnly}, IsLoadMore: ${isLoadMoreAction}`,  )
 
       try {
         // Передаем параметры page и unreadOnly
         await refetchNotificationsRef.current(page, unreadOnly)
-        console.log('NotificationCenter - Notifications loaded successfully')
+        logDebug('NotificationCenter - Notifications loaded successfully')
         setInitialLoadDone(true)
       } catch (fetchError) {
-        console.error('Error in loadNotifications:', fetchError)
+        logError('Error in loadNotifications:', fetchError)
       }
 
       if (isLoadMoreAction) {
@@ -118,7 +117,7 @@ export default function NotificationCenter() {
 
   useEffect(() => {
     if (user && initialLoadDone === false) {
-      console.log('NotificationCenter - Initial load. Fetching page 1. Unread:', showOnlyUnread)
+      logDebug('NotificationCenter - Initial load. Fetching page 1. Unread:', showOnlyUnread)
       loadNotifications(1, showOnlyUnread)
     }
   }, [user, initialLoadDone, loadNotifications])
@@ -157,7 +156,7 @@ export default function NotificationCenter() {
   // Обновляем существующий эффект, который загружает уведомления при изменении фильтра
   useEffect(() => {
     if (user && initialLoadDone === false) {
-      console.log('NotificationCenter - Initial load. Fetching page 1. Unread:', showOnlyUnread)
+      logDebug('NotificationCenter - Initial load. Fetching page 1. Unread:', showOnlyUnread)
 
       // Определяем параметр status для API
       const status = showOnlyUnread ? 'unread' : undefined
@@ -165,7 +164,7 @@ export default function NotificationCenter() {
       if (refetchNotificationsRef.current) {
         refetchNotificationsRef
           .current(1, showOnlyUnread, status)
-          .catch((error) => console.error('Error loading notifications on mount:', error))
+          .catch((error) => logError('Error loading notifications on mount:', error))
       }
     }
   }, [user, initialLoadDone, showOnlyUnread, refetchNotificationsRef])
@@ -173,9 +172,7 @@ export default function NotificationCenter() {
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
     if (open && user) {
-      console.log(
-        'NotificationCenter - Dropdown opened, refreshing. Page 1, Unread:',
-        showOnlyUnread,
+      logDebug('NotificationCenter - Dropdown opened, refreshing. Page 1, Unread:', showOnlyUnread,
       )
 
       setCurrentPage(1)
@@ -194,8 +191,8 @@ export default function NotificationCenter() {
       if (refetchNotificationsRef.current) {
         refetchNotificationsRef
           .current(1, showOnlyUnread, status)
-          .then(() => console.log('NotificationCenter - Notifications refreshed on open'))
-          .catch((error) => console.error('Error refreshing notifications on open:', error))
+          .then(() => logDebug('NotificationCenter - Notifications refreshed on open'))
+          .catch((error) => logError('Error refreshing notifications on open:', error))
       }
     }
   }
@@ -205,9 +202,7 @@ export default function NotificationCenter() {
       const nextPage = currentPage + 1
       setCurrentPage(nextPage)
 
-      console.log(
-        'NotificationCenter - Loading more. Next Page:',
-        nextPage,
+      logDebug('NotificationCenter - Loading more. Next Page:', nextPage,
         'Unread:',
         showOnlyUnread,
       )
@@ -221,22 +216,22 @@ export default function NotificationCenter() {
         refetchNotificationsRef
           .current(nextPage, showOnlyUnread, status)
           .then(() => {
-            console.log('NotificationCenter - Additional notifications loaded successfully')
+            logDebug('NotificationCenter - Additional notifications loaded successfully')
             setIsFetchingMore(false)
           })
           .catch((error) => {
-            console.error('Error loading more notifications:', error)
+            logError('Error loading more notifications:', error)
             setIsFetchingMore(false)
           })
       } else {
-        console.error('NotificationCenter - refetchNotifications is not available for loading more')
+        logError('NotificationCenter - refetchNotifications is not available for loading more')
         setIsFetchingMore(false)
       }
     }
   }
 
   const toggleShowOnlyUnread = async (checked: boolean) => {
-    console.log('NotificationCenter - Toggling unread filter:', checked)
+    logDebug('NotificationCenter - Toggling unread filter:', checked)
 
     // Показываем состояние загрузки
     setIsLoadingInitial(true)
@@ -271,7 +266,7 @@ export default function NotificationCenter() {
       }
 
       const data = await response.json()
-      console.log('NotificationCenter - Получены новые отфильтрованные уведомления:', data)
+      logDebug('NotificationCenter - Получены новые отфильтрованные уведомления:', data)
 
       // Обновляем отображаемые уведомления
       if (data && data.items) {
@@ -288,9 +283,9 @@ export default function NotificationCenter() {
         await refetchNotificationsRef.current(1, checked, status || undefined)
       }
 
-      console.log('NotificationCenter - Фильтр успешно применен')
+      logDebug('NotificationCenter - Фильтр успешно применен')
     } catch (error) {
-      console.error('Ошибка при применении фильтра:', error)
+      logError('Ошибка при применении фильтра:', error)
     } finally {
       // Завершаем загрузку
       setIsLoadingInitial(false)
@@ -302,7 +297,7 @@ export default function NotificationCenter() {
     try {
       await markAsRead(notificationId)
     } catch (err) {
-      console.error('Error marking notification as read:', err)
+      logError('Error marking notification as read:', err)
     }
   }
 
@@ -310,7 +305,7 @@ export default function NotificationCenter() {
     try {
       await markAllAsRead()
     } catch (err) {
-      console.error('Error marking all notifications as read:', err)
+      logError('Error marking all notifications as read:', err)
     }
   }
 
@@ -357,14 +352,14 @@ export default function NotificationCenter() {
           notification.messageParams || {},
         )
         if (translated === keyWithoutNamespace || translated === notification.messageKey) {
-          console.warn(
+          logWarn(
             `Translation not found for messageKey: ${keyWithoutNamespace} (original: ${notification.messageKey}) in NotificationBodies. Displaying key.`,
           )
           return notification.messageKey
         }
         return translated
       } catch (e) {
-        console.warn(
+        logWarn(
           `Error translating messageKey: ${keyWithoutNamespace} in NotificationBodies. Falling back to raw key or message.`,
           e,
         )
@@ -389,7 +384,7 @@ export default function NotificationCenter() {
     try {
       await markAsRead(id)
     } catch (err) {
-      console.error('Error marking notification as read:', err)
+      logError('Error marking notification as read:', err)
     }
   }
 
@@ -508,7 +503,7 @@ export default function NotificationCenter() {
                       try {
                         await markAsRead(notification.id)
                       } catch (error) {
-                        console.error('Error marking notification as read on click:', error)
+                        logError('Error marking notification as read on click:', error)
                       }
                     }
 

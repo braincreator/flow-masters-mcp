@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyWebhookSignature } from '@/utilities/auth'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: Request) {
   try {
     // Verify webhook signature
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Webhook error:', error)
+    logError('Webhook error:', error)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
 }

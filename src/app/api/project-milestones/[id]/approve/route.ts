@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuth } from '../../../helpers/auth'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { user } = await getAuth(req)
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(updatedMilestone)
   } catch (error) {
-    console.error('Error approving milestone:', error)
+    logError('Error approving milestone:', error)
     return NextResponse.json({ error: 'Failed to approve milestone' }, { status: 500 })
   }
 }

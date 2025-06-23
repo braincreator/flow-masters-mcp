@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Save, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   Select,
   SelectContent,
@@ -45,7 +46,7 @@ export function PersonalInfoTab({ user, onUpdate }: PersonalInfoTabProps) {
     try {
       await onUpdate(data)
     } catch (error) {
-      console.error('Failed to update profile:', error)
+      logError('Failed to update profile:', error)
     } finally {
       setIsLoading(false)
     }

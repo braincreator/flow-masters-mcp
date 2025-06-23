@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для тестирования событий и подписок
  * POST /api/events/test - тестирует подписку или webhook
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error testing event:', error)
+    logError('Error testing event:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

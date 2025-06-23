@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, ZoomIn, ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ImageGalleryProps {
   images: Array<{ id: string; url: string; alt: string }>
   className?: string
@@ -43,7 +44,7 @@ export function ImageGallery({ images: rawImages, className, locale = 'en' }: Im
 
   const handleImageError = () => {
     setIsLoading(false)
-    console.error('Failed to load image:', images[currentIndex]?.url)
+    logError('Failed to load image:', images[currentIndex]?.url)
   }
 
   // Text for no images
@@ -165,7 +166,7 @@ export function ImageGallery({ images: rawImages, className, locale = 'en' }: Im
                   alt={image.alt || ''}
                   fill
                   className="object-cover"
-                  onError={() => console.error('Thumbnail failed to load:', image.url)}
+                  onError={() => logError('Thumbnail failed to load:', image.url)}
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center bg-muted">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCache } from '@/providers/CacheProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UseCachedFetchOptions {
   // Cache expiration in milliseconds
   cacheTime?: number
@@ -75,7 +76,7 @@ export function useCachedFetch<T>(
       cache.set<T>(url, result, cacheTime)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'))
-      console.error(`Error fetching ${url}:`, err)
+      logError(`Error fetching ${url}:`, err)
     } finally {
       setIsLoading(false)
     }

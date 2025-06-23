@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * GET /api/v1/service-projects/:id
  * Get a specific service project by ID
@@ -13,17 +14,17 @@ export async function GET(
   try {
     // Await params before accessing its properties
     const { id } = await params
-    console.log(`[GET /api/v1/service-projects/${id}] Request received`)
+    logDebug(`[GET /api/v1/service-projects/${id}] Request received`)
     
     // Get the current user session
     const session = await getServerSession()
     if (!session?.user?.id) {
-      console.error(`[GET /api/v1/service-projects/${id}] Authentication required`)
+      logError(`[GET /api/v1/service-projects/${id}] Authentication required`)
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     if (!id) {
-      console.error(`[GET /api/v1/service-projects/${id}] Project ID is required`)
+      logError(`[GET /api/v1/service-projects/${id}] Project ID is required`)
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 })
     }
 
@@ -31,7 +32,7 @@ export async function GET(
     const userId = session.user.id
     const isAdmin = session.user.isAdmin || session.user.roles?.includes('admin')
 
-    console.log(`[GET /api/v1/service-projects/${id}] User ID: ${userId}, isAdmin: ${isAdmin}`)
+    logDebug(`[GET /api/v1/service-projects/${id}] User ID: ${userId}, isAdmin: ${isAdmin}`)
 
     // Build the query to find the project
     // If user is admin, they can access any project
@@ -58,7 +59,7 @@ export async function GET(
       ]
     }
 
-    console.log(`[GET /api/v1/service-projects/${id}] Query:`, JSON.stringify(query))
+    logDebug(`[GET /api/v1/service-projects/${id}] Query:`, JSON.stringify(query))
 
     // Find the project
     const projectResponse = await payload.find({
@@ -68,10 +69,10 @@ export async function GET(
       limit: 1,
     })
 
-    console.log(`[GET /api/v1/service-projects/${id}] Found ${projectResponse.totalDocs} projects`)
+    logDebug(`[GET /api/v1/service-projects/${id}] Found ${projectResponse.totalDocs} projects`)
 
     if (projectResponse.totalDocs === 0) {
-      console.error(`[GET /api/v1/service-projects/${id}] Project not found or access denied`)
+      logError(`[GET /api/v1/service-projects/${id}] Project not found or access denied`)
       return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 })
     }
 
@@ -80,7 +81,7 @@ export async function GET(
   } catch (error) {
     // Get the id safely for error logging
     const id = params?.id ? await params.id : 'unknown'
-    console.error(`[GET /api/v1/service-projects/${id}] Error:`, error)
+    logError(`[GET /api/v1/service-projects/${id}] Error:`, error)
     return NextResponse.json(
       { error: 'Failed to fetch project details' },
       { status: 500 }

@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { QuickAutomationBuilderAgent } from '@/lib/agents/implementations/automation-agent'
 import type { AgentRequest } from '@/lib/agents/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const automationAgent = new QuickAutomationBuilderAgent()
 
 /**
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Automation agent error:', error)
+    logError('Automation agent error:', error)
     return NextResponse.json(
       { 
         success: false,

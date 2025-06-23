@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/useContexts'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define checkout steps
 export type CheckoutStep =
   | 'cart'
@@ -294,7 +295,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
         return true
       } catch (err) {
-        console.error('Error applying coupon:', err)
+        logError('Error applying coupon:', err)
         setError(err instanceof Error ? err : new Error('Failed to apply coupon'))
 
         toast.error('Failed to apply coupon', {
@@ -391,7 +392,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
       return true
     } catch (err) {
-      console.error('Error placing order:', err)
+      logError('Error placing order:', err)
       setError(err instanceof Error ? err : new Error('Failed to place order'))
 
       toast.error('Failed to place order', {

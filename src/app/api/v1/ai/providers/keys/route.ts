@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getProviderService, AIProvider } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса для сохранения ключа
 const saveKeySchema = z.object({
   provider: z.enum([
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       message: `API key for ${validatedData.provider} saved successfully`,
     })
   } catch (error) {
-    console.error('Error saving API key:', error)
+    logError('Error saving API key:', error)
     return NextResponse.json(
       {
         success: false,
@@ -120,7 +121,7 @@ export async function DELETE(request: NextRequest) {
       message: `API key for ${validatedData.provider} deleted successfully`,
     })
   } catch (error) {
-    console.error('Error deleting API key:', error)
+    logError('Error deleting API key:', error)
     return NextResponse.json(
       {
         success: false,
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest) {
       hasKey: !!apiKey,
     })
   } catch (error) {
-    console.error('Error checking API key:', error)
+    logError('Error checking API key:', error)
     return NextResponse.json(
       {
         success: false,

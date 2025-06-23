@@ -7,6 +7,7 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const aiPlans = [
   {
     name: 'Стартер',
@@ -169,11 +170,11 @@ const aiPlans = [
 ]
 
 async function createAIPlans() {
-  console.log('💰 Creating AI Agency subscription plans...')
+  logDebug('💰 Creating AI Agency subscription plans...')
   
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     for (const planData of aiPlans) {
       try {
@@ -208,15 +209,15 @@ async function createAIPlans() {
           data: planData
         })
 
-        console.log(`✅ Created plan: ${plan.name} (${plan.id})`)
+        logDebug(`✅ Created plan: ${plan.name} (${plan.id})`)
       } catch (error) {
-        console.error(`❌ Error creating plan "${planData.name}":`, error)
+        logError(`❌ Error creating plan "${planData.name}":`, error)
       }
     }
 
-    console.log('🎉 AI Agency subscription plans creation completed!')
+    logDebug('🎉 AI Agency subscription plans creation completed!')
   } catch (error) {
-    console.error('❌ Error:', error)
+    logError('❌ Error:', error)
     process.exit(1)
   }
 }

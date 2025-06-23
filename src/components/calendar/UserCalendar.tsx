@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, Plus, Calendar as CalendarIcon, Clock, MapPin, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Event {
   id: string
   title: string
@@ -90,7 +91,7 @@ export function UserCalendar({ locale }: UserCalendarProps) {
           }, 500)
         }
       } catch (error) {
-        console.error('Error fetching events:', error)
+        logError('Error fetching events:', error)
       } finally {
         setLoading(false)
       }

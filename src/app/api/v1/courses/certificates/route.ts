@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Schema for certificate generation request
 const certificateRequestSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, certificate }, { status: 200 })
   } catch (error) {
-    console.error('Error generating certificate:', error)
+    logError('Error generating certificate:', error)
     return NextResponse.json(
       {
         success: false,
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ certificates }, { status: 200 })
   } catch (error) {
-    console.error('Error getting certificates:', error)
+    logError('Error getting certificates:', error)
     return NextResponse.json(
       {
         certificates: [],

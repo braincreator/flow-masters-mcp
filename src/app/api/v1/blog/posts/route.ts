@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
     const authorId = searchParams.get('author') || ''
     const searchQuery = searchParams.get('search') || ''
 
-    console.log('[Blog Posts API] Request params:', {
+    logDebug('[Blog Posts API] Request params:', {
       page,
       limit,
       locale,
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
           where.categories = { in: [categories.docs[0].id] }
         }
       } catch (error) {
-        console.error('[Blog Posts API] Error finding category:', error)
+        logError('[Blog Posts API] Error finding category:', error)
       }
     }
 
@@ -72,7 +73,7 @@ export async function GET(req: NextRequest) {
           where.tags = { in: [tags.docs[0].id] }
         }
       } catch (error) {
-        console.error('[Blog Posts API] Error finding tag:', error)
+        logError('[Blog Posts API] Error finding tag:', error)
       }
     }
 
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
       where.authors = { in: [authorId] }
     }
 
-    console.log('[Blog Posts API] Where clause:', JSON.stringify(where, null, 2))
+    logDebug('[Blog Posts API] Where clause:', JSON.stringify(where, null, 2))
 
     // Fetch posts
     const posts = await payload.find({
@@ -94,11 +95,11 @@ export async function GET(req: NextRequest) {
       locale
     })
 
-    console.log('[Blog Posts API] Found posts:', posts.docs.length)
+    logDebug('[Blog Posts API] Found posts:', posts.docs.length)
 
     return NextResponse.json(posts)
   } catch (error) {
-    console.error('[Blog Posts API] Error:', error)
+    logError('[Blog Posts API] Error:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch blog posts',

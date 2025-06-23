@@ -8,6 +8,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables
 dotenv.config()
 
@@ -246,7 +247,7 @@ const sampleTemplate = `
 // Function to create templates in Payload CMS
 async function createTemplates() {
   try {
-    console.log('Starting template creation...')
+    logDebug('Starting template creation...')
 
     // Import Payload and config
     const { default: payload } = await import('payload')
@@ -260,7 +261,7 @@ async function createTemplates() {
       local: true,
     })
 
-    console.log('Connected to Payload CMS')
+    logDebug('Connected to Payload CMS')
 
     // Get default sender email
     const senderEmails = await payload.find({
@@ -276,7 +277,7 @@ async function createTemplates() {
 
     // Process each template
     for (const template of templates) {
-      console.log(`Processing template: ${template.name} (${template.slug})`)
+      logDebug(`Processing template: ${template.name} (${template.slug})`)
 
       try {
         // Check if template already exists
@@ -297,7 +298,7 @@ async function createTemplates() {
 
         // Create or update template in CMS
         if (existingTemplate.docs.length > 0) {
-          console.log(`Updating existing template: ${template.slug}`)
+          logDebug(`Updating existing template: ${template.slug}`)
 
           await payload.update({
             collection: 'email-templates',
@@ -314,7 +315,7 @@ async function createTemplates() {
             },
           })
         } else {
-          console.log(`Creating new template: ${template.slug}`)
+          logDebug(`Creating new template: ${template.slug}`)
 
           await payload.create({
             collection: 'email-templates',
@@ -333,28 +334,28 @@ async function createTemplates() {
           })
         }
 
-        console.log(`Successfully processed template: ${template.slug}`)
+        logDebug(`Successfully processed template: ${template.slug}`)
       } catch (error) {
-        console.error(`Error processing template ${template.slug}:`, error)
+        logError(`Error processing template ${template.slug}:`, error)
       }
     }
 
-    console.log('Template sync completed')
+    logDebug('Template sync completed')
 
     // Disconnect from Payload
     await payload.disconnect()
   } catch (error) {
-    console.error('Error creating templates:', error)
+    logError('Error creating templates:', error)
   }
 }
 
 // Run the function
 createTemplates()
   .then(() => {
-    console.log('Script completed successfully')
+    logDebug('Script completed successfully')
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Script failed:', error)
+    logError('Script failed:', error)
     process.exit(1)
   })

@@ -2,11 +2,12 @@
 
 import { useCallback } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 export const useToast = () => {
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
-    console.log(`[Toast] ${type}: ${message}`)
+    logDebug(`[Toast] ${type}: ${message}`)
 
     // In a real implementation, you would show a toast notification
     // This is a minimal implementation for development

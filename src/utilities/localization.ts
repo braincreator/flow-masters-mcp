@@ -24,6 +24,7 @@ const localeCache = new LRUCache({
 
 // Register cache with memory manager for automatic cleanup
 import { memoryManager } from './memoryManager'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 memoryManager.registerCache(localeCache)
 
 export const cleanupLocaleCache = () => {
@@ -85,7 +86,7 @@ export const getLocalizedContent = async (
     if (!content && useFallback && locale !== DEFAULT_LOCALE) {
       content = await fetchLocalizedContent(collection, docId, DEFAULT_LOCALE)
       if (content) {
-        console.debug(`Using fallback locale ${DEFAULT_LOCALE} for ${collection}:${docId}`)
+        logDebug(`Using fallback locale ${DEFAULT_LOCALE} for ${collection}:${docId}`)
       }
     }
 
@@ -121,7 +122,7 @@ export const getLocalizedContentBatch = async (
       try {
         return await getLocalizedContent(collection, docId, locale)
       } catch (error) {
-        console.error(`Batch localization failed for ${collection}:${docId}:${locale}`)
+        logError(`Batch localization failed for ${collection}:${docId}:${locale}`)
         return null
       }
     }),
@@ -137,7 +138,7 @@ export const preloadCommonContent = async () => {
     for (const locale of SUPPORTED_LOCALES) {
       preloadTasks.push(
         getLocalizedContent(collection, 'main', locale).catch((error) =>
-          console.error(`Preload failed for ${collection}:${locale}`, error),
+          logError(`Preload failed for ${collection}:${locale}`, error),
         ),
       )
     }
@@ -149,8 +150,8 @@ export const preloadCommonContent = async () => {
 // Add cache warming on startup
 if (typeof process !== 'undefined') {
   preloadCommonContent()
-    .then(() => console.log('Common content preloaded'))
-    .catch((error) => console.error('Failed to preload common content:', error))
+    .then(() => logDebug('Common content preloaded'))
+    .catch((error) => logError('Failed to preload common content:', error))
 }
 
 export const persistCache = async () => {
@@ -158,9 +159,9 @@ export const persistCache = async () => {
     const cacheData = Array.from(localeCache.entries())
     await fs.mkdir(path.dirname(CACHE_FILE), { recursive: true })
     await fs.writeFile(CACHE_FILE, JSON.stringify(cacheData))
-    console.log('Locale cache persisted successfully')
+    logDebug('Locale cache persisted successfully')
   } catch (error) {
-    console.error('Failed to persist locale cache:', error)
+    logError('Failed to persist locale cache:', error)
   }
 }
 
@@ -171,9 +172,9 @@ export const loadPersistedCache = async () => {
     for (const [key, value] of cacheData) {
       localeCache.set(key, value)
     }
-    console.log('Loaded persisted locale cache')
+    logDebug('Loaded persisted locale cache')
   } catch (error) {
-    console.error('Failed to load persisted locale cache:', error)
+    logError('Failed to load persisted locale cache:', error)
   }
 }
 

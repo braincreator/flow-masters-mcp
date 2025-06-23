@@ -5,6 +5,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 import { generateSecurePassword } from '@/utilities/generatePassword'
 import { PaymentService } from '@/services/payment.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Определяем интерфейсы для типизации
 interface CartItem {
   productId?: string
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
+      logError('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
       const serviceRegistry = ServiceRegistry.getInstance(payload)
       paymentService = serviceRegistry.getPaymentService()
     } catch (error) {
-      console.error('Failed to initialize PaymentService:', error)
+      logError('Failed to initialize PaymentService:', error)
       return NextResponse.json({ error: 'Payment service unavailable' }, { status: 503 })
     }
 
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
     try {
       requestData = await req.json()
     } catch (error) {
-      console.error('Failed to parse request body:', error)
+      logError('Failed to parse request body:', error)
       return NextResponse.json({ error: 'Invalid request format' }, { status: 400 })
     }
 
@@ -125,7 +126,7 @@ export async function POST(req: Request) {
         })
         productsData = result as { docs: Product[] }
       } catch (error) {
-        console.error('Failed to fetch products:', error)
+        logError('Failed to fetch products:', error)
         return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
       }
     }
@@ -145,7 +146,7 @@ export async function POST(req: Request) {
         })
         servicesData = result as { docs: Service[] }
       } catch (error) {
-        console.error('Failed to fetch services:', error)
+        logError('Failed to fetch services:', error)
         return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
       }
     }
@@ -238,12 +239,12 @@ export async function POST(req: Request) {
               },
             })
           } catch (forgotPasswordError) {
-            console.error('Failed to send password reset email:', forgotPasswordError)
+            logError('Failed to send password reset email:', forgotPasswordError)
             // Не блокируем создание заказа из-за проблем с отправкой email
           }
         }
       } catch (userError) {
-        console.error('Failed to find or create user:', userError)
+        logError('Failed to find or create user:', userError)
         return NextResponse.json({ error: 'Failed to process customer data' }, { status: 500 })
       }
 
@@ -352,7 +353,7 @@ export async function POST(req: Request) {
           },
         })
       } catch (orderError) {
-        console.error('Failed to create order:', orderError)
+        logError('Failed to create order:', orderError)
 
         // Special case for integration errors - if it's just an integration error,
         // we should still be able to access the created order
@@ -361,7 +362,7 @@ export async function POST(req: Request) {
           orderError.message &&
           orderError.message.includes('integrations')
         ) {
-          console.warn('Integration error during order creation, but order might have been created')
+          logWarn('Integration error during order creation, but order might have been created')
           // Try to retrieve the just-created order by orderNumber
           try {
             // Use the same utility function for consistent order number generation
@@ -377,12 +378,12 @@ export async function POST(req: Request) {
 
             if (orderResult.docs.length > 0) {
               order = orderResult.docs[0]
-              console.log('Successfully retrieved order despite integration error')
+              logDebug('Successfully retrieved order despite integration error')
             } else {
               throw new Error('Could not find created order')
             }
           } catch (retrievalError) {
-            console.error('Failed to retrieve order after integration error:', retrievalError)
+            logError('Failed to retrieve order after integration error:', retrievalError)
             throw orderError // Rethrow the original error
           }
         } else {
@@ -391,7 +392,7 @@ export async function POST(req: Request) {
         }
       }
     } catch (error) {
-      console.error('Failed to create order:', error)
+      logError('Failed to create order:', error)
       return NextResponse.json(
         {
           error:
@@ -424,7 +425,7 @@ export async function POST(req: Request) {
       }
 
       // Используем ID провайдера из CMS
-      console.log(`Creating payment with providerId:`, providerId)
+      logDebug(`Creating payment with providerId:`, providerId)
 
       // Определяем целевую валюту на основе локали
       const targetCurrency = customer.locale === 'ru' ? 'RUB' : 'USD'
@@ -459,7 +460,7 @@ export async function POST(req: Request) {
         paymentUrl: paymentResultData.confirmationUrl,
       }
     } catch (error) {
-      console.error('Failed to create payment:', error)
+      logError('Failed to create payment:', error)
 
       // If payment creation failed, update order status
       try {
@@ -486,7 +487,7 @@ export async function POST(req: Request) {
           })
         }
       } catch (updateError) {
-        console.error('Failed to update order status after payment failure:', updateError)
+        logError('Failed to update order status after payment failure:', updateError)
       }
 
       return NextResponse.json(
@@ -504,7 +505,7 @@ export async function POST(req: Request) {
 
       // Если у нас есть rawResponse, извлекаем из него детали ошибки
       if (paymentResult.rawResponse) {
-        console.log('Payment raw response:', JSON.stringify(paymentResult.rawResponse, null, 2))
+        logDebug('Payment raw response:', JSON.stringify(paymentResult.rawResponse, null, 2))
 
         // Проверяем, есть ли в ответе детальная информация об ошибке
         if (typeof paymentResult.rawResponse === 'object') {
@@ -549,10 +550,10 @@ export async function POST(req: Request) {
           })
         }
       } catch (updateError) {
-        console.error('Failed to update order status after payment failure:', updateError)
+        logError('Failed to update order status after payment failure:', updateError)
       }
 
-      console.error(
+      logError(
         `Payment creation API returning 400. paymentResult.success: ${paymentResult.success}, paymentResult.status (from provider): ${paymentResult.status}, paymentResult.paymentUrl: ${paymentResult.paymentUrl}, orderId: ${order?.id}`,
       );
       return NextResponse.json(
@@ -573,7 +574,7 @@ export async function POST(req: Request) {
       paymentUrl: paymentResult.paymentUrl,
     })
   } catch (error) {
-    console.error('Payment creation error:', error)
+    logError('Payment creation error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',

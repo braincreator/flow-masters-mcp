@@ -17,6 +17,7 @@ import { revalidateContent } from '../utilities/revalidation'
 // Import unstable_cache from next/cache
 import { unstable_cache } from 'next/cache'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export class ProductService extends BaseService {
   private static instance: ProductService | null = null
   private integrationService: IntegrationService
@@ -53,7 +54,7 @@ export class ProductService extends BaseService {
         })
       }
     } catch (error) {
-      console.error('Failed to trigger event:', error)
+      logError('Failed to trigger event:', error)
       // Don't throw here to prevent product creation from failing
     }
   }
@@ -88,7 +89,7 @@ export class ProductService extends BaseService {
 
       return product
     } catch (error) {
-      console.error('Failed to create product:', error)
+      logError('Failed to create product:', error)
       throw error
     }
   }
@@ -139,7 +140,7 @@ export class ProductService extends BaseService {
 
       return product
     } catch (error) {
-      console.error('Failed to update product:', error)
+      logError('Failed to update product:', error)
       throw error
     }
   }
@@ -169,7 +170,7 @@ export class ProductService extends BaseService {
         payload: this.payload,
       })
     } catch (error) {
-      console.error('Failed to delete product:', error)
+      logError('Failed to delete product:', error)
       throw error
     }
   }
@@ -195,7 +196,7 @@ export class ProductService extends BaseService {
       }
       return product
     } catch (error) {
-      console.error(`Cache error for product ${id}:`, error)
+      logError(`Cache error for product ${id}:`, error)
       return this.fetchProduct(id)
     }
   }
@@ -208,7 +209,7 @@ export class ProductService extends BaseService {
       })
       return product
     } catch (error) {
-      console.error(`Failed to fetch product ${id}:`, error)
+      logError(`Failed to fetch product ${id}:`, error)
       throw new Error(
         `Product fetch failed: ${error instanceof Error ? error.message : String(error)}`,
       )
@@ -227,7 +228,7 @@ export class ProductService extends BaseService {
         this.cache.delete(id)
       }
     } catch (error) {
-      console.error(`Background revalidation failed for product ${id}:`, error)
+      logError(`Background revalidation failed for product ${id}:`, error)
     } finally {
       this.revalidationQueue.delete(id)
     }
@@ -252,7 +253,7 @@ export class ProductService extends BaseService {
 
       return (result.docs[0] as Product) || null
     } catch (error) {
-      console.error('Failed to find product by slug:', error)
+      logError('Failed to find product by slug:', error)
       return null
     }
   }
@@ -289,7 +290,7 @@ export class ProductService extends BaseService {
 
       return response
     } catch (error) {
-      console.error('Failed to find products:', error)
+      logError('Failed to find products:', error)
       throw error
     }
   }
@@ -320,7 +321,7 @@ export class ProductService extends BaseService {
             averagePrice,
           }
         } catch (error) {
-          console.error('Failed to get product stats:', error)
+          logError('Failed to get product stats:', error)
           throw error
         }
       },
@@ -360,7 +361,7 @@ export class ProductService extends BaseService {
 
       return result as Product
     } catch (error) {
-      console.error('Failed to update product thumbnail:', error)
+      logError('Failed to update product thumbnail:', error)
       throw error
     }
   }
@@ -378,7 +379,7 @@ export class ProductService extends BaseService {
       }
       return product
     } catch (error) {
-      console.error(`Failed to get product ${id}:`, error)
+      logError(`Failed to get product ${id}:`, error)
       throw error
     }
   }
@@ -417,7 +418,7 @@ export class ProductService extends BaseService {
 
       return result.docs as Product[]
     } catch (error) {
-      console.error('Failed to get related products:', error)
+      logError('Failed to get related products:', error)
       return []
     }
   }

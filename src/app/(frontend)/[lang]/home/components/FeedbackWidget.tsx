@@ -6,6 +6,7 @@ import { MessageCircle, X, Star, Send, ThumbsUp, ThumbsDown } from 'lucide-react
 import { useAnalytics } from '@/providers/AnalyticsProvider'
 import { cn } from '@/lib/utils'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface FeedbackData {
   type: 'rating' | 'suggestion' | 'bug' | 'general'
   rating?: number
@@ -70,7 +71,7 @@ export function FeedbackWidget() {
 
       setStep('success')
     } catch (error) {
-      console.error('Failed to submit feedback:', error)
+      logError('Failed to submit feedback:', error)
     } finally {
       setIsSubmitting(false)
     }

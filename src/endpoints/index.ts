@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fixProductCategories } from './seed/add-products'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type NextApiEndpoint = Record<
   string,
   (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void
@@ -20,7 +21,7 @@ export default (payload: Payload): NextApiEndpoint => {
         await fixProductCategories(payload)
         res.status(200).json({ success: true, message: 'Product categories fixed' })
       } catch (error) {
-        console.error('Error fixing product categories:', error)
+        logError('Error fixing product categories:', error)
         res.status(500).json({
           success: false,
           message: 'Failed to fix product categories',

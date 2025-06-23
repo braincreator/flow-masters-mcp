@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getProviderService } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации запроса
 const requestSchema = z.object({
   provider: z.enum([
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
       isValid,
     })
   } catch (error) {
-    console.error('Error validating API key:', error)
+    logError('Error validating API key:', error)
     return NextResponse.json(
       {
         success: false,

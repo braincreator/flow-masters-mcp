@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { useRouter, usePathname } from 'next/navigation'
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define locale information
 export interface LocaleInfo {
   code: Locale
@@ -67,7 +68,7 @@ export function LocaleProvider({
   const setLocale = useCallback(
     (newLocale: Locale) => {
       if (!SUPPORTED_LOCALES.includes(newLocale)) {
-        console.warn(
+        logWarn(
           `Locale ${newLocale} is not supported. Using default locale ${DEFAULT_LOCALE} instead.`,
         )
         newLocale = DEFAULT_LOCALE

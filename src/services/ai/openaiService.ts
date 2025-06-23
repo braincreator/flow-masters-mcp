@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для запросов к OpenAI
 export interface GenerateCourseParams {
   topic: string
@@ -130,7 +131,7 @@ ${includeFunnel ? 'Также создай email-воронку для прод�
 
       return JSON.parse(content)
     } catch (error) {
-      console.error('Error generating course with OpenAI:', error)
+      logError('Error generating course with OpenAI:', error)
       throw error
     }
   }

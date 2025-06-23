@@ -22,6 +22,7 @@ interface User {
 }
 import { Badge } from '@/components/ui/badge'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface IntegrationSettingsProps {
   user: User
   locale: string
@@ -89,7 +90,7 @@ export function IntegrationSettings({ user: _user, locale: _locale }: Integratio
       setSuccess('Integration updated successfully')
     } catch (err) {
       setError('Failed to update integration')
-      console.error('Error updating integration:', err)
+      logError('Error updating integration:', err)
     } finally {
       setIsLoading(false)
     }

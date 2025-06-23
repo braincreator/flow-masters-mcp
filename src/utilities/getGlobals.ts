@@ -3,6 +3,7 @@ import { LRUCache } from 'lru-cache'
 import { getPayloadClient, retryOnSessionExpired } from './payload/index'
 import { memoryManager } from './memoryManager'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Strongly type the globals
 type GlobalSlug = 'header' | 'footer' | 'navigation'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,12 +64,12 @@ async function getGlobal({ slug, depth = 1, locale }: GetGlobalOptions): Promise
 
     return global
   } catch (error) {
-    console.error(`Error fetching global ${slug}:`, error)
+    logError(`Error fetching global ${slug}:`, error)
     // Check cache on error
     const cacheKey = `global-${slug}-${locale}-${depth}`
     const cachedData = globalCache.get(cacheKey)
     if (cachedData) {
-      console.log(`Serving cached data for ${slug} due to error`)
+      logDebug(`Serving cached data for ${slug} due to error`)
       return cachedData
     }
     throw error

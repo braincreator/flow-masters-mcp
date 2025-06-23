@@ -41,6 +41,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/utilities/ui'
 import { useMilestones, MilestoneItem, MilestoneFormData } from '@/providers/MilestonesProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Form validation schema
 const milestoneFormSchema = z
   .object({
@@ -163,7 +164,7 @@ export function MilestoneFormModal({
 
       onClose()
     } catch (error) {
-      console.error('Error submitting milestone form:', error)
+      logError('Error submitting milestone form:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -177,7 +178,7 @@ export function MilestoneFormModal({
       await deleteMilestone(milestone.id)
       onClose()
     } catch (error) {
-      console.error('Error deleting milestone:', error)
+      logError('Error deleting milestone:', error)
     } finally {
       setIsSubmitting(false)
       setShowDeleteConfirm(false)

@@ -2,6 +2,7 @@ import { Payload } from 'payload'
 // Assessment and AssessmentSubmission might not exist yet in types
 import { User, Course, /* Assessment, AssessmentSubmission, */ CourseEnrollment, Certificate } from '@/payload-types'
 import { ServiceRegistry } from '../service.registry'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { EmailService } from '../email.service' // Ensure only one import
 
 export interface EnrollmentData {
@@ -44,13 +45,13 @@ export class EnrollmentService {
         if (enrollment) {
           // If active or completed, just return it
           if (enrollment.status === 'active' || enrollment.status === 'completed') {
-            console.log(`User ${data.userId} already actively enrolled in course ${data.courseId}.`)
+            logDebug(`User ${data.userId} already actively enrolled in course ${data.courseId}.`)
             return enrollment
           }
 
           // If expired, reactivate it
           if (enrollment.status === 'expired') {
-            console.log(`Reactivating expired enrollment for user ${data.userId} in course ${data.courseId}.`)
+            logDebug(`Reactivating expired enrollment for user ${data.userId} in course ${data.courseId}.`)
             const reactivatedEnrollment = await this.payload.update({
               collection: 'course-enrollments',
               id: enrollment.id,
@@ -73,7 +74,7 @@ export class EnrollmentService {
       }
 
       // Create new enrollment if no suitable existing one found
-      console.log(`Creating new enrollment for user ${data.userId} in course ${data.courseId}.`)
+      logDebug(`Creating new enrollment for user ${data.userId} in course ${data.courseId}.`)
       const newEnrollment = await this.payload.create({
         collection: 'course-enrollments',
         data: {
@@ -145,21 +146,21 @@ export class EnrollmentService {
                 locale: user.locale || 'en',
               })
             } catch (emailError) {
-              console.error(`Failed to send enrollment confirmation email to ${user.email}:`, emailError)
+              logError(`Failed to send enrollment confirmation email to ${user.email}:`, emailError)
             }
           } else {
-            if (!emailService) console.error('EmailService not available.')
-            if (!user) console.error(`User ${data.userId} not found for enrollment email.`)
-            if (!course) console.error(`Course ${data.courseId} not found for enrollment email.`)
+            if (!emailService) logError('EmailService not available.')
+            if (!user) logError(`User ${data.userId} not found for enrollment email.`)
+            if (!course) logError(`Course ${data.courseId} not found for enrollment email.`)
           }
         }
       } catch (eventError) {
-        console.error('Error processing enrollment events (achievement/notification/email):', eventError)
+        logError('Error processing enrollment events (achievement/notification/email):', eventError)
       }
 
       return newEnrollment
     } catch (error) {
-      console.error('Error enrolling user in course:', error)
+      logError('Error enrolling user in course:', error)
       throw error
     }
   }
@@ -184,26 +185,26 @@ export class EnrollmentService {
       // --- 2. Check Admin Access (Readability & Best Practices) ---
       // Admins have universal access. Check this first for a quick exit.
       if (user?.roles?.includes('admin')) {
-        // console.log(`User ${userId} has admin access to course ${courseId}.`); // Optional: uncomment for debugging
+        // logDebug(`User ${userId} has admin access to course ${courseId}.`); // Optional: uncomment for debugging
         return true;
       }
 
       // --- 3. Check Course Existence and Free Access (Readability & Best Practices) ---
       // If the course doesn't exist, access is impossible.
       if (!course) {
-        console.warn(`Course ${courseId} not found during access check for user ${userId}. Access denied.`);
+        logWarn(`Course ${courseId} not found during access check for user ${userId}. Access denied.`);
         return false;
       }
       // If the course is free, grant access immediately.
       if (course.accessType === 'free') {
-        // console.log(`Course ${courseId} is free. Granting access to user ${userId}.`); // Optional: uncomment for debugging
+        // logDebug(`Course ${courseId} is free. Granting access to user ${userId}.`); // Optional: uncomment for debugging
         return true;
       }
 
       // --- 4. Placeholder for Subscription Check (Readability & Maintainability) ---
       // Structure allows easy addition of subscription logic later without disrupting flow.
       if (course.accessType === 'subscription') {
-        console.warn(`Subscription access check for course ${courseId} (user ${userId}) is not implemented yet.`);
+        logWarn(`Subscription access check for course ${courseId} (user ${userId}) is not implemented yet.`);
         // TODO: Implement subscription check logic here.
         // This might involve checking user subscriptions against course requirements.
         // For now, we assume no access via subscription if not implemented.
@@ -234,14 +235,14 @@ export class EnrollmentService {
         if (enrollment) {
           // If expiresAt is null/undefined, access is considered permanent for this enrollment.
           if (!enrollment.expiresAt) {
-            // console.log(`User ${userId} has an active, non-expiring enrollment for course ${courseId}.`); // Optional: uncomment for debugging
+            // logDebug(`User ${userId} has an active, non-expiring enrollment for course ${courseId}.`); // Optional: uncomment for debugging
             return true;
           }
           // Compare current time with expiration date. new Date() handles ISO strings.
           const now = new Date();
           const expiresAt = new Date(enrollment.expiresAt);
           if (now < expiresAt) {
-            // console.log(`User ${userId} has an active, valid enrollment for course ${courseId} (expires: ${enrollment.expiresAt}).`); // Optional: uncomment for debugging
+            // logDebug(`User ${userId} has an active, valid enrollment for course ${courseId} (expires: ${enrollment.expiresAt}).`); // Optional: uncomment for debugging
             return true;
           } else {
             // console.log(`User ${userId}'s enrollment for course ${courseId} has expired (expired: ${enrollment.expiresAt}).`); // Optional: uncomment for debugging
@@ -252,13 +253,13 @@ export class EnrollmentService {
 
       // --- 6. No Access Found ---
       // If none of the above conditions (admin, free, active/valid enrollment) are met.
-      // console.log(`User ${userId} does not have access to course ${courseId}.`); // Optional: uncomment for debugging
+      // logDebug(`User ${userId} does not have access to course ${courseId}.`); // Optional: uncomment for debugging
       return false;
 
     } catch (error: unknown) { // Explicitly type error (Best Practices)
       // --- 7. Error Handling (Robustness & Error Handling) ---
       // Log the error for debugging purposes. Using error.message if it's an Error instance.
-      console.error(
+      logError(
         `Error checking course access for user ${userId}, course ${courseId}:`,
         error instanceof Error ? error.message : error,
       );
@@ -306,7 +307,7 @@ export class EnrollmentService {
       const uniqueCourses = Array.from(new Map(allAccessibleCourses.map((c) => [c.id, c])).values())
       return uniqueCourses
     } catch (error) {
-      console.error(`Error getting user courses for user ${userId}:`, error)
+      logError(`Error getting user courses for user ${userId}:`, error)
       return []
     }
   }
@@ -332,13 +333,13 @@ export class EnrollmentService {
       })
 
       if (enrollments.docs.length === 0) {
-        console.warn(`No active enrollment found for user ${userId} in course ${courseId} to update progress.`)
+        logWarn(`No active enrollment found for user ${userId} in course ${courseId} to update progress.`)
         return null
       }
 
       const enrollment = enrollments.docs[0]
       if (!enrollment) {
-        console.error('Enrollment record null/undefined unexpectedly after length check.')
+        logError('Enrollment record null/undefined unexpectedly after length check.')
         return null
       }
 
@@ -417,7 +418,7 @@ export class EnrollmentService {
                   metadata: { courseId, courseName: course?.title, progressPercentage: milestone },
                 })
               } catch (milestoneError) {
-                console.error(`Error sending ${milestone}% progress notification:`, milestoneError)
+                logError(`Error sending ${milestone}% progress notification:`, milestoneError)
               }
             }
           }
@@ -466,19 +467,19 @@ export class EnrollmentService {
                     canComplete = true
                   } else {
                     // Using optional chaining for score access in log
-                    console.log(`User ${userId} reached 100% in course ${courseId}, but did not pass final assessment ${assessmentId}. Score: ${latestSubmission?.score}, Required: ${assessment.passingScore}`)
+                    logDebug(`User ${userId} reached 100% in course ${courseId}, but did not pass final assessment ${assessmentId}. Score: ${latestSubmission?.score}, Required: ${assessment.passingScore}`)
                   }
                 } else {
-                  console.log(`User ${userId} reached 100% in course ${courseId}, but no graded final assessment ${assessmentId} submission found.`)
+                  logDebug(`User ${userId} reached 100% in course ${courseId}, but no graded final assessment ${assessmentId} submission found.`)
                 }
               } else {
-                console.warn(`Final assessment ${assessmentId} for course ${courseId} has no passing score defined. Allowing completion.`)
+                logWarn(`Final assessment ${assessmentId} for course ${courseId} has no passing score defined. Allowing completion.`)
                 canComplete = true
               }
             }
 
             if (canComplete) {
-              console.log(`Marking course ${courseId} as completed for user ${userId}.`)
+              logDebug(`Marking course ${courseId} as completed for user ${userId}.`)
               updatedEnrollment = await this.payload.update({ // Re-assign updatedEnrollment
                 collection: 'course-enrollments',
                 id: enrollment.id,
@@ -523,7 +524,7 @@ export class EnrollmentService {
                     certificateId: certificate?.certificateId,
                     certificateUrl: certificate ? `${process.env.NEXT_PUBLIC_SERVER_URL}/certificates/${certificate.id}` : undefined,
                     locale: user.locale || 'en',
-                  }).catch(err => console.error('Failed to send course completion email:', err))
+                  }).catch(err => logError('Failed to send course completion email:', err))
                 }
 
                 // Send Certificate Issued Notification & Email (if certificate exists)
@@ -552,24 +553,24 @@ export class EnrollmentService {
                        certificateUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/certificates/${certificate.id}`,
                        completionDate: updatedEnrollment.completedAt || new Date().toISOString(),
                        locale: user.locale || 'en',
-                     }).catch(err => console.error('Failed to send course certificate email:', err))
+                     }).catch(err => logError('Failed to send course certificate email:', err))
                   }
                 }
               } catch (completionNotificationError) {
-                console.error('Error sending completion notifications/emails:', completionNotificationError)
+                logError('Error sending completion notifications/emails:', completionNotificationError)
               }
             } else {
-              console.log(`User ${userId} completed lessons for course ${courseId}, but final assessment not passed/found. Course not marked complete.`)
+              logDebug(`User ${userId} completed lessons for course ${courseId}, but final assessment not passed/found. Course not marked complete.`)
             }
           }
         }
       } catch (eventError) {
-        console.error('Error processing progress events:', eventError)
+        logError('Error processing progress events:', eventError)
       }
 
       return updatedEnrollment
     } catch (error) {
-      console.error(`Error updating course progress for user ${userId}, course ${courseId}:`, error)
+      logError(`Error updating course progress for user ${userId}, course ${courseId}:`, error)
       throw error
     }
   }
@@ -611,7 +612,7 @@ export class EnrollmentService {
         },
       })
     } catch (error) {
-      console.error(`Error revoking course access for user ${userId}, course ${courseId}:`, error)
+      logError(`Error revoking course access for user ${userId}, course ${courseId}:`, error)
       throw error
     }
   }
@@ -635,13 +636,13 @@ export class EnrollmentService {
       })
 
       if (enrollments.docs.length === 0) {
-        console.log(`Certificate generation skipped: User ${userId} has not completed course ${courseId}.`)
+        logDebug(`Certificate generation skipped: User ${userId} has not completed course ${courseId}.`)
         return null
       }
 
       const enrollment = enrollments.docs[0]
       if (!enrollment) {
-        console.error('Completed enrollment record null/undefined unexpectedly.')
+        logError('Completed enrollment record null/undefined unexpectedly.')
         return null
       }
 
@@ -658,7 +659,7 @@ export class EnrollmentService {
       })
 
       if (existingCertificates.docs.length > 0) {
-        console.log(`Certificate already exists for user ${userId}, course ${courseId}.`)
+        logDebug(`Certificate already exists for user ${userId}, course ${courseId}.`)
         return existingCertificates.docs[0]
       }
 
@@ -671,7 +672,7 @@ export class EnrollmentService {
 
       const certificateId = `CERT-${courseId.substring(0, 8)}-${userId.substring(0, 8)}-${Date.now().toString(36)}`
 
-      console.log(`Generating certificate ${certificateId} for user ${userId}, course ${courseId}.`)
+      logDebug(`Generating certificate ${certificateId} for user ${userId}, course ${courseId}.`)
       const certificate = await this.payload.create({
         collection: 'certificates',
         data: {
@@ -702,12 +703,12 @@ export class EnrollmentService {
           })
         }
       } catch (achievementError) {
-        console.error('Error tracking certificate generation achievement:', achievementError)
+        logError('Error tracking certificate generation achievement:', achievementError)
       }
 
       return certificate
     } catch (error) {
-      console.error(`Error generating certificate for user ${userId}, course ${courseId}:`, error)
+      logError(`Error generating certificate for user ${userId}, course ${courseId}:`, error)
       return null
     }
   }
@@ -725,7 +726,7 @@ export class EnrollmentService {
       })
       return certificates.docs
     } catch (error) {
-      console.error(`Error getting user certificates for user ${userId}:`, error)
+      logError(`Error getting user certificates for user ${userId}:`, error)
       return []
     }
   }
@@ -771,7 +772,7 @@ export class EnrollmentService {
       }
 
       // 5. Process cancellation (Update status)
-      console.log(`Processing cancellation for enrollment ${enrollmentId} by user ${userId}.`);
+      logDebug(`Processing cancellation for enrollment ${enrollmentId} by user ${userId}.`);
       const updatedEnrollment = await this.payload.update({
         collection: 'course-enrollments',
         id: enrollmentId,
@@ -783,12 +784,12 @@ export class EnrollmentService {
 
       // 6. Trigger Refund (Placeholder - requires payment service integration)
       if (enrollment.source === 'purchase' && enrollment.orderId) {
-        console.log(`TODO: Initiate refund process for order ${enrollment.orderId} via payment service.`);
+        logDebug(`TODO: Initiate refund process for order ${enrollment.orderId} via payment service.`);
         // const paymentService = ServiceRegistry.getInstance(this.payload)?.getPaymentService();
         // if (paymentService) {
         //   await paymentService.processRefund(enrollment.orderId, enrollmentId);
         // } else {
-        //   console.error('PaymentService not available for refund processing.');
+        //   logError('PaymentService not available for refund processing.');
         // }
       }
 
@@ -818,16 +819,16 @@ export class EnrollmentService {
             },
           });
         } else {
-           if (!notificationService) console.warn('NotificationService not available for cancellation notification.');
-           if (!user) console.warn(`User ${userId} not found for cancellation notification.`);
-           if (!course) console.warn(`Course data not populated for cancellation notification (Enrollment ID: ${enrollmentId}).`);
+           if (!notificationService) logWarn('NotificationService not available for cancellation notification.');
+           if (!user) logWarn(`User ${userId} not found for cancellation notification.`);
+           if (!course) logWarn(`Course data not populated for cancellation notification (Enrollment ID: ${enrollmentId}).`);
         }
 
         // TODO: Add email sending logic here if required, similar to enrollment confirmation
         // if (emailService && user && course) { ... }
 
       } catch (notificationError) {
-        console.error('Error sending cancellation notification/email:', notificationError);
+        logError('Error sending cancellation notification/email:', notificationError);
       }
 
       // Re-fetch the updated enrollment to ensure correct return type
@@ -840,7 +841,7 @@ export class EnrollmentService {
       return finalEnrollment;
 
     } catch (error) {
-      console.error(`Error requesting enrollment cancellation for enrollment ${enrollmentId}:`, error);
+      logError(`Error requesting enrollment cancellation for enrollment ${enrollmentId}:`, error);
       // Re-throw specific eligibility errors or a generic one
       if (error instanceof Error && (error.message.includes('not found') || error.message.includes('Cannot cancel') || error.message.includes('window') || error.message.includes('progress'))) {
         throw error; // Re-throw specific validation/eligibility errors

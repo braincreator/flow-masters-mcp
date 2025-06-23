@@ -5,6 +5,7 @@ import { UpdateSubscriptionParams } from '@/types/subscription'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify auth
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         },
       })
     } catch (error) {
-      console.error('Error fetching subscription:', error)
+      logError('Error fetching subscription:', error)
 
       // In development mode, return mock data
       if (process.env.NODE_ENV === 'development') {
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return errorResponse('Subscription not found', 404)
     }
   } catch (error) {
-    console.error('Error getting subscription:', error)
+    logError('Error getting subscription:', error)
     return errorResponse('Failed to fetch subscription', 500)
   }
 }
@@ -79,7 +80,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
+      logError('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
@@ -93,7 +94,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     try {
       updateData = await req.json()
     } catch (error) {
-      console.error('Failed to parse request body:', error)
+      logError('Failed to parse request body:', error)
       return NextResponse.json({ error: 'Invalid request format' }, { status: 400 })
     }
 
@@ -110,7 +111,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       subscription: updatedSubscription,
     })
   } catch (error) {
-    console.error('Error updating subscription:', error)
+    logError('Error updating subscription:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -180,7 +181,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
           : 'Subscription will be canceled at the end of the billing period',
       })
     } catch (error) {
-      console.error('Error canceling subscription:', error)
+      logError('Error canceling subscription:', error)
 
       // In development, just return success for testing
       if (process.env.NODE_ENV === 'development') {
@@ -195,7 +196,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return errorResponse('Failed to cancel subscription', 500)
     }
   } catch (error) {
-    console.error('Error in DELETE subscription route:', error)
+    logError('Error in DELETE subscription route:', error)
     return errorResponse('Failed to process request', 500)
   }
 }

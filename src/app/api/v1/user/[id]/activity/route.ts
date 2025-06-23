@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyAuth } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define interfaces for activity data
 interface UserAchievement {
   id: string
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Check if user is authenticated
     if (!auth.isAuthenticated || !auth.user) {
-      console.error('User activity API: Authentication failed', {
+      logError('User activity API: Authentication failed', {
         error: auth.error,
         isAuthenticated: auth.isAuthenticated,
         hasUser: !!auth.user,
@@ -111,23 +112,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Log for debugging authorization
-    console.log('Authorization Check Details for /user/[id]/activity:');
-    console.log('Path ID (id):', id, typeof id);
-    console.log('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
-    console.log('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
-    // console.log('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
+    logDebug('Authorization Check Details for /user/[id]/activity:');
+    logDebug('Path ID (id):', id, typeof id);
+    logDebug('Authenticated User ID (auth.user?.id):', auth.user?.id, typeof auth.user?.id);
+    logDebug('Is Admin (auth.user?.isAdmin):', auth.user?.isAdmin, typeof auth.user?.isAdmin);
+    // logDebug('Authenticated User (auth.user):', JSON.stringify(auth.user, null, 2)); // Uncomment if full user object is needed
 
     // Check if user has access to this data
     // (only admin or the user themselves)
     if (auth.user.id !== id && !auth.user.isAdmin) {
-      console.warn('Authorization failed in /user/[id]/activity: User is not the owner and not an admin.', {
+      logWarn('Authorization failed in /user/[id]/activity: User is not the owner and not an admin.', {
         pathId: id,
         authUserId: auth.user.id,
         isAdmin: auth.user.isAdmin,
         authenticatedUser: auth.user, // Log the user object for more context
       });
     if (!auth.user || (auth.user.id !== id && !auth.user.roles?.includes('admin'))) {
-      console.warn('Authorization failed in /user/[id]/activity:', {
+      logWarn('Authorization failed in /user/[id]/activity:', {
         pathId: id,
         authUserId: auth.user?.id,
         userRoles: auth.user?.roles,
@@ -165,9 +166,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     let payload
     try {
       payload = await getPayloadClient()
-      console.log('Successfully connected to Payload client')
+      logDebug('Successfully connected to Payload client')
     } catch (dbError) {
-      console.error('Failed to connect to database:', dbError)
+      logError('Failed to connect to database:', dbError)
       return NextResponse.json(
         { success: false, error: 'Database connection error' },
         { status: 500 },
@@ -186,7 +187,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Fetch each collection separately with error handling
     try {
-      console.log('Fetching user achievements for user:', userId)
+      logDebug('Fetching user achievements for user:', userId)
       userAchievements = (await payload.find({
         collection: 'user-achievements',
         where: {
@@ -198,14 +199,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         limit: 20,
         depth: 1,
       })) as unknown as PayloadResponse<UserAchievement>
-      console.log(`Found ${userAchievements.docs.length} achievements`)
+      logDebug(`Found ${userAchievements.docs.length} achievements`)
     } catch (error) {
-      console.error('Error fetching user achievements:', error)
+      logError('Error fetching user achievements:', error)
       // Continue with empty achievements rather than failing completely
     }
 
     try {
-      console.log('Fetching course enrollments for user:', userId)
+      logDebug('Fetching course enrollments for user:', userId)
       courseEnrollments = (await payload.find({
         collection: 'course-enrollments',
         where: {
@@ -217,14 +218,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         limit: 20,
         depth: 1,
       })) as unknown as PayloadResponse<CourseEnrollment>
-      console.log(`Found ${courseEnrollments.docs.length} course enrollments`)
+      logDebug(`Found ${courseEnrollments.docs.length} course enrollments`)
     } catch (error) {
-      console.error('Error fetching course enrollments:', error)
+      logError('Error fetching course enrollments:', error)
       // Continue with empty enrollments
     }
 
     try {
-      console.log('Fetching lesson progress for user:', userId)
+      logDebug('Fetching lesson progress for user:', userId)
       lessonProgress = (await payload.find({
         collection: 'lesson-progress',
         where: {
@@ -239,14 +240,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         limit: 20,
         depth: 1,
       })) as unknown as PayloadResponse<LessonProgress>
-      console.log(`Found ${lessonProgress.docs.length} completed lessons`)
+      logDebug(`Found ${lessonProgress.docs.length} completed lessons`)
     } catch (error) {
-      console.error('Error fetching lesson progress:', error)
+      logError('Error fetching lesson progress:', error)
       // Continue with empty lesson progress
     }
 
     try {
-      console.log('Fetching user rewards for user:', userId)
+      logDebug('Fetching user rewards for user:', userId)
       userRewards = (await payload.find({
         collection: 'user-rewards',
         where: {
@@ -258,14 +259,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         limit: 20,
         depth: 1,
       })) as unknown as PayloadResponse<UserReward>
-      console.log(`Found ${userRewards.docs.length} rewards`)
+      logDebug(`Found ${userRewards.docs.length} rewards`)
     } catch (error) {
-      console.error('Error fetching user rewards:', error)
+      logError('Error fetching user rewards:', error)
       // Continue with empty rewards
     }
 
     // Transform the data into a unified activity feed format with better error handling
-    console.log('Transforming activity data to unified format')
+    logDebug('Transforming activity data to unified format')
 
     // Helper function to safely map items with error handling
     const safeMap = <T>(items: T[], mapFn: (item: T) => any): any[] => {
@@ -274,7 +275,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           try {
             return mapFn(item)
           } catch (error) {
-            console.error('Error mapping activity item:', error)
+            logError('Error mapping activity item:', error)
             return null
           }
         })
@@ -359,29 +360,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }),
     ]
 
-    console.log(`Successfully transformed ${activities.length} activity items`)
+    logDebug(`Successfully transformed ${activities.length} activity items`)
 
     // Sort activities by timestamp (newest first) with error handling
     let sortedActivities = []
     try {
-      console.log('Sorting activities by timestamp')
+      logDebug('Sorting activities by timestamp')
       sortedActivities = activities.sort((a, b) => {
         try {
           const dateA = new Date(a.timestamp).getTime()
           const dateB = new Date(b.timestamp).getTime()
           return dateB - dateA
         } catch (error) {
-          console.error('Error comparing timestamps:', error)
+          logError('Error comparing timestamps:', error)
           return 0 // Keep original order if comparison fails
         }
       })
     } catch (error) {
-      console.error('Error sorting activities:', error)
+      logError('Error sorting activities:', error)
       sortedActivities = activities // Use unsorted activities if sorting fails
     }
 
     // Limit the number of activities
-    console.log(`Limiting to ${limit} activities`)
+    logDebug(`Limiting to ${limit} activities`)
     const limitedActivities = sortedActivities.slice(0, limit)
 
     return NextResponse.json({
@@ -393,7 +394,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     })
   } catch (error) {
-    console.error('Error fetching user activity:', error)
+    logError('Error fetching user activity:', error)
 
     // Provide more detailed error information
     let errorMessage = 'Unknown error'

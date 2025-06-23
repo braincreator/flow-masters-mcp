@@ -10,6 +10,7 @@ import { MessageSquare, Send, ThumbsUp, Flag, Reply } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDistanceToNow } from 'date-fns'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseDiscussionProps {
   courseId: string
   lessonId: string
@@ -101,7 +102,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
           )
         }
       } catch (error) {
-        console.error('Error loading comments:', error)
+        logError('Error loading comments:', error)
       } finally {
         setIsLoading(false)
       }
@@ -140,7 +141,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
       setComments(updatedComments)
       setNewComment('')
     } catch (error) {
-      console.error('Error submitting comment:', error)
+      logError('Error submitting comment:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -183,7 +184,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
       setReplyContent('')
       setReplyingTo(null)
     } catch (error) {
-      console.error('Error submitting reply:', error)
+      logError('Error submitting reply:', error)
     }
   }
 
@@ -239,7 +240,7 @@ export function CourseDiscussion({ courseId, lessonId }: CourseDiscussionProps) 
 
       setComments(updatedComments)
     } catch (error) {
-      console.error('Error toggling like:', error)
+      logError('Error toggling like:', error)
     }
   }
 

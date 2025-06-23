@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { errorResponse } from '@/utilities/api'
 import { getLocale } from '@/utilities/i18n'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface WhereCondition {
   equals?: boolean | string | number
   not_equals?: boolean | string | number
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
       hasPrevPage: result.hasPrevPage,
     })
   } catch (error) {
-    console.error('Error fetching subscription plans:', error)
+    logError('Error fetching subscription plans:', error)
     return errorResponse('Failed to fetch subscription plans', 500)
   }
 }
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
       data: result,
     })
   } catch (error) {
-    console.error('Error creating subscription plan:', error)
+    logError('Error creating subscription plan:', error)
     return errorResponse('Failed to create subscription plan', 500)
   }
 }

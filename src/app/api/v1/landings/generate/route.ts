@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import JSON5 from 'json5'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest) {
   try {
     const { focus, utp, llmProvider, llmModel, apiKey: userApiKey } = await req.json()
 
-    console.log('Received data:', { focus, utp, llmProvider, llmModel, hasApiKey: !!userApiKey })
+    logDebug('Received data:', { focus, utp, llmProvider, llmModel, hasApiKey: !!userApiKey })
 
     // Используем API ключ, который пользователь ввел или сохранил, или из переменных окружения
     let apiKey = userApiKey || process.env.OPENAI_API_KEY
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
         
         return NextResponse.json({ success: true, data: landingPageData })
       } catch (googleError) {
-        console.error('Google API error:', googleError)
+        logError('Google API error:', googleError)
         throw new Error(`Google API error: ${googleError instanceof Error ? googleError.message : String(googleError)}`)
       }
     } else if (llmProvider === 'deepseek') {
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
         // response_format: { type: 'json_object' }, // Removed JSON format
       })
     } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError)
+      logError('OpenAI API error:', openaiError)
       throw new Error(
         `OpenAI API error: ${openaiError instanceof Error ? openaiError.message : String(openaiError)}`,
       )
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: landingPageData })
   } catch (error) {
-    console.error('Error generating landing page:', error)
+    logError('Error generating landing page:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 },

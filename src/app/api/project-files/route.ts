@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import { getAuth } from '../helpers/auth'
 import config from '@/payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 let cachedPayload = null
 
 async function getPayloadInstance() {
@@ -74,7 +75,7 @@ export async function GET(req: NextRequest) {
     // Возвращаем документы в формате, который ожидает фронтенд
     return NextResponse.json(filesResponse.docs)
   } catch (error) {
-    console.error('Error fetching project files:', error.message, error.stack)
+    logError('Error fetching project files:', error.message, error.stack)
     return NextResponse.json({ error: 'Failed to fetch project files' }, { status: 500 })
   }
 }
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Project not found or access denied' }, { status: 404 })
       }
     } catch (projectError) {
-      console.error('Error checking project access:', projectError)
+      logError('Error checking project access:', projectError)
       return NextResponse.json({ error: 'Failed to verify project access' }, { status: 500 })
     }
 
@@ -143,10 +144,10 @@ export async function POST(req: NextRequest) {
         if (fileExists) {
           validFileIds.push(fileId)
         } else {
-          console.warn(`File with ID ${fileId} not found, skipping`)
+          logWarn(`File with ID ${fileId} not found, skipping`)
         }
       } catch (fileError) {
-        console.warn(`Error checking file ${fileId}:`, fileError)
+        logWarn(`Error checking file ${fileId}:`, fileError)
         // Пропускаем несуществующие файлы вместо прерывания всей операции
       }
     }
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
           })
         }
       } catch (createError) {
-        console.error(`Error creating project-file for file ${fileId}:`, createError)
+        logError(`Error creating project-file for file ${fileId}:`, createError)
         // Продолжаем с другими файлами вместо прерывания всей операции
       }
     }
@@ -198,7 +199,7 @@ export async function POST(req: NextRequest) {
       docs: createdFiles, // Используем поле docs для соответствия формату Payload CMS
     })
   } catch (error) {
-    console.error('Error adding files to project:', error.message, error.stack)
+    logError('Error adding files to project:', error.message, error.stack)
     return NextResponse.json({ error: 'Failed to add files to project' }, { status: 500 })
   }
 }
@@ -240,7 +241,7 @@ export async function DELETE(req: NextRequest) {
 
     // Проверяем, что у нас есть все необходимые данные
     if (!fileEntry.project || !fileEntry.file) {
-      console.error('Invalid file entry data:', fileEntry)
+      logError('Invalid file entry data:', fileEntry)
       return NextResponse.json({ error: 'Invalid file entry data' }, { status: 500 })
     }
 
@@ -289,9 +290,9 @@ export async function DELETE(req: NextRequest) {
           collection: 'media',
           id: mediaFileId,
         })
-        console.log(`Media file ${mediaFileId} deleted successfully`)
+        logDebug(`Media file ${mediaFileId} deleted successfully`)
       } catch (mediaDeleteError) {
-        console.error(
+        logError(
           'Error deleting media file:',
           mediaDeleteError.message,
           mediaDeleteError.stack,
@@ -299,14 +300,12 @@ export async function DELETE(req: NextRequest) {
         // Продолжаем выполнение, даже если удаление медиа-файла не удалось
       }
     } else {
-      console.log(
-        `Media file ${mediaFileId} is still used by other project-files entries. Not deleting.`,
-      )
+      logDebug(`Media file ${mediaFileId} is still used by other project-files entries. Not deleting.`,  )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting project file:', error.message, error.stack)
+    logError('Error deleting project file:', error.message, error.stack)
     // Log the error object itself for more details
 
     return NextResponse.json(

@@ -8,6 +8,7 @@
 import { getPayload } from 'payload'
 import config from '../../payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Helper function to create Lexical paragraph
 function createParagraph(text: string) {
   return {
@@ -414,11 +415,11 @@ const englishSystemsImportantNote = createLexicalRoot([
 ])
 
 async function updateSystemsOffer() {
-  console.log('📄 Updating systems offer content in TermsPages collection...')
+  logDebug('📄 Updating systems offer content in TermsPages collection...')
 
   try {
     const payload = await getPayload({ config })
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     // Update Russian content
     const russianResult = await payload.update({
@@ -437,7 +438,7 @@ async function updateSystemsOffer() {
       },
     })
 
-    console.log(`✅ Updated ${russianResult.docs.length} Russian systems terms page(s)`)
+    logDebug(`✅ Updated ${russianResult.docs.length} Russian systems terms page(s)`)
 
     // Update English content
     const englishResult = await payload.update({
@@ -456,10 +457,10 @@ async function updateSystemsOffer() {
       },
     })
 
-    console.log(`✅ Updated ${englishResult.docs.length} English systems terms page(s)`)
-    console.log('🎉 Systems offer content updated successfully!')
+    logDebug(`✅ Updated ${englishResult.docs.length} English systems terms page(s)`)
+    logDebug('🎉 Systems offer content updated successfully!')
   } catch (error) {
-    console.error('❌ Error updating systems offer:', error)
+    logError('❌ Error updating systems offer:', error)
     process.exit(1)
   }
 }

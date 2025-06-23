@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth';
 import { ENV } from '@/constants/env'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Proxy endpoint to communicate with the MCP server
  * This allows the frontend to access MCP endpoints without CORS issues
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('MCP proxy error:', error)
+    logError('MCP proxy error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 },
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(responseData)
   } catch (error) {
-    console.error('MCP proxy error:', error)
+    logError('MCP proxy error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 },

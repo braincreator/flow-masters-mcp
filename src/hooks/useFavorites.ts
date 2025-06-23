@@ -7,6 +7,7 @@ import { useCallback, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast' // Для уведомлений
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Ключ для localStorage
 const LOCAL_FAVORITES_KEY = 'local_favorites'
 // Ключ для SWR
@@ -37,7 +38,7 @@ export const useFavorites = (): UseFavoritesReturn => {
       const localFavorites = localStorage.getItem(LOCAL_FAVORITES_KEY)
       return localFavorites ? JSON.parse(localFavorites) : []
     } catch (error) {
-      console.error('Failed to load favorites from localStorage:', error)
+      logError('Failed to load favorites from localStorage:', error)
       return []
     }
   }
@@ -58,7 +59,7 @@ export const useFavorites = (): UseFavoritesReturn => {
       revalidateOnReconnect: true, // Обновлять при переподключении
       // Можно добавить onError для глобальной обработки ошибок
       onError: (err) => {
-        console.error('SWR Favorites Error:', err)
+        logError('SWR Favorites Error:', err)
         // Не показываем тост на ошибку загрузки, т.к. она может быть при отсутствии авторизации
         // toast({ title: 'Error loading favorites', description: err.message, variant: 'destructive' })
       },
@@ -71,7 +72,7 @@ export const useFavorites = (): UseFavoritesReturn => {
       try {
         localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(favoriteIds))
       } catch (error) {
-        console.error('Failed to save favorites to localStorage:', error)
+        logError('Failed to save favorites to localStorage:', error)
       }
     }
   }, [favoriteIds, isAuthenticated])
@@ -125,7 +126,7 @@ export const useFavorites = (): UseFavoritesReturn => {
           localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(Array.from(optimisticNewState)))
         }
       } catch (err: any) {
-        console.error('Failed to toggle favorite:', err)
+        logError('Failed to toggle favorite:', err)
         toast({
           title: 'Failed to update favorites',
           description: err.message || 'Please try again.',

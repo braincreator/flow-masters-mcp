@@ -18,7 +18,7 @@ export async function fetchGlobal(slug: string, depth = 1, locale: string = 'en'
     const data = await res.json()
     return data?.doc || data // Handle both Payload's format and our custom format
   } catch (error) {
-    console.error(`Error fetching global ${slug}:`, error)
+    logError(`Error fetching global ${slug}:`, error)
     return null
   }
 }
@@ -41,7 +41,7 @@ export async function updateGlobal(slug: string, data: any, depth = 0, locale = 
     const result = await response.json()
     return result
   } catch (error) {
-    console.error(`Error updating global ${slug}:`, error)
+    logError(`Error updating global ${slug}:`, error)
     throw error
   }
 }

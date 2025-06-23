@@ -6,6 +6,7 @@ import { agentClients } from '../clients'
 import { vertexAIClient } from '../vertex-ai-client'
 import type { AgentRequest, AgentResponse, SearchQuery } from '../types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Smart Documentation Search Agent
  * Provides intelligent search through FlowMasters documentation using RAG
@@ -121,7 +122,7 @@ export class SmartDocumentationSearchAgent extends BaseAgent {
 
       return response
     } catch (error) {
-      console.error('Smart Documentation Search error:', error)
+      logError('Smart Documentation Search error:', error)
       return this.createErrorResponse(error)
     }
   }

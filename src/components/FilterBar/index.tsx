@@ -38,6 +38,7 @@ import {
 import { useFavorites } from '@/hooks/useFavorites'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface FilterBarProps {
   categories: Array<{ label: string; value: string }>
   sortOptions: Array<{ label: string; value: string }>
@@ -98,7 +99,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Debug - Log the categories prop
   React.useEffect(() => {
-    console.log('FilterBar categories prop:', categories)
+    logDebug('FilterBar categories prop:', categories)
   }, [categories])
 
   // Возвращаем productTypes к карте строк в fallback
@@ -296,9 +297,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       const minPriceBase = currency.rate ? Math.floor(values[0] / currency.rate) : values[0]
       const maxPriceBase = currency.rate ? Math.ceil(values[1] / currency.rate) : values[1]
 
-      console.log(
-        `Конвертация цен: ${values[0]} -> ${minPriceBase}, ${values[1]} -> ${maxPriceBase}`,
-      )
+      logDebug(`Конвертация цен: ${values[0]} -> ${minPriceBase}, ${values[1]} -> ${maxPriceBase}`,  )
 
       params.set('minPrice', minPriceBase.toString())
       params.set('maxPrice', maxPriceBase.toString())
@@ -370,9 +369,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         ? Math.ceil(tempPriceRange[1] / currency.rate)
         : tempPriceRange[1]
 
-      console.log(
-        `Конвертация цен: ${tempPriceRange[0]} -> ${minPriceBase}, ${tempPriceRange[1]} -> ${maxPriceBase}`,
-      )
+      logDebug(`Конвертация цен: ${tempPriceRange[0]} -> ${minPriceBase}, ${tempPriceRange[1]} -> ${maxPriceBase}`,  )
 
       params.set('minPrice', minPriceBase.toString())
       params.set('maxPrice', maxPriceBase.toString())

@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Load environment variables
 dotenv.config();
 
@@ -242,11 +243,11 @@ async function createTemplates() {
   let client;
   
   try {
-    console.log('Connecting to MongoDB...');
+    logDebug('Connecting to MongoDB...');
     client = new MongoClient(mongoUri);
     await client.connect();
     
-    console.log('Connected to MongoDB');
+    logDebug('Connected to MongoDB');
     
     const db = client.db();
     const emailTemplatesCollection = db.collection('email-templates');
@@ -261,7 +262,7 @@ async function createTemplates() {
     
     // Process each template
     for (const template of templates) {
-      console.log(`Processing template: ${template.name} (${template.slug})`);
+      logDebug(`Processing template: ${template.name} (${template.slug})`);
       
       try {
         // Check if template already exists
@@ -277,7 +278,7 @@ async function createTemplates() {
         
         // Create or update template
         if (existingTemplate) {
-          console.log(`Updating existing template: ${template.slug}`);
+          logDebug(`Updating existing template: ${template.slug}`);
           
           await emailTemplatesCollection.updateOne(
             { slug: template.slug },
@@ -296,7 +297,7 @@ async function createTemplates() {
             }
           );
         } else {
-          console.log(`Creating new template: ${template.slug}`);
+          logDebug(`Creating new template: ${template.slug}`);
           
           await emailTemplatesCollection.insertOne({
             name: template.name,
@@ -314,19 +315,19 @@ async function createTemplates() {
           });
         }
         
-        console.log(`Successfully processed template: ${template.slug}`);
+        logDebug(`Successfully processed template: ${template.slug}`);
       } catch (error) {
-        console.error(`Error processing template ${template.slug}:`, error);
+        logError(`Error processing template ${template.slug}:`, error);
       }
     }
     
-    console.log('Template sync completed');
+    logDebug('Template sync completed');
   } catch (error) {
-    console.error('Error creating templates:', error);
+    logError('Error creating templates:', error);
   } finally {
     if (client) {
       await client.close();
-      console.log('Disconnected from MongoDB');
+      logDebug('Disconnected from MongoDB');
     }
   }
 }
@@ -334,10 +335,10 @@ async function createTemplates() {
 // Run the function
 createTemplates()
   .then(() => {
-    console.log('Script completed successfully');
+    logDebug('Script completed successfully');
     process.exit(0);
   })
   .catch(error => {
-    console.error('Script failed:', error);
+    logError('Script failed:', error);
     process.exit(1);
   });

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Joyride, { Step, CallBackProps, STATUS } from 'react-joyride';
 import { useAuth } from '@/hooks/useAuth'; // Use the actual auth hook
 import { useTranslations } from '@/hooks/useTranslations';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { updateUserProfile } from '@/lib/api/users'; // Placeholder for API call
 
 interface PlatformTourProps {
@@ -110,7 +111,7 @@ export const PlatformTour: React.FC<PlatformTourProps> = ({ startAutomatically =
       //     await updateUserProfile(user.id, { hasCompletedOnboarding: true }); // Or hasCompletedTour: true
       //   }
       // } catch (error) {
-      //   console.error("Failed to update user tour status:", error);
+      //   logError("Failed to update user tour status:", error);
       // }
     }
     // Handle other statuses like ERROR if needed

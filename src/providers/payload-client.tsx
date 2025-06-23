@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState } from 'react'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PayloadAPIContextType {
   fetchPosts: (options: FetchPostsOptions) => Promise<any>
   fetchCategories: (options: FetchTaxonomyOptions) => Promise<any>
@@ -44,9 +45,7 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      console.log(
-        `Client: Fetching posts for locale ${locale}, page ${page}, limit ${limit}, depth 2`,
-      )
+      logDebug(`Client: Fetching posts for locale ${locale}, page ${page}, limit ${limit}, depth 2`,  )
       // Construct API query params
       const params = new URLSearchParams()
       params.set('locale', locale)
@@ -60,23 +59,23 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
       if (authorId) params.set('author', authorId)
 
       const url = `/api/v1/posts?${params.toString()}`
-      console.log(`Client: Sending request to ${url}`)
+      logDebug(`Client: Sending request to ${url}`)
 
       // Make the API request
       const response = await fetch(url)
-      console.log(`Client: Received response with status ${response.status}`)
+      logDebug(`Client: Received response with status ${response.status}`)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(`Client: API error response:`, errorText)
+        logError(`Client: API error response:`, errorText)
         throw new Error(`API error: ${response.status}. Details: ${errorText}`)
       }
 
       const data = await response.json()
-      console.log(`Client: Successfully parsed JSON response with ${data.docs?.length} posts`)
+      logDebug(`Client: Successfully parsed JSON response with ${data.docs?.length} posts`)
       return data
     } catch (err) {
-      console.error('Client: Error in fetchPosts:', err)
+      logError('Client: Error in fetchPosts:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch posts')
       throw err
     } finally {
@@ -89,29 +88,29 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      console.log(`Client: Fetching categories for locale ${locale}`)
+      logDebug(`Client: Fetching categories for locale ${locale}`)
       const params = new URLSearchParams({
         limit: '100',
         locale: locale
       })
 
       const url = `/api/v1/categories?${params.toString()}`
-      console.log(`Client: Sending request to ${url}`)
+      logDebug(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)
-      console.log(`Client: Received response with status ${response.status}`)
+      logDebug(`Client: Received response with status ${response.status}`)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(`Client: API error response:`, errorText)
+        logError(`Client: API error response:`, errorText)
         throw new Error(`API error: ${response.status}. Details: ${errorText}`)
       }
 
       const data = await response.json()
-      console.log(`Client: Successfully parsed JSON response with ${data.length} categories`)
+      logDebug(`Client: Successfully parsed JSON response with ${data.length} categories`)
       return data
     } catch (err) {
-      console.error('Client: Error in fetchCategories:', err)
+      logError('Client: Error in fetchCategories:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch categories')
       throw err
     } finally {
@@ -124,29 +123,29 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      console.log(`Client: Fetching tags for locale ${locale}`)
+      logDebug(`Client: Fetching tags for locale ${locale}`)
       const params = new URLSearchParams({
         limit: '100',
         locale: locale
       })
 
       const url = `/api/v1/tags?${params.toString()}`
-      console.log(`Client: Sending request to ${url}`)
+      logDebug(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)
-      console.log(`Client: Received response with status ${response.status}`)
+      logDebug(`Client: Received response with status ${response.status}`)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(`Client: API error response:`, errorText)
+        logError(`Client: API error response:`, errorText)
         throw new Error(`API error: ${response.status}. Details: ${errorText}`)
       }
 
       const data = await response.json()
-      console.log(`Client: Successfully parsed JSON response with ${data.length} tags`)
+      logDebug(`Client: Successfully parsed JSON response with ${data.length} tags`)
       return data
     } catch (err) {
-      console.error('Client: Error in fetchTags:', err)
+      logError('Client: Error in fetchTags:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch tags')
       throw err
     } finally {

@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает информацию о курсе
  * @param courseId ID курса
@@ -9,7 +10,7 @@ export async function getCourse(courseId: string) {
     const response = await fetchFromAPI(`/api/courses/${courseId}`)
     return response
   } catch (error) {
-    console.error('Error getting course:', error)
+    logError('Error getting course:', error)
     throw error
   }
 }
@@ -23,7 +24,7 @@ export async function getCourseProgress(courseId: string) {
     const response = await fetchFromAPI(`/api/courses/${courseId}/progress`)
     return response
   } catch (error) {
-    console.error('Error getting course progress:', error)
+    logError('Error getting course progress:', error)
     throw error
   }
 }
@@ -37,7 +38,7 @@ export async function getCourseAchievements(courseId: string) {
     const response = await fetchFromAPI(`/api/courses/${courseId}/achievements`)
     return response
   } catch (error) {
-    console.error('Error getting course achievements:', error)
+    logError('Error getting course achievements:', error)
     throw error
   }
 }
@@ -53,7 +54,7 @@ export async function enrollInCourse(courseId: string) {
     })
     return response
   } catch (error) {
-    console.error('Error enrolling in course:', error)
+    logError('Error enrolling in course:', error)
     throw error
   }
 }

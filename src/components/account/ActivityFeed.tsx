@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { AppError } from '@/utilities/errorHandling'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   BookOpen,
   Award,
@@ -65,7 +66,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
       try {
         setIsLoading(true)
 
-        console.log(`Fetching activities for user ${userId} with limit ${limit}`)
+        logDebug(`Fetching activities for user ${userId} with limit ${limit}`)
 
         // Fetch real activity data from the API
         const response = await fetch(`/api/v1/user/${userId}/activity?limit=${limit}`, {
@@ -76,12 +77,12 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
           },
         })
 
-        console.log(`Activity API response status: ${response.status}`)
+        logDebug(`Activity API response status: ${response.status}`)
 
         if (!response.ok) {
           // If we get a 401 or 403 and haven't retried yet, try refreshing auth and retrying
           if ((response.status === 401 || response.status === 403) && !retryAfterRefresh) {
-            console.warn('Authentication error, refreshing auth and retrying...')
+            logWarn('Authentication error, refreshing auth and retrying...')
             await refreshAuth()
             return fetchActivities(true) // Retry with the retryAfterRefresh flag set to true
           }
@@ -90,7 +91,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
           if (response.status === 500) {
             try {
               const errorData = await response.json()
-              console.error('Server error details:', errorData)
+              logError('Server error details:', errorData)
               throw new Error(`Server error: ${errorData.error || 'Unknown server error'}`)
             } catch (_parseError) {
               // If we can't parse the error response, just use the status code
@@ -102,7 +103,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
         }
 
         const result = await response.json()
-        console.log(`Received ${result.data?.length || 0} activities from API`)
+        logDebug(`Received ${result.data?.length || 0} activities from API`)
 
         if (result.success && Array.isArray(result.data)) {
           // Map the API response to our activity items
@@ -110,7 +111,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
             .map((item: ActivityApiResponse) => {
               try {
                 if (!item || !item.id || !item.type || !item.timestamp) {
-                  console.warn('Skipping invalid activity item:', item)
+                  logWarn('Skipping invalid activity item:', item)
                   return null
                 }
 
@@ -124,7 +125,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
                   meta: item.meta || {},
                 }
               } catch (mapError) {
-                console.error('Error mapping activity item:', mapError, item)
+                logError('Error mapping activity item:', mapError, item)
                 return null
               }
             })
@@ -134,10 +135,10 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
         } else {
           // If no activities or error, set empty array
           setActivities([])
-          console.warn('No activities found or invalid response format:', result)
+          logWarn('No activities found or invalid response format:', result)
         }
       } catch (error) {
-        console.error('Error fetching activity feed:', error)
+        logError('Error fetching activity feed:', error)
 
         // Show a more user-friendly error in development
         if (process.env.NODE_ENV === 'development') {

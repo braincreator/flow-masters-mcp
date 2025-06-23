@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Star } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 import { toast } from 'sonner'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { useAuth } from '@/providers/AuthProvider' // Assuming auth provider
 
 interface LessonFeedbackProps {
@@ -56,7 +57,7 @@ export function LessonFeedback({ lessonId, courseId }: LessonFeedbackProps) {
       setSubmitted(true)
       // Optionally clear form: setRating(0); setComment('');
     } catch (error: any) {
-      console.error('Error submitting feedback:', error)
+      logError('Error submitting feedback:', error)
       toast.error('Failed to submit feedback', { description: error.message })
     } finally {
       setIsSubmitting(false)

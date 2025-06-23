@@ -4,6 +4,7 @@ import { getAuth } from '../../helpers/auth'
 import { addDays, format, parseISO, differenceInDays, startOfWeek, endOfWeek, subMonths } from 'date-fns'
 import { z } from 'zod'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Validation schema for request parameters
 const requestParamsSchema = z.object({
   id: z.string().uuid({ message: 'Invalid project ID format' }),
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       validatedId = validated.id;
       timeframe = validated.timeframe;
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         error: 'Invalid request parameters',
         details: validationError instanceof z.ZodError ? validationError.errors : 'Unknown validation error'
@@ -232,7 +233,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       data: analytics
     })
   } catch (error) {
-    console.error('Error generating project analytics:', error)
+    logError('Error generating project analytics:', error)
 
     // Determine the appropriate error response
     if (error instanceof z.ZodError) {

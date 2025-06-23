@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import type { User, Service, Order } from '@/payload-types' // Ensure Order is imported
 import { generateOrderNumber, ORDER_PREFIXES } from '@/utilities/orderNumber'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Removed import for getServerSideUser as its location/existence is problematic
 
 interface InitiateServiceOrderRequestBody {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       // This case should ideally not happen if the UI ensures email is collected for guests
       // or user is logged in. For now, we'll proceed without a user if none is found.
       // A more robust solution might return an error or assign to a default guest account.
-      console.warn('No logged-in user or customer email provided for service order initiation.')
+      logWarn('No logged-in user or customer email provided for service order initiation.')
     }
 
 
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, orderId: newOrder.id })
   } catch (error) {
-    console.error('Error initiating service order:', error)
+    logError('Error initiating service order:', error)
     let message = 'Failed to initiate service order'
     if (error instanceof Error) message = error.message
     return NextResponse.json({ error: message }, { status: 500 })

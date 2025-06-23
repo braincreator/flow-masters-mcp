@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import crypto from 'crypto'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Типы для событий Calendly
 type CalendlyEvent = {
   event: string
@@ -61,7 +62,7 @@ const verifyCalendlySignature = (
       Buffer.from(digest)
     )
   } catch (error) {
-    console.error('Ошибка при проверке подписи Calendly:', error)
+    logError('Ошибка при проверке подписи Calendly:', error)
     return false
   }
 }
@@ -143,12 +144,12 @@ export async function POST(req: NextRequest) {
         
       default:
         // Другие события
-        console.log(`Получено событие Calendly: ${event.event}`)
+        logDebug(`Получено событие Calendly: ${event.event}`)
     }
     
     return NextResponse.json({ status: 'success' })
   } catch (error) {
-    console.error('Ошибка при обработке webhook от Calendly:', error)
+    logError('Ошибка при обработке webhook от Calendly:', error)
     return NextResponse.json(
       {
         status: 'error',
@@ -191,12 +192,12 @@ async function handleBookingCreated(event: CalendlyEvent, settings: any) {
       },
     })
     
-    console.log('Создана новая запись о бронировании')
+    logDebug('Создана новая запись о бронировании')
     
     // Здесь можно добавить отправку уведомлений, например, по email
     
   } catch (error) {
-    console.error('Ошибка при обработке нового бронирования:', error)
+    logError('Ошибка при обработке нового бронирования:', error)
   }
 }
 
@@ -228,7 +229,7 @@ async function handleBookingCanceled(event: CalendlyEvent, settings: any) {
     }
     
   } catch (error) {
-    console.error('Ошибка при обработке отмены бронирования:', error)
+    logError('Ошибка при обработке отмены бронирования:', error)
   }
 }
 
@@ -259,10 +260,10 @@ async function handleBookingRescheduled(event: CalendlyEvent, settings: any) {
         },
       })
       
-      console.log('Обновлены данные перенесенного бронирования')
+      logDebug('Обновлены данные перенесенного бронирования')
     }
     
   } catch (error) {
-    console.error('Ошибка при обработке переноса бронирования:', error)
+    logError('Ошибка при обработке переноса бронирования:', error)
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to create a consulting product
  */
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     // Initialize Payload
     const payload = await getPayloadClient()
 
-    console.log('Creating consulting product...')
+    logDebug('Creating consulting product...')
 
     // Check if a consulting product already exists
     const existingProducts = await payload.find({
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (existingProducts.docs.length > 0) {
-      console.log('Consulting product already exists:', existingProducts.docs[0].id)
+      logDebug('Consulting product already exists:', existingProducts.docs[0].id)
       return NextResponse.json({
         success: true,
         message: 'Consulting product already exists',
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log('Consulting product created:', product.id)
+    logDebug('Consulting product created:', product.id)
 
     return NextResponse.json({
       success: true,
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
       product,
     })
   } catch (error) {
-    console.error('Error creating consulting product:', error)
+    logError('Error creating consulting product:', error)
     return NextResponse.json(
       {
         success: false,

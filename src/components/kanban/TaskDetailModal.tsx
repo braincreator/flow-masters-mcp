@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { formatDate } from '@/utilities/formatDate'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface TaskDetailModalProps {
   task: TaskItem | null
   isOpen: boolean
@@ -122,7 +123,7 @@ export function TaskDetailModal({
       await onUpdate(task.id, updates)
       setIsEditing(false)
     } catch (error) {
-      console.error('Failed to update task:', error)
+      logError('Failed to update task:', error)
     } finally {
       setIsLoading(false)
     }
@@ -137,7 +138,7 @@ export function TaskDetailModal({
         await onDelete(task.id)
         onClose()
       } catch (error) {
-        console.error('Failed to delete task:', error)
+        logError('Failed to delete task:', error)
       } finally {
         setIsLoading(false)
       }
@@ -150,7 +151,7 @@ export function TaskDetailModal({
     try {
       await onUpdate(task.id, { progress })
     } catch (error) {
-      console.error('Failed to update progress:', error)
+      logError('Failed to update progress:', error)
     }
   }
 

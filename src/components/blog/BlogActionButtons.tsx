@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { UniversalShareButton } from '@/components/shared/UniversalShareButton'
 import type { SharingPlatform } from '@/utilities/share'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Локализованные тексты
 const LOCALIZED_TEXTS = {
   en: {
@@ -81,7 +82,7 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
         return
       } catch (error) {
         // Пользователь отменил шеринг
-        console.log('Share cancelled')
+        logDebug('Share cancelled')
       }
     }
 

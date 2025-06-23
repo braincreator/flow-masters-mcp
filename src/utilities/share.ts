@@ -36,7 +36,7 @@ export const shareContent = async (
       case 'facebook':
         // Facebook использует Open Graph метатеги на странице, а не параметры URL
         // Добавляем хеш фрагмент с заголовком для отладки
-        console.log('Sharing to Facebook:', { url, title, description })
+        logDebug('Sharing to Facebook:', { url, title, description })
 
         // Создаем безопасный хэштег для Facebook из названия продукта (если есть)
         let hashtag = ''
@@ -88,7 +88,7 @@ export const shareContent = async (
         break
       case 'instagram':
         window.open(`https://www.instagram.com/`)
-        console.warn(
+        logWarn(
           'Direct sharing to Instagram is limited. User needs to manually create a post.',
         )
         break
@@ -97,7 +97,7 @@ export const shareContent = async (
         break
       case 'tenchat':
         window.open(`https://tenchat.ru/`)
-        console.warn(
+        logWarn(
           'Direct sharing to TenChat via URL is not supported. User needs to manually share.',
         )
         break
@@ -121,7 +121,7 @@ export const shareContent = async (
     }
     return true
   } catch (error) {
-    console.error('Error sharing content:', error)
+    logError('Error sharing content:', error)
     return false
   }
 }

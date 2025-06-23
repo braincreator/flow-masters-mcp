@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import payload from 'payload'
 import { bulkRevalidate } from '@/utilities/bulkRevalidate'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Add timeout to prevent hanging requests
 const REVALIDATION_TIMEOUT = 30000 // 30 seconds
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       timestamp: Date.now(),
     })
   } catch (error) {
-    console.error('Error in bulk revalidate route:', error)
+    logError('Error in bulk revalidate route:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Error revalidating' },
       { status: 500 },

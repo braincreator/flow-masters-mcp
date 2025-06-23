@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest) {
   try {
     // Initialize services
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest) {
     try {
       payload = await getPayloadClient()
     } catch (error) {
-      console.error('Failed to initialize Payload client:', error)
+      logError('Failed to initialize Payload client:', error)
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
         id: orderId,
       })
     } catch (error) {
-      console.error('Failed to fetch order:', error)
+      logError('Failed to fetch order:', error)
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
           }
         }
       } catch (error) {
-        console.error('Failed to check payment status with provider:', error)
+        logError('Failed to check payment status with provider:', error)
         // Don't fail the request, just use the stored status
       }
     }
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
       message: getStatusMessage(paymentStatus),
     })
   } catch (error) {
-    console.error('Payment verification error:', error)
+    logError('Payment verification error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyApiKey } from '@/utilities/auth'
 import type { Config } from '@/payload-types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type CollectionNames = keyof Config['collections']
 
 export async function GET(
@@ -32,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(document)
   } catch (error) {
-    console.error(`API error (${params.collection}/${params.id}):`, error)
+    logError(`API error (${params.collection}/${params.id}):`, error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

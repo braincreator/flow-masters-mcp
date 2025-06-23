@@ -5,6 +5,7 @@
 import { cleanupGlobalCache } from './getGlobals'
 import { cleanupLocaleCache } from './localization'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Хранилище для интервалов, которые нужно очистить
 const intervals = new Set<NodeJS.Timeout>()
 
@@ -116,7 +117,7 @@ if (typeof process !== 'undefined') {
 
   // Регистрируем обработчик для очистки ресурсов при высокой нагрузке на память
   process.on('memoryPressure', () => {
-    console.warn('Memory pressure detected, cleaning up resources')
+    logWarn('Memory pressure detected, cleaning up resources')
     cleanupAllResources()
   })
 }

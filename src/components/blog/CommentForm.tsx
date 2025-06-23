@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Переводы для форм комментариев
 const translations = {
   en: {
@@ -154,7 +155,7 @@ export function CommentForm({
             },
       }
 
-      console.log('CommentForm fallback sending:', JSON.stringify(payload, null, 2))
+      logDebug('CommentForm fallback sending:', JSON.stringify(payload, null, 2))
 
       const response = await fetch('/api/v1/blog/comment', {
         method: 'POST',

@@ -7,6 +7,7 @@
 
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Русские услуги - консультации (3 уровня)
 const russianConsultationServices = [
   {
@@ -314,11 +315,11 @@ const russianConsultationServices = [
 ]
 
 async function createAIServices() {
-  console.log('🤖 Creating AI Agency services...')
+  logDebug('🤖 Creating AI Agency services...')
 
   try {
     const payload = await getPayloadClient()
-    console.log('✅ Payload client initialized')
+    logDebug('✅ Payload client initialized')
 
     for (const serviceData of aiServices) {
       try {
@@ -344,15 +345,15 @@ async function createAIServices() {
           data: serviceData,
         })
 
-        console.log(`✅ Created service: ${service.title} (${service.id})`)
+        logDebug(`✅ Created service: ${service.title} (${service.id})`)
       } catch (error) {
-        console.error(`❌ Error creating service "${serviceData.title}":`, error)
+        logError(`❌ Error creating service "${serviceData.title}":`, error)
       }
     }
 
-    console.log('🎉 AI Agency services creation completed!')
+    logDebug('🎉 AI Agency services creation completed!')
   } catch (error) {
-    console.error('❌ Error:', error)
+    logError('❌ Error:', error)
     process.exit(1)
   }
 }

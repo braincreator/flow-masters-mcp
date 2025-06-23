@@ -23,14 +23,31 @@ import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
 import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
+import { generateSEOMetadata, StructuredData, structuredDataGenerators } from '@/components/SEO/SEOHead'
+import { SkipLinks } from '@/components/Accessibility/SkipLinks'
+import { Metadata } from 'next'
 
-
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define locales directly in this file
 const locales = ['en', 'ru'] as const
 
 // Добавляем функцию generateStaticParams из удаленного .js файла
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ lang: locale }))
+}
+
+// Generate metadata for the layout
+export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
+  const paramsData = await Promise.resolve(params)
+  const lang = paramsData.lang || 'ru'
+
+  return generateSEOMetadata({
+    locale: lang,
+    alternateLocales: SUPPORTED_LOCALES.map(locale => ({
+      locale,
+      url: `https://flow-masters.ru/${locale}`
+    }))
+  })
 }
 
 interface LayoutProps {
@@ -68,7 +85,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
       // Загружаем файл локализации для текущей локали
       messages = (await import(`../../../../messages/${validLang}.json`)).default
     } catch (error) {
-      console.warn(`Could not load messages for locale: ${validLang}`, error)
+      logWarn(`Could not load messages for locale: ${validLang}`, error)
       messages = {}
     }
   }
@@ -103,16 +120,23 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                 <I18nProvider defaultLang={validLang}>
                   <LoadingConfigProvider>
                     <LoadingProvider>
+                      {/* Skip links for accessibility */}
+                      <SkipLinks />
+
                       {/* Add our smart loading component */}
                       <SmartLoading />
 
                       {isDraftMode && <AdminBar />}
-                      <Header locale={validLang} />
-                      <main className="relative flex-grow flex flex-col pt-[var(--header-height)]">
+                      <Header locale={validLang} id="navigation" />
+                      <main
+                        id="main-content"
+                        className="relative flex-grow flex flex-col pt-[var(--header-height)]"
+                        tabIndex={-1}
+                      >
                         {children}
                       </main>
                       <div id="pagination-slot" className="container py-8"></div>
-                      <Footer locale={validLang} />
+                      <Footer locale={validLang} id="footer" />
                       <FloatingCartButtonWrapper locale={validLang} />
                       <CartModal locale={validLang} />
                       <CookieConsentBanner locale={validLang} />
@@ -121,6 +145,34 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                       {YANDEX_METRIKA_ID && (
                         <YandexMetrikaTracker counterId={YANDEX_METRIKA_ID} />
                       )}
+
+                      {/* Структурированные данные */}
+                      <StructuredData
+                        type="Organization"
+                        data={{
+                          name: 'FlowMasters',
+                          url: 'https://flow-masters.ru',
+                          logo: 'https://flow-masters.ru/images/logo.png',
+                          description: 'Автоматизация бизнес-процессов с помощью ИИ',
+                          contactPoint: {
+                            '@type': 'ContactPoint',
+                            contactType: 'customer service',
+                            availableLanguage: ['Russian', 'English'],
+                          },
+                        }}
+                      />
+                      <StructuredData
+                        type="WebSite"
+                        data={{
+                          name: 'FlowMasters',
+                          url: `https://flow-masters.ru/${validLang}`,
+                          potentialAction: {
+                            '@type': 'SearchAction',
+                            target: `https://flow-masters.ru/${validLang}/search?q={search_term_string}`,
+                            'query-input': 'required name=search_term_string',
+                          },
+                        }}
+                      />
                     </LoadingProvider>
                   </LoadingConfigProvider>
                 </I18nProvider>

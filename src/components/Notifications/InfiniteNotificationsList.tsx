@@ -9,6 +9,7 @@ import NotificationSkeletonItem from './NotificationSkeletonItem'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from '@/components/ui/use-toast'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export interface Notification {
   id: string
   title: string
@@ -183,7 +184,7 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
             setHasMore(data.hasMore)
           }
         } catch (err) {
-          console.error('Failed to load initial notifications:', err)
+          logError('Failed to load initial notifications:', err)
           if (isMounted) {
             setError(err instanceof Error ? err.message : t('errors.unknown'))
           }
@@ -222,7 +223,7 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
             setCurrentPage(nextPage)
           }
         } catch (err) {
-          console.error('Failed to load more notifications:', err)
+          logError('Failed to load more notifications:', err)
           if (isMounted) {
             setError(err instanceof Error ? err.message : t('errors.loadMoreFailed'))
           }
@@ -274,7 +275,7 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
           duration: 1500,
         })
       } catch (error) {
-        console.error('Error marking as read:', error)
+        logError('Error marking as read:', error)
         // Возвращаем статус обратно в случае ошибки
         setNotifications((prevNotifications) =>
           prevNotifications.map((n) => (n.id === id ? { ...n, status: 'unread' } : n)),
@@ -329,7 +330,7 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
           duration: 1500,
         })
       } catch (error) {
-        console.error('Error marking as unread:', error)
+        logError('Error marking as unread:', error)
         // Возвращаем статус обратно в случае ошибки
         setNotifications((prevNotifications) =>
           prevNotifications.map((n) => (n.id === id ? { ...n, status: 'read' } : n)),
@@ -381,7 +382,7 @@ const InfiniteNotificationsList: React.FC<InfiniteNotificationsListProps> = ({
           duration: 1500,
         })
       } catch (error) {
-        console.error('Error deleting notification:', error)
+        logError('Error deleting notification:', error)
         // Перезагружаем данные в случае ошибки
         setIsInitialLoad(true)
         toast({

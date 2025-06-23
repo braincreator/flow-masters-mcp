@@ -22,6 +22,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 
 import { generateOrderNumber, ORDER_PREFIXES } from '@/utilities/orderNumber'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Добавляем объявление типов для локализованного текста спецификации
 interface LocalizedSpecificationText {
   en?: string | null
@@ -351,7 +352,7 @@ const calculateNextPaymentDate = (startDate: Date, period: string): Date => {
       break
     default:
       // Fallback or throw error for unsupported period
-      console.error(`Unsupported subscription period: ${period}`)
+      logError(`Unsupported subscription period: ${period}`)
       date.setMonth(date.getMonth() + 1) // Default to monthly as a fallback
   }
   return date

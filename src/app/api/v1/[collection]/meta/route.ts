@@ -5,6 +5,7 @@ import { generateMeta } from '@/utilities/generateMeta'
 import type { Config } from '@/payload-types'
 import type { Metadata } from 'next'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type CollectionNames = keyof Config['collections']
 type SupportedCollections = 'pages' | 'posts' | 'products'
 
@@ -86,7 +87,7 @@ export async function GET(req: Request, { params }: { params: { collection: Coll
 
     return NextResponse.json(formattedMetadata)
   } catch (error) {
-    console.error(`API error (${params.collection}/meta):`, error)
+    logError(`API error (${params.collection}/meta):`, error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

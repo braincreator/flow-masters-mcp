@@ -3,6 +3,7 @@ import payload from 'payload'
 import { getAuth } from '../../helpers/auth'
 import { z } from 'zod'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Validation schema for request parameters
 const requestParamsSchema = z.object({
   id: z.string().uuid({ message: 'Invalid template ID format' }),
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       })
       validatedId = validated.id
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       data: template,
     })
   } catch (error) {
-    console.error('Error fetching project template:', error)
+    logError('Error fetching project template:', error)
 
     if (error instanceof Error) {
       return NextResponse.json({
@@ -115,7 +116,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       })
       validatedId = validated.id
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -138,7 +139,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       data: template,
     })
   } catch (error) {
-    console.error('Error updating project template:', error)
+    logError('Error updating project template:', error)
 
     if (error instanceof Error) {
       return NextResponse.json({
@@ -187,7 +188,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       })
       validatedId = validated.id
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -206,7 +207,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       message: 'Template deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting project template:', error)
+    logError('Error deleting project template:', error)
 
     if (error instanceof Error) {
       return NextResponse.json({

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { getTechIcon, type TechIcon as TechIconType } from '@/lib/tech-icons'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface TechIconProps {
   slug: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -137,7 +138,7 @@ export const TechIcon = React.memo(function TechIcon({
               loading="lazy"
               onLoad={() => setImageLoaded(true)}
               onError={(e) => {
-                console.warn(`Failed to load tech icon: ${imagePath} for ${techIcon.name}`, e)
+                logWarn(`Failed to load tech icon: ${imagePath} for ${techIcon.name}`, e)
                 setImageError(true)
               }}
               // Add priority for above-the-fold icons
@@ -250,8 +251,8 @@ function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
 
       return null
     } catch (error) {
-      console.warn(`Failed to parse SVG for ${name}:`, error)
-      console.log(`SVG content that failed:`, svgContent.substring(0, 200) + '...')
+      logWarn(`Failed to parse SVG for ${name}:`, error)
+      logDebug(`SVG content that failed:`, svgContent.substring(0, 200) + '...')
       return null
     }
   }, [svgContent, color, name])

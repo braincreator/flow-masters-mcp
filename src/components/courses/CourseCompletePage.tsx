@@ -9,6 +9,7 @@ import { Loader2, CheckCircle, Award, ArrowRight } from 'lucide-react'
 import { CourseCertificate } from './CourseCertificate'
 import confetti from 'canvas-confetti'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Function to generate certificate
 const generateCertificate = async (userId: string, courseId: string) => {
   try {
@@ -30,7 +31,7 @@ const generateCertificate = async (userId: string, courseId: string) => {
     const data = await response.json()
     return data.certificate
   } catch (error) {
-    console.error('Error generating certificate:', error)
+    logError('Error generating certificate:', error)
     throw error
   }
 }
@@ -94,7 +95,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
       setTimeout(() => clearInterval(interval), duration)
     } catch (error) {
-      console.error('Error generating certificate:', error)
+      logError('Error generating certificate:', error)
     } finally {
       setIsGeneratingCertificate(false)
     }
@@ -215,7 +216,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
           }
         }
       } catch (error) {
-        console.error('Error checking course access:', error)
+        logError('Error checking course access:', error)
         setHasAccess(false)
       } finally {
         setAccessLoading(false)
@@ -254,7 +255,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
           },
         ])
       } catch (error) {
-        console.error('Error loading related courses:', error)
+        logError('Error loading related courses:', error)
       } finally {
         setIsLoadingRelated(false)
       }

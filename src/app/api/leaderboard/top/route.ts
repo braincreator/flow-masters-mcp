@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     // Получаем параметры запроса
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(topUsers)
   } catch (error) {
-    console.error('Error fetching top users:', error)
+    logError('Error fetching top users:', error)
     return NextResponse.json(
       { error: 'Failed to fetch top users' },
       { status: 500 }

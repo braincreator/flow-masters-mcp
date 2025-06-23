@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { User, Product, Order, Service } from '@/payload-types' // Added Service type
 
 // Define interfaces for request bodies based on orderType
@@ -216,7 +217,7 @@ export async function POST(req: Request) {
       paymentLink,
     })
   } catch (error) {
-    console.error('Unified order endpoint error:', error)
+    logError('Unified order endpoint error:', error)
     let errorMessage = 'An unknown error occurred'
     if (error instanceof Error) {
         errorMessage = error.message
@@ -225,7 +226,7 @@ export async function POST(req: Request) {
     }
     // Log the full error object if it's not a standard Error instance for more details
     if (!(error instanceof Error)) {
-        console.error('Non-Error object thrown:', error)
+        logError('Non-Error object thrown:', error)
     }
     return NextResponse.json(
       { error: errorMessage },

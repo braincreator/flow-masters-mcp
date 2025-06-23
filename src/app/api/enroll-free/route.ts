@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 // Note: Linter might still incorrectly flag getPayloadClient import, assuming path is correct.
 import { getPayloadClient } from '@/utilities/payload/index'
 import { EnrollmentService, EnrollmentData } from '@/services/courses/enrollmentService'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { User, Course } from '@/payload-types' // Import Course type
 
 // Removed dummy getUserFromRequest function
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     payload = await getPayloadClient()
   } catch (error) {
-    console.error('Failed to get Payload client:', error)
+    logError('Failed to get Payload client:', error)
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
   }
   // Ensure payload is defined before proceeding
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, enrollmentId: enrollment.id }, { status: 200 })
 
   } catch (error: any) {
-    console.error('API Error enrolling user (free):', error)
+    logError('API Error enrolling user (free):', error)
     const errorMessage = error.message || 'Failed to enroll in the course.'
     const statusCode = typeof error === 'object' && error !== null && 'status' in error ? error.status : 500;
     return NextResponse.json({ error: errorMessage }, { status: statusCode })

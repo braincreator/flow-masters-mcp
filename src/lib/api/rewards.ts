@@ -1,5 +1,6 @@
 import { fetchFromAPI } from './api'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Получает награды пользователя
  * @param userId ID пользователя
@@ -9,7 +10,7 @@ export async function getUserRewards(userId: string) {
     const response = await fetchFromAPI(`/api/rewards/user/${userId}`)
     return response
   } catch (error) {
-    console.error('Error getting user rewards:', error)
+    logError('Error getting user rewards:', error)
     throw error
   }
 }
@@ -23,7 +24,7 @@ export async function getActiveUserRewards(userId: string) {
     const response = await fetchFromAPI(`/api/rewards/user/${userId}/active`)
     return response
   } catch (error) {
-    console.error('Error getting active user rewards:', error)
+    logError('Error getting active user rewards:', error)
     throw error
   }
 }
@@ -39,7 +40,7 @@ export async function useReward(rewardId: string) {
     })
     return response
   } catch (error) {
-    console.error('Error using reward:', error)
+    logError('Error using reward:', error)
     throw error
   }
 }
@@ -55,7 +56,7 @@ export async function activateDiscountFromReward(rewardId: string) {
     })
     return response
   } catch (error) {
-    console.error('Error activating discount from reward:', error)
+    logError('Error activating discount from reward:', error)
     throw error
   }
 }
@@ -68,7 +69,7 @@ export async function getUserDiscounts() {
     const response = await fetchFromAPI('/api/user/discounts')
     return response
   } catch (error) {
-    console.error('Error getting user discounts:', error)
+    logError('Error getting user discounts:', error)
     throw error
   }
 }

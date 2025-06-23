@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession()
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       discountRewards,
     })
   } catch (error) {
-    console.error('Error fetching user discounts:', error)
+    logError('Error fetching user discounts:', error)
     return NextResponse.json(
       { error: 'Failed to fetch user discounts' },
       { status: 500 }

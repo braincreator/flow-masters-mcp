@@ -10,6 +10,7 @@ import { cn } from '@/utilities/ui'
 import { Loader2 } from 'lucide-react'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export interface AddToCartProps {
   productId: string
   productType: Product['productType']
@@ -50,7 +51,7 @@ export const AddToCart: React.FC<AddToCartProps> = ({
       const itemTypeForCart = productType === 'service' ? 'service' : 'product'
       await add(productId, itemTypeForCart, 1)
     } catch (error) {
-      console.error('Failed to add to cart from component:', error)
+      logError('Failed to add to cart from component:', error)
     } finally {
       setIsAdding(false)
     }

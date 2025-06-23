@@ -12,6 +12,7 @@ import EndpointCard from './EndpointCard'
 import EndpointTester from './EndpointTester'
 import { mcpClient } from '@/lib/mcp-client'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const EndpointBrowser: React.FC = () => {
   const [endpoints, setEndpoints] = useState<any[]>([])
   const [filteredEndpoints, setFilteredEndpoints] = useState<any[]>([])
@@ -60,7 +61,7 @@ const EndpointBrowser: React.FC = () => {
       const info = await mcpClient.getHealth()
       setServerInfo(info)
     } catch (err) {
-      console.error('Failed to fetch server info:', err)
+      logError('Failed to fetch server info:', err)
     }
   }
 

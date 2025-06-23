@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PaymentProvider {
   id: string
   name: {
@@ -51,7 +52,7 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
           setSelectedProvider(data.providers[0].id)
         }
       } catch (error) {
-        console.error('Error loading payment providers:', error)
+        logError('Error loading payment providers:', error)
         setError(t('errorLoadingProviders'))
       } finally {
         setIsLoadingProviders(false)
@@ -108,7 +109,7 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
       clearCart()
       window.location.href = paymentUrl
     } catch (error) {
-      console.error('Checkout error:', error)
+      logError('Checkout error:', error)
       setError(error instanceof Error ? error.message : t('errorCheckoutFailedDefault'))
     } finally {
       setIsLoading(false)

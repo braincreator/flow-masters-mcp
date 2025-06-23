@@ -6,6 +6,7 @@ import { CartSummary } from '@/components/CartSummary'
 import { useTranslations } from 'next-intl'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CheckoutProps {
   locale: Locale
   onBack?: () => void
@@ -59,7 +60,7 @@ export function Checkout({ locale, onBack, onCheckoutSuccess }: CheckoutProps) {
       // Optionally clear cart after initiating payment
       // await clear();
     } catch (error) {
-      console.error('Checkout error:', error)
+      logError('Checkout error:', error)
       setError(error instanceof Error ? error.message : t('errorCheckoutFailedDefault'))
     } finally {
       setLoading(false)

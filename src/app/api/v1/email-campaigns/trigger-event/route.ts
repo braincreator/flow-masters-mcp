@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to trigger event-based email campaigns
  * POST /api/v1/email-campaigns/trigger-event
@@ -13,13 +14,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Check if user is authenticated
     if (!session?.user) {
-      console.error('Email campaigns trigger-event: User not authenticated')
+      logError('Email campaigns trigger-event: User not authenticated')
       return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 })
     }
 
     // Check if user is admin
     if (!session.user.isAdmin && session.user.role !== 'admin') {
-      console.error('Email campaigns trigger-event: User not admin', {
+      logError('Email campaigns trigger-event: User not admin', {
         role: session.user.role,
         isAdmin: session.user.isAdmin,
       })
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           status: 'queued',
         })
       } catch (error) {
-        console.error(`Error processing campaign ${campaign.id}:`, error)
+        logError(`Error processing campaign ${campaign.id}:`, error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
         results.push({
@@ -155,7 +156,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       results,
     })
   } catch (error) {
-    console.error('Error triggering event-based campaigns:', error)
+    logError('Error triggering event-based campaigns:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
     return NextResponse.json(

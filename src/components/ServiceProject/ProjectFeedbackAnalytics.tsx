@@ -8,6 +8,7 @@ import { StarRating } from '@/components/ui/StarRating'
 import { formatDate } from '@/utilities/formatDate'
 import { useLocale } from 'next-intl'
 import { useNotification } from '@/hooks/useNotification'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   BarChart,
   Bar,
@@ -67,7 +68,7 @@ export default function ProjectFeedbackAnalytics({
         const data = await response.json()
         setFeedback(data)
       } catch (error) {
-        console.error('Error fetching feedback:', error)
+        logError('Error fetching feedback:', error)
         showNotification('error', t('errorFetchingFeedback', { defaultValue: 'Error fetching feedback data' }))
       } finally {
         setIsLoading(false)

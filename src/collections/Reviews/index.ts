@@ -4,6 +4,7 @@ import { getPayloadClient } from '@/utilities/payload/index'; // Correct import 
 import type { User, Review, Course } from '@/payload-types'; // Import necessary types
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define reusable access control function for owner or admin
 const ownerOrAdmin: Access = async ({ req, id }: { req: { user?: User | null }, id?: string | number }) => {
   const user = req.user; // Extract user from req
@@ -30,7 +31,7 @@ const ownerOrAdmin: Access = async ({ req, id }: { req: { user?: User | null }, 
     const ownerId = review.user; // user field is just the ID at depth 0
     return user.id === ownerId;
   } catch (error) {
-    console.error(`Error checking review ownership for ID ${id}:`, error);
+    logError(`Error checking review ownership for ID ${id}:`, error);
     return false;
   }
 };

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { getFavorites, toggleFavorite } from '@/utilities/api'
 import { toast } from '@/components/ui/use-toast'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Key for localStorage
 const LOCAL_FAVORITES_KEY = 'local_favorites'
 
@@ -41,14 +42,14 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           const parsedFavorites = localFavorites ? JSON.parse(localFavorites) : []
           setFavoriteProductIds(new Set(parsedFavorites))
         } catch (err) {
-          console.error('Failed to load favorites from localStorage:', err)
+          logError('Failed to load favorites from localStorage:', err)
           setFavoriteProductIds(new Set())
         }
       }
       
       setError(null)
     } catch (err) {
-      console.error('Error fetching favorites:', err)
+      logError('Error fetching favorites:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch favorites'))
     } finally {
       setIsLoading(false)
@@ -93,7 +94,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // Revert to previous state if there's an error
       setFavoriteProductIds(previousState)
       
-      console.error('Failed to toggle favorite:', err)
+      logError('Failed to toggle favorite:', err)
       toast({
         title: 'Failed to update favorites',
         description: err instanceof Error ? err.message : 'Please try again.',

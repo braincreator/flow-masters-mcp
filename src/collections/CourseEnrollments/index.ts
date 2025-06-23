@@ -1,6 +1,7 @@
 import type { CollectionConfig, Payload } from 'payload' // Import Payload type
 import { isAdmin } from '@/access/isAdmin'
 import { isAdminOrSelf } from '@/access/isAdminOrSelf'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { ServiceRegistry } from '@/services/service.registry' // Import ServiceRegistry
 import { handleWaitingList } from './hooks/handleWaitingList' // Import the hook
 import { notifyWaitingListOnStatusChange, notifyWaitingListOnDelete } from './hooks/notifyWaitingListOnVacancy' // Import new hooks
@@ -81,7 +82,7 @@ export const CourseEnrollments: CollectionConfig = {
               })
             }
           } catch (error) {
-            console.error('Error updating analytics after course completion:', error)
+            logError('Error updating analytics after course completion:', error)
           }
         }
       },

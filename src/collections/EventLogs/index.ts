@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Коллекция для логирования событий и их обработки
  * Хранит информацию о всех отправленных уведомлениях и их статусах
@@ -285,7 +286,7 @@ export const EventLogs: CollectionConfig = {
       async ({ doc, operation }) => {
         // Можно добавить логику для алертов при критических ошибках
         if (doc.status === 'failed' && doc.attempts >= 3) {
-          console.warn(`Critical: Event ${doc.eventType} failed after ${doc.attempts} attempts`)
+          logWarn(`Critical: Event ${doc.eventType} failed after ${doc.attempts} attempts`)
           // TODO: Отправить алерт администраторам
         }
       },

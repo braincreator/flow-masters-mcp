@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Shield, Settings, ChevronUp, ChevronDown, Cookie, BarChart3, Target, Palette } from 'lucide-react'
+import { logInfo, logDebug } from '@/utils/logger'
 
 const COOKIE_NAME = 'gdpr_consent_status'
 const DETAILED_COOKIE_NAME = 'gdpr_detailed_consent'
@@ -57,7 +58,7 @@ const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ locale }) => 
         const parsed = JSON.parse(detailedConsentData)
         setDetailedConsent(parsed)
       } catch (error) {
-        console.error('Error parsing detailed consent:', error)
+        logError('Error parsing detailed consent:', error)
       }
     }
     // Важно: Не инициализируем отправку хита здесь,
@@ -79,10 +80,10 @@ const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ locale }) => 
         const counterId = parseInt(YANDEX_METRIKA_ID, 10)
         if (!isNaN(counterId)) {
           window.ym(counterId, 'hit', window.location.href)
-          console.log(`Yandex Metrika: Sent hit for counter ${counterId}`)
+          logDebug(`Yandex Metrika: Sent hit for counter ${counterId}`)
         }
       } catch (error) {
-        console.error('Error sending Yandex Metrika hit:', error)
+        logError('Error sending Yandex Metrika hit:', error)
       }
     }
   }
@@ -98,7 +99,7 @@ const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ locale }) => 
       sendYandexHit()
     }
 
-    console.log('Cookie Consent:', status, consent)
+    logInfo('Cookie consent updated', { status, consent }, { component: 'CookieConsentBanner' })
   }
 
   const handleAccept = () => {

@@ -8,6 +8,7 @@ import { getPayload } from 'payload'
 import { getTranslations } from 'next-intl/server'
 import { NotificationStoredType } from '../types/notifications'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export type NotificationEventType =
   | 'account_welcome'
   | 'welcome_email'
@@ -170,14 +171,12 @@ class InAppNotificationChannel implements INotificationChannel {
       if (mappedType) {
         storedNotificationType = mappedType
       } else {
-        console.warn(
+        logWarn(
           `InAppNotificationChannel: EventType "${data.type}" not explicitly mapped. Defaulting to "${storedNotificationType}". Consider adding it to eventToStoredTypeMap.`,
         )
       }
 
-      console.log(
-        `Creating notification: EventType=${data.type}, Mapped StoredType=${storedNotificationType}`,
-      )
+      logDebug(`Creating notification: EventType=${data.type}, Mapped StoredType=${storedNotificationType}`,  )
 
       const notificationDataToCreate: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'> = {
         user: data.userId,
@@ -196,7 +195,7 @@ class InAppNotificationChannel implements INotificationChannel {
       })
       return true
     } catch (error) {
-      console.error(`Error sending in-app notification for user ${data.userId}:`, error)
+      logError(`Error sending in-app notification for user ${data.userId}:`, error)
       return false
     }
   }
@@ -212,13 +211,13 @@ class EmailNotificationChannel implements INotificationChannel {
 
   async send(data: NotificationPayload): Promise<boolean> {
     if (!data.user || !data.user.email) {
-      console.error(`Email channel: User email not available for user ${data.userId}`)
+      logError(`Email channel: User email not available for user ${data.userId}`)
       return false
     }
     const localeForEmail = data.locale || data.user?.locale || 'en'
 
     if (!data.emailSpecific?.templateSlug) {
-      console.error(
+      logError(
         `Email channel: Template slug not provided for user ${data.userId}, type ${data.type}`,
       )
       try {
@@ -241,7 +240,7 @@ class EmailNotificationChannel implements INotificationChannel {
         )
         return true
       } catch (error) {
-        console.error(`Error sending generic email notification to ${data.user.email}:`, error)
+        logError(`Error sending generic email notification to ${data.user.email}:`, error)
         return false
       }
     }
@@ -255,7 +254,7 @@ class EmailNotificationChannel implements INotificationChannel {
       )
       return true
     } catch (error) {
-      console.error(
+      logError(
         `Error sending email notification (template: ${data.emailSpecific.templateSlug}) to ${data.user.email}:`,
         error,
       )
@@ -312,15 +311,15 @@ export class NotificationService extends BaseService {
           : null
 
       if (!user && typeof subscription.user === 'string') {
-        console.warn(`User object not populated for subscription ${subscriptionId} despite depth=1`)
+        logWarn(`User object not populated for subscription ${subscriptionId} despite depth=1`)
       }
       if (!plan && typeof subscription.plan === 'string') {
-        console.warn(`Plan object not populated for subscription ${subscriptionId} despite depth=1`)
+        logWarn(`Plan object not populated for subscription ${subscriptionId} despite depth=1`)
       }
 
       return { subscription, user, plan }
     } catch (error) {
-      console.error(`Error fetching context for subscription ${subscriptionId}:`, error)
+      logError(`Error fetching context for subscription ${subscriptionId}:`, error)
       return { subscription: null, user: null, plan: null }
     }
   }
@@ -328,7 +327,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionActivated(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionActivated: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionActivated: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -362,7 +361,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription activated notification for ${subscriptionId}:`,
         error,
       )
@@ -373,7 +372,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionCancelled(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionCancelled: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionCancelled: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -406,7 +405,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription cancelled notification for ${subscriptionId}:`,
         error,
       )
@@ -417,7 +416,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionPaymentFailed(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionPaymentFailed: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionPaymentFailed: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -453,7 +452,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription payment failed notification for ${subscriptionId}:`,
         error,
       )
@@ -464,7 +463,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionPlanChanged(subscriptionId: string, oldPlanName: string): Promise<boolean> {
     const { subscription, user, plan: newPlan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !newPlan) {
-      console.error(`Missing data for sendSubscriptionPlanChanged: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionPlanChanged: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -499,7 +498,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription plan changed notification for ${subscriptionId}:`,
         error,
       )
@@ -510,7 +509,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionPaused(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionPaused: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionPaused: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -543,7 +542,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription paused notification for ${subscriptionId}:`,
         error,
       )
@@ -554,7 +553,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionResumed(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionResumed: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionResumed: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -589,7 +588,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription resumed notification for ${subscriptionId}:`,
         error,
       )
@@ -600,7 +599,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionExpired(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionExpired: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionExpired: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -633,7 +632,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription expired notification for ${subscriptionId}:`,
         error,
       )
@@ -691,7 +690,7 @@ export class NotificationService extends BaseService {
               finalUserEmail = fetchedUser.email || finalUserEmail
             }
           } catch (userFetchErr) {
-            console.error(
+            logError(
               `Could not fetch user ${userIdForNotification} details for payment confirmation:`,
               userFetchErr,
             )
@@ -699,7 +698,7 @@ export class NotificationService extends BaseService {
         }
       }
     } catch (fetchError) {
-      console.error(
+      logError(
         `Error getting order/user details for payment confirmation (orderId: ${orderData.orderId}):`,
         fetchError,
       )
@@ -754,16 +753,14 @@ export class NotificationService extends BaseService {
         const results = await this.sendNotification(notificationPayload)
         userNotificationSent = results.some((r) => r === true)
       } catch (e) {
-        console.error(
+        logError(
           `Failed to dispatch payment confirmation for user ${userIdForNotification}:`,
           e,
         )
       }
     } else {
       if (this.emailService && orderData.customerEmail) {
-        console.log(
-          `No user ID for order ${orderData.orderId}, attempting direct email to ${orderData.customerEmail}`,
-        )
+        logDebug(`No user ID for order ${orderData.orderId}, attempting direct email to ${orderData.customerEmail}`,  )
         try {
           await this.emailService.sendPaymentConfirmationEmail({
             userName: orderData.customerEmail,
@@ -783,13 +780,13 @@ export class NotificationService extends BaseService {
           })
           userNotificationSent = true
         } catch (emailError) {
-          console.error(
+          logError(
             `Failed to send direct payment confirmation email to ${orderData.customerEmail}:`,
             emailError,
           )
         }
       } else {
-        console.warn(
+        logWarn(
           `Cannot send payment confirmation for order ${orderData.orderId}: No user ID and no customer email for direct send.`,
         )
       }
@@ -804,7 +801,7 @@ export class NotificationService extends BaseService {
             `Email клиента: ${finalUserEmail || 'Неизвестен'}`,
         )
       } catch (telegramError) {
-        console.error(`Failed to send Telegram payment confirmation:`, telegramError)
+        logError(`Failed to send Telegram payment confirmation:`, telegramError)
       }
     }
 
@@ -818,7 +815,7 @@ export class NotificationService extends BaseService {
     downloadLinks?: string[]
   }): Promise<boolean> {
     if (!orderData.orderId || !orderData.status) {
-      console.error('Invalid order data for status update notification')
+      logError('Invalid order data for status update notification')
       return false
     }
 
@@ -838,7 +835,7 @@ export class NotificationService extends BaseService {
       })) as Order | null
 
       if (!order) {
-        console.error(`Order not found for status update: ${orderData.orderId}`)
+        logError(`Order not found for status update: ${orderData.orderId}`)
         if (!orderData.customerEmail) return false
       } else {
         orderNumberForMessage = order.orderNumber || order.id
@@ -862,7 +859,7 @@ export class NotificationService extends BaseService {
                 finalUserEmail = fetchedUser.email || finalUserEmail
               }
             } catch (userFetchErr) {
-              console.error(
+              logError(
                 `Could not fetch user ${userIdForNotification} for status update:`,
                 userFetchErr,
               )
@@ -871,7 +868,7 @@ export class NotificationService extends BaseService {
         }
       }
     } catch (fetchError) {
-      console.error(
+      logError(
         `Error getting order/user details for status update (orderId: ${orderData.orderId}):`,
         fetchError,
       )
@@ -879,7 +876,7 @@ export class NotificationService extends BaseService {
     }
 
     if (!userIdForNotification && !finalUserEmail) {
-      console.error(
+      logError(
         `Cannot send status update for order ${orderData.orderId}: No user ID or customer email.`,
       )
       return false
@@ -942,15 +939,13 @@ export class NotificationService extends BaseService {
         const results = await this.sendNotification(notificationPayload)
         userNotificationSent = results.some((r) => r === true)
       } catch (e) {
-        console.error(
+        logError(
           `Failed to dispatch status update for user ${userIdForNotification}, order ${orderData.orderId}:`,
           e,
         )
       }
     } else if (finalUserEmail && emailTemplateSlug && this.emailService) {
-      console.log(
-        `No user ID for order ${orderData.orderId}, attempting direct email for status ${orderData.status} to ${finalUserEmail}`,
-      )
+      logDebug(`No user ID for order ${orderData.orderId}, attempting direct email for status ${orderData.status} to ${finalUserEmail}`,  )
       try {
         const localizedTitle = await this.getNotificationTitle(notificationType, finalUserLocale)
         emailTemplateContext.title = localizedTitle
@@ -963,13 +958,13 @@ export class NotificationService extends BaseService {
         )
         userNotificationSent = true
       } catch (emailError) {
-        console.error(
+        logError(
           `Failed to send direct status update email to ${finalUserEmail} for order ${orderData.orderId}:`,
           emailError,
         )
       }
     } else {
-      console.warn(
+      logWarn(
         `Could not send digital order status update for order ${orderData.orderId}. No user ID and insufficient data for direct email.`,
       )
     }
@@ -987,7 +982,7 @@ export class NotificationService extends BaseService {
     const { user, items, total, currency, lastUpdated } = cartData
 
     if (!user || !user.id || !user.email) {
-      console.error('Abandoned cart reminder: User ID or email missing.')
+      logError('Abandoned cart reminder: User ID or email missing.')
       return false
     }
 
@@ -1025,12 +1020,12 @@ export class NotificationService extends BaseService {
     try {
       const results = await this.sendNotification(notificationPayload)
       if (!results.some((r) => r === true)) {
-        console.warn(`Abandoned cart reminder for user ${user.id} was not sent via any channel.`)
+        logWarn(`Abandoned cart reminder for user ${user.id} was not sent via any channel.`)
         return false
       }
       return true
     } catch (error) {
-      console.error(`Failed to dispatch abandoned cart reminder for user ${user.id}:`, error)
+      logError(`Failed to dispatch abandoned cart reminder for user ${user.id}:`, error)
       return false
     }
   }
@@ -1045,7 +1040,7 @@ export class NotificationService extends BaseService {
         },
       })
     } catch (error) {
-      console.error('Error marking notification as read:', error)
+      logError('Error marking notification as read:', error)
       throw error
     }
   }
@@ -1090,7 +1085,7 @@ export class NotificationService extends BaseService {
       })
 
       if (!user) {
-        console.warn(`User not found for preferences check: ${userId}`)
+        logWarn(`User not found for preferences check: ${userId}`)
         return defaults
       }
 
@@ -1259,7 +1254,7 @@ export class NotificationService extends BaseService {
         [key: string]: boolean
       }
     } catch (error) {
-      console.error(`Error checking user notification preferences for user ${userId}:`, error)
+      logError(`Error checking user notification preferences for user ${userId}:`, error)
       return defaults
     }
   }
@@ -1274,12 +1269,12 @@ export class NotificationService extends BaseService {
           depth: 0,
         })
       } catch (e) {
-        console.error(`sendNotification: Could not fetch user ${data.userId} for preferences.`)
+        logError(`sendNotification: Could not fetch user ${data.userId} for preferences.`)
         return this.channels.map(() => false)
       }
     }
     if (!userForPrefs) {
-      console.error(`sendNotification: User ${data.userId} not found. Cannot send notification.`)
+      logError(`sendNotification: User ${data.userId} not found. Cannot send notification.`)
       return this.channels.map(() => false)
     }
 
@@ -1325,11 +1320,9 @@ export class NotificationService extends BaseService {
           const success = await channel.send(payloadWithUserAndLocale, this)
           results.push(success)
           if (success) {
-            console.log(
-              `Notification sent via ${channel.channelType} to user ${payloadWithUserAndLocale.userId}: ${payloadWithUserAndLocale.title}`,
-            )
+            logDebug(`Notification sent via ${channel.channelType} to user ${payloadWithUserAndLocale.userId}: ${payloadWithUserAndLocale.title}`,  )
           } else {
-            console.warn(
+            logWarn(
               `Failed to send notification via ${channel.channelType} to user ${payloadWithUserAndLocale.userId}: ${payloadWithUserAndLocale.title}`,
             )
           }
@@ -1337,7 +1330,7 @@ export class NotificationService extends BaseService {
           results.push(false)
         }
       } catch (error) {
-        console.error(
+        logError(
           `Error processing channel ${channel.channelType} for user ${payloadWithUserAndLocale.userId}:`,
           error,
         )
@@ -1367,7 +1360,7 @@ export class NotificationService extends BaseService {
       })
       return true
     } catch (error) {
-      console.error(`Error marking all notifications as read for user ${userId}:`, error)
+      logError(`Error marking all notifications as read for user ${userId}:`, error)
       return false
     }
   }
@@ -1412,7 +1405,7 @@ export class NotificationService extends BaseService {
       }
       return translatedTitle
     } catch (error) {
-      console.error(`Error getting notification title for type ${type}, locale ${locale}:`, error)
+      logError(`Error getting notification title for type ${type}, locale ${locale}:`, error)
       const fallbackTitles: Record<string, string> = {
         order_confirmation: 'Order Confirmed',
         subscription_activated: 'Subscription Activated',
@@ -1433,7 +1426,7 @@ export class NotificationService extends BaseService {
           : null
 
     if (!userIdValue) {
-      console.error('Cannot send order confirmation: User ID not found in order.')
+      logError('Cannot send order confirmation: User ID not found in order.')
       return false
     }
 
@@ -1448,7 +1441,7 @@ export class NotificationService extends BaseService {
           depth: 0,
         })) as User
       } catch (e) {
-        console.warn(`Could not fetch user object for order confirmation: ${customer}`)
+        logWarn(`Could not fetch user object for order confirmation: ${customer}`)
       }
     }
 
@@ -1511,7 +1504,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(`Failed to dispatch order confirmation for order ${order.id}:`, error)
+      logError(`Failed to dispatch order confirmation for order ${order.id}:`, error)
       return false
     }
   }
@@ -1519,7 +1512,7 @@ export class NotificationService extends BaseService {
   async sendPaymentFailed(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendPaymentFailed (direct call): ${subscriptionId}`)
+      logError(`Missing data for sendPaymentFailed (direct call): ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -1552,7 +1545,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch payment failed notification for subscription ${subscriptionId}:`,
         error,
       )
@@ -1579,7 +1572,7 @@ export class NotificationService extends BaseService {
       })) as Order | null
 
       if (!order) {
-        console.error(`Order not found for cancellation notification: ${orderId}`)
+        logError(`Order not found for cancellation notification: ${orderId}`)
         return false
       }
       orderNumberForMessage = order.orderNumber || order.id
@@ -1605,7 +1598,7 @@ export class NotificationService extends BaseService {
               finalUserEmail = fetchedUser.email
             }
           } catch (userFetchErr) {
-            console.error(
+            logError(
               `Could not fetch user ${userIdForNotification} for order cancellation:`,
               userFetchErr,
             )
@@ -1614,7 +1607,7 @@ export class NotificationService extends BaseService {
       }
 
       if (!userIdForNotification || !finalUserEmail) {
-        console.error(`Missing user data for order cancellation notification: ${orderId}`)
+        logError(`Missing user data for order cancellation notification: ${orderId}`)
         return false
       }
       const tNotificationBodies = await getTranslations({
@@ -1652,7 +1645,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((r) => r === true)
     } catch (error) {
-      console.error(`Failed to dispatch order cancelled notification for ${orderId}:`, error)
+      logError(`Failed to dispatch order cancelled notification for ${orderId}:`, error)
       return false
     }
   }
@@ -1676,7 +1669,7 @@ export class NotificationService extends BaseService {
       })) as Order | null
 
       if (!order) {
-        console.error(`Order not found for refund processed notification: ${orderId}`)
+        logError(`Order not found for refund processed notification: ${orderId}`)
         return false
       }
       orderNumberForMessage = order.orderNumber || order.id
@@ -1702,7 +1695,7 @@ export class NotificationService extends BaseService {
               finalUserEmail = fetchedUser.email
             }
           } catch (userFetchErr) {
-            console.error(
+            logError(
               `Could not fetch user ${userIdForNotification} for refund notification:`,
               userFetchErr,
             )
@@ -1711,7 +1704,7 @@ export class NotificationService extends BaseService {
       }
 
       if (!userIdForNotification || !finalUserEmail) {
-        console.error(`Missing user data for refund processed notification: ${orderId}`)
+        logError(`Missing user data for refund processed notification: ${orderId}`)
         return false
       }
 
@@ -1749,7 +1742,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((r) => r === true)
     } catch (error) {
-      console.error(`Failed to dispatch refund processed notification for ${orderId}:`, error)
+      logError(`Failed to dispatch refund processed notification for ${orderId}:`, error)
       return false
     }
   }
@@ -1757,7 +1750,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionRenewalReminder(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionRenewalReminder: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionRenewalReminder: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -1793,7 +1786,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((r) => r === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription renewal reminder for ${subscriptionId}:`,
         error,
       )
@@ -1804,7 +1797,7 @@ export class NotificationService extends BaseService {
   async sendSubscriptionRenewedSuccessfully(subscriptionId: string): Promise<boolean> {
     const { subscription, user, plan } = await this.getSubscriptionContext(subscriptionId)
     if (!subscription || !user || !plan) {
-      console.error(`Missing data for sendSubscriptionRenewedSuccessfully: ${subscriptionId}`)
+      logError(`Missing data for sendSubscriptionRenewedSuccessfully: ${subscriptionId}`)
       return false
     }
     const userLocale = user.locale || 'en'
@@ -1840,7 +1833,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((r) => r === true)
     } catch (error) {
-      console.error(
+      logError(
         `Failed to dispatch subscription renewed successfully notification for ${subscriptionId}:`,
         error,
       )
@@ -1864,7 +1857,7 @@ export class NotificationService extends BaseService {
       })) as Order | null
 
       if (!order) {
-        console.error(`Order not found for initial payment failed notification: ${orderId}`)
+        logError(`Order not found for initial payment failed notification: ${orderId}`)
         return false
       }
       orderNumberForMessage = order.orderNumber || order.id
@@ -1890,7 +1883,7 @@ export class NotificationService extends BaseService {
               finalUserEmail = fetchedUser.email
             }
           } catch (userFetchErr) {
-            console.error(
+            logError(
               `Could not fetch user ${userIdForNotification} for initial payment failed:`,
               userFetchErr,
             )
@@ -1899,7 +1892,7 @@ export class NotificationService extends BaseService {
       }
 
       if (!userIdForNotification || !finalUserEmail) {
-        console.error(`Missing user data for initial payment failed notification: ${orderId}`)
+        logError(`Missing user data for initial payment failed notification: ${orderId}`)
         return false
       }
       const tNotificationBodies = await getTranslations({
@@ -1937,7 +1930,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((r) => r === true)
     } catch (error) {
-      console.error(`Failed to dispatch initial payment failed notification for ${orderId}:`, error)
+      logError(`Failed to dispatch initial payment failed notification for ${orderId}:`, error)
       return false
     }
   }
@@ -1950,7 +1943,7 @@ export class NotificationService extends BaseService {
         depth: 0,
       })) as User
       if (!user || !user.email) {
-        console.error(`User not found or missing email for sendWelcomeEmail: ${userId}`)
+        logError(`User not found or missing email for sendWelcomeEmail: ${userId}`)
         return false
       }
       const userLocale = user.locale || 'en'
@@ -1978,7 +1971,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(`Failed to send welcome email for user ${userId}:`, error)
+      logError(`Failed to send welcome email for user ${userId}:`, error)
       return false
     }
   }
@@ -1991,7 +1984,7 @@ export class NotificationService extends BaseService {
         depth: 0,
       })) as User
       if (!user || !user.email) {
-        console.error(
+        logError(
           `User not found or missing email for sendPasswordChangedNotification: ${userId}`,
         )
         return false
@@ -2019,7 +2012,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(`Failed to send password changed notification for user ${userId}:`, error)
+      logError(`Failed to send password changed notification for user ${userId}:`, error)
       return false
     }
   }
@@ -2032,7 +2025,7 @@ export class NotificationService extends BaseService {
         depth: 0,
       })) as User
       if (!user || !user.email) {
-        console.error(
+        logError(
           `User not found or missing email for sendEmailAddressChangedNotification: ${userId}`,
         )
         return false
@@ -2075,13 +2068,13 @@ export class NotificationService extends BaseService {
             { locale: userLocale },
           )
         } catch (secError) {
-          console.error(`Failed to send security alert to old email ${oldEmail}:`, secError)
+          logError(`Failed to send security alert to old email ${oldEmail}:`, secError)
           securityAlertSent = false
         }
       }
       return results.some((result) => result === true) && securityAlertSent
     } catch (error) {
-      console.error(`Failed to send email address changed notification for user ${userId}:`, error)
+      logError(`Failed to send email address changed notification for user ${userId}:`, error)
       return false
     }
   }
@@ -2097,7 +2090,7 @@ export class NotificationService extends BaseService {
         depth: 0,
       })) as User
       if (!user || !user.email) {
-        console.error(
+        logError(
           `User not found or missing email for sendAccountUpdatedNotification: ${userId}`,
         )
         return false
@@ -2127,7 +2120,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(`Failed to send account updated notification for user ${userId}:`, error)
+      logError(`Failed to send account updated notification for user ${userId}:`, error)
       return false
     }
   }
@@ -2144,7 +2137,7 @@ export class NotificationService extends BaseService {
       })) as Order
 
       if (!order) {
-        console.error(`Order not found for sendOrderShippedFulfilledNotification: ${orderId}`)
+        logError(`Order not found for sendOrderShippedFulfilledNotification: ${orderId}`)
         return false
       }
 
@@ -2158,7 +2151,7 @@ export class NotificationService extends BaseService {
       const userEmail = typeof customer === 'object' && customer !== null ? customer.email : null
 
       if (!userIdValue || !userEmail) {
-        console.error(`Missing user data for sendOrderShippedFulfilledNotification: ${orderId}`)
+        logError(`Missing user data for sendOrderShippedFulfilledNotification: ${orderId}`)
         return false
       }
 
@@ -2207,7 +2200,7 @@ export class NotificationService extends BaseService {
       const results = await this.sendNotification(notificationPayload)
       return results.some((result) => result === true)
     } catch (error) {
-      console.error(`Failed to send order shipped/fulfilled notification for ${orderId}:`, error)
+      logError(`Failed to send order shipped/fulfilled notification for ${orderId}:`, error)
       return false
     }
   }
@@ -2226,7 +2219,7 @@ export class NotificationService extends BaseService {
           ? notification.user !== userId
           : notification.user?.id !== userId)
       ) {
-        console.warn(
+        logWarn(
           `Notification ${notificationId} not found or does not belong to user ${userId}.`,
         )
         return false
@@ -2245,7 +2238,7 @@ export class NotificationService extends BaseService {
       })
       return true
     } catch (error) {
-      console.error(`Error marking notification ${notificationId} as read:`, error)
+      logError(`Error marking notification ${notificationId} as read:`, error)
       return false
     }
   }
@@ -2267,9 +2260,9 @@ export class NotificationService extends BaseService {
           isRead: true,
         } as Partial<Notification>, // Use Partial for update data
       })
-      console.log(`Attempted to mark all unread notifications as read for user ${userId}.`)
+      logDebug(`Attempted to mark all unread notifications as read for user ${userId}.`)
     } catch (error) {
-      console.error(`Error marking all notifications as read for user ${userId}:`, error)
+      logError(`Error marking all notifications as read for user ${userId}:`, error)
       throw error
     }
   }
@@ -2296,7 +2289,7 @@ export class NotificationService extends BaseService {
       })
       return results as { docs: Notification[]; totalDocs: number }
     } catch (error) {
-      console.error(`Error fetching notifications for user ${userId}:`, error)
+      logError(`Error fetching notifications for user ${userId}:`, error)
       return null
     }
   }
@@ -2319,7 +2312,7 @@ export class NotificationService extends BaseService {
       })
       return result.totalDocs
     } catch (error) {
-      console.error(`Error fetching unread notification count for user ${userIdValue}:`, error) // Use renamed variable
+      logError(`Error fetching unread notification count for user ${userIdValue}:`, error) // Use renamed variable
       return 0
     }
   }

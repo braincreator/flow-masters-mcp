@@ -4,6 +4,7 @@ import React, { createContext, useContext, useCallback, useEffect, useMemo, Reac
 import { useAuth } from '@/hooks/useAuth'
 import { usePathname, useSearchParams } from 'next/navigation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export type EventCategory = 'page_view' | 'user' | 'content' | 'ecommerce' | 'interaction'
 
 export interface AnalyticsEvent {
@@ -110,7 +111,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       }
 
       // Log event for debugging
-      console.log('Analytics event:', event)
+      logDebug('Analytics event:', event)
 
       // Add to recent events
       setRecentEvents((prev) => [event, ...prev].slice(0, 20))
@@ -226,7 +227,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
 
   // Identify user
   const identifyUser = useCallback((userId: string, traits?: Record<string, any>) => {
-    console.log('Identify user:', userId, traits)
+    logDebug('Identify user:', userId, traits)
 
     // Send to analytics services
     if (typeof window !== 'undefined') {

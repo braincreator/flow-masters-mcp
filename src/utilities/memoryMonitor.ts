@@ -5,6 +5,7 @@
 import { EventEmitter } from 'events'
 import { cleanupAllResources } from './memoryCleanup'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface MemoryStats {
   heapUsed: number
   heapTotal: number
@@ -48,7 +49,7 @@ class MemoryMonitor extends EventEmitter {
     if (this.isRunning) return
     
     if (typeof process === 'undefined') {
-      console.warn('Memory monitor can only run on the server side')
+      logWarn('Memory monitor can only run on the server side')
       return
     }
     
@@ -60,7 +61,7 @@ class MemoryMonitor extends EventEmitter {
     }, this.checkIntervalMs)
     
     if (this.debug) {
-      console.log(`Memory monitor started. Checking every ${this.checkIntervalMs / 1000} seconds`)
+      logDebug(`Memory monitor started. Checking every ${this.checkIntervalMs / 1000} seconds`)
     }
   }
 
@@ -78,7 +79,7 @@ class MemoryMonitor extends EventEmitter {
     this.isRunning = false
     
     if (this.debug) {
-      console.log('Memory monitor stopped')
+      logDebug('Memory monitor stopped')
     }
   }
 
@@ -105,7 +106,7 @@ class MemoryMonitor extends EventEmitter {
       this.emit('stats', stats)
       
       if (this.debug) {
-        console.log(`Memory usage: ${Math.round(stats.usage * 100)}% (${this.formatBytes(stats.heapUsed)} / ${this.formatBytes(stats.heapTotal)})`)
+        logDebug(`Memory usage: ${Math.round(stats.usage * 100)}% (${this.formatBytes(stats.heapUsed)} / ${this.formatBytes(stats.heapTotal)})`)
       }
       
       // Проверяем пороги использования памяти
@@ -114,21 +115,21 @@ class MemoryMonitor extends EventEmitter {
         
         if (this.autoCleanup) {
           if (this.debug) {
-            console.warn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%. Cleaning up resources...`)
+            logWarn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%. Cleaning up resources...`)
           }
           cleanupAllResources()
         } else if (this.debug) {
-          console.warn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%`)
+          logWarn(`Critical memory usage detected: ${Math.round(stats.usage * 100)}%`)
         }
       } else if (stats.usage >= this.highMemoryThreshold) {
         this.emit('high', stats)
         
         if (this.debug) {
-          console.warn(`High memory usage detected: ${Math.round(stats.usage * 100)}%`)
+          logWarn(`High memory usage detected: ${Math.round(stats.usage * 100)}%`)
         }
       }
     } catch (error) {
-      console.error('Error checking memory usage:', error)
+      logError('Error checking memory usage:', error)
     }
   }
 

@@ -52,6 +52,7 @@ import {
 } from '@/types/tasks'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface TaskFormModalProps {
   isOpen: boolean
   onClose: () => void
@@ -206,7 +207,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
         onClose()
       } catch (error) {
-        console.error('Error submitting task:', error)
+        logError('Error submitting task:', error)
         const errorMessage =
           mode === 'edit' ? t('notifications.updateError') : t('notifications.createError')
         toast.error(errorMessage)
@@ -227,7 +228,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
       toast.success(t('notifications.deleteSuccess'))
       onClose()
     } catch (error) {
-      console.error('Error deleting task:', error)
+      logError('Error deleting task:', error)
       toast.error(t('notifications.deleteError'))
     } finally {
       setIsDeleting(false)

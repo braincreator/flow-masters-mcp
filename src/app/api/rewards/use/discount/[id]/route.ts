@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession()
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         result = await rewardDiscountService.createDiscountFromReward(params.id)
       } else {
         // Fallback: Directly implement discount creation if service registry is not available
-        console.warn('Service registry not available, using direct implementation')
+        logWarn('Service registry not available, using direct implementation')
 
         // Get reward details with depth
         const rewardDetails = await payload.findByID({
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         }
       }
     } catch (error) {
-      console.error('Error creating discount from reward:', error)
+      logError('Error creating discount from reward:', error)
       return NextResponse.json(
         {
           error:
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       discountCode: result.discountCode,
     })
   } catch (error) {
-    console.error('Error creating discount from reward:', error)
+    logError('Error creating discount from reward:', error)
     return NextResponse.json({ error: 'Failed to create discount from reward' }, { status: 500 })
   }
 }

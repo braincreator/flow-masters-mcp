@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Save, Trash2, Plus, BookOpen, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CourseNotesProps {
   courseId: string
   lessonId: string
@@ -56,7 +57,7 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
           }
         }
       } catch (error) {
-        console.error('Error loading notes:', error)
+        logError('Error loading notes:', error)
       } finally {
         setIsLoading(false)
       }
@@ -88,7 +89,7 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
     } catch (error) {
-      console.error('Error saving note:', error)
+      logError('Error saving note:', error)
     } finally {
       setIsSaving(false)
     }
@@ -112,7 +113,7 @@ export function CourseNotes({ courseId, lessonId }: CourseNotesProps) {
         setCurrentNote('')
       }
     } catch (error) {
-      console.error('Error deleting note:', error)
+      logError('Error deleting note:', error)
     }
   }
 

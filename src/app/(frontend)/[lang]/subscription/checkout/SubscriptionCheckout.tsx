@@ -25,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SubscriptionCheckoutProps {
   locale: string
   planId: string
@@ -59,7 +60,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
           throw new Error(data.error || t('errors.invalidPlan'))
         }
       } catch (error) {
-        console.error('Error fetching plan:', error)
+        logError('Error fetching plan:', error)
         setError(error instanceof Error ? error.message : t('errors.unknown'))
       } finally {
         setIsLoading(false)
@@ -107,7 +108,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
         throw new Error(data.error || t('errors.unknown'))
       }
     } catch (error) {
-      console.error('Error creating subscription:', error)
+      logError('Error creating subscription:', error)
       setError(error instanceof Error ? error.message : t('errors.unknown'))
     } finally {
       setIsProcessing(false)

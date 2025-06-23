@@ -1,6 +1,7 @@
 import { PayloadRequest } from 'payload'; // Trying direct import from 'payload'
 import { Response } from 'express';
 import { addDays, parseISO, isBefore, isEqual } from 'date-fns';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { Lesson, CourseEnrollment, User } from '../../payload-types'; // Generated types
 
 // Removed unused 'payload' import
@@ -33,7 +34,7 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
 
     // Admin bypass
     if (req.user.role === 'admin') {
-      console.log(`Admin access granted for lesson ${lessonId}`);
+      logDebug(`Admin access granted for lesson ${lessonId}`);
       // Return specific fields if needed, e.g., lesson.layout
       return res.status(200).json(lesson);
     }
@@ -46,7 +47,7 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
     switch (dripType) {
       case 'immediate':
         accessGranted = true;
-        console.log(`Immediate access granted for lesson ${lessonId}`);
+        logDebug(`Immediate access granted for lesson ${lessonId}`);
         break;
 
       case 'specificDate':
@@ -54,12 +55,12 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
           const availableDate = parseISO(availableOn);
           if (isBefore(availableDate, now) || isEqual(availableDate, now)) {
             accessGranted = true;
-            console.log(`Specific date access granted for lesson ${lessonId}`);
+            logDebug(`Specific date access granted for lesson ${lessonId}`);
           } else {
-             console.log(`Specific date access denied for lesson ${lessonId}. Available on: ${availableOn}`);
+             logDebug(`Specific date access denied for lesson ${lessonId}. Available on: ${availableOn}`);
           }
         } else {
-             console.log(`Specific date access denied for lesson ${lessonId}. No availableOn date set.`);
+             logDebug(`Specific date access denied for lesson ${lessonId}. No availableOn date set.`);
         }
         break;
 
@@ -70,7 +71,7 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
           : null;
 
         if (!courseId) {
-          console.error(`Could not determine course ID for lesson ${lessonId}. Module or Course data missing.`);
+          logError(`Could not determine course ID for lesson ${lessonId}. Module or Course data missing.`);
           return res.status(500).json({ message: 'Internal Server Error: Course data missing.' });
         }
 
@@ -98,21 +99,21 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
 
             if (isBefore(calculatedAvailableDate, now) || isEqual(calculatedAvailableDate, now)) {
               accessGranted = true;
-              console.log(`Days after enrollment access granted for lesson ${lessonId}. Available since: ${calculatedAvailableDate.toISOString()}`);
+              logDebug(`Days after enrollment access granted for lesson ${lessonId}. Available since: ${calculatedAvailableDate.toISOString()}`);
             } else {
-               console.log(`Days after enrollment access denied for lesson ${lessonId}. Available on: ${calculatedAvailableDate.toISOString()}`);
+               logDebug(`Days after enrollment access denied for lesson ${lessonId}. Available on: ${calculatedAvailableDate.toISOString()}`);
             }
           } else {
-             console.log(`Days after enrollment access denied for lesson ${lessonId}. No active enrollment found for course ${courseId}.`);
+             logDebug(`Days after enrollment access denied for lesson ${lessonId}. No active enrollment found for course ${courseId}.`);
           }
         } catch (enrollmentError) {
-          console.error(`Error fetching enrollment for user ${req.user.id}, course ${courseId}:`, enrollmentError);
+          logError(`Error fetching enrollment for user ${req.user.id}, course ${courseId}:`, enrollmentError);
           return res.status(500).json({ message: 'Internal Server Error checking enrollment.' });
         }
         break;
 
       default:
-        console.log(`Access denied for lesson ${lessonId}. Unknown or unsupported dripType: ${dripType}`);
+        logDebug(`Access denied for lesson ${lessonId}. Unknown or unsupported dripType: ${dripType}`);
         break; // Access denied by default
     }
 
@@ -124,7 +125,7 @@ export const accessLessonHandler = async (req: PayloadRequest, res: Response): P
     }
 
   } catch (error) {
-    console.error(`Error accessing lesson ${lessonId}:`, error);
+    logError(`Error accessing lesson ${lessonId}:`, error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 };

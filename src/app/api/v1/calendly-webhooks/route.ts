@@ -4,6 +4,7 @@ import { ENV } from '@/constants/env'
 import { ServiceRegistry } from '@/services/service.registry'
 import { CalendlyService, CalendlyWebhookPayload } from '@/services/calendly.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Обработчик POST-запросов для вебхуков Calendly
  */
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     const webhookSecret = ENV.CALENDLY_WEBHOOK_SECRET
 
     if (!webhookSecret) {
-      console.error('CALENDLY_WEBHOOK_SECRET is not defined in environment variables')
+      logError('CALENDLY_WEBHOOK_SECRET is not defined in environment variables')
       return NextResponse.json(
         { success: false, error: 'Webhook secret not configured' },
         { status: 500 },
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     const isValid = calendlyService.verifySignature(signature, timestamp, body, webhookSecret)
 
     if (!isValid) {
-      console.error('Invalid Calendly webhook signature')
+      logError('Invalid Calendly webhook signature')
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 401 })
     }
 
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       message: result.message || 'Webhook processed successfully',
     })
   } catch (error) {
-    console.error('Error processing Calendly webhook:', error)
+    logError('Error processing Calendly webhook:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

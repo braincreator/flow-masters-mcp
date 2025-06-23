@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type {
   WebhookPayload,
   EventHandlerResult,
@@ -96,9 +97,7 @@ export class WebhookService extends BaseService {
           response: await this.safeParseResponse(response),
         })
 
-        console.log(
-          `Webhook sent successfully to ${url} in ${processingTime}ms (attempt ${attempt})`
-        )
+        logDebug(`Webhook sent successfully to ${url} in ${processingTime}ms (attempt ${attempt})`)
 
         return {
           success: true,
@@ -113,7 +112,7 @@ export class WebhookService extends BaseService {
         lastError = error as Error
         const processingTime = Date.now() - startTime
 
-        console.error(
+        logError(
           `Webhook failed to ${url} on attempt ${attempt}:`,
           error
         )
@@ -135,7 +134,7 @@ export class WebhookService extends BaseService {
             retryConfig.maxDelay
           )
 
-          console.log(`Retrying webhook to ${url} in ${delay}ms...`)
+          logDebug(`Retrying webhook to ${url} in ${delay}ms...`)
           await this.sleep(delay)
         }
       }
@@ -270,7 +269,7 @@ export class WebhookService extends BaseService {
       }
 
     } catch (error) {
-      console.error('Error getting webhook stats:', error)
+      logError('Error getting webhook stats:', error)
       throw error
     }
   }
@@ -361,7 +360,7 @@ export class WebhookService extends BaseService {
       return stats
 
     } catch (error) {
-      console.error('Error getting webhook stats:', error)
+      logError('Error getting webhook stats:', error)
       throw error
     }
   }
@@ -430,7 +429,7 @@ export class WebhookService extends BaseService {
       }
 
     } catch (error) {
-      console.warn('Error parsing webhook response:', error)
+      logWarn('Error parsing webhook response:', error)
       return null
     }
   }
@@ -460,7 +459,7 @@ export class WebhookService extends BaseService {
       })
 
     } catch (error) {
-      console.error('Error logging webhook call:', error)
+      logError('Error logging webhook call:', error)
       // Не бросаем ошибку, чтобы не нарушить основной процесс
     }
   }

@@ -2,6 +2,7 @@ import { Payload } from 'payload'
 import { BaseService } from './base.service'
 import { v4 as uuidv4 } from 'uuid'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface RewardDiscountResult {
   success: boolean
   discountCode?: string
@@ -135,7 +136,7 @@ export class RewardDiscountService extends BaseService {
         discountCode,
       }
     } catch (error) {
-      console.error('Error creating discount from reward:', error)
+      logError('Error creating discount from reward:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -174,7 +175,7 @@ export class RewardDiscountService extends BaseService {
         return typeof reward !== 'string' && reward.rewardType === 'discount'
       })
     } catch (error) {
-      console.error('Error getting user discount rewards:', error)
+      logError('Error getting user discount rewards:', error)
       return []
     }
   }

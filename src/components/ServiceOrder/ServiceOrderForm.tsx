@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/utilities/formatPrice'
 import FileUpload from '@/components/FileUpload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Service {
   id: string
   title: string
@@ -137,7 +138,7 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({ lang, service }) =>
         router.push(`/${lang}/order-success?id=${order.id}`)
       }, 2000)
     } catch (err) {
-      console.error('Error creating order:', err)
+      logError('Error creating order:', err)
       setError(err instanceof Error ? err.message : t('unknownError'))
     } finally {
       setIsLoading(false)

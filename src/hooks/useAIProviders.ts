@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AIProvider, AIModel } from '@/services/ai/providerService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface UseAIProvidersOptions {
   initialProvider?: AIProvider
 }
@@ -84,7 +85,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
           setModels([])
         }
       } catch (err) {
-        console.error('Error loading models:', err)
+        logError('Error loading models:', err)
         setError('Failed to load models. Please try again.')
         setModels([])
       } finally {
@@ -107,7 +108,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
         setHasStoredApiKey(false)
       }
     } catch (err) {
-      console.error('Error checking stored API key:', err)
+      logError('Error checking stored API key:', err)
       setHasStoredApiKey(false)
     }
   }, [selectedProvider, getApiBaseUrl])
@@ -131,7 +132,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
         const data = await response.json()
         return data.success && data.isValid
       } catch (err) {
-        console.error('Error validating API key:', err)
+        logError('Error validating API key:', err)
         return false
       }
     },
@@ -166,7 +167,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
           return false
         }
       } catch (err) {
-        console.error('Error saving API key:', err)
+        logError('Error saving API key:', err)
         setError('Failed to save API key. Please try again.')
         return false
       }
@@ -195,7 +196,7 @@ export function useAIProviders(options?: UseAIProvidersOptions): UseAIProvidersR
         return false
       }
     } catch (err) {
-      console.error('Error deleting API key:', err)
+      logError('Error deleting API key:', err)
       setError('Failed to delete API key. Please try again.')
       return false
     }

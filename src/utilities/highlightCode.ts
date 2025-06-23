@@ -114,7 +114,7 @@ export function highlightCode(): void {
                   }, 2000)
                 })
                 .catch((err) => {
-                  console.error('Failed to copy code:', err)
+                  logError('Failed to copy code:', err)
                   copyButton.textContent = 'Error!'
                 })
             }
@@ -127,6 +127,6 @@ export function highlightCode(): void {
       })
     })
     .catch((error) => {
-      console.error('Failed to load highlight.js:', error)
+      logError('Failed to load highlight.js:', error)
     })
 }

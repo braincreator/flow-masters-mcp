@@ -25,6 +25,7 @@ import { shareContent, type SharingPlatform } from '@/utilities/share'
 import { useTranslations } from '@/hooks/useTranslations'
 import { cn } from '@/utilities/ui'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define localized texts for each supported locale
 const LOCALIZED_TEXTS = {
   en: {
@@ -108,7 +109,7 @@ export function SocialSharePopover({
 
   const handleShare = async (platform: SharingPlatform) => {
     // Log sharing attempt for debugging
-    console.log('Sharing content:', { platform, url, title, description: shareDescription, image })
+    logDebug('Sharing content:', { platform, url, title, description: shareDescription, image })
 
     // Подготавливаем данные для шаринга
     const shareData = {
@@ -122,7 +123,7 @@ export function SocialSharePopover({
     if (platform === 'facebook') {
       // Для Facebook лучше всего работает OpenGraph, который уже должен быть на странице
       // Однако можно также добавить дополнительные параметры в shareContent
-      console.log('Facebook sharing:', shareData)
+      logDebug('Facebook sharing:', shareData)
     }
 
     const success = await shareContent(platform, shareData)
@@ -200,7 +201,7 @@ export function SocialSharePopover({
               .map((platform) => {
                 const config = platformConfig[platform]
                 if (!config) {
-                  console.warn(`Missing config for platform: ${platform}`)
+                  logWarn(`Missing config for platform: ${platform}`)
                   return null
                 }
 

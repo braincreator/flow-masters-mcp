@@ -5,6 +5,7 @@ import { TelegramService } from './telegram.service'
 import { NotificationService } from './notification.service'
 import { IntegrationEvents, EventPayload } from '@/types/events'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type EventCallback = (data: any) => Promise<void>
 
 // Типы событий для интеграций
@@ -100,7 +101,7 @@ export class IntegrationService extends BaseService {
    * @param data Данные события
    */
   async processEvent(eventType: string, data: any): Promise<void> {
-    console.log(`Processing event ${eventType}:`, data)
+    logDebug(`Processing event ${eventType}:`, data)
 
     try {
       // Находим все активные интеграции, которые реагируют на это событие
@@ -113,7 +114,7 @@ export class IntegrationService extends BaseService {
       })
 
       if (integrations.docs.length === 0) {
-        console.log(`No active integrations found for event ${eventType}`)
+        logDebug(`No active integrations found for event ${eventType}`)
         return
       }
 
@@ -130,7 +131,7 @@ export class IntegrationService extends BaseService {
             if (trigger.conditions && trigger.conditions.length > 0) {
               const conditionsMet = this.checkConditions(trigger.conditions, data)
               if (!conditionsMet) {
-                console.log(`Conditions not met for integration ${integration.name}, skipping`)
+                logDebug(`Conditions not met for integration ${integration.name}, skipping`)
                 continue
               }
             }
@@ -139,12 +140,12 @@ export class IntegrationService extends BaseService {
             await this.executeActions(integration.actions, data, integration)
           }
         } catch (error) {
-          console.error(`Error processing integration ${integration.name}:`, error)
+          logError(`Error processing integration ${integration.name}:`, error)
           // Продолжаем с другими интеграциями
         }
       }
     } catch (error) {
-      console.error(`Error processing event ${eventType}:`, error)
+      logError(`Error processing event ${eventType}:`, error)
     }
   }
 
@@ -224,12 +225,12 @@ export class IntegrationService extends BaseService {
             result = await this.executeNotificationAction(processedConfig, data, integration)
             break
           default:
-            console.warn(`Unknown action type: ${action.type}`)
+            logWarn(`Unknown action type: ${action.type}`)
         }
 
         // Записываем результат выполнения действия
         const executionTime = Date.now() - startTime
-        console.log(`Action ${action.type} executed in ${executionTime}ms with result: ${result}`)
+        logDebug(`Action ${action.type} executed in ${executionTime}ms with result: ${result}`)
 
         // Обновляем статус интеграции
         await this.updateIntegrationStatus(integration.id, {
@@ -237,7 +238,7 @@ export class IntegrationService extends BaseService {
           lastSyncStatus: result ? 'success' : 'error',
         })
       } catch (error) {
-        console.error(`Error executing action ${action.type}:`, error)
+        logError(`Error executing action ${action.type}:`, error)
 
         // Обновляем статус интеграции в случае ошибки
         await this.updateIntegrationStatus(integration.id, {
@@ -254,7 +255,7 @@ export class IntegrationService extends BaseService {
    */
   private async executeHttpAction(config: HttpActionConfig, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing HTTP action with config:', config)
+      logDebug('Executing HTTP action with config:', config)
 
       const { url, method, headers, body } = config
 
@@ -265,16 +266,16 @@ export class IntegrationService extends BaseService {
       })
 
       if (!response.ok) {
-        console.error(`HTTP request failed with status ${response.status}`)
+        logError(`HTTP request failed with status ${response.status}`)
         return false
       }
 
       // Optionally process the response here
       const responseData = await response.json()
-      console.log('HTTP response:', responseData)
+      logDebug('HTTP response:', responseData)
       return true
     } catch (error: any) {
-      console.error('Error executing HTTP action:', error)
+      logError('Error executing HTTP action:', error)
       return false
     }
   }
@@ -284,7 +285,7 @@ export class IntegrationService extends BaseService {
    */
   private async executeEmailAction(config: EmailActionConfig, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing Email action with config:', config)
+      logDebug('Executing Email action with config:', config)
 
       const { to, from, subject, emailBody, template, templateData } = config
 
@@ -292,11 +293,11 @@ export class IntegrationService extends BaseService {
         // Use template to render email body
         // const renderedTemplate = await this.emailService?.renderTemplate(template, templateData)
         // if (!renderedTemplate) {
-        //   console.error('Failed to render email template')
+        //   logError('Failed to render email template')
         //   return false
         // }
         // config.emailBody = renderedTemplate
-        console.warn('Email template rendering is not yet implemented')
+        logWarn('Email template rendering is not yet implemented')
         return false
       }
 
@@ -308,13 +309,13 @@ export class IntegrationService extends BaseService {
       })
 
       if (!result) {
-        console.error('Failed to send email')
+        logError('Failed to send email')
         return false
       }
 
       return true
     } catch (error: any) {
-      console.error('Error executing Email action:', error)
+      logError('Error executing Email action:', error)
       return false
     }
   }
@@ -324,7 +325,7 @@ export class IntegrationService extends BaseService {
    */
   private async executeTelegramAction(config: TelegramActionConfig, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing Telegram action with config:', config)
+      logDebug('Executing Telegram action with config:', config)
 
       const { message, parseMode, disableNotification } = config
 
@@ -334,13 +335,13 @@ export class IntegrationService extends BaseService {
       })
 
       if (!result) {
-        console.error('Failed to send Telegram message')
+        logError('Failed to send Telegram message')
         return false
       }
 
       return true
     } catch (error: any) {
-      console.error('Error executing Telegram action:', error)
+      logError('Error executing Telegram action:', error)
       return false
     }
   }
@@ -350,7 +351,7 @@ export class IntegrationService extends BaseService {
    */
   private async executeCreateRecordAction(config: CreateRecordActionConfig, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing Create Record action with config:', config)
+      logDebug('Executing Create Record action with config:', config)
 
       const { collection, data: recordData } = config
 
@@ -361,7 +362,7 @@ export class IntegrationService extends BaseService {
 
       return true
     } catch (error: any) {
-      console.error('Error executing Create Record action:', error)
+      logError('Error executing Create Record action:', error)
       return false
     }
   }
@@ -371,7 +372,7 @@ export class IntegrationService extends BaseService {
    */
   private async executeUpdateRecordAction(config: UpdateRecordActionConfig, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing Update Record action with config:', config)
+      logDebug('Executing Update Record action with config:', config)
 
       const { collection, where, data: updateData } = config
       
@@ -383,7 +384,7 @@ export class IntegrationService extends BaseService {
 
       return true
     } catch (error: any) {
-      console.error('Error executing Update Record action:', error)
+      logError('Error executing Update Record action:', error)
       return false
     }
   }
@@ -393,10 +394,10 @@ export class IntegrationService extends BaseService {
    */
   private async executeNotificationAction(config: any, data: any, integration: any): Promise<boolean> {
     try {
-      console.log('Executing Notification action with config:', config)
+      logDebug('Executing Notification action with config:', config)
 
       if (!this.notificationService) {
-        console.error('Notification service is not initialized')
+        logError('Notification service is not initialized')
         return false
       }
 
@@ -404,7 +405,7 @@ export class IntegrationService extends BaseService {
       // await this.notificationService.sendNotification?.(config);
       return true
     } catch (error: any) {
-      console.error('Error executing Notification action:', error)
+      logError('Error executing Notification action:', error)
       return false
     }
   }
@@ -414,7 +415,7 @@ export class IntegrationService extends BaseService {
    */
   private processTemplates(config: any, data: any): any {
     // TODO: Implement template processing logic
-    console.warn('Template processing is not yet implemented')
+    logWarn('Template processing is not yet implemented')
     return config
   }
 
@@ -429,7 +430,7 @@ export class IntegrationService extends BaseService {
         data: status,
       })
     } catch (error: any) {
-      console.error('Error updating integration status:', error)
+      logError('Error updating integration status:', error)
     }
   }
 }

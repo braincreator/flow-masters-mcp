@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SecurityTabProps {
   onPasswordChange?: (data: any) => Promise<void>
 }
@@ -48,7 +49,7 @@ export function SecurityTab({ onPasswordChange }: SecurityTabProps) {
       // Reset form on success
       event.currentTarget.reset()
     } catch (error) {
-      console.error('Failed to change password:', error)
+      logError('Failed to change password:', error)
       setPasswordError(t('errors.passwordChangeFailed'))
     } finally {
       setIsLoading(false)

@@ -2,6 +2,7 @@
 
 import type { FormInteraction } from '@/types/formMetadata'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Ключи для хранения данных
 const STORAGE_KEYS = {
   FORM_INTERACTIONS: 'fm_form_interactions',
@@ -292,7 +293,7 @@ export class UserTracker {
       sessionStorage.setItem(STORAGE_KEYS.MOUSE_TRACKING, JSON.stringify(this.mouseData))
       sessionStorage.setItem(STORAGE_KEYS.FORM_INTERACTIONS, JSON.stringify(Object.fromEntries(this.formInteractions)))
     } catch (error) {
-      console.warn('Error saving tracking data:', error)
+      logWarn('Error saving tracking data:', error)
     }
   }
 
@@ -316,7 +317,7 @@ export class UserTracker {
         return JSON.parse(stored)
       }
     } catch (error) {
-      console.warn('Error loading time data:', error)
+      logWarn('Error loading time data:', error)
     }
 
     return {
@@ -347,7 +348,7 @@ export class UserTracker {
         return JSON.parse(stored)
       }
     } catch (error) {
-      console.warn('Error loading scroll data:', error)
+      logWarn('Error loading scroll data:', error)
     }
 
     return {
@@ -377,7 +378,7 @@ export class UserTracker {
         return JSON.parse(stored)
       }
     } catch (error) {
-      console.warn('Error loading mouse data:', error)
+      logWarn('Error loading mouse data:', error)
     }
 
     return {
@@ -403,7 +404,7 @@ export class UserTracker {
         return new Map(Object.entries(data))
       }
     } catch (error) {
-      console.warn('Error loading form interactions:', error)
+      logWarn('Error loading form interactions:', error)
     }
 
     return new Map()

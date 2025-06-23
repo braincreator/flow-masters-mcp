@@ -6,6 +6,7 @@ import { ExternalLink, MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEnhancedFormSubmission } from '@/hooks/useEnhancedFormSubmission'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ModalLeadFormProps {
   open: boolean
   onClose: () => void
@@ -45,10 +46,10 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
     enableTracking: true,
     onSuccess: () => {
       // Дополнительные действия при успехе
-      console.log('Lead form submitted successfully')
+      logDebug('Lead form submitted successfully')
     },
     onError: (error) => {
-      console.error('Lead form submission error:', error)
+      logError('Lead form submission error:', error)
     },
   })
 
@@ -109,7 +110,7 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
 
     } catch (err) {
       // Ошибка уже обработана в хуке
-      console.error('Form submission error:', err)
+      logError('Form submission error:', err)
     }
   }
 

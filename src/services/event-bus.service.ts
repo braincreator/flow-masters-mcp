@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type {
   Event,
   EventHandler,
@@ -63,7 +64,7 @@ export class EventBusService extends BaseService {
       const handlers = this.getHandlersForEvent(event.type)
       
       if (handlers.length === 0) {
-        console.log(`No handlers registered for event type: ${event.type}`)
+        logDebug(`No handlers registered for event type: ${event.type}`)
         return
       }
 
@@ -77,10 +78,10 @@ export class EventBusService extends BaseService {
       const processingTime = Date.now() - startTime
       this.updateProcessingTime(processingTime)
       
-      console.log(`Event ${event.type} processed successfully in ${processingTime}ms`)
+      logDebug(`Event ${event.type} processed successfully in ${processingTime}ms`)
       
     } catch (error) {
-      console.error(`Error publishing event ${event.type}:`, error)
+      logError(`Error publishing event ${event.type}:`, error)
       this.updateFailureStats()
       throw error
     }
@@ -98,7 +99,7 @@ export class EventBusService extends BaseService {
       const handlers = this.handlers.get(eventType)!
       handlers.push(config)
       
-      console.log(`Handler subscribed to event type: ${eventType}`)
+      logDebug(`Handler subscribed to event type: ${eventType}`)
     }
   }
 
@@ -112,7 +113,7 @@ export class EventBusService extends BaseService {
         const index = handlers.findIndex(h => h.handler === handler)
         if (index !== -1) {
           handlers.splice(index, 1)
-          console.log(`Handler unsubscribed from event type: ${eventType}`)
+          logDebug(`Handler unsubscribed from event type: ${eventType}`)
         }
       }
     }
@@ -198,7 +199,7 @@ export class EventBusService extends BaseService {
       Promise.allSettled(asyncPromises).then(results => {
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            console.error(
+            logError(
               `Async handler failed for event ${event.type}:`,
               result.reason
             )
@@ -230,7 +231,7 @@ export class EventBusService extends BaseService {
       return result
       
     } catch (error) {
-      console.error(`Handler failed for event ${event.type}:`, error)
+      logError(`Handler failed for event ${event.type}:`, error)
       
       if (handlerConfig.retryConfig) {
         context.previousError = error as Error
@@ -271,9 +272,7 @@ export class EventBusService extends BaseService {
         lastResult = await handlerConfig.handler(context)
         
         if (lastResult.success) {
-          console.log(
-            `Handler succeeded on attempt ${attempt} for event ${context.event.type}`
-          )
+          logDebug(`Handler succeeded on attempt ${attempt} for event ${context.event.type}`)
           return lastResult
         }
         
@@ -286,7 +285,7 @@ export class EventBusService extends BaseService {
       }
     }
     
-    console.error(
+    logError(
       `Handler failed after ${retryConfig.maxAttempts} attempts for event ${context.event.type}`
     )
     

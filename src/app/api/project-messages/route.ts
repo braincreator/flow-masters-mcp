@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import { getAuth } from '../helpers/auth'
 import config from '@/payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 let cachedPayload = null
 
 async function getPayloadInstance() {
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(messagesResponse.docs)
   } catch (error) {
-    console.error('Error fetching project messages:', error)
+    logError('Error fetching project messages:', error)
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 })
   }
 }
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(message)
   } catch (error) {
-    console.error('Error creating message:', error)
+    logError('Error creating message:', error)
     return NextResponse.json({ error: 'Failed to create message' }, { status: 500 })
   }
 }

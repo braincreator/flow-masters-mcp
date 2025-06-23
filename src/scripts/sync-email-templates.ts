@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 import fs from 'fs'
 import { lexicalToHtml } from '../utilities/lexicalToHtml'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { OrderCompletedEmailData, SubscriptionCancelledEmailData, SubscriptionPaymentFailedEmailData, SubscriptionPlanChangedEmailData, SubscriptionPausedEmailData, SubscriptionResumedEmailData, SubscriptionExpiredEmailData, SubscriptionRenewalReminderEmailData, SubscriptionRenewedSuccessfullyEmailData, OrderCancelledEmailData, RefundProcessedEmailData, InitialPaymentFailedEmailData, PasswordChangedEmailData, EmailAddressChangedEmailData, AccountUpdatedEmailData, OrderShippedFulfilledEmailData, DigitalProductReadyEmailData, AbandonedCartEmailData, AdminNewSubscriberNotificationEmailData } from '../types/emailTemplates' // Added import
 
 // Load environment variables
@@ -584,7 +585,7 @@ async function generateHtmlFromCodeTemplate(
 
     return { html, subject }
   } catch (error) {
-    console.error(`Error generating HTML from ${templatePath}:`, error)
+    logError(`Error generating HTML from ${templatePath}:`, error)
     throw error
   }
 }
@@ -642,7 +643,7 @@ async function syncTemplates() {
       return module.default
     })
 
-    console.log('Connected to Payload CMS')
+    logDebug('Connected to Payload CMS')
 
     // Add a null check for payload after initialization
     if (!payload) {
@@ -663,12 +664,12 @@ async function syncTemplates() {
 
     // Process each template
     for (const template of templates) {
-      console.log(`Processing template: ${template.name} (${template.slug})`)
+      logDebug(`Processing template: ${template.name} (${template.slug})`)
 
       try {
         // Add null check before using payload in loop
         if (!payload) {
-          console.error(`Payload instance is null, skipping template ${template.slug}`);
+          logError(`Payload instance is null, skipping template ${template.slug}`);
           continue; // Skip this iteration
         }
 
@@ -696,7 +697,7 @@ async function syncTemplates() {
 
         // Create or update template in CMS
         if (existingTemplate.docs.length > 0 && existingTemplate.docs[0]) {
-          console.log(`Updating existing template: ${template.slug}`)
+          logDebug(`Updating existing template: ${template.slug}`)
 
           await payload.update({
             collection: 'email-templates',
@@ -711,7 +712,7 @@ async function syncTemplates() {
             },
           })
         } else {
-          console.log(`Creating new template: ${template.slug}`)
+          logDebug(`Creating new template: ${template.slug}`)
 
           await payload.create({
             collection: 'email-templates',
@@ -728,20 +729,20 @@ async function syncTemplates() {
           })
         }
 
-        console.log(`Successfully processed template: ${template.slug}`)
+        logDebug(`Successfully processed template: ${template.slug}`)
       } catch (error) {
-        console.error(`Error processing template ${template.slug}:`, error)
+        logError(`Error processing template ${template.slug}:`, error)
       }
     }
 
-    console.log('Template sync completed')
+    logDebug('Template sync completed')
   } catch (error) {
-    console.error('Error syncing templates:', error)
+    logError('Error syncing templates:', error)
   } finally {
     // Cleanup
     // The disconnect method might be deprecated or unnecessary with local init
     // if (payload) {
-    //   console.log('Closing Payload connection')
+    //   logDebug('Closing Payload connection')
     //   await payload.disconnect()
     // }
   }
@@ -750,10 +751,10 @@ async function syncTemplates() {
 // Run the sync function
 syncTemplates()
   .then(() => {
-    console.log('Script completed')
+    logDebug('Script completed')
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Script failed:', error)
+    logError('Script failed:', error)
     process.exit(1)
   })

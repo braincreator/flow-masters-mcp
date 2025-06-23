@@ -5,6 +5,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const metadata: Metadata = {
   title: 'Payment Success',
   description: 'Your payment has been processed successfully',
@@ -45,7 +46,7 @@ export default async function PaymentSuccessPage({
         }
       }
     } catch (error) {
-      console.error('Error fetching order:', error)
+      logError('Error fetching order:', error)
     }
   }
 

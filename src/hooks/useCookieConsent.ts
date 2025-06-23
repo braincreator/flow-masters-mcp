@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Cookies from 'js-cookie'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const COOKIE_NAME = 'gdpr_consent_status'
 const DETAILED_COOKIE_NAME = 'gdpr_detailed_consent'
 
@@ -44,7 +45,7 @@ export function useCookieConsent(): CookieConsentHook {
         const parsed = JSON.parse(detailedConsentData)
         setDetailedConsent(parsed)
       } catch (error) {
-        console.error('Error parsing detailed consent:', error)
+        logError('Error parsing detailed consent:', error)
         setDetailedConsent(null)
       }
     }

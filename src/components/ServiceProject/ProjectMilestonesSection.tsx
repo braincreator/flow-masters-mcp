@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useNotification } from '@/hooks/useNotification'
 import { StarRating } from '@/components/ui/StarRating'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Deliverable {
   id?: string
   title: string
@@ -73,7 +74,7 @@ export default function ProjectMilestonesSection({ projectId, isAdmin }: Project
         })
         setExpandedMilestones(expanded)
       } catch (error) {
-        console.error('Error fetching milestones:', error)
+        logError('Error fetching milestones:', error)
         showNotification('error', t('errorFetchingMilestones', { defaultValue: 'Error fetching milestones' }))
       } finally {
         setIsLoading(false)
@@ -149,7 +150,7 @@ export default function ProjectMilestonesSection({ projectId, isAdmin }: Project
         [milestoneId]: ''
       }))
     } catch (error) {
-      console.error('Error updating milestone:', error)
+      logError('Error updating milestone:', error)
       showNotification('error', t('errorUpdatingMilestone', { defaultValue: 'Error updating milestone' }))
     } finally {
       setIsSubmitting(prev => ({ ...prev, [milestoneId]: false }))

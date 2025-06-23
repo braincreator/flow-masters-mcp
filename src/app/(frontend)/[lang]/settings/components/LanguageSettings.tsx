@@ -24,6 +24,7 @@ interface User {
 }
 import { useRouter } from 'next/navigation'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface LanguageSettingsProps {
   user: User
   locale: string
@@ -57,7 +58,7 @@ export function LanguageSettings({ user, locale }: LanguageSettingsProps) {
       }
     } catch (err) {
       setError(t('errorMessage'))
-      console.error('Error updating language settings:', err)
+      logError('Error updating language settings:', err)
     } finally {
       setIsLoading(false)
     }

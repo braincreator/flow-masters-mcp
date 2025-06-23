@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession()
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         userRewards = await rewardService.getUserRewards(params.id)
       } else {
         // Fallback: Directly query the database if service registry is not available
-        console.warn('Service registry not available, using direct database query')
+        logWarn('Service registry not available, using direct database query')
         const result = await payload.find({
           collection: 'user-rewards',
           where: {
@@ -41,14 +42,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         userRewards = result.docs
       }
     } catch (error) {
-      console.error('Error fetching user rewards:', error)
+      logError('Error fetching user rewards:', error)
       // Return empty array instead of error to prevent UI from breaking
       userRewards = []
     }
 
     return NextResponse.json(userRewards)
   } catch (error) {
-    console.error('Error fetching user rewards:', error)
+    logError('Error fetching user rewards:', error)
     return NextResponse.json({ error: 'Failed to fetch user rewards' }, { status: 500 })
   }
 }

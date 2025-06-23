@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface MetricsRequest {
   postId: string
   action: 'view' | 'share' | 'like' | 'progress'
@@ -14,25 +15,25 @@ export async function POST(req: NextRequest) {
   try {
     // Получаем данные запроса
     const body = (await req.json()) as MetricsRequest
-    console.log('[Metrics API] Received request:', { postId: body.postId, action: body.action })
+    logDebug('[Metrics API] Received request:', { postId: body.postId, action: body.action })
 
     // Проверяем обязательные параметры
     if (!body.postId) {
-      console.error('[Metrics API] Missing postId in request')
+      logError('[Metrics API] Missing postId in request')
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }
 
     if (!body.action) {
-      console.error('[Metrics API] Missing action in request')
+      logError('[Metrics API] Missing action in request')
       return NextResponse.json({ error: 'Action is required' }, { status: 400 })
     }
 
     // Инициализируем Payload клиент
     try {
       payload = await getPayloadClient()
-      console.log('[Metrics API] Payload client initialized')
+      logDebug('[Metrics API] Payload client initialized')
     } catch (payloadError) {
-      console.error('[Metrics API] Failed to initialize Payload client:', payloadError)
+      logError('[Metrics API] Failed to initialize Payload client:', payloadError)
       return NextResponse.json(
         {
           error: 'Database connection error',
@@ -51,9 +52,9 @@ export async function POST(req: NextRequest) {
         depth: 0,
       })
 
-      console.log('[Metrics API] Post verification result:', postExists ? 'found' : 'not found')
+      logDebug('[Metrics API] Post verification result:', postExists ? 'found' : 'not found')
     } catch (findError) {
-      console.error('[Metrics API] Error verifying post existence:', findError)
+      logError('[Metrics API] Error verifying post existence:', findError)
       return NextResponse.json(
         {
           error: 'Error verifying post',
@@ -64,12 +65,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (!postExists) {
-      console.error('[Metrics API] Post not found:', body.postId)
+      logError('[Metrics API] Post not found:', body.postId)
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
     const now = new Date().toISOString()
-    console.log('[Metrics API] Processing metrics for post:', postExists.title || body.postId)
+    logDebug('[Metrics API] Processing metrics for post:', postExists.title || body.postId)
 
     // Ищем существующие метрики для этого поста
     let metricsResult
@@ -82,12 +83,10 @@ export async function POST(req: NextRequest) {
           },
         },
       })
-      console.log(
-        '[Metrics API] Found existing metrics:',
-        metricsResult.docs.length > 0 ? 'yes' : 'no',
+      logDebug('[Metrics API] Found existing metrics:', metricsResult.docs.length > 0 ? 'yes' : 'no',
       )
     } catch (findMetricsError) {
-      console.error('[Metrics API] Error finding metrics:', findMetricsError)
+      logError('[Metrics API] Error finding metrics:', findMetricsError)
       return NextResponse.json(
         {
           error: 'Error retrieving metrics',
@@ -147,9 +146,9 @@ export async function POST(req: NextRequest) {
           id: metrics.id,
           data: updateData,
         })
-        console.log('[Metrics API] Updated metrics successfully for action:', body.action)
+        logDebug('[Metrics API] Updated metrics successfully for action:', body.action)
       } catch (updateError) {
-        console.error('[Metrics API] Error updating metrics:', updateError)
+        logError('[Metrics API] Error updating metrics:', updateError)
         return NextResponse.json(
           {
             error: 'Error updating metrics',
@@ -213,9 +212,9 @@ export async function POST(req: NextRequest) {
           collection: 'post-metrics',
           data: createData,
         })
-        console.log('[Metrics API] Created new metrics for action:', body.action)
+        logDebug('[Metrics API] Created new metrics for action:', body.action)
       } catch (createError) {
-        console.error('[Metrics API] Error creating metrics:', createError)
+        logError('[Metrics API] Error creating metrics:', createError)
         return NextResponse.json(
           {
             error: 'Error creating metrics',
@@ -228,7 +227,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'Metrics created' })
     }
   } catch (error) {
-    console.error('[Metrics API] Unhandled error in metrics API:', error)
+    logError('[Metrics API] Unhandled error in metrics API:', error)
 
     return NextResponse.json(
       {

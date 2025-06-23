@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import ProductsClient from './page.client'
 import { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const ITEMS_PER_PAGE = 12
 
 interface Props {
@@ -58,7 +59,7 @@ export default async function StorePage({ params, searchParams }: Props) {
     // Check if products collection exists
     const collections = Object.keys(payload.collections)
     if (!collections.includes('products')) {
-      console.error('Products collection not found. Available collections:', collections)
+      logError('Products collection not found. Available collections:', collections)
       return (
         <div className="min-h-screen bg-background">
           <div className="container mx-auto px-4 py-12">
@@ -143,7 +144,7 @@ export default async function StorePage({ params, searchParams }: Props) {
       ])
 
       if (!products?.docs || !productCategories?.docs) {
-        console.error('Invalid response format from Payload for products or productCategories')
+        logError('Invalid response format from Payload for products or productCategories')
         return notFound()
       }
 
@@ -191,13 +192,13 @@ export default async function StorePage({ params, searchParams }: Props) {
         </div>
       )
     } catch (findError) {
-      console.error('Error executing find operation:', findError)
+      logError('Error executing find operation:', findError)
       throw findError
     }
   } catch (error) {
-    console.error('Error loading products:', error)
+    logError('Error loading products:', error)
     if (error instanceof Error) {
-      console.error('Error details:', {
+      logError('Error details:', {
         message: error.message,
         stack: error.stack,
         name: error.name,

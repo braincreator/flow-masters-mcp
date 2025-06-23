@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index' // Убедитесь, что путь верный
 import { z } from 'zod'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Схема валидации для входящих данных (должна совпадать с фронтендом)
 const contactFormSchema = z.object({
   name: z.string().min(2),
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     const validationResult = contactFormSchema.safeParse(body)
 
     if (!validationResult.success) {
-      console.error('[Contact API] Invalid data:', validationResult.error.flatten())
+      logError('[Contact API] Invalid data:', validationResult.error.flatten())
       return NextResponse.json(
         { error: 'Неверные данные формы.', details: validationResult.error.flatten().fieldErrors },
         { status: 400 },
@@ -31,9 +32,9 @@ export async function POST(req: NextRequest) {
     // 2. Инициализируем Payload клиент
     try {
       payload = await getPayloadClient()
-      console.log('[Contact API] Payload client initialized')
+      logDebug('[Contact API] Payload client initialized')
     } catch (payloadError) {
-      console.error('[Contact API] Failed to initialize Payload client:', payloadError)
+      logError('[Contact API] Failed to initialize Payload client:', payloadError)
       return NextResponse.json(
         {
           error: 'Ошибка подключения к базе данных.',
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Создаем запись в коллекции 'messages'
     try {
-      console.log('[Contact API] Attempting to create message entry...')
+      logDebug('[Contact API] Attempting to create message entry...')
       const newMessage = await payload.create({
         collection: 'messages',
         data: {
@@ -56,13 +57,13 @@ export async function POST(req: NextRequest) {
           source: 'Contact Form', // Источник сообщения
         },
       })
-      console.log('[Contact API] Message created successfully:', newMessage.id)
+      logDebug('[Contact API] Message created successfully:', newMessage.id)
 
       // Опционально: можно отправить email-уведомление администратору здесь
 
       return NextResponse.json({ success: true, message: 'Сообщение успешно отправлено.' })
     } catch (createError) {
-      console.error('[Contact API] Error creating message:', createError)
+      logError('[Contact API] Error creating message:', createError)
       return NextResponse.json(
         {
           error: 'Не удалось сохранить сообщение.',
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     // Общая обработка ошибок (например, если req.json() упадет)
-    console.error('[Contact API] Unhandled error:', error)
+    logError('[Contact API] Unhandled error:', error)
     return NextResponse.json(
       {
         error: 'Произошла внутренняя ошибка сервера.',

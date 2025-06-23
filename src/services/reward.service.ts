@@ -4,6 +4,7 @@ import { NotificationService } from './notification.service'
 import { EmailService } from './email.service'
 import { EnrollmentService } from './courses/enrollmentService'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export class RewardService extends BaseService {
   private static instance: RewardService | null = null
   private notificationService: NotificationService | null = null
@@ -80,7 +81,7 @@ export class RewardService extends BaseService {
         }
       }
     } catch (error) {
-      console.error('Error checking and awarding level rewards:', error)
+      logError('Error checking and awarding level rewards:', error)
       throw error
     }
   }
@@ -141,7 +142,7 @@ export class RewardService extends BaseService {
         }
       }
     } catch (error) {
-      console.error('Error checking and awarding achievement rewards:', error)
+      logError('Error checking and awarding achievement rewards:', error)
       throw error
     }
   }
@@ -202,7 +203,7 @@ export class RewardService extends BaseService {
         }
       }
     } catch (error) {
-      console.error('Error checking and awarding course rewards:', error)
+      logError('Error checking and awarding course rewards:', error)
       throw error
     }
   }
@@ -280,7 +281,7 @@ export class RewardService extends BaseService {
 
       return userReward
     } catch (error) {
-      console.error('Error awarding reward:', error)
+      logError('Error awarding reward:', error)
       throw error
     }
   }
@@ -315,7 +316,7 @@ export class RewardService extends BaseService {
 
       return userRewards.docs
     } catch (error) {
-      console.error('Error getting user rewards:', error)
+      logError('Error getting user rewards:', error)
       throw error
     }
   }
@@ -348,7 +349,7 @@ export class RewardService extends BaseService {
 
       return userRewards.docs
     } catch (error) {
-      console.error('Error getting active user rewards:', error)
+      logError('Error getting active user rewards:', error)
       throw error
     }
   }
@@ -429,7 +430,7 @@ export class RewardService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Error using reward:', error)
+      logError('Error using reward:', error)
       throw error
     }
   }
@@ -441,7 +442,7 @@ export class RewardService extends BaseService {
   private async sendRewardEmail(userId: string, userRewardId: string): Promise<boolean> {
     try {
       if (!this.emailService) {
-        console.warn('Email service not available')
+        logWarn('Email service not available')
         return false
       }
 
@@ -461,7 +462,7 @@ export class RewardService extends BaseService {
       // Получаем информацию о награде
       const reward = userReward.reward
       if (typeof reward === 'string') {
-        console.error('Invalid reward data')
+        logError('Invalid reward data')
         return false
       }
 
@@ -519,7 +520,7 @@ export class RewardService extends BaseService {
                 courseLevel: course.level || '',
               }
             } catch (courseError) {
-              console.error('Error fetching course data for reward email:', courseError)
+              logError('Error fetching course data for reward email:', courseError)
             }
           }
 
@@ -536,7 +537,7 @@ export class RewardService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Error sending reward email:', error)
+      logError('Error sending reward email:', error)
       return false
     }
   }
@@ -563,7 +564,7 @@ export class RewardService extends BaseService {
       // Получаем информацию о награде
       const reward = userReward.reward
       if (typeof reward === 'string') {
-        console.error('Invalid reward data')
+        logError('Invalid reward data')
         return
       }
 
@@ -623,10 +624,10 @@ export class RewardService extends BaseService {
           },
         })
 
-        console.log(`Queued email campaign ${campaign.id} for reward ${userRewardId}`)
+        logDebug(`Queued email campaign ${campaign.id} for reward ${userRewardId}`)
       }
     } catch (error) {
-      console.error('Error triggering reward email campaign:', error)
+      logError('Error triggering reward email campaign:', error)
     }
   }
 
@@ -697,7 +698,7 @@ export class RewardService extends BaseService {
 
       return updatedReward
     } catch (error) {
-      console.error('Error processing free course claim:', error)
+      logError('Error processing free course claim:', error)
       throw error
     }
   }
@@ -754,7 +755,7 @@ export class RewardService extends BaseService {
 
       return updatedReward
     } catch (error) {
-      console.error('Error processing exclusive content claim:', error)
+      logError('Error processing exclusive content claim:', error)
       throw error
     }
   }
@@ -810,7 +811,7 @@ export class RewardService extends BaseService {
 
       return updatedReward
     } catch (error) {
-      console.error('Error processing badge claim:', error)
+      logError('Error processing badge claim:', error)
       throw error
     }
   }
@@ -867,7 +868,7 @@ export class RewardService extends BaseService {
 
       return updatedReward
     } catch (error) {
-      console.error('Error processing certificate claim:', error)
+      logError('Error processing certificate claim:', error)
       throw error
     }
   }
@@ -941,7 +942,7 @@ export class RewardService extends BaseService {
         }
       }
     } catch (error) {
-      console.error('Error checking expiring rewards:', error)
+      logError('Error checking expiring rewards:', error)
     }
   }
 

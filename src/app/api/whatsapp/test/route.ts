@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для тестирования WhatsApp уведомлений
  * POST /api/whatsapp/test - отправить тестовое сообщение
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error sending WhatsApp test message:', error)
+    logError('Error sending WhatsApp test message:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -106,7 +107,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting WhatsApp templates:', error)
+    logError('Error getting WhatsApp templates:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

@@ -7,6 +7,7 @@ import { Locale } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { api } from '@/lib/api-client';
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import { toast } from '@/components/ui/use-toast'; // Assuming toast is set up
 
 interface EnrollmentButtonProps {
@@ -53,7 +54,7 @@ const EnrollmentButton: React.FC<EnrollmentButtonProps> = ({
       });
 
     } catch (error: any) {
-      console.error('Free enrollment failed:', error);
+      logError('Free enrollment failed:', error);
       toast({
         title: t('enrollErrorTitle'),
         description: error?.message || t('enrollErrorDescription'),

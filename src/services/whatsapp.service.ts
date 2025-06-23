@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { BaseService } from './base.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Сервис для отправки WhatsApp уведомлений
  * Поддерживает WhatsApp Business API и WhatsApp Cloud API
@@ -22,7 +23,7 @@ export class WhatsAppService extends BaseService {
     this.businessAccountId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || ''
     
     if (!this.accessToken || !this.phoneNumberId) {
-      console.warn('WhatsApp service not configured. Please set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID')
+      logWarn('WhatsApp service not configured. Please set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID')
     }
   }
 
@@ -80,7 +81,7 @@ export class WhatsAppService extends BaseService {
         throw new Error(result.error?.message || 'Failed to send WhatsApp message')
       }
 
-      console.log(`WhatsApp message sent to ${cleanPhoneNumber}:`, result.messages?.[0]?.id)
+      logDebug(`WhatsApp message sent to ${cleanPhoneNumber}:`, result.messages?.[0]?.id)
 
       return {
         success: true,
@@ -88,7 +89,7 @@ export class WhatsAppService extends BaseService {
       }
 
     } catch (error) {
-      console.error('Error sending WhatsApp message:', error)
+      logError('Error sending WhatsApp message:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -152,7 +153,7 @@ export class WhatsAppService extends BaseService {
         throw new Error(result.error?.message || 'Failed to send WhatsApp template')
       }
 
-      console.log(`WhatsApp template sent to ${cleanPhoneNumber}:`, result.messages?.[0]?.id)
+      logDebug(`WhatsApp template sent to ${cleanPhoneNumber}:`, result.messages?.[0]?.id)
 
       return {
         success: true,
@@ -160,7 +161,7 @@ export class WhatsAppService extends BaseService {
       }
 
     } catch (error) {
-      console.error('Error sending WhatsApp template:', error)
+      logError('Error sending WhatsApp template:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -195,7 +196,7 @@ export class WhatsAppService extends BaseService {
       return result.data || []
 
     } catch (error) {
-      console.error('Error getting WhatsApp templates:', error)
+      logError('Error getting WhatsApp templates:', error)
       return []
     }
   }
@@ -236,7 +237,7 @@ export class WhatsAppService extends BaseService {
       }
 
     } catch (error) {
-      console.error('Error checking WhatsApp phone number:', error)
+      logError('Error checking WhatsApp phone number:', error)
       return {
         valid: false,
         error: error instanceof Error ? error.message : 'Unknown error',

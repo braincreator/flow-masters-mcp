@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // This component will be added to the admin UI to help debug form submissions
 const PaymentLogger: React.FC = () => {
   useEffect(() => {
@@ -14,13 +15,13 @@ const PaymentLogger: React.FC = () => {
     // Watch all form submissions in the admin panel
     const handleSubmit = (event: any) => {
       if (event.target.closest('form')) {
-        console.log('Form submission detected:', event.target.closest('form'))
+        logDebug('Form submission detected:', event.target.closest('form'))
 
         // Патчим fetch только если еще не патчили
         if (!fetchPatched) {
           window.fetch = async function (url, options) {
             if (typeof url === 'string' && url.includes('/api/globals/settings')) {
-              console.log('Payment settings submission detected', {
+              logDebug('Payment settings submission detected', {
                 url,
                 method: options?.method || 'GET',
                 body: options?.body ? JSON.parse(options.body as string) : null,
@@ -30,7 +31,7 @@ const PaymentLogger: React.FC = () => {
               const response = await originalFetch(url, options)
               const clone = response.clone()
               const responseData = await clone.json()
-              console.log('Response from settings save:', responseData)
+              logDebug('Response from settings save:', responseData)
               return response
             }
             return originalFetch(url, options)
@@ -50,7 +51,7 @@ const PaymentLogger: React.FC = () => {
           mutation.target instanceof HTMLElement &&
           mutation.target.closest('[data-field-path*="paymentSettings"]')
         ) {
-          console.log('Payment settings DOM update detected:', {
+          logDebug('Payment settings DOM update detected:', {
             target: mutation.target,
             addedNodes: mutation.addedNodes,
           })
@@ -61,7 +62,7 @@ const PaymentLogger: React.FC = () => {
     const paymentSettingsNode = document.querySelector('[data-field-path*="paymentSettings"]')
     if (paymentSettingsNode) {
       observer.observe(paymentSettingsNode, { childList: true, subtree: true })
-      console.log('Payment settings monitoring activated')
+      logDebug('Payment settings monitoring activated')
     }
 
     return () => {

@@ -1,5 +1,6 @@
 import { Message, ChatHistoryItem } from '@/types/chat'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Преобразует сообщения чата в формат истории для API
  */
@@ -15,7 +16,7 @@ export function formatChatHistory(messages: Message[]): ChatHistoryItem[] {
         try {
           timestampStr = new Date(message.timestamp).toISOString()
         } catch (e) {
-          console.warn('Invalid timestamp format:', message.timestamp)
+          logWarn('Invalid timestamp format:', message.timestamp)
           timestampStr = new Date().toISOString()
         }
       } else if (typeof message.timestamp === 'number') {

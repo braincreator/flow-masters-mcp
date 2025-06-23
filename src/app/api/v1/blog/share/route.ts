@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import getPayload from 'payload'
 import configPromise from '@/payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ShareRequest = {
   postId: string
   platform: string
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error tracking share:', error)
+    logError('Error tracking share:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

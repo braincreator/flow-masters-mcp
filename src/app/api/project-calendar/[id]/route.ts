@@ -6,6 +6,7 @@ import ical from 'ical-generator'
 import { format } from 'date-fns'
 import { ru, enUS } from 'date-fns/locale'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Validation schema for request parameters
 const requestParamsSchema = z.object({
   id: z.string().uuid({ message: 'Invalid project ID format' }),
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         timeZone,
       })
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -195,7 +196,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       })
     }
   } catch (error) {
-    console.error('Error generating project calendar:', error)
+    logError('Error generating project calendar:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({

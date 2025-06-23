@@ -6,6 +6,7 @@ import { GridContainer } from '@/components/GridContainer'
 import { ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export function FinalCTASection() {
   const t = useTranslations('aiAgency.finalCta.form')
   const [formData, setFormData] = useState({
@@ -41,7 +42,7 @@ export function FinalCTASection() {
 
       setIsSubmitted(true)
     } catch (error) {
-      console.error('Error submitting form:', error)
+      logError('Error submitting form:', error)
       alert(t('buttons.submitting'))
     } finally {
       setIsSubmitting(false)

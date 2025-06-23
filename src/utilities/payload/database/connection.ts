@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import { connectionMonitor } from '../monitoring'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const DEFAULT_CONFIG = {
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 60000,
@@ -35,13 +36,13 @@ class DatabaseConnection {
 
   private setupConnectionHandlers(): void {
     mongoose.connection.on('error', (error) => {
-      console.error('MongoDB connection error:', error)
+      logError('MongoDB connection error:', error)
       connectionMonitor.recordError(error)
       this.handleConnectionError().catch(console.error)
     })
 
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected')
+      logDebug('MongoDB disconnected')
       connectionMonitor.recordDisconnection()
       if (!this.isConnecting) {
         this.handleConnectionError().catch(console.error)
@@ -49,14 +50,14 @@ class DatabaseConnection {
     })
 
     mongoose.connection.on('connected', () => {
-      console.log('Successfully connected to MongoDB')
+      logDebug('Successfully connected to MongoDB')
       connectionMonitor.recordConnection()
       this.reconnectAttempts = 0
       this.isConnecting = false
     })
 
     mongoose.connection.on('reconnected', () => {
-      console.log('MongoDB reconnected')
+      logDebug('MongoDB reconnected')
       connectionMonitor.recordConnection()
       this.reconnectAttempts = 0
       this.isConnecting = false
@@ -65,15 +66,13 @@ class DatabaseConnection {
 
   private async handleConnectionError(): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached. Exiting...')
+      logError('Max reconnection attempts reached. Exiting...')
       process.exit(1)
     }
 
     if (!this.isConnecting) {
       this.reconnectAttempts++
-      console.log(
-        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
-      )
+      logDebug(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,  )
 
       await new Promise((resolve) => setTimeout(resolve, this.reconnectInterval))
       await this.connect()
@@ -94,11 +93,11 @@ class DatabaseConnection {
 
     this.connectionPromise = (async () => {
       try {
-        console.log('Connecting to MongoDB...')
+        logDebug('Connecting to MongoDB...')
         await mongoose.connect(uri, DEFAULT_CONFIG)
       } catch (error) {
         this.isConnecting = false
-        console.error('Failed to connect to MongoDB:', error)
+        logError('Failed to connect to MongoDB:', error)
         connectionMonitor.recordError(error instanceof Error ? error : new Error(String(error)))
         throw error
       } finally {
@@ -117,9 +116,9 @@ class DatabaseConnection {
     try {
       this.isConnecting = true
       await mongoose.disconnect()
-      console.log('Disconnected from MongoDB')
+      logDebug('Disconnected from MongoDB')
     } catch (error) {
-      console.error('Error disconnecting from MongoDB:', error)
+      logError('Error disconnecting from MongoDB:', error)
       connectionMonitor.recordError(error instanceof Error ? error : new Error(String(error)))
       throw error
     } finally {

@@ -1,6 +1,7 @@
 import { getPayloadClient } from './index'
 import { withTransaction } from './transactions'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface CleanupOptions {
   olderThan?: Date
   collections?: string[]
@@ -25,7 +26,7 @@ export async function cleanupStaleData({
 
           const count = await payload.db.connection.collection(collection).countDocuments(query)
 
-          console.log(`Found ${count} stale documents in ${collection}`)
+          logDebug(`Found ${count} stale documents in ${collection}`)
 
           for (let i = 0; i < count; i += batchSize) {
             await payload.db.connection.collection(collection).deleteMany(query, {
@@ -33,16 +34,16 @@ export async function cleanupStaleData({
               limit: batchSize,
             })
 
-            console.log(`Deleted batch ${i / batchSize + 1} from ${collection}`)
+            logDebug(`Deleted batch ${i / batchSize + 1} from ${collection}`)
           }
         }
       },
       { timeout: 60000 },
     ) // 1 minute timeout
 
-    console.log('Cleanup completed successfully')
+    logDebug('Cleanup completed successfully')
   } catch (error) {
-    console.error('Error during cleanup:', error)
+    logError('Error during cleanup:', error)
     throw error
   }
 }
@@ -55,7 +56,7 @@ if (process.env.NODE_ENV === 'production') {
     try {
       await cleanupStaleData()
     } catch (error) {
-      console.error('Scheduled cleanup failed:', error)
+      logError('Scheduled cleanup failed:', error)
     }
   }, CLEANUP_INTERVAL)
 }

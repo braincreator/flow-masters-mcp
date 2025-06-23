@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Grid2X2, List, Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useBlog } from '@/providers/BlogProvider'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Post {
   id: string
   title: string
@@ -179,7 +180,7 @@ export function Blog({
     setLoading(true)
 
     try {
-      console.log('BlogBlock: Fetching posts')
+      logDebug('BlogBlock: Fetching posts')
 
       // Use BlogProvider if available, otherwise fallback to direct API call
       if (fetchBlogPosts) {
@@ -213,7 +214,7 @@ export function Blog({
         setTotalPages(Math.ceil(response.totalDocs / postsPerPage))
       }
     } catch (err) {
-      console.error('BlogBlock: Error fetching posts:', err)
+      logError('BlogBlock: Error fetching posts:', err)
       setError('An error occurred while fetching posts. Showing sample content instead.')
       setPosts(FALLBACK_POSTS)
       setApiErrorOccurred(true)
@@ -240,11 +241,11 @@ export function Blog({
     if (!showCategories || fetchInProgress.current || initialCategories) return
 
     try {
-      console.log('BlogBlock: Fetching categories')
+      logDebug('BlogBlock: Fetching categories')
       const categoriesData = await fetchCategories({ locale: currentLocale || DEFAULT_LOCALE })
       setCategories(categoriesData)
     } catch (err) {
-      console.error('BlogBlock: Error fetching categories:', err)
+      logError('BlogBlock: Error fetching categories:', err)
       setApiErrorOccurred(true)
     }
   }, [currentLocale, fetchCategories, initialCategories, showCategories])
@@ -253,11 +254,11 @@ export function Blog({
     if (!showTags || fetchInProgress.current || initialTags) return
 
     try {
-      console.log('BlogBlock: Fetching tags')
+      logDebug('BlogBlock: Fetching tags')
       const tagsData = await fetchTags({ locale: currentLocale || DEFAULT_LOCALE })
       setTags(tagsData)
     } catch (err) {
-      console.error('BlogBlock: Error fetching tags:', err)
+      logError('BlogBlock: Error fetching tags:', err)
       setApiErrorOccurred(true)
     }
   }, [currentLocale, fetchTags, initialTags, showTags])
@@ -268,7 +269,7 @@ export function Blog({
 
     // Only refetch if search params have changed and it's not the initial render
     if (prevSearchParamsRef.current !== currentSearchParams && initialDataProcessed.current) {
-      console.log('BlogBlock: Search params changed, refetching data')
+      logDebug('BlogBlock: Search params changed, refetching data')
       fetchPostsData()
     }
 

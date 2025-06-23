@@ -7,7 +7,7 @@ import { AIHeroSection } from './sections/AIHeroSection'
 import { PainPointsSection } from './sections/PainPointsSection'
 import { AIBenefitsSection } from './sections/AIBenefitsSection'
 import { AIServicesShowcase } from './sections/AIServicesShowcase'
-import { LazySection } from './LazySection.debug'
+import { LazySection } from './LazySection'
 
 // Lazy load heavy components
 const AIStatsSection = lazy(() =>

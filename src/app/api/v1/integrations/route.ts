@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { verifyApiKey } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: Request) {
   try {
     // Verify API key
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
   } catch (error) {
-    console.error('Integration error:', error)
+    logError('Integration error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

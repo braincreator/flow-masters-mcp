@@ -3,6 +3,7 @@ import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } fro
 import { ServiceRegistry } from '@/services/service.registry'
 import { EmailService } from '@/services/email.service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Service for generating project reports
  */
@@ -152,7 +153,7 @@ export class ProjectReportService {
 
       return report
     } catch (error) {
-      console.error('Error generating weekly report:', error)
+      logError('Error generating weekly report:', error)
       throw error
     }
   }
@@ -302,7 +303,7 @@ export class ProjectReportService {
 
       return report
     } catch (error) {
-      console.error('Error generating monthly report:', error)
+      logError('Error generating monthly report:', error)
       throw error
     }
   }
@@ -322,7 +323,7 @@ export class ProjectReportService {
       })
 
       if (!customer || !customer.email) {
-        console.error(`Customer not found or missing email for project ${project.id}`)
+        logError(`Customer not found or missing email for project ${project.id}`)
         return false
       }
 
@@ -364,7 +365,7 @@ export class ProjectReportService {
 
       return result
     } catch (error) {
-      console.error('Error sending report notification email:', error)
+      logError('Error sending report notification email:', error)
       return false
     }
   }
@@ -404,14 +405,14 @@ export class ProjectReportService {
             reports.push(report)
           }
         } catch (error) {
-          console.error(`Error generating ${reportType} report for project ${project.id}:`, error)
+          logError(`Error generating ${reportType} report for project ${project.id}:`, error)
           // Continue with next project
         }
       }
 
       return reports
     } catch (error) {
-      console.error(`Error generating ${reportType} reports for all projects:`, error)
+      logError(`Error generating ${reportType} reports for all projects:`, error)
       throw error
     }
   }

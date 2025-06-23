@@ -32,6 +32,7 @@ import { generateRewardFreeCourseEmail } from '../utilities/emailTemplates/rewar
 // Project emails
 import { generateProjectReportNotificationEmail } from '../utilities/emailTemplates/projects/projectReportNotification'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Import types from emailTemplates.ts
 import {
   PasswordResetEmailData,
@@ -173,7 +174,7 @@ export class EmailService extends BaseService {
       (process.env.NODE_ENV === 'production' || useRealEmailInDev) &&
       (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD)
     ) {
-      console.error('SMTP configuration is missing for email sending!')
+      logError('SMTP configuration is missing for email sending!')
     }
 
     // Use real SMTP settings for production or when explicitly enabled in development
@@ -205,7 +206,7 @@ export class EmailService extends BaseService {
         },
         from: 'Flow Masters',
       } as EmailSettingsType
-      console.log('settings', settings)
+      logDebug('settings', settings)
       if (!settings?.smtp) {
         throw new Error('SMTP settings not configured')
       }
@@ -221,7 +222,7 @@ export class EmailService extends BaseService {
         from: settings.smtp.from || 'admin@flow-masters.ru',
       }
     } catch (error) {
-      console.error('Failed to get email settings:', error)
+      logError('Failed to get email settings:', error)
       return null
     }
   }
@@ -236,15 +237,14 @@ export class EmailService extends BaseService {
 
     try {
       if (!fromAddress) {
-        console.error(
+        logError(
           "Email 'from' address is not configured (EMAIL_FROM environment variable) and no default provided.",
         )
         return false
       }
 
       const transport = this.createTransport()
-      console.log(
-        `Attempting to send email. From: ${fromAddress}, To: ${to}, Subject: \"${subject}\"`,
+      logDebug("Debug:",  `Attempting to send email. From: ${fromAddress}, To: ${to}, Subject: \"${subject}\"`,
       )
 
       const info = await transport.sendMail({
@@ -260,20 +260,19 @@ export class EmailService extends BaseService {
 
       // In development mode with Ethereal, show preview URL
       if (isEtherealEmail && info.messageId) {
-        console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
+        logDebug(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
       }
 
       // If using real email in development, log a clear message
       if (process.env.NODE_ENV !== 'production' && useRealEmailInDev) {
-        console.log(`REAL EMAIL SENT to ${to} - Check the actual inbox!`)
+        logDebug(`REAL EMAIL SENT to ${to} - Check the actual inbox!`)
       }
 
-      console.log(
-        `Email successfully sent. To: ${to}, Subject: \"${subject}\", Message ID: ${info.messageId}`,
+      logDebug("Debug:",  `Email successfully sent. To: ${to}, Subject: \"${subject}\", Message ID: ${info.messageId}`,
       )
       return true
     } catch (error) {
-      console.error(
+      logError(
         `Error sending email from ${fromAddress} to ${to} with subject \"${subject}\":`,
         error,
       )
@@ -481,7 +480,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send welcome email:', error)
+      logError('Failed to send welcome email:', error)
       return false
     }
   }
@@ -527,7 +526,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send unsubscribe confirmation email:', error)
+      logError('Failed to send unsubscribe confirmation email:', error)
       return false
     }
   }
@@ -570,7 +569,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send password reset email:', error)
+      logError('Failed to send password reset email:', error)
       return false
     }
   }
@@ -583,7 +582,7 @@ export class EmailService extends BaseService {
       // Ensure email field is set
       const emailTo = data.userName?.includes('@') ? data.userName : data.email || ''
       if (!emailTo) {
-        console.error('No email address provided for course enrollment email')
+        logError('No email address provided for course enrollment email')
         return false
       }
 
@@ -615,7 +614,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send course enrollment email:', error)
+      logError('Failed to send course enrollment email:', error)
       return false
     }
   }
@@ -652,7 +651,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send course completion email:', error)
+      logError('Failed to send course completion email:', error)
       return false
     }
   }
@@ -689,7 +688,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send course progress email:', error)
+      logError('Failed to send course progress email:', error)
       return false
     }
   }
@@ -726,7 +725,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send course certificate email:', error)
+      logError('Failed to send course certificate email:', error)
       return false
     }
   }
@@ -763,7 +762,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send order confirmation email:', error)
+      logError('Failed to send order confirmation email:', error)
       return false
     }
   }
@@ -800,7 +799,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send payment confirmation email:', error)
+      logError('Failed to send payment confirmation email:', error)
       return false
     }
   }
@@ -856,7 +855,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send reward email:', error)
+      logError('Failed to send reward email:', error)
       return false
     }
   }
@@ -908,7 +907,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send admin notification email:', error)
+      logError('Failed to send admin notification email:', error)
       return false
     }
   }
@@ -959,7 +958,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send payment confirmation email:', error)
+      logError('Failed to send payment confirmation email:', error)
       return false
     }
   }
@@ -1169,7 +1168,7 @@ export class EmailService extends BaseService {
           html = `<h1>Abandoned Cart</h1><p>You have items in your cart.</p>`
           break
         default:
-          console.error(`Template ${templateName} not found`)
+          logError(`Template ${templateName} not found`)
           return false
       }
 
@@ -1179,7 +1178,7 @@ export class EmailService extends BaseService {
         html,
       })
     } catch (error) {
-      console.error(`Failed to send template email ${templateName}:`, error)
+      logError(`Failed to send template email ${templateName}:`, error)
       return false
     }
   }
@@ -1255,7 +1254,7 @@ export class EmailService extends BaseService {
   async sendDigitalOrderStatusUpdate(orderTracking: OrderTrackingData): Promise<boolean> {
     try {
       if (!orderTracking.orderId || !orderTracking.status) {
-        console.error('Missing required fields in order tracking data')
+        logError('Missing required fields in order tracking data')
         return false
       }
 
@@ -1267,7 +1266,7 @@ export class EmailService extends BaseService {
       })
 
       if (!order || !order.customer) {
-        console.error('Order not found or missing customer info')
+        logError('Order not found or missing customer info')
         return false
       }
 
@@ -1284,7 +1283,7 @@ export class EmailService extends BaseService {
       }
 
       if (!userEmail) {
-        console.error('User email not found')
+        logError('User email not found')
         return false
       }
 
@@ -1325,7 +1324,7 @@ export class EmailService extends BaseService {
 
       return result
     } catch (error) {
-      console.error('Failed to send order status update email:', error)
+      logError('Failed to send order status update email:', error)
       return false
     }
   }
@@ -1370,7 +1369,7 @@ export class EmailService extends BaseService {
         html,
       })
     } catch (error) {
-      console.error('Error sending project report notification email:', error)
+      logError('Error sending project report notification email:', error)
       return false
     }
   }

@@ -9,6 +9,7 @@ import nodemailer from 'nodemailer'
 import { EmailTemplateSlug } from '../types/emailTemplates.js'
 import { generateWelcomeEmail } from '../utilities/emailTemplates/auth/welcome.js'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Get the current file's directory
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,16 +20,16 @@ dotenv.config({ path: path.resolve(rootDir, '.env') })
 dotenv.config({ path: path.resolve(rootDir, '.env.local') })
 
 // Log environment variables for debugging
-console.log('SMTP_HOST:', process.env.SMTP_HOST)
-console.log('SMTP_USER:', process.env.SMTP_USER)
-console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '***' : 'not set')
+logDebug('SMTP_HOST:', process.env.SMTP_HOST)
+logDebug('SMTP_USER:', process.env.SMTP_USER)
+logDebug('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '***' : 'not set')
 
 // Test email recipient
 const TEST_EMAIL = 'ay.krasnodar@gmail.com'
 
 async function sendTestEmail() {
   try {
-    console.log('Starting direct email test...')
+    logDebug('Starting direct email test...')
 
     // Use production SMTP settings
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
@@ -48,7 +49,7 @@ async function sendTestEmail() {
       },
     })
 
-    console.log('Created transporter')
+    logDebug('Created transporter')
 
     // Generate a welcome email using the template function
     const emailData = {
@@ -61,7 +62,7 @@ async function sendTestEmail() {
 
     const html = generateWelcomeEmail(emailData)
 
-    console.log('Generated welcome email HTML')
+    logDebug('Generated welcome email HTML')
 
     // Send the email
     const info = await transporter.sendMail({
@@ -72,12 +73,12 @@ async function sendTestEmail() {
       html,
     })
 
-    console.log('Message sent: %s', info.messageId)
-    console.log(`Email successfully sent to ${TEST_EMAIL}. Please check the inbox.`)
+    logDebug('Message sent: %s', info.messageId)
+    logDebug(`Email successfully sent to ${TEST_EMAIL}. Please check the inbox.`)
 
     return true
   } catch (error) {
-    console.error('Error sending test email:', error)
+    logError('Error sending test email:', error)
     return false
   }
 }
@@ -89,6 +90,6 @@ sendTestEmail()
     process.exit(0)
   })
   .catch((error) => {
-    console.error('Test script failed:', error)
+    logError('Test script failed:', error)
     process.exit(1)
   })

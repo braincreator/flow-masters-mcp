@@ -3,6 +3,7 @@ import payload from 'payload'
 import { getAuth } from '../../helpers/auth'
 import { z } from 'zod'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Validation schema for request parameters
 const requestParamsSchema = z.object({
   id: z.string().uuid({ message: 'Invalid report ID format' }),
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       })
       validatedId = validated.id
     } catch (validationError) {
-      console.error('Validation error:', validationError)
+      logError('Validation error:', validationError)
       return NextResponse.json({
         success: false,
         error: 'Invalid request parameters',
@@ -87,14 +88,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         data: report,
       })
     } catch (error) {
-      console.error('Error fetching report:', error)
+      logError('Error fetching report:', error)
       return NextResponse.json({
         success: false,
         error: 'Report not found or access denied'
       }, { status: 404 })
     }
   } catch (error) {
-    console.error('Error fetching project report:', error)
+    logError('Error fetching project report:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({

@@ -1,5 +1,6 @@
 import { BeforeSync } from '@payloadcms/plugin-search/types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export const beforeSyncWithSearch: BeforeSync = async ({ 
   collection, 
   doc, 
@@ -37,7 +38,7 @@ if (typeof setInterval !== 'undefined') {
     try {
       await cleanupStaleSearchIndices()
     } catch (error) {
-      console.error('Search index cleanup failed:', error)
+      logError('Search index cleanup failed:', error)
     }
   }, 24 * 60 * 60 * 1000) // Daily cleanup
 }

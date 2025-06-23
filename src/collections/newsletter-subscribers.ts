@@ -4,6 +4,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 import { isAdminOrHasSiteAccess } from '@/access/isAdminOrHasSiteAccess'
 import { generateUniqueToken } from '@/utilities/generateUniqueToken'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Тип для документа подписчика
 interface SubscriberDoc {
   id: string
@@ -53,7 +54,7 @@ export const NewsletterSubscribers: CollectionConfig = {
       }) => {
         // Отправляем письма только при создании нового подписчика
         if (operation === 'create' && doc.status === 'active') {
-          console.log(`New subscriber created: ${doc.email}. Sending notifications...`)
+          logDebug(`New subscriber created: ${doc.email}. Sending notifications...`)
 
           try {
             // Инициализируем ServiceRegistry и получаем EmailService

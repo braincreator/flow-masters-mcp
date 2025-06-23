@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Обработчик GET-запроса для отписки от рассылки по токену
  * Используется в письмах для простой отписки по ссылке
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing unsubscribe token' }, { status: 400 })
   }
 
-  console.log(`Unsubscribe attempt with token: ${token}`)
+  logDebug(`Unsubscribe attempt with token: ${token}`)
 
   try {
     const payload = await getPayloadClient()
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (subscribers.length === 0) {
-      console.warn(`Unsubscribe failed: Token not found - ${token}`)
+      logWarn(`Unsubscribe failed: Token not found - ${token}`)
       // Возвращаем успешный ответ, чтобы не раскрывать информацию о существовании токенов
       // Но можно вернуть и 404, если это предпочтительнее
       return NextResponse.json(
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Проверяем, не отписан ли уже
     if (subscriber.status === 'unsubscribed') {
-      console.log(`Subscriber ${subscriber.email} already unsubscribed.`)
+      logDebug(`Subscriber ${subscriber.email} already unsubscribed.`)
       return NextResponse.json(
         {
           message: 'You are already unsubscribed. Вы будете перенаправлены.',
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log(`Subscriber ${subscriber.email} unsubscribed successfully.`)
+    logDebug(`Subscriber ${subscriber.email} unsubscribed successfully.`)
 
     // Отправляем подтверждение отписки (асинхронно)
     try {
@@ -103,11 +104,11 @@ export async function GET(request: NextRequest) {
     // locale уже будет в пути, но можно добавить и в searchParams при необходимости
     // redirectUrl.searchParams.set('locale', redirectLocale)
 
-    console.log(`Redirecting unsubscribed user to: ${redirectUrl.toString()}`)
+    logDebug(`Redirecting unsubscribed user to: ${redirectUrl.toString()}`)
     return NextResponse.redirect(redirectUrl)
     // -------------------------- //
   } catch (error: any) {
-    console.error(`Error processing unsubscribe token ${token}:`, error)
+    logError(`Error processing unsubscribe token ${token}:`, error)
     // Используем payload.logger, если он доступен
     // payload?.logger?.error(`Error processing unsubscribe token ${token}: ${error.message}`);
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 })
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
       message: 'Unsubscribed successfully',
     })
   } catch (error) {
-    console.error('Error unsubscribing from newsletter:', error)
+    logError('Error unsubscribing from newsletter:', error)
 
     return NextResponse.json(
       {

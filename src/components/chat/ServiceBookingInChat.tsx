@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import ServiceBookingFlow from '@/components/services/ServiceBookingFlow'
 import type { BookingSettings } from '@/types/service'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ServiceBookingInChatProps = {
   serviceType?: string
   calendlyUsername?: string
@@ -60,7 +61,7 @@ export const ServiceBookingInChat: React.FC<ServiceBookingInChatProps> = ({
         // Берем первую услугу указанного типа
         setService(data.docs[0])
       } catch (err) {
-        console.error('Error fetching service:', err)
+        logError('Error fetching service:', err)
         setError(err instanceof Error ? err.message : 'Failed to load service')
       } finally {
         setIsLoading(false)

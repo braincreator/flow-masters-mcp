@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession()
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         updatedReward = await rewardService.useReward(params.id)
       } else {
         // Fallback: Directly update the database if service registry is not available
-        console.warn('Service registry not available, using direct database update')
+        logWarn('Service registry not available, using direct database update')
 
         // Get reward details with depth to handle reward type specific logic
         const rewardDetails = await payload.findByID({
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         })
       }
     } catch (error) {
-      console.error('Error using reward:', error)
+      logError('Error using reward:', error)
       return NextResponse.json(
         {
           error:
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(updatedReward)
   } catch (error) {
-    console.error('Error using reward:', error)
+    logError('Error using reward:', error)
     return NextResponse.json({ error: 'Failed to use reward' }, { status: 500 })
   }
 }

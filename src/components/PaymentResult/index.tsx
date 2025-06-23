@@ -13,6 +13,7 @@ import { CheckCircle, XCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Locale } from '@/constants'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface PaymentResultProps {
   locale: Locale
 }
@@ -63,7 +64,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
         // Otherwise check with API
         await verifyPayment(orderId, paymentId)
       } catch (error) {
-        console.error('Error checking payment status:', error)
+        logError('Error checking payment status:', error)
         setStatus('error')
         setErrorMessage(t('errorStatusCheck'))
         setLoading(false)
@@ -77,7 +78,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
     try {
       const res = await fetch(`/api/v1/order/${orderId}`)
       if (!res.ok) {
-        console.error('Failed to fetch order details:', res.statusText)
+        logError('Failed to fetch order details:', res.statusText)
         return
       }
 
@@ -92,7 +93,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
         setTotalAmount(data.totalAmount)
       }
     } catch (error) {
-      console.error('Error fetching order details:', error)
+      logError('Error fetching order details:', error)
     }
   }
 
@@ -128,7 +129,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
         await fetchOrderDetails(orderId)
       }
     } catch (error) {
-      console.error('Error verifying payment:', error)
+      logError('Error verifying payment:', error)
       setStatus('error')
       setErrorMessage(t('errorVerifyStatus'))
     } finally {
@@ -151,9 +152,9 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
 
   useEffect(() => {
     if (status === 'success' && sessionId) {
-      console.log('Payment successful for session:', sessionId)
+      logDebug('Payment successful for session:', sessionId)
     } else if (status === 'error' && sessionId) {
-      console.log('Payment error for session:', sessionId)
+      logDebug('Payment error for session:', sessionId)
     }
   }, [status, sessionId])
 

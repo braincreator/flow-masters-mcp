@@ -14,6 +14,7 @@ import {
 } from '@/utilities/lexicalParser'
 import SimpleLexicalRenderer from './SimpleLexicalRenderer'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Импортируем наши кастомные стили
 import './post-content.css'
 
@@ -58,7 +59,7 @@ const PostContent: React.FC<PostContentProps> = ({
       normalizedContent = convertPayloadDataToLexical(content)
     }
   } catch (error) {
-    console.error('Ошибка при нормализации контента:', error)
+    logError('Ошибка при нормализации контента:', error)
 
     if (typeof content === 'string') {
       normalizedContent = {
@@ -114,7 +115,7 @@ const PostContent: React.FC<PostContentProps> = ({
     normalizedContent && normalizedContent.root && Array.isArray(normalizedContent.root.children)
 
   if (!hasValidContent) {
-    console.error('Невалидный контент блога:', content)
+    logError('Невалидный контент блога:', content)
     return (
       <div className="py-4 text-center text-muted-foreground">
         <p>Контент не найден или имеет некорректный формат.</p>
@@ -128,7 +129,7 @@ const PostContent: React.FC<PostContentProps> = ({
         try {
           Prism.highlightAll()
         } catch (e) {
-          console.error('Ошибка при подсветке кода:', e)
+          logError('Ошибка при подсветке кода:', e)
         }
       }, 100)
       return () => clearTimeout(timer)

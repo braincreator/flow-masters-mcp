@@ -1,6 +1,7 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidateTag } from 'next/cache'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Hook для автоматической инвалидации sitemap кэша при изменении контента
  */
@@ -128,8 +129,8 @@ export const revalidateAllSitemaps = () => {
     revalidateTag('posts-sitemap')
     revalidateTag('services-sitemap')
     revalidateTag('main-sitemap')
-    console.log('🗺️ All sitemap caches invalidated')
+    logDebug('🗺️ All sitemap caches invalidated')
   } catch (error) {
-    console.error('Error invalidating sitemap caches:', error)
+    logError('Error invalidating sitemap caches:', error)
   }
 }

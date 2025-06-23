@@ -4,6 +4,7 @@
 import { GoogleAuth } from 'google-auth-library'
 import { google } from '@ai-sdk/google'
 import { generateText, generateObject, streamText } from 'ai'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { 
   AgentRequest, 
   AgentResponse, 
@@ -100,7 +101,7 @@ export class VertexAIClient {
         return result.text
       }
     } catch (error) {
-      console.error('Error generating Vertex AI response:', error)
+      logError('Error generating Vertex AI response:', error)
       throw new Error(`Vertex AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -137,7 +138,7 @@ export class VertexAIClient {
       const data = await response.json()
       return data.predictions[0].embeddings.values
     } catch (error) {
-      console.error('Error generating Vertex AI embedding:', error)
+      logError('Error generating Vertex AI embedding:', error)
       throw new Error('Failed to generate embedding')
     }
   }
@@ -165,7 +166,7 @@ export class VertexAIClient {
 
       return result.object as T
     } catch (error) {
-      console.error('Error generating structured response:', error)
+      logError('Error generating structured response:', error)
       throw new Error('Failed to generate structured response')
     }
   }
@@ -201,7 +202,7 @@ export class VertexAIClient {
 
       return result.text
     } catch (error) {
-      console.error('Error analyzing image:', error)
+      logError('Error analyzing image:', error)
       throw new Error('Failed to analyze image')
     }
   }
@@ -247,7 +248,7 @@ export class VertexAIClient {
         },
       }))
     } catch (error) {
-      console.error('Error searching documents with Vertex AI:', error)
+      logError('Error searching documents with Vertex AI:', error)
       return []
     }
   }
@@ -272,7 +273,7 @@ export class VertexAIClient {
 
       return await response.json()
     } catch (error) {
-      console.error('Error triggering n8n workflow:', error)
+      logError('Error triggering n8n workflow:', error)
       throw new Error('Failed to execute workflow')
     }
   }
@@ -306,7 +307,7 @@ export class VertexAIClient {
         variables: this.extractVariables(workflow),
       }))
     } catch (error) {
-      console.error('Error fetching workflow templates:', error)
+      logError('Error fetching workflow templates:', error)
       return []
     }
   }
@@ -332,7 +333,7 @@ export class VertexAIClient {
 
       return response.ok
     } catch (error) {
-      console.error('Error indexing content:', error)
+      logError('Error indexing content:', error)
       return false
     }
   }
@@ -372,7 +373,7 @@ export class VertexAIClient {
       const data = await response.json()
       return data.data.translations[0].translatedText
     } catch (error) {
-      console.error('Error translating text:', error)
+      logError('Error translating text:', error)
       return text // Return original text if translation fails
     }
   }

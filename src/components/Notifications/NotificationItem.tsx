@@ -41,6 +41,7 @@ import {
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NotificationItemProps {
   notification: Notification
   onMarkAsRead: (id: string) => Promise<void>
@@ -187,7 +188,7 @@ const getNotificationTypeStyle = (type: NotificationStoredType): NotificationTyp
       // Fallback for any unmapped types, though all should be covered
 
       const exhaustiveCheck: never = type
-      console.warn(`Unhandled notification type in getNotificationTypeStyle: ${exhaustiveCheck}`)
+      logWarn(`Unhandled notification type in getNotificationTypeStyle: ${exhaustiveCheck}`)
       return {
         IconComponent: Bell,
         tagClass:
@@ -226,7 +227,7 @@ const formatNotificationMessage = (
         return tBodies(bodyKey)
       } catch (bodyError) {
         // Если не нашли ключ в NotificationBodies, используем обычный ключ
-        console.warn(
+        logWarn(
           `Key ${bodyKey} not found in NotificationBodies, falling back to regular translation`,
         )
       }
@@ -240,7 +241,7 @@ const formatNotificationMessage = (
     // Иначе просто возвращаем переведенный текст
     return t(messageKey)
   } catch (error) {
-    console.error(`Error formatting message with key "${messageKey}":`, error)
+    logError(`Error formatting message with key "${messageKey}":`, error)
     return messageKey // Возвращаем сам ключ в случае ошибки
   }
 }
@@ -253,7 +254,7 @@ const formatDate = (dateString: string, lang: string, timeOnly = false): string 
 
     // Проверка на валидность даты
     if (isNaN(date.getTime())) {
-      console.error(`Invalid date: ${dateString}`)
+      logError(`Invalid date: ${dateString}`)
       return ''
     }
 
@@ -271,7 +272,7 @@ const formatDate = (dateString: string, lang: string, timeOnly = false): string 
       }) + `, ${date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}`
     )
   } catch (error) {
-    console.error('Error formatting date:', error)
+    logError('Error formatting date:', error)
     return dateString || ''
   }
 }
@@ -320,7 +321,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     try {
       await onMarkAsRead(notification.id)
     } catch (error) {
-      console.error('Failed to mark as read from item:', error)
+      logError('Failed to mark as read from item:', error)
       // Возвращаем предыдущее состояние при ошибке
       setLocalStatus('unread')
     } finally {
@@ -341,7 +342,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     try {
       await onDelete(notification.id)
     } catch (error) {
-      console.error('Failed to delete from item:', error)
+      logError('Failed to delete from item:', error)
     } finally {
       setIsDeleting(false)
     }
@@ -361,7 +362,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     try {
       await onMarkAsUnread(notification.id)
     } catch (error) {
-      console.error('Failed to mark as unread from item:', error)
+      logError('Failed to mark as unread from item:', error)
       // Возвращаем предыдущее состояние при ошибке
       setLocalStatus('read')
     } finally {

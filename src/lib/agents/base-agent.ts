@@ -3,6 +3,7 @@
 
 import { agentClients } from './clients'
 import { vertexAIClient } from './vertex-ai-client'
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import type { 
   AgentRequest, 
   AgentResponse, 
@@ -177,7 +178,7 @@ export abstract class BaseAgent {
       }
 
       // In a real implementation, this would save to database
-      console.log('[Agent Interaction]', logData)
+      logDebug('[Agent Interaction]', logData)
       
       // TODO: Save to MongoDB via Payload CMS
       // await payload.create({
@@ -185,7 +186,7 @@ export abstract class BaseAgent {
       //   data: logData
       // })
     } catch (logError) {
-      console.error('Failed to log interaction:', logError)
+      logError('Failed to log interaction:', logError)
     }
   }
 
@@ -199,7 +200,7 @@ export abstract class BaseAgent {
     error?: string
     model?: string
   }): void {
-    console.log('[Agent Metrics]', {
+    logDebug('[Agent Metrics]', {
       ...metrics,
       timestamp: new Date().toISOString(),
       provider: 'vertex-ai',

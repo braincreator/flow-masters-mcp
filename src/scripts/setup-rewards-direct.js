@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -11,7 +12,7 @@ const __dirname = path.dirname(__filename);
  */
 async function setupRewardSystem() {
   try {
-    console.log('Setting up reward system...');
+    logDebug('Setting up reward system...');
     const payload = await getPayloadClient();
 
     // Get default sender
@@ -21,7 +22,7 @@ async function setupRewardSystem() {
     });
 
     if (senders.docs.length === 0) {
-      console.error('No sender emails found. Please create a sender email first.');
+      logError('No sender emails found. Please create a sender email first.');
       return;
     }
 
@@ -99,7 +100,7 @@ async function setupRewardSystem() {
       });
 
       if (existingTemplate.docs.length > 0) {
-        console.log(`Template ${template.slug} already exists, skipping...`);
+        logDebug(`Template ${template.slug} already exists, skipping...`);
         createdTemplates.push(existingTemplate.docs[0]);
         continue;
       }
@@ -121,10 +122,10 @@ async function setupRewardSystem() {
       });
 
       createdTemplates.push(createdTemplate);
-      console.log(`Added template: ${template.slug}`);
+      logDebug(`Added template: ${template.slug}`);
     }
 
-    console.log('All reward email templates added successfully!');
+    logDebug('All reward email templates added successfully!');
 
     // Create campaign for reward.awarded event
     const awardedCampaign = {
@@ -181,7 +182,7 @@ async function setupRewardSystem() {
         data: awardedCampaign,
       });
 
-      console.log(`Added campaign: ${awardedCampaign.name}`);
+      logDebug(`Added campaign: ${awardedCampaign.name}`);
     }
 
     // Create campaign for reward.expiring event
@@ -225,13 +226,13 @@ async function setupRewardSystem() {
         data: expiringCampaign,
       });
 
-      console.log(`Added campaign: ${expiringCampaign.name}`);
+      logDebug(`Added campaign: ${expiringCampaign.name}`);
     }
 
-    console.log('All reward email campaigns added successfully!');
-    console.log('Reward system setup completed successfully!');
+    logDebug('All reward email campaigns added successfully!');
+    logDebug('Reward system setup completed successfully!');
   } catch (error) {
-    console.error('Error setting up reward system:', error);
+    logError('Error setting up reward system:', error);
   }
 }
 
@@ -239,6 +240,6 @@ async function setupRewardSystem() {
 setupRewardSystem()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('Script failed:', error);
+    logError('Script failed:', error);
     process.exit(1);
   });

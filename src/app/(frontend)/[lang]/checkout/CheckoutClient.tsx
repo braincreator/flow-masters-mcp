@@ -42,6 +42,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { DetailedCartItemsList, CartItemType } from '@/components/Cart/DetailedCartItemsList'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Добавляем интерфейс для метаданных платежа
 interface PaymentMetadata {
   customerEmail: string
@@ -344,7 +345,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
   useEffect(() => {
     const checkCart = async () => {
       setIsCheckingCart(true)
-      console.log('CheckoutClient: Checking cart state on page load')
+      logDebug('CheckoutClient: Checking cart state on page load')
 
       const lastAddedService = sessionStorage.getItem('last_added_service')
 
@@ -352,7 +353,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         await refreshCart()
 
         if (cart && cart.items && cart.items.length > 0) {
-          console.log('CheckoutClient: Cart has items:', cart.items)
+          logDebug('CheckoutClient: Cart has items:', cart.items)
 
           if (lastAddedService) {
             const serviceFound = cart.items.some((item) => {
@@ -363,21 +364,21 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
               return false
             })
 
-            console.log('CheckoutClient: Last added service found in cart:', serviceFound)
+            logDebug('CheckoutClient: Last added service found in cart:', serviceFound)
 
             if (!serviceFound) {
-              console.log('CheckoutClient: Service not found, retrying fetch...')
+              logDebug('CheckoutClient: Service not found, retrying fetch...')
               await new Promise((resolve) => setTimeout(resolve, 500))
               await refreshCart()
             }
           }
         } else {
-          console.log('CheckoutClient: Cart is empty, retrying fetch...')
+          logDebug('CheckoutClient: Cart is empty, retrying fetch...')
           await new Promise((resolve) => setTimeout(resolve, 500))
           await refreshCart()
         }
       } catch (err) {
-        console.error('CheckoutClient: Error checking cart:', err)
+        logError('CheckoutClient: Error checking cart:', err)
       } finally {
         setIsCheckingCart(false)
         sessionStorage.removeItem('last_added_service')
@@ -391,7 +392,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     if (savedEmail) {
       setEmail(savedEmail)
       setIsEmailValid(isValidEmail(savedEmail))
-      console.log('CheckoutClient: Email loaded from session storage:', savedEmail)
+      logDebug('CheckoutClient: Email loaded from session storage:', savedEmail)
     }
   }, [refreshCart])
 
@@ -430,7 +431,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         )
 
         if (!providersData || providersData.length === 0) {
-          console.warn('No enabled payment providers found')
+          logWarn('No enabled payment providers found')
           providersData = []
           defaultProviderId = null
         }
@@ -454,7 +455,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
           setSelectedProvider(null)
         }
       } catch (errCatch) {
-        console.error('Error fetching payment providers:', errCatch)
+        logError('Error fetching payment providers:', errCatch)
         setPaymentProviders([])
         setSelectedProvider(null)
       } finally {
@@ -519,7 +520,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
         return
       }
 
-      console.log('Discount applied successfully:', data)
+      logDebug('Discount applied successfully:', data)
 
       // Применяем скидку
       setAppliedDiscount({
@@ -534,7 +535,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       // Показываем уведомление пользователю
       // Здесь можно добавить код для показа сообщения об успешном применении скидки
     } catch (errCatch) {
-      console.error('Error applying discount:', errCatch)
+      logError('Error applying discount:', errCatch)
       setDiscountError(
         errCatch instanceof Error
           ? errCatch.message
@@ -576,9 +577,9 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
 
       // Дополнительное логирование для отладки
-      console.log('Payment provider:', provider)
-      console.log('Payment provider ID:', provider.id)
-      console.log('Payment provider name:', provider.name)
+      logDebug('Payment provider:', provider)
+      logDebug('Payment provider ID:', provider.id)
+      logDebug('Payment provider name:', provider.name)
 
       // Проверяем наличие минимальных обязательных полей для провайдера
       if (!provider.id) {
@@ -595,7 +596,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
       // Use the original total without currency conversion
       const displayTotal = total
-      console.log('Total amount to charge:', displayTotal, locale === 'ru' ? 'RUB' : 'USD')
+      logDebug('Total amount to charge:', displayTotal, locale === 'ru' ? 'RUB' : 'USD')
 
       const paymentDataItems = cart?.items
         ?.map((item) => {
@@ -666,7 +667,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
 
       // Дополнительное логирование данных запроса
-      console.log('Payment data being sent:', JSON.stringify(paymentData, null, 2))
+      logDebug('Payment data being sent:', JSON.stringify(paymentData, null, 2))
 
       // Временное решение для отладки - добавляем тестовый режим в URL
       const paymentEndpoint = '/api/v1/payment/create'
@@ -681,7 +682,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
 
       // Всегда пытаемся получить ответ в формате JSON для детальной информации об ошибке
       const responseData = await response.json().catch(() => null)
-      console.log('Server response:', responseData)
+      logDebug('Server response:', responseData)
 
       if (!response.ok) {
         // Извлекаем максимально подробную информацию об ошибке из ответа
@@ -690,7 +691,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
           (responseData?.message ? `Error: ${responseData.message}` : 'Checkout failed')
 
         // Логируем полный ответ сервера для отладки
-        console.error('Server error details:', responseData)
+        logError('Server error details:', responseData)
 
         // Формируем детальное сообщение об ошибке
         let detailedError =
@@ -730,7 +731,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       }
       window.location.href = paymentUrl
     } catch (errCatch) {
-      console.error('Checkout error:', errCatch)
+      logError('Checkout error:', errCatch)
       setError(errCatch instanceof Error ? errCatch.message : 'Checkout error occurred')
     } finally {
       setIsLoading(false)

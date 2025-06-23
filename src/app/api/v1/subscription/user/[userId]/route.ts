@@ -4,6 +4,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 import { errorResponse } from '@/utilities/api'
 import { verifyAuth } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: Request, { params }: { params: { userId: string } }) {
   try {
     // Verify auth and permissions
@@ -57,7 +58,7 @@ export async function GET(request: Request, { params }: { params: { userId: stri
         totalSubscriptions: result.totalDocs,
       })
     } catch (error) {
-      console.error('Error fetching user subscriptions:', error)
+      logError('Error fetching user subscriptions:', error)
 
       // In development, return mock data
       if (process.env.NODE_ENV === 'development') {
@@ -72,7 +73,7 @@ export async function GET(request: Request, { params }: { params: { userId: stri
       throw error
     }
   } catch (error) {
-    console.error('Error in subscription/user/[userId] route:', error)
+    logError('Error in subscription/user/[userId] route:', error)
     return errorResponse('Failed to fetch user subscriptions', 500)
   }
 }

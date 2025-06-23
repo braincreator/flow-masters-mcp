@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Handler for password reset requests
  */
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in reset password:', error)
+    logError('Error in reset password:', error)
     return NextResponse.json(
       { message: 'An error occurred while processing your request' },
       { status: 500 },

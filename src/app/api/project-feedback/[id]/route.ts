@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/utilities/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // GET handler to fetch a specific feedback item
 export async function GET(
   req: NextRequest,
@@ -17,7 +18,7 @@ export async function GET(
     
     return NextResponse.json(feedback)
   } catch (error) {
-    console.error('Error fetching feedback:', error)
+    logError('Error fetching feedback:', error)
     return NextResponse.json({ error: 'Failed to fetch feedback' }, { status: 500 })
   }
 }
@@ -60,7 +61,7 @@ export async function PATCH(
     
     return NextResponse.json(feedback)
   } catch (error) {
-    console.error('Error updating feedback:', error)
+    logError('Error updating feedback:', error)
     return NextResponse.json({ error: 'Failed to update feedback' }, { status: 500 })
   }
 }
@@ -93,7 +94,7 @@ export async function DELETE(
     
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting feedback:', error)
+    logError('Error deleting feedback:', error)
     return NextResponse.json({ error: 'Failed to delete feedback' }, { status: 500 })
   }
 }

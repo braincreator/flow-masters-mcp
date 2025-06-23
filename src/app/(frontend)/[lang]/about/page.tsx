@@ -10,6 +10,7 @@ import { AboutPageComponent } from './AboutPageComponent'
 import { AboutPageSkeleton } from './components/AboutPageSkeleton'
 import { AboutPageContent } from './components/AboutPageContent'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type Props = {
   params: Promise<{
     lang: string
@@ -79,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     }
   } catch (error) {
-    console.error('Error generating metadata for about page:', error)
+    logError('Error generating metadata for about page:', error)
     return {
       title: lang === 'ru' ? 'О нас - Flow Masters' : 'About Us - Flow Masters',
       description:

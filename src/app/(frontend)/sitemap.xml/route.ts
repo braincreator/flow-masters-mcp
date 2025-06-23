@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET() {
   try {
     const payload = await getPayload({ config })
@@ -103,7 +104,7 @@ ${allUrls.join('')}
     })
 
   } catch (error) {
-    console.error('Error generating sitemap:', error)
+    logError('Error generating sitemap:', error)
     
     // Возвращаем базовый sitemap в случае ошибки
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://flow-masters.ru'

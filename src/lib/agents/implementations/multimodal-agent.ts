@@ -5,6 +5,7 @@ import { BaseAgent } from '../base-agent'
 import { vertexAIClient } from '../vertex-ai-client'
 import type { AgentRequest, AgentResponse } from '../types'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * Multimodal Agent using Gemini Pro Vision
  * Supports text, image, and document analysis
@@ -74,7 +75,7 @@ export class MultimodalAgent extends BaseAgent {
         return await this.processTextRequest(request)
       }
     } catch (error) {
-      console.error('Multimodal Agent error:', error)
+      logError('Multimodal Agent error:', error)
       return this.createErrorResponse(error)
     }
   }
@@ -138,7 +139,7 @@ export class MultimodalAgent extends BaseAgent {
 
       return response
     } catch (error) {
-      console.error('Image processing error:', error)
+      logError('Image processing error:', error)
       return this.createErrorResponse(error)
     }
   }
@@ -182,7 +183,7 @@ export class MultimodalAgent extends BaseAgent {
       await this.logInteraction(request, response)
       return response
     } catch (error) {
-      console.error('Text processing error:', error)
+      logError('Text processing error:', error)
       return this.createErrorResponse(error)
     }
   }
@@ -241,7 +242,7 @@ export class MultimodalAgent extends BaseAgent {
 
       return structuredData
     } catch (error) {
-      console.error('Error extracting structured data:', error)
+      logError('Error extracting structured data:', error)
       return null
     }
   }

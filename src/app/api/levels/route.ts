@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
     // Получаем сервис уровней
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(levels)
   } catch (error) {
-    console.error('Error fetching levels:', error)
+    logError('Error fetching levels:', error)
     return NextResponse.json(
       { error: 'Failed to fetch levels' },
       { status: 500 }

@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { GridContainer } from '@/components/GridContainer'
 import type { TableOfContentsBlock as TableOfContentsBlockType } from '@/types/blocks'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type HeadingLevel = 1 | 2 | 3 | 4
 
 interface Heading {
@@ -34,7 +35,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 
     const article = document.querySelector('article')
     if (!article) {
-      console.warn('TableOfContents: No article element found')
+      logWarn('TableOfContents: No article element found')
       return
     }
 

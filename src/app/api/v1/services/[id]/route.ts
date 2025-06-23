@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
 import { ServiceRegistry } from '@/services/service.registry'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * GET /api/v1/services/:id
  * Получение информации об услуге по ID
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(service)
   } catch (error) {
-    console.error('Error fetching service:', error)
+    logError('Error fetching service:', error)
     return NextResponse.json({ error: 'Failed to fetch service' }, { status: 500 })
   }
 }
@@ -58,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(service)
   } catch (error) {
-    console.error('Error updating service:', error)
+    logError('Error updating service:', error)
     return NextResponse.json({ error: 'Failed to update service' }, { status: 500 })
   }
 }
@@ -84,7 +85,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting service:', error)
+    logError('Error deleting service:', error)
     return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 })
   }
 }

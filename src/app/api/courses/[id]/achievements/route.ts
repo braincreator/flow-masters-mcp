@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import payload from 'payload'
 import { getServerSession } from '@/lib/auth'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -68,7 +69,7 @@ export async function GET(
     
     return NextResponse.json(achievementsWithStatus)
   } catch (error) {
-    console.error('Error fetching course achievements:', error)
+    logError('Error fetching course achievements:', error)
     return NextResponse.json(
       { error: 'Failed to fetch course achievements' },
       { status: 500 }

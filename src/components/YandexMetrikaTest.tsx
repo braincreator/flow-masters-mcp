@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, AlertCircle, Activity } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 declare global {
   interface Window {
     ym: (id: number, action: string, ...args: any[]) => void
@@ -31,21 +32,21 @@ export const YandexMetrikaTest: React.FC<YandexMetrikaTestProps> = ({ metrikaId:
     const id = propMetrikaId || process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
     setMetrikaId(id || null)
 
-    console.log('YandexMetrikaTest: Metrika ID from props:', propMetrikaId)
-    console.log('YandexMetrikaTest: Metrika ID from env:', process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID)
-    console.log('YandexMetrikaTest: Final Metrika ID:', id)
+    logDebug('YandexMetrikaTest: Metrika ID from props:', propMetrikaId)
+    logDebug('YandexMetrikaTest: Metrika ID from env:', process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID)
+    logDebug('YandexMetrikaTest: Final Metrika ID:', id)
 
     // Проверяем загрузку Яндекс Метрики
     const checkMetrika = () => {
-      console.log('YandexMetrikaTest: Checking metrika...', typeof window.ym)
+      logDebug('YandexMetrikaTest: Checking metrika...', typeof window.ym)
       if (typeof window.ym !== 'undefined') {
         setIsLoaded(true)
         addTestResult('Initialization', 'success', 'Yandex Metrika loaded successfully')
-        console.log('YandexMetrikaTest: Metrika loaded successfully!')
+        logDebug('YandexMetrikaTest: Metrika loaded successfully!')
       } else {
         setIsLoaded(false)
         addTestResult('Initialization', 'error', 'Yandex Metrika not found')
-        console.log('YandexMetrikaTest: Metrika not found')
+        logDebug('YandexMetrikaTest: Metrika not found')
       }
     }
 

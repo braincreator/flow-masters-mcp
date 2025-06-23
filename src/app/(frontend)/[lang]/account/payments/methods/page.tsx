@@ -2,6 +2,7 @@ import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Placeholder for actual payment method data fetching and type
 // import { getSavedPaymentMethods, deletePaymentMethod, setDefaultPaymentMethod } from '@/actions/payments';
 // import { SavedPaymentMethod } from '@/types/payment';
@@ -28,14 +29,14 @@ export default async function SavedPaymentMethodsPage() {
   // Placeholder actions - in a real app, these would call server actions
   const handleDelete = async (id: string) => {
     'use server';
-    console.log(`Attempting to delete payment method: ${id}`);
+    logDebug(`Attempting to delete payment method: ${id}`);
     // await deletePaymentMethod(id);
     // revalidatePath('/account/payments/methods'); // If using server actions and revalidation
   };
 
   const handleSetDefault = async (id: string) => {
     'use server';
-    console.log(`Attempting to set default payment method: ${id}`);
+    logDebug(`Attempting to set default payment method: ${id}`);
     // await setDefaultPaymentMethod(id);
     // revalidatePath('/account/payments/methods');
   };

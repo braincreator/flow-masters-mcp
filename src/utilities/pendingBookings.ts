@@ -39,7 +39,7 @@ export const savePendingBooking = (
     // Сохраняем обновленный список
     localStorage.setItem(PENDING_BOOKINGS_KEY, JSON.stringify(pendingBookings))
   } catch (error) {
-    console.error('Error saving pending booking:', error)
+    logError('Error saving pending booking:', error)
   }
 }
 
@@ -56,7 +56,7 @@ export const getPendingBookings = (): PendingBookingInfo[] => {
     
     return JSON.parse(pendingBookingsJson)
   } catch (error) {
-    console.error('Error getting pending bookings:', error)
+    logError('Error getting pending bookings:', error)
     return []
   }
 }
@@ -80,7 +80,7 @@ export const markBookingAsCompleted = (orderId: string): void => {
     // Сохраняем обновленный список
     localStorage.setItem(PENDING_BOOKINGS_KEY, JSON.stringify(updatedBookings))
   } catch (error) {
-    console.error('Error marking booking as completed:', error)
+    logError('Error marking booking as completed:', error)
   }
 }
 
@@ -100,7 +100,7 @@ export const removePendingBooking = (orderId: string): void => {
     // Сохраняем обновленный список
     localStorage.setItem(PENDING_BOOKINGS_KEY, JSON.stringify(updatedBookings))
   } catch (error) {
-    console.error('Error removing pending booking:', error)
+    logError('Error removing pending booking:', error)
   }
 }
 
@@ -121,7 +121,7 @@ export const getActivePendingBookings = (): PendingBookingInfo[] => {
       (booking) => !booking.completed && booking.timestamp > thirtyDaysAgo
     )
   } catch (error) {
-    console.error('Error getting active pending bookings:', error)
+    logError('Error getting active pending bookings:', error)
     return []
   }
 }
@@ -148,6 +148,6 @@ export const cleanupOldBookings = (): void => {
     // Сохраняем обновленный список
     localStorage.setItem(PENDING_BOOKINGS_KEY, JSON.stringify(updatedBookings))
   } catch (error) {
-    console.error('Error cleaning up old bookings:', error)
+    logError('Error cleaning up old bookings:', error)
   }
 }

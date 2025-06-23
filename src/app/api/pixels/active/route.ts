@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API для получения активных пикселей
  * GET /api/pixels/active - получить список активных пикселей
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting active pixels:', error)
+    logError('Error getting active pixels:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error sending pixel events:', error)
+    logError('Error sending pixel events:', error)
     return NextResponse.json(
       {
         error: 'Internal server error',

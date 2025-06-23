@@ -7,6 +7,7 @@ import ProjectFeedbackAnalytics from './ProjectFeedbackAnalytics'
 import ProjectSatisfactionSurvey from './ProjectSatisfactionSurvey'
 import { useNotification } from '@/hooks/useNotification'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ProjectFeedbackSectionProps {
   projectId: string
   isAdmin: boolean
@@ -46,7 +47,7 @@ export default function ProjectFeedbackSection({
         const feedbackData = await feedbackResponse.json()
         setRecentSurveys(feedbackData)
       } catch (error) {
-        console.error('Error fetching project data:', error)
+        logError('Error fetching project data:', error)
         showNotification('error', t('errorFetchingData', { defaultValue: 'Error fetching project data' }))
       } finally {
         setIsLoading(false)

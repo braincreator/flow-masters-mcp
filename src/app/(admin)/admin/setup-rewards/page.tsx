@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 const SetupRewardsPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
@@ -24,7 +25,7 @@ const SetupRewardsPage: React.FC = () => {
       })
 
       const authData = await authCheckResponse.json()
-      console.log('Auth check result:', authData)
+      logDebug('Auth check result:', authData)
 
       // Check if the user is authenticated
       if (!authData.sessionAuth.isAuthenticated) {
@@ -67,7 +68,7 @@ const SetupRewardsPage: React.FC = () => {
 
       setResult(data)
     } catch (err: any) {
-      console.error('Error setting up rewards:', err)
+      logError('Error setting up rewards:', err)
       setError(err.message || 'An error occurred')
     } finally {
       setLoading(false)

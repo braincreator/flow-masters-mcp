@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(request: NextRequest) {
   try {
     // Проверяем секретный ключ для безопасности
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { collection, operation, doc } = body
 
-    console.log(`🔄 Revalidating sitemap for ${collection} ${operation}:`, doc?.slug || doc?.id)
+    logDebug(`🔄 Revalidating sitemap for ${collection} ${operation}:`, doc?.slug || doc?.id)
 
     // Инвалидируем кэш для всех sitemap
     revalidateTag('pages-sitemap')
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error revalidating sitemap:', error)
+    logError('Error revalidating sitemap:', error)
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in manual revalidation:', error)
+    logError('Error in manual revalidation:', error)
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }

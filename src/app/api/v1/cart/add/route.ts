@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function POST(req: NextRequest) {
   try {
     // Получаем данные из тела запроса
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
     const actualItemId = itemId || productId
     const actualItemType = itemId ? itemType : 'product'
 
-    console.log('Cart API request received:', {
+    logDebug('Cart API request received:', {
       productId,
       itemId,
       itemType,
@@ -202,7 +203,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json(updatedCart, { status: 200 })
   } catch (error) {
-    console.error('Error adding item to cart:', error)
+    logError('Error adding item to cart:', error)
     return Response.json({ message: 'Failed to add item to cart' }, { status: 500 })
   }
 }

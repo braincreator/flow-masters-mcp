@@ -17,6 +17,7 @@ import { CartBadge } from '@/components/CartBadge'
 import { AuthNav } from '@/components/auth/AuthNav'
 import NotificationCenter from '@/components/Notifications/NotificationCenter'
 
+import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface HeaderClientProps {
   data: Header
   locale: string
@@ -172,7 +173,7 @@ const Header = memo(function Header({ data, theme, currentLocale }) {
                 className="p-2 text-foreground/70 hover:text-accent active:scale-95 transition-all touch-manipulation"
                 onClick={() => {
                   const newState = !mobileMenuOpen
-                  console.log('Toggle mobile menu:', newState)
+                  logDebug('Toggle mobile menu:', newState)
                   setMobileMenuOpen(newState)
                   setIsVisible(true) // Always ensure header is visible when toggling menu
                 }}
@@ -229,7 +230,7 @@ export function HeaderClient({ data: initialData, locale }: HeaderClientProps) {
           setData(newData)
         }
       } catch (error) {
-        console.error('Error fetching header data:', error)
+        logError('Error fetching header data:', error)
         // Можно добавить логику для отображения ошибки пользователю, если необходимо
       }
     }
