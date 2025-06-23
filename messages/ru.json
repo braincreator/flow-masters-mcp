@@ -983,6 +983,11 @@
         "description": "Наш менеджер свяжется с вами в ближайшее время для обсуждения деталей проекта.",
         "telegramButton": "Написать в Telegram @flow_masters_bot"
       },
+      "validation": {
+        "nameRequired": "Имя обязательно для заполнения",
+        "phoneRequired": "Телефон обязателен для заполнения",
+        "emailInvalid": "Введите корректный email"
+      },
       "errors": {
         "submitError": "Ошибка отправки",
         "tryLater": "Ошибка при отправке заявки. Попробуйте позже."

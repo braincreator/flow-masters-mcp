@@ -1,7 +1,9 @@
 'use client'
-'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { newsletterSchema, type NewsletterData } from '@/types/forms'
 import type { NewsletterBlock as NewsletterBlockType } from '@/types/blocks'
 import { GridContainer } from '@/components/GridContainer'
 import { Button } from '@/components/ui/button'
@@ -11,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 import { RichText } from '@/components/RichText'
 import { useTranslations } from 'next-intl'
+import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type NewsletterStyle = 'default' | 'card' | 'minimal'
@@ -29,10 +32,7 @@ interface NewsletterProps extends NewsletterBlockType {
   forceShow?: boolean
 }
 
-const validateEmail = (email: string): boolean => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(email)
-}
+
 
 export const Newsletter: React.FC<NewsletterProps> = ({
   heading,
@@ -45,14 +45,32 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   forceShow = false,
 }) => {
   const t = useTranslations('forms.newsletter')
-  const [email, setEmail] = useState('')
   const [status, setStatus] = useState<SubmitStatus>('idle')
-  const [error, setError] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
   // Use translation as default if not provided
   const defaultButtonText = buttonText || t('buttons.subscribe')
+
+  // Аналитика форм
+  const formAnalytics = useFormAnalytics({
+    formName: 'newsletter_block',
+    formType: 'subscription'
+  })
+
+  // React Hook Form с Zod валидацией
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<NewsletterData>({
+    resolver: zodResolver(newsletterSchema),
+    defaultValues: {
+      email: '',
+      consent: true, // Автоматически согласие для newsletter
+    },
+  })
 
   useEffect(() => {
     setIsClient(true)
@@ -70,20 +88,33 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     }
   }, [storageKey])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validateEmail(email)) {
-      setError(t('errors.invalidEmail'))
-      return
-    }
-
+  const onSubmit: SubmitHandler<NewsletterData> = async (data) => {
     setStatus('loading')
-    setError('')
 
     try {
-      logDebug(`Subscribing ${email}... (Simulated API Call)`)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Трекаем начало отправки
+      formAnalytics.handleFormSubmit(true)
+
+      const response = await fetch('/api/v1/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          metadata: {
+            subscriptionDate: new Date().toISOString(),
+            userAgent: window.navigator.userAgent,
+            source: 'newsletter_block',
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || t('errors.submitError'))
+      }
+
       setStatus('success')
 
       try {
@@ -91,7 +122,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
           storageKey,
           JSON.stringify({
             subscribed: true,
-            email: email,
+            email: data.email,
             date: new Date().toISOString(),
           }),
         )
@@ -99,10 +130,14 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       } catch (storageError) {
         logError('Failed to save subscription status to localStorage', storageError)
       }
+
+      reset()
+
     } catch (err) {
       setStatus('error')
-      setError(t('errors.submitError'))
       logError('Subscription error:', err)
+      // Трекаем ошибку подписки
+      formAnalytics.handleFormSubmit(false)
     }
   }
 
@@ -140,35 +175,35 @@ export const Newsletter: React.FC<NewsletterProps> = ({
                 )}
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Input
                     type="email"
                     placeholder={t('fields.email.placeholder')}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...register('email')}
                     aria-label={t('fields.email.label')}
-                    disabled={status === 'loading' || status === 'success'}
-                    className={cn('flex-1', error && 'border-red-500 focus-visible:ring-red-500')}
+                    disabled={isSubmitting || status === 'success'}
+                    className={cn('flex-1', errors.email && 'border-destructive')}
+                    onFocus={() => formAnalytics.handleFieldFocus('email')}
                   />
                   <Button
                     type="submit"
-                    disabled={status === 'loading' || status === 'success'}
+                    disabled={isSubmitting || status === 'success'}
                     className="relative"
                   >
-                    {status === 'loading' && (
+                    {isSubmitting && (
                       <Loader2 className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 animate-spin" />
                     )}
-                    <span className={cn(status === 'loading' && 'opacity-0')}>
+                    <span className={cn(isSubmitting && 'opacity-0')}>
                       {status === 'success' ? t('buttons.subscribed') : defaultButtonText}
                     </span>
                   </Button>
                 </div>
 
-                {error && (
-                  <div className="flex items-center gap-2 text-sm text-red-500 animate-in fade-in slide-in-from-top-1">
+                {errors.email && (
+                  <div className="flex items-center gap-2 text-sm text-destructive animate-in fade-in slide-in-from-top-1">
                     <XCircle className="h-4 w-4" />
-                    <span>{error}</span>
+                    <span>{errors.email.message}</span>
                   </div>
                 )}
 

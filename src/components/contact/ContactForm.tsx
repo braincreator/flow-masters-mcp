@@ -49,7 +49,6 @@ export function ContactForm() {
 
   const onSubmit: SubmitHandler<ContactFormData> = async (data) => {
     try {
-      setIsSubmitting(true)
       const response = await fetch('/api/v1/contact', {
         method: 'POST',
         headers: {
@@ -83,8 +82,6 @@ export function ContactForm() {
         description: error instanceof Error ? error.message : t('errors.description'),
         variant: 'destructive',
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 

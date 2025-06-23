@@ -49,9 +49,11 @@ export default function PixelManager({
 
   const loadPixels = useCallback(async () => {
     try {
+      logDebug(`Loading pixels for page: ${currentPage}`)
       const response = await fetch(`/api/pixels/active?page=${currentPage}`)
       if (response.ok) {
         const data = await response.json()
+        logDebug(`Loaded ${data.pixels?.length || 0} pixels:`, data.pixels)
         setPixels(data.pixels || [])
       } else {
         logWarn('Failed to load pixels:', response.statusText)
@@ -87,7 +89,7 @@ export default function PixelManager({
 
   const renderVKPixel = (pixel: Pixel) => {
     const settings = pixel.vkSettings || {}
-    
+
     return (
       <Script
         key={`vk-${pixel.id}`}
@@ -95,8 +97,17 @@ export default function PixelManager({
         strategy={getScriptStrategy(pixel.loadPriority)}
         dangerouslySetInnerHTML={{
           __html: `
-            !function(){var t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src='https://vk.com/js/api/openapi.js?169',t.onload=function(){VK.Retargeting.Init("${pixel.pixelId}"),VK.Retargeting.Hit()},document.head.appendChild(t)}();
-            ${settings.trackPageView ? `VK.Retargeting.Hit();` : ''}
+            !function(){
+              var t=document.createElement("script");
+              t.type="text/javascript";
+              t.async=!0;
+              t.src='https://vk.com/js/api/openapi.js?169';
+              t.onload=function(){
+                VK.Retargeting.Init("${pixel.pixelId}");
+                ${settings.trackPageView !== false ? 'VK.Retargeting.Hit();' : ''}
+              };
+              document.head.appendChild(t);
+            }();
           `
         }}
       />
@@ -236,7 +247,12 @@ export default function PixelManager({
   }
 
   const renderPixel = (pixel: Pixel) => {
-    if (!shouldLoadPixel(pixel)) return null
+    if (!shouldLoadPixel(pixel)) {
+      logDebug(`Pixel ${pixel.name} (${pixel.type}) skipped - shouldLoadPixel returned false`)
+      return null
+    }
+
+    logDebug(`Rendering pixel: ${pixel.name} (${pixel.type}) with ID: ${pixel.pixelId}`)
 
     switch (pixel.type) {
       case 'vk':

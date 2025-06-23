@@ -36,7 +36,7 @@ export interface FormState<T = Record<string, any>> {
 }
 
 // Contact Form Schema
-export const contactFormSchema = z.object({
+const contactFormSchema = z.object({
   name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
   email: z.string().email('Введите корректный email'),
   phone: z.string().optional(),
@@ -49,10 +49,10 @@ export const contactFormSchema = z.object({
   })
 })
 
-export type ContactFormData = z.infer<typeof contactFormSchema>
+type ContactFormData = z.infer<typeof contactFormSchema>
 
 // Service Request Form Schema
-export const serviceRequestSchema = z.object({
+const serviceRequestSchema = z.object({
   name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
   email: z.string().email('Введите корректный email'),
   phone: z.string().optional(),
@@ -66,10 +66,10 @@ export const serviceRequestSchema = z.object({
   })
 })
 
-export type ServiceRequestData = z.infer<typeof serviceRequestSchema>
+type ServiceRequestData = z.infer<typeof serviceRequestSchema>
 
 // Newsletter Subscription Schema
-export const newsletterSchema = z.object({
+const newsletterSchema = z.object({
   email: z.string().email('Введите корректный email'),
   name: z.string().optional(),
   preferences: z.array(z.string()).optional(),
@@ -78,10 +78,10 @@ export const newsletterSchema = z.object({
   })
 })
 
-export type NewsletterData = z.infer<typeof newsletterSchema>
+type NewsletterData = z.infer<typeof newsletterSchema>
 
 // Callback Request Schema
-export const callbackSchema = z.object({
+const callbackSchema = z.object({
   name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
   phone: z.string().min(10, 'Введите корректный номер телефона'),
   preferredTime: z.string().optional(),
@@ -90,10 +90,20 @@ export const callbackSchema = z.object({
   })
 })
 
-export type CallbackData = z.infer<typeof callbackSchema>
+type CallbackData = z.infer<typeof callbackSchema>
+
+// Lead Form Schema (for modal lead forms)
+const leadFormSchema = z.object({
+  name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
+  phone: z.string().min(10, 'Введите корректный номер телефона'),
+  email: z.string().email('Введите корректный email').optional().or(z.literal('')),
+  comment: z.string().optional(),
+})
+
+type LeadFormData = z.infer<typeof leadFormSchema>
 
 // Quote Request Schema
-export const quoteRequestSchema = z.object({
+const quoteRequestSchema = z.object({
   name: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
   email: z.string().email('Введите корректный email'),
   company: z.string().optional(),
@@ -107,7 +117,7 @@ export const quoteRequestSchema = z.object({
   })
 })
 
-export type QuoteRequestData = z.infer<typeof quoteRequestSchema>
+type QuoteRequestData = z.infer<typeof quoteRequestSchema>
 
 // Form submission result
 export interface FormSubmissionResult {
@@ -119,7 +129,7 @@ export interface FormSubmissionResult {
 }
 
 // Form validation utilities
-export const validateForm = <T>(schema: z.ZodSchema<T>, data: any): {
+const validateForm = <T>(schema: z.ZodSchema<T>, data: any): {
   success: boolean
   data?: T
   errors?: Record<string, string>
@@ -141,7 +151,7 @@ export const validateForm = <T>(schema: z.ZodSchema<T>, data: any): {
 }
 
 // Form field configurations
-export const serviceTypes = [
+const serviceTypes = [
   { value: 'web-development', label: 'Веб-разработка' },
   { value: 'mobile-development', label: 'Мобильная разработка' },
   { value: 'ai-integration', label: 'Интеграция ИИ' },
@@ -150,7 +160,7 @@ export const serviceTypes = [
   { value: 'other', label: 'Другое' }
 ]
 
-export const budgetRanges = [
+const budgetRanges = [
   { value: 'under-100k', label: 'До 100 000 ₽' },
   { value: '100k-500k', label: '100 000 - 500 000 ₽' },
   { value: '500k-1m', label: '500 000 - 1 000 000 ₽' },
@@ -159,7 +169,7 @@ export const budgetRanges = [
   { value: 'discuss', label: 'Обсудим индивидуально' }
 ]
 
-export const timelineOptions = [
+const timelineOptions = [
   { value: 'asap', label: 'Как можно скорее' },
   { value: '1-month', label: 'В течение месяца' },
   { value: '2-3-months', label: '2-3 месяца' },
@@ -168,7 +178,7 @@ export const timelineOptions = [
   { value: 'flexible', label: 'Гибкие сроки' }
 ]
 
-export const projectTypes = [
+const projectTypes = [
   { value: 'website', label: 'Корпоративный сайт' },
   { value: 'ecommerce', label: 'Интернет-магазин' },
   { value: 'web-app', label: 'Веб-приложение' },
@@ -184,6 +194,7 @@ export {
   serviceRequestSchema,
   newsletterSchema,
   callbackSchema,
+  leadFormSchema,
   quoteRequestSchema,
   validateForm,
   serviceTypes,
@@ -200,6 +211,7 @@ export type {
   ServiceRequestData,
   NewsletterData,
   CallbackData,
+  LeadFormData,
   QuoteRequestData,
   FormSubmissionResult
 }

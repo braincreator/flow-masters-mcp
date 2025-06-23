@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, memo } from 'react'
 import { usePathname } from 'next/navigation'
 import PixelManager from '@/components/PixelManager'
+import { PixelDebug } from '@/components/PixelManager/PixelDebug'
 import { usePixelPageView } from '@/hooks/usePixelEvents'
 import { InteractionTracker } from '@/components/Analytics/ButtonTracker'
 import { useCookieConsent } from '@/hooks/useCookieConsent'
@@ -100,10 +101,12 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
   }, [pathname, hasAnalytics, hasMarketing, currentPage, trackPageView])
 
   // Мемоизируем определение загрузки пикселей
-  const shouldLoadPixels = useMemo(() =>
-    hasAnalytics || hasMarketing || hasPreferences,
-    [hasAnalytics, hasMarketing, hasPreferences]
-  )
+  // ВРЕМЕННО: загружаем пиксели всегда для тестирования
+  const shouldLoadPixels = useMemo(() => {
+    // В продакшене: hasAnalytics || hasMarketing || hasPreferences
+    // Для тестирования: всегда true
+    return process.env.NODE_ENV === 'development' ? true : (hasAnalytics || hasMarketing || hasPreferences)
+  }, [hasAnalytics, hasMarketing, hasPreferences])
 
   return (
     <>
@@ -119,6 +122,9 @@ const AnalyticsLayout = memo(function AnalyticsLayout({ children }: AnalyticsLay
 
       {/* Автоматическое отслеживание взаимодействий */}
       {shouldLoadPixels && <InteractionTracker />}
+
+      {/* Отладочная панель пикселей (только в development) */}
+      {process.env.NODE_ENV === 'development' && <PixelDebug />}
     </>
   )
 })

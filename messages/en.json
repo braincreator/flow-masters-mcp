@@ -933,6 +933,11 @@
         "description": "Our manager will contact you shortly to discuss project details.",
         "telegramButton": "Write to Telegram @flow_masters_bot"
       },
+      "validation": {
+        "nameRequired": "Name is required",
+        "phoneRequired": "Phone is required",
+        "emailInvalid": "Please enter a valid email"
+      },
       "errors": {
         "submitError": "Submission error",
         "tryLater": "Error submitting request. Please try later."

@@ -1,10 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ExternalLink, MessageCircle } from 'lucide-react'
+import { ExternalLink, MessageCircle, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEnhancedFormSubmission } from '@/hooks/useEnhancedFormSubmission'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { leadFormSchema, type LeadFormData } from '@/types/forms'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ModalLeadFormProps {
@@ -24,71 +31,51 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
 }) => {
   const t = useTranslations('forms.leadForm')
   const tCommon = useTranslations('common')
-
-  const [form, setForm] = useState({ name: '', phone: '', email: '', comment: '' })
-
-  // Обогащенная отправка формы с максимальным сбором метаданных
-  const {
-    isLoading,
-    isSuccess,
-    error,
-    submitForm,
-    resetForm,
-    handleFormStart,
-    handleFieldInteraction,
-  } = useEnhancedFormSubmission({
-    formName: 'lead_form',
-    formType: actionType,
-    formLocation: 'modal_lead_form',
-    apiEndpoint: '/api/v1/leads', // Используем legacy API для совместимости
-    collectLocation: false, // Не запрашиваем геолокацию для лидформы
-    enableAnalytics: true,
-    enableTracking: true,
-    onSuccess: () => {
-      // Дополнительные действия при успехе
-      logDebug('Lead form submitted successfully')
-    },
-    onError: (error) => {
-      logError('Lead form submission error:', error)
-    },
-  })
+  const { toast } = useToast()
 
   // Use translations as defaults if not provided
   const modalTitle = title || t('title')
   const modalDescription = description || t('description')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setForm({ ...form, [name]: value })
+  // Аналитика форм
+  const formAnalytics = useFormAnalytics({
+    formName: 'lead_form',
+    formType: actionType,
+    trackFieldFocus: true,
+    trackFieldBlur: true,
+    trackFieldErrors: true,
+  })
 
-    // Отслеживаем взаимодействие с полем
-    handleFieldInteraction(name, 'change', value)
-  }
-
-  const handleFieldFocus = (fieldName: string) => {
-    // Запускаем отслеживание формы при первом фокусе
-    handleFormStart()
-    handleFieldInteraction(fieldName, 'focus')
-  }
-
-  const handleFieldBlur = (fieldName: string, value: string) => {
-    handleFieldInteraction(fieldName, 'blur', value)
-  }
+  // React Hook Form с Zod валидацией
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm<LeadFormData>({
+    resolver: zodResolver(leadFormSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      email: '',
+      comment: '',
+    },
+  })
 
   const handleClose = () => {
     // Reset form state when closing
-    resetForm()
-    setForm({ name: '', phone: '', email: '', comment: '' })
+    reset()
     onClose()
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const onSubmit: SubmitHandler<LeadFormData> = async (data) => {
     try {
+      // Трекаем начало отправки
+      formAnalytics.handleFormSubmit(true)
+
       // Подготавливаем данные для отправки
       const formData = {
-        ...form,
+        ...data,
         actionType,
         source: window.location.href,
         metadata: {
@@ -98,19 +85,40 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
         },
       }
 
-      // Отправляем форму с полными метаданными
-      await submitForm(formData, {
-        skipMetadata: false, // Собираем все метаданные
-        additionalData: {
-          // Дополнительные данные для legacy API
-          actionType,
-          source: window.location.href,
+      // Отправляем форму
+      const response = await fetch('/api/v1/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify(formData),
       })
 
-    } catch (err) {
-      // Ошибка уже обработана в хуке
-      logError('Form submission error:', err)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Ошибка отправки формы')
+      }
+
+      // Успешная отправка
+      toast({
+        title: t('success.title'),
+        description: t('success.description'),
+      })
+
+      logDebug('Lead form submitted successfully')
+
+    } catch (error) {
+      logError('Form submission error:', error)
+
+      // Трекаем ошибку отправки
+      formAnalytics.handleFormSubmit(false)
+
+      toast({
+        title: 'Ошибка',
+        description: error instanceof Error ? error.message : 'Произошла ошибка при отправке',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -137,77 +145,85 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
             >
               ×
             </button>
-            {!isSuccess ? (
-              <form onSubmit={handleSubmit} className="space-y-5">
+            {!isSubmitSuccessful ? (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <h2 className="text-2xl font-bold mb-2 text-foreground">{modalTitle}</h2>
                 <p className="text-muted-foreground mb-4">{modalDescription}</p>
 
-                {error && (
-                  <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
-                    {error}
-                  </div>
-                )}
-                <input
-                  name="name"
-                  type="text"
-                  required
-                  placeholder={t('fields.name.placeholder')}
-                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-                  value={form.name}
-                  onChange={handleChange}
-                  onFocus={() => handleFieldFocus('name')}
-                  onBlur={() => handleFieldBlur('name', form.name)}
-                />
-                <input
-                  name="phone"
-                  type="tel"
-                  required
-                  placeholder={t('fields.phone.placeholder')}
-                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-                  value={form.phone}
-                  onChange={handleChange}
-                  onFocus={() => handleFieldFocus('phone')}
-                  onBlur={() => handleFieldBlur('phone', form.phone)}
-                />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder={t('fields.email.placeholder')}
-                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-                  value={form.email}
-                  onChange={handleChange}
-                  onFocus={() => handleFieldFocus('email')}
-                  onBlur={() => handleFieldBlur('email', form.email)}
-                />
-                <textarea
-                  name="comment"
-                  placeholder={
-                    actionType === 'guarantee'
-                      ? t('fields.comment.placeholderGuarantee')
-                      : actionType === 'urgent'
-                        ? t('fields.comment.placeholderUrgent')
-                        : t('fields.comment.placeholder')
-                  }
-                  className="w-full border border-input bg-background text-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground min-h-[80px] resize-none"
-                  value={form.comment}
-                  onChange={handleChange}
-                  onFocus={() => handleFieldFocus('comment')}
-                  onBlur={() => handleFieldBlur('comment', form.comment)}
-                />
-                <button
+                {/* Name Field */}
+                <div>
+                  <Input
+                    placeholder={t('fields.name.placeholder')}
+                    {...register('name')}
+                    className={errors.name ? 'border-destructive' : ''}
+                    aria-invalid={errors.name ? 'true' : 'false'}
+                    onFocus={() => formAnalytics.handleFieldFocus('name')}
+                  />
+                  {errors.name && (
+                    <p className="text-destructive text-sm mt-1">{errors.name.message}</p>
+                  )}
+                </div>
+
+                {/* Phone Field */}
+                <div>
+                  <Input
+                    type="tel"
+                    placeholder={t('fields.phone.placeholder')}
+                    {...register('phone')}
+                    className={errors.phone ? 'border-destructive' : ''}
+                    aria-invalid={errors.phone ? 'true' : 'false'}
+                    onFocus={() => formAnalytics.handleFieldFocus('phone')}
+                  />
+                  {errors.phone && (
+                    <p className="text-destructive text-sm mt-1">{errors.phone.message}</p>
+                  )}
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <Input
+                    type="email"
+                    placeholder={t('fields.email.placeholder')}
+                    {...register('email')}
+                    className={errors.email ? 'border-destructive' : ''}
+                    aria-invalid={errors.email ? 'true' : 'false'}
+                    onFocus={() => formAnalytics.handleFieldFocus('email')}
+                  />
+                  {errors.email && (
+                    <p className="text-destructive text-sm mt-1">{errors.email.message}</p>
+                  )}
+                </div>
+
+                {/* Comment Field */}
+                <div>
+                  <Textarea
+                    placeholder={
+                      actionType === 'guarantee'
+                        ? t('fields.comment.placeholderGuarantee')
+                        : actionType === 'urgent'
+                          ? t('fields.comment.placeholderUrgent')
+                          : t('fields.comment.placeholder')
+                    }
+                    {...register('comment')}
+                    className="min-h-[80px] resize-none"
+                    onFocus={() => formAnalytics.handleFieldFocus('comment')}
+                  />
+                </div>
+
+                <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {t('buttons.sending')}
-                    </div>
+                    </>
                   ) : (
                     t('buttons.submit')
                   )}
-                </button>
+                </Button>
               </form>
             ) : (
               <motion.div

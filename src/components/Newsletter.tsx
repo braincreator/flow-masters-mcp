@@ -1,10 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { newsletterSchema, type NewsletterData } from '@/types/forms'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NewsletterProps {
@@ -47,10 +53,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   const buttonText = initialButtonText || t('defaultButtonText')
   const placeholderText = initialPlaceholderText || t('defaultPlaceholderText')
 
-  const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
@@ -58,6 +61,20 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   const formAnalytics = useFormAnalytics({
     formName: 'newsletter',
     formType: 'subscription'
+  })
+
+  // React Hook Form с Zod валидацией
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<NewsletterData>({
+    resolver: zodResolver(newsletterSchema),
+    defaultValues: {
+      email: '',
+      consent: true, // Автоматически согласие для newsletter
+    },
   })
 
   const messages = {
@@ -78,7 +95,6 @@ export const Newsletter: React.FC<NewsletterProps> = ({
         const data = JSON.parse(subscriptionStatus)
         if (data.subscribed && data.email) {
           setIsSubscribed(true)
-          setEmail(data.email)
         }
       } catch (e) {
         localStorage.removeItem(storageKey)
@@ -86,25 +102,18 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     }
   }, [storageKey])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError(messages.error)
-      return
-    }
-
-    setIsSubmitting(true)
-
+  const onSubmit: SubmitHandler<NewsletterData> = async (data) => {
     try {
+      // Трекаем начало отправки
+      formAnalytics.handleFormSubmit(true)
+
       const response = await fetch('/api/v1/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: data.email,
           source,
           locale,
           metadata: {
@@ -119,9 +128,9 @@ export const Newsletter: React.FC<NewsletterProps> = ({
         throw new Error(errorData.error || messages.serverError)
       }
 
-      const data = await response.json()
+      const responseData = await response.json()
 
-      if (data.alreadySubscribed) {
+      if (responseData.alreadySubscribed) {
         toast.info(messages.alreadySubscribed)
       }
 
@@ -129,23 +138,21 @@ export const Newsletter: React.FC<NewsletterProps> = ({
         storageKey,
         JSON.stringify({
           subscribed: true,
-          email,
+          email: data.email,
           date: new Date().toISOString(),
         }),
       )
 
       setIsSubmitted(true)
       setIsSubscribed(true)
-      // Трекаем успешную подписку
-      formAnalytics.handleFormSubmit(true)
+      reset()
+
     } catch (error) {
       logError('Newsletter subscription error:', error)
-      setError(error instanceof Error ? error.message : messages.networkError)
-      toast.error(error instanceof Error ? error.message : messages.networkError)
+      const errorMessage = error instanceof Error ? error.message : messages.networkError
+      toast.error(errorMessage)
       // Трекаем ошибку подписки
       formAnalytics.handleFormSubmit(false)
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -176,7 +183,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
 
       {!isSubmitted ? (
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className={cn(
             'mx-auto',
             isCompact ? 'max-w-full' : 'max-w-md',
@@ -185,40 +192,43 @@ export const Newsletter: React.FC<NewsletterProps> = ({
           )}
         >
           <div className={cn(layout === 'inline' && 'flex-1', layout === 'stacked' && 'w-full')}>
-            <input
+            <Input
               type="email"
               placeholder={placeholderText}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
               className={cn(
-                'w-full rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50',
-                isCompact ? 'px-3 py-1 text-sm' : 'px-4 py-2',
-                error && 'border-red-500 focus:ring-red-500/50',
+                isCompact ? 'h-8 text-sm' : 'h-10',
+                errors.email && 'border-destructive',
               )}
               aria-label={t('emailInputLabel')}
               disabled={isSubmitting}
               onFocus={() => formAnalytics.handleFieldFocus('email')}
             />
-            {error && (
-              <p className={cn('text-red-500 mt-1', isCompact ? 'text-[10px]' : 'text-xs')}>
-                {error}
+            {errors.email && (
+              <p className={cn('text-destructive mt-1', isCompact ? 'text-[10px]' : 'text-xs')}>
+                {errors.email.message}
               </p>
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
+            disabled={isSubmitting}
             className={cn(
-              'bg-primary text-primary-foreground hover:bg-primary/90 rounded-md font-medium transition-colors',
-              isCompact ? 'px-3 py-1 text-sm' : 'px-4 py-2',
+              isCompact ? 'h-8 px-3 text-sm' : 'h-10 px-4',
               layout === 'stacked' && 'w-full',
               layout === 'inline' && 'whitespace-nowrap',
-              isSubmitting && 'opacity-70 cursor-not-allowed',
             )}
-            disabled={isSubmitting}
           >
-            {isSubmitting ? t('submittingText') : buttonText}
-          </button>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('submittingText')}
+              </>
+            ) : (
+              buttonText
+            )}
+          </Button>
         </form>
       ) : (
         <div className={cn('text-center bg-green-500/10 rounded-md', isCompact ? 'p-2' : 'p-4')}>
@@ -228,7 +238,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
             {messages.successTitle}
           </p>
           <p className={cn('text-muted-foreground mt-1', isCompact ? 'text-xs' : 'text-sm')}>
-            {messages.successMessage + email}
+            {messages.successMessage}
           </p>
         </div>
       )}
