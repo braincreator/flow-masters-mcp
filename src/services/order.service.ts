@@ -8,7 +8,7 @@ import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define simplified input types if needed, or use Partial<Order>
 // Ensure these types align with your actual Order structure from payload-types.ts
 type OrderCreateInput = Partial<Omit<Order, 'id' | 'createdAt' | 'updatedAt'>> & {
-  customer: string | User // Assuming customer is required for creation
+  user: string | User // Assuming user is required for creation
   items: Array<{
     product: string | Product
     service?: string | Service
@@ -111,8 +111,8 @@ export class OrderService extends BaseService {
   async update(id: string, input: OrderUpdateInput): Promise<Order> {
     return this.withErrorHandling(async () => {
       const dataToUpdate: any = { ...input }
-      if (input.customer && typeof input.customer !== 'string') {
-        dataToUpdate.customer = (input.customer as User).id
+      if (input.user && typeof input.user !== 'string') {
+        dataToUpdate.user = (input.user as User).id
       }
       if (input.items) {
         dataToUpdate.items = input.items.map((item) => ({

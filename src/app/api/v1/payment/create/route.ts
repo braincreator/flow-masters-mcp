@@ -301,54 +301,21 @@ export async function POST(req: Request) {
           data: {
             // Import the utility function for consistent order number generation
             orderNumber: require('@/utilities/orderNumber').generateOrderNumber('ORD'),
-            customer: user, // Link to the user ID
+            user: user, // Link to the user ID
             items: orderItems,
             // Format total according to the required structure
-            total: {
-              en: {
-                amount: usdTotal,
-                currency: 'USD',
-              },
-              ru: {
-                amount: rubTotal,
-                currency: 'RUB',
-              },
-            },
-            // Добавляем обязательное поле subtotal
-            subtotal: {
-              en: {
-                amount: usdTotal,
-                currency: 'USD',
-              },
-              ru: {
-                amount: rubTotal,
-                currency: 'RUB',
-              },
-            },
-            // Сохраняем информацию о скидке, если она была применена
-            discounts: discount
-              ? [
-                  {
-                    code: discount.code || '',
-                    description: 'Applied discount',
-                    amount: {
-                      en: { amount: discountAmount, currency: 'USD' },
-                      ru: {
-                        amount: discountAmount * (customer.locale === 'ru' ? 90 : 1),
-                        currency: 'RUB',
-                      },
-                    },
-                  },
-                ]
-              : undefined,
+            total: usdTotal,
+            currency: customer.locale === 'ru' ? 'RUB' : 'USD',
             status: 'pending',
             paymentProvider: providerId,
-            // Добавляем orderType
-            orderType: serviceItems.length > 0 ? 'service' : 'product',
             // Сохраняем локаль в paymentData
             paymentData: {
               customerLocale: customer.locale || 'en',
               originalTotal: usdTotal,
+              discountApplied: discount ? {
+                code: discount.code || '',
+                amount: discountAmount,
+              } : undefined,
             },
           },
         })
