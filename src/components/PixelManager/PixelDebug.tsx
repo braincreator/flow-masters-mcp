@@ -53,7 +53,7 @@ export function PixelDebug() {
         pixelsFromAPI: apiData?.pixels || [],
         apiError: response.ok ? null : `API Error: ${response.status}`,
         
-        vkLoaded: typeof window !== 'undefined' && 'VK' in window && !!(window as any).VK?.Retargeting,
+        vkLoaded: typeof window !== 'undefined' && 'VK' in window && typeof (window as any).VK?.Goal === 'function',
         fbqLoaded: typeof window !== 'undefined' && 'fbq' in window,
         gtagLoaded: typeof window !== 'undefined' && 'gtag' in window,
         ymLoaded: typeof window !== 'undefined' && 'ym' in window,
@@ -83,11 +83,11 @@ export function PixelDebug() {
   }, [isVisible])
 
   const testVKPixel = () => {
-    if (typeof window !== 'undefined' && (window as any).VK?.Retargeting) {
-      (window as any).VK.Retargeting.Event('test_event')
-      logInfo('VK Pixel test event sent')
+    if (typeof window !== 'undefined' && typeof (window as any).VK?.Goal === 'function') {
+      (window as any).VK.Goal('conversion', { value: 100 })
+      logInfo('VK Pixel test conversion sent with value 100')
     } else {
-      logWarn('VK Pixel not loaded')
+      logWarn('VK Pixel not loaded or VK.Goal function not available')
     }
   }
 

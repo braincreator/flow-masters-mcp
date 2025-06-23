@@ -134,9 +134,11 @@ export async function POST(req: NextRequest) {
 function generateEventScript(pixel: any, eventName: string, eventData: any = {}): string | null {
   switch (pixel.type) {
     case 'vk':
+      const vkEventName = mapToVKEvent(eventName)
+      const eventDataStr = Object.keys(eventData).length > 0 ? `, ${JSON.stringify(eventData)}` : ''
       return `
-        if (typeof VK !== 'undefined' && VK.Retargeting) {
-          VK.Retargeting.Event('${eventName}');
+        if (typeof VK !== 'undefined' && typeof VK.Goal === 'function') {
+          VK.Goal('${vkEventName}'${eventDataStr});
         }
       `
 
@@ -190,4 +192,33 @@ function mapToFacebookEvent(eventName: string): string {
   }
 
   return eventMap[eventName.toLowerCase()] || eventName
+}
+
+/**
+ * Маппинг событий на стандартные события VK Ads
+ */
+function mapToVKEvent(eventName: string): string {
+  const eventMap: Record<string, string> = {
+    'purchase': 'purchase',
+    'lead': 'lead',
+    'registration': 'complete_registration',
+    'add_to_cart': 'add_to_cart',
+    'checkout': 'initiate_checkout',
+    'view_content': 'view_content',
+    'search': 'search',
+    'contact': 'contact',
+    'page_view': 'page_view',
+    'add_to_wishlist': 'add_to_wishlist',
+    'add_payment_info': 'add_payment_info',
+    'customize_product': 'customize_product',
+    'schedule': 'schedule',
+    'submit_application': 'submit_application',
+    'start_trial': 'start_trial',
+    'subscribe': 'subscribe',
+    'find_location': 'find_location',
+    'donate': 'donate',
+    'conversion': 'conversion',
+  }
+
+  return eventMap[eventName.toLowerCase()] || 'conversion'
 }
