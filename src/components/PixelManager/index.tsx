@@ -91,6 +91,76 @@ interface PixelManagerProps {
 }
 
 /**
+ * Создает fallback пиксели на основе переменных окружения
+ * Используется когда API недоступен или не возвращает пиксели
+ */
+const createFallbackPixels = (): Pixel[] => {
+  const fallbackPixels: Pixel[] = []
+
+  // Yandex Metrika
+  if (process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID) {
+    fallbackPixels.push({
+      id: 'fallback-yandex',
+      name: 'Yandex Metrika (Fallback)',
+      type: 'yandex_metrica',
+      pixelId: process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID,
+      isActive: true,
+      placement: 'head',
+      pages: ['all'],
+      loadPriority: 'high',
+      loadAsync: true,
+      gdprCompliant: false, // В fallback режиме отключаем GDPR
+      yandexSettings: {
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true,
+        webvisor: false
+      }
+    })
+  }
+
+  // VK Pixel
+  if (process.env.NEXT_PUBLIC_VK_PIXEL_ID) {
+    fallbackPixels.push({
+      id: 'fallback-vk',
+      name: 'VK Pixel (Fallback)',
+      type: 'vk',
+      pixelId: process.env.NEXT_PUBLIC_VK_PIXEL_ID,
+      isActive: true,
+      placement: 'head',
+      pages: ['all'],
+      loadPriority: 'high',
+      loadAsync: true,
+      gdprCompliant: false,
+      vkSettings: {
+        trackPageView: true
+      }
+    })
+  }
+
+  // Google Analytics
+  if (process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID) {
+    fallbackPixels.push({
+      id: 'fallback-ga4',
+      name: 'Google Analytics (Fallback)',
+      type: 'ga4',
+      pixelId: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+      isActive: true,
+      placement: 'head',
+      pages: ['all'],
+      loadPriority: 'high',
+      loadAsync: true,
+      gdprCompliant: false,
+      ga4Settings: {
+        enhancedEcommerce: true
+      }
+    })
+  }
+
+  return fallbackPixels
+}
+
+/**
  * Компонент для управления пикселями аналитики и рекламы
  * Автоматически загружает и инициализирует пиксели на основе настроек из админки
  */
@@ -122,16 +192,31 @@ export default function PixelManager({
   const loadPixels = useCallback(async () => {
     try {
       logDebug(`Loading pixels for page: ${currentPage}`)
-      const response = await fetch(`/api/pixels/active?page=${currentPage}`)
-      if (response.ok) {
-        const data = await response.json()
-        logDebug(`Loaded ${data.pixels?.length || 0} pixels:`, data.pixels)
-        setPixels(data.pixels || [])
-      } else {
-        logWarn('Failed to load pixels:', response.statusText)
+
+      // Сначала пытаемся загрузить из API
+      try {
+        const response = await fetch(`/api/pixels/active?page=${currentPage}`)
+        if (response.ok) {
+          const data = await response.json()
+          logDebug(`Loaded ${data.pixels?.length || 0} pixels from API:`, data.pixels)
+          if (data.pixels && data.pixels.length > 0) {
+            setPixels(data.pixels)
+            return
+          }
+        }
+      } catch (apiError) {
+        logWarn('API failed, using fallback pixels:', apiError)
       }
+
+      // Fallback: создаем пиксели на основе переменных окружения
+      const fallbackPixels = createFallbackPixels()
+      logInfo(`Using fallback pixels (${fallbackPixels.length}):`, fallbackPixels)
+      setPixels(fallbackPixels)
+
     } catch (error) {
       logError('Failed to load pixels:', error)
+      // В крайнем случае используем fallback
+      setPixels(createFallbackPixels())
     } finally {
       setLoading(false)
     }
@@ -206,7 +291,8 @@ export default function PixelManager({
                   fallback.type="text/javascript";
                   fallback.async=!0;
                   fallback.src="https://vk.com/js/api/openapi.js?169";
-                  o.parentNode.insertBefore(fallback,o);
+                  var firstScript = t.getElementsByTagName("script")[0];
+                  firstScript.parentNode.insertBefore(fallback, firstScript);
                 };
                 var o=t.getElementsByTagName("script")[0];
                 o.parentNode.insertBefore(r,o)
@@ -432,7 +518,13 @@ export default function PixelManager({
       return null
     }
 
-    logDebug(`Rendering pixel: ${pixel.name} (${pixel.type}) with ID: ${pixel.pixelId}`)
+    logInfo(`📝 Rendering pixel: ${pixel.name} (${pixel.type}) with ID: ${pixel.pixelId}`)
+    logDebug(`Pixel settings:`, {
+      placement: pixel.placement,
+      loadPriority: pixel.loadPriority,
+      pages: pixel.pages,
+      gdprCompliant: pixel.gdprCompliant
+    })
 
     switch (pixel.type) {
       case 'vk':
@@ -456,12 +548,35 @@ export default function PixelManager({
   }
 
   if (loading) {
-    return null // Или показать загрузку
+    return (
+      <div style={{ display: 'none' }}>
+        {/* Логируем состояние загрузки */}
+        {logDebug('🔄 PixelManager: Loading pixels...')}
+      </div>
+    )
   }
+
+  // Логируем статистику пикселей
+  logInfo(`📊 PixelManager Stats: ${pixels.length} total, ${filteredPixels.length} filtered, ${filteredPixels.filter(p => p.isActive).length} active`)
 
   return (
     <>
       {filteredPixels.map(renderPixel)}
+
+      {/* Отладочная информация */}
+      <div style={{ display: 'none' }}>
+        {/* Логируем состояние пикселей */}
+        {logDebug('📊 PixelManager Debug Info:', {
+          totalPixels: pixels.length,
+          filteredPixels: filteredPixels.length,
+          activePixels: filteredPixels.filter(p => p.isActive).length,
+          currentPage,
+          userConsent,
+          forceLoad,
+          forceMode: process.env.NEXT_PUBLIC_FORCE_LOAD_PIXELS === 'true'
+        })}
+        {filteredPixels.length === 0 && logWarn('⚠️ No pixels to render! Check pixel configuration.')}
+      </div>
     </>
   )
 }
