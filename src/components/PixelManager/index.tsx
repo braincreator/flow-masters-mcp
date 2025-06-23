@@ -77,6 +77,7 @@ interface Pixel {
   loadAsync: boolean
   gdprCompliant: boolean
   vkSettings?: any
+  vkAdsSettings?: any
   facebookSettings?: any
   ga4Settings?: any
   yandexSettings?: any
@@ -192,6 +193,50 @@ export default function PixelManager({
         <noscript>
           <img
             src={`/vk-pixel/rtrg?p=${pixel.pixelId}`}
+            style={{ position: 'absolute', left: '-9999px' }}
+            alt=""
+          />
+        </noscript>
+      </>
+    )
+  }
+
+  const renderVKAdsPixel = (pixel: Pixel) => {
+    const settings = pixel.vkAdsSettings || {}
+
+    return (
+      <>
+        <Script
+          key={`vk-ads-${pixel.id}`}
+          id={`vk-ads-pixel-${pixel.id}`}
+          strategy={getScriptStrategy(pixel.loadPriority)}
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(d, w) {
+                var n = d.getElementsByTagName("script")[0],
+                s = d.createElement("script"),
+                f = function () { n.parentNode.insertBefore(s, n); };
+                s.type = "text/javascript";
+                s.async = true;
+                s.src = "/vk-ads/web-pixel/${pixel.pixelId}";
+                s.onerror = function() {
+                  console.warn('VK Ads: Script failed to load from proxy, trying direct fallback');
+                  var fallback = d.createElement("script");
+                  fallback.type = "text/javascript";
+                  fallback.async = true;
+                  fallback.src = "https://ads.vk.com/web-pixel/${pixel.pixelId}";
+                  n.parentNode.insertBefore(fallback, n);
+                };
+                if (w.opera == "[object Opera]") {
+                  d.addEventListener("DOMContentLoaded", f, false);
+                } else { f(); }
+              })(document, window);
+            `
+          }}
+        />
+        <noscript>
+          <img
+            src={`/vk-ads/web-pixel/${pixel.pixelId}?noscript=1`}
             style={{ position: 'absolute', left: '-9999px' }}
             alt=""
           />
@@ -368,6 +413,8 @@ export default function PixelManager({
     switch (pixel.type) {
       case 'vk':
         return renderVKPixel(pixel)
+      case 'vk_ads':
+        return renderVKAdsPixel(pixel)
       case 'facebook':
         return renderFacebookPixel(pixel)
       case 'ga4':

@@ -51,13 +51,26 @@ k.onerror = function() {
 - **Original**: `https://vk.com/js/api/openapi.js`
 - **Proxy Route**: `/vk-pixel/js/api/openapi.js` → `vk.com`
 
+### 4. **VK Ads Bypass**
+
+#### Primary Method: Domain Proxy
+- **Original**: `https://ads.vk.com/web-pixel/[pixel-id]`
+- **Proxy Route**: `/vk-ads/web-pixel/[pixel-id]` → `ads.vk.com`
+
 #### Implementation:
 ```typescript
-// Middleware proxy
+// Middleware proxy for VK Pixel
 if (pathname.startsWith('/vk-pixel/')) {
   const vkPath = pathname.replace('/vk-pixel/', '')
   const vkUrl = `https://vk.com/${vkPath}`
   return NextResponse.rewrite(new URL(vkUrl))
+}
+
+// Middleware proxy for VK Ads
+if (pathname.startsWith('/vk-ads/')) {
+  const vkAdsPath = pathname.replace('/vk-ads/', '')
+  const vkAdsUrl = `https://ads.vk.com/${vkAdsPath}`
+  return NextResponse.rewrite(new URL(vkAdsUrl))
 }
 ```
 
