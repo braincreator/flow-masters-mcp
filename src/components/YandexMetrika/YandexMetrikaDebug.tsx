@@ -19,9 +19,9 @@ export function YandexMetrikaDebug() {
         windowYmExists: typeof window !== 'undefined' ? !!window.ym : false,
         
         // Script checks
-        metrikaScripts: typeof window !== 'undefined' ? 
-          Array.from(document.querySelectorAll('script')).filter(script => 
-            script.src.includes('mc.yandex.ru') || script.innerHTML.includes('ym(')
+        metrikaScripts: typeof window !== 'undefined' ?
+          Array.from(document.querySelectorAll('script')).filter(script =>
+            script.src.includes('mc.webvisor.org') || script.src.includes('mc.yandex.ru') || script.innerHTML.includes('ym(')
           ).length : 0,
         
         // Console logs check

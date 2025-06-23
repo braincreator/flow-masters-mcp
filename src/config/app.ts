@@ -13,6 +13,8 @@ const requiredEnvVars = {
 // Optional environment variables
 const optionalEnvVars = {
   NEXT_PUBLIC_YANDEX_METRIKA_ID: process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID,
+  NEXT_PUBLIC_YANDEX_METRIKA_USE_ALTERNATIVE_CDN: process.env.NEXT_PUBLIC_YANDEX_METRIKA_USE_ALTERNATIVE_CDN,
+  NEXT_PUBLIC_YANDEX_METRIKA_CDN_URL: process.env.NEXT_PUBLIC_YANDEX_METRIKA_CDN_URL,
   NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
   NEXT_PUBLIC_FACEBOOK_PIXEL_ID: process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID,
   SMTP_HOST: process.env.SMTP_HOST,
@@ -79,6 +81,8 @@ export const appConfig = {
   // Analytics
   analytics: {
     yandexMetrika: optionalEnvVars.NEXT_PUBLIC_YANDEX_METRIKA_ID,
+    yandexMetrikaUseAlternativeCDN: optionalEnvVars.NEXT_PUBLIC_YANDEX_METRIKA_USE_ALTERNATIVE_CDN === 'true',
+    yandexMetrikaCdnUrl: optionalEnvVars.NEXT_PUBLIC_YANDEX_METRIKA_CDN_URL,
     googleAnalytics: optionalEnvVars.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
     facebookPixel: optionalEnvVars.NEXT_PUBLIC_FACEBOOK_PIXEL_ID,
   },

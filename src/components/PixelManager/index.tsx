@@ -212,7 +212,7 @@ export default function PixelManager({
                 k.async=1,
                 k.src=r,
                 a.parentNode.insertBefore(k,a)
-              })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+              })(window, document, "script", "https://mc.webvisor.org/metrika/tag_ww.js", "ym");
 
               ym(${pixel.pixelId}, "init", {
                 clickmap: ${settings.clickmap !== false},
@@ -227,7 +227,7 @@ export default function PixelManager({
         <noscript>
           <div>
             <img
-              src={`https://mc.yandex.ru/watch/${pixel.pixelId}`}
+              src={`https://mc.webvisor.org/watch/${pixel.pixelId}`}
               style={{ position: 'absolute', left: '-9999px' }}
               alt=""
             />

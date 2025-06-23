@@ -76,6 +76,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'mc.webvisor.org',
+      },
+      {
+        protocol: 'https',
         hostname: 'yastatic.net',
       },
     ],
@@ -159,9 +163,9 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://yastatic.net",
-              "connect-src 'self' https://mc.yandex.ru https://yandex.ru https://metrika.yandex.ru wss: ws:",
-              "img-src 'self' data: https: https://mc.yandex.ru https://yandex.ru",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://yastatic.net",
+              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru wss: ws:",
+              "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru",
               "style-src 'self' 'unsafe-inline' https://yastatic.net",
               "font-src 'self' data: https://yastatic.net",
               "frame-src 'self' https://yandex.ru https://metrika.yandex.ru",
@@ -394,11 +398,11 @@ const nextConfig = {
       // Яндекс.Метрика
       {
         source: '/metrika/:path*',
-        destination: 'https://mc.yandex.ru/:path*',
+        destination: 'https://mc.webvisor.org/:path*',
       },
       {
         source: '/ya-metrika/:path*',
-        destination: 'https://mc.yandex.ru/:path*',
+        destination: 'https://mc.webvisor.org/:path*',
       },
       // VK Pixel
       {
