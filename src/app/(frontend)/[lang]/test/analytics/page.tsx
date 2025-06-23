@@ -1,6 +1,7 @@
 import { AnalyticsTestDashboard } from '@/components/AnalyticsTestDashboard'
 import { AnalyticsDiagnostics } from '@/components/AnalyticsDiagnostics'
 import { AnalyticsFixStatus } from '@/components/AnalyticsFixStatus'
+import { DOMInjectionTest } from '@/components/DOMInjectionTest'
 import { ForcePixelActivator } from '@/components/ForcePixelActivator'
 import { PixelConfigurationAnalyzer } from '@/components/PixelConfigurationAnalyzer'
 import { SecurityHeadersTest } from '@/components/SecurityHeadersTest'
@@ -20,6 +21,9 @@ export default function AnalyticsTestPage() {
 
       {/* Analytics Fix Status */}
       <AnalyticsFixStatus />
+
+      {/* DOM Injection Test */}
+      <DOMInjectionTest />
 
       {/* Force Pixel Activator */}
       <ForcePixelActivator />
