@@ -22,8 +22,10 @@ import { NextIntlClientProvider } from 'next-intl'
 import { LoadingProvider } from '@/providers/LoadingProvider'
 import { LoadingConfigProvider } from '@/providers/LoadingConfigProvider'
 import { SmartLoading } from '@/components/ui/smart-loading'
-import { YandexMetrikaTracker } from '@/components/YandexMetrika/YandexMetrikaTracker'
-import { generateSEOMetadata, StructuredData, structuredDataGenerators } from '@/components/SEO/SEOHead'
+import { FlexibleAnalyticsProvider } from '@/providers/FlexibleAnalyticsProvider'
+import { AnalyticsDebugPanel } from '@/components/analytics/AnalyticsDebugPanel'
+import { generateSEOMetadata, structuredDataGenerators } from '@/components/seo/SEOHead'
+import { StructuredData } from '@/components/seo/StructuredData'
 import { SkipLinks } from '@/components/Accessibility/SkipLinks'
 import { Metadata } from 'next'
 
@@ -69,8 +71,7 @@ export default async function LangLayout({ children, params }: LayoutProps) {
   // Устанавливаем локаль для next-intl
   setRequestLocale(validLang)
 
-  // Получаем ID Яндекс.Метрики для трекера SPA-переходов
-  const YANDEX_METRIKA_ID = process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID
+  // Analytics configuration is now handled by ModernAnalyticsProvider
 
   // Загружаем сообщения для текущей локали вручную
   let messages = {}
@@ -118,8 +119,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
             <DropdownProvider>
               <LocaleProvider initialLocale={validLang}>
                 <I18nProvider defaultLang={validLang}>
-                  <LoadingConfigProvider>
-                    <LoadingProvider>
+                  <FlexibleAnalyticsProvider configSource="cms">
+                    <LoadingConfigProvider>
+                      <LoadingProvider>
                       {/* Skip links for accessibility */}
                       <SkipLinks />
 
@@ -141,10 +143,8 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                       <CartModal locale={validLang} />
                       <CookieConsentBanner locale={validLang} />
 
-                      {/* Трекер SPA-переходов для Яндекс.Метрики */}
-                      {YANDEX_METRIKA_ID && (
-                        <YandexMetrikaTracker counterId={YANDEX_METRIKA_ID} />
-                      )}
+                      {/* Modern Analytics Debug Panel (only in development) */}
+                      <AnalyticsDebugPanel />
 
                       {/* Структурированные данные */}
                       <StructuredData
@@ -173,8 +173,9 @@ export default async function LangLayout({ children, params }: LayoutProps) {
                           },
                         }}
                       />
-                    </LoadingProvider>
-                  </LoadingConfigProvider>
+                      </LoadingProvider>
+                    </LoadingConfigProvider>
+                  </FlexibleAnalyticsProvider>
                 </I18nProvider>
               </LocaleProvider>
             </DropdownProvider>
