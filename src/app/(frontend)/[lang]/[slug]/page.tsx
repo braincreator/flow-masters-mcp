@@ -37,7 +37,7 @@ export async function generateStaticParams() {
     // Add other pages
     const localeParams = pages.docs
       ?.filter((doc) => {
-        return doc.slug !== 'home'
+        return doc.slug !== 'home' && doc.slug && typeof doc.slug === 'string'
       })
       .map(({ slug }) => {
         return { lang: locale, slug }
