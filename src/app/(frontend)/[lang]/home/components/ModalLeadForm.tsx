@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface ModalLeadFormProps {
@@ -51,6 +52,8 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<LeadFormData>({
     resolver: zodResolver(leadFormSchema),
@@ -59,8 +62,11 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
       phone: '',
       email: '',
       comment: '',
+      consent: false,
     },
   })
+
+  const consentValue = watch('consent')
 
   const handleClose = () => {
     // Reset form state when closing
@@ -107,7 +113,6 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
       })
 
       logDebug('Lead form submitted successfully')
-
     } catch (error) {
       logError('Form submission error:', error)
 
@@ -207,6 +212,17 @@ export const ModalLeadForm: React.FC<ModalLeadFormProps> = ({
                     {...register('comment')}
                     className="min-h-[80px] resize-none"
                     onFocus={() => formAnalytics.handleFieldFocus('comment')}
+                  />
+                </div>
+
+                {/* Согласие на обработку персональных данных */}
+                <div>
+                  <PrivacyConsent
+                    id="lead-consent"
+                    checked={consentValue}
+                    onCheckedChange={(checked) => setValue('consent', checked)}
+                    error={errors.consent?.message}
+                    size="sm"
                   />
                 </div>
 

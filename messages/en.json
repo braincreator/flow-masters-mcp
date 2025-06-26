@@ -900,6 +900,11 @@
     }
   },
   "forms": {
+    "privacyConsent": {
+      "text": "I agree to the processing of my personal data in accordance with the",
+      "policyLink": "Privacy Policy",
+      "required": "Consent to personal data processing is required"
+    },
     "leadForm": {
       "title": "Leave a Request",
       "description": "We will contact you shortly",
@@ -964,6 +969,10 @@
           "label": "Message",
           "placeholder": "Your message",
           "validation": "Message must contain at least 10 characters"
+        },
+        "consent": {
+          "label": "Data processing consent",
+          "validation": "Consent to personal data processing is required"
         }
       },
       "buttons": {
@@ -987,6 +996,10 @@
         "email": {
           "placeholder": "Enter your email",
           "label": "Email address"
+        },
+        "consent": {
+          "label": "Data processing consent",
+          "validation": "Consent to personal data processing is required"
         }
       },
       "buttons": {
@@ -1595,7 +1608,8 @@
       "passwordTooShort": "Password must be at least 6 characters",
       "nameRequired": "Name must be at least 2 characters",
       "passwordMismatch": "Passwords do not match",
-      "acceptTerms": "You must accept the terms and conditions"
+      "acceptTerms": "You must accept the terms and conditions",
+      "privacyConsentRequired": "Consent to personal data processing is required"
     },
     "errors": {
       "loginFailed": "Login failed",

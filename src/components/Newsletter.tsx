@@ -11,6 +11,7 @@ import { useFormAnalytics } from '@/hooks/useFormAnalytics'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NewsletterProps {
@@ -60,7 +61,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
   // Аналитика форм
   const formAnalytics = useFormAnalytics({
     formName: 'newsletter',
-    formType: 'subscription'
+    formType: 'subscription',
   })
 
   // React Hook Form с Zod валидацией
@@ -68,14 +69,18 @@ export const Newsletter: React.FC<NewsletterProps> = ({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<NewsletterData>({
     resolver: zodResolver(newsletterSchema),
     defaultValues: {
       email: '',
-      consent: true, // Автоматически согласие для newsletter
+      consent: false, // Пользователь должен явно дать согласие
     },
   })
+
+  const consentValue = watch('consent')
 
   const messages = {
     error: errorMessage || t('errorInvalidEmail'),
@@ -146,7 +151,6 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       setIsSubmitted(true)
       setIsSubscribed(true)
       reset()
-
     } catch (error) {
       logError('Newsletter subscription error:', error)
       const errorMessage = error instanceof Error ? error.message : messages.networkError
@@ -211,6 +215,19 @@ export const Newsletter: React.FC<NewsletterProps> = ({
             )}
           </div>
 
+          {/* Согласие на обработку персональных данных для newsletter */}
+          {layout === 'stacked' && (
+            <div className="w-full">
+              <PrivacyConsent
+                id="newsletter-consent"
+                checked={consentValue}
+                onCheckedChange={(checked) => setValue('consent', checked)}
+                error={errors.consent?.message}
+                size={isCompact ? 'sm' : 'md'}
+              />
+            </div>
+          )}
+
           <Button
             type="submit"
             disabled={isSubmitting}
@@ -229,6 +246,19 @@ export const Newsletter: React.FC<NewsletterProps> = ({
               buttonText
             )}
           </Button>
+
+          {/* Согласие для inline layout - показываем под формой */}
+          {layout === 'inline' && (
+            <div className="w-full mt-2">
+              <PrivacyConsent
+                id="newsletter-consent-inline"
+                checked={consentValue}
+                onCheckedChange={(checked) => setValue('consent', checked)}
+                error={errors.consent?.message}
+                size="sm"
+              />
+            </div>
+          )}
         </form>
       ) : (
         <div className={cn('text-center bg-green-500/10 rounded-md', isCompact ? 'p-2' : 'p-4')}>

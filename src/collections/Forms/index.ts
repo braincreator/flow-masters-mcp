@@ -91,6 +91,7 @@ export const Forms: CollectionConfig = {
             { label: 'Checkbox', value: 'checkbox' },
             { label: 'Country', value: 'country' },
             { label: 'State', value: 'state' },
+            { label: 'Privacy Consent', value: 'privacyConsent' },
           ],
         },
         {

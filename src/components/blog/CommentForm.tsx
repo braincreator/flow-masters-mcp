@@ -20,6 +20,7 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Переводы для форм комментариев
@@ -42,6 +43,7 @@ const translations = {
     emailRequired: 'Please enter a valid email address',
     commentRequired: 'Comment must be at least 2 characters',
     commentTooLong: 'Comment must be less than 1000 characters',
+    privacyConsentRequired: 'Consent to personal data processing is required',
   },
   ru: {
     name: 'Имя',
@@ -61,6 +63,7 @@ const translations = {
     emailRequired: 'Пожалуйста, введите корректный email адрес',
     commentRequired: 'Комментарий должен содержать не менее 2 символов',
     commentTooLong: 'Комментарий должен содержать менее 1000 символов',
+    privacyConsentRequired: 'Необходимо согласие на обработку персональных данных',
   },
 }
 
@@ -70,6 +73,9 @@ const createCommentSchema = (t: any) =>
     name: z.string().min(2, t.nameRequired),
     email: z.string().email(t.emailRequired),
     comment: z.string().min(2, t.commentRequired).max(1000, t.commentTooLong),
+    privacyConsent: z.boolean().refine((val) => val === true, {
+      message: t.privacyConsentRequired,
+    }),
   })
 
 // Схема для авторизованного пользователя (только комментарий)
@@ -115,7 +121,9 @@ export function CommentForm({
   // Инициализируем react-hook-form
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: user ? { comment: '' } : { name: '', email: '', comment: '' },
+    defaultValues: user
+      ? { comment: '' }
+      : { name: '', email: '', comment: '', privacyConsent: false },
   })
 
   // Отправка комментария
@@ -295,6 +303,28 @@ export function CommentForm({
                 </FormItem>
               )}
             />
+
+            {/* Согласие на обработку персональных данных для неавторизованных пользователей */}
+            {!user && (
+              <FormField
+                control={form.control}
+                name="privacyConsent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <PrivacyConsent
+                        id="comment-privacy-consent"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        error={form.formState.errors.privacyConsent?.message}
+                        size="sm"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Error message */}
             {submitStatus === 'error' && (

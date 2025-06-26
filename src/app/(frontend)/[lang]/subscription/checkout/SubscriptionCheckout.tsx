@@ -24,6 +24,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface SubscriptionCheckoutProps {
@@ -42,6 +43,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
   const [error, setError] = useState<string | null>(null)
   const [paymentProvider, setPaymentProvider] = useState<string>('yoomoney')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [privacyConsent, setPrivacyConsent] = useState(false)
   const [checkoutComplete, setCheckoutComplete] = useState(false)
 
   // Fetch plan details
@@ -302,13 +304,23 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
                 <p className="text-sm text-muted-foreground">{t('terms.description')}</p>
               </div>
             </div>
+
+            {/* Согласие на обработку персональных данных */}
+            <div className="pt-4">
+              <PrivacyConsent
+                id="subscription-privacy-consent"
+                checked={privacyConsent}
+                onCheckedChange={setPrivacyConsent}
+                size="md"
+              />
+            </div>
           </div>
         </CardContent>
 
         <CardFooter>
           <Button
             className="w-full"
-            disabled={isProcessing || !agreedToTerms}
+            disabled={isProcessing || !agreedToTerms || !privacyConsent}
             onClick={handleSubscribe}
           >
             {isProcessing ? (

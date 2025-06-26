@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 // Form validation schema
 const createRegisterSchema = (t: any) =>
@@ -25,6 +26,9 @@ const createRegisterSchema = (t: any) =>
       confirmPassword: z.string(),
       acceptTerms: z.boolean().refine((val) => val === true, {
         message: t('validation.acceptTerms'),
+      }),
+      privacyConsent: z.boolean().refine((val) => val === true, {
+        message: t('validation.privacyConsentRequired'),
       }),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -40,6 +44,7 @@ type RegisterSchema = z.ZodEffects<
     password: z.ZodString
     confirmPassword: z.ZodString
     acceptTerms: z.ZodBoolean
+    privacyConsent: z.ZodBoolean
   }>
 >
 
@@ -65,6 +70,8 @@ export function RegisterForm({ locale = 'ru' }: RegisterFormProps) {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -74,8 +81,11 @@ export function RegisterForm({ locale = 'ru' }: RegisterFormProps) {
       password: '',
       confirmPassword: '',
       acceptTerms: false,
+      privacyConsent: false,
     },
   })
+
+  const privacyConsentValue = watch('privacyConsent')
 
   // Get auth context
   const { register: registerUser } = useAuth()
@@ -173,12 +183,28 @@ export function RegisterForm({ locale = 'ru' }: RegisterFormProps) {
               {t('terms.termsOfService')}
             </Link>{' '}
             {t('terms.and')}{' '}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-800" target="_blank" rel="noopener noreferrer">
+            <Link
+              href="/privacy"
+              className="text-blue-600 hover:text-blue-800"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {t('terms.privacyPolicy')}
             </Link>
           </label>
         </div>
         {errors.acceptTerms && <p className="text-red-500 text-sm">{errors.acceptTerms.message}</p>}
+
+        {/* Согласие на обработку персональных данных */}
+        <div>
+          <PrivacyConsent
+            id="register-privacy-consent"
+            checked={privacyConsentValue}
+            onCheckedChange={(checked) => setValue('privacyConsent', checked)}
+            error={errors.privacyConsent?.message}
+            size="md"
+          />
+        </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useFormAnalytics } from '@/hooks/useFormAnalytics'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 type ContactFormData = {
@@ -18,6 +19,7 @@ type ContactFormData = {
   email: string
   subject?: string
   message: string
+  consent: boolean
 }
 
 export function ContactForm() {
@@ -27,7 +29,7 @@ export function ContactForm() {
   // Аналитика форм
   const formAnalytics = useFormAnalytics({
     formName: 'contact_form',
-    formType: 'contact'
+    formType: 'contact',
   })
 
   // Create schema with translations
@@ -36,16 +38,26 @@ export function ContactForm() {
     email: z.string().email({ message: t('fields.email.validation') }),
     subject: z.string().optional(),
     message: z.string().min(10, { message: t('fields.message.validation') }),
+    consent: z.boolean().refine((val) => val === true, {
+      message: t('fields.consent.validation'),
+    }),
   })
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      consent: false,
+    },
   })
+
+  const consentValue = watch('consent')
 
   const onSubmit: SubmitHandler<ContactFormData> = async (data) => {
     try {
@@ -144,6 +156,17 @@ export function ContactForm() {
         {errors.message && (
           <p className="text-destructive text-sm mt-1">{errors.message.message}</p>
         )}
+      </div>
+
+      {/* Согласие на обработку персональных данных */}
+      <div>
+        <PrivacyConsent
+          id="contact-consent"
+          checked={consentValue}
+          onCheckedChange={(checked) => setValue('consent', checked)}
+          error={errors.consent?.message}
+          size="md"
+        />
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
