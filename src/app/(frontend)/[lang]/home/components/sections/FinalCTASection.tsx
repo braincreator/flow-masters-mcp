@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { GridContainer } from '@/components/GridContainer'
 import { ArrowRight, Phone, Mail, MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { PrivacyConsent } from '@/components/forms/PrivacyConsent'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export function FinalCTASection() {
@@ -18,9 +19,19 @@ export function FinalCTASection() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [privacyConsent, setPrivacyConsent] = useState(false)
+  const [consentError, setConsentError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Проверяем согласие на обработку данных
+    if (!privacyConsent) {
+      setConsentError('Необходимо согласие на обработку персональных данных')
+      return
+    }
+
+    setConsentError('')
     setIsSubmitting(true)
 
     try {
@@ -50,7 +61,10 @@ export function FinalCTASection() {
   }
 
   return (
-    <section id="final-cta" className="py-20 bg-gradient-to-b from-slate-900 to-blue-900 text-white">
+    <section
+      id="final-cta"
+      className="py-20 bg-gradient-to-b from-slate-900 to-blue-900 text-white"
+    >
       <GridContainer>
         <div className="text-center mb-16">
           <motion.div
@@ -186,11 +200,26 @@ export function FinalCTASection() {
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
+              {/* Согласие на обработку персональных данных */}
+              <div>
+                <PrivacyConsent
+                  id="final-cta-consent"
+                  checked={privacyConsent}
+                  onCheckedChange={(checked) => {
+                    setPrivacyConsent(checked)
+                    if (checked) setConsentError('')
+                  }}
+                  error={consentError}
+                  size="md"
+                  className="text-white [&_label]:text-white [&_a]:text-blue-300 [&_a:hover]:text-blue-200"
+                />
+              </div>
+
               <motion.button
                 type="submit"
-                disabled={isSubmitting || isSubmitted}
-                whileHover={{ scale: isSubmitting || isSubmitted ? 1 : 1.05 }}
-                whileTap={{ scale: isSubmitting || isSubmitted ? 1 : 0.95 }}
+                disabled={isSubmitting || isSubmitted || !privacyConsent}
+                whileHover={{ scale: isSubmitting || isSubmitted || !privacyConsent ? 1 : 1.05 }}
+                whileTap={{ scale: isSubmitting || isSubmitted || !privacyConsent ? 1 : 0.95 }}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 ${
                   isSubmitted
                     ? 'bg-green-600 text-white'

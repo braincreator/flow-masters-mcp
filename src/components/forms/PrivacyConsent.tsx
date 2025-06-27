@@ -85,7 +85,13 @@ export function PrivacyConsent({
           className={cn(
             currentSize.checkbox,
             'mt-0.5 flex-shrink-0',
-            error && 'border-destructive data-[state=checked]:bg-destructive',
+            'rounded-md border-2 transition-all duration-200',
+            'data-[state=checked]:bg-primary data-[state=checked]:border-primary',
+            'data-[state=checked]:text-primary-foreground',
+            'hover:border-primary/60 focus:ring-2 focus:ring-primary/20',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+            error &&
+              'border-destructive data-[state=checked]:bg-destructive data-[state=checked]:border-destructive',
           )}
           aria-describedby={error ? `${id}-error` : undefined}
           aria-invalid={error ? 'true' : 'false'}
@@ -96,7 +102,8 @@ export function PrivacyConsent({
           htmlFor={id}
           className={cn(
             currentSize.text,
-            'leading-relaxed cursor-pointer',
+            'leading-relaxed cursor-pointer select-none',
+            'transition-colors duration-200',
             disabled && 'opacity-50 cursor-not-allowed',
             error && 'text-destructive',
           )}
@@ -108,7 +115,8 @@ export function PrivacyConsent({
             rel="noopener noreferrer"
             className={cn(
               'text-primary hover:text-primary/80 underline underline-offset-2',
-              'inline-flex items-center gap-1 transition-colors',
+              'inline-flex items-center gap-1 transition-all duration-200 group',
+              'hover:underline-offset-4 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-sm',
               disabled && 'pointer-events-none opacity-50',
             )}
             onClick={(e) => {
@@ -117,7 +125,13 @@ export function PrivacyConsent({
             }}
           >
             {policyLinkText}
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink
+              className={cn(
+                'transition-transform duration-200',
+                size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-4 w-4' : 'h-3.5 w-3.5',
+                'group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
+              )}
+            />
           </Link>
           {required && (
             <span className="text-destructive ml-1" aria-label="обязательное поле">
@@ -133,10 +147,12 @@ export function PrivacyConsent({
           className={cn(
             'text-destructive font-medium',
             currentSize.text,
-            'ml-6', // Отступ для выравнивания с текстом
+            'ml-6 animate-in slide-in-from-top-1 duration-200', // Отступ для выравнивания с текстом + анимация
+            'flex items-center gap-1',
           )}
           role="alert"
         >
+          <span className="text-destructive">⚠</span>
           {error}
         </p>
       )}
