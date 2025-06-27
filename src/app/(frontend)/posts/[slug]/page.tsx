@@ -15,6 +15,7 @@ import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { getCachedDocument, getDocument } from '@/utilities/getDocument'
+import { RSSDiscovery } from '@/components/RSS/RSSDiscovery'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -72,6 +73,11 @@ export default async function Post({ params: paramsPromise }: Args) {
               docs={post.relatedPosts.filter((post) => typeof post === 'object')}
             />
           )}
+
+          {/* RSS Discovery */}
+          <div className="mt-12 max-w-[48rem] mx-auto">
+            <RSSDiscovery compact={false} showTitle={true} />
+          </div>
         </div>
       </div>
     </article>

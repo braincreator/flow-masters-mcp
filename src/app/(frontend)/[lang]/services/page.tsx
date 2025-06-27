@@ -8,6 +8,7 @@ import { Service, ServiceType } from '@/types/service'
 import AnimateInView from '@/components/AnimateInView'
 import ServiceList from '@/components/services/ServiceList'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import { RSSButton } from '@/components/RSS/RSSDiscovery'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Define the PageParams type for this page
@@ -180,9 +181,12 @@ export default async function ServicesPage({ params }: { params: PageParams }) {
 
             <div className="text-center max-w-3xl mx-auto">
               <AnimateInView direction="up">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  {t('heroTitle')}
-                </h1>
+                <div className="flex flex-col items-center gap-4 mb-6">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    {t('heroTitle')}
+                  </h1>
+                  <RSSButton type="services" variant="outline" size="sm" />
+                </div>
                 <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12">
                   {t('heroSubtitle')}
                 </p>

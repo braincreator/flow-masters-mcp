@@ -126,18 +126,14 @@ export function RSSDiscovery({ className, showTitle = true, compact = false }: R
               >
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleFeedClick(feed.url)}
-              >
+              <Button variant="default" size="sm" onClick={() => handleFeedClick(feed.url)}>
                 <Rss className="h-4 w-4 mr-1" />
                 Открыть
               </Button>
             </div>
           </div>
         ))}
-        
+
         <div className="mt-4 p-3 bg-muted/30 rounded-lg">
           <h5 className="font-medium mb-2">Популярные RSS-читалки:</h5>
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
@@ -198,5 +194,33 @@ export function RSSLinks({ className }: { className?: string }) {
         </a>
       </div>
     </div>
+  )
+}
+
+// RSS button for page headers
+export function RSSButton({
+  type = 'blog',
+  className,
+  variant = 'outline',
+  size = 'sm',
+}: {
+  type?: 'blog' | 'services'
+  className?: string
+  variant?: 'outline' | 'default' | 'ghost'
+  size?: 'sm' | 'default' | 'lg'
+}) {
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://flow-masters.ru'
+  const feeds = getRssFeedUrls(baseUrl)
+
+  const feedUrl = type === 'services' ? feeds.services : feeds.blog
+  const title = type === 'services' ? 'Подписаться на обновления услуг' : 'Подписаться на RSS блога'
+
+  return (
+    <Button variant={variant} size={size} asChild className={className}>
+      <a href={feedUrl} target="_blank" rel="noopener noreferrer" title={title}>
+        <Rss className="h-4 w-4 mr-2" />
+        RSS
+      </a>
+    </Button>
   )
 }

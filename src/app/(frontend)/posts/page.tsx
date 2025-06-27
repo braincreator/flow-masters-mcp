@@ -13,6 +13,7 @@ import { PostsGrid } from '@/components/posts/PostsGrid'
 import { PostsFilters } from '@/components/posts/PostsFilters'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { RSSButton, RSSDiscovery } from '@/components/RSS/RSSDiscovery'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import {
   Sheet,
@@ -149,30 +150,33 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
             description="Browse our latest articles, tutorials, and updates"
             className="pt-16 pb-8"
             actions={
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="lg:hidden">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                  <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
-                    <SheetDescription>
-                      Filter posts by category and sorting options
-                    </SheetDescription>
-                  </SheetHeader>
-                  <Separator className="my-4" />
-                  <PostsFilters
-                    categories={formattedCategories}
-                    selectedCategory={selectedCategory?.id}
-                    selectedSort={sort}
-                    searchQuery={q}
-                    className="flex flex-col gap-6"
-                  />
-                </SheetContent>
-              </Sheet>
+              <div className="flex items-center gap-2">
+                <RSSButton type="blog" variant="outline" size="sm" />
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="lg:hidden">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                    <SheetHeader>
+                      <SheetTitle>Filters</SheetTitle>
+                      <SheetDescription>
+                        Filter posts by category and sorting options
+                      </SheetDescription>
+                    </SheetHeader>
+                    <Separator className="my-4" />
+                    <PostsFilters
+                      categories={formattedCategories}
+                      selectedCategory={selectedCategory?.id}
+                      selectedSort={sort}
+                      searchQuery={q}
+                      className="flex flex-col gap-6"
+                    />
+                  </SheetContent>
+                </Sheet>
+              </div>
             }
           />
 
@@ -202,7 +206,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Sidebar - Desktop only */}
             <div className="hidden lg:block lg:col-span-3">
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-6">
                 <PostsFilters
                   categories={formattedCategories}
                   selectedCategory={selectedCategory?.id}
@@ -210,6 +214,9 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
                   searchQuery={q}
                   className="flex flex-col gap-6"
                 />
+
+                {/* RSS Discovery */}
+                <RSSDiscovery compact={false} showTitle={true} />
               </div>
             </div>
 

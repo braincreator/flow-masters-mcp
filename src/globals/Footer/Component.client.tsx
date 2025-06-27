@@ -8,6 +8,7 @@ import { translations } from './translations'
 import { FooterNav } from './Nav'
 import { Logo } from '@/components/Logo/Logo'
 import { Locale } from '@/constants'
+import { RSSLinks } from '@/components/RSS/RSSDiscovery'
 
 type FooterProps = {
   data: PayloadGlobalResponse<Footer>
@@ -51,11 +52,19 @@ export const FooterClient: React.FC<FooterProps> = ({ data, locale }) => {
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            {t.copyright.replace('{year}', currentYear.toString())}
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              {t.copyright.replace('{year}', currentYear.toString())}
+            </p>
+            <RSSLinks className="hidden md:block" />
+          </div>
 
           <FooterNav data={data} variant="bottom" />
+        </div>
+
+        {/* RSS Links for mobile */}
+        <div className="md:hidden mt-4 pt-4 border-t border-border/50">
+          <RSSLinks className="flex justify-center" />
         </div>
       </div>
     </footer>
