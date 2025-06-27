@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://flow-masters.ru'
-  
+
   const robotsTxt = `# Robots.txt for Flow Masters
 # Generated automatically
 
@@ -62,6 +62,13 @@ Sitemap: ${baseUrl}/sitemap.xml
 Sitemap: ${baseUrl}/pages-sitemap.xml
 Sitemap: ${baseUrl}/posts-sitemap.xml
 Sitemap: ${baseUrl}/services-sitemap.xml
+
+# RSS Feeds
+# RSS feeds available at:
+# ${baseUrl}/rss.xml (Russian blog posts)
+# ${baseUrl}/rss-en.xml (English blog posts)
+# ${baseUrl}/services-rss.xml (Services feed)
+# ${baseUrl}/atom.xml (Atom format)
 
 # Host directive (for Yandex)
 Host: ${baseUrl.replace('https://', '').replace('http://', '')}

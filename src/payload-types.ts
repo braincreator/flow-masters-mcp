@@ -160,6 +160,12 @@ export interface Config {
     leads: Lead;
     'feature-flags': FeatureFlag;
     'terms-pages': TermsPage;
+    forms: Form;
+    'form-submissions': FormSubmission;
+    'event-subscriptions': EventSubscription;
+    'event-logs': EventLog;
+    'webhook-logs': WebhookLog;
+    pixels: Pixel;
     assessments: Assessment;
     'course-reviews': CourseReview;
     'assessment-submissions': AssessmentSubmission;
@@ -241,6 +247,12 @@ export interface Config {
     leads: LeadsSelect<false> | LeadsSelect<true>;
     'feature-flags': FeatureFlagsSelect<false> | FeatureFlagsSelect<true>;
     'terms-pages': TermsPagesSelect<false> | TermsPagesSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
+    'event-subscriptions': EventSubscriptionsSelect<false> | EventSubscriptionsSelect<true>;
+    'event-logs': EventLogsSelect<false> | EventLogsSelect<true>;
+    'webhook-logs': WebhookLogsSelect<false> | WebhookLogsSelect<true>;
+    pixels: PixelsSelect<false> | PixelsSelect<true>;
     assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
     'course-reviews': CourseReviewsSelect<false> | CourseReviewsSelect<true>;
     'assessment-submissions': AssessmentSubmissionsSelect<false> | AssessmentSubmissionsSelect<true>;
@@ -265,6 +277,7 @@ export interface Config {
     'payment-providers': PaymentProvider;
     'notification-settings': NotificationSetting;
     'webhook-settings': WebhookSetting;
+    'analytics-settings': AnalyticsSetting;
   };
   globalsSelect: {
     'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
@@ -274,6 +287,7 @@ export interface Config {
     'payment-providers': PaymentProvidersSelect<false> | PaymentProvidersSelect<true>;
     'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
     'webhook-settings': WebhookSettingsSelect<false> | WebhookSettingsSelect<true>;
+    'analytics-settings': AnalyticsSettingsSelect<false> | AnalyticsSettingsSelect<true>;
   };
   locale: 'en' | 'ru';
   user: User & {
@@ -11918,6 +11932,891 @@ export interface TermsPage {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: string;
+  title: string;
+  fields: {
+    name: string;
+    label: string;
+    width?: number | null;
+    required?: boolean | null;
+    blockType:
+      | 'text'
+      | 'textarea'
+      | 'email'
+      | 'number'
+      | 'select'
+      | 'checkbox'
+      | 'country'
+      | 'state'
+      | 'privacyConsent';
+    options?:
+      | {
+          label: string;
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  /**
+   * Сообщение, которое увидит пользователь после отправки формы. Поддерживает форматирование текста.
+   */
+  confirmationMessage: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  emailTo?:
+    | {
+        email: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Submissions from forms on the website.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: string;
+  /**
+   * The form this submission belongs to.
+   */
+  form?: (string | null) | Form;
+  submissionData?:
+    | {
+        field: string;
+        value: string;
+        /**
+         * Type of the field value (string, number, boolean, etc.)
+         */
+        type?: string | null;
+        /**
+         * Human-readable label for the field
+         */
+        label?: string | null;
+        required?: boolean | null;
+        validationPassed?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Comprehensive metadata collected during form submission
+   */
+  metadata?: {
+    utmData?: {
+      utm_source?: string | null;
+      utm_medium?: string | null;
+      utm_campaign?: string | null;
+      utm_term?: string | null;
+      utm_content?: string | null;
+      gclid?: string | null;
+      fbclid?: string | null;
+      yclid?: string | null;
+    };
+    trafficSource?: {
+      referrer?: string | null;
+      landing_page?: string | null;
+      current_page?: string | null;
+      previous_page?: string | null;
+      search_engine?: string | null;
+      organic_keyword?: string | null;
+    };
+    deviceInfo?: {
+      user_agent?: string | null;
+      browser_name?: string | null;
+      browser_version?: string | null;
+      os_name?: string | null;
+      os_version?: string | null;
+      device_type?: ('desktop' | 'mobile' | 'tablet') | null;
+      screen_resolution?: string | null;
+      viewport_size?: string | null;
+      language?: string | null;
+      timezone?: string | null;
+      touch_support?: boolean | null;
+    };
+    userBehavior?: {
+      session_id?: string | null;
+      time_on_page?: number | null;
+      time_on_site?: number | null;
+      scroll_depth?: number | null;
+      max_scroll_depth?: number | null;
+      page_views_count?: number | null;
+      is_returning_visitor?: boolean | null;
+      visit_count?: number | null;
+      mouse_movements?: number | null;
+      clicks_count?: number | null;
+      pages_visited?:
+        | {
+            page: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    sessionInfo?: {
+      is_authenticated?: boolean | null;
+      user_id?: string | null;
+      user_email?: string | null;
+      user_role?: string | null;
+      registration_date?: string | null;
+      last_login?: string | null;
+    };
+    formContext: {
+      form_type: string;
+      form_name?: string | null;
+      form_location?: string | null;
+      form_trigger?: string | null;
+      modal_context?: boolean | null;
+      submission_attempt?: number | null;
+      ab_test_variant?: string | null;
+    };
+  };
+  submissionStatus?: ('success' | 'error' | 'pending') | null;
+  errorMessage?: string | null;
+  processedAt?: string | null;
+  /**
+   * IP address of the submitter
+   */
+  ipAddress?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage event subscriptions and notifications
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-subscriptions".
+ */
+export interface EventSubscription {
+  id: string;
+  /**
+   * Unique name for this event subscription
+   */
+  name: string;
+  /**
+   * Optional description of what this subscription does
+   */
+  description?: string | null;
+  /**
+   * Select which event types to subscribe to
+   */
+  eventTypes: (
+    | 'user.registered'
+    | 'user.updated'
+    | 'user.login'
+    | 'user.logout'
+    | 'user.profile_updated'
+    | 'user.password_changed'
+    | 'user.email_verified'
+    | 'user.deleted'
+    | 'lead.created'
+    | 'lead.updated'
+    | 'lead.converted'
+    | 'lead.deleted'
+    | 'form.submitted'
+    | 'form.created'
+    | 'form.updated'
+    | 'contact.created'
+    | 'crm.contact.created'
+    | 'order.created'
+    | 'order.updated'
+    | 'order.status.updated'
+    | 'order.status_changed'
+    | 'order.paid'
+    | 'order.completed'
+    | 'order.cancelled'
+    | 'order.refunded'
+    | 'payment.success'
+    | 'payment.failed'
+    | 'payment.pending'
+    | 'payment.refunded'
+    | 'payment.received'
+    | 'subscription.created'
+    | 'subscription.updated'
+    | 'subscription.renewed'
+    | 'subscription.cancelled'
+    | 'subscription.expired'
+    | 'subscription_payment.failed'
+    | 'booking.created'
+    | 'booking.updated'
+    | 'booking.confirmed'
+    | 'booking.cancelled'
+    | 'booking.completed'
+    | 'booking.status_changed'
+    | 'booking.no_show'
+    | 'course.enrolled'
+    | 'course.started'
+    | 'course.completed'
+    | 'course.progress_updated'
+    | 'course.stalled'
+    | 'lesson.started'
+    | 'lesson.completed'
+    | 'lesson.progress_updated'
+    | 'lesson.stuck'
+    | 'achievement.earned'
+    | 'achievement.milestone'
+    | 'certificate.issued'
+    | 'certificate.downloaded'
+    | 'product.created'
+    | 'product.updated'
+    | 'product.published'
+    | 'product.price_changed'
+    | 'product.purchased'
+    | 'product.deleted'
+    | 'product.viewed'
+    | 'service.created'
+    | 'service.updated'
+    | 'service.published'
+    | 'service.requested'
+    | 'service.completed'
+    | 'review.created'
+    | 'review.updated'
+    | 'review.positive'
+    | 'review.negative'
+    | 'post.created'
+    | 'post.updated'
+    | 'post.published'
+    | 'post.deleted'
+    | 'cart.created'
+    | 'cart.item_added'
+    | 'cart.item_removed'
+    | 'cart.abandoned'
+    | 'cart.recovered'
+    | 'cart.converted'
+    | 'newsletter.subscribed'
+    | 'newsletter.unsubscribed'
+    | 'newsletter.resubscribed'
+    | 'newsletter.sent'
+    | 'email.sent'
+    | 'email.opened'
+    | 'email.clicked'
+    | 'campaign.created'
+    | 'campaign.started'
+    | 'campaign.completed'
+    | 'campaign.high_open_rate'
+    | 'campaign.low_open_rate'
+    | 'project.created'
+    | 'project.started'
+    | 'project.milestone'
+    | 'project.completed'
+    | 'project.overdue'
+    | 'task.created'
+    | 'task.assigned'
+    | 'task.completed'
+    | 'task.overdue'
+    | 'user.inactive_7d'
+    | 'user.inactive_30d'
+    | 'user.returned'
+    | 'user.session_long'
+    | 'content.viewed'
+    | 'content.shared'
+    | 'content.bookmarked'
+    | 'content.downloaded'
+    | 'security.login_failed'
+    | 'security.multiple_failed'
+    | 'security.password_changed'
+    | 'security.suspicious_activity'
+    | 'system.error'
+    | 'system.warning'
+    | 'system.performance_slow'
+    | 'integration.connected'
+    | 'integration.disconnected'
+    | 'integration.failed'
+    | 'backup.started'
+    | 'backup.completed'
+    | 'backup.failed'
+    | 'subscription.paused'
+    | 'subscription.expiring_soon'
+    | 'subscription_payment.created'
+    | 'subscription_payment.successful'
+    | 'subscription_payment.refunded'
+    | 'subscription_payment.retry'
+    | 'comment.created'
+    | 'comment.approved'
+    | 'comment.rejected'
+    | 'comment.liked'
+    | 'analytics.goal_reached'
+    | 'analytics.conversion_high'
+    | 'analytics.revenue_milestone'
+    | 'analytics.user_milestone'
+    | 'custom'
+  )[];
+  /**
+   * Select notification channels to use
+   */
+  channels: ('email' | 'telegram' | 'slack' | 'webhook' | 'sms' | 'push' | 'whatsapp')[];
+  /**
+   * Priority level for this subscription
+   */
+  priority: 'low' | 'normal' | 'high' | 'critical';
+  /**
+   * Enable or disable this subscription
+   */
+  isActive?: boolean | null;
+  /**
+   * Email addresses to send notifications to
+   */
+  emailRecipients?:
+    | {
+        email: string;
+        name?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Telegram chat IDs to send notifications to
+   */
+  telegramChatIds?:
+    | {
+        /**
+         * Telegram chat ID (can be user ID, group ID, or channel ID)
+         */
+        chatId: string;
+        name?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Slack channels to send notifications to
+   */
+  slackChannels?:
+    | {
+        /**
+         * Slack channel name (e.g., #general) or user ID
+         */
+        channel: string;
+        name?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * WhatsApp phone numbers to send notifications to
+   */
+  whatsappContacts?:
+    | {
+        /**
+         * Phone number in international format (e.g., +7 999 123-45-67)
+         */
+        phoneNumber: string;
+        name?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * URL to send webhook notifications to
+   */
+  webhookUrl?: string | null;
+  /**
+   * Secret key for webhook signature verification (optional)
+   */
+  webhookSecret?: string | null;
+  /**
+   * Additional headers to send with webhook requests (JSON format)
+   */
+  webhookHeaders?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Optional filters to apply to events before sending notifications
+   */
+  filters?:
+    | {
+        /**
+         * Dot-notation path to the field (e.g., data.current.email)
+         */
+        field: string;
+        operator: 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'contains' | 'in' | 'nin';
+        /**
+         * Value to compare against (use JSON for arrays)
+         */
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Configuration for retrying failed notifications
+   */
+  retryConfig?: {
+    /**
+     * Maximum number of retry attempts
+     */
+    maxAttempts?: number | null;
+    /**
+     * Initial delay before first retry in milliseconds
+     */
+    initialDelay?: number | null;
+    /**
+     * Multiplier for exponential backoff
+     */
+    backoffMultiplier?: number | null;
+    /**
+     * Maximum delay between retries in milliseconds
+     */
+    maxDelay?: number | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Event processing logs and notifications history
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-logs".
+ */
+export interface EventLog {
+  id: string;
+  /**
+   * Unique identifier of the processed event
+   */
+  eventId: string;
+  /**
+   * Type of the event that was processed
+   */
+  eventType: string;
+  /**
+   * The subscription that processed this event
+   */
+  subscriptionId?: (string | null) | EventSubscription;
+  /**
+   * Channel used for notification
+   */
+  channel: 'email' | 'telegram' | 'slack' | 'webhook' | 'sms' | 'push' | 'whatsapp';
+  /**
+   * Current status of the notification
+   */
+  status: 'pending' | 'sent' | 'failed' | 'retrying';
+  /**
+   * Number of delivery attempts
+   */
+  attempts?: number | null;
+  /**
+   * Timestamp of the last delivery attempt
+   */
+  lastAttempt: string;
+  /**
+   * Scheduled time for next retry attempt
+   */
+  nextAttempt?: string | null;
+  /**
+   * Error message if delivery failed
+   */
+  error?: string | null;
+  /**
+   * Response data from the notification service
+   */
+  response?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * URL that was called for webhook notifications
+   */
+  webhookUrl?: string | null;
+  /**
+   * HTTP status code returned by webhook endpoint
+   */
+  statusCode?: number | null;
+  /**
+   * Time taken for webhook request in milliseconds
+   */
+  responseTime?: number | null;
+  /**
+   * Email address that received the notification
+   */
+  emailRecipient?: string | null;
+  /**
+   * Subject line of the sent email
+   */
+  emailSubject?: string | null;
+  /**
+   * Telegram chat ID that received the notification
+   */
+  telegramChatId?: string | null;
+  /**
+   * ID of the sent Telegram message
+   */
+  telegramMessageId?: string | null;
+  /**
+   * WhatsApp phone number that received the notification
+   */
+  whatsappPhoneNumber?: string | null;
+  /**
+   * ID of the sent WhatsApp message
+   */
+  whatsappMessageId?: string | null;
+  /**
+   * Original event data that triggered the notification
+   */
+  eventData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Additional metadata from the original event
+   */
+  eventMetadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Total time taken to process the event
+   */
+  processingTime?: number | null;
+  /**
+   * Time spent in queue before processing
+   */
+  queueTime?: number | null;
+  /**
+   * Reason for retry attempts
+   */
+  retryReason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Detailed logs of all outgoing webhook requests
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-logs".
+ */
+export interface WebhookLog {
+  id: string;
+  /**
+   * The URL that was called
+   */
+  url: string;
+  /**
+   * ID of the event that triggered this webhook
+   */
+  eventId: string;
+  /**
+   * Type of event that was sent
+   */
+  eventType: string;
+  /**
+   * The subscription that triggered this webhook
+   */
+  subscriptionId?: (string | null) | EventSubscription;
+  /**
+   * Status of the webhook call
+   */
+  status: 'success' | 'failed' | 'timeout' | 'retrying';
+  /**
+   * HTTP status code returned by the webhook endpoint
+   */
+  statusCode?: number | null;
+  /**
+   * Which attempt this was (for retries)
+   */
+  attempt?: number | null;
+  /**
+   * Time taken for the request in milliseconds
+   */
+  responseTime?: number | null;
+  /**
+   * Error message if the webhook failed
+   */
+  error?: string | null;
+  /**
+   * Headers sent with the webhook request
+   */
+  requestHeaders?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Body of the webhook request (event payload)
+   */
+  requestBody?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Headers returned by the webhook endpoint
+   */
+  responseHeaders?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Body returned by the webhook endpoint
+   */
+  responseBody?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * HMAC signature sent with the request (if configured)
+   */
+  signature?: string | null;
+  /**
+   * User agent string sent with the request
+   */
+  userAgent?: string | null;
+  /**
+   * Timeout value used for this request
+   */
+  timeout?: number | null;
+  /**
+   * When this webhook will be retried
+   */
+  retryAfter?: string | null;
+  /**
+   * Time taken for DNS lookup
+   */
+  dnsLookupTime?: number | null;
+  /**
+   * Time taken to establish connection
+   */
+  connectionTime?: number | null;
+  /**
+   * Time taken for TLS handshake (HTTPS only)
+   */
+  tlsHandshakeTime?: number | null;
+  /**
+   * Time until first byte of response was received
+   */
+  firstByteTime?: number | null;
+  /**
+   * IP address of the webhook server
+   */
+  serverIp?: string | null;
+  /**
+   * Geographic location of the webhook server
+   */
+  serverLocation?: string | null;
+  /**
+   * Additional debug information for troubleshooting
+   */
+  debugInfo?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Tags for categorizing and filtering webhook logs
+   */
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Управление пикселями аналитики и рекламных платформ
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pixels".
+ */
+export interface Pixel {
+  id: string;
+  /**
+   * Название пикселя для удобства управления
+   */
+  name: string;
+  /**
+   * Выберите тип пикселя или платформы
+   */
+  type:
+    | 'vk'
+    | 'vk_ads'
+    | 'facebook'
+    | 'ga4'
+    | 'ga_universal'
+    | 'yandex_metrica'
+    | 'google_ads'
+    | 'tiktok'
+    | 'twitter'
+    | 'linkedin'
+    | 'snapchat'
+    | 'pinterest'
+    | 'custom';
+  /**
+   * ID пикселя или код отслеживания (например, для VK Ads: только цифры без префиксов)
+   */
+  pixelId: string;
+  /**
+   * Включить/выключить пиксель
+   */
+  isActive?: boolean | null;
+  /**
+   * Где разместить код пикселя на странице
+   */
+  placement: 'head' | 'body_start' | 'body_end';
+  /**
+   * На каких страницах показывать пиксель
+   */
+  pages?:
+    | ('all' | 'home' | 'products' | 'services' | 'blog' | 'contacts' | 'about' | 'forms' | 'checkout' | 'thank_you')[]
+    | null;
+  /**
+   * Дополнительные настройки для VK пикселя
+   */
+  vkSettings?: {
+    trackPageView?: boolean | null;
+    trackEvents?: boolean | null;
+    customEvents?:
+      | {
+          eventName: string;
+          trigger: 'page_load' | 'button_click' | 'form_submit' | 'scroll';
+          /**
+           * CSS селектор элемента (для кликов и форм)
+           */
+          selector?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Дополнительные настройки для VK Ads пикселя
+   */
+  vkAdsSettings?: {
+    trackPageView?: boolean | null;
+    trackEvents?: boolean | null;
+    conversionGoals?:
+      | {
+          goalName: string;
+          goalValue?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Дополнительные настройки для Facebook пикселя
+   */
+  facebookSettings?: {
+    trackPageView?: boolean | null;
+    advancedMatching?: boolean | null;
+    standardEvents?:
+      | (
+          | 'Purchase'
+          | 'Lead'
+          | 'CompleteRegistration'
+          | 'AddToCart'
+          | 'InitiateCheckout'
+          | 'ViewContent'
+          | 'Search'
+          | 'Contact'
+        )[]
+      | null;
+  };
+  /**
+   * Настройки для Google Analytics 4
+   */
+  ga4Settings?: {
+    /**
+     * ID измерения GA4 (G-XXXXXXXXXX)
+     */
+    measurementId?: string | null;
+    enhancedEcommerce?: boolean | null;
+    customDimensions?:
+      | {
+          name: string;
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Настройки для Яндекс.Метрики
+   */
+  yandexSettings?: {
+    clickmap?: boolean | null;
+    trackLinks?: boolean | null;
+    accurateTrackBounce?: boolean | null;
+    webvisor?: boolean | null;
+    ecommerce?: boolean | null;
+  };
+  /**
+   * HTML/JavaScript код для пользовательского пикселя
+   */
+  customScript?: string | null;
+  /**
+   * Приоритет загрузки пикселя
+   */
+  loadPriority?: ('high' | 'normal' | 'low') | null;
+  /**
+   * Загружать пиксель асинхронно
+   */
+  loadAsync?: boolean | null;
+  /**
+   * Учитывать согласие пользователя на cookies
+   */
+  gdprCompliant?: boolean | null;
+  /**
+   * Описание назначения пикселя
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * User reviews and ratings for courses.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -12445,6 +13344,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'terms-pages';
         value: string | TermsPage;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: string | Form;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: string | FormSubmission;
+      } | null)
+    | ({
+        relationTo: 'event-subscriptions';
+        value: string | EventSubscription;
+      } | null)
+    | ({
+        relationTo: 'event-logs';
+        value: string | EventLog;
+      } | null)
+    | ({
+        relationTo: 'webhook-logs';
+        value: string | WebhookLog;
+      } | null)
+    | ({
+        relationTo: 'pixels';
+        value: string | Pixel;
       } | null)
     | ({
         relationTo: 'assessments';
@@ -17890,6 +18813,351 @@ export interface TermsPagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  fields?:
+    | T
+    | {
+        name?: T;
+        label?: T;
+        width?: T;
+        required?: T;
+        blockType?: T;
+        options?:
+          | T
+          | {
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  confirmationMessage?: T;
+  emailTo?:
+    | T
+    | {
+        email?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  form?: T;
+  submissionData?:
+    | T
+    | {
+        field?: T;
+        value?: T;
+        type?: T;
+        label?: T;
+        required?: T;
+        validationPassed?: T;
+        id?: T;
+      };
+  metadata?:
+    | T
+    | {
+        utmData?:
+          | T
+          | {
+              utm_source?: T;
+              utm_medium?: T;
+              utm_campaign?: T;
+              utm_term?: T;
+              utm_content?: T;
+              gclid?: T;
+              fbclid?: T;
+              yclid?: T;
+            };
+        trafficSource?:
+          | T
+          | {
+              referrer?: T;
+              landing_page?: T;
+              current_page?: T;
+              previous_page?: T;
+              search_engine?: T;
+              organic_keyword?: T;
+            };
+        deviceInfo?:
+          | T
+          | {
+              user_agent?: T;
+              browser_name?: T;
+              browser_version?: T;
+              os_name?: T;
+              os_version?: T;
+              device_type?: T;
+              screen_resolution?: T;
+              viewport_size?: T;
+              language?: T;
+              timezone?: T;
+              touch_support?: T;
+            };
+        userBehavior?:
+          | T
+          | {
+              session_id?: T;
+              time_on_page?: T;
+              time_on_site?: T;
+              scroll_depth?: T;
+              max_scroll_depth?: T;
+              page_views_count?: T;
+              is_returning_visitor?: T;
+              visit_count?: T;
+              mouse_movements?: T;
+              clicks_count?: T;
+              pages_visited?:
+                | T
+                | {
+                    page?: T;
+                    id?: T;
+                  };
+            };
+        sessionInfo?:
+          | T
+          | {
+              is_authenticated?: T;
+              user_id?: T;
+              user_email?: T;
+              user_role?: T;
+              registration_date?: T;
+              last_login?: T;
+            };
+        formContext?:
+          | T
+          | {
+              form_type?: T;
+              form_name?: T;
+              form_location?: T;
+              form_trigger?: T;
+              modal_context?: T;
+              submission_attempt?: T;
+              ab_test_variant?: T;
+            };
+      };
+  submissionStatus?: T;
+  errorMessage?: T;
+  processedAt?: T;
+  ipAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-subscriptions_select".
+ */
+export interface EventSubscriptionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  eventTypes?: T;
+  channels?: T;
+  priority?: T;
+  isActive?: T;
+  emailRecipients?:
+    | T
+    | {
+        email?: T;
+        name?: T;
+        id?: T;
+      };
+  telegramChatIds?:
+    | T
+    | {
+        chatId?: T;
+        name?: T;
+        id?: T;
+      };
+  slackChannels?:
+    | T
+    | {
+        channel?: T;
+        name?: T;
+        id?: T;
+      };
+  whatsappContacts?:
+    | T
+    | {
+        phoneNumber?: T;
+        name?: T;
+        id?: T;
+      };
+  webhookUrl?: T;
+  webhookSecret?: T;
+  webhookHeaders?: T;
+  filters?:
+    | T
+    | {
+        field?: T;
+        operator?: T;
+        value?: T;
+        id?: T;
+      };
+  retryConfig?:
+    | T
+    | {
+        maxAttempts?: T;
+        initialDelay?: T;
+        backoffMultiplier?: T;
+        maxDelay?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-logs_select".
+ */
+export interface EventLogsSelect<T extends boolean = true> {
+  eventId?: T;
+  eventType?: T;
+  subscriptionId?: T;
+  channel?: T;
+  status?: T;
+  attempts?: T;
+  lastAttempt?: T;
+  nextAttempt?: T;
+  error?: T;
+  response?: T;
+  webhookUrl?: T;
+  statusCode?: T;
+  responseTime?: T;
+  emailRecipient?: T;
+  emailSubject?: T;
+  telegramChatId?: T;
+  telegramMessageId?: T;
+  whatsappPhoneNumber?: T;
+  whatsappMessageId?: T;
+  eventData?: T;
+  eventMetadata?: T;
+  processingTime?: T;
+  queueTime?: T;
+  retryReason?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-logs_select".
+ */
+export interface WebhookLogsSelect<T extends boolean = true> {
+  url?: T;
+  eventId?: T;
+  eventType?: T;
+  subscriptionId?: T;
+  status?: T;
+  statusCode?: T;
+  attempt?: T;
+  responseTime?: T;
+  error?: T;
+  requestHeaders?: T;
+  requestBody?: T;
+  responseHeaders?: T;
+  responseBody?: T;
+  signature?: T;
+  userAgent?: T;
+  timeout?: T;
+  retryAfter?: T;
+  dnsLookupTime?: T;
+  connectionTime?: T;
+  tlsHandshakeTime?: T;
+  firstByteTime?: T;
+  serverIp?: T;
+  serverLocation?: T;
+  debugInfo?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pixels_select".
+ */
+export interface PixelsSelect<T extends boolean = true> {
+  name?: T;
+  type?: T;
+  pixelId?: T;
+  isActive?: T;
+  placement?: T;
+  pages?: T;
+  vkSettings?:
+    | T
+    | {
+        trackPageView?: T;
+        trackEvents?: T;
+        customEvents?:
+          | T
+          | {
+              eventName?: T;
+              trigger?: T;
+              selector?: T;
+              id?: T;
+            };
+      };
+  vkAdsSettings?:
+    | T
+    | {
+        trackPageView?: T;
+        trackEvents?: T;
+        conversionGoals?:
+          | T
+          | {
+              goalName?: T;
+              goalValue?: T;
+              id?: T;
+            };
+      };
+  facebookSettings?:
+    | T
+    | {
+        trackPageView?: T;
+        advancedMatching?: T;
+        standardEvents?: T;
+      };
+  ga4Settings?:
+    | T
+    | {
+        measurementId?: T;
+        enhancedEcommerce?: T;
+        customDimensions?:
+          | T
+          | {
+              name?: T;
+              value?: T;
+              id?: T;
+            };
+      };
+  yandexSettings?:
+    | T
+    | {
+        clickmap?: T;
+        trackLinks?: T;
+        accurateTrackBounce?: T;
+        webvisor?: T;
+        ecommerce?: T;
+      };
+  customScript?: T;
+  loadPriority?: T;
+  loadAsync?: T;
+  gdprCompliant?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "assessments_select".
  */
 export interface AssessmentsSelect<T extends boolean = true> {
@@ -18715,6 +19983,84 @@ export interface WebhookSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-settings".
+ */
+export interface AnalyticsSetting {
+  id: string;
+  /**
+   * Глобальное включение/выключение всей аналитики
+   */
+  enabled?: boolean | null;
+  /**
+   * Показывать отладочную панель и логи в консоли
+   */
+  debug?: boolean | null;
+  /**
+   * Оставьте пустым для отслеживания на всех доменах
+   */
+  trackingDomains?:
+    | {
+        domain: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Пути, на которых не нужно отслеживать события
+   */
+  excludePaths?:
+    | {
+        path: string;
+        id?: string | null;
+      }[]
+    | null;
+  yandexMetricaEnabled?: boolean | null;
+  /**
+   * Найдите в настройках счетчика на metrica.yandex.ru
+   */
+  yandexMetricaId?: string | null;
+  yandexMetricaClickmap?: boolean | null;
+  yandexMetricaTrackLinks?: boolean | null;
+  /**
+   * Записывает действия пользователей
+   */
+  yandexMetricaWebvisor?: boolean | null;
+  yandexMetricaAccurateTrackBounce?: boolean | null;
+  vkPixelEnabled?: boolean | null;
+  /**
+   * Можно добавить несколько пикселей
+   */
+  vkPixelIds?:
+    | {
+        pixelId: string;
+        id?: string | null;
+      }[]
+    | null;
+  vkPixelTrackPageView?: boolean | null;
+  /**
+   * Система аналитики VK Ads (бывший Top.Mail.Ru)
+   */
+  topMailRuEnabled?: boolean | null;
+  /**
+   * Найдите в настройках счетчика на top.mail.ru
+   */
+  topMailRuId?: string | null;
+  topMailRuTrackPageView?: boolean | null;
+  /**
+   * Предустановленные события для отслеживания
+   */
+  customEvents?:
+    | {
+        name: string;
+        description?: string | null;
+        enabled?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-page_select".
  */
 export interface AboutPageSelect<T extends boolean = true> {
@@ -19279,6 +20625,54 @@ export interface WebhookSettingsSelect<T extends boolean = true> {
         responseCode?: T;
         responseTime?: T;
         attemptNumber?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-settings_select".
+ */
+export interface AnalyticsSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  debug?: T;
+  trackingDomains?:
+    | T
+    | {
+        domain?: T;
+        id?: T;
+      };
+  excludePaths?:
+    | T
+    | {
+        path?: T;
+        id?: T;
+      };
+  yandexMetricaEnabled?: T;
+  yandexMetricaId?: T;
+  yandexMetricaClickmap?: T;
+  yandexMetricaTrackLinks?: T;
+  yandexMetricaWebvisor?: T;
+  yandexMetricaAccurateTrackBounce?: T;
+  vkPixelEnabled?: T;
+  vkPixelIds?:
+    | T
+    | {
+        pixelId?: T;
+        id?: T;
+      };
+  vkPixelTrackPageView?: T;
+  topMailRuEnabled?: T;
+  topMailRuId?: T;
+  topMailRuTrackPageView?: T;
+  customEvents?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        enabled?: T;
         id?: T;
       };
   updatedAt?: T;
