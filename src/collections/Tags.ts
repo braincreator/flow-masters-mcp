@@ -15,6 +15,9 @@ export const Tags: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'createdAt'],
   },
+  versions: {
+    drafts: false, // Отключаем drafts для tags
+  },
   fields: [
     {
       name: 'title',

@@ -19,6 +19,9 @@ export const Categories: CollectionConfig = {
     description: 'General or Blog categories.',
     listSearchableFields: ['title'],
   },
+  versions: {
+    drafts: false, // Отключаем drafts для categories
+  },
   fields: [
     {
       name: 'title',
