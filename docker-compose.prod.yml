@@ -14,12 +14,12 @@ services:
       mongodb:
         condition: service_healthy # Wait for DB to be ready
     env_file:
-      - .env # Load environment variables from .env file
+      - .env # Load environment variables from .env file (symlinked to .env.production)
     environment:
       NODE_ENV: production
-      DATABASE_URI: mongodb://mongodb:27017/flow-masters # Internal DB connection
-      # PAYLOAD_SECRET should be set in .env
-      # NEXT_PUBLIC_SERVER_URL should be set in .env to the public domain
+      # DATABASE_URI is loaded from .env.production file
+      # PAYLOAD_SECRET should be set in .env.production
+      # NEXT_PUBLIC_SERVER_URL should be set in .env.production to the public domain
     networks:
       - app-network
     restart: unless-stopped
@@ -41,8 +41,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     healthcheck:
-      # Basic healthcheck to ensure mongo is responsive
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      # Basic healthcheck to ensure mongo is responsive with authentication
+      test: ['CMD', 'mongosh', '--username', '${MONGO_ROOT_USER}', '--password', '${MONGO_ROOT_PASSWORD}', '--authenticationDatabase', 'admin', '--eval', "db.adminCommand('ping')"]
       interval: 10s
       timeout: 10s
       retries: 5
