@@ -35,7 +35,6 @@ const getRssFeedEn = unstable_cache(
         publishedAt: true,
         updatedAt: true,
         authors: true,
-        populatedAuthors: true,
         categories: true,
         meta: true,
       },
@@ -49,27 +48,27 @@ const getRssFeedEn = unstable_cache(
           .filter((post) => Boolean(post?.slug))
           .map((post) => {
             const postUrl = `${SITE_URL}/en/posts/${post.slug}`
-            const pubDate = post.publishedAt 
+            const pubDate = post.publishedAt
               ? new Date(post.publishedAt).toUTCString()
               : new Date(post.updatedAt).toUTCString()
-            
+
             // Получаем имя автора
-            const authorName = post.populatedAuthors && post.populatedAuthors.length > 0
-              ? post.populatedAuthors[0].name
-              : 'Flow Masters'
+            const authorName = 'Flow Masters' // Упрощаем для избежания ошибок доступа
 
             // Получаем категории
-            const categories = post.categories && Array.isArray(post.categories)
-              ? post.categories
-                  .map((cat: any) => typeof cat === 'object' ? cat.title : cat)
-                  .filter(Boolean)
-              : []
+            const categories =
+              post.categories && Array.isArray(post.categories)
+                ? post.categories
+                    .map((cat: any) => (typeof cat === 'object' ? cat.title : cat))
+                    .filter(Boolean)
+                : []
 
             // Конвертируем контент в HTML
             const contentHtml = post.content ? lexicalToHtml(post.content) : ''
-            
+
             // Используем excerpt или первые 300 символов контента как описание
-            const description = post.excerpt || 
+            const description =
+              post.excerpt ||
               (contentHtml ? contentHtml.replace(/<[^>]*>/g, '').substring(0, 300) + '...' : '')
 
             // Экранируем HTML для XML
@@ -91,7 +90,7 @@ const getRssFeedEn = unstable_cache(
       <content:encoded><![CDATA[${contentHtml}]]></content:encoded>
       <pubDate>${pubDate}</pubDate>
       <author>noreply@flow-masters.ru (${escapeXml(authorName)})</author>
-      ${categories.map(cat => `<category><![CDATA[${cat}]]></category>`).join('\n      ')}
+      ${categories.map((cat) => `<category><![CDATA[${cat}]]></category>`).join('\n      ')}
     </item>`
           })
           .join('')

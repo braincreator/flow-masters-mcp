@@ -21,8 +21,8 @@ const getServicesRssFeed = unstable_cache(
       limit: 100, // Все услуги
       pagination: false,
       where: {
-        _status: {
-          equals: 'published',
+        businessStatus: {
+          equals: 'active',
         },
       },
       sort: '-updatedAt', // Сортируем по дате обновления
@@ -33,6 +33,7 @@ const getServicesRssFeed = unstable_cache(
         content: true,
         updatedAt: true,
         createdAt: true,
+        publishedAt: true,
         meta: true,
       },
     })
@@ -45,15 +46,18 @@ const getServicesRssFeed = unstable_cache(
           .filter((service) => Boolean(service?.slug))
           .map((service) => {
             const serviceUrl = `${SITE_URL}/services/${service.slug}`
-            const pubDate = service.createdAt 
-              ? new Date(service.createdAt).toUTCString()
-              : new Date(service.updatedAt).toUTCString()
-            
+            const pubDate = service.publishedAt
+              ? new Date(service.publishedAt).toUTCString()
+              : service.createdAt
+                ? new Date(service.createdAt).toUTCString()
+                : new Date(service.updatedAt).toUTCString()
+
             // Конвертируем контент в HTML
             const contentHtml = service.content ? lexicalToHtml(service.content) : ''
-            
+
             // Используем description или первые 300 символов контента как описание
-            const description = service.description || 
+            const description =
+              service.description ||
               (contentHtml ? contentHtml.replace(/<[^>]*>/g, '').substring(0, 300) + '...' : '')
 
             // Экранируем HTML для XML
@@ -126,6 +130,25 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error generating Services RSS feed:', error)
-    return new NextResponse('Error generating RSS feed', { status: 500 })
+
+    // Возвращаем пустой, но валидный RSS feed в случае ошибки
+    const errorFeed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Flow Masters - AI Services</title>
+    <link>https://flow-masters.ru/services</link>
+    <description>RSS feed временно недоступен</description>
+    <language>ru</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+  </channel>
+</rss>`
+
+    return new NextResponse(errorFeed, {
+      headers: {
+        'Content-Type': 'application/rss+xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, s-maxage=300', // Короткий кэш для ошибок
+      },
+      status: 200, // Возвращаем 200, но с пустым feed
+    })
   }
 }

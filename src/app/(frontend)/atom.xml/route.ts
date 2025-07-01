@@ -34,7 +34,6 @@ const getAtomFeed = unstable_cache(
         publishedAt: true,
         updatedAt: true,
         authors: true,
-        populatedAuthors: true,
         categories: true,
         meta: true,
       },
@@ -44,9 +43,10 @@ const getAtomFeed = unstable_cache(
     const feedId = `${SITE_URL}/atom.xml`
 
     // Находим дату последнего обновления
-    const lastUpdated = results.docs && results.docs.length > 0
-      ? new Date(results.docs[0].publishedAt || results.docs[0].updatedAt).toISOString()
-      : currentDate
+    const lastUpdated =
+      results.docs && results.docs.length > 0
+        ? new Date(results.docs[0].publishedAt || results.docs[0].updatedAt).toISOString()
+        : currentDate
 
     // Создаем Atom элементы для каждого поста
     const atomEntries = results.docs
@@ -54,28 +54,28 @@ const getAtomFeed = unstable_cache(
           .filter((post) => Boolean(post?.slug))
           .map((post) => {
             const postUrl = `${SITE_URL}/posts/${post.slug}`
-            const published = post.publishedAt 
+            const published = post.publishedAt
               ? new Date(post.publishedAt).toISOString()
               : new Date(post.updatedAt).toISOString()
             const updated = new Date(post.updatedAt).toISOString()
-            
+
             // Получаем имя автора
-            const authorName = post.populatedAuthors && post.populatedAuthors.length > 0
-              ? post.populatedAuthors[0].name
-              : 'Flow Masters'
+            const authorName = 'Flow Masters' // Упрощаем для избежания ошибок доступа
 
             // Получаем категории
-            const categories = post.categories && Array.isArray(post.categories)
-              ? post.categories
-                  .map((cat: any) => typeof cat === 'object' ? cat.title : cat)
-                  .filter(Boolean)
-              : []
+            const categories =
+              post.categories && Array.isArray(post.categories)
+                ? post.categories
+                    .map((cat: any) => (typeof cat === 'object' ? cat.title : cat))
+                    .filter(Boolean)
+                : []
 
             // Конвертируем контент в HTML
             const contentHtml = post.content ? lexicalToHtml(post.content) : ''
-            
+
             // Используем excerpt или первые 300 символов контента как описание
-            const summary = post.excerpt || 
+            const summary =
+              post.excerpt ||
               (contentHtml ? contentHtml.replace(/<[^>]*>/g, '').substring(0, 300) + '...' : '')
 
             // Экранируем HTML для XML
@@ -101,7 +101,7 @@ const getAtomFeed = unstable_cache(
     </author>
     <summary type="text">${escapeXml(summary)}</summary>
     <content type="html"><![CDATA[${contentHtml}]]></content>
-    ${categories.map(cat => `<category term="${escapeXml(cat)}" />`).join('\n    ')}
+    ${categories.map((cat) => `<category term="${escapeXml(cat)}" />`).join('\n    ')}
   </entry>`
           })
           .join('')
