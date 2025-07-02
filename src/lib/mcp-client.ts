@@ -104,6 +104,36 @@ export class MCPClient {
   }
 
   /**
+   * Send a GraphQL query via MCP
+   */
+  async graphqlQuery(query: string, variables?: any, operationName?: string) {
+    try {
+      const url = IS_SERVER ? `${this.baseUrl}/mcp/graphql` : '/api/mcp-graphql'
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          variables,
+          operationName,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`MCP GraphQL request failed: ${response.status} ${response.statusText}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('MCP GraphQL request failed:', error)
+      throw error
+    }
+  }
+
+  /**
    * Send a request to an endpoint via MCP proxy
    */
   async proxyRequest(method: string, path: string, data?: any) {

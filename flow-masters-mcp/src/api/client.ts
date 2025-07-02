@@ -183,6 +183,97 @@ export class ApiClient {
   }
 
   /**
+   * Выполнить GraphQL запрос
+   */
+  async graphqlRequest<T = any>(
+    query: string,
+    variables?: any,
+    operationName?: string,
+  ): Promise<ApiResponse<T>> {
+    try {
+      const response = await this.client.post('/graphql', {
+        query,
+        variables,
+        operationName,
+      })
+
+      if (response.data.errors) {
+        return {
+          success: false,
+          error: response.data.errors.map((err: any) => err.message).join(', '),
+        }
+      }
+
+      return {
+        success: true,
+        data: response.data.data,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
+
+  /**
+   * Получить посты через GraphQL
+   */
+  async getPostsGraphQL(limit = 10, page = 1): Promise<ApiResponse<any>> {
+    const query = `
+      query GetPosts($limit: Int, $page: Int) {
+        Posts(limit: $limit, page: $page) {
+          docs {
+            id
+            title
+            slug
+            content
+            publishedAt
+            author {
+              name
+              email
+            }
+            categories {
+              title
+              slug
+            }
+          }
+          totalDocs
+          totalPages
+          page
+          hasNextPage
+          hasPrevPage
+        }
+      }
+    `
+
+    return this.graphqlRequest(query, { limit, page })
+  }
+
+  /**
+   * Получить услуги через GraphQL
+   */
+  async getServicesGraphQL(limit = 10): Promise<ApiResponse<any>> {
+    const query = `
+      query GetServices($limit: Int) {
+        Services(limit: $limit) {
+          docs {
+            id
+            title
+            slug
+            description
+            price
+            duration
+            features
+          }
+        }
+      }
+    `
+
+    return this.graphqlRequest(query, { limit })
+  }
+
+  /**
    * Выполнить общий запрос к API
    */
   async request<T = any>(

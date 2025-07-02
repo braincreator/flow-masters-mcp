@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { MobileOptimizedMotion, MobileOptimizedHover } from '@/components/MobileOptimizedMotion'
@@ -25,6 +25,8 @@ interface HeroSectionProps {
 
 export function HeroSection({ data }: HeroSectionProps) {
   const locale = useLocale()
+  const t = useTranslations('common')
+  const tCta = useTranslations('pages.about.cta')
   const animationConfig = useMobileAnimations()
   const gpuStyles = getGPUAcceleratedStyles(animationConfig)
   const hoverProps = getOptimizedHoverProps(animationConfig)
@@ -163,7 +165,7 @@ export function HeroSection({ data }: HeroSectionProps) {
                   >
                     <Link href={`/${locale}#final-cta`}>
                       <span className="relative z-10 flex items-center gap-2">
-                        Обсудить проект
+                        {tCta('button')}
                         <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                       </span>
                       {animationConfig.enableHoverAnimations && (
@@ -191,7 +193,7 @@ export function HeroSection({ data }: HeroSectionProps) {
                   >
                     <Link href={`/${locale}/services`}>
                       <span className="flex items-center gap-2">
-                        Наши услуги
+                        {t('services')}
                         <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                       </span>
                     </Link>

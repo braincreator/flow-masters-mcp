@@ -2,7 +2,7 @@
   "port": 3030,
   "host": "0.0.0.0",
   "apiConfig": {
-    "apiUrl": "http://payload:3000",
+    "apiUrl": "https://flow-masters.ru",
     "apiKey": "your-api-key-here",
     "autoUpdate": true,
     "updateCheckInterval": 60,
