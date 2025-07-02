@@ -12,32 +12,58 @@ export async function GET(req: NextRequest) {
     // Get all registered collections
     const collections = Object.keys(payload.collections)
 
-    // Check if service-projects is registered
-    const hasServiceProjects = collections.includes('service-projects')
+    // Check if posts is registered
+    const hasPosts = collections.includes('posts')
 
-    // Get collection details if it exists
-    let serviceProjectsDetails = null
-    if (hasServiceProjects) {
+    // Get posts collection details if it exists
+    let postsDetails = null
+    if (hasPosts) {
       try {
-        // Try to get the collection config
-        serviceProjectsDetails = {
-          config: payload.collections['service-projects'].config,
-          // Try to count documents to verify DB access
-          count: await payload.count({
-            collection: 'service-projects',
-          }),
+        // Try to get the collection config and count documents
+        const totalCount = await payload.count({
+          collection: 'posts',
+        })
+
+        const publishedCount = await payload.count({
+          collection: 'posts',
+          where: {
+            _status: { equals: 'published' }
+          }
+        })
+
+        // Get a sample post
+        let samplePost = null
+        if (totalCount.totalDocs > 0) {
+          const sample = await payload.find({
+            collection: 'posts',
+            limit: 1,
+          })
+          if (sample.docs.length > 0) {
+            samplePost = {
+              id: sample.docs[0].id,
+              title: sample.docs[0].title,
+              _status: sample.docs[0]._status,
+              publishedAt: sample.docs[0].publishedAt
+            }
+          }
+        }
+
+        postsDetails = {
+          totalCount: totalCount.totalDocs,
+          publishedCount: publishedCount.totalDocs,
+          samplePost
         }
       } catch (collectionError) {
-        serviceProjectsDetails = {
-          error: `Error accessing collection: ${collectionError instanceof Error ? collectionError.message : String(collectionError)}`,
+        postsDetails = {
+          error: `Error accessing posts collection: ${collectionError instanceof Error ? collectionError.message : String(collectionError)}`,
         }
       }
     }
 
     return NextResponse.json({
       collections,
-      hasServiceProjects,
-      serviceProjectsDetails,
+      hasPosts,
+      postsDetails,
       totalCollections: collections.length,
     })
   } catch (error) {

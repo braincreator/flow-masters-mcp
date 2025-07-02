@@ -57,7 +57,17 @@ export default async function BlogPage(props: PageParams) {
     // Initialize PayloadCMS client with proper error handling
     let payload
     try {
+      logDebug('Initializing PayloadCMS client...')
       payload = await getPayloadClient()
+      logDebug('PayloadCMS client initialized successfully')
+
+      // Debug: Check available collections
+      try {
+        const collections = payload.config.collections
+        logDebug('Available collections:', collections.map(c => c.slug))
+      } catch (err) {
+        logWarn('Could not list collections:', err)
+      }
     } catch (error) {
       logError('Failed to initialize PayloadCMS client:', error)
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
@@ -72,6 +82,17 @@ export default async function BlogPage(props: PageParams) {
     // Fetch the first page of posts
     let posts
     try {
+      logDebug('Fetching posts from collection "posts"...')
+      logDebug('Query parameters:', {
+        collection: 'posts',
+        where: { _status: { equals: 'published' } },
+        sort: '-publishedAt',
+        limit,
+        page: 1,
+        depth: 1,
+        locale: locale,
+      })
+
       posts = await payload.find({
         collection: 'posts',
         where: {
@@ -83,9 +104,40 @@ export default async function BlogPage(props: PageParams) {
         depth: 1, // Load relations 1 level deep
         locale: locale,
       })
+
+      logDebug('Posts fetched successfully:', {
+        totalDocs: posts.totalDocs,
+        docsCount: posts.docs.length,
+        page: posts.page,
+        totalPages: posts.totalPages
+      })
     } catch (error) {
       logError('Error fetching posts:', error)
-      throw new Error('Failed to fetch blog posts. Please try again later.')
+      logError('Error details:', {
+        name: error?.name,
+        message: error?.message,
+        status: error?.status,
+        data: error?.data
+      })
+
+      // Try alternative approach - fetch without filters first
+      try {
+        logDebug('Trying alternative approach - fetching all posts...')
+        posts = await payload.find({
+          collection: 'posts',
+          limit,
+          page: 1,
+          depth: 1,
+          locale: locale,
+        })
+        logDebug('Alternative fetch successful:', {
+          totalDocs: posts.totalDocs,
+          docsCount: posts.docs.length
+        })
+      } catch (altError) {
+        logError('Alternative fetch also failed:', altError)
+        throw new Error('Failed to fetch blog posts. Please try again later.')
+      }
     }
 
     // Fetch all categories for filtering

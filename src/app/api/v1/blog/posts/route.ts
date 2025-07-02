@@ -29,6 +29,14 @@ export async function GET(req: NextRequest) {
 
     const payload = await getPayloadClient()
 
+    // Debug: Check available collections
+    try {
+      const collections = payload.config.collections
+      logDebug('[Blog Posts API] Available collections:', collections.map(c => c.slug))
+    } catch (err) {
+      logWarn('[Blog Posts API] Could not list collections:', err)
+    }
+
     // Build where clause
     const where: any = {
       _status: { equals: 'published' }
