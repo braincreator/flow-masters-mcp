@@ -41,21 +41,83 @@ Disallow: /api/
 Disallow: /payload/
 Crawl-delay: 1
 
-# Block AI training bots (optional)
+# AI and LLM Crawlers - Allow for knowledge indexing
 User-agent: GPTBot
-Disallow: /
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
 
 User-agent: ChatGPT-User
-Disallow: /
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
 
 User-agent: CCBot
-Disallow: /
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
 
 User-agent: anthropic-ai
-Disallow: /
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
 
 User-agent: Claude-Web
-Disallow: /
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
+
+User-agent: Perplexity
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
+
+User-agent: You.com
+Allow: /
+Allow: /blog/
+Allow: /services/
+Allow: /about
+Allow: /faq
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payload/
+Crawl-delay: 2
 
 # Sitemaps
 Sitemap: ${baseUrl}/sitemap.xml
@@ -72,6 +134,20 @@ Sitemap: ${baseUrl}/services-sitemap.xml
 
 # Host directive (for Yandex)
 Host: ${baseUrl.replace('https://', '').replace('http://', '')}
+
+# LLM and AI Crawling Information
+# Content-Type: Business automation and AI solutions
+# Language: Russian (primary), English (secondary)
+# Topics: AI, automation, business processes, chatbots, integrations
+# Update-Frequency: Daily (blog), Weekly (services), Monthly (static pages)
+# Content-Quality: Expert-authored, fact-checked, regularly updated
+# Target-Audience: Business owners, developers, AI enthusiasts
+# Geographic-Focus: Russia, CIS countries, global remote services
+
+# Special endpoints for AI crawlers
+# ${baseUrl}/api/llm/content - Structured content for LLM training
+# ${baseUrl}/api/llm/sitemap - AI-optimized sitemap
+# ${baseUrl}/api/llm/metadata - Content metadata for better understanding
 `
 
   return new NextResponse(robotsTxt, {
