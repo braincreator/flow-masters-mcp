@@ -86,6 +86,19 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'yastatic.net',
       },
+      // Добавляем домены для иконок технологий
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'uxwing.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ai.pydantic.dev',
+      },
     ],
     // Оптимизация изображений
     formats: ['image/webp', 'image/avif'],
@@ -171,12 +184,12 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://vk.com https://ads.vk.com https://yastatic.net https://www.googletagmanager.com https://www.google-analytics.com",
-              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://www.google-analytics.com https://analytics.google.com wss: ws:",
-              "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://vk.com https://ads.vk.com https://www.google-analytics.com",
-              "style-src 'self' 'unsafe-inline' https://yastatic.net https://fonts.googleapis.com",
-              "font-src 'self' data: https://yastatic.net https://fonts.gstatic.com",
-              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://vk.com https://ads.vk.com https://yastatic.net https://www.googletagmanager.com https://www.google-analytics.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru",
+              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://yastatic.net https://www.google-analytics.com https://analytics.google.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru https://upload.wikimedia.org https://uxwing.com https://registry.npmmirror.com https://ai.pydantic.dev https://raw.githubusercontent.com https://docs.flowiseai.com https://2285675912-files.gitbook.io https://gitbook-x-prod.appspot.com wss: ws:",
+              "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://vk.com https://ads.vk.com https://yastatic.net https://www.google-analytics.com https://top-fwz1.mail.ru https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://cloud.ru https://upload.wikimedia.org https://uxwing.com https://registry.npmmirror.com https://ai.pydantic.dev https://raw.githubusercontent.com https://docs.flowiseai.com https://2285675912-files.gitbook.io https://gitbook-x-prod.appspot.com",
+              "style-src 'self' 'unsafe-inline' https://yastatic.net https://fonts.googleapis.com https://cdn.sber.ru https://cdn.timeweb.ru",
+              "font-src 'self' data: https://yastatic.net https://fonts.gstatic.com https://cdn.sber.ru https://cdn.timeweb.ru",
+              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://sber.ru https://sberbank.ru https://timeweb.ru https://timeweb.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'"

@@ -225,28 +225,71 @@ interface TechIconSVGProps {
 function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
   const [svgError, setSvgError] = React.useState(false)
 
-  // Parse SVG content safely
+  // Parse SVG content safely with support for embedded images
   const parseSVGContent = React.useCallback((content: string) => {
     try {
-      // Handle simple SVG strings
-      if (content.includes('<svg')) {
-        // Extract viewBox and path data
-        const viewBoxMatch = content.match(/viewBox="([^"]*)"/)
-        const pathMatch = content.match(/<path[^>]*d="([^"]*)"[^>]*\/?>/)
-        const fillMatch = content.match(/fill="([^"]*)"/)
-
-        if (pathMatch) {
-          return {
-            viewBox: viewBoxMatch?.[1] || '0 0 24 24',
-            path: pathMatch[1],
-            fill: fillMatch?.[1] || color || 'currentColor'
-          }
-        }
-      }
-
       // Handle simple div content (like AG-UI)
       if (content.includes('<div')) {
         return { isDiv: true, content }
+      }
+
+      // Handle SVG strings - support complex SVGs with embedded images
+      if (content.includes('<svg')) {
+        // Extract viewBox for proper scaling
+        const viewBoxMatch = content.match(/viewBox="([^"]*)"/)
+        const viewBox = viewBoxMatch?.[1] || '0 0 24 24'
+
+        // Extract xmlns and other important attributes
+        const xmlnsMatch = content.match(/xmlns="([^"]*)"/)
+        const xmlns = xmlnsMatch?.[1] || 'http://www.w3.org/2000/svg'
+
+        // Extract the inner content of SVG (everything between <svg> tags)
+        const svgInnerMatch = content.match(/<svg[^>]*>(.*?)<\/svg>/s)
+        let innerContent = svgInnerMatch?.[1] || content
+
+        // Clean up the inner content and handle special cases
+        innerContent = innerContent.trim()
+
+        // Check if SVG contains embedded images (base64 or external URLs)
+        const hasEmbeddedImages = innerContent.includes('<image') ||
+                                  innerContent.includes('data:image') ||
+                                  innerContent.includes('xlink:href') ||
+                                  innerContent.includes(' href=') ||
+                                  innerContent.includes('base64,')
+
+        // Extract and log external URLs for CSP verification
+        const externalUrls = []
+        const urlMatches = innerContent.match(/(?:xlink:)?href=["']([^"']+)["']/g)
+        if (urlMatches) {
+          urlMatches.forEach(match => {
+            const url = match.match(/["']([^"']+)["']/)?.[1]
+            if (url && url.startsWith('http')) {
+              externalUrls.push(url)
+              const domain = new URL(url).hostname
+              logDebug(`SVG for ${name} references external domain: ${domain}`)
+            }
+          })
+        }
+
+        // Check if SVG contains complex elements that need special handling
+        const hasComplexElements = innerContent.includes('<defs>') ||
+                                   innerContent.includes('<mask>') ||
+                                   innerContent.includes('<linearGradient>') ||
+                                   innerContent.includes('<radialGradient>') ||
+                                   innerContent.includes('<clipPath>') ||
+                                   innerContent.includes('<pattern>') ||
+                                   innerContent.includes('<filter>') ||
+                                   innerContent.includes('<foreignObject>')
+
+        return {
+          viewBox,
+          xmlns,
+          innerContent,
+          isSvg: true,
+          hasEmbeddedImages,
+          hasComplexElements,
+          externalUrls
+        }
       }
 
       return null
@@ -260,11 +303,23 @@ function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
   const svgData = parseSVGContent(svgContent)
 
   if (svgError || !svgData) {
+    logWarn(`Falling back to text icon for ${name} due to SVG error or parsing failure`)
     return (
       <div className={cn(className, "flex items-center justify-center text-xs font-medium")}>
         {name.slice(0, 2).toUpperCase()}
       </div>
     )
+  }
+
+  // Log complex SVG detection for debugging
+  if (svgData.hasEmbeddedImages) {
+    logDebug(`SVG for ${name} contains embedded images`)
+  }
+  if (svgData.hasComplexElements) {
+    logDebug(`SVG for ${name} contains complex elements (gradients, masks, etc.)`)
+  }
+  if (svgData.externalUrls && svgData.externalUrls.length > 0) {
+    logDebug(`SVG for ${name} references external URLs:`, svgData.externalUrls)
   }
 
   // Render div content (for text-based icons like AG-UI)
@@ -281,18 +336,45 @@ function TechIconSVG({ svgContent, color, name, className }: TechIconSVGProps) {
     )
   }
 
-  // Render SVG content
+  // Render SVG content with full support for complex SVGs and embedded images
+  if (svgData.isSvg) {
+    return (
+      <div className={cn(className, "flex items-center justify-center")} style={{ color }}>
+        <svg
+          viewBox={svgData.viewBox}
+          className="w-full h-full"
+          xmlns={svgData.xmlns}
+          onError={() => {
+            logWarn(`SVG rendering error for ${name}`)
+            setSvgError(true)
+          }}
+          // Use dangerouslySetInnerHTML for complex SVGs with embedded images
+          dangerouslySetInnerHTML={{ __html: svgData.innerContent }}
+          // Add additional attributes for better compatibility
+          preserveAspectRatio="xMidYMid meet"
+          style={{
+            // Ensure proper rendering of embedded images and complex elements
+            maxWidth: '100%',
+            maxHeight: '100%',
+            // Override any conflicting styles for embedded images
+            ...(svgData.hasEmbeddedImages && {
+              imageRendering: 'optimizeQuality'
+            })
+          }}
+          // Add security attributes for embedded content
+          {...(svgData.hasEmbeddedImages && {
+            // Allow data URLs for base64 images
+            'data-allow-embedded': 'true'
+          })}
+        />
+      </div>
+    )
+  }
+
+  // Fallback
   return (
-    <div className={cn(className, "flex items-center justify-center")} style={{ color }}>
-      <svg
-        viewBox={svgData.viewBox}
-        className="w-full h-full"
-        fill={svgData.fill}
-        xmlns="http://www.w3.org/2000/svg"
-        onError={() => setSvgError(true)}
-      >
-        <path d={svgData.path} />
-      </svg>
+    <div className={cn(className, "flex items-center justify-center text-xs font-medium")}>
+      {name.slice(0, 2).toUpperCase()}
     </div>
   )
 }
