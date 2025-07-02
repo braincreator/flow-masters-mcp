@@ -4,7 +4,7 @@ import { GridContainer } from '@/components/GridContainer'
 import { RichText } from '@/components/RichText'
 import type { FooterBlock as FooterBlockType } from '@/types/blocks'
 import { cn } from '@/lib/utils'
-import { Twitter, Facebook, Instagram, Linkedin, Youtube, Github, ExternalLink } from 'lucide-react'
+import { Twitter, Facebook, Instagram, Linkedin, Youtube, Github, ExternalLink, MessageCircle } from 'lucide-react'
 
 type FooterLayout = 'simple' | 'columns' | 'centered'
 type FooterStyle = 'default' | 'minimal' | 'dark'
@@ -28,6 +28,7 @@ const socialIcons = {
   linkedin: Linkedin,
   youtube: Youtube,
   github: Github,
+  tenchat: MessageCircle,
 }
 
 interface FooterProps extends FooterBlockType {

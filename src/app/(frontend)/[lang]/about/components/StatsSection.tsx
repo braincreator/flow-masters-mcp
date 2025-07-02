@@ -4,6 +4,8 @@ import { MobileOptimizedMotion, MobileOptimizedMotionGroup } from '@/components/
 import { useMobileAnimations, getGPUAcceleratedStyles } from '@/hooks/useMobileAnimations'
 import { TrendingUp, Award, Users, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { StatCard } from './EnhancedCard'
+import { SectionTitle, SectionSubtitle } from './Typography'
 
 interface StatsSectionProps {
   data: {

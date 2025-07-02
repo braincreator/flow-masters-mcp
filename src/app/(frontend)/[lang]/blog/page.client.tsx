@@ -98,7 +98,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
 
         logDebug('Fetching posts with params:', params.toString())
 
-        const response = await fetch(`/api/v1/posts?${params.toString()}`, {
+        const response = await fetch(`/api/v1/blog/posts?${params.toString()}`, {
           signal,
           headers: {
             'Content-Type': 'application/json',

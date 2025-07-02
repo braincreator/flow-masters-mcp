@@ -205,7 +205,8 @@ export const appConfig = {
   social: {
     telegram: 'https://t.me/flowmasters',
     github: 'https://github.com/flowmasters',
-    linkedin: 'https://linkedin.com/company/flowmasters',
+    linkedin: 'https://www.linkedin.com/in/braincreator',
+    tenchat: 'https://tenchat.ru/BrainCoder?utm_source=cc3e9af7-cdae-4780-b03a-be550424b55a',
   },
 
   // Contact information
