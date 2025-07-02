@@ -13,19 +13,16 @@ export async function GET() {
     const [pages, posts, services] = await Promise.all([
       payload.find({
         collection: 'pages',
-        where: { _status: { equals: 'published' } },
         limit: 1000,
         select: { slug: true, updatedAt: true }
       }),
       payload.find({
         collection: 'posts',
-        where: { _status: { equals: 'published' } },
         limit: 1000,
         select: { slug: true, updatedAt: true }
       }),
       payload.find({
         collection: 'services',
-        where: { _status: { equals: 'published' } },
         limit: 1000,
         select: { slug: true, updatedAt: true }
       })

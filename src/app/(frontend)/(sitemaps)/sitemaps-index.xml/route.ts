@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 
 /**
- * Sitemap Index - главный файл, ссылающийся на все sitemap
+ * Sitemaps Index - главный файл, ссылающийся на все sitemap
  * Включает как стандартные sitemap, так и LLM-оптимизированные
+ * Доступен по адресу /sitemaps-index.xml
  */
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://flow-masters.ru'
