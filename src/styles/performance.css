@@ -1,0 +1,132 @@
+/* Performance optimizations with GPU acceleration */
+
+/* Enable hardware acceleration for common elements */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Optimize animations for GPU */
+.smooth-animation {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Optimize scrolling performance */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize images for performance */
+.optimized-image {
+  transform: translateZ(0);
+  will-change: transform;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Optimize text rendering */
+.optimized-text {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-display: swap;
+}
+
+/* Optimize layout shifts */
+.layout-stable {
+  contain: layout style paint;
+}
+
+/* Optimize for mobile devices */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Optimize hover effects */
+.hover-optimized {
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  will-change: transform, opacity;
+}
+
+.hover-optimized:hover {
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* Optimize loading states */
+.loading-optimized {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Optimize for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-animation,
+  .hover-optimized,
+  .loading-optimized {
+    animation: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
+/* WebGL and Canvas optimizations */
+.webgl-optimized {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Critical CSS for above-the-fold content */
+.critical-content {
+  contain: layout style;
+  will-change: auto;
+}
+
+/* Optimize for high DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-optimized {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Optimize for dark mode */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-optimized {
+    color-scheme: dark;
+  }
+}
+
+/* Performance monitoring classes */
+.perf-monitor {
+  /* Used for performance monitoring - no visual styles */
+}
+
+/* Optimize for print */
+@media print {
+  .gpu-accelerated,
+  .smooth-animation,
+  .hover-optimized {
+    transform: none !important;
+    will-change: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

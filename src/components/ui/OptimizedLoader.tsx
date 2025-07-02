@@ -81,10 +81,12 @@ export function OptimizedLoader() {
   const [canUseWebGL, setCanUseWebGL] = useState(false)
 
   useEffect(() => {
-    // Simple WebGL capability check
-    const canvas = document.createElement('canvas')
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-    setCanUseWebGL(!!gl && !isMobile && !prefersReducedMotion)
+    // Simple WebGL capability check (only on client)
+    if (typeof window !== 'undefined') {
+      const canvas = document.createElement('canvas')
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+      setCanUseWebGL(!!gl && !isMobile && !prefersReducedMotion)
+    }
   }, [isMobile, prefersReducedMotion])
 
   if (!isLoading) return null

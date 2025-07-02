@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl' // Import useTranslations
 import debounce from 'lodash.debounce'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useIsClient } from '@/hooks/useIsClient'
 import '@/components/blog/enhanced-blog.css'
 import { PaginatedDocs } from 'payload'
 import { cn } from '@/lib/utils' // Added cn import
@@ -27,10 +28,22 @@ interface BlogPageProps {
   categories: BlogTag[] // Assuming categories and tags have a similar structure
   tags: BlogTag[]
   locale: Locale
+  translations: {
+    title: string
+    description: string
+    searchPlaceholder: string
+    noPostsFound: string
+    loadMore: string
+    categories: string
+    tags: string
+    allCategories: string
+    allTags: string
+  }
 }
 
-const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tags, locale }) => {
-  const t = useTranslations('blogPage') // Initialize useTranslations
+const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tags, locale, translations }) => {
+  const isClient = useIsClient()
+
   // State for managing posts, pagination, filters, and search
   const [posts, setPosts] = useState(initialPosts)
   const [currentPage, setCurrentPage] = useState(initialPosts.page || 1)
@@ -41,6 +54,11 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
   const [layout, setLayout] = useState<'grid' | 'list'>('grid') // Add layout state
   const [showAllCategories, setShowAllCategories] = useState(false) // State for expanding categories
   const [showAllTags, setShowAllTags] = useState(false) // State for expanding tags
+
+  // Render loading state on server and during hydration
+  if (!isClient) {
+    return <EnhancedBlogSkeleton />
+  }
 
   // Remove debouncing for immediate search response
   // const debouncedSearchTerm = useDebounce(searchTerm, 300)
@@ -290,30 +308,30 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
           <div className="relative mx-auto max-w-4xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
-              {t('title')}
+              {translations.title}
             </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-6xl xl:text-7xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {t('heroTitle')}
+              {translations.title}
             </h1>
             <p className="mx-auto max-w-2xl text-lg lg:text-xl text-muted-foreground leading-relaxed">
-              {t('description')} {t('heroSubtitle')}
+              {translations.description}
             </p>
 
             {/* Stats */}
             <div className="mt-12 flex flex-wrap justify-center gap-8 lg:gap-12">
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">{posts.totalDocs}</div>
-                <div className="text-sm text-muted-foreground">{t('statsArticles')}</div>
+                <div className="text-sm text-muted-foreground">Articles</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">
                   {categories.length}
                 </div>
-                <div className="text-sm text-muted-foreground">{t('statsCategories')}</div>
+                <div className="text-sm text-muted-foreground">{translations.categories}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary">{tags.length}</div>
-                <div className="text-sm text-muted-foreground">{t('statsTags')}</div>
+                <div className="text-sm text-muted-foreground">{translations.tags}</div>
               </div>
             </div>
           </div>
@@ -339,7 +357,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
                 {/* Search Input */}
                 <div className="flex-1">
                   <BlogSearch
-                    placeholder={t('searchPlaceholder')}
+                    placeholder={translations.searchPlaceholder}
                     onSearch={handleSearchChange} // Use client-side handler
                     initialQuery={searchTerm} // Pass initial search term
                     variant="default"

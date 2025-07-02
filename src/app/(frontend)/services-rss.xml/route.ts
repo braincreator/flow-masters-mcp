@@ -12,7 +12,7 @@ const getServicesRssFeed = unstable_cache(
       process.env.VERCEL_PROJECT_PRODUCTION_URL ||
       'https://flow-masters.ru'
 
-    // Получаем опубликованные услуги
+    // Получаем активные услуги
     const results = await payload.find({
       collection: 'services',
       overrideAccess: false,

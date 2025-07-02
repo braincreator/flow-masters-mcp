@@ -99,21 +99,25 @@ export function BlogActionButtons({ postId, postSlug, locale, className }: BlogA
   }
 
   const handleComment = () => {
-    // Скроллим к секции комментариев
-    const commentsSection = document.getElementById('comments-list')
-    if (commentsSection) {
-      commentsSection.scrollIntoView({ behavior: 'smooth' })
-    } else {
-      // Если элемент с id comments-list не найден, пробуем использовать элемент с id comments
-      const comments = document.getElementById('comments')
-      if (comments) {
-        comments.scrollIntoView({ behavior: 'smooth' })
+    // Скроллим к секции комментариев только на клиенте
+    if (typeof window !== 'undefined') {
+      const commentsSection = document.getElementById('comments-list')
+      if (commentsSection) {
+        commentsSection.scrollIntoView({ behavior: 'smooth' })
+      } else {
+        // Если элемент с id comments-list не найден, пробуем использовать элемент с id comments
+        const comments = document.getElementById('comments')
+        if (comments) {
+          comments.scrollIntoView({ behavior: 'smooth' })
+        }
       }
     }
   }
 
   const handleScrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   return (

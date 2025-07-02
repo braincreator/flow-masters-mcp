@@ -110,6 +110,8 @@ const nextConfig = {
     optimizeCss: false,
     // Включаем оптимизацию пакетов
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    // Включаем поддержку WebGL и графического ускорения
+    webVitalsAttribution: ['CLS', 'LCP'],
     // Оптимизации памяти
     serverActions: {
       allowedOrigins: [
@@ -121,6 +123,8 @@ const nextConfig = {
         'localhost:3002',
       ],
     },
+    // Включаем поддержку GPU ускорения для анимаций (отключено для Turbopack)
+    // forceSwcTransforms: true,
   },
 
   // Конфигурация для Turbopack (simplified for compatibility)

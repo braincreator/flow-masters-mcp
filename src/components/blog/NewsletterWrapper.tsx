@@ -25,23 +25,28 @@ export const NewsletterWrapper: React.FC<NewsletterWrapperProps> = ({
   // Проверяем статус подписки при монтировании компонента
   useEffect(() => {
     setIsClient(true)
-    const subscriptionStatus = localStorage.getItem(storageKey)
 
-    if (subscriptionStatus) {
-      try {
-        const data = JSON.parse(subscriptionStatus)
-        if (data.subscribed) {
-          setIsSubscribed(true)
+    // Проверяем localStorage только на клиенте
+    if (typeof window !== 'undefined') {
+      const subscriptionStatus = localStorage.getItem(storageKey)
+
+      if (subscriptionStatus) {
+        try {
+          const data = JSON.parse(subscriptionStatus)
+          if (data.subscribed) {
+            setIsSubscribed(true)
+          }
+        } catch (e) {
+          logError('Error parsing subscription status:', e)
+          localStorage.removeItem(storageKey)
         }
-      } catch (e) {
-        logError('Error parsing subscription status:', e)
-        localStorage.removeItem(storageKey)
       }
     }
   }, [storageKey])
 
-  // Если пользователь уже подписан или мы на сервере, не рендерим блок
-  if (!isClient || isSubscribed) {
+  // Если мы на сервере, рендерим блок (для SSR)
+  // Если на клиенте и пользователь подписан, не рендерим
+  if (isClient && isSubscribed) {
     return null
   }
 

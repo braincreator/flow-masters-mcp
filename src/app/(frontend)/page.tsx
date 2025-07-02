@@ -8,6 +8,8 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import PageClient from './[lang]/[slug]/page.client'
 import { DEFAULT_LOCALE } from '@/constants'
+import { Suspense } from 'react'
+import { OptimizedLoader } from '@/components/ui/OptimizedLoader'
 
 export default async function Page() {
   const { isEnabled: draft } = await draftMode()
@@ -39,8 +41,15 @@ export default async function Page() {
 
       {draft && <LivePreviewListener />}
 
-      <RenderHero {...hero} />
-      <RenderBlocks blocks={layout || []} />
+      {/* Hero section - critical above-the-fold content */}
+      <Suspense fallback={<OptimizedLoader />}>
+        <RenderHero {...hero} />
+      </Suspense>
+
+      {/* Blocks - lazy loaded for better performance */}
+      <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20 rounded-lg mx-4" />}>
+        <RenderBlocks blocks={layout || []} />
+      </Suspense>
     </article>
   )
 }

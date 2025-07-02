@@ -104,8 +104,8 @@ export default function PostContent({ content, postId }: PostContentProps) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [postId])
 
-  // Calculate the approximate middle points for section tracking
-  const contentElement = document.getElementById('post-content')
+  // Calculate the approximate middle points for section tracking (only on client)
+  const contentElement = typeof window !== 'undefined' ? document.getElementById('post-content') : null
   const contentHeight = contentElement?.clientHeight || 0
   const section1Position = contentHeight * 0.25
   const section2Position = contentHeight * 0.75

@@ -252,13 +252,36 @@ export default async function BlogPage(props: PageParams) {
       docs: formattedPosts, // Use the formatted posts array
     }
 
+    // Prepare translations for client component
+    const translations = {
+      title: t('title'),
+      description: t('description'),
+      searchPlaceholder: t('searchPlaceholder'),
+      noPostsFound: t('noPostsFound'),
+      loadMore: t('loadMore'),
+      categories: t('categories'),
+      tags: t('tags'),
+      allCategories: t('allCategories'),
+      allTags: t('allTags'),
+    }
+
+    // Render server-side content with client-side interactivity
     return (
-      <BlogPageClient
-        initialPosts={initialBlogPosts}
-        categories={formattedCategories}
-        tags={formattedTags}
-        locale={locale}
-      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4">{t('title')}</h1>
+          <p className="text-lg text-muted-foreground">{t('description')}</p>
+        </div>
+
+        {/* Client-side interactive components */}
+        <BlogPageClient
+          initialPosts={initialBlogPosts}
+          categories={formattedCategories}
+          tags={formattedTags}
+          locale={locale}
+          translations={translations}
+        />
+      </div>
     )
   } catch (error) {
     logError('Error loading blog page:', error)
