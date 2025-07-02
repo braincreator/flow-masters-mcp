@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get('sort') || '-publishedAt'
     const categorySlug = searchParams.get('category') || ''
     const tagSlug = searchParams.get('tag') || ''
-    const authorId = searchParams.get('author') || ''
+
     const searchQuery = searchParams.get('search') || ''
 
     logDebug('[Blog Posts API] Request params:', {
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       sort,
       categorySlug,
       tagSlug,
-      authorId,
+,
       searchQuery
     })
 
@@ -85,10 +85,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Add author filter if provided
-    if (authorId) {
-      where.authors = { in: [authorId] }
-    }
+
 
     logDebug('[Blog Posts API] Where clause:', JSON.stringify(where, null, 2))
 

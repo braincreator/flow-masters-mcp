@@ -56,10 +56,7 @@ interface Post {
     alt: string
   }
   content?: any // Add content field
-  author?: {
-    name: string
-    avatar?: string
-  }
+
   categories?: {
     id: string
     title: string
@@ -75,7 +72,7 @@ interface BlogPostCardProps {
   layout?: 'grid' | 'list'
   imagePriority?: boolean
   showExcerpt?: boolean
-  showAuthor?: boolean
+
   showDate?: boolean
   showTags?: boolean
   className?: string
@@ -88,7 +85,7 @@ export function BlogPostCard({
   layout = 'grid',
   imagePriority = false,
   showExcerpt = true,
-  showAuthor = true,
+
   showDate = true,
   showTags = true,
   className,
@@ -239,36 +236,13 @@ export function BlogPostCard({
           </p>
         )}
 
-        {/* Author and Read More */}
+        {/* Read More */}
         <div
           className={cn(
-            'flex items-center justify-between pt-4 border-t border-border/50',
+            'flex items-center justify-end pt-4 border-t border-border/50',
             layout === 'grid' && 'mt-auto',
           )}
         >
-          {/* Author - if available */}
-          {showAuthor && post.author ? (
-            <div className="flex items-center gap-3">
-              {post.author.avatar ? (
-                <Image
-                  src={post.author.avatar}
-                  alt={post.author.name || 'Author'}
-                  width={36}
-                  height={36}
-                  className="rounded-full ring-2 ring-primary/10"
-                />
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
-                  <UserIcon className="h-4 w-4" />
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground">{post.author.name}</span>
-              </div>
-            </div>
-          ) : (
-            <div /> // Empty div to maintain layout
-          )}
 
           {/* Read More Button */}
           <Link

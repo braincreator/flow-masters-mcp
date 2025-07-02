@@ -15,7 +15,7 @@ import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
-import { populateAuthors } from './hooks/populateAuthors'
+
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 import { populateReadingTime } from './hooks/populateReadingTime'
 import { revalidateSitemap, revalidateSitemapDelete } from '@/hooks/revalidateSitemap'
@@ -227,39 +227,7 @@ export const Posts: CollectionConfig<'posts'> = {
         ],
       },
     },
-    {
-      name: 'authors',
-      type: 'relationship',
-      admin: {
-        position: 'sidebar',
-      },
-      hasMany: true,
-      relationTo: 'users',
-    },
-    // This field is only used to populate the user data via the `populateAuthors` hook
-    // This is because the `user` collection has access control locked to protect user privacy
-    // GraphQL will also not return mutated user data that differs from the underlying schema
-    {
-      name: 'populatedAuthors',
-      type: 'array',
-      access: {
-        update: () => false,
-      },
-      admin: {
-        disabled: true,
-        readOnly: true,
-      },
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-        {
-          name: 'name',
-          type: 'text',
-        },
-      ],
-    },
+
     ...slugField(),
   ],
   hooks: {
@@ -283,7 +251,7 @@ export const Posts: CollectionConfig<'posts'> = {
             excerpt: doc.excerpt,
             categories: doc.categories,
             tags: doc.tags,
-            authors: doc.authors,
+
             publishedAt: doc.publishedAt,
             _status: doc._status,
             createdAt: doc.createdAt,
@@ -304,7 +272,7 @@ export const Posts: CollectionConfig<'posts'> = {
               excerpt: doc.excerpt,
               categories: doc.categories,
               tags: doc.tags,
-              authors: doc.authors,
+
               publishedAt: doc.publishedAt,
               readingTime: doc.readingTime,
             }, {
@@ -323,7 +291,7 @@ export const Posts: CollectionConfig<'posts'> = {
               excerpt: doc.excerpt,
               categories: doc.categories,
               tags: doc.tags,
-              authors: doc.authors,
+
               publishedAt: doc.publishedAt,
               readingTime: doc.readingTime,
               updatedAt: new Date().toISOString(),
@@ -338,7 +306,7 @@ export const Posts: CollectionConfig<'posts'> = {
         }
       },
     ],
-    afterRead: [populateAuthors],
+    afterRead: [],
     afterDelete: [revalidateDelete, revalidateSitemapDelete],
   },
   versions: {

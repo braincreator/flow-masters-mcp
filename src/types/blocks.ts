@@ -608,11 +608,6 @@ export interface BlogPost {
   }
   excerpt?: string
   content?: any
-  author?: {
-    id?: string
-    name: string
-    avatar?: string
-  }
   categories?: BlogCategory[]
   tags?: BlogTag[]
   readTime?: number

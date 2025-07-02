@@ -256,20 +256,6 @@ export default async function BlogPage(props: PageParams) {
         slug: post.slug || '',
         publishedAt: post.publishedAt || undefined,
         heroImage,
-        author:
-          post.authors && post.authors.length > 0 && typeof post.authors[0] !== 'string'
-            ? {
-                id:
-                  typeof post.authors[0] === 'object' && post.authors[0]
-                    ? post.authors[0].id || ''
-                    : '',
-                name:
-                  typeof post.authors[0] === 'object' && post.authors[0]
-                    ? post.authors[0].name || 'Unknown'
-                    : 'Unknown',
-                avatar: undefined, // We don't have avatar in the Post type
-              }
-            : undefined,
         categories: post.categories?.map((cat) => {
           if (typeof cat === 'string') return { id: cat, title: '', slug: '' }
           return {
