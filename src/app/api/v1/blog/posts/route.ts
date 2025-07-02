@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
       sort,
       categorySlug,
       tagSlug,
-,
       searchQuery
     })
 
