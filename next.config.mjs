@@ -106,7 +106,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // output: 'standalone', // Отключено для использования обычного режима с Turbopack
+  output: 'standalone', // Включено для Docker deployment
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,

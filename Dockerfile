@@ -66,14 +66,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PAYLOAD_TELEMETRY_DISABLED=true
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build the application with optimizations
+# Build the application with optimizations for Docker
 RUN \
   if [ -f pnpm-lock.yaml ]; then \
-    corepack enable pnpm && pnpm run build; \
+    corepack enable pnpm && pnpm run build:docker; \
   elif [ -f yarn.lock ]; then \
-    yarn run build; \
+    yarn run build:docker; \
   elif [ -f package-lock.json ]; then \
-    npm run build; \
+    npm run build:docker; \
   else \
     echo "Lockfile not found." && exit 1; \
   fi
