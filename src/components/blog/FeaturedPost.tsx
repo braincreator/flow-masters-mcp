@@ -12,21 +12,32 @@ import { Badge } from '@/components/ui/badge'
 // Вспомогательная функция для получения краткого описания из контента
 function getExcerpt(content: any, maxLength = 200): string {
   if (!content) return ''
-  let text = ''
-  if (typeof content === 'string') {
-    text = content
-  } else if (Array.isArray(content)) {
-    text = content
-      .map((block) => {
-        if (typeof block === 'string') return block
-        if (typeof block === 'object' && block?.text) return block.text
-        return ''
-      })
-      .join(' ')
-  }
 
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength).trim() + '...'
+  try {
+    let text = ''
+    if (typeof content === 'string') {
+      text = content
+    } else if (Array.isArray(content)) {
+      text = content
+        .map((block) => {
+          if (typeof block === 'string') return block
+          if (typeof block === 'object' && block?.text) return block.text
+          return ''
+        })
+        .join(' ')
+    } else if (typeof content === 'object' && content?.text) {
+      text = content.text
+    }
+
+    // Normalize whitespace to prevent hydration mismatches
+    text = text.replace(/\s+/g, ' ').trim()
+
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength).trim() + '...'
+  } catch (error) {
+    // Return empty string on any error to prevent hydration issues
+    return ''
+  }
 }
 
 interface TagType {
@@ -79,7 +90,8 @@ export function FeaturedPost({ post, locale = 'en', className }: FeaturedPostPro
   const formattedDate = (post.publishedAt && formatBlogDate(post.publishedAt, locale)) || ''
   const postLink = `/${locale}/blog/${post.slug}`
   const imageUrl = post.thumbnail?.url || post.heroImage?.url || ''
-  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || t('noImage')
+  const imageAlt =
+    post.thumbnail?.alt || post.heroImage?.alt || post.title || 'Featured blog post image'
 
   return (
     <article
@@ -168,10 +180,7 @@ export function FeaturedPost({ post, locale = 'en', className }: FeaturedPostPro
             {formattedDate && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary/60" />
-                <time
-                  dateTime={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
-                  className="font-medium"
-                >
+                <time dateTime={post.publishedAt || undefined} className="font-medium">
                   {formattedDate}
                 </time>
               </div>
