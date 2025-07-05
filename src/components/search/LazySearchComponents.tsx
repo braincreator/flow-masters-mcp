@@ -6,15 +6,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 // Lazy-loaded search components with appropriate loading skeletons
 
 export const LazySearchBar = dynamic(
-  () => Promise.resolve({ default: SearchBar }),
+  () => import('./SearchBar').then((mod) => ({ default: mod.SearchBar })),
   {
     loading: () => <Skeleton className="h-10 w-full rounded-md" />,
     ssr: false,
-  }
+  },
 )
 
 export const LazySearchResults = dynamic(
-  () => Promise.resolve({ default: SearchResults }),
+  () => import('./SearchResults').then((mod) => ({ default: mod.SearchResults })),
   {
     loading: () => (
       <div className="space-y-4">
@@ -31,11 +31,11 @@ export const LazySearchResults = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 )
 
 export const LazySearchFilters = dynamic(
-  () => Promise.resolve({ default: SearchFilters }),
+  () => import('./SearchFilters').then((mod) => ({ default: mod.SearchFilters })),
   {
     loading: () => (
       <div className="space-y-4">
@@ -48,11 +48,11 @@ export const LazySearchFilters = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 )
 
 export const LazySearchHistory = dynamic(
-  () => Promise.resolve({ default: SearchHistory }),
+  () => import('./SearchHistory').then((mod) => ({ default: mod.SearchHistory })),
   {
     loading: () => (
       <div className="space-y-4">
@@ -65,7 +65,7 @@ export const LazySearchHistory = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 )
 
 // Create placeholder components for the ones that don't exist yet
@@ -142,10 +142,7 @@ export function SearchHistory({ history = [], onClear, onSelect }: any) {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Recent Searches</h3>
         {history.length > 0 && (
-          <button
-            className="text-sm text-blue-500 hover:underline"
-            onClick={onClear}
-          >
+          <button className="text-sm text-blue-500 hover:underline" onClick={onClear}>
             Clear
           </button>
         )}
@@ -159,9 +156,7 @@ export function SearchHistory({ history = [], onClear, onSelect }: any) {
               onClick={() => onSelect?.(item.query)}
             >
               <p>{item.query}</p>
-              <p className="text-xs text-gray-500">
-                {new Date(item.timestamp).toLocaleString()}
-              </p>
+              <p className="text-xs text-gray-500">{new Date(item.timestamp).toLocaleString()}</p>
             </div>
           ))}
         </div>
