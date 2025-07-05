@@ -41,7 +41,13 @@ interface BlogPageProps {
   }
 }
 
-const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tags, locale, translations }) => {
+const BlogPageClient: React.FC<BlogPageProps> = ({
+  initialPosts,
+  categories,
+  tags,
+  locale,
+  translations,
+}) => {
   const isClient = useIsClient()
 
   // State for managing posts, pagination, filters, and search
@@ -187,17 +193,19 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
   // Effect to handle initial search params from the URL on client load
   // This is needed if the user navigates directly to a filtered/paginated URL
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const page = parseInt(params.get('page') || '1', 10)
-    const category = params.get('category') || undefined
-    const tag = params.get('tag') || undefined
-    const search = params.get('search') || undefined
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const page = parseInt(params.get('page') || '1', 10)
+      const category = params.get('category') || undefined
+      const tag = params.get('tag') || undefined
+      const search = params.get('search') || undefined
 
-    // Update state based on URL params
-    setCurrentPage(page)
-    setCurrentCategory(category)
-    setCurrentTag(tag)
-    setSearchTerm(search)
+      // Update state based on URL params
+      setCurrentPage(page)
+      setCurrentCategory(category)
+      setCurrentTag(tag)
+      setSearchTerm(search)
+    }
 
     // Mark initial mount as complete after state is set
     isInitialMount.current = false
@@ -214,20 +222,22 @@ const BlogPageClient: React.FC<BlogPageProps> = ({ initialPosts, categories, tag
 
   // Effect to update URL based on state changes
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (currentPage > 1) params.set('page', currentPage.toString())
-    if (currentCategory) params.set('category', currentCategory)
-    if (currentTag) params.set('tag', currentTag)
-    if (searchTerm) params.set('search', searchTerm)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams()
+      if (currentPage > 1) params.set('page', currentPage.toString())
+      if (currentCategory) params.set('category', currentCategory)
+      if (currentTag) params.set('tag', currentTag)
+      if (searchTerm) params.set('search', searchTerm)
 
-    const newUrl = `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
-    window.history.pushState({}, '', newUrl)
+      const newUrl = `/${locale}/blog${params.toString() ? `?${params.toString()}` : ''}`
+      window.history.pushState({}, '', newUrl)
+    }
   }, [currentPage, currentCategory, currentTag, searchTerm, locale])
 
   // Debounced effect to fetch posts when filters, search, or page change
   useEffect(() => {
     // Prevent fetching on initial mount if state hasn't been set from URL yet
-    if (isInitialMount.current) {
+    if (isInitialMount.current && typeof window !== 'undefined') {
       // Check if URL params have been processed. If not, wait.
       // This simple check assumes URL params are processed quickly.
       // A more robust solution might involve another state variable.

@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { getRssFeedUrls } from '@/utilities/rssHelpers'
 
 export interface SEOProps {
   title?: string
@@ -29,8 +28,7 @@ interface StructuredDataProps {
 const DEFAULT_SEO = {
   siteName: 'FlowMasters',
   defaultTitle: 'FlowMasters - AI-Powered Business Automation',
-  defaultDescription:
-    'Автоматизация бизнес-процессов с помощью ИИ. Создаем умные решения для вашего бизнеса.',
+  defaultDescription: 'Автоматизация бизнес-процессов с помощью ИИ. Создаем умные решения для вашего бизнеса.',
   defaultImage: '/images/og-default.jpg',
   defaultUrl: 'https://flow-masters.ru',
   twitterHandle: '@flowmasters',
@@ -59,33 +57,26 @@ export async function generateSEOMetadata({
   canonical,
 }: SEOProps = {}): Promise<Metadata> {
   const t = await getTranslations('SEO')
-
+  
   const finalTitle = title ? `${title} | ${DEFAULT_SEO.siteName}` : DEFAULT_SEO.defaultTitle
   const finalDescription = description || DEFAULT_SEO.defaultDescription
   const finalImage = image || DEFAULT_SEO.defaultImage
   const finalUrl = url || DEFAULT_SEO.defaultUrl
-
+  
   // Ensure absolute URLs
-  const absoluteImage = finalImage.startsWith('http')
-    ? finalImage
-    : `${DEFAULT_SEO.defaultUrl}${finalImage}`
-  const absoluteUrl = finalUrl.startsWith('http')
-    ? finalUrl
-    : `${DEFAULT_SEO.defaultUrl}${finalUrl}`
-
-  // Get RSS feed URLs
-  const rssFeeds = getRssFeedUrls(DEFAULT_SEO.defaultUrl)
-
+  const absoluteImage = finalImage.startsWith('http') ? finalImage : `${DEFAULT_SEO.defaultUrl}${finalImage}`
+  const absoluteUrl = finalUrl.startsWith('http') ? finalUrl : `${DEFAULT_SEO.defaultUrl}${finalUrl}`
+  
   const metadata: Metadata = {
     title: finalTitle,
     description: finalDescription,
     keywords: keywords.length > 0 ? keywords.join(', ') : undefined,
-
+    
     // Basic meta tags
     authors: author ? [{ name: author }] : undefined,
     creator: DEFAULT_SEO.siteName,
     publisher: DEFAULT_SEO.siteName,
-
+    
     // Robots
     robots: {
       index: !noIndex,
@@ -98,27 +89,16 @@ export async function generateSEOMetadata({
         'max-snippet': -1,
       },
     },
-
+    
     // Canonical URL
     alternates: {
       canonical: canonical || absoluteUrl,
-      languages: alternateLocales.reduce(
-        (acc, alt) => {
-          acc[alt.locale] = alt.url
-          return acc
-        },
-        {} as Record<string, string>,
-      ),
-      types: {
-        'application/rss+xml': [
-          { url: rssFeeds.blog, title: 'Flow Masters - Блог' },
-          { url: rssFeeds.blogEn, title: 'Flow Masters - Blog (English)' },
-          { url: rssFeeds.services, title: 'Flow Masters - Services' },
-        ],
-        'application/atom+xml': [{ url: rssFeeds.atom, title: 'Flow Masters - Atom Feed' }],
-      },
+      languages: alternateLocales.reduce((acc, alt) => {
+        acc[alt.locale] = alt.url
+        return acc
+      }, {} as Record<string, string>),
     },
-
+    
     // Open Graph
     openGraph: {
       type: type as any,
@@ -135,7 +115,7 @@ export async function generateSEOMetadata({
         },
       ],
       locale: locale,
-      alternateLocale: alternateLocales.map((alt) => alt.locale),
+      alternateLocale: alternateLocales.map(alt => alt.locale),
       ...(type === 'article' && {
         publishedTime,
         modifiedTime,
@@ -144,7 +124,7 @@ export async function generateSEOMetadata({
         tags,
       }),
     },
-
+    
     // Twitter
     twitter: {
       card: 'summary_large_image',
@@ -154,7 +134,7 @@ export async function generateSEOMetadata({
       creator: DEFAULT_SEO.twitterHandle,
       site: DEFAULT_SEO.twitterHandle,
     },
-
+    
     // Additional meta tags
     other: {
       'application-name': DEFAULT_SEO.siteName,
@@ -168,7 +148,7 @@ export async function generateSEOMetadata({
       'theme-color': '#000000',
     },
   }
-
+  
   return metadata
 }
 
@@ -181,7 +161,7 @@ export function generateStructuredData({ type, data }: StructuredDataProps): str
     '@type': type,
     ...data,
   }
-
+  
   // Add common organization data for all types
   if (type !== 'Organization') {
     baseData.publisher = {
@@ -194,7 +174,7 @@ export function generateStructuredData({ type, data }: StructuredDataProps): str
       },
     }
   }
-
+  
   return JSON.stringify(baseData)
 }
 
@@ -202,41 +182,39 @@ export function generateStructuredData({ type, data }: StructuredDataProps): str
  * Common structured data generators
  */
 export const structuredDataGenerators = {
-  organization: () =>
-    generateStructuredData({
-      type: 'Organization',
-      data: {
-        name: DEFAULT_SEO.siteName,
-        url: DEFAULT_SEO.defaultUrl,
-        logo: `${DEFAULT_SEO.defaultUrl}/images/logo.png`,
-        description: DEFAULT_SEO.defaultDescription,
-        contactPoint: {
-          '@type': 'ContactPoint',
-          telephone: '+7-XXX-XXX-XXXX',
-          contactType: 'customer service',
-          availableLanguage: ['Russian', 'English'],
-        },
-        sameAs: [
-          'https://t.me/flowmasters',
-          // Add other social media URLs
-        ],
+  organization: () => generateStructuredData({
+    type: 'Organization',
+    data: {
+      name: DEFAULT_SEO.siteName,
+      url: DEFAULT_SEO.defaultUrl,
+      logo: `${DEFAULT_SEO.defaultUrl}/images/logo.png`,
+      description: DEFAULT_SEO.defaultDescription,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+7-XXX-XXX-XXXX',
+        contactType: 'customer service',
+        availableLanguage: ['Russian', 'English'],
       },
-    }),
-
-  website: (url: string) =>
-    generateStructuredData({
-      type: 'WebSite',
-      data: {
-        name: DEFAULT_SEO.siteName,
-        url: url,
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${url}/search?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
-        },
+      sameAs: [
+        'https://t.me/flowmasters',
+        // Add other social media URLs
+      ],
+    },
+  }),
+  
+  website: (url: string) => generateStructuredData({
+    type: 'WebSite',
+    data: {
+      name: DEFAULT_SEO.siteName,
+      url: url,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${url}/search?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
       },
-    }),
-
+    },
+  }),
+  
   article: (article: {
     title: string
     description: string
@@ -245,35 +223,33 @@ export const structuredDataGenerators = {
     publishedTime: string
     modifiedTime?: string
     author: string
-  }) =>
-    generateStructuredData({
-      type: 'Article',
-      data: {
-        headline: article.title,
-        description: article.description,
-        url: article.url,
-        image: article.image,
-        datePublished: article.publishedTime,
-        dateModified: article.modifiedTime || article.publishedTime,
-        author: {
-          '@type': 'Person',
-          name: article.author,
-        },
+  }) => generateStructuredData({
+    type: 'Article',
+    data: {
+      headline: article.title,
+      description: article.description,
+      url: article.url,
+      image: article.image,
+      datePublished: article.publishedTime,
+      dateModified: article.modifiedTime || article.publishedTime,
+      author: {
+        '@type': 'Person',
+        name: article.author,
       },
-    }),
-
-  breadcrumb: (items: { name: string; url: string }[]) =>
-    generateStructuredData({
-      type: 'BreadcrumbList',
-      data: {
-        itemListElement: items.map((item, index) => ({
-          '@type': 'ListItem',
-          position: index + 1,
-          name: item.name,
-          item: item.url,
-        })),
-      },
-    }),
+    },
+  }),
+  
+  breadcrumb: (items: { name: string; url: string }[]) => generateStructuredData({
+    type: 'BreadcrumbList',
+    data: {
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.name,
+        item: item.url,
+      })),
+    },
+  }),
 }
 
 /**
@@ -281,6 +257,11 @@ export const structuredDataGenerators = {
  */
 export function StructuredData({ type, data }: StructuredDataProps) {
   const jsonLd = generateStructuredData({ type, data })
-
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+  
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: jsonLd }}
+    />
+  )
 }
