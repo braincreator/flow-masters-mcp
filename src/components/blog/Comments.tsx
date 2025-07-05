@@ -122,10 +122,17 @@ function CommentItem({
   const formattedDate = formatDate(comment.createdAt)
 
   // Относительное время для человекочитаемого формата (например, "2 часа назад")
-  const timeAgo = formatDistanceToNow(new Date(comment.createdAt), {
-    addSuffix: true,
-    locale: locale === 'ru' ? ru : undefined,
-  })
+  // Use a fixed date to prevent hydration mismatches
+  const timeAgo = React.useMemo(() => {
+    try {
+      return formatDistanceToNow(new Date(comment.createdAt), {
+        addSuffix: true,
+        locale: locale === 'ru' ? ru : undefined,
+      })
+    } catch (error) {
+      return formattedDate // Fallback to formatted date
+    }
+  }, [comment.createdAt, locale, formattedDate])
 
   // Определяем максимальную вложенность
   const maxNestingLevel = 3

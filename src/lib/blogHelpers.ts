@@ -242,18 +242,18 @@ export function formatBlogDate(date: string | Date, locale: string = 'en'): stri
   const dateObj = typeof date === 'string' ? new Date(date) : date
 
   try {
+    // Use only date formatting without time to prevent hydration mismatches
+    // Time zones can cause server/client differences
     return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: '2-digit', // Add hour
-      minute: '2-digit', // Add minute
-      hour12: false, // Use 24-hour format if preferred
+      timeZone: 'UTC', // Force UTC to ensure consistency between server and client
     }).format(dateObj)
   } catch (error) {
     logError('Error formatting date:', error)
     // Fallback to a simpler format in case of error
-    return dateObj.toLocaleDateString(locale)
+    return dateObj.toLocaleDateString(locale, { timeZone: 'UTC' })
   }
 }
 

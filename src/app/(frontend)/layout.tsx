@@ -10,7 +10,6 @@ import { getCachedGlobal, getGlobal } from '@/utilities/getGlobals'
 import Script from 'next/script'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
-import { ClientOnly } from '@/components/ui/ClientOnly'
 
 // Lazy load non-critical components
 const RootProvider = lazy(() =>
@@ -85,16 +84,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </head>
         <body>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="Europe/Moscow">
-            <ClientOnly fallback={<div>Loading...</div>}>
-              <Suspense fallback={<div>Loading...</div>}>
-                {/* Pass fetched data to provider if needed */}
-                <RootProvider lang={locale} /* header={header} footer={footer} etc */>
-                  <Suspense fallback={null}>
-                    <AnalyticsLayout>{children}</AnalyticsLayout>
-                  </Suspense>
-                </RootProvider>
-              </Suspense>
-            </ClientOnly>
+            <Suspense fallback={<div>Loading...</div>}>
+              {/* Pass fetched data to provider if needed */}
+              <RootProvider lang={locale} /* header={header} footer={footer} etc */>
+                <Suspense fallback={null}>
+                  <AnalyticsLayout>{children}</AnalyticsLayout>
+                </Suspense>
+              </RootProvider>
+            </Suspense>
           </NextIntlClientProvider>
         </body>
       </html>

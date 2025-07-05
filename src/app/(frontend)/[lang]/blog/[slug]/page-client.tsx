@@ -162,13 +162,13 @@ export function BlogPostPageClient({
                   <dl className="text-sm space-y-2 text-muted-foreground">
                     <div>
                       <dt className="inline font-medium mr-1">{t('published')}</dt>
-                      <dd className="inline">{format(postDate, 'MMM d, yyyy')}</dd>
+                      <dd className="inline">{formatBlogDate(postDate, currentLocale)}</dd>
                     </div>
                     {post.updatedAt && post.updatedAt !== post.publishedAt && (
                       <div>
                         <dt className="inline font-medium mr-1">{t('updated')}</dt>
                         <dd className="inline">
-                          {format(new Date(post.updatedAt), 'MMM d, yyyy')}
+                          {formatBlogDate(new Date(post.updatedAt), currentLocale)}
                         </dd>
                       </div>
                     )}

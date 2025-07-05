@@ -387,7 +387,7 @@ export function Blog({
           {post.publishedAt && (
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              {new Date(post.publishedAt).toLocaleDateString()}
+              {new Date(post.publishedAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}
             </div>
           )}
           {post.readTime && (
