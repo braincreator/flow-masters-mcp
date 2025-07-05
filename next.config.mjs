@@ -192,8 +192,8 @@ const nextConfig = {
               "frame-src 'self' https://mc.yandex.com https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://sber.ru https://sberbank.ru https://timeweb.ru https://timeweb.com",
               "object-src 'none'",
               "base-uri 'self'",
-              "form-action 'self'"
-            ].join('; ')
+              "form-action 'self'",
+            ].join('; '),
           },
           {
             key: 'X-Content-Type-Options',
@@ -232,10 +232,10 @@ const nextConfig = {
     '@aws-sdk/smithy-client',
   ],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // Temporarily ignore until Next.js 15 migration is complete
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Temporarily ignore until cleanup is done
   },
 
   // Add CSS optimization settings and fix worker_threads issue
@@ -291,8 +291,8 @@ const nextConfig = {
             name: 'metrika',
             test: /metrika|yandex/,
             chunks: 'all',
-            priority: 10
-          }
+            priority: 10,
+          },
         },
       }
 
@@ -407,7 +407,7 @@ const nextConfig = {
 
     return config
   },
-  
+
   // Проксирование запросов к аналитическим сервисам (обход блокировщиков)
   async rewrites() {
     return [

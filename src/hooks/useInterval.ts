@@ -5,16 +5,12 @@ import { useEffect, useRef } from 'react'
 /**
  * Хук для безопасного использования setInterval в React компонентах
  * Автоматически очищает интервал при размонтировании компонента
- * 
+ *
  * @param callback Функция, которая будет вызываться с указанным интервалом
  * @param delay Интервал в миллисекундах (null для остановки)
  * @param immediate Если true, callback будет вызван сразу при монтировании
  */
-export function useInterval(
-  callback: () => void,
-  delay: number | null,
-  immediate = false
-): void {
+export function useInterval(callback: () => void, delay: number | null, immediate = false): void {
   const savedCallback = useRef<() => void>()
   const intervalRef = useRef<NodeJS.Timeout>()
 
@@ -53,7 +49,7 @@ export function useInterval(
       clearInterval(intervalRef.current)
       intervalRef.current = undefined
     }
-    
+
     return undefined
   }, [delay, immediate])
 }
@@ -61,14 +57,11 @@ export function useInterval(
 /**
  * Хук для безопасного использования setTimeout в React компонентах
  * Автоматически очищает таймаут при размонтировании компонента
- * 
+ *
  * @param callback Функция, которая будет вызвана после задержки
  * @param delay Задержка в миллисекундах (null для отмены)
  */
-export function useTimeout(
-  callback: () => void,
-  delay: number | null
-): void {
+export function useTimeout(callback: () => void, delay: number | null): void {
   const savedCallback = useRef<() => void>()
   const timeoutRef = useRef<NodeJS.Timeout>()
 
@@ -99,7 +92,12 @@ export function useTimeout(
       clearTimeout(timeoutRef.current)
       timeoutRef.current = undefined
     }
-    
+
     return undefined
   }, [delay])
 }
+
+/**
+ * @deprecated Рекомендуется использовать useOptimizedInterval для лучшего управления памятью
+ * import { useOptimizedInterval } from '@/hooks/useOptimizedInterval'
+ */
