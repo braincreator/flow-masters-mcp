@@ -5,15 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Rocket, 
-  Zap, 
-  AlertTriangle, 
-  CheckCircle, 
+import { apiClient } from '@/lib/httpClient'
+import {
+  Rocket,
+  Zap,
+  AlertTriangle,
+  CheckCircle,
   Settings,
   RefreshCw,
   Copy,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react'
 
 interface PixelStats {
@@ -54,8 +55,7 @@ export function ForcePixelActivator() {
   const loadStats = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/pixels/force-activate')
-      const data = await response.json()
+      const data = await apiClient.get('/api/pixels/force-activate')
       setStats(data.stats)
       setLastUpdate(new Date().toLocaleString())
     } catch (error) {
@@ -68,12 +68,9 @@ export function ForcePixelActivator() {
   const activateAllPixels = async () => {
     setIsActivating(true)
     try {
-      const response = await fetch('/api/pixels/force-activate', {
-        method: 'POST'
-      })
-      const result = await response.json()
+      const result = await apiClient.post('/api/pixels/force-activate')
       setActivationResult(result)
-      
+
       // Обновляем статистику после активации
       if (result.success) {
         await loadStats()
@@ -81,7 +78,7 @@ export function ForcePixelActivator() {
     } catch (error) {
       setActivationResult({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       })
     } finally {
       setIsActivating(false)
@@ -96,10 +93,11 @@ export function ForcePixelActivator() {
     loadStats()
   }, [])
 
-  const isFullyOptimized = stats && 
-    stats.active === stats.total && 
-    stats.gdprCompliant === 0 && 
-    stats.allPages === stats.total && 
+  const isFullyOptimized =
+    stats &&
+    stats.active === stats.total &&
+    stats.gdprCompliant === 0 &&
+    stats.allPages === stats.total &&
     stats.highPriority === stats.total &&
     stats.forceMode
 
@@ -115,7 +113,7 @@ export function ForcePixelActivator() {
             Включить ВСЕ пиксели независимо от настроек GDPR, согласий и ограничений
           </p>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* Current Status */}
           {stats && (
@@ -140,7 +138,11 @@ export function ForcePixelActivator() {
           )}
 
           {/* Force Mode Status */}
-          <Alert className={stats?.forceMode ? "border-green-200 bg-green-50" : "border-yellow-200 bg-yellow-50"}>
+          <Alert
+            className={
+              stats?.forceMode ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'
+            }
+          >
             <Zap className={`h-4 w-4 ${stats?.forceMode ? 'text-green-600' : 'text-yellow-600'}`} />
             <AlertDescription>
               <div className="flex items-center justify-between">
@@ -152,9 +154,7 @@ export function ForcePixelActivator() {
                     <span className="text-yellow-700">❌ НЕ АКТИВЕН</span>
                   )}
                 </div>
-                {stats?.forceMode && (
-                  <Badge className="bg-green-500">FORCE MODE ON</Badge>
-                )}
+                {stats?.forceMode && <Badge className="bg-green-500">FORCE MODE ON</Badge>}
               </div>
             </AlertDescription>
           </Alert>
@@ -164,23 +164,24 @@ export function ForcePixelActivator() {
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                <strong>🎉 Полная оптимизация!</strong> Все пиксели настроены для принудительной загрузки 
-                и режим FORCE MODE активен. Все счетчики должны работать независимо от настроек.
+                <strong>🎉 Полная оптимизация!</strong> Все пиксели настроены для принудительной
+                загрузки и режим FORCE MODE активен. Все счетчики должны работать независимо от
+                настроек.
               </AlertDescription>
             </Alert>
           ) : (
             <Alert className="border-yellow-200 bg-yellow-50">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-800">
-                <strong>Требуется оптимизация:</strong> Некоторые пиксели не настроены для принудительной загрузки.
-                Нажмите кнопку ниже для автоматической настройки.
+                <strong>Требуется оптимизация:</strong> Некоторые пиксели не настроены для
+                принудительной загрузки. Нажмите кнопку ниже для автоматической настройки.
               </AlertDescription>
             </Alert>
           )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
+            <Button
               onClick={activateAllPixels}
               disabled={isActivating}
               className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
@@ -189,8 +190,8 @@ export function ForcePixelActivator() {
               <Rocket className={`h-4 w-4 ${isActivating ? 'animate-spin' : ''}`} />
               {isActivating ? 'Активация...' : '🚀 АКТИВИРОВАТЬ ВСЕ ПИКСЕЛИ'}
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={loadStats}
               disabled={isLoading}
               variant="outline"
@@ -200,7 +201,7 @@ export function ForcePixelActivator() {
               Обновить статистику
             </Button>
 
-            <Button 
+            <Button
               onClick={() => window.open('/en/test/analytics', '_blank')}
               variant="outline"
               className="flex items-center gap-2"
@@ -214,7 +215,9 @@ export function ForcePixelActivator() {
           {activationResult && (
             <Card>
               <CardHeader>
-                <CardTitle className={`text-lg ${activationResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                <CardTitle
+                  className={`text-lg ${activationResult.success ? 'text-green-600' : 'text-red-600'}`}
+                >
                   {activationResult.success ? '✅ Активация завершена' : '❌ Ошибка активации'}
                 </CardTitle>
               </CardHeader>
@@ -222,7 +225,7 @@ export function ForcePixelActivator() {
                 {activationResult.success ? (
                   <div className="space-y-4">
                     <p className="text-green-700">{activationResult.message}</p>
-                    
+
                     {activationResult.results && (
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -249,7 +252,7 @@ export function ForcePixelActivator() {
                     {activationResult.instructions && (
                       <div className="space-y-3">
                         <h4 className="font-medium">📋 Следующие шаги:</h4>
-                        
+
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                             <span className="text-sm flex-1">
@@ -263,13 +266,13 @@ export function ForcePixelActivator() {
                               <Copy className="h-3 w-3" />
                             </Button>
                           </div>
-                          
+
                           <div className="p-3 bg-muted rounded-lg">
                             <span className="text-sm">
                               2. {activationResult.instructions.restart}
                             </span>
                           </div>
-                          
+
                           <div className="p-3 bg-muted rounded-lg">
                             <span className="text-sm">
                               3. {activationResult.instructions.verification}
@@ -279,21 +282,20 @@ export function ForcePixelActivator() {
                       </div>
                     )}
 
-                    {activationResult.results?.errors && activationResult.results.errors.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-red-600">Ошибки:</h4>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-red-600">
-                          {activationResult.results.errors.map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {activationResult.results?.errors &&
+                      activationResult.results.errors.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-red-600">Ошибки:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-red-600">
+                            {activationResult.results.errors.map((error, index) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                   </div>
                 ) : (
-                  <p className="text-red-700">
-                    Ошибка: {activationResult.error}
-                  </p>
+                  <p className="text-red-700">Ошибка: {activationResult.error}</p>
                 )}
               </CardContent>
             </Card>
@@ -336,7 +338,8 @@ export function ForcePixelActivator() {
                 <div className="flex items-start gap-2">
                   <Zap className="h-4 w-4 text-blue-500 mt-0.5" />
                   <div>
-                    <strong>Требует переменную окружения</strong> - NEXT_PUBLIC_FORCE_LOAD_PIXELS=true
+                    <strong>Требует переменную окружения</strong> -
+                    NEXT_PUBLIC_FORCE_LOAD_PIXELS=true
                   </div>
                 </div>
               </div>
@@ -347,9 +350,9 @@ export function ForcePixelActivator() {
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              <strong>⚠️ Внимание:</strong> Принудительный режим отключает все проверки согласий GDPR 
-              и загружает пиксели независимо от настроек пользователя. Используйте только для тестирования 
-              или в регионах, где GDPR не применяется.
+              <strong>⚠️ Внимание:</strong> Принудительный режим отключает все проверки согласий
+              GDPR и загружает пиксели независимо от настроек пользователя. Используйте только для
+              тестирования или в регионах, где GDPR не применяется.
             </AlertDescription>
           </Alert>
 

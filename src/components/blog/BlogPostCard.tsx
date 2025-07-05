@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import { usePathname } from 'next/navigation'
 import { Calendar, Clock, User as UserIcon, ArrowRight, BookOpen } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -125,7 +125,7 @@ export function BlogPostCard({
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          <Image
+          <OptimizedImage
             src={imageUrl} // Use the determined imageUrl
             alt={imageAlt} // Use the determined imageAlt
             fill
@@ -243,7 +243,6 @@ export function BlogPostCard({
             layout === 'grid' && 'mt-auto',
           )}
         >
-
           {/* Read More Button */}
           <Link
             href={postLink}

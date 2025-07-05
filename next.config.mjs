@@ -2,9 +2,9 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import createNextIntlPlugin from 'next-intl/plugin'
+import * as nextIntlPlugin from 'next-intl/plugin'
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
-import bundleAnalyzer from '@next/bundle-analyzer'
+import * as bundleAnalyzer from '@next/bundle-analyzer'
 
 // Получаем пути к модулям
 const getModulePath = (pkg) => {
@@ -232,7 +232,7 @@ const nextConfig = {
     '@aws-sdk/smithy-client',
   ],
   typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore until Next.js 15 migration is complete
+    ignoreBuildErrors: true, // Keep disabled until Next.js 15 migration is complete
   },
   eslint: {
     ignoreDuringBuilds: true, // Temporarily ignore until cleanup is done
@@ -444,8 +444,11 @@ const nextConfig = {
   },
 }
 
+const createNextIntlPlugin = nextIntlPlugin.default ?? nextIntlPlugin
 const withNextIntl = createNextIntlPlugin('./i18n.ts')
-const withBundleAnalyzer = bundleAnalyzer({
+
+const createBundleAnalyzer = bundleAnalyzer.default ?? bundleAnalyzer
+const withBundleAnalyzer = createBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
