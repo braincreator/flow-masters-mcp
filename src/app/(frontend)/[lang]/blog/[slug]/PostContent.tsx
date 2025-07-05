@@ -73,6 +73,8 @@ export default function PostContent({ content, postId }: PostContentProps) {
 
   // Set up tracking of complete read when user reaches the bottom
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight
       const documentHeight = document.documentElement.scrollHeight
@@ -105,7 +107,8 @@ export default function PostContent({ content, postId }: PostContentProps) {
   }, [postId])
 
   // Calculate the approximate middle points for section tracking (only on client)
-  const contentElement = typeof window !== 'undefined' ? document.getElementById('post-content') : null
+  const contentElement =
+    typeof window !== 'undefined' ? document.getElementById('post-content') : null
   const contentHeight = contentElement?.clientHeight || 0
   const section1Position = contentHeight * 0.25
   const section2Position = contentHeight * 0.75
@@ -137,6 +140,8 @@ export default function PostContent({ content, postId }: PostContentProps) {
   }
 
   const trackScrollDepth = useCallback(() => {
+    if (typeof window === 'undefined') return
+
     // Calculate scroll depth
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop
     const documentHeight = document.documentElement.scrollHeight - window.innerHeight

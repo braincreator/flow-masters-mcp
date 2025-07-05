@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl' // Import useTranslations
 import debounce from 'lodash.debounce'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useIsClient } from '@/hooks/useIsClient'
+
 import '@/components/blog/enhanced-blog.css'
 import { PaginatedDocs } from 'payload'
 import { cn } from '@/lib/utils' // Added cn import
@@ -14,7 +14,7 @@ import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { FeaturedPost } from '@/components/blog/FeaturedPost'
-import { EnhancedBlogSkeleton } from '@/components/blog/EnhancedBlogSkeleton'
+
 import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
 import { X, Search, GridIcon, ListIcon, Sparkles, TrendingUp, FolderOpen, Tag } from 'lucide-react' // Added GridIcon, ListIcon
@@ -48,8 +48,6 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   locale,
   translations,
 }) => {
-  const isClient = useIsClient()
-
   // State for managing posts, pagination, filters, and search
   const [posts, setPosts] = useState(initialPosts)
   const [currentPage, setCurrentPage] = useState(initialPosts.page || 1)
@@ -60,11 +58,6 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   const [layout, setLayout] = useState<'grid' | 'list'>('grid') // Add layout state
   const [showAllCategories, setShowAllCategories] = useState(false) // State for expanding categories
   const [showAllTags, setShowAllTags] = useState(false) // State for expanding tags
-
-  // Render loading state on server and during hydration
-  if (!isClient) {
-    return <EnhancedBlogSkeleton />
-  }
 
   // Remove debouncing for immediate search response
   // const debouncedSearchTerm = useDebounce(searchTerm, 300)
