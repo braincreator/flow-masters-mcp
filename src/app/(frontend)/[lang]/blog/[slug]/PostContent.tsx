@@ -115,6 +115,11 @@ export default function PostContent({ content, postId }: PostContentProps) {
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postId,
+        action: 'link_click',
+        url,
+      }),
     })
   }
 
@@ -123,6 +128,11 @@ export default function PostContent({ content, postId }: PostContentProps) {
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postId,
+        action: 'share',
+        platform,
+      }),
     })
   }
 
@@ -136,8 +146,13 @@ export default function PostContent({ content, postId }: PostContentProps) {
     fetch('/api/v1/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postId,
+        action: 'scroll_depth',
+        progress: scrollDepth,
+      }),
     })
-  }, [])
+  }, [postId])
 
   if (!content) {
     return (
