@@ -105,7 +105,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  output: 'standalone', // Включено для Docker deployment
+  // output: 'standalone', // Disabled - using regular build mode with turbopack as preferred
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,
@@ -319,14 +319,14 @@ const nextConfig = {
             ],
           },
           // Exclude Payload CMS files from aggressive optimization
-          exclude: [
-            /node_modules\/@payloadcms/,
-            /node_modules\/payload-admin/,
-            /src\/app\/\(payload\)/,
-            /src\/styles\/payload-admin/,
-            /payload-admin-override\.css/,
-            /custom\.scss/,
-          ],
+          // exclude: [
+          //   /node_modules\/@payloadcms/,
+          //   /node_modules\/payload-admin/,
+          //   /src\/app\/\(payload\)/,
+          //   /src\/styles\/payload-admin/,
+          //   /payload-admin-override\.css/,
+          //   /custom\.scss/,
+          // ],
         }),
       )
     }

@@ -1,5 +1,6 @@
 # Optimized Dockerfile for FlowMasters Next.js Application
 # Enhanced version with security, performance, and size optimizations
+# Updated for regular Next.js build mode (not standalone)
 
 FROM node:22.12.0-alpine AS base
 
@@ -95,17 +96,19 @@ ENV HOSTNAME="0.0.0.0"
 # Copy public assets from builder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Create .next directory with correct permissions
-RUN mkdir .next && chown nextjs:nodejs .next
+# Create .next directory with correct permissions (will be overwritten by COPY)
+RUN mkdir -p .next && chown nextjs:nodejs .next
 
-# Copy built application using output file tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy built application files
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Create cache directory
-RUN mkdir -p .next/cache && \
-    chown -R nextjs:nodejs .next && \
-    chmod -R 755 .next
+# Set correct permissions for .next directory and create cache
+RUN chown -R nextjs:nodejs .next && \
+    chmod -R 755 .next && \
+    mkdir -p .next/cache && \
+    chown -R nextjs:nodejs .next/cache
 
 # Health check endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
@@ -120,5 +123,5 @@ EXPOSE 3000
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application using Next.js start command
+CMD ["npm", "start"]

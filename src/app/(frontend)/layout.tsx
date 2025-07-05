@@ -100,7 +100,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch (error) {
     // Handle error fetching globals
     logError('Failed to fetch globals for RootLayout:', error)
-    logError(error) // Log the full error object
     // Render a fallback or error state
     return (
       <html lang={locale} className="h-full">
