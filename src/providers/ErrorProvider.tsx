@@ -308,6 +308,7 @@ export function ErrorProvider({
       if (errorMessage.includes('Minified React error #310') ||
           errorMessage.includes('hydration') ||
           errorMessage.includes('Hydration')) {
+        console.log('Hydration error stack:', event.error?.stack);
         captureError(errorMessage, {
           severity: 'warning', // Downgrade hydration errors to warning
           category: 'hydration',
