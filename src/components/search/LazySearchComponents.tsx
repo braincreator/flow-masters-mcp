@@ -3,60 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Lazy-loaded search components with appropriate loading skeletons
-
-export const LazySearchBar = dynamic(() => Promise.resolve({ default: SearchBar }), {
-  loading: () => <Skeleton className="h-10 w-full rounded-md" />,
-  ssr: false,
-})
-
-export const LazySearchResults = dynamic(() => Promise.resolve({ default: SearchResults }), {
-  loading: () => (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-1/3" />
-      <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="h-5 w-2/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-          </div>
-        ))}
-      </div>
-    </div>
-  ),
-  ssr: false,
-})
-
-export const LazySearchFilters = dynamic(() => Promise.resolve({ default: SearchFilters }), {
-  loading: () => (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-1/4" />
-      <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full rounded-md" />
-        ))}
-      </div>
-    </div>
-  ),
-  ssr: false,
-})
-
-export const LazySearchHistory = dynamic(() => Promise.resolve({ default: SearchHistory }), {
-  loading: () => (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-1/3" />
-      <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full rounded-md" />
-        ))}
-      </div>
-    </div>
-  ),
-  ssr: false,
-})
-
-// Create placeholder components for the ones that don't exist yet
+// Create placeholder components first
 // These will be implemented later
 
 export function SearchBar({ placeholder = 'Search...', onSearch }: any) {
@@ -154,3 +101,57 @@ export function SearchHistory({ history = [], onClear, onSelect }: any) {
     </div>
   )
 }
+
+// Lazy-loaded search components with appropriate loading skeletons
+// Now that components are defined above, we can reference them
+
+export const LazySearchBar = dynamic(() => Promise.resolve({ default: SearchBar }), {
+  loading: () => <Skeleton className="h-10 w-full rounded-md" />,
+  ssr: false,
+})
+
+export const LazySearchResults = dynamic(() => Promise.resolve({ default: SearchResults }), {
+  loading: () => (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-1/3" />
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+  ssr: false,
+})
+
+export const LazySearchFilters = dynamic(() => Promise.resolve({ default: SearchFilters }), {
+  loading: () => (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-1/4" />
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-full rounded-md" />
+        ))}
+      </div>
+    </div>
+  ),
+  ssr: false,
+})
+
+export const LazySearchHistory = dynamic(() => Promise.resolve({ default: SearchHistory }), {
+  loading: () => (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-1/3" />
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-full rounded-md" />
+        ))}
+      </div>
+    </div>
+  ),
+  ssr: false,
+})
