@@ -11,13 +11,13 @@ fs.readFile(packageJsonPath, 'utf8', (err, data) => {
 
   const packageJson = JSON.parse(data)
 
-  packageJson.type = 'commonjs'
+  packageJson.type = 'module'
 
   fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8', (err) => {
     if (err) {
       console.error('Error writing package.json:', err)
       return
     }
-    console.log('Successfully patched .next/standalone/package.json to use CommonJS')
+    console.log('Successfully patched .next/standalone/package.json to use ES modules')
   })
 })
