@@ -11,6 +11,8 @@ fs.readFile(packageJsonPath, 'utf8', (err, data) => {
 
   const packageJson = JSON.parse(data);
 
+  packageJson.type = 'module';
+
   fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8', (err) => {
     if (err) {
       console.error('Error writing package.json:', err);
