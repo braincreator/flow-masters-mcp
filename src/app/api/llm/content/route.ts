@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * API endpoint для предоставления структурированного контента для LLM
  * Оптимизирован для индексации AI ботами
@@ -62,7 +65,10 @@ export async function GET(request: NextRequest) {
       content.posts = posts.docs.map((post: any) => ({
         title: typeof post.title === 'object' ? post.title[language] || post.title.ru : post.title,
         url: `${baseUrl}/${language}/posts/${post.slug}`,
-        excerpt: typeof post.excerpt === 'object' ? post.excerpt[language] || post.excerpt.ru : post.excerpt,
+        excerpt:
+          typeof post.excerpt === 'object'
+            ? post.excerpt[language] || post.excerpt.ru
+            : post.excerpt,
         content: extractTextFromRichText(post.content),
         tags: post.tags || [],
         categories: post.categories || [],
@@ -89,9 +95,15 @@ export async function GET(request: NextRequest) {
       })
 
       content.services = services.docs.map((service: any) => ({
-        title: typeof service.title === 'object' ? service.title[language] || service.title.ru : service.title,
+        title:
+          typeof service.title === 'object'
+            ? service.title[language] || service.title.ru
+            : service.title,
         url: `${baseUrl}/${language}/services/${service.slug}`,
-        description: typeof service.description === 'object' ? service.description[language] || service.description.ru : service.description,
+        description:
+          typeof service.description === 'object'
+            ? service.description[language] || service.description.ru
+            : service.description,
         content: extractTextFromRichText(service.content),
         serviceType: service.serviceType,
         features: service.features || [],
@@ -115,7 +127,8 @@ export async function GET(request: NextRequest) {
 
       content.pages = pages.docs.map((page: any) => ({
         title: typeof page.title === 'object' ? page.title[language] || page.title.ru : page.title,
-        url: page.slug === 'home' ? `${baseUrl}/${language}` : `${baseUrl}/${language}/${page.slug}`,
+        url:
+          page.slug === 'home' ? `${baseUrl}/${language}` : `${baseUrl}/${language}/${page.slug}`,
         content: extractTextFromRichText(page.content),
         lastModified: page.updatedAt,
         type: 'page',
@@ -147,10 +160,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating LLM content:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate content' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to generate content' }, { status: 500 })
   }
 }
 
@@ -159,18 +169,18 @@ export async function GET(request: NextRequest) {
  */
 function extractTextFromRichText(content: any): string {
   if (!content) return ''
-  
+
   if (typeof content === 'string') return content
-  
+
   if (Array.isArray(content)) {
     return content.map(extractTextFromRichText).join(' ')
   }
-  
+
   if (typeof content === 'object') {
     if (content.text) return content.text
     if (content.children) return extractTextFromRichText(content.children)
     if (content.content) return extractTextFromRichText(content.content)
   }
-  
+
   return ''
 }

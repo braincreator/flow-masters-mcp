@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * API endpoint для LLM-оптимизированного sitemap
  * Предоставляет структурированную информацию о всех страницах сайта
@@ -74,12 +77,10 @@ export async function GET(request: NextRequest) {
         },
         // Статические страницы
         ...pages.docs.map((page: any) => ({
-          url: page.slug === 'home' 
-            ? `${baseUrl}/${language}` 
-            : `${baseUrl}/${language}/${page.slug}`,
-          title: typeof page.title === 'object' 
-            ? page.title[language] || page.title.ru 
-            : page.title,
+          url:
+            page.slug === 'home' ? `${baseUrl}/${language}` : `${baseUrl}/${language}/${page.slug}`,
+          title:
+            typeof page.title === 'object' ? page.title[language] || page.title.ru : page.title,
           type: 'page',
           priority: getPagePriority(page.slug),
           changeFreq: getPageChangeFreq(page.slug),
@@ -89,12 +90,12 @@ export async function GET(request: NextRequest) {
         // Посты блога
         ...posts.docs.map((post: any) => ({
           url: `${baseUrl}/${language}/posts/${post.slug}`,
-          title: typeof post.title === 'object' 
-            ? post.title[language] || post.title.ru 
-            : post.title,
-          excerpt: typeof post.excerpt === 'object' 
-            ? post.excerpt[language] || post.excerpt.ru 
-            : post.excerpt,
+          title:
+            typeof post.title === 'object' ? post.title[language] || post.title.ru : post.title,
+          excerpt:
+            typeof post.excerpt === 'object'
+              ? post.excerpt[language] || post.excerpt.ru
+              : post.excerpt,
           type: 'blog_post',
           priority: 0.8,
           changeFreq: 'weekly',
@@ -107,12 +108,14 @@ export async function GET(request: NextRequest) {
         // Услуги
         ...services.docs.map((service: any) => ({
           url: `${baseUrl}/${language}/services/${service.slug}`,
-          title: typeof service.title === 'object' 
-            ? service.title[language] || service.title.ru 
-            : service.title,
-          description: typeof service.description === 'object' 
-            ? service.description[language] || service.description.ru 
-            : service.description,
+          title:
+            typeof service.title === 'object'
+              ? service.title[language] || service.title.ru
+              : service.title,
+          description:
+            typeof service.description === 'object'
+              ? service.description[language] || service.description.ru
+              : service.description,
           type: 'service',
           serviceType: service.serviceType,
           priority: 0.9,
@@ -158,10 +161,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating LLM sitemap:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate sitemap' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to generate sitemap' }, { status: 500 })
   }
 }
 
@@ -190,7 +190,9 @@ function getPageChangeFreq(slug: string): string {
 }
 
 function generateXMLSitemap(sitemap: any): string {
-  const urls = sitemap.pages.map((page: any) => `
+  const urls = sitemap.pages
+    .map(
+      (page: any) => `
     <url>
       <loc>${page.url}</loc>
       <lastmod>${page.lastModified}</lastmod>
@@ -199,7 +201,9 @@ function generateXMLSitemap(sitemap: any): string {
       <content-type>${page.contentType}</content-type>
       ${page.tags ? `<tags>${page.tags.join(', ')}</tags>` : ''}
     </url>
-  `).join('')
+  `,
+    )
+    .join('')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

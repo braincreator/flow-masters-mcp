@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * API endpoint для метаданных контента для LLM
  * Предоставляет структурированную информацию о типах контента, темах и экспертизе
@@ -26,13 +29,14 @@ export async function GET(request: NextRequest) {
         name: 'Flow Masters',
         url: baseUrl,
         language: language,
-        description: language === 'ru' 
-          ? 'Автоматизация бизнес-процессов и AI решения для бизнеса'
-          : 'Business process automation and AI solutions for business',
+        description:
+          language === 'ru'
+            ? 'Автоматизация бизнес-процессов и AI решения для бизнеса'
+            : 'Business process automation and AI solutions for business',
         established: '2023',
         lastUpdated: new Date().toISOString(),
       },
-      
+
       content: {
         statistics: {
           totalPages: postsCount.totalDocs + servicesCount.totalDocs + pagesCount.totalDocs,
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest) {
           services: servicesCount.totalDocs,
           staticPages: pagesCount.totalDocs,
         },
-        
+
         types: [
           {
             type: 'blog_post',
@@ -131,7 +135,7 @@ export async function GET(request: NextRequest) {
           'Менеджеры по автоматизации',
           'Разработчики и технические специалисты',
         ],
-        
+
         industries: [
           'E-commerce и розничная торговля',
           'Финансовые услуги',
@@ -141,11 +145,7 @@ export async function GET(request: NextRequest) {
           'IT и разработка ПО',
         ],
 
-        geographicFocus: [
-          'Россия',
-          'Страны СНГ',
-          'Глобальные удаленные проекты',
-        ],
+        geographicFocus: ['Россия', 'Страны СНГ', 'Глобальные удаленные проекты'],
       },
 
       contentGuidelines: {
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
           secondary: 'English',
           style: 'Professional, technical, accessible',
         },
-        
+
         qualityStandards: [
           'Expert-authored content',
           'Fact-checked information',
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
         followRedirects: true,
         indexImages: true,
         indexDocuments: true,
-        
+
         priorityPages: [
           `${baseUrl}/${language}`,
           `${baseUrl}/${language}/services`,
@@ -207,9 +207,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating LLM metadata:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate metadata' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to generate metadata' }, { status: 500 })
   }
 }
