@@ -328,13 +328,26 @@ export default async function BlogPage(props: PageParams) {
             </div>
           }
         >
-          <BlogPageClient
-            initialPosts={initialBlogPosts}
-            categories={formattedCategories}
-            tags={formattedTags}
-            locale={locale}
-            translations={translations}
-          />
+          <React.Suspense
+            fallback={
+              <div className="animate-pulse space-y-4">
+                <div className="h-10 bg-muted rounded"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-64 bg-muted rounded"></div>
+                  ))}
+                </div>
+              </div>
+            }
+          >
+            <BlogPageClient
+              initialPosts={initialBlogPosts}
+              categories={formattedCategories}
+              tags={formattedTags}
+              locale={locale}
+              translations={translations}
+            />
+          </React.Suspense>
         </ClientOnly>
       </div>
     )
