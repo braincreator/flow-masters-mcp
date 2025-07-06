@@ -3,14 +3,15 @@ import { getServerSideURL } from './getURL'
 
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
-  description: 'An open-source website built with Payload and Next.js.',
+  description:
+    'Flow Masters - AI-powered business automation solutions. Transform your workflows with intelligent automation, chatbots, and custom AI services.',
   images: [
     {
-      url: `${getServerSideURL()}/website-template-OG.webp`,
+      url: `${getServerSideURL()}/og-image.jpg`,
     },
   ],
-  siteName: 'FlowMasters',
-  title: 'FlowMasters',
+  siteName: 'Flow Masters',
+  title: 'Flow Masters - AI Business Automation',
 }
 
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {

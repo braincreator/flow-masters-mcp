@@ -70,7 +70,8 @@ export default async function Page({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { pageNumber } = await paramsPromise
   return {
-    title: `Payload Website Template Posts Page ${pageNumber || ''}`,
+    title: `Blog Posts - Page ${pageNumber || '1'} | Flow Masters`,
+    description: `Browse our latest blog posts about AI automation, business solutions, and technology insights - Page ${pageNumber || '1'}`,
   }
 }
 
