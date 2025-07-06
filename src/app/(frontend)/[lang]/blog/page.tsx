@@ -1,3 +1,4 @@
+import React from 'react'
 import { Metadata } from 'next'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
