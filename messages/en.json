@@ -3591,5 +3591,17 @@
       "noFilesDescription": "Upload the first files for this project",
       "uploadingIndicator": "Uploading files..."
     }
+  },
+  "products": {
+    "instantDelivery": "Instant Delivery",
+    "inStock": "In Stock",
+    "autoRenewal": "Auto Renewal",
+    "relatedProducts": "You may also like"
+  },
+  "sharing": {
+    "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard",
+    "shareVia": "Share via"
   }
 }

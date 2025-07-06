@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Download, Shield, Truck } from 'lucide-react'
 import RichText from '@/components/RichText'
-import { useTranslations } from '@/hooks/useTranslations'
+import { useTranslations } from 'next-intl'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation' // Import useSearchParams
 import { ImageGallery } from '@/components/ProductDetail/ImageGallery'
@@ -37,7 +37,7 @@ interface ProductDetailProps {
 }
 
 export function ProductDetail({ product, lang }: ProductDetailProps) {
-  const t = useTranslations(lang)
+  const t = useTranslations('products')
   const { isFavorite } = useFavorites()
   const [isFav, setIsFav] = useState(false)
   const searchParams = useSearchParams() // Get search params
@@ -119,7 +119,7 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
           {product.productType === 'digital' && (
             <div className="flex items-center gap-2 text-sm text-success mt-2">
               <Download className="h-4 w-4" />
-              <span>{t.products?.instantDelivery || 'Instant Delivery'}</span>
+              <span>{t('instantDelivery')}</span>
             </div>
           )}
         </div>
@@ -196,7 +196,11 @@ export function ProductDetail({ product, lang }: ProductDetailProps) {
                 <div className="features-grid">
                   {product.features.map((feature, index) => (
                     <div key={index} className="feature-item">
-                      <span>{typeof feature === 'string' ? feature : (feature as { name: string }).name || ''}</span>
+                      <span>
+                        {typeof feature === 'string'
+                          ? feature
+                          : (feature as { name: string }).name || ''}
+                      </span>
                     </div>
                   ))}
                 </div>
