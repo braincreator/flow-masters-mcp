@@ -15,6 +15,7 @@ import { BlogSearch } from '@/components/blog/BlogSearch'
 import { BlogTagCloud } from '@/components/blog/BlogTagCloud'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { FeaturedPost } from '@/components/blog/FeaturedPost'
+import { EnhancedBlogSkeleton } from '@/components/blog/EnhancedBlogSkeleton'
 
 import { Pagination } from '@/components/Pagination'
 import { NewsletterWrapper } from '@/components/blog/NewsletterWrapper'
