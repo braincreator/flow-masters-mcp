@@ -14,6 +14,12 @@ export async function GET(
   return withAuth(req, 'api', async (req) => {
     try {
       const { collection } = await params
+
+      // Skip AI provider routes - they have their own handlers
+      if (collection === 'ai' || collection === 'aws') {
+        return NextResponse.json({ error: 'Route not found' }, { status: 404 })
+      }
+
       const { searchParams } = new URL(req.url)
 
       const page = Number(searchParams.get('page')) || 1
@@ -56,6 +62,11 @@ export async function POST(
 
       if (!collection) {
         return NextResponse.json({ error: 'Collection name is required' }, { status: 400 })
+      }
+
+      // Skip AI provider routes - they have their own handlers
+      if (collection === 'ai' || collection === 'aws') {
+        return NextResponse.json({ error: 'Route not found' }, { status: 404 })
       }
 
       const payload = await getPayloadClient()
@@ -106,6 +117,11 @@ export async function PUT(
       const { collection } = await params
       if (!collection) {
         return NextResponse.json({ error: 'Collection name is required' }, { status: 400 })
+      }
+
+      // Skip AI provider routes - they have their own handlers
+      if (collection === 'ai' || collection === 'aws') {
+        return NextResponse.json({ error: 'Route not found' }, { status: 404 })
       }
 
       const payload = await getPayloadClient()
@@ -167,6 +183,11 @@ export async function DELETE(
       const { collection } = await params
       if (!collection) {
         return NextResponse.json({ error: 'Collection name is required' }, { status: 400 })
+      }
+
+      // Skip AI provider routes - they have their own handlers
+      if (collection === 'ai' || collection === 'aws') {
+        return NextResponse.json({ error: 'Route not found' }, { status: 404 })
       }
 
       const { searchParams } = new URL(req.url)

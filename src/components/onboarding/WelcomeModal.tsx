@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -6,34 +6,34 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth'; // Use the actual auth hook
-import { useTranslations } from '@/hooks/useTranslations';
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth' // Use the actual auth hook
+import { useTranslations } from 'next-intl'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // import { updateUserProfile } from '@/lib/api/users'; // Placeholder for API call
 
 interface WelcomeModalProps {
-  onClose: () => void; // Callback when the modal is closed
+  onClose: () => void // Callback when the modal is closed
 }
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth(); // Get user data from the hook
-  const t = useTranslations(); // Initialize translations hook
+  const [isOpen, setIsOpen] = useState(false)
+  const { user } = useAuth() // Get user data from the hook
+  const t = useTranslations() // Initialize translations hook
 
   useEffect(() => {
     // Show modal only if the user exists and hasn't completed onboarding
     // Assuming 'hasCompletedOnboarding' is the flag on the user object
     if (user && !user.hasCompletedOnboarding) {
-      setIsOpen(true);
+      setIsOpen(true)
     } else {
-      setIsOpen(false); // Ensure it's closed otherwise
+      setIsOpen(false) // Ensure it's closed otherwise
     }
-  }, [user]); // Re-run effect when user data changes
+  }, [user]) // Re-run effect when user data changes
 
   const handleClose = async () => {
-    setIsOpen(false);
+    setIsOpen(false)
     // TODO: Implement API call to update user profile
     // try {
     //   if (user) {
@@ -43,11 +43,11 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
     //   logError("Failed to update user onboarding status:", error);
     //   // Handle error appropriately, maybe show a toast notification
     // }
-    onClose(); // Call the passed onClose handler
-  };
+    onClose() // Call the passed onClose handler
+  }
 
   if (!isOpen) {
-    return null;
+    return null
   }
 
   return (
@@ -56,9 +56,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         <DialogHeader>
           {/* Example translation keys: onboarding.welcome.title, onboarding.welcome.description */}
           <DialogTitle>{t('onboarding.welcome.title')}</DialogTitle>
-          <DialogDescription>
-            {t('onboarding.welcome.description')}
-          </DialogDescription>
+          <DialogDescription>{t('onboarding.welcome.description')}</DialogDescription>
         </DialogHeader>
         <div className="py-4">
           {/* Example translation key: onboarding.welcome.explore */}
@@ -70,7 +68,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default WelcomeModal;
+export default WelcomeModal

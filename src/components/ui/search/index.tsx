@@ -48,7 +48,7 @@ export function Search({
 
   // Load recent searches from localStorage
   useEffect(() => {
-    if (showSuggestions) {
+    if (showSuggestions && typeof window !== 'undefined') {
       const stored = localStorage.getItem('search-recent-searches')
       if (stored) {
         try {
@@ -111,7 +111,7 @@ export function Search({
     setIsFocused(false)
 
     // Add to recent searches
-    if (showSuggestions) {
+    if (showSuggestions && typeof window !== 'undefined') {
       const newRecentSearches = [
         suggestion,
         ...recentSearches.filter((s) => s !== suggestion),

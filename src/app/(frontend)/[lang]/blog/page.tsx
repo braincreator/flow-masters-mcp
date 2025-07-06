@@ -1,3 +1,4 @@
+import React from 'react'
 import { Metadata } from 'next'
 import { DEFAULT_LOCALE, type Locale } from '@/constants'
 import { notFound } from 'next/navigation'
@@ -10,6 +11,7 @@ import { getTranslations } from 'next-intl/server'
 import { setRequestLocale } from 'next-intl/server'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 import BlogPageClient from './page.client' // Import the client component
+import { ClientOnly } from '@/components/ui/ClientOnly'
 
 // Get properly typed params
 type PageParams = {
@@ -64,7 +66,10 @@ export default async function BlogPage(props: PageParams) {
       // Debug: Check available collections
       try {
         const collections = payload.config.collections
-        logDebug('Available collections:', collections.map(c => c.slug))
+        logDebug(
+          'Available collections:',
+          collections.map((c) => c.slug),
+        )
       } catch (err) {
         logWarn('Could not list collections:', err)
       }
@@ -109,7 +114,7 @@ export default async function BlogPage(props: PageParams) {
         totalDocs: posts.totalDocs,
         docsCount: posts.docs.length,
         page: posts.page,
-        totalPages: posts.totalPages
+        totalPages: posts.totalPages,
       })
     } catch (error) {
       logError('Error fetching posts:', error)
@@ -117,7 +122,7 @@ export default async function BlogPage(props: PageParams) {
         name: error?.name,
         message: error?.message,
         status: error?.status,
-        data: error?.data
+        data: error?.data,
       })
 
       // Try alternative approach - fetch without filters first
@@ -132,7 +137,7 @@ export default async function BlogPage(props: PageParams) {
         })
         logDebug('Alternative fetch successful:', {
           totalDocs: posts.totalDocs,
-          docsCount: posts.docs.length
+          docsCount: posts.docs.length,
         })
       } catch (altError) {
         logError('Alternative fetch also failed:', altError)
@@ -312,13 +317,39 @@ export default async function BlogPage(props: PageParams) {
         </div>
 
         {/* Client-side interactive components */}
-        <BlogPageClient
-          initialPosts={initialBlogPosts}
-          categories={formattedCategories}
-          tags={formattedTags}
-          locale={locale}
-          translations={translations}
-        />
+        <ClientOnly
+          fallback={
+            <div className="animate-pulse space-y-4">
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-64 bg-muted rounded"></div>
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <React.Suspense
+            fallback={
+              <div className="animate-pulse space-y-4">
+                <div className="h-10 bg-muted rounded"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-64 bg-muted rounded"></div>
+                  ))}
+                </div>
+              </div>
+            }
+          >
+            <BlogPageClient
+              initialPosts={initialBlogPosts}
+              categories={formattedCategories}
+              tags={formattedTags}
+              locale={locale}
+              translations={translations}
+            />
+          </React.Suspense>
+        </ClientOnly>
       </div>
     )
   } catch (error) {

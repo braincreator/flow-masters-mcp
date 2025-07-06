@@ -22,7 +22,7 @@ import {
 import { SiFacebook, SiX, SiVk, SiInstagram, SiThreads, SiPinterest } from 'react-icons/si'
 import { TenChatIcon } from '@/components/icons/TenChatIcon'
 import { shareContent, type SharingPlatform } from '@/utilities/share'
-import { useTranslations } from '@/hooks/useTranslations'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utilities/ui'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
@@ -99,7 +99,7 @@ export function SocialSharePopover({
   gridColumns = 4,
 }: SocialSharePopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const t = useTranslations(lang)
+  const t = useTranslations('sharing')
 
   // Get the appropriate localized texts, falling back to English if not supported
   const texts = LOCALIZED_TEXTS[lang] || LOCALIZED_TEXTS.en
@@ -129,7 +129,7 @@ export function SocialSharePopover({
     const success = await shareContent(platform, shareData)
 
     if (platform === 'copy' && success) {
-      toast.success(texts.linkCopied)
+      toast.success(t('linkCopied'))
 
       // Call the onLinkCopied callback if provided
       if (onLinkCopied) {

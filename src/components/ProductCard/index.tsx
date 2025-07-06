@@ -8,7 +8,7 @@ import type { Product as PayloadProduct } from '@/payload-types'
 import { formatPrice, getLocalePrice } from '@/utilities/formatPrice'
 import { type Locale } from '@/constants'
 import { cn } from '@/utilities/ui'
-import { useTranslations } from '@/hooks/useTranslations'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { AddToCartButton } from '@/components/ui/AddToCartButton'
 import { FavoriteButton } from '@/components/ui/FavoriteButton'
@@ -43,7 +43,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: ProductCardProps) {
   const router = useRouter()
-  const t = useTranslations(locale)
+  const t = useTranslations('sharing')
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only navigate if the click was directly on the card and not on a button or link
@@ -324,7 +324,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                 product={product}
                 locale={locale}
                 showToastOnCopy={true}
-                copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+                copyMessage={t('linkCopied')}
                 size="icon"
                 className="h-10 w-10 flex-shrink-0"
               />
@@ -385,7 +385,7 @@ export function ProductCard({ product, locale, layout = 'grid', onAddToCart }: P
                 product={product}
                 locale={locale}
                 showToastOnCopy={true}
-                copyMessage={t.sharing?.linkCopied || 'Link copied!'}
+                copyMessage={t('linkCopied')}
                 size="icon"
                 className="h-[40px] w-[40px] flex-shrink-0"
               />

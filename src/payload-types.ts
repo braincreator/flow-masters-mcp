@@ -1683,13 +1683,6 @@ export interface Post {
     description?: string | null;
   };
   publishedAt?: string | null;
-  authors?: (string | User)[] | null;
-  populatedAuthors?:
-    | {
-        id?: string | null;
-        name?: string | null;
-      }[]
-    | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -1838,190 +1831,6 @@ export interface Tag {
   description?: string | null;
   slug?: string | null;
   slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: string;
-  name: string;
-  /**
-   * Determines user capabilities within the platform.
-   */
-  roles: ('admin' | 'instructor' | 'customer')[];
-  instructorBio?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Select relevant expertise tags (managed by Admins).
-   */
-  expertiseAreas?: (string | ExpertiseTag)[] | null;
-  qualifications?: string | null;
-  instructorProfilePicture?: (string | null) | Media;
-  /**
-   * Add links to relevant social media profiles (e.g., LinkedIn, Twitter, Personal Website).
-   */
-  socialMediaLinks?:
-    | {
-        platform: 'linkedin' | 'twitter' | 'github' | 'website' | 'other';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  locale?: ('ru' | 'en') | null;
-  /**
-   * Manage your notification settings.
-   */
-  notificationPreferences?: {
-    email?: {
-      /**
-       * Receive updates about your orders (e.g., confirmation, shipping, cancellation).
-       */
-      orderUpdates?: boolean | null;
-      /**
-       * Receive updates about your subscriptions (e.g., activation, renewal, payment issues).
-       */
-      subscriptionUpdates?: boolean | null;
-      /**
-       * Receive notifications for important account activities (e.g., welcome email, security alerts).
-       */
-      accountActivity?: boolean | null;
-      /**
-       * Receive promotional offers, news about new products, and special deals.
-       */
-      marketingAndPromotions?: boolean | null;
-      /**
-       * Receive updates about new features, platform improvements, and helpful tips.
-       */
-      productNewsAndTips?: boolean | null;
-    };
-  };
-  /**
-   * How often to receive notifications
-   */
-  notificationFrequency?: ('immediately' | 'daily' | 'weekly' | 'never') | null;
-  /**
-   * Указывает, что пользователю нужно сбросить пароль при следующем входе
-   */
-  passwordResetRequired?: boolean | null;
-  /**
-   * Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.
-   */
-  segments?: (string | UserSegment)[] | null;
-  /**
-   * Очки опыта пользователя, заработанные за достижения и активность
-   */
-  xp?: number | null;
-  /**
-   * Текущий уровень пользователя, основанный на количестве XP
-   */
-  level?: number | null;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-}
-/**
- * Tags to categorize instructor areas of expertise.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "expertise-tags".
- */
-export interface ExpertiseTag {
-  id: string;
-  name: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Определение правил для сегментации пользователей.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-segments".
- */
-export interface UserSegment {
-  id: string;
-  name: string;
-  /**
-   * Латиница, цифры, дефисы. Используется в коде (напр., в DynamicContent).
-   */
-  slug: string;
-  description?: string | null;
-  /**
-   * Пользователь попадает в сегмент, если выполняется хотя бы одна группа правил.
-   */
-  ruleGroups?:
-    | {
-        /**
-         * Все правила в этой группе должны быть выполнены.
-         */
-        rules?:
-          | {
-              parameter:
-                | 'registrationDate'
-                | 'orderCount'
-                | 'totalSpent'
-                | 'completedCourse'
-                | 'activeSubscriptionPlan'
-                | 'userRole'
-                | 'userProfileField'
-                | 'registrationUtmSource'
-                | 'visitedPage';
-              operator:
-                | 'equals'
-                | 'notEquals'
-                | 'contains'
-                | 'notContains'
-                | 'greaterThan'
-                | 'lessThan'
-                | 'greaterThanOrEqual'
-                | 'lessThanOrEqual'
-                | 'exists'
-                | 'doesNotExist'
-                | 'registeredBefore'
-                | 'registeredAfter';
-              /**
-               * Значение для сравнения. Для дат используйте формат YYYY-MM-DD.
-               */
-              value?: string | null;
-              /**
-               * Например, 'city' или 'company'.
-               */
-              profileFieldName?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2753,6 +2562,183 @@ export interface Course {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: string;
+  name: string;
+  /**
+   * Determines user capabilities within the platform.
+   */
+  roles: ('admin' | 'instructor' | 'customer')[];
+  instructorBio?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Select relevant expertise tags (managed by Admins).
+   */
+  expertiseAreas?: (string | ExpertiseTag)[] | null;
+  qualifications?: string | null;
+  instructorProfilePicture?: (string | null) | Media;
+  /**
+   * Add links to relevant social media profiles (e.g., LinkedIn, Twitter, Personal Website).
+   */
+  socialMediaLinks?:
+    | {
+        platform: 'linkedin' | 'twitter' | 'github' | 'website' | 'other';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  locale?: ('ru' | 'en') | null;
+  /**
+   * Manage your notification settings.
+   */
+  notificationPreferences?: {
+    email?: {
+      /**
+       * Receive updates about your orders (e.g., confirmation, shipping, cancellation).
+       */
+      orderUpdates?: boolean | null;
+      /**
+       * Receive updates about your subscriptions (e.g., activation, renewal, payment issues).
+       */
+      subscriptionUpdates?: boolean | null;
+      /**
+       * Receive notifications for important account activities (e.g., welcome email, security alerts).
+       */
+      accountActivity?: boolean | null;
+      /**
+       * Receive promotional offers, news about new products, and special deals.
+       */
+      marketingAndPromotions?: boolean | null;
+      /**
+       * Receive updates about new features, platform improvements, and helpful tips.
+       */
+      productNewsAndTips?: boolean | null;
+    };
+  };
+  /**
+   * How often to receive notifications
+   */
+  notificationFrequency?: ('immediately' | 'daily' | 'weekly' | 'never') | null;
+  /**
+   * Указывает, что пользователю нужно сбросить пароль при следующем входе
+   */
+  passwordResetRequired?: boolean | null;
+  /**
+   * Сегменты, к которым относится пользователь. Вычисляются и обновляются автоматически.
+   */
+  segments?: (string | UserSegment)[] | null;
+  /**
+   * Очки опыта пользователя, заработанные за достижения и активность
+   */
+  xp?: number | null;
+  /**
+   * Текущий уровень пользователя, основанный на количестве XP
+   */
+  level?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  password?: string | null;
+}
+/**
+ * Tags to categorize instructor areas of expertise.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expertise-tags".
+ */
+export interface ExpertiseTag {
+  id: string;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Определение правил для сегментации пользователей.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-segments".
+ */
+export interface UserSegment {
+  id: string;
+  name: string;
+  /**
+   * Латиница, цифры, дефисы. Используется в коде (напр., в DynamicContent).
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * Пользователь попадает в сегмент, если выполняется хотя бы одна группа правил.
+   */
+  ruleGroups?:
+    | {
+        /**
+         * Все правила в этой группе должны быть выполнены.
+         */
+        rules?:
+          | {
+              parameter:
+                | 'registrationDate'
+                | 'orderCount'
+                | 'totalSpent'
+                | 'completedCourse'
+                | 'activeSubscriptionPlan'
+                | 'userRole'
+                | 'userProfileField'
+                | 'registrationUtmSource'
+                | 'visitedPage';
+              operator:
+                | 'equals'
+                | 'notEquals'
+                | 'contains'
+                | 'notContains'
+                | 'greaterThan'
+                | 'lessThan'
+                | 'greaterThanOrEqual'
+                | 'lessThanOrEqual'
+                | 'exists'
+                | 'doesNotExist'
+                | 'registeredBefore'
+                | 'registeredAfter';
+              /**
+               * Значение для сравнения. Для дат используйте формат YYYY-MM-DD.
+               */
+              value?: string | null;
+              /**
+               * Например, 'city' или 'company'.
+               */
+              profileFieldName?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -5760,12 +5746,24 @@ export interface Resource {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Системные события и логи активности
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
   id: string;
+  /**
+   * Тип события (например, lead.created, post.published)
+   */
   type: string;
+  /**
+   * Источник события (например, lead_creation, post_publication)
+   */
+  source?: string | null;
+  /**
+   * Полезная нагрузка события в формате JSON
+   */
   data:
     | {
         [k: string]: unknown;
@@ -5775,7 +5773,23 @@ export interface Event {
     | number
     | boolean
     | null;
+  /**
+   * Дополнительные метаданные события (пользователь, коллекция, операция)
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   timestamp: string;
+  /**
+   * Отметка о том, что событие было обработано
+   */
+  processed?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -16651,13 +16665,6 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -16787,13 +16794,6 @@ export interface PostsSelect<T extends boolean = true> {
         description?: T;
       };
   publishedAt?: T;
-  authors?: T;
-  populatedAuthors?:
-    | T
-    | {
-        id?: T;
-        name?: T;
-      };
   slug?: T;
   slugLock?: T;
   updatedAt?: T;
@@ -18675,8 +18675,11 @@ export interface SolutionsSelect<T extends boolean = true> {
  */
 export interface EventsSelect<T extends boolean = true> {
   type?: T;
+  source?: T;
   data?: T;
+  metadata?: T;
   timestamp?: T;
+  processed?: T;
   updatedAt?: T;
   createdAt?: T;
 }

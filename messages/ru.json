@@ -3510,5 +3510,17 @@
       "contactMethodRequired": "Выберите способ связи",
       "nameMin": "Имя должно содержать не менее {min} символов"
     }
+  },
+  "products": {
+    "instantDelivery": "Мгновенная доставка",
+    "inStock": "В наличии",
+    "autoRenewal": "Автопродление",
+    "relatedProducts": "Вам также может понравиться"
+  },
+  "sharing": {
+    "share": "Поделиться",
+    "copyLink": "Копировать ссылку",
+    "linkCopied": "Ссылка скопирована в буфер обмена",
+    "shareVia": "Поделиться через"
   }
 }

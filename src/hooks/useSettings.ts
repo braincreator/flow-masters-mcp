@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/lib/httpClient'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface Settings {
@@ -44,20 +45,12 @@ export function useSettings(): UseSettingsResult {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/v1/globals/settings?depth=2`, {
-        method: 'GET',
+      const data = await apiClient.get(`/api/v1/globals/settings?depth=2`, {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Failed to fetch settings: ${response.status} ${errorText}`)
-      }
-
-      const data = await response.json()
       setSettings(data)
     } catch (err) {
       logError('Error fetching settings:', err)

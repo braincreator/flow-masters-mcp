@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import { usePathname } from 'next/navigation'
 import { Calendar, Clock, User as UserIcon, ArrowRight, BookOpen } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -15,23 +15,34 @@ import { Card, CardContent } from '@/components/ui/card'
 // Вспомогательная функция для получения краткого описания из контента
 function getExcerpt(content: any, maxLength = 160): string {
   if (!content) return ''
-  // Простая реализация для текстового содержимого
-  let text = ''
-  if (typeof content === 'string') {
-    text = content
-  } else if (Array.isArray(content)) {
-    // Предполагаем, что контент может быть массивом блоков
-    text = content
-      .map((block) => {
-        if (typeof block === 'string') return block
-        if (typeof block === 'object' && block?.text) return block.text
-        return ''
-      })
-      .join(' ')
-  }
 
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength).trim() + '...'
+  try {
+    // Простая реализация для текстового содержимого
+    let text = ''
+    if (typeof content === 'string') {
+      text = content
+    } else if (Array.isArray(content)) {
+      // Предполагаем, что контент может быть массивом блоков
+      text = content
+        .map((block) => {
+          if (typeof block === 'string') return block
+          if (typeof block === 'object' && block?.text) return block.text
+          return ''
+        })
+        .join(' ')
+    } else if (typeof content === 'object' && content?.text) {
+      text = content.text
+    }
+
+    // Normalize whitespace to prevent hydration mismatches
+    text = text.replace(/\s+/g, ' ').trim()
+
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength).trim() + '...'
+  } catch (error) {
+    // Return empty string on any error to prevent hydration issues
+    return ''
+  }
 }
 
 interface TagType {
@@ -101,7 +112,7 @@ export function BlogPostCard({
   const postLink = `/${locale}/blog/${post.slug}`
 
   const imageUrl = post.thumbnail?.url || post.heroImage?.url || '' // Determine image URL, fallback to empty string
-  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || t('noImage') // Determine image alt text
+  const imageAlt = post.thumbnail?.alt || post.heroImage?.alt || post.title || 'Blog post image' // Use static fallback to prevent hydration issues
 
   return (
     <article
@@ -125,7 +136,7 @@ export function BlogPostCard({
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          <Image
+          <OptimizedImage
             src={imageUrl} // Use the determined imageUrl
             alt={imageAlt} // Use the determined imageAlt
             fill
@@ -186,10 +197,7 @@ export function BlogPostCard({
           {showDate && formattedDate && (
             <div className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4 text-primary/60" />
-              <time
-                dateTime={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
-                className="font-medium"
-              >
+              <time dateTime={post.publishedAt || undefined} className="font-medium">
                 {formattedDate}
               </time>
             </div>
@@ -243,7 +251,6 @@ export function BlogPostCard({
             layout === 'grid' && 'mt-auto',
           )}
         >
-
           {/* Read More Button */}
           <Link
             href={postLink}

@@ -5,6 +5,11 @@ import { metricsCollector } from '@/utilities/payload/metrics'
 import createMiddleware from 'next-intl/middleware'
 import { corsMiddleware, addCorsToResponse } from '@/middleware/cors'
 
+/**
+ * @todo Рекомендуется мигрировать на новый i18nMiddleware из @/middleware/i18n
+ * для лучшей производительности и упрощения кода
+ */
+
 // Move constants outside
 const SKIP_PATHS = ['/admin', '/_next', '/next/preview']
 const STATIC_FILE_REGEX = /\.[^/]+$/
@@ -99,7 +104,7 @@ export function middleware(request: NextRequest) {
       maxAge: 365 * 24 * 60 * 60, // 1 год
       httpOnly: false, // Доступно для JS
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: 'lax',
     })
 
     // Сохраняем referer для аналитики
@@ -162,15 +167,20 @@ export function middleware(request: NextRequest) {
 }
 
 // Helper function
-function nextResponse(headers: Headers, startTime: number, pathname?: string, request?: NextRequest) {
+function nextResponse(
+  headers: Headers,
+  startTime: number,
+  pathname?: string,
+  request?: NextRequest,
+) {
   const response = NextResponse.next({ request: { headers } })
   if (pathname) response.headers.set('x-pathname', pathname)
-  
+
   // Add CORS headers to API responses
   if (request && pathname?.startsWith('/api/')) {
     addCorsToResponse(request, response)
   }
-  
+
   metricsCollector.recordOperationDuration(Date.now() - startTime)
   return response
 }

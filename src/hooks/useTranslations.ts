@@ -39,6 +39,6 @@ const translations = {
   },
 }
 
-export const useTranslations = (lang: string) => {
+export const useLegacyTranslations = (lang: string) => {
   return translations[lang as keyof typeof translations] || translations.en
 }

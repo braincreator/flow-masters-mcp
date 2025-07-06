@@ -22,34 +22,47 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Initialize theme
   useEffect(() => {
     setMounted(true)
-    const stored = localStorage.getItem(themeLocalStorageKey) as Theme | null
-    if (stored && themeConfig.themes.includes(stored)) {
-      setThemeState(stored)
-      applyTheme(stored)
-    } else {
-      applyTheme(themeConfig.defaultTheme)
+
+    // Only access localStorage after mounting to prevent hydration mismatch
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(themeLocalStorageKey) as Theme | null
+      if (stored && themeConfig.themes.includes(stored)) {
+        setThemeState(stored)
+        applyTheme(stored)
+      } else {
+        applyTheme(themeConfig.defaultTheme)
+      }
     }
   }, [])
 
   const applyTheme = useCallback((newTheme: Theme) => {
+    if (typeof window === 'undefined') return // SSR guard
+
     const root = document.documentElement
     if (newTheme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
       root.setAttribute('data-theme', systemTheme)
     } else {
       root.setAttribute('data-theme', newTheme)
     }
   }, [])
 
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme)
-    localStorage.setItem(themeLocalStorageKey, newTheme)
-    applyTheme(newTheme)
-  }, [applyTheme])
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      setThemeState(newTheme)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(themeLocalStorageKey, newTheme)
+      }
+      applyTheme(newTheme)
+    },
+    [applyTheme],
+  )
 
   // Handle system theme changes
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || typeof window === 'undefined') return
 
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -60,11 +73,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme, mounted, applyTheme])
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
 }
 
 export const useTheme = () => useContext(ThemeContext)

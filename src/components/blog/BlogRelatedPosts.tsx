@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import { usePathname } from 'next/navigation'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -45,7 +45,7 @@ export function BlogRelatedPosts({ posts }: BlogRelatedPostsProps) {
           {post.heroImage?.url && (
             <div className="aspect-[16/9] relative w-full overflow-hidden">
               <Link href={`/${currentLocale}/blog/${post.slug}`}>
-                <Image
+                <OptimizedImage
                   src={post.heroImage.url}
                   alt={post.heroImage.alt || post.title}
                   fill

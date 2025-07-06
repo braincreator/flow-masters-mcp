@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Newsletter } from '@/components/Newsletter'
+import { ClientOnly } from '@/components/ui/ClientOnly'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 interface NewsletterWrapperProps {
@@ -44,29 +45,44 @@ export const NewsletterWrapper: React.FC<NewsletterWrapperProps> = ({
     }
   }, [storageKey])
 
-  // Если мы на сервере, рендерим блок (для SSR)
-  // Если на клиенте и пользователь подписан, не рендерим
-  if (isClient && isSubscribed) {
-    return null
-  }
-
-  // Рендерим блок рассылки только если пользователь не подписан
   return (
-    <div
-      className={`rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:from-primary/10 hover:to-secondary/10 ${className || ''}`}
+    <ClientOnly
+      fallback={
+        <div
+          className={`rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:from-primary/10 hover:to-secondary/10 ${className || ''}`}
+        >
+          <Newsletter
+            title={locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'}
+            description={
+              locale === 'ru'
+                ? 'Получайте наши новости и статьи на почту'
+                : 'Stay updated with our latest news and articles'
+            }
+            buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
+            placeholderText={locale === 'ru' ? 'Ваш email' : 'Enter your email'}
+            storageKey={storageKey}
+          />
+        </div>
+      }
     >
-      <Newsletter
-        title={locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'}
-        description={
-          locale === 'ru'
-            ? 'Получайте наши новости и статьи на почту'
-            : 'Stay updated with our latest news and articles'
-        }
-        buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
-        placeholderText={locale === 'ru' ? 'Ваш email' : 'Enter your email'}
-        storageKey={storageKey}
-      />
-    </div>
+      {isSubscribed ? null : (
+        <div
+          className={`rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:from-primary/10 hover:to-secondary/10 ${className || ''}`}
+        >
+          <Newsletter
+            title={locale === 'ru' ? 'Подпишитесь на рассылку' : 'Subscribe to our newsletter'}
+            description={
+              locale === 'ru'
+                ? 'Получайте наши новости и статьи на почту'
+                : 'Stay updated with our latest news and articles'
+            }
+            buttonText={locale === 'ru' ? 'Подписаться' : 'Subscribe'}
+            placeholderText={locale === 'ru' ? 'Ваш email' : 'Enter your email'}
+            storageKey={storageKey}
+          />
+        </div>
+      )}
+    </ClientOnly>
   )
 }
 

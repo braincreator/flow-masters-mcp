@@ -25,6 +25,7 @@ export type ErrorCategory =
   | 'permission'
   | 'navigation'
   | 'rendering'
+  | 'hydration'
   | 'unknown'
 
 // Define error object
@@ -264,6 +265,11 @@ export function ErrorProvider({
             // Redirect to login
             router.push('/login')
             break
+          case 'hydration':
+            // For hydration errors, just log and mark as handled - no recovery needed
+            logWarn(`Hydration error detected: ${error.message}`)
+            markErrorAsHandled(error.id)
+            break
           default:
             // Explicitly handle 403 if it reaches here and wasn't categorized as 'permission' or 'auth'
             if (error.code === '403') {
@@ -296,22 +302,59 @@ export function ErrorProvider({
   // Global error handler for uncaught errors
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
-      captureError(event.error || event.message, {
-        severity: 'critical',
-        category: 'unknown',
-        context: { source: 'window.onerror' },
-      })
+      const errorMessage = event.error?.message || event.message || 'Unknown error'
+
+      // Check if this is a React hydration error
+      if (errorMessage.includes('Minified React error #310') ||
+          errorMessage.includes('hydration') ||
+          errorMessage.includes('Hydration')) {
+        captureError(errorMessage, {
+          severity: 'warning', // Downgrade hydration errors to warning
+          category: 'hydration',
+          context: {
+            source: 'window.onerror',
+            url: event.filename,
+            line: event.lineno,
+            column: event.colno,
+            stack: event.error?.stack
+          },
+        })
+      } else {
+        captureError(event.error || event.message, {
+          severity: 'critical',
+          category: 'unknown',
+          context: { source: 'window.onerror' },
+        })
+      }
 
       // Prevent default browser error handling
       event.preventDefault()
     }
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      captureError(event.reason || 'Unhandled Promise Rejection', {
-        severity: 'critical',
-        category: 'unknown',
-        context: { source: 'unhandledrejection' },
-      })
+      const reason = event.reason
+      const reasonMessage = typeof reason === 'string' ? reason : reason?.message || 'Unhandled Promise Rejection'
+
+      // Check if this is a React-related error
+      if (reasonMessage.includes('Minified React error') ||
+          reasonMessage.includes('hydration') ||
+          reasonMessage.includes('Hydration')) {
+        captureError(reasonMessage, {
+          severity: 'warning', // Downgrade React errors to warning
+          category: 'hydration',
+          context: {
+            source: 'unhandledrejection',
+            reason: reason,
+            stack: reason?.stack
+          },
+        })
+      } else {
+        captureError(reasonMessage, {
+          severity: 'critical',
+          category: 'unknown',
+          context: { source: 'unhandledrejection' },
+        })
+      }
 
       // Prevent default browser error handling
       event.preventDefault()

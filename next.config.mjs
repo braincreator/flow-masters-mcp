@@ -2,9 +2,8 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import createNextIntlPlugin from 'next-intl/plugin'
+import * as nextIntlPlugin from 'next-intl/plugin'
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
-import bundleAnalyzer from '@next/bundle-analyzer'
 
 // Получаем пути к модулям
 const getModulePath = (pkg) => {
@@ -106,7 +105,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // output: 'standalone', // Отключено для использования обычного режима с Turbopack
+  // output: 'standalone', // Disabled - using regular build mode with turbopack as preferred
   distDir: '.next',
   assetPrefix: '',
   poweredByHeader: false,
@@ -184,16 +183,16 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.webvisor.org https://vk.com https://ads.vk.com https://yastatic.net https://www.googletagmanager.com https://www.google-analytics.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru",
-              "connect-src 'self' https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://yastatic.net https://www.google-analytics.com https://analytics.google.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru https://upload.wikimedia.org https://uxwing.com https://registry.npmmirror.com https://ai.pydantic.dev https://raw.githubusercontent.com https://docs.flowiseai.com https://2285675912-files.gitbook.io https://gitbook-x-prod.appspot.com wss: ws:",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mc.yandex.ru https://mc.yandex.com https://mc.webvisor.org https://vk.com https://ads.vk.com https://yastatic.net https://www.googletagmanager.com https://www.google-analytics.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru",
+              "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://yastatic.net https://www.google-analytics.com https://analytics.google.com https://top-fwz1.mail.ru https://abt.s3.yandex.net https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://api.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://api.timeweb.ru https://cloud.ru https://upload.wikimedia.org https://uxwing.com https://registry.npmmirror.com https://ai.pydantic.dev https://raw.githubusercontent.com https://docs.flowiseai.com https://2285675912-files.gitbook.io https://gitbook-x-prod.appspot.com wss: ws:",
               "img-src 'self' data: https: https://mc.yandex.ru https://mc.webvisor.org https://yandex.ru https://vk.com https://ads.vk.com https://yastatic.net https://www.google-analytics.com https://top-fwz1.mail.ru https://sber.ru https://sberbank.ru https://sbertech.ru https://cdn.sber.ru https://timeweb.ru https://timeweb.com https://cdn.timeweb.ru https://cloud.ru https://upload.wikimedia.org https://uxwing.com https://registry.npmmirror.com https://ai.pydantic.dev https://raw.githubusercontent.com https://docs.flowiseai.com https://2285675912-files.gitbook.io https://gitbook-x-prod.appspot.com",
               "style-src 'self' 'unsafe-inline' https://yastatic.net https://fonts.googleapis.com https://cdn.sber.ru https://cdn.timeweb.ru",
               "font-src 'self' data: https://yastatic.net https://fonts.gstatic.com https://cdn.sber.ru https://cdn.timeweb.ru",
-              "frame-src 'self' https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://sber.ru https://sberbank.ru https://timeweb.ru https://timeweb.com",
+              "frame-src 'self' https://mc.yandex.com https://mc.webvisor.org https://yandex.ru https://metrika.yandex.ru https://vk.com https://ads.vk.com https://sber.ru https://sberbank.ru https://timeweb.ru https://timeweb.com",
               "object-src 'none'",
               "base-uri 'self'",
-              "form-action 'self'"
-            ].join('; ')
+              "form-action 'self'",
+            ].join('; '),
           },
           {
             key: 'X-Content-Type-Options',
@@ -232,10 +231,10 @@ const nextConfig = {
     '@aws-sdk/smithy-client',
   ],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // Keep disabled until Next.js 15 migration is complete
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Temporarily ignore until cleanup is done
   },
 
   // Add CSS optimization settings and fix worker_threads issue
@@ -291,8 +290,8 @@ const nextConfig = {
             name: 'metrika',
             test: /metrika|yandex/,
             chunks: 'all',
-            priority: 10
-          }
+            priority: 10,
+          },
         },
       }
 
@@ -320,14 +319,14 @@ const nextConfig = {
             ],
           },
           // Exclude Payload CMS files from aggressive optimization
-          exclude: [
-            /node_modules\/@payloadcms/,
-            /node_modules\/payload-admin/,
-            /src\/app\/\(payload\)/,
-            /src\/styles\/payload-admin/,
-            /payload-admin-override\.css/,
-            /custom\.scss/,
-          ],
+          // exclude: [
+          //   /node_modules\/@payloadcms/,
+          //   /node_modules\/payload-admin/,
+          //   /src\/app\/\(payload\)/,
+          //   /src\/styles\/payload-admin/,
+          //   /payload-admin-override\.css/,
+          //   /custom\.scss/,
+          // ],
         }),
       )
     }
@@ -407,7 +406,7 @@ const nextConfig = {
 
     return config
   },
-  
+
   // Проксирование запросов к аналитическим сервисам (обход блокировщиков)
   async rewrites() {
     return [
@@ -444,9 +443,7 @@ const nextConfig = {
   },
 }
 
+const createNextIntlPlugin = nextIntlPlugin.default ?? nextIntlPlugin
 const withNextIntl = createNextIntlPlugin('./i18n.ts')
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})
 
-export default withBundleAnalyzer(withNextIntl(withPayload(nextConfig)))
+export default withNextIntl(withPayload(nextConfig))
