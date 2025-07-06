@@ -81,15 +81,15 @@ export const Banner: React.FC<BannerProps> = ({
       role="alert"
     >
       <GridContainer settings={settings}>
-        <div className="flex items-center justify-between gap-4 py-3">
-          <div className="flex items-start gap-3 flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             <Icon className={cn('h-5 w-5 mt-0.5 shrink-0', variant.iconColor)} />
-            <div className="flex-1 text-sm">
+            <div className="flex-1 text-sm min-w-0 break-words">
               <RichText content={content} />
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-wrap">
             {actions?.map((action, index) => (
               <Button
                 key={index}

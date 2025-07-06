@@ -8,17 +8,17 @@ import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Функция для проверки валидности медиа
 const isValidMedia = (media: any): media is MediaResource => {
   if (media === null || media === undefined) return false
-  
+
   // Если это строка URL
   if (typeof media === 'string') return media.trim().length > 0
-  
+
   // Если это объект с url свойством
   if (typeof media === 'object' && media !== null) {
     if ('url' in media && typeof media.url === 'string' && media.url.trim().length > 0) {
       return true
     }
   }
-  
+
   // Если это массив, проверяем первый элемент
   if (Array.isArray(media) && media.length > 0) {
     const firstItem = media[0]
@@ -27,27 +27,27 @@ const isValidMedia = (media: any): media is MediaResource => {
       return typeof firstItem.url === 'string' && firstItem.url.trim().length > 0
     }
   }
-  
+
   return false
 }
 
 // Получаем media из разных форматов данных
 const getProcessedMedia = (media: any): MediaResource => {
   if (media === null || media === undefined) return null
-  
+
   // Если это строка, считаем её URL-ом
   if (typeof media === 'string') return media
-  
+
   // Если это массив, берем первый элемент
   if (Array.isArray(media) && media.length > 0) {
     return media[0]
   }
-  
+
   // Если это объект и у него есть url
   if (typeof media === 'object' && 'url' in media) {
     return media
   }
-  
+
   return null
 }
 
@@ -59,19 +59,13 @@ export const MediaBlock: React.FC<{
   position?: 'default' | 'fullscreen'
   mediaWidth?: number
   mediaHeight?: number
-}> = ({ 
-  media, 
-  caption, 
-  position = 'default', 
-  mediaWidth = 1000,
-  mediaHeight = 650
-}) => {
+}> = ({ media, caption, position = 'default', mediaWidth = 1000, mediaHeight = 650 }) => {
   // Логируем информацию о медиа в режиме разработки
   if (process.env.NODE_ENV === 'development') {
     logDebug('MediaBlock component received:', {
       mediaType: media ? typeof media : null,
       mediaIsArray: Array.isArray(media),
-      mediaValue: media
+      mediaValue: media,
     })
   }
 
@@ -106,18 +100,16 @@ export const MediaBlock: React.FC<{
   }
 
   return (
-    <div className="content-width my-8">
-      <div className={position === 'fullscreen' ? 'w-full' : 'w-full'}>
-        <Media 
-          resource={validMedia} 
-          imgClassName="w-full h-auto rounded-md"
+    <div className="content-width my-8 max-w-full overflow-hidden">
+      <div className={position === 'fullscreen' ? 'w-full' : 'w-full max-w-full'}>
+        <Media
+          resource={validMedia}
+          imgClassName="w-full h-auto rounded-md max-w-full"
           width={mediaWidth}
           height={mediaHeight}
         />
         {captionText && (
-          <div className="mt-2 text-sm text-muted-foreground italic">
-            {captionText}
-          </div>
+          <div className="mt-2 text-sm text-muted-foreground italic break-words">{captionText}</div>
         )}
       </div>
     </div>
