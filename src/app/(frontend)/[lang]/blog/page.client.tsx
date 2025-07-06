@@ -76,6 +76,9 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
   locale,
   translations,
 }) => {
+  // Initialize translations hook
+  const t = useTranslations('blogPage')
+
   // State for managing posts, pagination, filters, and search
   const [posts, setPosts] = useState(initialPosts)
   const [currentPage, setCurrentPage] = useState(initialPosts.page || 1)
