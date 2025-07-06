@@ -1,69 +1,59 @@
-# Use an official Node.js runtime as a parent image
-# Using Alpine for a smaller image size
+# Multi-stage build для Flow Masters MCP Server
+
+# --- Base stage ---
 FROM node:20-alpine AS base
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set the working directory
-WORKDIR /usr/src/app
-
-# --- Dependencies --- 
-FROM base AS deps
-# Copy package.json and lock file
-COPY package.json pnpm-lock.yaml* ./
-# Install dependencies using pnpm
-RUN pnpm install --frozen-lockfile
-
-# --- Build --- 
-FROM base AS builder
 WORKDIR /app
 
+# Устанавливаем curl для healthcheck
+RUN apk add --no-cache curl
+
+# --- Dependencies stage ---
+FROM base AS deps
 # Копируем файлы зависимостей
 COPY package*.json ./
-COPY tsconfig.json ./
-
-# Устанавливаем зависимости
+# Устанавливаем все зависимости
 RUN npm ci
 
-# Копируем исходный код
+# --- Build stage ---
+FROM deps AS builder
+# Копируем исходный код и конфигурацию
+COPY tsconfig.json ./
 COPY src ./src
-
 # Сборка проекта
 RUN npm run build
 
-# --- Runner --- 
-FROM base AS runner
-WORKDIR /usr/src/app
-
-# Copy necessary artifacts from the build stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/package.json ./
-
-# Expose the port the app runs on (adjust if different)
+# --- Development stage ---
+FROM deps AS development
+# Копируем исходный код для разработки
+COPY tsconfig.json ./
+COPY src ./src
+# Открываем порт для разработки
 EXPOSE 3030
+# Команда для разработки
+CMD ["npm", "run", "dev"]
 
-# Define the command to run the app
-CMD ["node", "dist/index.js"]
-
-# Создаем финальный образ
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Копируем файлы зависимостей
+# --- Production stage ---
+FROM base AS production
+# Копируем только production зависимости
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Устанавливаем только production зависимости
-RUN npm ci --omit=dev
-
-# Копируем собранный код и конфигурацию
+# Копируем собранный код
 COPY --from=builder /app/dist ./dist
+
+# Копируем конфигурацию
 COPY config.sample.json ./config.json
 
-# Создаем папки для данных
-RUN mkdir -p /app/data
+# Создаем директории
+RUN mkdir -p /app/logs /app/data
+
+# Создаем пользователя для безопасности
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S mcp -u 1001 -G nodejs
+
+# Устанавливаем права доступа
+RUN chown -R mcp:nodejs /app
+USER mcp
 
 # Метаданные образа
 LABEL description="Flow Masters Model Context Protocol (MCP) server for LLM integration"
@@ -73,21 +63,26 @@ LABEL maintainer="Flow Masters Team"
 # Переменные окружения по умолчанию
 ENV PORT=3030 \
     HOST=0.0.0.0 \
-    API_URL=http://payload:3000 \
+    API_URL=https://flow-masters.ru \
     API_KEY=your-api-key-here \
     AUTO_UPDATE=true \
     UPDATE_CHECK_INTERVAL=60 \
     API_BASE_PATH=/api \
-    API_VERSION=v1 \
+    API_VERSION= \
     MODEL_CONTEXT_ENABLED=true \
     ALLOWED_MODELS=* \
     MAX_TOKENS=8192 \
     CONTEXT_WINDOW=4096 \
     CACHE_ENABLED=true \
-    CACHE_TTL=3600
+    CACHE_TTL=3600 \
+    NODE_ENV=production
 
 # Открываем порт
-EXPOSE ${PORT}
+EXPOSE 3030
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3030/mcp/health || exit 1
 
 # Запускаем сервер
 CMD ["node", "dist/index.js"] 

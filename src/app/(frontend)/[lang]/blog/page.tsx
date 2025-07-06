@@ -310,12 +310,7 @@ export default async function BlogPage(props: PageParams) {
 
     // Render server-side content with client-side interactivity
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{t('title')}</h1>
-          <p className="text-lg text-muted-foreground">{t('description')}</p>
-        </div>
-
+      <div>
         {/* Client-side interactive components */}
         <ClientOnly
           fallback={

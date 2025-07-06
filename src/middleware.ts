@@ -4,6 +4,8 @@ import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/constants'
 import { metricsCollector } from '@/utilities/payload/metrics'
 import createMiddleware from 'next-intl/middleware'
 import { corsMiddleware, addCorsToResponse } from '@/middleware/cors'
+import { authMiddleware } from '@/middleware/auth'
+import { API_CONFIG, getLegacyRedirect, isLegacyPath } from '@/config/api-routes'
 
 /**
  * @todo Рекомендуется мигрировать на новый i18nMiddleware из @/middleware/i18n
@@ -145,12 +147,37 @@ export function middleware(request: NextRequest) {
       return corsResponse
     }
 
-    // Handle API requests without version specified
-    if (pathname.startsWith('/api/') && !pathname.match(/\/api\/(v\d+|admin|docs)/)) {
-      const newUrl = new URL(request.url)
-      newUrl.pathname = pathname.replace('/api/', '/api/v1/')
+    // Handle API authentication
+    const authResponse = await authMiddleware(request)
+    if (authResponse) {
       metricsCollector.recordOperationDuration(Date.now() - startTime)
-      return NextResponse.redirect(newUrl)
+      return authResponse
+    }
+
+    // Handle API versioning and legacy redirects
+    if (pathname.startsWith('/api/')) {
+      // Проверяем, является ли это legacy путь (с v1)
+      if (isLegacyPath(pathname) && API_CONFIG.AUTO_REDIRECT) {
+        const newPath = getLegacyRedirect(pathname)
+        if (newPath) {
+          const newUrl = new URL(request.url)
+          newUrl.pathname = newPath
+          metricsCollector.recordOperationDuration(Date.now() - startTime)
+          return NextResponse.redirect(newUrl, 301) // Permanent redirect
+        }
+      }
+
+      // Если включен режим совместимости и путь не содержит версию
+      if (
+        API_CONFIG.COMPATIBILITY_MODE &&
+        !pathname.match(/\/api\/(v\d+|admin|docs|webhooks|health|revalidate-sitemap)/) &&
+        API_CONFIG.VERSION
+      ) {
+        const newUrl = new URL(request.url)
+        newUrl.pathname = pathname.replace('/api/', `/api/${API_CONFIG.VERSION}/`)
+        metricsCollector.recordOperationDuration(Date.now() - startTime)
+        return NextResponse.redirect(newUrl)
+      }
     }
 
     // Early return for static and system paths

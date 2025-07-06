@@ -129,7 +129,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
 
         logDebug('Fetching posts with params:', params.toString())
 
-        const response = await fetch(`/api/v1/blog/posts?${params.toString()}`, {
+        const response = await fetch(`/api/blog/posts?${params.toString()}`, {
           signal,
           headers: {
             'Content-Type': 'application/json',
@@ -368,7 +368,7 @@ const BlogPageClient: React.FC<BlogPageProps> = ({
                   <div className="text-2xl lg:text-3xl font-bold text-primary">
                     {posts.totalDocs}
                   </div>
-                  <div className="text-sm text-muted-foreground">Articles</div>
+                  <div className="text-sm text-muted-foreground">{t('articles')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl lg:text-3xl font-bold text-primary">

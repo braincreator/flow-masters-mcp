@@ -1,24 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-// List of all category types used in the system
-const CATEGORY_TYPES = [
-  {
-    id: 'product',
-    label: 'Product Category',
-    description: 'Categories for products in the store',
-  },
-  {
-    id: 'blog',
-    label: 'Blog Category',
-    description: 'Categories for blog posts and articles',
-  },
-  {
-    id: 'general',
-    label: 'General Category',
-    description: 'General purpose categories used across the site',
-  },
-]
+/**
+ * Автоматически созданный редирект для миграции API
+ * Перенаправляет запросы с /api/v1/category-types на /api/category-types
+ */
 
-export async function GET() {
-  return NextResponse.json(CATEGORY_TYPES)
+function createRedirect(request: NextRequest) {
+  const url = new URL(request.url)
+  const newPath = url.pathname.replace('/api/v1/category-types', '/api/category-types')
+  const newUrl = `${url.origin}${newPath}${url.search}`
+  
+  return NextResponse.redirect(newUrl, 301) // Permanent redirect
 }
+
+export const GET = createRedirect
+export const POST = createRedirect
+export const PUT = createRedirect
+export const DELETE = createRedirect
+export const PATCH = createRedirect
+export const OPTIONS = createRedirect

@@ -6,15 +6,17 @@ Model Context Protocol (MCP) сервер для интеграции с Flow Ma
 
 ## Особенности
 
-- Единый базовый путь (/v1/) для всех API эндпоинтов
+- Унифицированный базовый путь (/api/) для всех API эндпоинтов
 - Автоматическое индексирование API эндпоинтов
 - Поддержка контекстных запросов для LLM
 - Кеширование контекста для повышения производительности
 - Проксирование запросов к API
 - Автоматическое обновление
-- Поддержка версионности API
+- Гибкая поддержка версионности API (опционально)
 
-## Установка
+## Установка и развертывание
+
+### Локальная установка
 
 ```bash
 npm install
@@ -22,14 +24,35 @@ npm run build
 npm start
 ```
 
-Или через Docker:
+### Docker развертывание
 
+#### Продакшн (независимый сервер)
 ```bash
-docker build -t flow-masters-mcp -f Dockerfile .
-docker run -p 3030:3030 flow-masters-mcp
+# Установите API_KEY
+export API_KEY=your-api-key-here
+
+# Запуск продакшн версии
+./deploy-production.sh
+```
+
+#### Разработка (с локальным API)
+```bash
+# Запуск версии для разработки
+./deploy-development.sh
+```
+
+#### Ручное развертывание через Docker Compose
+```bash
+# Продакшн
+docker-compose -f docker-compose.production.yml up -d
+
+# Разработка
+docker-compose -f docker-compose.development.yml up -d
 ```
 
 ## Конфигурация
+
+### Файл конфигурации
 
 Создайте файл `config.json` в корне проекта:
 
@@ -38,12 +61,12 @@ docker run -p 3030:3030 flow-masters-mcp
   "port": 3030,
   "host": "0.0.0.0",
   "apiConfig": {
-    "apiUrl": "https://your-api-url.com",
+    "apiUrl": "https://flow-masters.ru",
     "apiKey": "your-api-key-here",
     "autoUpdate": true,
     "updateCheckInterval": 60,
     "basePath": "/api",
-    "apiVersion": "v1"
+    "apiVersion": ""
   },
   "llm": {
     "modelContextEnabled": true,
@@ -58,25 +81,81 @@ docker run -p 3030:3030 flow-masters-mcp
 }
 ```
 
+### Сценарии развертывания
+
+#### 1. Локальная разработка (MCP и API на одной машине)
+```json
+{
+  "apiConfig": {
+    "apiUrl": "http://localhost:3000",
+    "apiKey": "dev-api-key"
+  }
+}
+```
+
+#### 2. Продакшн (MCP на отдельном сервере)
+```json
+{
+  "apiConfig": {
+    "apiUrl": "https://flow-masters.ru",
+    "apiKey": "production-api-key"
+  }
+}
+```
+
+#### 3. Docker контейнер (API в другом контейнере)
+```json
+{
+  "apiConfig": {
+    "apiUrl": "http://flow-masters-api:3000",
+    "apiKey": "container-api-key"
+  }
+}
+```
+
 ### Переменные окружения
 
 Вы также можете настроить сервер через переменные окружения:
 
-```
+```bash
+# MCP Server Configuration (независимый от основного приложения)
 PORT=3030
 HOST=0.0.0.0
-API_URL=https://your-api-url.com
+
+# API Configuration (основное приложение Flow Masters)
+API_URL=https://flow-masters.ru
 API_KEY=your-api-key-here
+API_BASE_PATH=/api
+API_VERSION=
+
+# Для локальной разработки:
+# API_URL=http://localhost:3000
+
+# Для Docker контейнера:
+# API_URL=http://host.docker.internal:3000
+
+# Остальные настройки
 AUTO_UPDATE=true
 UPDATE_CHECK_INTERVAL=60
-API_BASE_PATH=/api
-API_VERSION=v1
 MODEL_CONTEXT_ENABLED=true
 ALLOWED_MODELS=*
 MAX_TOKENS=8192
 CONTEXT_WINDOW=4096
 CACHE_ENABLED=true
 CACHE_TTL=3600
+```
+
+### Тестирование с разными хостами
+
+```bash
+# Тестирование с локальным API
+MCP_HOST=localhost MCP_PORT=3030 API_HOST=localhost API_PORT=3000 npm run test:migration
+
+# Тестирование с внешним API
+MCP_HOST=localhost MCP_PORT=3030 API_URL=https://flow-masters.ru npm run test:migration
+
+# Тестирование удаленного MCP сервера
+MCP_HOST=your-mcp-server.com MCP_PORT=3030 API_URL=https://flow-masters.ru npm run test:migration
 ```
 
 ## API Эндпоинты

@@ -52,11 +52,18 @@ class Updater {
      * Запустить проверку обновлений по таймеру
      */
     startUpdateChecker() {
+        // Сначала остановим существующий интервал, если он есть
+        this.stopUpdateChecker();
         if (this.autoUpdate) {
             console.log(`Автоматические обновления активированы. Проверка каждые ${this.updateCheckIntervalMs / 60000} минут`);
             this.checkForUpdates().catch((err) => console.error('Ошибка при проверке обновлений:', err));
             this.updateCheckInterval = setInterval(() => {
-                this.checkForUpdates().catch((err) => console.error('Ошибка при периодической проверке обновлений:', err));
+                try {
+                    this.checkForUpdates().catch((err) => console.error('Ошибка при периодической проверке обновлений:', err));
+                }
+                catch (error) {
+                    console.error('Критическая ошибка в интервале проверки обновлений:', error);
+                }
             }, this.updateCheckIntervalMs);
         }
         else {
@@ -72,6 +79,12 @@ class Updater {
             this.updateCheckInterval = null;
             console.log('Проверка обновлений остановлена');
         }
+    }
+    /**
+     * Освобождение ресурсов при завершении работы
+     */
+    cleanup() {
+        this.stopUpdateChecker();
     }
     /**
      * Проверить наличие обновлений

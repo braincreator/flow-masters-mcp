@@ -46,15 +46,7 @@ export const CORS_CONFIG = {
   ],
 
   // Allowed methods
-  ALLOWED_METHODS: [
-    'GET',
-    'POST',
-    'PUT',
-    'DELETE',
-    'OPTIONS',
-    'PATCH',
-    'HEAD',
-  ],
+  ALLOWED_METHODS: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
 
   // Allowed headers
   ALLOWED_HEADERS: [
@@ -95,26 +87,39 @@ export const API_CORS_CONFIG = {
   PUBLIC_ENDPOINTS: [
     '/api/health',
     '/api/v1/health',
+    '/api/globals',
     '/api/v1/globals',
+    '/api/posts',
     '/api/v1/posts',
+    '/api/categories',
     '/api/v1/categories',
+    '/api/tags',
     '/api/v1/tags',
   ],
 
   // Protected API endpoints (stricter CORS)
   PROTECTED_ENDPOINTS: [
+    '/api/users',
     '/api/v1/users',
+    '/api/admin',
     '/api/v1/admin',
+    '/api/auth',
     '/api/v1/auth',
+    '/api/payments',
     '/api/v1/payments',
+    '/api/orders',
     '/api/v1/orders',
   ],
 
   // Internal API endpoints (most restrictive)
   INTERNAL_ENDPOINTS: [
+    '/api/revalidate',
     '/api/v1/revalidate',
+    '/api/cron',
     '/api/v1/cron',
+    '/api/webhooks',
     '/api/v1/webhooks',
+    '/api/monitoring',
     '/api/v1/monitoring',
   ],
 } as const
@@ -128,13 +133,13 @@ export const ENV_CORS_CONFIG = {
     strictMode: false,
     logRequests: true,
   },
-  
+
   staging: {
     allowAllOrigins: false,
     strictMode: true,
     logRequests: true,
   },
-  
+
   production: {
     allowAllOrigins: false,
     strictMode: true,
