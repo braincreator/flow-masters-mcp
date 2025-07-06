@@ -44,25 +44,25 @@ export const Logo = (props: Props) => {
   const sizeConfig = {
     thumbnail: {
       container: 'h-8',
-      image: 'h-7 w-auto',
+      image: 'h-7 w-7', // Square for circular avatar
       text: 'text-lg font-bold',
       gap: 'gap-2',
     },
     small: {
       container: 'h-14',
-      image: 'h-12 w-auto',
+      image: 'h-12 w-12', // Square for circular avatar
       text: 'text-xl font-bold',
       gap: 'gap-3',
     },
     medium: {
       container: 'h-14',
-      image: 'h-12 w-auto',
+      image: 'h-12 w-12', // Square for circular avatar
       text: 'text-2xl font-bold',
       gap: 'gap-3',
     },
     large: {
       container: 'h-18',
-      image: 'h-14 w-auto',
+      image: 'h-14 w-14', // Square for circular avatar
       text: 'text-3xl font-bold',
       gap: 'gap-4',
     },
@@ -85,7 +85,7 @@ export const Logo = (props: Props) => {
         fetchPriority={priority}
         decoding="async"
         className={clsx(
-          'object-contain transition-transform duration-300 hover:scale-105',
+          'object-cover rounded-full transition-transform duration-300 hover:scale-105',
           config.image,
         )}
         src={logoUrl}
