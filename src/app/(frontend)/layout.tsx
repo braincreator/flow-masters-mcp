@@ -8,8 +8,9 @@ import { getServerSideURL } from '@/utilities/getURL'
 import './globals.css'
 import { getCachedGlobal, getGlobal } from '@/utilities/getGlobals'
 import Script from 'next/script'
+import { MainLayoutSuspense, MainLayoutSkeleton } from '@/components/ui/main-layout-suspense'
 
-import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
+import { logDebug, logError } from '@/utils/logger'
 
 // Lazy load non-critical components
 const RootProvider = lazy(() =>
@@ -84,10 +85,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </head>
         <body>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="Europe/Moscow">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<MainLayoutSuspense />}>
               {/* Pass fetched data to provider if needed */}
               <RootProvider lang={locale} /* header={header} footer={footer} etc */>
-                <Suspense fallback={null}>
+                <Suspense fallback={<MainLayoutSuspense minimal />}>
                   <AnalyticsLayout>{children}</AnalyticsLayout>
                 </Suspense>
               </RootProvider>
@@ -103,11 +104,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
       <html lang={locale} className="h-full">
         <head>
-          {/* ... minimal head ... */}
-          <title>Error</title>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Error - Flow Masters</title>
         </head>
         <body>
-          <div>Error loading site layout. Please try again later.</div>
+          <MainLayoutSkeleton />
         </body>
       </html>
     )
