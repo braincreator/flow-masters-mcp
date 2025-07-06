@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Product } from '@/payload-types'
 import { ProductCard } from '@/components/ProductCard/index'
-import { useTranslations } from '@/hooks/useTranslations'
+import { useTranslations } from 'next-intl'
 import { Locale } from '@/constants'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
@@ -24,7 +24,7 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ product, lang }: RelatedProductsProps) {
-  const t = useTranslations(lang)
+  const t = useTranslations('products')
   const [relatedProducts, setRelatedProducts] = useState<EnhancedProduct[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [hasProducts, setHasProducts] = useState(false)
@@ -74,9 +74,7 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
 
   return (
     <div className="mt-16">
-      <h2 className="text-2xl font-bold mb-6">
-        {t.products?.relatedProducts || 'You may also like'}
-      </h2>
+      <h2 className="text-2xl font-bold mb-6">{t('relatedProducts')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {relatedProducts.map((relatedProduct) => (
           <ProductCard
