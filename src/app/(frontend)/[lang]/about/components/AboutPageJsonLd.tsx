@@ -109,7 +109,7 @@ export function AboutPageJsonLd({ data, locale }: AboutPageJsonLdProps) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbData),
         }}
-      />п
+      />
     </>
   )
 }
