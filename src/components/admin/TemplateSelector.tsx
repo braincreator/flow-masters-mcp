@@ -40,7 +40,7 @@ export function TemplateSelector({ onSelectTemplate }: TemplateSelectorProps) {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('/api/v1/templates?isPublic=true')
+      const response = await fetch('/api/templates?isPublic=true')
       const result = await response.json()
       
       if (!response.ok) {

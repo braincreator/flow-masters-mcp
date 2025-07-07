@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
-import { DEFAULT_LOCALE, type Locale } from '@/constants'
+import { getLocale } from '@/utilities/i18n'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-
-    // Extract query parameters
-    const locale = (searchParams.get('locale') as Locale) || DEFAULT_LOCALE
+    const locale = getLocale(request)
 
     logDebug(`Tags API: Fetching tags for locale ${locale}`)
 

@@ -141,7 +141,7 @@ export default function ProductsClient({
       // Create the query string from current search params
       const queryString = searchParams.toString()
 
-      const apiUrl = `/api/v1/products?${queryString}&locale=${currentLocale}`
+      const apiUrl = `/api/products?${queryString}&locale=${currentLocale}`
       logDebug('Fetching products from:', apiUrl)
 
       // Fetch products from API

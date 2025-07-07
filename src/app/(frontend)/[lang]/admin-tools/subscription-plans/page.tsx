@@ -29,7 +29,7 @@ export default function SubscriptionPlansAdminPage() {
   const fetchPlans = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/v1/subscription/plans?limit=100')
+      const response = await fetch('/api/subscription/plans?limit=100')
       const data = await response.json()
       
       if (data.success) {
@@ -230,7 +230,7 @@ export default function SubscriptionPlansAdminPage() {
 
       // Создаем планы через API
       for (const planData of newPlans) {
-        const response = await fetch('/api/v1/subscription/plans', {
+        const response = await fetch('/api/subscription/plans', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

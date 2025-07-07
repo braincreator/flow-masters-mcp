@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
+import { getLocale } from '@/utilities/i18n'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
@@ -11,11 +12,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type')
     const slug = searchParams.get('slug')
-    const localeParam = searchParams.get('locale')
-    let locale: 'en' | 'ru' | undefined = undefined
-    if (localeParam === 'en' || localeParam === 'ru') {
-      locale = localeParam
-    }
+    const locale = getLocale(request) as 'en' | 'ru'
     const requiresBooking = searchParams.get('requiresBooking')
     const requiresPayment = searchParams.get('requiresPayment')
     const businessStatus = searchParams.get('businessStatus') || searchParams.get('status')

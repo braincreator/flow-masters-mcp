@@ -45,7 +45,7 @@ export const ProductsList: React.FC<ProductsListProps> = ({
     setIsLoading(true)
     try {
       const queryString = searchParams.toString()
-      const apiUrl = `/api/v1/products?${queryString}&locale=${lang}&limit=${limit}`
+      const apiUrl = `/api/products?${queryString}&locale=${lang}&limit=${limit}`
 
       const response = await fetch(apiUrl)
       if (!response.ok) throw new Error('Failed to fetch products')

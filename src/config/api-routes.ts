@@ -8,7 +8,7 @@
 // Конфигурация версионирования API
 export const API_CONFIG = {
   // Основная версия API (можно изменить на '' для удаления версионирования)
-  VERSION: process.env.NEXT_PUBLIC_API_VERSION || 'v1',
+  VERSION: process.env.NEXT_PUBLIC_API_VERSION || '',
   
   // Базовый путь API
   BASE_PATH: '/api',

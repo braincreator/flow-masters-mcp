@@ -34,7 +34,7 @@ export function RelatedProducts({ product, lang }: RelatedProductsProps) {
       setIsLoading(true)
       try {
         // Use browser fetch API instead of the service directly
-        const response = await fetch(`/api/v1/products/related?id=${product.id}&limit=4`)
+        const response = await fetch(`/api/products/related?id=${product.id}&limit=4`)
         if (!response.ok) {
           throw new Error('Failed to fetch related products')
         }

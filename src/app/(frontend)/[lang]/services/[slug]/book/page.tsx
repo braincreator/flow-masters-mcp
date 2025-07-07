@@ -31,7 +31,7 @@ export default function ServiceBookPage() {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`/api/v1/services?slug=${params.slug}&locale=${params.lang}`)
+        const response = await fetch(`/api/services?slug=${params.slug}&locale=${params.lang}`)
 
         if (!response.ok) {
           throw new Error(t('errorFetchingService', { defaultValue: 'Failed to fetch service' }))

@@ -47,7 +47,7 @@ export default function SubscriptionPlans({
     const fetchPlans = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`/api/v1/subscription/plans?locale=${locale}&status=active`)
+        const response = await fetch(`/api/subscription/plans?locale=${locale}&status=active`)
         if (!response.ok) throw new Error(t('errorFetchPlans'))
         const data = await response.json()
 
