@@ -23,7 +23,20 @@ type QueryWhere = Record<string, WhereCondition>
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const locale = getLocale(request)
+    const rawLocale = getLocale(request)
+    const localeParam = searchParams.get('locale')
+
+    // Ensure locale is valid for Payload CMS
+    const locale = ['en', 'ru'].includes(rawLocale) ? rawLocale as 'en' | 'ru' : 'ru'
+
+    // Debug logging
+    console.log('🔍 Subscription Plans API Debug:')
+    console.log('  URL:', request.url)
+    console.log('  Query locale param:', localeParam)
+    console.log('  getLocale() raw result:', rawLocale)
+    console.log('  Final locale for Payload:', locale)
+    console.log('  All search params:', Object.fromEntries(searchParams.entries()))
+
     const status = searchParams.get('status')
     const category = searchParams.get('category')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -50,11 +63,25 @@ export async function GET(request: Request) {
     }
 
     // Fetch subscription plans with localized fields
+    console.log('  Payload query:', { collection: 'subscription-plans', locale, ...query })
+
     const result = await payload.find({
       collection: 'subscription-plans',
-      locale: locale as 'en' | 'ru' | 'all',
+      locale,
       ...query,
     })
+
+    console.log('  Payload result count:', result.docs.length)
+    if (result.docs.length > 0) {
+      const firstPlan = result.docs[0]
+      console.log('  First plan raw data:', JSON.stringify({
+        id: firstPlan.id,
+        name: firstPlan.name,
+        description: firstPlan.description,
+        price: firstPlan.price,
+        currency: firstPlan.currency
+      }, null, 2))
+    }
 
     // Transform response to match the frontend needs
     const plans = result.docs.map((plan) => ({
