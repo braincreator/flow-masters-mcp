@@ -683,7 +683,7 @@ export default buildConfig({
       },
     },
     {
-      path: '/api/v1/setup-rewards',
+      path: '/api/setup-rewards',
       method: 'post',
       handler: setupRewardsEndpoint.handler,
     },

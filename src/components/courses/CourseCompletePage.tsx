@@ -13,7 +13,7 @@ import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 // Function to generate certificate
 const generateCertificate = async (userId: string, courseId: string) => {
   try {
-    const response = await fetch('/api/v1/courses/certificates', {
+    const response = await fetch('/api/courses/certificates', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         setAccessLoading(true)
 
         // Check if user has access to this course
-        const response = await fetch('/api/v1/courses/access', {
+        const response = await fetch('/api/courses/access', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
         // If user has access, get their enrollment
         if (data.hasAccess) {
           const enrollmentResponse = await fetch(
-            `/api/v1/courses/enrollment?userId=${user.id}&courseId=${course.id}`,
+            `/api/courses/enrollment?userId=${user.id}&courseId=${course.id}`,
           )
 
           if (enrollmentResponse.ok) {
@@ -184,7 +184,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
               // If progress is not 100%, update it to 100%
               if (enrollmentData.enrollment.progress < 100) {
-                await fetch('/api/v1/courses/enrollment', {
+                await fetch('/api/courses/enrollment', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export function CourseCompletePage({ course, locale }: CourseCompletePageProps) 
 
               // Check if user already has a certificate
               const certificatesResponse = await fetch(
-                `/api/v1/courses/certificates?userId=${user.id}`,
+                `/api/courses/certificates?userId=${user.id}`,
               )
 
               if (certificatesResponse.ok) {

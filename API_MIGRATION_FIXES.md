@@ -80,6 +80,21 @@ npx tsx src/scripts/test-api-migration.ts
    - Для `locale=ru` - названия и описания на русском
 3. **Все API эндпоинты** должны работать с новыми путями `/api/` вместо `/api/v1/`
 
+## Дополнительные исправления (161 файл)
+
+После первоначальных исправлений было обнаружено еще 69 файлов с устаревшими API путями:
+
+- ✅ **Blog компоненты**: PostContent.tsx, layout.tsx, BlogFilters.tsx, BlogSearch.tsx, CommentForm.tsx
+- ✅ **Checkout и платежи**: CheckoutClient.tsx, PaymentForm.tsx, PaymentResult/index.tsx
+- ✅ **Компоненты услуг**: ServiceBookingFlow.tsx, OrderContactForm.tsx, PendingBookings.tsx
+- ✅ **Admin компоненты**: CourseAnalytics.tsx, EmailCampaignManager.tsx, BlockSelector.tsx
+- ✅ **API routes**: cart/, services/, email-campaigns/, orders/
+- ✅ **Конфигурация**: api-routes.ts, cors.ts, payload.config.ts
+- ✅ **Библиотеки**: api.ts, blogHelpers.ts, blogHooks.ts
+- ✅ **Скрипты и тесты**: test-localized-api.js, add-products-api.ts
+
+**Итого исправлено**: 161 API путь в 69 файлах
+
 ## Дополнительные проверки
 
 Убедитесь, что:

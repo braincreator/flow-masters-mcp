@@ -86,41 +86,41 @@ export const API_CORS_CONFIG = {
   // Public API endpoints (more permissive)
   PUBLIC_ENDPOINTS: [
     '/api/health',
-    '/api/v1/health',
+    '/api/health',
     '/api/globals',
-    '/api/v1/globals',
+    '/api/globals',
     '/api/posts',
-    '/api/v1/posts',
+    '/api/posts',
     '/api/categories',
-    '/api/v1/categories',
+    '/api/categories',
     '/api/tags',
-    '/api/v1/tags',
+    '/api/tags',
   ],
 
   // Protected API endpoints (stricter CORS)
   PROTECTED_ENDPOINTS: [
     '/api/users',
-    '/api/v1/users',
+    '/api/users',
     '/api/admin',
-    '/api/v1/admin',
+    '/api/admin',
     '/api/auth',
-    '/api/v1/auth',
+    '/api/auth',
     '/api/payments',
-    '/api/v1/payments',
+    '/api/payments',
     '/api/orders',
-    '/api/v1/orders',
+    '/api/orders',
   ],
 
   // Internal API endpoints (most restrictive)
   INTERNAL_ENDPOINTS: [
     '/api/revalidate',
-    '/api/v1/revalidate',
+    '/api/revalidate',
     '/api/cron',
-    '/api/v1/cron',
+    '/api/cron',
     '/api/webhooks',
-    '/api/v1/webhooks',
+    '/api/webhooks',
     '/api/monitoring',
-    '/api/v1/monitoring',
+    '/api/monitoring',
   ],
 } as const
 

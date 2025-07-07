@@ -4,7 +4,7 @@ import { getLocale } from '@/utilities/i18n'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
- * GET /api/v1/services
+ * GET /api/services
  * Получение списка услуг
  */
 export async function GET(request: NextRequest) {
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/v1/services
+ * POST /api/services
  * Создание новой услуги
  */
 export async function POST(request: NextRequest) {

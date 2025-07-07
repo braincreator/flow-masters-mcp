@@ -42,7 +42,7 @@ export function EnrolledCourses({ userId, locale }: EnrolledCoursesProps) {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/v1/courses/user/${userId}`)
+        const response = await fetch(`/api/courses/user/${userId}`)
 
         if (!response.ok) {
           throw new Error(t('errorFetchFailed'))

@@ -4,7 +4,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
- * GET /api/v1/services/payment/verify
+ * GET /api/services/payment/verify
  * Проверка статуса оплаты услуги
  */
 export async function GET(request: NextRequest) {

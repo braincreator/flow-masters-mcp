@@ -43,7 +43,7 @@ export function UserStats({ userId, locale }: UserStatsProps) {
         setIsLoading(true)
 
         // Fetch real user stats from the API
-        const response = await fetch(`/api/v1/user/${userId}/stats`, {
+        const response = await fetch(`/api/user/${userId}/stats`, {
           method: 'GET',
           credentials: 'include', // Include cookies for authentication
           headers: {

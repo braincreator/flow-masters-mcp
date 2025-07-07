@@ -133,7 +133,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
       if (webhookSource === 'collection' && webhook) {
         try {
           // Получаем данные интеграции из API
-          const response = await fetch(`/api/v1/integrations/${webhook}`)
+          const response = await fetch(`/api/integrations/${webhook}`)
           if (response.ok) {
             const data = await response.json()
             if (debugMode) {
@@ -146,7 +146,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
             })
 
             // Обновляем дату последнего использования интеграции
-            fetch(`/api/v1/integrations/${webhook}`, {
+            fetch(`/api/integrations/${webhook}`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
@@ -655,7 +655,7 @@ export const ChatBlock: React.FC<ChatProps> = ({
           throw new Error('Не указан URL вебхука. Проверьте настройки блока.')
         }
 
-        const response = await fetch('/api/v1/chat', {
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

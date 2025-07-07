@@ -39,29 +39,29 @@ async function runTests() {
   const tests = [
     // Categories tests
     {
-      url: `${BASE_URL}/api/v1/categories?locale=en`,
+      url: `${BASE_URL}/api/categories?locale=en`,
       description: 'Categories (English)'
     },
     {
-      url: `${BASE_URL}/api/v1/categories?locale=ru`,
+      url: `${BASE_URL}/api/categories?locale=ru`,
       description: 'Categories (Russian)'
     },
     {
-      url: `${BASE_URL}/api/v1/categories`,
+      url: `${BASE_URL}/api/categories`,
       description: 'Categories (Default locale)'
     },
     
     // Tags tests
     {
-      url: `${BASE_URL}/api/v1/tags?locale=en`,
+      url: `${BASE_URL}/api/tags?locale=en`,
       description: 'Tags (English)'
     },
     {
-      url: `${BASE_URL}/api/v1/tags?locale=ru`,
+      url: `${BASE_URL}/api/tags?locale=ru`,
       description: 'Tags (Russian)'
     },
     {
-      url: `${BASE_URL}/api/v1/tags`,
+      url: `${BASE_URL}/api/tags`,
       description: 'Tags (Default locale)'
     }
   ]

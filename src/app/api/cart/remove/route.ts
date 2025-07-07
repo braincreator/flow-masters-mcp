@@ -3,7 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
-// DELETE /api/v1/cart/remove - удаление товара или услуги из корзины
+// DELETE /api/cart/remove - удаление товара или услуги из корзины
 export async function DELETE(req: NextRequest) {
   try {
     // Получаем данные из тела запроса

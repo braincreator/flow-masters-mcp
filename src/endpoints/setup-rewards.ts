@@ -16,7 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  */
 // Removed : Endpoint type annotation to allow inference
 const setupRewardsEndpoint = {
-  path: '/api/v1/setup-rewards',
+  path: '/api/setup-rewards',
   method: 'post',
   handler: (async (req: PayloadRequest, res: Response, next: NextFunction) => {
     try {

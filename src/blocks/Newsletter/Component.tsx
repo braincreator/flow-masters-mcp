@@ -95,7 +95,7 @@ export const Newsletter: React.FC<NewsletterProps> = ({
       // Трекаем начало отправки
       formAnalytics.handleFormSubmit(true)
 
-      const response = await fetch('/api/v1/newsletter/subscribe', {
+      const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -91,7 +91,7 @@ export default function LandingGeneratorPage() {
       logDebug('Загружаем модели для провайдера:', selectedProvider)
 
       // Запрашиваем список моделей напрямую
-      let url = `/api/v1/ai/providers/models?provider=${selectedProvider}`
+      let url = `/api/ai/providers/models?provider=${selectedProvider}`
 
       // Если есть API ключ, добавляем его в запрос
       if (apiKey) {
@@ -150,7 +150,7 @@ export default function LandingGeneratorPage() {
       if (apiKeySource === 'stored' && !apiKey) {
         try {
           // Получаем сохраненный ключ для текущего провайдера
-          const response = await fetch(`/api/v1/ai/providers/keys?provider=${selectedProvider}`)
+          const response = await fetch(`/api/ai/providers/keys?provider=${selectedProvider}`)
           const data = await response.json()
 
           if (data.success && data.hasKey) {
@@ -195,8 +195,8 @@ export default function LandingGeneratorPage() {
       // Всегда используем пути API без префикса локализации
       const endpoint =
         generationType === 'cms'
-          ? `${window.location.origin}/api/v1/landings/generate-cms`
-          : `${window.location.origin}/api/v1/landings/generate`
+          ? `${window.location.origin}/api/landings/generate-cms`
+          : `${window.location.origin}/api/landings/generate`
 
       let result
 

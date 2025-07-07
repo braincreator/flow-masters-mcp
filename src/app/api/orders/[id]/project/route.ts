@@ -4,7 +4,7 @@ import { getServerSession } from '@/utilities/auth/getServerSession'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
- * GET /api/v1/orders/:id/project
+ * GET /api/orders/:id/project
  * Get the service project associated with an order
  */
 export async function GET(

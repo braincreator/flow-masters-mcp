@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 export const WebhookInstructions: React.FC = () => {
   const t = useTranslations('CalendlyWebhookInstructions')
   const { serverURL } = useConfig()
-  const webhookUrl = `${serverURL}/api/v1/calendly-webhooks`
+  const webhookUrl = `${serverURL}/api/calendly-webhooks`
 
   return (
     <div

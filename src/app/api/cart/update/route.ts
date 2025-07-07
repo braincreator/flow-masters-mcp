@@ -14,7 +14,7 @@ type CartItem = {
   id?: string | null
 }
 
-// PATCH /api/v1/cart/update - обновление количества товара или услуги в корзине
+// PATCH /api/cart/update - обновление количества товара или услуги в корзине
 export async function PATCH(req: NextRequest) {
   try {
     // Получаем данные из тела запроса
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
 
     // Если количество 0, вызываем удаление товара через /api/cart/remove
     if (quantity === 0) {
-      const removeResponse = await fetch(`${req.nextUrl.origin}/api/v1/cart/remove`, {
+      const removeResponse = await fetch(`${req.nextUrl.origin}/api/cart/remove`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

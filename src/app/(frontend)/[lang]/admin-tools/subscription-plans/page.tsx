@@ -54,7 +54,7 @@ export default function SubscriptionPlansAdminPage() {
       
       // Удаляем каждый план через API
       for (const plan of plans) {
-        await fetch(`/api/v1/subscription/plans/${plan.id}`, {
+        await fetch(`/api/subscription/plans/${plan.id}`, {
           method: 'DELETE',
         })
       }

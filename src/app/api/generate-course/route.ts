@@ -87,7 +87,7 @@ const getPayloadInstance = async (): Promise<Payload> => {
 }
 
 export async function POST(request: NextRequest) {
-  logDebug('Received POST request to /api/v1/generate-course');
+  logDebug('Received POST request to /api/generate-course');
 
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

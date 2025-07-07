@@ -4,7 +4,7 @@ import { getServerSession } from '@/utilities/auth/getServerSession'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
- * GET /api/v1/services/booking/pending
+ * GET /api/services/booking/pending
  * Получение списка оплаченных услуг, для которых не завершено бронирование
  */
 export async function GET(_request: NextRequest) {

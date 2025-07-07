@@ -3,7 +3,7 @@ import { getPayloadClient } from '@/utilities/payload/index'
 import { cookies } from 'next/headers'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
-// GET /api/v1/cart - получение корзины
+// GET /api/cart - получение корзины
 export async function GET(req: NextRequest) {
   try {
     // Получаем экземпляр Payload
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// DELETE /api/v1/cart - очистка корзины
+// DELETE /api/cart - очистка корзины
 export async function DELETE(req: NextRequest) {
   try {
     // Получаем экземпляр Payload

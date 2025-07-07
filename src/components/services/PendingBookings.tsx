@@ -40,7 +40,7 @@ export const PendingBookings: React.FC<PendingBookingsProps> = ({
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/v1/services/booking/pending')
+        const response = await fetch('/api/services/booking/pending')
 
         if (!response.ok) {
           throw new Error('Failed to fetch pending bookings')

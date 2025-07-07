@@ -183,9 +183,9 @@ export function getAllApiPaths(): string[] {
 
 // Функция для миграции путей (замена v1 на новые пути)
 export function migrateApiPath(oldPath: string): string {
-  // Если путь содержит /api/v1/, заменяем на новый формат
-  if (oldPath.includes('/api/v1/')) {
-    return oldPath.replace('/api/v1/', buildApiPathV2('').replace('/api/', '/api/'))
+  // Если путь содержит /api/, заменяем на новый формат
+  if (oldPath.includes('/api/')) {
+    return oldPath.replace('/api/', buildApiPathV2('').replace('/api/', '/api/'))
   }
   
   return oldPath
@@ -193,7 +193,7 @@ export function migrateApiPath(oldPath: string): string {
 
 // Проверка, является ли путь устаревшим
 export function isLegacyPath(path: string): boolean {
-  return path.includes('/api/v1/')
+  return path.includes('/api/')
 }
 
 // Получение нового пути для устаревшего
@@ -202,7 +202,7 @@ export function getLegacyRedirect(path: string): string | null {
     return null
   }
   
-  return path.replace('/api/v1/', '/api/')
+  return path.replace('/api/', '/api/')
 }
 
 // Экспорт для обратной совместимости

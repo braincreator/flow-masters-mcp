@@ -5,7 +5,7 @@ import { getServerSession } from '@/lib/auth'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to check the status of an email campaign
- * GET /api/v1/email-campaigns/status?id=campaignId
+ * GET /api/email-campaigns/status?id=campaignId
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 /**
  * API endpoint to get a list of all email campaigns
- * GET /api/v1/email-campaigns/status/all
+ * GET /api/email-campaigns/status/all
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // Authenticate the request

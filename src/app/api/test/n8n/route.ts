@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     // Тестируем подключение к n8n API
-    const response = await fetch(`${n8nBaseUrl}/api/v1/workflows`, {
+    const response = await fetch(`${n8nBaseUrl}/api/workflows`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${n8nApiKey}`,

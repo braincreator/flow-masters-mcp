@@ -25,7 +25,7 @@ export const CourseProgress: React.FC<CourseProgressProps> = ({ courseId, classN
         setError(null)
 
         // Fetch user's enrollment for this course
-        const response = await fetch(`/api/v1/courses/enrollment?userId=${user.id}&courseId=${courseId}`)
+        const response = await fetch(`/api/courses/enrollment?userId=${user.id}&courseId=${courseId}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch course progress')

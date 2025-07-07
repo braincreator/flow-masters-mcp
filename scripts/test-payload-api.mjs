@@ -9,7 +9,7 @@ async function testPayloadAPI() {
     
     console.log('📡 Testing services API endpoint...')
     
-    const response = await fetch(`${baseUrl}/api/v1/services?status=published&limit=5`)
+    const response = await fetch(`${baseUrl}/api/services?status=published&limit=5`)
     
     if (!response.ok) {
       console.error(`❌ API request failed: ${response.status} ${response.statusText}`)

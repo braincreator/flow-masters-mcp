@@ -25,7 +25,7 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
   } = useQuery<Order>({
     queryKey: ['order', orderId],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/orders/${orderId}`)
+      const response = await fetch(`/api/orders/${orderId}`)
       if (!response.ok) throw new Error('Failed to fetch order')
       return response.json()
     },

@@ -47,7 +47,7 @@ export async function GET(
 
     // Track post view (optional - you can remove this if you don't want automatic tracking)
     try {
-      await fetch(`${req.nextUrl.origin}/api/v1/blog/post-view`, {
+      await fetch(`${req.nextUrl.origin}/api/blog/post-view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

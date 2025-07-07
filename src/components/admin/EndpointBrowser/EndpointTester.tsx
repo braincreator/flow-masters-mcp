@@ -110,7 +110,7 @@ const EndpointTester: React.FC<EndpointTesterProps> = ({ endpoint, isOpen, onClo
                   id="path"
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
-                  placeholder="/api/v1/example"
+                  placeholder="/api/example"
                 />
               </div>
             </div>

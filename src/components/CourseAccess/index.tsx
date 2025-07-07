@@ -33,7 +33,7 @@ export const CourseAccess: React.FC<CourseAccessProps> = ({
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch('/api/v1/courses/access', {
+        const response = await fetch('/api/courses/access', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

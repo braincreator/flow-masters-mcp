@@ -43,7 +43,7 @@ export function UserCalendar({ locale }: UserCalendarProps) {
       try {
         setLoading(true)
         // In a real app, you would fetch events from an API
-        const response = await fetch(`/api/v1/user/${user.id}/events`)
+        const response = await fetch(`/api/user/${user.id}/events`)
         
         if (response.ok) {
           const data = await response.json()

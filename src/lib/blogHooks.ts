@@ -221,7 +221,7 @@ export function useBlogSearch(options: BlogSearchHookOptions = {}) {
       setIsLoading(true)
       setError(null)
       try {
-        const response = await fetch(`/api/v1/blog/search?q=${encodeURIComponent(searchQuery)}`)
+        const response = await fetch(`/api/blog/search?q=${encodeURIComponent(searchQuery)}`)
         if (!response.ok) throw new Error('Failed to fetch search results')
         const data = await response.json()
         setResults(data.docs || [])

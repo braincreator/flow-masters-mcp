@@ -76,7 +76,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
 
   async function fetchOrderDetails(orderId: string) {
     try {
-      const res = await fetch(`/api/v1/order/${orderId}`)
+      const res = await fetch(`/api/order/${orderId}`)
       if (!res.ok) {
         logError('Failed to fetch order details:', res.statusText)
         return
@@ -100,7 +100,7 @@ export default function PaymentResult({ locale }: PaymentResultProps) {
   async function verifyPayment(orderId: string, paymentId: string | null) {
     try {
       const res = await fetch(
-        `/api/v1/payment/verify?orderId=${orderId}${paymentId ? `&paymentId=${paymentId}` : ''}`,
+        `/api/payment/verify?orderId=${orderId}${paymentId ? `&paymentId=${paymentId}` : ''}`,
       )
 
       if (!res.ok) {

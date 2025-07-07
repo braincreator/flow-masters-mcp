@@ -4,7 +4,7 @@ import { ServiceRegistry } from '@/services/service.registry'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
- * GET /api/v1/services/:id
+ * GET /api/services/:id
  * Получение информации об услуге по ID
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 /**
- * PUT /api/v1/services/:id
+ * PUT /api/services/:id
  * Обновление услуги
  */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 /**
- * DELETE /api/v1/services/:id
+ * DELETE /api/services/:id
  * Удаление услуги
  */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {

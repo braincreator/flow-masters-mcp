@@ -5,7 +5,7 @@ import { getServerSession } from '@/lib/auth'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to trigger event-based email campaigns
- * POST /api/v1/email-campaigns/trigger-event
+ * POST /api/email-campaigns/trigger-event
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {

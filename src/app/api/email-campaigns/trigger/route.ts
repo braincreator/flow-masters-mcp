@@ -5,7 +5,7 @@ import { getServerSession } from '@/lib/auth'
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 /**
  * API endpoint to manually trigger an email campaign
- * POST /api/v1/email-campaigns/trigger
+ * POST /api/email-campaigns/trigger
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {

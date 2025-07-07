@@ -40,7 +40,7 @@ const testProducts = [
 
 async function addProducts() {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-  const API_URL = `${baseUrl}/api/v1/products`
+  const API_URL = `${baseUrl}/api/products`
   
   logDebug('\n🚀 Starting product import process...')
   logDebug(`📡 API URL: ${API_URL}`)

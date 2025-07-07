@@ -156,7 +156,7 @@ export default function CourseCreatorPage() {
       logDebug('Sending request to create course:', requestData)
 
       try {
-        const response = await fetch('/api/v1/courses/create-from-content', {
+        const response = await fetch('/api/courses/create-from-content', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ export default function CourseCreatorPage() {
       }
 
       // Получаем результат еще раз, так как переменная result могла быть не определена
-      const finalResponse = await fetch('/api/v1/courses/create-from-content', {
+      const finalResponse = await fetch('/api/courses/create-from-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -654,7 +654,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -691,7 +691,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -726,7 +726,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -759,7 +759,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -788,7 +788,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -817,7 +817,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -846,7 +846,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -875,7 +875,7 @@ export default function CourseCreatorPage() {
                                   setTemplateLoading(true)
                                   setTemplateError(null)
 
-                                  const response = await fetch('/api/v1/templates', {
+                                  const response = await fetch('/api/templates', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
