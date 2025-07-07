@@ -45,7 +45,7 @@ export function useSettings(): UseSettingsResult {
       setLoading(true)
       setError(null)
 
-      const data = await apiClient.get(`/api/v1/globals/settings?depth=2`, {
+      const data = await apiClient.get(`/api/globals/settings?depth=2`, {
         headers: {
           'Content-Type': 'application/json',
         },

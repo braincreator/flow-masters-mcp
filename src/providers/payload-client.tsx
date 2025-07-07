@@ -58,7 +58,7 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
       if (tagSlug) params.set('tag', tagSlug)
       if (authorId) params.set('author', authorId)
 
-      const url = `/api/v1/posts?${params.toString()}`
+      const url = `/api/posts?${params.toString()}`
       logDebug(`Client: Sending request to ${url}`)
 
       // Make the API request
@@ -94,7 +94,7 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
         locale: locale
       })
 
-      const url = `/api/v1/categories?${params.toString()}`
+      const url = `/api/categories?${params.toString()}`
       logDebug(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)
@@ -129,7 +129,7 @@ export function PayloadAPIClient({ children }: { children: React.ReactNode }) {
         locale: locale
       })
 
-      const url = `/api/v1/tags?${params.toString()}`
+      const url = `/api/tags?${params.toString()}`
       logDebug(`Client: Sending request to ${url}`)
 
       const response = await fetch(url)

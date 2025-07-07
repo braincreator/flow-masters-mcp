@@ -42,7 +42,7 @@ export const ConsultingBookingFlow: React.FC<ConsultingBookingFlowProps> = ({
     if (orderId && !paymentVerified) {
       const checkPaymentStatus = async () => {
         try {
-          const response = await fetch(`/api/v1/booking/verify-payment?orderId=${orderId}`)
+          const response = await fetch(`/api/booking/verify-payment?orderId=${orderId}`)
           if (!response.ok) {
             throw new Error('Failed to verify payment status')
           }
@@ -75,7 +75,7 @@ export const ConsultingBookingFlow: React.FC<ConsultingBookingFlowProps> = ({
 
       if (consultingProductId === 'consulting-product') {
         // Fetch consulting products
-        const productsResponse = await fetch('/api/v1/setup/consulting-product')
+        const productsResponse = await fetch('/api/setup/consulting-product')
 
         if (!productsResponse.ok) {
           throw new Error('Failed to get consulting product')
@@ -91,7 +91,7 @@ export const ConsultingBookingFlow: React.FC<ConsultingBookingFlowProps> = ({
       }
 
       // Create an order and initiate payment
-      const response = await fetch('/api/v1/payment/create', {
+      const response = await fetch('/api/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

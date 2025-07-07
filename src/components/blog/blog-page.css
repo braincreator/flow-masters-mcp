@@ -185,6 +185,11 @@ html[data-theme='dark'] .blog-page-container {
   margin-right: auto;
 }
 
+/* По умолчанию скрываем мобильную версию newsletter */
+.blog-newsletter-mobile {
+  display: none;
+}
+
 /* Мобильные стили */
 @media (max-width: 1023px) {
   .blog-content-wrapper {
@@ -245,6 +250,103 @@ html[data-theme='dark'] .blog-page-container {
   width: 100%;
 }
 
+/* Стили для RichText и embedded блоков */
+.rich-text-content {
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Общие стили для embedded блоков */
+.rich-text-content .prose > div {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Медиа блоки - общие стили */
+.rich-text-content .prose img,
+.rich-text-content .prose video,
+.rich-text-content .prose iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Исправления для prose на мобильных устройствах */
+@media (max-width: 768px) {
+  .rich-text-content .prose {
+    max-width: 100% !important;
+    overflow-x: hidden;
+  }
+
+  /* Embedded блоки */
+  .rich-text-content .prose > * {
+    max-width: 100% !important;
+    overflow-x: hidden;
+  }
+
+  /* Медиа блоки */
+  .rich-text-content .prose img,
+  .rich-text-content .prose video,
+  .rich-text-content .prose iframe,
+  .rich-text-content .prose embed,
+  .rich-text-content .prose object {
+    max-width: 100% !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Таблицы */
+  .rich-text-content .prose table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* Код блоки */
+  .rich-text-content .prose pre {
+    overflow-x: auto;
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Цитаты */
+  .rich-text-content .prose blockquote {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Embedded блоки (CTA, Banner, etc.) */
+  .rich-text-content .prose > div[class*='py-'],
+  .rich-text-content .prose > div[class*='container'],
+  .rich-text-content .prose > div[class*='grid'] {
+    max-width: 100% !important;
+    overflow-x: hidden;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Исправления для контейнеров */
+  .rich-text-content .prose .container {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Кнопки в embedded блоках */
+  .rich-text-content .prose button,
+  .rich-text-content .prose a[class*='button'] {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
 .blog-comments .comment-form-container {
   max-width: 100%;
   width: 100%;
@@ -281,7 +383,7 @@ html[data-theme='dark'] .blog-page-container {
 }
 
 .blog-sidebar-right > div .newsletter-sidebar {
-  margin-top: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .blog-sidebar-right > div .newsletter-sidebar h3 {
@@ -412,7 +514,7 @@ html[data-theme='dark'] .blog-page-container {
   display: block; /* Убедимся, что это блок */
   border-radius: 0.75rem;
   padding: 1rem;
-  margin-bottom: 0rem;
+  margin-bottom: 1.5rem;
   /* Используем конкретный цвет neutral-300 для границы в светлой теме */
   border: 1px solid #d4d4d4;
   background: linear-gradient(to bottom, var(--muted), var(--background));

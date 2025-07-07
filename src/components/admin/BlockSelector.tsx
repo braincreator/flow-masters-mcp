@@ -26,7 +26,7 @@ export default function BlockSelector({ selectedBlocks, onSelect }: BlockSelecto
   React.useEffect(() => {
     const fetchBlocks = async () => {
       try {
-        const response = await fetch(`${window.location.origin}/api/v1/blocks?usage=landing`)
+        const response = await fetch(`${window.location.origin}/api/blocks?usage=landing`)
         if (!response.ok) {
           throw new Error('Failed to fetch blocks')
         }

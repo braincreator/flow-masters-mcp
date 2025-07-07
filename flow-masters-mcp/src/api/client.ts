@@ -25,7 +25,7 @@ export class ApiClient {
       baseURL,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `ApiKey ${config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
         'X-Client': 'Cursor-MCP-Server',
       },
       timeout: 10000,
@@ -50,8 +50,12 @@ export class ApiClient {
     const base = basePath.startsWith('/') ? basePath : `/${basePath}`
     const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base
 
-    // Строим URL с версией API
-    return `${baseUrl}${cleanBase}/${apiVersion}`
+    // Строим URL с версией API (если версия указана)
+    if (apiVersion && apiVersion.trim() !== '') {
+      return `${baseUrl}${cleanBase}/${apiVersion}`
+    } else {
+      return `${baseUrl}${cleanBase}`
+    }
   }
 
   /**

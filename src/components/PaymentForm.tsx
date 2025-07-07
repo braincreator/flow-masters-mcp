@@ -43,7 +43,7 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
     const fetchProviders = async () => {
       try {
         setIsLoadingProviders(true)
-        const response = await fetch('/api/v1/payment/providers')
+        const response = await fetch('/api/payment/providers')
         if (!response.ok) throw new Error(t('errorFetchProvidersFailed'))
         const data = await response.json()
         setProviders(data.providers || [])
@@ -79,7 +79,7 @@ export function PaymentForm({ locale, email: initialEmail }: PaymentFormProps) {
         throw new Error(t('errorCartEmpty'))
       }
 
-      const response = await fetch('/api/v1/payment/create', {
+      const response = await fetch('/api/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

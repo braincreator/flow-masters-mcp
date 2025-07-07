@@ -27,26 +27,76 @@ export async function authenticate(req: Request, type: AuthType): Promise<AuthRe
   }
 }
 
-// Modified to check ApiKeys collection and use Authorization header
+// Enhanced to support both Authorization: Bearer and x-api-key formats
 async function authenticateApiRequest(req: Request): Promise<AuthResult> {
+  const startTime = Date.now()
+  let authFormat: 'bearer' | 'x-api-key' | 'none' = 'none'
+  let providedKey: string | null = null
+
   try {
+    // Check for new format: Authorization: Bearer <token>
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return {
-        isAuthenticated: false,
-        error: 'Missing or invalid Authorization header (Bearer token expected)',
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      authFormat = 'bearer'
+      providedKey = authHeader.substring(7)
+      logDebug('[authenticateApiRequest] Using Authorization: Bearer format')
+    }
+    // Check for legacy format: x-api-key header
+    else {
+      const legacyKey = req.headers.get('x-api-key')
+      if (legacyKey) {
+        authFormat = 'x-api-key'
+        providedKey = legacyKey
+        logWarn(
+          '[authenticateApiRequest] Using legacy x-api-key format - please migrate to Authorization: Bearer',
+        )
       }
     }
-    const providedKey = authHeader.substring(7)
+
+    // No authentication provided
+    if (!providedKey) {
+      logWarn('[authenticateApiRequest] No API key provided in request')
+      return {
+        isAuthenticated: false,
+        error:
+          'Missing API key. Use either "Authorization: Bearer <token>" or "x-api-key: <token>" header',
+      }
+    }
+
+    // Validate the API key
     const isValid = providedKey === process.env.PAYLOAD_SECRET
+    const responseTime = Date.now() - startTime
+
+    if (!isValid) {
+      logWarn(
+        `[authenticateApiRequest] Invalid API key attempt using ${authFormat} format (${responseTime}ms)`,
+      )
+      return {
+        isAuthenticated: false,
+        error: 'Invalid API key',
+      }
+    }
+
+    // Log successful authentication
+    logInfo(
+      `[authenticateApiRequest] Successful authentication using ${authFormat} format (${responseTime}ms)`,
+    )
+
+    // Add usage metrics for monitoring
+    if (typeof globalThis !== 'undefined') {
+      globalThis.authMetrics = globalThis.authMetrics || { bearer: 0, 'x-api-key': 0 }
+      globalThis.authMetrics[authFormat]++
+    }
 
     return {
-      isAuthenticated: isValid,
-      error: isValid ? undefined : 'Invalid API key',
-      // Optionally return key info: user: isValid ? apiKeyQuery.docs[0] : undefined
+      isAuthenticated: true,
+      error: undefined,
+      // Could return additional metadata about the authentication method
+      user: { authFormat, responseTime },
     }
   } catch (error) {
-    logError('API Key Authentication Error:', error)
+    const responseTime = Date.now() - startTime
+    logError(`[authenticateApiRequest] Authentication error (${responseTime}ms):`, error)
     return {
       isAuthenticated: false,
       error: 'Failed to verify API key',
@@ -175,23 +225,94 @@ export async function withAuth(
   return handler(req)
 }
 
-// Modified verifyApiKey to check ApiKeys collection and use Authorization header
+// Enhanced verifyApiKey to support both old (x-api-key) and new (Authorization: Bearer) formats
 export async function verifyApiKey(request: Request): Promise<NextResponse | null> {
-  const authHeader = request.headers.get('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return errorResponse('Missing or invalid Authorization header (Bearer token expected)', 401)
-  }
-  const providedKey = authHeader.substring(7)
+  const startTime = Date.now()
+  let authFormat: 'bearer' | 'x-api-key' | 'none' = 'none'
+  let providedKey: string | null = null
 
   try {
-    if (providedKey !== ENV.PAYLOAD_SECRET) {
-      return errorResponse('Invalid API key', 403) // Use 403 Forbidden for invalid keys
+    // Check for new format: Authorization: Bearer <token>
+    const authHeader = request.headers.get('Authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      authFormat = 'bearer'
+      providedKey = authHeader.substring(7)
+      logDebug('[verifyApiKey] Using Authorization: Bearer format')
+    }
+    // Check for legacy format: x-api-key header
+    else {
+      const legacyKey = request.headers.get('x-api-key')
+      if (legacyKey) {
+        authFormat = 'x-api-key'
+        providedKey = legacyKey
+        logWarn(
+          '[verifyApiKey] Using legacy x-api-key format - please migrate to Authorization: Bearer',
+        )
+      }
     }
 
-    // Key is valid
+    // No authentication provided
+    if (!providedKey) {
+      logWarn('[verifyApiKey] No API key provided in request')
+      return errorResponse(
+        'Missing API key. Use either "Authorization: Bearer <token>" or "x-api-key: <token>" header',
+        401,
+      )
+    }
+
+    // Get client IP for validation and tracking
+    const clientIP =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+
+    // Use the new API key service for validation
+    const { apiKeyService } = await import('@/services/apiKeyService')
+    const validationResult = await apiKeyService.validateApiKey(providedKey, clientIP)
+    const responseTime = Date.now() - startTime
+
+    if (!validationResult.isValid) {
+      logWarn(
+        `[verifyApiKey] Invalid API key attempt using ${authFormat} format (${responseTime}ms): ${validationResult.error}`,
+      )
+      return errorResponse(validationResult.error || 'Invalid API key', 403)
+    }
+
+    // Update key usage statistics (fire and forget)
+    if (validationResult.keyData?.id) {
+      apiKeyService
+        .updateKeyUsage({
+          keyId: validationResult.keyData.id,
+          ip: clientIP,
+          userAgent: request.headers.get('user-agent') || undefined,
+        })
+        .catch((error) => {
+          logError('[verifyApiKey] Failed to update key usage:', error)
+        })
+    }
+
+    // Log successful authentication
+    logInfo(
+      `[verifyApiKey] Successful authentication using ${authFormat} format (${responseTime}ms)`,
+    )
+
+    // Add usage metrics for monitoring
+    if (typeof globalThis !== 'undefined') {
+      globalThis.authMetrics = globalThis.authMetrics || { bearer: 0, 'x-api-key': 0 }
+      globalThis.authMetrics[authFormat]++
+    }
+
+    // Add key data to request for downstream use
+    if (typeof (request as any).apiKeyData === 'undefined') {
+      ;(request as any).apiKeyData = {
+        keyData: validationResult.keyData,
+        permissions: validationResult.permissions,
+        rateLimit: validationResult.rateLimit,
+      }
+    }
+
     return null // Indicate success
   } catch (error) {
-    logError('verifyApiKey Error:', error)
+    const responseTime = Date.now() - startTime
+    logError(`[verifyApiKey] Authentication error (${responseTime}ms):`, error)
     return errorResponse('Failed to verify API key', 500)
   }
 }
@@ -224,6 +345,26 @@ export async function verifyWebhookSignature(request: Request): Promise<NextResp
   } catch (error) {
     logError('Webhook signature verification error:', error)
     return errorResponse('Failed to verify webhook signature', 500)
+  }
+}
+
+/**
+ * Get authentication usage metrics for monitoring
+ */
+export function getAuthMetrics(): { bearer: number; 'x-api-key': number; total: number } {
+  const metrics = (globalThis as any).authMetrics || { bearer: 0, 'x-api-key': 0 }
+  return {
+    ...metrics,
+    total: metrics.bearer + metrics['x-api-key'],
+  }
+}
+
+/**
+ * Reset authentication metrics (useful for testing or periodic resets)
+ */
+export function resetAuthMetrics(): void {
+  if (typeof globalThis !== 'undefined') {
+    ;(globalThis as any).authMetrics = { bearer: 0, 'x-api-key': 0 }
   }
 }
 

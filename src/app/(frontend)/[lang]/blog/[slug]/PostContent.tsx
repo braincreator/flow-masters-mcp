@@ -33,7 +33,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
     if (section1InView) {
       try {
         // Analytics tracking for 25% read
-        fetch('/api/v1/blog/metrics', {
+        fetch('/api/blog/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
     if (section2InView) {
       try {
         // Analytics tracking for 75% read
-        fetch('/api/v1/blog/metrics', {
+        fetch('/api/blog/metrics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
       if (scrollPosition > documentHeight * 0.95) {
         try {
           // Analytics tracking for completed read
-          fetch('/api/v1/blog/metrics', {
+          fetch('/api/blog/metrics', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
 
   const trackLinkClick = (url: string) => {
     logDebug('Track link click:', url)
-    fetch('/api/v1/blog/metrics', {
+    fetch('/api/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -128,7 +128,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
 
   const trackShare = (platform: string) => {
     logDebug('Track share:', platform)
-    fetch('/api/v1/blog/metrics', {
+    fetch('/api/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -148,7 +148,7 @@ export default function PostContent({ content, postId }: PostContentProps) {
     const scrollDepth = Math.round((scrollTop / documentHeight) * 100)
 
     logDebug(`Track scroll depth: ${scrollDepth}%`)
-    fetch('/api/v1/blog/metrics', {
+    fetch('/api/blog/metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

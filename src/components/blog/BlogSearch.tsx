@@ -65,7 +65,7 @@ export function BlogSearch({
   const fetchSuggestions = async (query: string): Promise<string[]> => {
     try {
       const response = await fetch(
-        `/api/v1/blog/suggestions?q=${encodeURIComponent(query)}&locale=${currentLocale}`,
+        `/api/blog/suggestions?q=${encodeURIComponent(query)}&locale=${currentLocale}`,
       )
       if (response.ok) {
         const data = await response.json()

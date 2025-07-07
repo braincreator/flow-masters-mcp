@@ -66,7 +66,7 @@ export default function CategoriesMigrationPage() {
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/v1/categories?locale=${currentLocale}`)
+      const response = await fetch(`/api/categories?locale=${currentLocale}`)
       if (!response.ok) throw new Error('Failed to fetch categories')
       const data = await response.json()
       setCategories(data.docs)

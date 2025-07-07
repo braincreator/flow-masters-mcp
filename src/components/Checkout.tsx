@@ -29,7 +29,7 @@ export function Checkout({ locale, onBack, onCheckoutSuccess }: CheckoutProps) {
         throw new Error(t('errorCartEmpty'))
       }
 
-      const response = await fetch('/api/v1/checkout', {
+      const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

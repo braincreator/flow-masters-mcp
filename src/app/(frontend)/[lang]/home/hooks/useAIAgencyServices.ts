@@ -167,7 +167,7 @@ export function useAIAgencyServices({
         limit: limit.toString(),
       })
 
-      const response = await fetch(`/api/v1/services?${params}`)
+      const response = await fetch(`/api/services?${params}`)
 
       if (!response.ok) {
         logWarn('Failed to fetch services from API, using fallback data')

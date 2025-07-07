@@ -5,7 +5,7 @@ The Blocks API provides information about all available blocks that can be used 
 ## Endpoint
 
 ```
-GET /api/v1/blocks
+GET /api/blocks
 ```
 
 ## Authentication
@@ -169,7 +169,7 @@ Example MCP integration:
 ```javascript
 // In MCP server code
 async function getAvailableBlocks() {
-  const response = await fetch('http://your-domain.com/api/v1/blocks', {
+  const response = await fetch('http://your-domain.com/api/blocks', {
     headers: {
       'x-api-key': process.env.API_KEY,
       'Content-Type': 'application/json'

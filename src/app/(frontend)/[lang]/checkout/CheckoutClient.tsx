@@ -420,7 +420,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     const fetchProviders = async () => {
       setIsLoadingProviders(true)
       try {
-        const response = await fetch('/api/v1/payment/providers')
+        const response = await fetch('/api/payment/providers')
         if (!response.ok) throw new Error('Failed to fetch payment providers')
         const data = await response.json()
         let providersData: PaymentProviderOption[] = data.providers || []
@@ -496,7 +496,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
     setDiscountError(null)
 
     try {
-      const response = await fetch('/api/v1/discount/validate', {
+      const response = await fetch('/api/discount/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -670,7 +670,7 @@ export default function CheckoutClient({ locale }: CheckoutClientProps) {
       logDebug('Payment data being sent:', JSON.stringify(paymentData, null, 2))
 
       // Временное решение для отладки - добавляем тестовый режим в URL
-      const paymentEndpoint = '/api/v1/payment/create'
+      const paymentEndpoint = '/api/payment/create'
 
       const response = await fetch(paymentEndpoint, {
         method: 'POST',

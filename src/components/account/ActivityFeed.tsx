@@ -69,7 +69,7 @@ export function ActivityFeed({ userId, locale, limit = 5 }: ActivityFeedProps) {
         logDebug(`Fetching activities for user ${userId} with limit ${limit}`)
 
         // Fetch real activity data from the API
-        const response = await fetch(`/api/v1/user/${userId}/activity?limit=${limit}`, {
+        const response = await fetch(`/api/user/${userId}/activity?limit=${limit}`, {
           method: 'GET',
           credentials: 'include', // Include cookies for authentication
           headers: {

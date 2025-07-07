@@ -131,7 +131,7 @@ export function AIGenerator({ onGeneratedContent, onPreview }: AIGeneratorProps)
       }
 
       // Отправляем запрос на генерацию курса
-      const response = await fetch('/api/v1/ai/generate-course', {
+      const response = await fetch('/api/ai/generate-course', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

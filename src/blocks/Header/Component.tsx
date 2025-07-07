@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { GridContainer } from '@/components/GridContainer'
@@ -63,7 +63,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex shrink-0 items-center">
             {logo?.url ? (
               <Link href="/" className="flex items-center">
-                <img src={logo.url} alt={logo.alt || 'Logo'} className="h-8 w-auto" />
+                <img
+                  src={logo.url}
+                  alt={logo.alt || 'Logo'}
+                  className="h-8 w-8 object-cover rounded-full"
+                />
               </Link>
             ) : (
               <Link href="/" className="text-xl font-bold">

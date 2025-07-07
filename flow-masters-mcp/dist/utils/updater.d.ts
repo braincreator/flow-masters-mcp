@@ -19,6 +19,10 @@ export declare class Updater {
      */
     stopUpdateChecker(): void;
     /**
+     * Освобождение ресурсов при завершении работы
+     */
+    cleanup(): void;
+    /**
      * Проверить наличие обновлений
      */
     checkForUpdates(): Promise<boolean>;

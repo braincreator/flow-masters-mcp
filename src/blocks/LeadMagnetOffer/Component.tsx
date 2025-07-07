@@ -143,7 +143,7 @@ export const LeadMagnetOfferBlock: React.FC<LeadMagnetOfferProps> = ({
 
       if (submissionTarget === 'collection' && submissionSettings?.targetCollection) {
         // Отправка в коллекцию Payload
-        response = await fetch('/api/v1/leads', {
+        response = await fetch('/api/leads', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export const LeadMagnetOfferBlock: React.FC<LeadMagnetOfferProps> = ({
         })
       } else if (submissionTarget === 'email' && emailSettings?.recipientEmail) {
         // Отправка на email
-        response = await fetch('/api/v1/send-email', {
+        response = await fetch('/api/send-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

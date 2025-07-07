@@ -52,7 +52,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
       if (!planId) return
       setIsLoading(true)
       try {
-        const response = await fetch(`/api/v1/subscription/plans/${planId}`)
+        const response = await fetch(`/api/subscription/plans/${planId}`)
         if (!response.ok) throw new Error('Plan not found')
         const data = await response.json()
 
@@ -79,7 +79,7 @@ export default function SubscriptionCheckout({ locale, planId }: SubscriptionChe
       setIsProcessing(true)
       setError(null)
 
-      const response = await fetch('/api/v1/subscription/create', {
+      const response = await fetch('/api/subscription/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -38,6 +38,8 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const client_1 = require("./api/client");
 const updater_1 = require("./utils/updater");
+const endpointsCrawler_1 = require("./utils/endpointsCrawler");
+const llmHandler_1 = require("./utils/llmHandler");
 // Версия из package.json
 const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -58,6 +60,18 @@ try {
                 apiKey: process.env.API_KEY || '',
                 autoUpdate: process.env.AUTO_UPDATE === 'true',
                 updateCheckInterval: parseInt(process.env.UPDATE_CHECK_INTERVAL || '60', 10),
+                basePath: process.env.API_BASE_PATH || '/api',
+                apiVersion: process.env.API_VERSION || '',
+            },
+            llm: {
+                modelContextEnabled: process.env.MODEL_CONTEXT_ENABLED === 'true',
+                allowedModels: process.env.ALLOWED_MODELS ? process.env.ALLOWED_MODELS.split(',') : '*',
+                maxTokens: parseInt(process.env.MAX_TOKENS || '8192', 10),
+                contextWindow: parseInt(process.env.CONTEXT_WINDOW || '4096', 10),
+                caching: {
+                    enabled: process.env.CACHE_ENABLED !== 'false',
+                    ttl: parseInt(process.env.CACHE_TTL || '3600', 10),
+                },
             },
         };
         // Записываем конфигурацию по умолчанию
@@ -73,12 +87,26 @@ catch (error) {
 const apiClient = new client_1.ApiClient(config.apiConfig);
 // Создаем обновлятор и запускаем проверку обновлений
 const updater = new updater_1.Updater(apiClient, currentVersion, config.apiConfig.autoUpdate, config.apiConfig.updateCheckInterval);
+// Создаем сканер эндпоинтов
+const endpointsCrawler = new endpointsCrawler_1.EndpointsCrawler(apiClient);
+// Создаем обработчик LLM запросов
+const llmHandler = new llmHandler_1.LLMHandler(config.llm, endpointsCrawler);
+// Инициализация сканера эндпоинтов
+async function initializeEndpointsCrawler() {
+    try {
+        await endpointsCrawler.loadKnowledgeBase();
+        await endpointsCrawler.updateEndpoints();
+    }
+    catch (error) {
+        console.error('Ошибка при инициализации сканера эндпоинтов:', error);
+    }
+}
 // Слушаем запросы для MCP
 const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
         res.statusCode = 200;
         res.end();
@@ -96,6 +124,11 @@ const server = http.createServer(async (req, res) => {
                 success: isConnected,
                 version: currentVersion,
                 message: isConnected ? 'MCP сервер работает нормально' : 'Ошибка подключения к API',
+                endpointsCount: endpointsCrawler.getEndpointCount(),
+                apiConfig: {
+                    basePath: config.apiConfig.basePath,
+                    apiVersion: config.apiConfig.apiVersion,
+                },
             }));
         }
         else if (pathname === '/mcp/version') {
@@ -105,7 +138,8 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({
                 success: true,
                 version: currentVersion,
-                apiVersion: versionInfo.data?.apiVersion || 'unknown',
+                apiVersion: versionInfo.data?.apiVersion || config.apiConfig.apiVersion,
+                basePath: config.apiConfig.basePath,
                 data: versionInfo.data,
             }));
         }
@@ -124,6 +158,143 @@ const server = http.createServer(async (req, res) => {
                 success: true,
                 hasUpdate,
                 currentVersion,
+            }));
+        }
+        else if (pathname === '/mcp/endpoints') {
+            // Получить список доступных эндпоинтов
+            const query = url.searchParams.get('query') || '';
+            const endpoints = query
+                ? endpointsCrawler.searchEndpoints(query)
+                : endpointsCrawler.getAllEndpoints();
+            res.statusCode = 200;
+            res.end(JSON.stringify({
+                success: true,
+                endpoints,
+                totalEndpoints: endpointsCrawler.getEndpointCount(),
+                query: query || undefined,
+            }));
+        }
+        else if (pathname === '/mcp/endpoints/refresh') {
+            // Обновить список эндпоинтов
+            const updated = await endpointsCrawler.updateEndpoints();
+            res.statusCode = updated ? 200 : 500;
+            res.end(JSON.stringify({
+                success: updated,
+                message: updated ? 'Эндпоинты успешно обновлены' : 'Не удалось обновить эндпоинты',
+                endpointsCount: endpointsCrawler.getEndpointCount(),
+            }));
+        }
+        else if (pathname === '/mcp/context') {
+            // Обработка запроса на получение контекста модели
+            if (req.method === 'POST') {
+                let body = '';
+                req.on('data', (chunk) => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const request = JSON.parse(body);
+                        if (!request.query) {
+                            res.statusCode = 400;
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Query is required',
+                            }));
+                            return;
+                        }
+                        const response = await llmHandler.handleModelContextRequest(request);
+                        res.statusCode = response.success ? 200 : 400;
+                        res.end(JSON.stringify(response));
+                    }
+                    catch (error) {
+                        console.error('Error processing context request:', error);
+                        res.statusCode = 500;
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        }));
+                    }
+                });
+                return;
+            }
+            else {
+                res.statusCode = 405;
+                res.end(JSON.stringify({
+                    success: false,
+                    error: 'Method not allowed',
+                }));
+            }
+        }
+        else if (pathname === '/mcp/blocks') {
+            // Получить список доступных блоков для шаблонов страниц
+            const blocksResponse = await apiClient.getAvailableBlocks();
+            res.statusCode = blocksResponse.success ? 200 : 500;
+            res.end(JSON.stringify(blocksResponse));
+        }
+        else if (pathname === '/mcp/proxy') {
+            // Прокси для API запросов
+            if (req.method === 'POST') {
+                let body = '';
+                req.on('data', (chunk) => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const proxyRequest = JSON.parse(body);
+                        const { method, path, data, params, headers } = proxyRequest;
+                        if (!method || !path) {
+                            res.statusCode = 400;
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Method and path are required',
+                            }));
+                            return;
+                        }
+                        const response = await apiClient.request(method, path, data, params, headers);
+                        res.statusCode = 200;
+                        res.end(JSON.stringify(response));
+                    }
+                    catch (error) {
+                        console.error('Error in proxy request:', error);
+                        res.statusCode = 500;
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        }));
+                    }
+                });
+                return;
+            }
+            else {
+                res.statusCode = 405;
+                res.end(JSON.stringify({
+                    success: false,
+                    error: 'Method not allowed',
+                }));
+            }
+        }
+        else if (pathname === '/') {
+            // Корневой эндпоинт с информацией о сервере
+            res.statusCode = 200;
+            res.end(JSON.stringify({
+                name: 'Flow Masters MCP Server',
+                description: 'Model Context Protocol server for Flow Masters API',
+                version: currentVersion,
+                apiVersion: config.apiConfig.apiVersion,
+                basePath: config.apiConfig.basePath,
+                endpoints: [
+                    '/mcp/health',
+                    '/mcp/version',
+                    '/mcp/integrations',
+                    '/mcp/check-update',
+                    '/mcp/endpoints',
+                    '/mcp/endpoints/refresh',
+                    '/mcp/context',
+                    '/mcp/proxy',
+                    '/mcp/blocks',
+                ],
+                llmSupport: config.llm.modelContextEnabled,
+                endpointsCount: endpointsCrawler.getEndpointCount(),
             }));
         }
         else {
@@ -147,9 +318,13 @@ const server = http.createServer(async (req, res) => {
 // Запускаем сервер
 const port = config.port || 3030;
 const host = config.host || 'localhost';
-server.listen(port, host, () => {
+server.listen(port, host, async () => {
     console.log(`MCP сервер запущен: http://${host}:${port}`);
     console.log(`Версия: ${currentVersion}`);
+    console.log(`API URL: ${config.apiConfig.apiUrl}${config.apiConfig.basePath}/${config.apiConfig.apiVersion}`);
+    // Инициализация сканера эндпоинтов
+    await initializeEndpointsCrawler();
+    console.log(`Загружено ${endpointsCrawler.getEndpointCount()} API эндпоинтов`);
     // Запускаем проверку обновлений
     updater.startUpdateChecker();
     // Тестируем соединение с API

@@ -55,7 +55,7 @@ export function UserCertificates({ locale }: UserCertificatesProps) {
       try {
         setLoading(true)
         // In a real app, you would fetch certificates from an API
-        const response = await fetch(`/api/v1/user/${user.id}/certificates`)
+        const response = await fetch(`/api/user/${user.id}/certificates`)
 
         if (response.ok) {
           const data = await response.json()

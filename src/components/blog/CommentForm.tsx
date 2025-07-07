@@ -165,7 +165,7 @@ export function CommentForm({
 
       logDebug('CommentForm fallback sending:', JSON.stringify(payload, null, 2))
 
-      const response = await fetch('/api/v1/blog/comment', {
+      const response = await fetch('/api/blog/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

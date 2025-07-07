@@ -112,7 +112,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
             email: user?.email || customerEmail || prefill?.email,
           })
 
-          const response = await fetch('/api/v1/orders/initiate-service-order', {
+          const response = await fetch('/api/orders/initiate-service-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -328,7 +328,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
           })
         })
 
-        const uploadResponse = await fetch('/api/v1/orders/upload-additional-files', {
+        const uploadResponse = await fetch('/api/orders/upload-additional-files', {
           method: 'POST',
           body: formData,
         })
@@ -360,7 +360,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     // Now submit the combined additional info to the backend
     if (orderId) {
       try {
-        const response = await fetch('/api/v1/orders/update-additional-info', {
+        const response = await fetch('/api/orders/update-additional-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId, additionalInfo: finalAdditionalInfo, locale }),
@@ -410,7 +410,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     if (!orderIdToCreate) return false
 
     try {
-      const response = await fetch('/api/v1/service-projects/create-from-order', {
+      const response = await fetch('/api/service-projects/create-from-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: orderIdToCreate }),
@@ -436,7 +436,7 @@ export const ServiceBookingFlow: React.FC<ServiceBookingFlowProps> = ({
     setIsCheckingProject(true)
     try {
       const response = await fetch(
-        `/api/v1/service-projects/check-exists?orderId=${orderIdToCheck}`,
+        `/api/service-projects/check-exists?orderId=${orderIdToCheck}`,
       )
       const data = await response.json()
 

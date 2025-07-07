@@ -57,6 +57,8 @@ async function checkForUpdates() {
                 apiKey: process.env.API_KEY || '',
                 autoUpdate: process.env.AUTO_UPDATE === 'true',
                 updateCheckInterval: parseInt(process.env.UPDATE_CHECK_INTERVAL || '60', 10),
+                basePath: process.env.API_BASE_PATH || '/api',
+                apiVersion: process.env.API_VERSION || '',
             };
         }
         if (!config.apiKey) {
@@ -68,6 +70,8 @@ async function checkForUpdates() {
             apiKey: config.apiKey,
             autoUpdate: config.autoUpdate,
             updateCheckInterval: config.updateCheckInterval,
+            basePath: config.basePath,
+            apiVersion: config.apiVersion,
         });
         const updater = new updater_1.Updater(apiClient, currentVersion, config.autoUpdate, config.updateCheckInterval);
         const hasUpdate = await updater.checkForUpdates();

@@ -29,7 +29,7 @@ try {
         autoUpdate: process.env.AUTO_UPDATE === 'true',
         updateCheckInterval: parseInt(process.env.UPDATE_CHECK_INTERVAL || '60', 10),
         basePath: process.env.API_BASE_PATH || '/api',
-        apiVersion: process.env.API_VERSION || 'v1',
+        apiVersion: process.env.API_VERSION || '',
       },
       llm: {
         modelContextEnabled: process.env.MODEL_CONTEXT_ENABLED === 'true',

@@ -365,7 +365,7 @@ export function BlogPostPageClient({
                 <NewsletterWrapper
                   locale={currentLocale}
                   storageKey="blog_newsletter_subscription"
-                  className="sidebar-newsletter"
+                  className="newsletter-sidebar"
                 />
               </div>
             </aside>

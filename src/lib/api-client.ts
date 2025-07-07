@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import { API_CONFIG, buildApiPath } from '@/config/api-routes'
 
-// Конфигурация API
-const API_VERSION = 'v1'
-const BASE_URL = `/api/${API_VERSION}`
+// Конфигурация API (теперь централизованная)
+const BASE_URL = API_CONFIG.VERSION ? `/api/${API_CONFIG.VERSION}` : '/api'
 
 // Тип для параметров запроса
 interface RequestParams {

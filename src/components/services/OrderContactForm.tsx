@@ -143,7 +143,7 @@ export default function OrderContactForm({
     ]
 
     try {
-      const response = await fetch('/api/v1/leads', {
+      const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

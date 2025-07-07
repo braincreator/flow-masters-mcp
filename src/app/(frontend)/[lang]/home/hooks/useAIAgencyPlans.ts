@@ -208,7 +208,7 @@ export function useAIAgencyPlans({
         limit: limit.toString(),
       })
 
-      const response = await fetch(`/api/v1/subscription/plans?${params}`)
+      const response = await fetch(`/api/subscription/plans?${params}`)
 
       if (!response.ok) {
         logWarn(

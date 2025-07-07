@@ -36,7 +36,7 @@ export const CallToActionBlock: React.FC<CallToActionBlockProps> = ({
   return (
     <div
       className={cn(
-        'py-12',
+        'py-12 max-w-full overflow-hidden',
         {
           'bg-background': background === 'none',
           'bg-muted': background === 'light',
@@ -47,9 +47,9 @@ export const CallToActionBlock: React.FC<CallToActionBlockProps> = ({
       )}
     >
       <div
-        className={cn('container', {
+        className={cn('container max-w-full px-4', {
           'text-center': style === 'centered',
-          'grid grid-cols-2 gap-8 items-center': style === 'split',
+          'grid grid-cols-1 lg:grid-cols-2 gap-8 items-center': style === 'split',
         })}
       >
         <div className={cn({ 'max-w-2xl mx-auto': style === 'centered' })}>

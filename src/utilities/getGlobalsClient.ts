@@ -3,7 +3,7 @@
 
 export async function fetchGlobal(slug: string, depth = 1, locale: string = 'en') {
   try {
-    const res = await fetch(`/api/v1/globals/${slug}?depth=${depth}&locale=${locale}`, {
+    const res = await fetch(`/api/globals/${slug}?depth=${depth}&locale=${locale}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export async function fetchGlobal(slug: string, depth = 1, locale: string = 'en'
 
 export async function updateGlobal(slug: string, data: any, depth = 0, locale = 'en') {
   try {
-    const response = await fetch(`/api/v1/globals/${slug}?depth=${depth}&locale=${locale}`, {
+    const response = await fetch(`/api/globals/${slug}?depth=${depth}&locale=${locale}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

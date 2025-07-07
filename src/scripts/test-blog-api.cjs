@@ -54,15 +54,15 @@ async function testBlogAPI() {
   const endpoints = [
     {
       name: 'Blog Posts List',
-      url: `${baseUrl}/api/v1/blog/posts?limit=5&locale=en`
+      url: `${baseUrl}/api/blog/posts?limit=5&locale=en`
     },
     {
       name: 'Blog Posts List (Russian)',
-      url: `${baseUrl}/api/v1/blog/posts?limit=5&locale=ru`
+      url: `${baseUrl}/api/blog/posts?limit=5&locale=ru`
     },
     {
       name: 'Blog Search',
-      url: `${baseUrl}/api/v1/blog/search?q=test`
+      url: `${baseUrl}/api/blog/search?q=test`
     }
   ]
 

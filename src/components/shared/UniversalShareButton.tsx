@@ -125,7 +125,7 @@ export function UniversalShareButton({
     // Если есть postId, отправляем аналитику для блога
     if (postId) {
       try {
-        await fetch('/api/v1/blog/share', {
+        await fetch('/api/blog/share', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

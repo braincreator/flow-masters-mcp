@@ -48,7 +48,7 @@ export function RecommendedCourses({ userId, locale, limit = 3 }: RecommendedCou
         setIsLoading(true)
 
         // Fetch real recommended courses from the API
-        const response = await fetch(`/api/v1/user/${userId}/recommended-courses?limit=${limit}`, {
+        const response = await fetch(`/api/user/${userId}/recommended-courses?limit=${limit}`, {
           method: 'GET',
           credentials: 'include', // Include cookies for authentication
           headers: {

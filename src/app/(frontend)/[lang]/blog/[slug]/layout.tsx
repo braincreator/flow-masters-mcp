@@ -21,7 +21,7 @@ export default function BlogPostLayout({ children, params }: Props) {
   useEffect(() => {
     // Track post view on component mount (only on client)
     if (typeof window !== 'undefined') {
-      fetch('/api/v1/blog/post-view', {
+      fetch('/api/blog/post-view', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: slug }),

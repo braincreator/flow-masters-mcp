@@ -93,7 +93,7 @@ export const blogApi = {
     const cacheKey = `blog-posts-${params.toString()}`
 
     // Fetch posts
-    return apiFetch(`/api/v1/blog/posts?${params.toString()}`, {}, cacheKey, 300) // Cache for 5 minutes
+    return apiFetch(`/api/blog/posts?${params.toString()}`, {}, cacheKey, 300) // Cache for 5 minutes
   },
 
   /**
@@ -107,7 +107,7 @@ export const blogApi = {
     const cacheKey = `blog-post-${slug}-${locale}`
 
     // Fetch post
-    return apiFetch(`/api/v1/blog/posts/${slug}?locale=${locale}`, {}, cacheKey, 300) // Cache for 5 minutes
+    return apiFetch(`/api/blog/posts/${slug}?locale=${locale}`, {}, cacheKey, 300) // Cache for 5 minutes
   },
 
   /**
@@ -124,7 +124,7 @@ export const blogApi = {
     const cacheKey = `blog-search-${query}`
 
     // Fetch search results
-    return apiFetch(`/api/v1/blog/search?q=${encodeURIComponent(query)}`, {}, cacheKey, 60) // Cache for 1 minute
+    return apiFetch(`/api/blog/search?q=${encodeURIComponent(query)}`, {}, cacheKey, 60) // Cache for 1 minute
   },
 
   /**
@@ -137,7 +137,7 @@ export const blogApi = {
     const cacheKey = `blog-comments-${postId}`
 
     // Fetch comments
-    return apiFetch(`/api/v1/blog/comment?postId=${postId}`, {}, cacheKey, 60) // Cache for 1 minute
+    return apiFetch(`/api/blog/comment?postId=${postId}`, {}, cacheKey, 60) // Cache for 1 minute
   },
 
   /**
@@ -163,7 +163,7 @@ export const blogApi = {
     logDebug('blogApi.addComment sending:', JSON.stringify(commentData, null, 2))
 
     // Submit comment
-    return apiFetch('/api/v1/blog/comment', {
+    return apiFetch('/api/blog/comment', {
       method: 'POST',
       body: JSON.stringify(commentData),
     })
@@ -174,7 +174,7 @@ export const blogApi = {
    * @param slug Post slug
    */
   async trackPostView(slug: string) {
-    return apiFetch('/api/v1/blog/post-view', {
+    return apiFetch('/api/blog/post-view', {
       method: 'POST',
       body: JSON.stringify({ slug }),
     })
@@ -187,7 +187,7 @@ export const blogApi = {
    * @param data Additional data
    */
   async trackMetrics(postId: string, action: string, data: any = {}) {
-    return apiFetch('/api/v1/blog/metrics', {
+    return apiFetch('/api/blog/metrics', {
       method: 'POST',
       body: JSON.stringify({
         postId,
@@ -234,7 +234,7 @@ export const searchApi = {
     const cacheKey = `search-${params.toString()}`
 
     // Fetch search results
-    return apiFetch(`/api/v1/search?${params.toString()}`, {}, cacheKey, 60, cacheInstance) // Cache for 1 minute, pass cacheInstance
+    return apiFetch(`/api/search?${params.toString()}`, {}, cacheKey, 60, cacheInstance) // Cache for 1 minute, pass cacheInstance
   },
 
   /**
@@ -252,7 +252,7 @@ export const searchApi = {
 
     // Fetch search suggestions
     return apiFetch(
-      `/api/v1/search/suggestions?q=${encodeURIComponent(input)}`,
+      `/api/search/suggestions?q=${encodeURIComponent(input)}`,
       {},
       cacheKey,
       60,
@@ -282,6 +282,6 @@ export const localeApi = {
     const cacheKey = `translations-${locale}${namespace ? `-${namespace}` : ''}`
 
     // Fetch translations
-    return apiFetch(`/api/v1/translations/${locale}?${params.toString()}`, {}, cacheKey, 3600) // Cache for 1 hour
+    return apiFetch(`/api/translations/${locale}?${params.toString()}`, {}, cacheKey, 3600) // Cache for 1 hour
   },
 }

@@ -629,7 +629,7 @@ export class ProviderService implements AIProviderService {
     try {
       // OpenRouter предоставляет публичный API для списка моделей без ключа
       // Всегда пытаемся получить список моделей без ключа
-      const response = await fetch('https://openrouter.ai/api/v1/models')
+      const response = await fetch('https://openrouter.ai/api/models')
 
       if (!response.ok) {
         throw new Error(`Failed to fetch OpenRouter models: ${response.statusText}`)

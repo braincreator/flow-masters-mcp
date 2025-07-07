@@ -40,7 +40,7 @@ const SetupRewardsPage: React.FC = () => {
       }
 
       // Now call the setup-rewards endpoint
-      const response = await fetch('/api/v1/setup-rewards', {
+      const response = await fetch('/api/setup-rewards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

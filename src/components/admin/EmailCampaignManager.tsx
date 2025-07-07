@@ -82,7 +82,7 @@ const EmailCampaignManager: React.FC = () => {
 
   const handleTriggerCampaign = async (campaignId: string) => {
     try {
-      const response = await fetch('/api/v1/email-campaigns/trigger', {
+      const response = await fetch('/api/email-campaigns/trigger', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ const EmailCampaignManager: React.FC = () => {
 
   const handleViewDetails = async (campaignId: string) => {
     try {
-      const response = await fetch(`/api/v1/email-campaigns/status?id=${campaignId}`, {
+      const response = await fetch(`/api/email-campaigns/status?id=${campaignId}`, {
         credentials: 'include', // Include cookies for authentication
       })
 

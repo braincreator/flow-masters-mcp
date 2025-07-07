@@ -22,7 +22,7 @@ export default function BlocksApiDocPage() {
           </Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/api/v1/blocks" className="flex items-center gap-2" target="_blank">
+          <Link href="/api/blocks" className="flex items-center gap-2" target="_blank">
             <Code className="h-4 w-4" />
             Try API Endpoint
           </Link>

@@ -35,7 +35,7 @@ export function CourseAnalytics({ courseId }: CourseAnalyticsProps) {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`/api/v1/analytics/courses?courseId=${id}`)
+      const response = await fetch(`/api/analytics/courses?courseId=${id}`)
       const result = await response.json()
       
       if (!response.ok) {
@@ -57,7 +57,7 @@ export function CourseAnalytics({ courseId }: CourseAnalyticsProps) {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('/api/v1/analytics/courses')
+      const response = await fetch('/api/analytics/courses')
       const result = await response.json()
       
       if (!response.ok) {

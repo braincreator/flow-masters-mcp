@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/utilities/payload/index'
+import { verifyApiKey } from '@/utilities/auth'
 
 import { logDebug, logInfo, logWarn, logError } from '@/utils/logger'
 export async function GET(req: NextRequest) {
   try {
-    logDebug('GET /api/debug/collections: Received request')
+    // Debug endpoints should be protected with API key authentication
+    const authResult = await verifyApiKey(req)
+    if (authResult) {
+      return authResult
+    }
+
+    logDebug('GET /api/debug/collections: Received authenticated request')
 
     // Get the Payload client
     const payload = await getPayloadClient()

@@ -2,12 +2,12 @@
   "port": 3030,
   "host": "0.0.0.0",
   "apiConfig": {
-    "apiUrl": "https://flow-masters.ru",
-    "apiKey": "your-api-key-here",
+    "apiUrl": "http://localhost:3000",
+    "apiKey": "your-secret-here-change-in-production",
     "autoUpdate": true,
     "updateCheckInterval": 60,
     "basePath": "/api",
-    "apiVersion": "v1"
+    "apiVersion": ""
   },
   "llm": {
     "modelContextEnabled": true,

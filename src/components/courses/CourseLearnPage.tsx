@@ -45,7 +45,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
         setAccessLoading(true)
 
         // Check if user has access to this course
-        const response = await fetch('/api/v1/courses/access', {
+        const response = await fetch('/api/courses/access', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
         // If user has access, get their progress
         if (data.hasAccess) {
           const enrollmentResponse = await fetch(
-            `/api/v1/courses/enrollment?userId=${user.id}&courseId=${course.id}`,
+            `/api/courses/enrollment?userId=${user.id}&courseId=${course.id}`,
           )
 
           if (enrollmentResponse.ok) {
@@ -93,7 +93,7 @@ export function CourseLearnPage({ course, modules, locale }: CourseLearnPageProp
     if (!user) return
 
     try {
-      const response = await fetch('/api/v1/courses/enrollment', {
+      const response = await fetch('/api/courses/enrollment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

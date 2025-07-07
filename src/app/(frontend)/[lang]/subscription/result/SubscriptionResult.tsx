@@ -40,7 +40,7 @@ export function SubscriptionResult({
       if (!subscriptionId) return
       setLoading(true)
       try {
-        const response = await fetch(`/api/v1/subscription/${subscriptionId}`)
+        const response = await fetch(`/api/subscription/${subscriptionId}`)
         if (!response.ok) throw new Error('Subscription not found')
         const data = await response.json()
 
