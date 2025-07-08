@@ -98,6 +98,9 @@ import { WebhookLogs } from './WebhookLogs' // Import WebhookLogs collection
 // Marketing and Analytics
 import { Pixels } from './Pixels' // Import Pixels collection
 
+// Security
+import { ApiKeys } from '../payload/collections/ApiKeys' // Import ApiKeys collection
+
 const collections = [
   // Core / Site
   Pages,
@@ -198,6 +201,9 @@ const collections = [
 
   // Marketing and Analytics
   Pixels, // Add Pixels collection to the array
+
+  // Security
+  ApiKeys, // Add ApiKeys collection to the array
 ]
 
 export default collections

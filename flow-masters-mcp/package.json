@@ -5,13 +5,16 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "cursor-flow-masters-mcp": "./dist/index.js",
+    "cursor-flow-masters-mcp": "./dist/stdio.js",
+    "flow-masters-mcp-server": "./dist/index.js",
     "flow-masters-mcp-install": "./bin/install-to-cursor.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:stdio": "node dist/stdio.js --stdio",
     "dev": "ts-node src/index.ts",
+    "dev:stdio": "ts-node src/stdio.ts --stdio",
     "watch": "tsc --watch",
     "check-update": "node dist/checkUpdate.js",
     "prepublishOnly": "npm run build",

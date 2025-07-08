@@ -7,6 +7,7 @@ import { EndpointsCrawler } from './utils/endpointsCrawler'
 import { LLMHandler } from './utils/llmHandler'
 import { MCPServerConfig, ModelContextRequest } from './types'
 import axios from 'axios'
+import { toolDiscovery } from './tools/discovery'
 
 // Версия из package.json
 const packageJsonPath = path.resolve(__dirname, '..', 'package.json')
@@ -292,11 +293,69 @@ const server = http.createServer(async (req, res) => {
             '/mcp/context',
             '/mcp/proxy',
             '/mcp/blocks',
+            '/mcp/tools',
+            '/mcp/tools/search',
+            '/mcp/tools/metadata',
+            '/mcp/tools/protocol',
+            '/mcp/tools/guidance',
           ],
           llmSupport: config.llm.modelContextEnabled,
           endpointsCount: endpointsCrawler.getEndpointCount(),
         }),
       )
+    } else if (pathname === '/mcp/tools') {
+      // Get all available tools
+      const result = toolDiscovery.getAllTools()
+      res.statusCode = result.success ? 200 : 500
+      res.end(JSON.stringify(result))
+    } else if (pathname === '/mcp/tools/search') {
+      // Search tools by query
+      const query = url.searchParams.get('q') || url.searchParams.get('query') || ''
+      if (!query) {
+        res.statusCode = 400
+        res.end(
+          JSON.stringify({
+            success: false,
+            error: 'Query parameter (q or query) is required',
+          }),
+        )
+        return
+      }
+      const result = toolDiscovery.searchTools(query)
+      res.statusCode = result.success ? 200 : 500
+      res.end(JSON.stringify(result))
+    } else if (pathname === '/mcp/tools/metadata') {
+      // Get tools metadata
+      const result = toolDiscovery.getToolsMetadata()
+      res.statusCode = result.success ? 200 : 500
+      res.end(JSON.stringify(result))
+    } else if (pathname === '/mcp/tools/protocol') {
+      // Get MCP protocol-compliant tool definitions
+      const result = toolDiscovery.getMCPProtocolTools()
+      res.statusCode = result.jsonrpc ? 200 : 500
+      res.end(JSON.stringify(result))
+    } else if (pathname === '/mcp/tools/guidance') {
+      // Get comprehensive LLM guidance
+      const guidance = toolDiscovery.generateLLMGuidance()
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'text/markdown')
+      res.end(guidance)
+    } else if (pathname.startsWith('/mcp/tools/')) {
+      // Get specific tool by name
+      const toolName = pathname.replace('/mcp/tools/', '')
+      if (!toolName) {
+        res.statusCode = 400
+        res.end(
+          JSON.stringify({
+            success: false,
+            error: 'Tool name is required',
+          }),
+        )
+        return
+      }
+      const result = toolDiscovery.getToolByName(toolName)
+      res.statusCode = result.success ? 200 : 404
+      res.end(JSON.stringify(result))
     } else {
       // Неизвестный путь
       res.statusCode = 404

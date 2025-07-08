@@ -6,13 +6,17 @@ Model Context Protocol (MCP) сервер для интеграции с Flow Ma
 
 ## Особенности
 
+- **Полная поддержка MCP протокола** с comprehensive tool discovery
+- **LLM-оптимизированная документация** для максимальной понятности
 - Унифицированный базовый путь (/api/) для всех API эндпоинтов
 - Автоматическое индексирование API эндпоинтов
 - Поддержка контекстных запросов для LLM
 - Кеширование контекста для повышения производительности
-- Проксирование запросов к API
+- Проксирование запросов к API с автоматической аутентификацией
 - Автоматическое обновление
 - Гибкая поддержка версионности API (опционально)
+- **Comprehensive tool discovery** для LLM интеграции
+- **Детальная документация ошибок** и их решений
 
 ## Установка и развертывание
 
@@ -27,6 +31,7 @@ npm start
 ### Docker развертывание
 
 #### Продакшн (независимый сервер)
+
 ```bash
 # Установите API_KEY
 export API_KEY=your-api-key-here
@@ -36,12 +41,14 @@ export API_KEY=your-api-key-here
 ```
 
 #### Разработка (с локальным API)
+
 ```bash
 # Запуск версии для разработки
 ./deploy-development.sh
 ```
 
 #### Ручное развертывание через Docker Compose
+
 ```bash
 # Продакшн
 docker-compose -f docker-compose.production.yml up -d
@@ -84,6 +91,7 @@ docker-compose -f docker-compose.development.yml up -d
 ### Сценарии развертывания
 
 #### 1. Локальная разработка (MCP и API на одной машине)
+
 ```json
 {
   "apiConfig": {
@@ -94,6 +102,7 @@ docker-compose -f docker-compose.development.yml up -d
 ```
 
 #### 2. Продакшн (MCP на отдельном сервере)
+
 ```json
 {
   "apiConfig": {
@@ -104,6 +113,7 @@ docker-compose -f docker-compose.development.yml up -d
 ```
 
 #### 3. Docker контейнер (API в другом контейнере)
+
 ```json
 {
   "apiConfig": {
@@ -226,9 +236,135 @@ const data = await response.json()
 console.log(data) // Результаты запроса к API
 ```
 
+## MCP Tool Discovery
+
+Сервер предоставляет comprehensive tool discovery для LLM интеграции с детальной документацией всех доступных инструментов.
+
+### Получить все доступные инструменты
+
+```javascript
+const response = await fetch('http://localhost:3030/mcp/tools')
+const data = await response.json()
+console.log(data.tools) // Список всех инструментов с полной документацией
+```
+
+### Поиск инструментов
+
+```javascript
+const response = await fetch('http://localhost:3030/mcp/tools/search?q=api')
+const data = await response.json()
+console.log(data.tools) // Инструменты, связанные с API
+```
+
+### Получить конкретный инструмент
+
+```javascript
+const response = await fetch('http://localhost:3030/mcp/tools/get_api_health')
+const data = await response.json()
+console.log(data.tool) // Детальная информация об инструменте
+```
+
+### MCP Protocol-совместимый формат
+
+```javascript
+const response = await fetch('http://localhost:3030/mcp/tools/protocol')
+const data = await response.json()
+console.log(data.result.tools) // Инструменты в MCP-совместимом формате
+```
+
+### LLM Guidance
+
+```javascript
+const response = await fetch('http://localhost:3030/mcp/tools/guidance')
+const guidance = await response.text() // Markdown документация для LLM
+console.log(guidance)
+```
+
+### Доступные инструменты
+
+- **get_api_health** - Проверка состояния API
+- **get_api_endpoints** - Получение списка API эндпоинтов
+- **refresh_api_endpoints** - Обновление кеша эндпоинтов
+- **get_model_context** - Получение контекста для LLM
+- **proxy_api_request** - Выполнение API запросов через прокси
+- **get_integrations** - Получение списка интеграций
+- **check_for_updates** - Проверка обновлений сервера
+
+Каждый инструмент включает:
+
+- Детальное описание и назначение
+- Список случаев использования
+- Условия срабатывания
+- Схемы входных и выходных данных
+- Примеры использования
+- Обработка ошибок и их решения
+
 ## Интеграция с LLM
 
-MCP сервер поддерживает интеграцию с Cursor через специальный плагин, который можно установить через команду:
+### Подключение через MCP Protocol (рекомендуется)
+
+MCP сервер поддерживает стандартный MCP протокол для интеграции с Cursor, Claude Desktop и другими MCP клиентами.
+
+#### Конфигурация для Cursor:
+
+```json
+{
+  "mcpServers": {
+    "Flow Masters MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "cursor-flow-masters-mcp",
+        "--stdio",
+        "--api-key=your-api-key-here",
+        "--api-url=http://localhost:3000",
+        "--base-path=/api",
+        "--api-version=v1"
+      ]
+    }
+  }
+}
+```
+
+#### Конфигурация для Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "flow-masters": {
+      "command": "npx",
+      "args": ["-y", "cursor-flow-masters-mcp", "--stdio", "--api-key=your-api-key-here"],
+      "env": {
+        "API_URL": "http://localhost:3000",
+        "API_BASE_PATH": "/api",
+        "API_VERSION": "v1"
+      }
+    }
+  }
+}
+```
+
+#### Локальная разработка:
+
+```json
+{
+  "mcpServers": {
+    "flow-masters-dev": {
+      "command": "node",
+      "args": [
+        "/path/to/flow-masters-mcp/dist/stdio.js",
+        "--stdio",
+        "--api-key=dev-api-key",
+        "--api-url=http://localhost:3000"
+      ]
+    }
+  }
+}
+```
+
+### Подключение через HTTP (альтернативный способ)
+
+Также можно использовать HTTP режим через специальный плагин:
 
 ```bash
 npm run install-to-cursor
