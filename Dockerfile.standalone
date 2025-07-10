@@ -1,0 +1,47 @@
+FROM node:20-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY flow-masters-mcp/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY flow-masters-mcp/src ./src
+COPY flow-masters-mcp/tsconfig.json ./
+
+# Build the application
+RUN npm run build
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Metadata
+LABEL description="Flow Masters Model Context Protocol (MCP) server for API management"
+LABEL version="2.0.0"
+LABEL maintainer="Flow Masters Team"
+
+# Environment variables
+ENV PORT=3030 \
+    HOST=0.0.0.0 \
+    API_URL=http://host.docker.internal:3000 \
+    API_KEY=08c93b8544167b018efded89 \
+    AUTO_UPDATE=true \
+    UPDATE_CHECK_INTERVAL=60 \
+    API_BASE_PATH=/api \
+    API_VERSION=v1 \
+    MODEL_CONTEXT_ENABLED=true \
+    ALLOWED_MODELS=* \
+    MAX_TOKENS=8192 \
+    CONTEXT_WINDOW=4096 \
+    CACHE_ENABLED=true \
+    CACHE_TTL=3600
+
+# Expose port
+EXPOSE ${PORT}
+
+# Start the server
+CMD ["node", "dist/index.js"]

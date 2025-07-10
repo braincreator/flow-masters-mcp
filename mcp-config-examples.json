@@ -1,0 +1,178 @@
+{
+  "examples": {
+    "cursor": {
+      "description": "Configuration for Cursor IDE",
+      "config": {
+        "mcpServers": {
+          "Flow Masters MCP": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "cursor-flow-masters-mcp",
+              "--stdio",
+              "--api-key=your-api-key-here",
+              "--api-url=http://localhost:3000",
+              "--base-path=/api",
+              "--api-version=v1"
+            ]
+          }
+        }
+      }
+    },
+    "claude-desktop": {
+      "description": "Configuration for Claude Desktop",
+      "config": {
+        "mcpServers": {
+          "flow-masters": {
+            "command": "npx",
+            "args": [
+              "-y", 
+              "cursor-flow-masters-mcp",
+              "--stdio",
+              "--api-key=your-api-key-here"
+            ],
+            "env": {
+              "API_URL": "http://localhost:3000",
+              "API_BASE_PATH": "/api",
+              "API_VERSION": "v1"
+            }
+          }
+        }
+      }
+    },
+    "local-development": {
+      "description": "Configuration for local development",
+      "config": {
+        "mcpServers": {
+          "flow-masters-dev": {
+            "command": "node",
+            "args": [
+              "/path/to/flow-masters-mcp/dist/stdio.js",
+              "--stdio",
+              "--api-key=dev-api-key",
+              "--api-url=http://localhost:3000"
+            ]
+          }
+        }
+      }
+    },
+    "production": {
+      "description": "Configuration for production environment",
+      "config": {
+        "mcpServers": {
+          "flow-masters-prod": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "cursor-flow-masters-mcp@latest",
+              "--stdio",
+              "--api-key=prod-api-key-here",
+              "--api-url=https://api.flow-masters.ru",
+              "--base-path=/api",
+              "--api-version=v1"
+            ]
+          }
+        }
+      }
+    },
+    "docker": {
+      "description": "Configuration using Docker container",
+      "config": {
+        "mcpServers": {
+          "flow-masters-docker": {
+            "command": "docker",
+            "args": [
+              "run",
+              "--rm",
+              "-i",
+              "--network=host",
+              "-e", "API_KEY=your-api-key",
+              "-e", "API_URL=http://localhost:3000",
+              "flow-masters-mcp:latest",
+              "node", "dist/stdio.js", "--stdio"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "required": {
+      "--api-key": "Your Flow Masters API key (required)",
+      "--stdio": "Enable stdio protocol mode (required for MCP clients)"
+    },
+    "optional": {
+      "--api-url": "Flow Masters API URL (default: http://localhost:3000)",
+      "--base-path": "API base path (default: /api)",
+      "--api-version": "API version (default: v1)"
+    },
+    "environment_variables": {
+      "API_KEY": "Alternative to --api-key parameter",
+      "API_URL": "Alternative to --api-url parameter", 
+      "API_BASE_PATH": "Alternative to --base-path parameter",
+      "API_VERSION": "Alternative to --api-version parameter",
+      "MODEL_CONTEXT_ENABLED": "Enable LLM context features (default: true)",
+      "MAX_TOKENS": "Maximum tokens for responses (default: 8192)",
+      "CONTEXT_WINDOW": "Context window size (default: 4096)",
+      "CACHE_ENABLED": "Enable caching (default: true)",
+      "CACHE_TTL": "Cache TTL in seconds (default: 3600)"
+    }
+  },
+  "tools": {
+    "available": [
+      {
+        "name": "get_api_health",
+        "description": "Check Flow Masters API health status"
+      },
+      {
+        "name": "get_api_endpoints", 
+        "description": "Get list of available API endpoints"
+      },
+      {
+        "name": "refresh_api_endpoints",
+        "description": "Refresh cached API endpoints"
+      },
+      {
+        "name": "get_model_context",
+        "description": "Get contextual information for LLM queries"
+      },
+      {
+        "name": "proxy_api_request",
+        "description": "Execute authenticated API requests"
+      },
+      {
+        "name": "get_integrations",
+        "description": "Get available integrations"
+      },
+      {
+        "name": "check_for_updates",
+        "description": "Check for MCP server updates"
+      }
+    ]
+  },
+  "installation": {
+    "npm": "npm install -g cursor-flow-masters-mcp",
+    "npx": "npx -y cursor-flow-masters-mcp --stdio --api-key=your-key",
+    "local": "git clone repo && npm install && npm run build"
+  },
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "API key not provided",
+        "solution": "Add --api-key=your-key or set API_KEY environment variable"
+      },
+      {
+        "issue": "Connection refused",
+        "solution": "Check that Flow Masters API is running on specified URL"
+      },
+      {
+        "issue": "Permission denied",
+        "solution": "Verify API key has proper permissions in Flow Masters admin"
+      },
+      {
+        "issue": "Tool not found",
+        "solution": "Check tool name spelling and ensure MCP server is up to date"
+      }
+    ]
+  }
+}

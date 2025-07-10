@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  flow-masters-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flow-masters-mcp
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    environment:
+      # API Configuration (основное приложение Flow Masters)
+      - API_URL=https://flow-masters.ru
+      - API_KEY=${API_KEY}
+      - API_BASE_PATH=/api
+      - API_VERSION=
+      
+      # MCP Server Configuration
+      - PORT=3030
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      
+      # LLM Configuration
+      - MODEL_CONTEXT_ENABLED=true
+      - ALLOWED_MODELS=*
+      - MAX_TOKENS=8192
+      - CONTEXT_WINDOW=4096
+      
+      # Cache Configuration
+      - CACHE_ENABLED=true
+      - CACHE_TTL=300
+      - CACHE_MAX_SIZE=100
+      
+      # Auto Update Settings
+      - AUTO_UPDATE=true
+      - UPDATE_CHECK_INTERVAL=60
+      
+      # Logging
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs:/app/logs
+      - ./config.json:/app/config.json:ro
+    networks:
+      - mcp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/mcp/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  mcp-logs:
+    driver: local
