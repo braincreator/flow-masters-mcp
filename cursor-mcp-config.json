@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "flow-masters": {
+      "command": "node",
+      "args": [
+        "/Users/braincreator/Projects/flow-masters/flow-masters-mcp/dist/stdio.js"
+      ],
+      "env": {
+        "API_KEY": "your-api-key-here",
+        "API_URL": "https://flow-masters.ru",
+        "API_BASE_PATH": "/api",
+        "API_VERSION": "v1",
+        "MODEL_CONTEXT_ENABLED": "true",
+        "ALLOWED_MODELS": "*",
+        "MAX_TOKENS": "8192",
+        "CONTEXT_WINDOW": "4096",
+        "CACHE_ENABLED": "true",
+        "CACHE_TTL": "3600"
+      }
+    }
+  }
+}

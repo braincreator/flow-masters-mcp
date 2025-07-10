@@ -4,15 +4,16 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-# Устанавливаем curl для healthcheck
-RUN apk add --no-cache curl
+# Устанавливаем curl для healthcheck и pnpm
+RUN apk add --no-cache curl && \
+    npm install -g pnpm
 
 # --- Dependencies stage ---
 FROM base AS deps
 # Копируем файлы зависимостей
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 # Устанавливаем все зависимости
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # --- Build stage ---
 FROM deps AS builder
@@ -20,7 +21,7 @@ FROM deps AS builder
 COPY tsconfig.json ./
 COPY src ./src
 # Сборка проекта
-RUN npm run build
+RUN pnpm run build
 
 # --- Development stage ---
 FROM deps AS development
@@ -30,13 +31,13 @@ COPY src ./src
 # Открываем порт для разработки
 EXPOSE 3030
 # Команда для разработки
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]
 
 # --- Production stage ---
 FROM base AS production
 # Копируем только production зависимости
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 
 # Копируем собранный код
 COPY --from=builder /app/dist ./dist
