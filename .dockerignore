@@ -164,7 +164,7 @@ docker-compose*
 .eslintrc*
 .prettierrc*
 jest.config*
-tsconfig.json
+# tsconfig.json - needed for Docker build
 
 # Build artifacts that we don't want to copy
 dist/
